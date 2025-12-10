@@ -221,7 +221,8 @@ class CurvesEffectOperation : public CurvesSculptStrokeOperation {
  public:
   CurvesEffectOperation(std::unique_ptr<CurvesEffect> effect) : effect_(std::move(effect)) {}
 
-  void on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension) override;
+  void on_stroke_extended(const PaintStroke &stroke,
+                          const StrokeExtension &stroke_extension) override;
 };
 
 /**
@@ -253,16 +254,14 @@ struct CurvesEffectOperationExecutor {
   float2 brush_pos_start_re_;
   float2 brush_pos_end_re_;
 
-  CurvesEffectOperationExecutor(const bContext &C) : ctx_(C) {}
+  CurvesEffectOperationExecutor(const PaintStroke &stroke) : ctx_(stroke) {}
 
-  void execute(CurvesEffectOperation &self,
-               const bContext &C,
-               const StrokeExtension &stroke_extension)
+  void execute(CurvesEffectOperation &self, const StrokeExtension &stroke_extension)
   {
     BLI_SCOPED_DEFER([&]() { self.last_mouse_position_ = stroke_extension.mouse_position; });
 
     self_ = &self;
-    object_ = CTX_data_active_object(&C);
+    object_ = ctx_.object;
 
     curves_id_ = static_cast<Curves *>(object_->data);
     curves_ = &curves_id_->geometry.wrap();
@@ -490,17 +489,16 @@ struct CurvesEffectOperationExecutor {
   }
 };
 
-void CurvesEffectOperation::on_stroke_extended(const bContext &C,
+void CurvesEffectOperation::on_stroke_extended(const PaintStroke &stroke,
                                                const StrokeExtension &stroke_extension)
 {
-  CurvesEffectOperationExecutor executor{C};
-  executor.execute(*this, C, stroke_extension);
+  CurvesEffectOperationExecutor executor{stroke};
+  executor.execute(*this, stroke_extension);
 }
 
 std::unique_ptr<CurvesSculptStrokeOperation> new_grow_shrink_operation(
-    const BrushStrokeMode brush_mode, const bContext &C)
+    const BrushStrokeMode brush_mode, const Scene &scene)
 {
-  const Scene &scene = *CTX_data_scene(&C);
   const Brush &brush = *BKE_paint_brush_for_read(&scene.toolsettings->curves_sculpt->paint);
   const bool use_scale_uniform = brush.curves_sculpt_settings->flag &
                                  BRUSH_CURVES_SCULPT_FLAG_SCALE_UNIFORM;

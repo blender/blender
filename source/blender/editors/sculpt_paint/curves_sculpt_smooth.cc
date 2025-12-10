@@ -30,7 +30,8 @@ class SmoothOperation : public CurvesSculptStrokeOperation {
   friend struct SmoothOperationExecutor;
 
  public:
-  void on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension) override;
+  void on_stroke_extended(const PaintStroke &stroke,
+                          const StrokeExtension &stroke_extension) override;
 };
 
 /**
@@ -58,14 +59,13 @@ struct SmoothOperationExecutor {
 
   CurvesSurfaceTransforms transforms_;
 
-  SmoothOperationExecutor(const bContext &C) : ctx_(C) {}
+  SmoothOperationExecutor(const PaintStroke &stroke) : ctx_(stroke) {}
 
-  void execute(SmoothOperation &self, const bContext &C, const StrokeExtension &stroke_extension)
+  void execute(SmoothOperation &self, const StrokeExtension &stroke_extension)
   {
-    UNUSED_VARS(C, stroke_extension);
     self_ = &self;
 
-    object_ = CTX_data_active_object(&C);
+    object_ = ctx_.object;
     curves_id_ = static_cast<Curves *>(object_->data);
     curves_ = &curves_id_->geometry.wrap();
     if (curves_->is_empty()) {
@@ -248,11 +248,11 @@ struct SmoothOperationExecutor {
   }
 };
 
-void SmoothOperation::on_stroke_extended(const bContext &C,
+void SmoothOperation::on_stroke_extended(const PaintStroke &stroke,
                                          const StrokeExtension &stroke_extension)
 {
-  SmoothOperationExecutor executor{C};
-  executor.execute(*this, C, stroke_extension);
+  SmoothOperationExecutor executor{stroke};
+  executor.execute(*this, stroke_extension);
 }
 
 std::unique_ptr<CurvesSculptStrokeOperation> new_smooth_operation()

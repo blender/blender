@@ -120,11 +120,16 @@ float brush_strength_get(const Paint &paint,
 }
 
 static std::unique_ptr<CurvesSculptStrokeOperation> start_brush_operation(
-    bContext &C, wmOperator &op, const StrokeExtension &stroke_start)
+    wmOperator &op,
+    Scene &scene,
+    Depsgraph &depsgraph,
+    ARegion &region,
+    View3D &v3d,
+    const Object &object,
+    const StrokeExtension &stroke_start)
 {
   const BrushStrokeMode mode = BrushStrokeMode(RNA_enum_get(op.ptr, "mode"));
 
-  const Scene &scene = *CTX_data_scene(&C);
   const CurvesSculpt &curves_sculpt = *scene.toolsettings->curves_sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&curves_sculpt.paint);
   const eBrushCurvesSculptType brush_type = (mode == BRUSH_STROKE_SMOOTH) ?
@@ -142,17 +147,17 @@ static std::unique_ptr<CurvesSculptStrokeOperation> start_brush_operation(
     case CURVES_SCULPT_BRUSH_TYPE_ADD:
       return new_add_operation();
     case CURVES_SCULPT_BRUSH_TYPE_GROW_SHRINK:
-      return new_grow_shrink_operation(mode, C);
+      return new_grow_shrink_operation(mode, scene);
     case CURVES_SCULPT_BRUSH_TYPE_SELECTION_PAINT:
-      return new_selection_paint_operation(mode, C);
+      return new_selection_paint_operation(mode, scene);
     case CURVES_SCULPT_BRUSH_TYPE_PINCH:
-      return new_pinch_operation(mode, C);
+      return new_pinch_operation(mode, scene);
     case CURVES_SCULPT_BRUSH_TYPE_SMOOTH:
       return new_smooth_operation();
     case CURVES_SCULPT_BRUSH_TYPE_PUFF:
       return new_puff_operation();
     case CURVES_SCULPT_BRUSH_TYPE_DENSITY:
-      return new_density_operation(mode, C, stroke_start);
+      return new_density_operation(mode, scene, depsgraph, region, v3d, object, stroke_start);
     case CURVES_SCULPT_BRUSH_TYPE_SLIDE:
       return new_slide_operation();
   }
@@ -201,14 +206,20 @@ void SculptCurvesBrushStroke::update_step(wmOperator *op, PointerRNA *stroke_ele
 
   if (!operation_) {
     stroke_extension.is_first = true;
-    operation_ = start_brush_operation(*this->evil_C, *op, stroke_extension);
+    operation_ = start_brush_operation(*op,
+                                       *this->vc.scene,
+                                       *this->vc.depsgraph,
+                                       *this->vc.region,
+                                       *this->vc.v3d,
+                                       *this->object,
+                                       stroke_extension);
   }
   else {
     stroke_extension.is_first = false;
   }
 
   if (operation_) {
-    operation_->on_stroke_extended(*this->evil_C, stroke_extension);
+    operation_->on_stroke_extended(*this, stroke_extension);
   }
 }
 

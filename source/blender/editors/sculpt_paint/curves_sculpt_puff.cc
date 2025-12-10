@@ -41,7 +41,8 @@ class PuffOperation : public CurvesSculptStrokeOperation {
   friend struct PuffOperationExecutor;
 
  public:
-  void on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension) override;
+  void on_stroke_extended(const PaintStroke &stroke,
+                          const StrokeExtension &stroke_extension) override;
 };
 
 /**
@@ -77,14 +78,13 @@ struct PuffOperationExecutor {
   Span<float3> corner_normals_su_;
   bke::BVHTreeFromMesh surface_bvh_;
 
-  PuffOperationExecutor(const bContext &C) : ctx_(C) {}
+  PuffOperationExecutor(const PaintStroke &stroke) : ctx_(stroke) {}
 
-  void execute(PuffOperation &self, const bContext &C, const StrokeExtension &stroke_extension)
+  void execute(PuffOperation &self, const StrokeExtension &stroke_extension)
   {
-    UNUSED_VARS(C, stroke_extension);
     self_ = &self;
 
-    object_ = CTX_data_active_object(&C);
+    object_ = ctx_.object;
     curves_id_ = static_cast<Curves *>(object_->data);
     curves_ = &curves_id_->geometry.wrap();
     if (curves_->is_empty()) {
@@ -338,10 +338,11 @@ struct PuffOperationExecutor {
   }
 };
 
-void PuffOperation::on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension)
+void PuffOperation::on_stroke_extended(const PaintStroke &stroke,
+                                       const StrokeExtension &stroke_extension)
 {
-  PuffOperationExecutor executor{C};
-  executor.execute(*this, C, stroke_extension);
+  PuffOperationExecutor executor{stroke};
+  executor.execute(*this, stroke_extension);
 }
 
 std::unique_ptr<CurvesSculptStrokeOperation> new_puff_operation()

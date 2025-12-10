@@ -866,6 +866,7 @@ PaintStroke::PaintStroke(bContext *C, wmOperator *op, int event_type) : event_ty
 
   this->evil_C = C;
   this->vc = ED_view3d_viewcontext_init(C, depsgraph);
+  this->object = CTX_data_active_object(C);
 
   stroke_mode_ = RNA_enum_get(op->ptr, "mode");
 

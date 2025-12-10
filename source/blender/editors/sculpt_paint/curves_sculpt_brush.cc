@@ -398,13 +398,14 @@ void move_last_point_and_resample(MoveAndResampleBuffers &buffer,
   positions.last() = new_last_position;
 }
 
-CurvesSculptCommonContext::CurvesSculptCommonContext(const bContext &C)
+CurvesSculptCommonContext::CurvesSculptCommonContext(const PaintStroke &stroke)
 {
-  this->depsgraph = CTX_data_depsgraph_pointer(&C);
-  this->scene = CTX_data_scene(&C);
-  this->region = CTX_wm_region(&C);
-  this->v3d = CTX_wm_view3d(&C);
-  this->rv3d = CTX_wm_region_view3d(&C);
+  this->depsgraph = stroke.vc.depsgraph;
+  this->scene = stroke.vc.scene;
+  this->region = stroke.vc.region;
+  this->v3d = stroke.vc.v3d;
+  this->rv3d = stroke.vc.rv3d;
+  this->object = stroke.object;
 }
 
 void report_empty_original_surface(ReportList *reports)

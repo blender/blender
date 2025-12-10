@@ -70,7 +70,8 @@ class SlideOperation : public CurvesSculptStrokeOperation {
   friend struct SlideOperationExecutor;
 
  public:
-  void on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension) override;
+  void on_stroke_extended(const PaintStroke &stroke,
+                          const StrokeExtension &stroke_extension) override;
 };
 
 /**
@@ -115,14 +116,13 @@ struct SlideOperationExecutor {
 
   std::atomic<bool> found_invalid_uv_mapping_{false};
 
-  SlideOperationExecutor(const bContext &C) : ctx_(C) {}
+  SlideOperationExecutor(const PaintStroke &stroke) : ctx_(stroke) {}
 
-  void execute(SlideOperation &self, const bContext &C, const StrokeExtension &stroke_extension)
+  void execute(SlideOperation &self, const StrokeExtension &stroke_extension)
   {
-    UNUSED_VARS(C, stroke_extension);
     self_ = &self;
 
-    curves_ob_orig_ = CTX_data_active_object(&C);
+    curves_ob_orig_ = ctx_.object;
     curves_id_orig_ = static_cast<Curves *>(curves_ob_orig_->data);
     curves_orig_ = &curves_id_orig_->geometry.wrap();
     if (curves_id_orig_->surface == nullptr || curves_id_orig_->surface->type != OB_MESH) {
@@ -472,10 +472,11 @@ struct SlideOperationExecutor {
   }
 };
 
-void SlideOperation::on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension)
+void SlideOperation::on_stroke_extended(const PaintStroke &stroke,
+                                        const StrokeExtension &stroke_extension)
 {
-  SlideOperationExecutor executor{C};
-  executor.execute(*this, C, stroke_extension);
+  SlideOperationExecutor executor{stroke};
+  executor.execute(*this, stroke_extension);
 }
 
 std::unique_ptr<CurvesSculptStrokeOperation> new_slide_operation()

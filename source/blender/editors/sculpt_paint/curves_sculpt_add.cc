@@ -69,7 +69,8 @@ class AddOperation : public CurvesSculptStrokeOperation {
     }
   }
 
-  void on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension) override;
+  void on_stroke_extended(const PaintStroke &stroke,
+                          const StrokeExtension &stroke_extension) override;
 };
 
 /**
@@ -103,12 +104,12 @@ struct AddOperationExecutor {
 
   CurvesSurfaceTransforms transforms_;
 
-  AddOperationExecutor(const bContext &C) : ctx_(C) {}
+  AddOperationExecutor(const PaintStroke &stroke) : ctx_(stroke) {}
 
-  void execute(AddOperation &self, const bContext &C, const StrokeExtension &stroke_extension)
+  void execute(AddOperation &self, const StrokeExtension &stroke_extension)
   {
     self_ = &self;
-    curves_ob_orig_ = CTX_data_active_object(&C);
+    curves_ob_orig_ = ctx_.object;
 
     curves_id_orig_ = static_cast<Curves *>(curves_ob_orig_->data);
     curves_orig_ = &curves_id_orig_->geometry.wrap();
@@ -509,10 +510,11 @@ struct AddOperationExecutor {
   }
 };
 
-void AddOperation::on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension)
+void AddOperation::on_stroke_extended(const PaintStroke &stroke,
+                                      const StrokeExtension &stroke_extension)
 {
-  AddOperationExecutor executor{C};
-  executor.execute(*this, C, stroke_extension);
+  AddOperationExecutor executor{stroke};
+  executor.execute(*this, stroke_extension);
 }
 
 std::unique_ptr<CurvesSculptStrokeOperation> new_add_operation()

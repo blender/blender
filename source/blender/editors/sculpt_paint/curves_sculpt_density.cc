@@ -62,7 +62,8 @@ class DensityAddOperation : public CurvesSculptStrokeOperation {
     }
   }
 
-  void on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension) override;
+  void on_stroke_extended(const PaintStroke &stroke,
+                          const StrokeExtension &stroke_extension) override;
 };
 
 struct DensityAddOperationExecutor {
@@ -92,14 +93,12 @@ struct DensityAddOperationExecutor {
 
   CurvesSurfaceTransforms transforms_;
 
-  DensityAddOperationExecutor(const bContext &C) : ctx_(C) {}
+  DensityAddOperationExecutor(const PaintStroke &stroke) : ctx_(stroke) {}
 
-  void execute(DensityAddOperation &self,
-               const bContext &C,
-               const StrokeExtension &stroke_extension)
+  void execute(DensityAddOperation &self, const StrokeExtension &stroke_extension)
   {
     self_ = &self;
-    curves_ob_orig_ = CTX_data_active_object(&C);
+    curves_ob_orig_ = ctx_.object;
     curves_id_orig_ = static_cast<Curves *>(curves_ob_orig_->data);
     curves_orig_ = &curves_id_orig_->geometry.wrap();
 
@@ -469,11 +468,11 @@ struct DensityAddOperationExecutor {
   }
 };
 
-void DensityAddOperation::on_stroke_extended(const bContext &C,
+void DensityAddOperation::on_stroke_extended(const PaintStroke &stroke,
                                              const StrokeExtension &stroke_extension)
 {
-  DensityAddOperationExecutor executor{C};
-  executor.execute(*this, C, stroke_extension);
+  DensityAddOperationExecutor executor{stroke};
+  executor.execute(*this, stroke_extension);
 }
 
 class DensitySubtractOperation : public CurvesSculptStrokeOperation {
@@ -488,7 +487,8 @@ class DensitySubtractOperation : public CurvesSculptStrokeOperation {
   Vector<float3> deformed_root_positions_;
 
  public:
-  void on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension) override;
+  void on_stroke_extended(const PaintStroke &stroke,
+                          const StrokeExtension &stroke_extension) override;
 };
 
 /**
@@ -526,15 +526,13 @@ struct DensitySubtractOperationExecutor {
 
   KDTree_3d *root_points_kdtree_;
 
-  DensitySubtractOperationExecutor(const bContext &C) : ctx_(C) {}
+  DensitySubtractOperationExecutor(const PaintStroke &stroke) : ctx_(stroke) {}
 
-  void execute(DensitySubtractOperation &self,
-               const bContext &C,
-               const StrokeExtension &stroke_extension)
+  void execute(DensitySubtractOperation &self, const StrokeExtension &stroke_extension)
   {
     self_ = &self;
 
-    object_ = CTX_data_active_object(&C);
+    object_ = ctx_.object;
 
     curves_id_ = static_cast<Curves *>(object_->data);
     curves_ = &curves_id_->geometry.wrap();
@@ -784,26 +782,26 @@ struct DensitySubtractOperationExecutor {
   }
 };
 
-void DensitySubtractOperation::on_stroke_extended(const bContext &C,
+void DensitySubtractOperation::on_stroke_extended(const PaintStroke &stroke,
                                                   const StrokeExtension &stroke_extension)
 {
-  DensitySubtractOperationExecutor executor{C};
-  executor.execute(*this, C, stroke_extension);
+  DensitySubtractOperationExecutor executor{stroke};
+  executor.execute(*this, stroke_extension);
 }
 
 /**
  * Detects whether the brush should be in Add or Subtract mode.
  */
 static bool use_add_density_mode(const BrushStrokeMode brush_mode,
-                                 const bContext &C,
+                                 const Scene &scene,
+                                 const Depsgraph &depsgraph,
+                                 const ARegion &region,
+                                 const View3D &v3d,
+                                 const Object &object,
                                  const StrokeExtension &stroke_start)
 {
-  const Scene &scene = *CTX_data_scene(&C);
   const Paint &paint = scene.toolsettings->curves_sculpt->paint;
   const Brush &brush = *BKE_paint_brush_for_read(&scene.toolsettings->curves_sculpt->paint);
-  const Depsgraph &depsgraph = *CTX_data_depsgraph_on_load(&C);
-  const ARegion &region = *CTX_wm_region(&C);
-  const View3D &v3d = *CTX_wm_view3d(&C);
 
   const eBrushCurvesSculptDensityMode density_mode = eBrushCurvesSculptDensityMode(
       brush.curves_sculpt_settings->density_mode);
@@ -816,7 +814,7 @@ static bool use_add_density_mode(const BrushStrokeMode brush_mode,
     return use_invert;
   }
 
-  const Object &curves_ob_orig = *CTX_data_active_object(&C);
+  const Object &curves_ob_orig = object;
   const Curves &curves_id_orig = *static_cast<Curves *>(curves_ob_orig.data);
   Object *surface_ob_orig = curves_id_orig.surface;
   if (surface_ob_orig == nullptr) {
@@ -906,9 +904,15 @@ static bool use_add_density_mode(const BrushStrokeMode brush_mode,
 }
 
 std::unique_ptr<CurvesSculptStrokeOperation> new_density_operation(
-    const BrushStrokeMode brush_mode, const bContext &C, const StrokeExtension &stroke_start)
+    BrushStrokeMode brush_mode,
+    const Scene &scene,
+    const Depsgraph &depsgraph,
+    const ARegion &region,
+    const View3D &v3d,
+    const Object &object,
+    const StrokeExtension &stroke_start)
 {
-  if (use_add_density_mode(brush_mode, C, stroke_start)) {
+  if (use_add_density_mode(brush_mode, scene, depsgraph, region, v3d, object, stroke_start)) {
     return std::make_unique<DensityAddOperation>();
   }
   return std::make_unique<DensitySubtractOperation>();
