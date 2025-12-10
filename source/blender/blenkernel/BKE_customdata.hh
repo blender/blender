@@ -534,15 +534,11 @@ int CustomData_get_named_layer_index(const CustomData *data,
 int CustomData_get_named_layer_index_notype(const CustomData *data, blender::StringRef name);
 int CustomData_get_active_layer_index(const CustomData *data, eCustomDataType type);
 int CustomData_get_render_layer_index(const CustomData *data, eCustomDataType type);
-int CustomData_get_clone_layer_index(const CustomData *data, eCustomDataType type);
-int CustomData_get_stencil_layer_index(const CustomData *data, eCustomDataType type);
 int CustomData_get_named_layer(const CustomData *data,
                                eCustomDataType type,
                                blender::StringRef name);
 int CustomData_get_active_layer(const CustomData *data, eCustomDataType type);
 int CustomData_get_render_layer(const CustomData *data, eCustomDataType type);
-int CustomData_get_clone_layer(const CustomData *data, eCustomDataType type);
-int CustomData_get_stencil_layer(const CustomData *data, eCustomDataType type);
 
 /**
  * Returns name of the active layer of the given type or NULL
@@ -566,8 +562,6 @@ void CustomData_bmesh_set_n(
  */
 void CustomData_set_layer_active(CustomData *data, eCustomDataType type, int n);
 void CustomData_set_layer_render(CustomData *data, eCustomDataType type, int n);
-void CustomData_set_layer_clone(CustomData *data, eCustomDataType type, int n);
-void CustomData_set_layer_stencil(CustomData *data, eCustomDataType type, int n);
 
 /**
  * For using with an index from #CustomData_get_active_layer_index and
@@ -575,7 +569,6 @@ void CustomData_set_layer_stencil(CustomData *data, eCustomDataType type, int n)
  */
 void CustomData_set_layer_active_index(CustomData *data, eCustomDataType type, int n);
 void CustomData_set_layer_render_index(CustomData *data, eCustomDataType type, int n);
-void CustomData_set_layer_clone_index(CustomData *data, eCustomDataType type, int n);
 
 /**
  * Adds flag to the layer flags.

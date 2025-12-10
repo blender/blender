@@ -132,8 +132,6 @@ inline const Mesh &editmesh_final_or_this(const Object &object, const Mesh &mesh
   return mesh;
 }
 
-const CustomData &mesh_cd_ldata_get_from_mesh(const Mesh &mesh);
-
 BLI_INLINE BMFace *bm_original_face_get(const MeshRenderData &mr, int idx)
 {
   return ((mr.orig_index_face != nullptr) && (mr.orig_index_face[idx] != ORIGINDEX_NONE) &&

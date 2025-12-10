@@ -358,22 +358,6 @@ const SortedFaceData &mesh_render_data_faces_sorted_ensure(const MeshRenderData 
 /** \name Mesh/BMesh Interface (indirect, partially cached access to complex data).
  * \{ */
 
-const CustomData &mesh_cd_ldata_get_from_mesh(const Mesh &mesh)
-{
-  switch (mesh.runtime->wrapper_type) {
-    case ME_WRAPPER_TYPE_SUBD:
-    case ME_WRAPPER_TYPE_MDATA:
-      return mesh.corner_data;
-      break;
-    case ME_WRAPPER_TYPE_BMESH:
-      return mesh.runtime->edit_mesh->bm->ldata;
-      break;
-  }
-
-  BLI_assert(0);
-  return mesh.corner_data;
-}
-
 static bool bm_edge_is_sharp(const BMEdge *const &edge)
 {
   return !BM_elem_flag_test(edge, BM_ELEM_SMOOTH);

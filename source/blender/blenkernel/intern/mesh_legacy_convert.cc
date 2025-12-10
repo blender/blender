@@ -593,12 +593,6 @@ static void update_active_fdata_layers(Mesh &mesh, CustomData *fdata_legacy, Cus
 
     act = CustomData_get_render_layer(ldata, CD_PROP_FLOAT2);
     CustomData_set_layer_render(fdata_legacy, CD_MTFACE, act);
-
-    act = CustomData_get_clone_layer(ldata, CD_PROP_FLOAT2);
-    CustomData_set_layer_clone(fdata_legacy, CD_MTFACE, act);
-
-    act = CustomData_get_stencil_layer(ldata, CD_PROP_FLOAT2);
-    CustomData_set_layer_stencil(fdata_legacy, CD_MTFACE, act);
   }
 
   if (CustomData_has_layer(ldata, CD_PROP_BYTE_COLOR)) {
@@ -617,12 +611,6 @@ static void update_active_fdata_layers(Mesh &mesh, CustomData *fdata_legacy, Cus
         CustomData_set_layer_render(fdata_legacy, CD_MCOL, act);
       }
     }
-
-    act = CustomData_get_clone_layer(ldata, CD_PROP_BYTE_COLOR);
-    CustomData_set_layer_clone(fdata_legacy, CD_MCOL, act);
-
-    act = CustomData_get_stencil_layer(ldata, CD_PROP_BYTE_COLOR);
-    CustomData_set_layer_stencil(fdata_legacy, CD_MCOL, act);
   }
 }
 
@@ -769,12 +757,6 @@ static void CustomData_bmesh_do_versions_update_active_layers(CustomData *fdata_
 
     act = CustomData_get_render_layer(fdata_legacy, CD_MTFACE);
     CustomData_set_layer_render(corner_data, CD_PROP_FLOAT2, act);
-
-    act = CustomData_get_clone_layer(fdata_legacy, CD_MTFACE);
-    CustomData_set_layer_clone(corner_data, CD_PROP_FLOAT2, act);
-
-    act = CustomData_get_stencil_layer(fdata_legacy, CD_MTFACE);
-    CustomData_set_layer_stencil(corner_data, CD_PROP_FLOAT2, act);
   }
 
   if (CustomData_has_layer(fdata_legacy, CD_MCOL)) {
@@ -783,12 +765,6 @@ static void CustomData_bmesh_do_versions_update_active_layers(CustomData *fdata_
 
     act = CustomData_get_render_layer(fdata_legacy, CD_MCOL);
     CustomData_set_layer_render(corner_data, CD_PROP_BYTE_COLOR, act);
-
-    act = CustomData_get_clone_layer(fdata_legacy, CD_MCOL);
-    CustomData_set_layer_clone(corner_data, CD_PROP_BYTE_COLOR, act);
-
-    act = CustomData_get_stencil_layer(fdata_legacy, CD_MCOL);
-    CustomData_set_layer_stencil(corner_data, CD_PROP_BYTE_COLOR, act);
   }
 }
 

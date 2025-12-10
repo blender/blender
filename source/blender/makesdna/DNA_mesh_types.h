@@ -187,6 +187,10 @@ typedef struct Mesh {
    * Typical access should be through #Mesh::default_uv_map_name() rather than direct.
    */
   char *default_uv_map_attribute;
+  /** UV map selection used for texture paint masking. */
+  char *stencil_uv_map_attribute;
+  /** UV map selection used for texture paint clone brush. */
+  char *clone_uv_map_attribute;
 
   /**
    * User-defined symmetry flag (#eMeshSymmetryType) that causes editing operations to maintain

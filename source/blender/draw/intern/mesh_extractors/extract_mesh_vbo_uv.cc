@@ -22,9 +22,7 @@ namespace blender::draw {
  * found, false otherwise. */
 static VectorSet<StringRef> mesh_extract_uv_format_init(GPUVertFormat *format,
                                                         const MeshBatchCache &cache,
-                                                        const CustomData *cd_ldata,
-                                                        const StringRef active_name,
-                                                        const StringRef default_name,
+                                                        const Mesh &mesh,
                                                         const MeshExtractType extract_type)
 {
   GPU_vertformat_deinterleave(format);
@@ -34,6 +32,9 @@ static VectorSet<StringRef> mesh_extract_uv_format_init(GPUVertFormat *format,
     uv_layers.add_new(name);
   }
 
+  const StringRef active_name = mesh.active_uv_map_name();
+  const StringRef default_name = mesh.default_uv_map_name();
+
   /* HACK to fix #68857 */
   if (extract_type == MeshExtractType::BMesh && cache.cd_used.edit_uv == 1) {
     if (!bke::attribute_name_is_anonymous(default_name)) {
@@ -42,11 +43,11 @@ static VectorSet<StringRef> mesh_extract_uv_format_init(GPUVertFormat *format,
   }
 
   const StringRef stencil_name = [&]() -> StringRef {
-    const int stencil_index = CustomData_get_stencil_layer_index(cd_ldata, CD_PROP_FLOAT2);
-    if (stencil_index == -1) {
-      return "";
+    StringRef name = mesh.stencil_uv_map_attribute;
+    if (name.is_empty()) {
+      name = mesh.active_uv_map_name();
     }
-    return cd_ldata->layers[stencil_index].name;
+    return name;
   }();
 
   for (const StringRef name : uv_layers) {
@@ -80,12 +81,7 @@ gpu::VertBufPtr extract_uv_maps(const MeshRenderData &mr, const MeshBatchCache &
 
   int v_len = mr.corners_num;
   const VectorSet<StringRef> uv_layers = mesh_extract_uv_format_init(
-      &format,
-      cache,
-      (mr.extract_type == MeshExtractType::BMesh) ? &mr.bm->ldata : &mr.mesh->corner_data,
-      mr.mesh->active_uv_map_name(),
-      mr.mesh->default_uv_map_name(),
-      mr.extract_type);
+      &format, cache, *mr.mesh, mr.extract_type);
   if (uv_layers.is_empty()) {
     /* VBO will not be used, only allocate minimum of memory. */
     v_len = 1;
@@ -145,12 +141,7 @@ gpu::VertBufPtr extract_uv_maps_subdiv(const DRWSubdivCache &subdiv_cache,
   GPUVertFormat format = {0};
 
   const VectorSet<StringRef> uv_layers = mesh_extract_uv_format_init(
-      &format,
-      cache,
-      &coarse_mesh->corner_data,
-      coarse_mesh->active_uv_map_name(),
-      coarse_mesh->default_uv_map_name(),
-      MeshExtractType::Mesh);
+      &format, cache, *coarse_mesh, MeshExtractType::Mesh);
 
   uint v_len = subdiv_cache.num_subdiv_loops;
   if (uv_layers.is_empty()) {

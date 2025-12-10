@@ -26,10 +26,6 @@ typedef struct CustomDataLayer {
   int active;
   /** Number of the layer to render. */
   int active_rnd;
-  /** Number of the layer to render. */
-  int active_clone;
-  /** Number of the layer to render. */
-  int active_mask;
   /** Shape key-block unique id reference. */
   int uid;
   /** Layer name. */
