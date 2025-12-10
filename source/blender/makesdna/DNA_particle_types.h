@@ -14,9 +14,9 @@
 
 #ifdef __cplusplus
 namespace blender {
-struct KDTree_3d;
+template<int DimsNum> struct KDTree;
 }  // namespace blender
-using KDTree3d = blender::KDTree_3d;
+using KDTree3d = blender::KDTree<3>;
 #else
 typedef struct KDTree3d KDTree3d;
 #endif

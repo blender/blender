@@ -33,7 +33,7 @@ static KDTree_3d *build_kdtree(const Span<float3> positions, const IndexMask &ma
 
 static int find_nearest_non_self(const KDTree_3d &tree, const float3 &position, const int index)
 {
-  return kdtree_3d_find_nearest_cb_cpp(
+  return kdtree_find_nearest_cb_cpp<3>(
       &tree,
       position,
       nullptr,
