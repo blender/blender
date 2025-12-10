@@ -211,8 +211,13 @@ class ShapeKeyItem : public ui::AbstractTreeViewItem {
     PointerRNA shapekey_ptr = RNA_pointer_create_discrete(
         &shape_key_.key->id, &RNA_ShapeKey, shape_key_.kb);
 
-    if (shape_key_.index > 0) {
-      sub->prop(&shapekey_ptr, "value", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
+    if (shape_key_.key->type == KEY_NORMAL) {
+      sub->prop(&shapekey_ptr, "frame", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
+    }
+    else {
+      if (shape_key_.index > 0) {
+        sub->prop(&shapekey_ptr, "value", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
+      }
     }
 
     sub->prop(&shapekey_ptr, "mute", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
