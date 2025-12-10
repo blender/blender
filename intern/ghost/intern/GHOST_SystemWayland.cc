@@ -2595,15 +2595,15 @@ static wl_buffer *ghost_wl_buffer_create_for_image(wl_shm *shm,
     if (posix_fallocate(fd, 0, buffer_size) == 0) {
       void *buffer_data = mmap(nullptr, buffer_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
       if (buffer_data != MAP_FAILED) {
-        wl_shm_pool *pool = wl_shm_create_pool(shm, fd, buffer_size);
-        buffer = wl_shm_pool_create_buffer(pool, 0, UNPACK2(size_xy), buffer_stride, format);
-        wl_shm_pool_destroy(pool);
-        if (buffer) {
-          *r_buffer_data = buffer_data;
-          *r_buffer_data_size = size_t(buffer_size);
+        if (wl_shm_pool *pool = wl_shm_create_pool(shm, fd, buffer_size)) {
+          buffer = wl_shm_pool_create_buffer(pool, 0, UNPACK2(size_xy), buffer_stride, format);
+          wl_shm_pool_destroy(pool);
+          if (buffer) {
+            *r_buffer_data = buffer_data;
+            *r_buffer_data_size = size_t(buffer_size);
+          }
         }
-        else {
-          /* Highly unlikely. */
+        if (UNLIKELY(buffer == nullptr)) {
           munmap(buffer_data, buffer_size);
         }
       }
