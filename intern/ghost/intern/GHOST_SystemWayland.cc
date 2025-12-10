@@ -110,7 +110,7 @@ static signed char has_wl_trackpad_physical_direction = -1;
 
 #ifdef WITH_GHOST_CSD
 /** Use when developing CSD on a compositor that doesn't require CSD.  */
-#  define USE_GHOST_CSD_FORCE
+// #  define USE_GHOST_CSD_FORCE
 #endif
 
 /** \} */
