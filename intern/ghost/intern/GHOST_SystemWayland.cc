@@ -3422,7 +3422,7 @@ static void gwl_window_csd_active_elem_button(GWL_Seat *seat,
         break;
       }
       case GHOST_kCSDTypeBorderBottomRight: {
-        if (is_press && (active_type == press_type)) {
+        if (is_press) {
           xdg_toplevel_resize(win->xdg_toplevel_get(),
                               seat->wl.seat,
                               serial,
