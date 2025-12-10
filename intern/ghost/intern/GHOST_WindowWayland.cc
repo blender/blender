@@ -105,7 +105,7 @@ struct GWL_XDG_Decor_Window {
 
   /** The window has been configured (see #xdg_surface_ack_configure). */
   bool initial_configure_seen = false;
-  /** The maximum bounds on startup, monitor size minus docs for example. */
+  /** The maximum bounds on startup, monitor size minus docks/panels for example. */
   int initial_bounds[2] = {0, 0};
 };
 
@@ -325,7 +325,7 @@ struct GWL_Window {
 
   /** XDG native types. */
   struct {
-    /** A temporary token used for the window to be notified of it's activation. */
+    /** A temporary token used for the window to be notified of its activation. */
     xdg_activation_token_v1 *activation_token = nullptr;
   } xdg;
 

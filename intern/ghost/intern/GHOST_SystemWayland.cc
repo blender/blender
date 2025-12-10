@@ -625,8 +625,9 @@ struct GWL_DataOffer {
     /**
      * Bit-mask with available drop options.
      * #WL_DATA_DEVICE_MANAGER_DND_ACTION_COPY, #WL_DATA_DEVICE_MANAGER_DND_ACTION_MOVE.. etc.
-     * The application that initializes the drag may set these depending on modifiers held
-     * \note when dragging begins. Currently ghost doesn't make use of these.
+     * The application that initializes the drag may set these depending on modifiers held.
+     *
+     * \note When dragging begins. Currently ghost doesn't make use of these.
      */
     enum wl_data_device_manager_dnd_action source_actions = WL_DATA_DEVICE_MANAGER_DND_ACTION_NONE;
     enum wl_data_device_manager_dnd_action action = WL_DATA_DEVICE_MANAGER_DND_ACTION_NONE;
@@ -663,7 +664,7 @@ struct GWL_DataSource {
  * \note it's important not to store the target window here
  * as it can be closed while the key is repeating,
  * instead use the focused keyboard from #GWL_Seat which is cleared when windows are closed.
- * Therefor keyboard events must always check the window has not been cleared.
+ * Therefore keyboard events must always check the window has not been cleared.
  */
 struct GWL_KeyRepeatPlayload {
   GWL_Seat *seat = nullptr;
@@ -871,7 +872,7 @@ struct GWL_SeatStatePointerScroll {
 
 /**
  * Utility struct to access rounded values from a scaled `wl_fixed_t`,
- * without loosing information.
+ * without losing information.
  *
  * As the rounded result  is rounded to a lower precision integer,
  * the high precision value is accumulated and converted to an integer to
@@ -1302,7 +1303,7 @@ static void gwl_seat_key_layout_active_state_update_mask(GWL_Seat *seat)
     xkb_state_update_mask(seat->xkb.state_empty_with_shift, 1 << mod_shift, 0, 0, 0, 0, group);
   }
 
-  /* Handle `state_empty_with_shift`. */
+  /* Handle `state_empty_with_numlock`. */
   GHOST_ASSERT((mod_mod2 == XKB_MOD_INVALID || mod_numlock == XKB_MOD_INVALID) ==
                    (seat->xkb.state_empty_with_numlock == nullptr),
                "Invalid state for NUMLOCK");
@@ -1504,7 +1505,7 @@ struct GWL_Display {
 
   /**
    * True when initializing registration, while updating all other entries wont cause problems,
-   * it will preform many redundant update calls.
+   * it will perform many redundant update calls.
    */
   bool registry_skip_update_all = false;
 
@@ -1578,7 +1579,7 @@ struct GWL_Display {
 
   /**
    * A separate timer queue, needed so the WAYLAND thread can lock access.
-   * Using the system's #GHOST_Sysem::getTimerManager is not thread safe because
+   * Using the system's #GHOST_System::getTimerManager is not thread safe because
    * access to the timer outside of WAYLAND specific logic will not lock.
    *
    * Needed because #GHOST_System::dispatchEvents fires timers
@@ -2059,7 +2060,7 @@ static void ghost_wl_display_report_error(wl_display *display)
 
   /* NOTE(@ideasman42): The application is running,
    * however an error closes all windows and most importantly:
-   * shuts down the GPU context (loosing all GPU state - shaders, bind codes etc),
+   * shuts down the GPU context (losing all GPU state - shaders, bind codes etc),
    * so recovering from this effectively involves restarting.
    *
    * Keeping the GPU state alive doesn't seem to be supported as windows EGL context must use the
@@ -2574,7 +2575,7 @@ static size_t ghost_wl_shm_format_as_size(enum wl_shm_format format)
 }
 
 /**
- * Return a #wl_buffer, ready to have it's data filled in or nullptr in case of failure.
+ * Return a #wl_buffer, ready to have its data filled in or nullptr in case of failure.
  * The caller is responsible for calling `unmap(buffer_data, buffer_size)`.
  *
  * \param r_buffer_data: The buffer to be filled.
@@ -4506,7 +4507,7 @@ static void pointer_handle_frame(void *data, wl_pointer * /*wl_pointer*/)
           }
 
           /* Both discrete and smooth events may be set at once, never generate events for both
-           * as this will be handling the same event in to different ways.
+           * as this will be handling the same event in two different ways.
            * Prioritize discrete axis events for the mouse wheel, otherwise smooth scroll. */
           if (ps.axis_source == WL_POINTER_AXIS_SOURCE_WHEEL) {
             if (ps.discrete_xy[0]) {
@@ -6921,8 +6922,7 @@ static void xdg_output_handle_logical_size(void *data,
       GHOST_PRINT("xdg_output scale did not match, overriding with wl_output scale\n");
 
 #ifdef USE_GNOME_CONFINE_HACK
-      /* Use a bug in GNOME to check GNOME is in use. If the bug is fixed this won't cause an issue
-       * as #98793 has been fixed up-stream too, but not in a release at time of writing. */
+      /* Use a bug in GNOME-42 (and prior) to check if this workaround is needed, see: #98793. */
       use_gnome_confine_hack = true;
 #endif
 
