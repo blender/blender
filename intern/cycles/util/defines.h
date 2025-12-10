@@ -87,7 +87,13 @@
 #ifdef __KERNEL_GPU__
 #  define ccl_ignore_integer_overflow
 #else
-#  if defined(__SANITIZE_ADDRESS__) && (defined(__GNUC__) || defined(__clang__))
+#  if defined(__clang__)
+#    if __has_feature(address_sanitizer)
+#      define ccl_ignore_integer_overflow [[clang::no_sanitize("signed-integer-overflow")]]
+#    else
+#      define ccl_ignore_integer_overflow
+#    endif
+#  elif defined(__GNUC__) && defined(__SANITIZE_ADDRESS__)
 #    define ccl_ignore_integer_overflow [[gnu::no_sanitize("signed-integer-overflow")]]
 #  else
 #    define ccl_ignore_integer_overflow
