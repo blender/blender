@@ -164,6 +164,10 @@ TEST(math_interp, BilinearCharPartiallyOutsideImageWrap)
   uchar4 exp3 = {229, 171, 114, 64};
   res = interpolate_bilinear_wrap_byte(image_char[0][0], image_width, image_height, 2.2f, -0.1f);
   EXPECT_EQ(exp3, res);
+  /* test that Infinity does not wrap into an out-of-range number. If it does this throws an assert
+   * in math_interp.cc */
+  res = interpolate_bilinear_wrap_byte(
+      image_char[0][0], image_width, image_height, INFINITY, -INFINITY);
 }
 
 TEST(math_interp, BilinearFloatPartiallyOutsideImageBorder)
@@ -192,6 +196,11 @@ TEST(math_interp, BilinearFloatPartiallyOutsideImage)
   float4 exp3 = {240.0f, 160.0f, 90.0f, 20.0f};
   res = interpolate_bilinear_fl(image_fl[0][0], image_width, image_height, 2.2f, -0.1f);
   EXPECT_V4_NEAR(exp3, res, float_tolerance);
+  /* out-of-range numbers cast to 0x80000000 which is negative. Make sure it produces correct
+   * extend edge */
+  float4 exp4 = {240, 160, 90, 20};
+  res = interpolate_bilinear_fl(image_fl[0][0], image_width, image_height, 1e10f, -1e10f);
+  EXPECT_EQ(exp4, res);
 }
 
 TEST(math_interp, BilinearFloatPartiallyOutsideImageWrap)
@@ -351,13 +360,13 @@ TEST(math_interp, CubicBSplineCharPartiallyOutsideImage)
   uchar4 res;
   uchar4 exp1 = {2, 4, 6, 8};
   res = interpolate_cubic_bspline_byte(image_char[0][0], image_width, image_height, -0.5f, 2.0f);
-  EXPECT_EQ(exp1, res);
+  EXPECT_EQ(int4(exp1), int4(res));
   uchar4 exp2 = {85, 107, 135, 195};
   res = interpolate_cubic_bspline_byte(image_char[0][0], image_width, image_height, 1.25f, 2.9f);
-  EXPECT_EQ(exp2, res);
+  EXPECT_EQ(int4(exp2), int4(res));
   uchar4 exp3 = {225, 161, 105, 49};
   res = interpolate_cubic_bspline_byte(image_char[0][0], image_width, image_height, 2.2f, -0.1f);
-  EXPECT_EQ(exp3, res);
+  EXPECT_EQ(int4(exp3), int4(res));
 }
 
 TEST(math_interp, CubicBSplineFloatPartiallyOutsideImage)

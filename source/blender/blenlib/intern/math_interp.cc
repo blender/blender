@@ -20,24 +20,31 @@
 
 namespace blender::math {
 
-BLI_INLINE int wrap_coord(float u, int size, InterpWrapMode wrap)
+BLI_INLINE int32_t wrap_coord(float u, int32_t size, InterpWrapMode wrap)
 {
-  int x = 0;
-  switch (wrap) {
-    case InterpWrapMode::Extend:
-      x = math::clamp(int(u), 0, size - 1);
-      break;
-    case InterpWrapMode::Repeat:
-      x = int(floored_fmod(u, float(size)));
-      break;
-    case InterpWrapMode::Border:
-      x = int(u);
-      if (u < 0.0f || x >= size) {
-        x = -1;
-      }
-      break;
+  if (u >= 0) {
+    if (u < float(size)) {
+      return int32_t(u);
+    }
+    switch (wrap) {
+      default: /* case InterpWrapMode::Extend: */
+        return size - 1;
+      case InterpWrapMode::Repeat:
+        return int32_t(uint32_t(u) % uint32_t(size));
+      case InterpWrapMode::Border:
+        return -1;
+    }
   }
-  return x;
+  switch (wrap) {
+    default: /* case InterpWrapMode::Extend: */
+      return 0;
+    case InterpWrapMode::Repeat: {
+      int32_t x = int32_t(uint32_t(-floorf(u)) % uint32_t(size));
+      return x ? size - x : 0;
+    }
+    case InterpWrapMode::Border:
+      return -1;
+  }
 }
 
 void interpolate_nearest_wrapmode_fl(const float *buffer,
@@ -176,40 +183,21 @@ BLI_INLINE void bicubic_interpolation(const T *src_buffer,
   }
 #endif
 
-  int iu = int(floor(u));
-  int iv = int(floor(v));
-
-  /* Sample area entirely outside image in border mode? */
-  if (wrap_u == InterpWrapMode::Border && (iu + 2 < 0 || iu > width)) {
-    memset(output, 0, size_t(components) * sizeof(T));
-    return;
-  }
-  if (wrap_v == InterpWrapMode::Border && (iv + 2 < 0 || iv > height)) {
-    memset(output, 0, size_t(components) * sizeof(T));
-    return;
-  }
-
-  float frac_u = u - float(iu);
-  float frac_v = v - float(iv);
-
   float4 out{0.0f};
 
   /* Calculate pixel weights. */
-  float4 wx = cubic_filter_coefficients<filter>(frac_u);
-  float4 wy = cubic_filter_coefficients<filter>(frac_v);
+  float4 wx = cubic_filter_coefficients<filter>(u - floor(u));
+  float4 wy = cubic_filter_coefficients<filter>(v - floor(v));
 
   /* Read 4x4 source pixels and blend them. */
   for (int n = 0; n < 4; n++) {
-    int y1 = iv + n - 1;
-    y1 = wrap_coord(float(y1), height, wrap_v);
-    if (wrap_v == InterpWrapMode::Border && y1 < 0) {
+    int y1 = wrap_coord(v - 1 + float(n), height, wrap_v);
+    if (y1 < 0) {
       continue;
     }
-
     for (int m = 0; m < 4; m++) {
-      int x1 = iu + m - 1;
-      x1 = wrap_coord(float(x1), width, wrap_u);
-      if (wrap_u == InterpWrapMode::Border && x1 < 0) {
+      int x1 = wrap_coord(u - 1 + float(m), width, wrap_u);
+      if (x1 < 0) {
         continue;
       }
       float w = wx[m] * wy[n];
@@ -297,65 +285,25 @@ BLI_INLINE void bilinear_fl_impl(const float *buffer,
   BLI_assert(buffer && output);
   BLI_assert(components > 0 && components <= 4);
 
-  float a, b;
-  float a_b, ma_b, a_mb, ma_mb;
-  int y1, y2, x1, x2;
-
-  if (wrap_x == InterpWrapMode::Repeat) {
-    u = floored_fmod(u, float(width));
-  }
-  if (wrap_y == InterpWrapMode::Repeat) {
-    v = floored_fmod(v, float(height));
-  }
-
-  float uf = floorf(u);
-  float vf = floorf(v);
-
-  x1 = int(uf);
-  x2 = x1 + 1;
-  y1 = int(vf);
-  y2 = y1 + 1;
+  int x1 = wrap_coord(u, width, wrap_x);
+  int x2 = wrap_coord(u + 1, width, wrap_x);
+  int y1 = wrap_coord(v, height, wrap_y);
+  int y2 = wrap_coord(v + 1, height, wrap_y);
 
   const float *row1, *row2, *row3, *row4;
   const float empty[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
-  /* Check if +1 samples need wrapping, or we don't do wrapping then if
-   * we are sampling completely outside the image. */
-  if (wrap_x == InterpWrapMode::Repeat) {
-    if (x2 >= width) {
-      x2 = 0;
-    }
-  }
-  else if (wrap_x == InterpWrapMode::Border && (x2 < 0 || x1 >= width)) {
-    copy_vn_fl(output, components, 0.0f);
-    return;
-  }
-  if (wrap_y == InterpWrapMode::Repeat) {
-    if (y2 >= height) {
-      y2 = 0;
-    }
-  }
-  else if (wrap_y == InterpWrapMode::Border && (y2 < 0 || y1 >= height)) {
-    copy_vn_fl(output, components, 0.0f);
-    return;
-  }
-
-  /* Sample locations. */
-  int x1c = blender::math::clamp(x1, 0, width - 1);
-  int x2c = blender::math::clamp(x2, 0, width - 1);
-  int y1c = blender::math::clamp(y1, 0, height - 1);
-  int y2c = blender::math::clamp(y2, 0, height - 1);
-  row1 = buffer + (int64_t(width) * y1c + x1c) * components;
-  row2 = buffer + (int64_t(width) * y2c + x1c) * components;
-  row3 = buffer + (int64_t(width) * y1c + x2c) * components;
-  row4 = buffer + (int64_t(width) * y2c + x2c) * components;
+  row1 = buffer + (int64_t(width) * y1 + x1) * components;
+  row2 = buffer + (int64_t(width) * y2 + x1) * components;
+  row3 = buffer + (int64_t(width) * y1 + x2) * components;
+  row4 = buffer + (int64_t(width) * y2 + x2) * components;
 
   if (wrap_x == InterpWrapMode::Border) {
     if (x1 < 0) {
       row1 = empty;
       row2 = empty;
     }
-    if (x2 > width - 1) {
+    if (x2 < 0) {
       row3 = empty;
       row4 = empty;
     }
@@ -365,19 +313,19 @@ BLI_INLINE void bilinear_fl_impl(const float *buffer,
       row1 = empty;
       row3 = empty;
     }
-    if (y2 > height - 1) {
+    if (y2 < 0) {
       row2 = empty;
       row4 = empty;
     }
   }
 
   /* Finally, do interpolation. */
-  a = u - uf;
-  b = v - vf;
-  a_b = a * b;
-  ma_b = (1.0f - a) * b;
-  a_mb = a * (1.0f - b);
-  ma_mb = (1.0f - a) * (1.0f - b);
+  float a = u - floorf(u);
+  float b = v - floorf(v);
+  float a_b = a * b;
+  float ma_b = (1.0f - a) * b;
+  float a_mb = a * (1.0f - b);
+  float ma_mb = (1.0f - a) * (1.0f - b);
 
   if (components == 1) {
     output[0] = ma_mb * row1[0] + a_mb * row3[0] + ma_b * row2[0] + a_b * row4[0];
@@ -628,27 +576,15 @@ void interpolate_bilinear_wrapmode_fl(const float *buffer,
 
 uchar4 interpolate_bilinear_wrap_byte(const uchar *buffer, int width, int height, float u, float v)
 {
-  u = floored_fmod(u, float(width));
-  v = floored_fmod(v, float(height));
-  float uf = floorf(u);
-  float vf = floorf(v);
+  int x1 = wrap_coord(u, width);
+  int x2 = wrap_coord(u + 1, width);
+  int y1 = wrap_coord(v, height);
+  int y2 = wrap_coord(v + 1, height);
 
-  int x1 = int(uf);
-  int x2 = x1 + 1;
-  int y1 = int(vf);
-  int y2 = y1 + 1;
-
-  /* Wrap interpolation pixels if needed. */
   BLI_assert(x1 >= 0 && x1 < width && y1 >= 0 && y1 < height);
-  if (x2 >= width) {
-    x2 = 0;
-  }
-  if (y2 >= height) {
-    y2 = 0;
-  }
 
-  float a = u - uf;
-  float b = v - vf;
+  float a = u - floorf(u);
+  float b = v - floorf(v);
   float a_b = a * b;
   float ma_b = (1.0f - a) * b;
   float a_mb = a * (1.0f - b);

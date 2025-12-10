@@ -125,8 +125,8 @@ inline void interpolate_nearest_byte(
     const uchar *buffer, uchar *output, int width, int height, float u, float v)
 {
   BLI_assert(buffer);
-  const int x = math::clamp(int(u), 0, width - 1);
-  const int y = math::clamp(int(v), 0, height - 1);
+  const int x = u > 0 ? (u < width ? int(u) : width - 1) : 0;
+  const int y = v > 0 ? (v < height ? int(v) : height - 1) : 0;
 
   const uchar *data = buffer + (int64_t(width) * y + x) * 4;
   output[0] = data[0];
@@ -147,8 +147,8 @@ inline void interpolate_nearest_fl(
     const float *buffer, float *output, int width, int height, int components, float u, float v)
 {
   BLI_assert(buffer);
-  const int x = math::clamp(int(u), 0, width - 1);
-  const int y = math::clamp(int(v), 0, height - 1);
+  const int x = u > 0 ? (u < width ? int(u) : width - 1) : 0;
+  const int y = v > 0 ? (v < height ? int(v) : height - 1) : 0;
 
   const float *data = buffer + (int64_t(width) * y + x) * components;
   for (int i = 0; i < components; i++) {
@@ -165,6 +165,20 @@ inline void interpolate_nearest_fl(
 }
 
 /**
+ * Equal to int(mod_periodic(u, float(size)) for |u| <= MAXINT.
+ * However other values of u, including inf and NaN, produce in-range values,
+ * this is also at least 5% faster.
+ */
+[[nodiscard]] inline int32_t wrap_coord(float u, int32_t size)
+{
+  if (u < 0) {
+    int32_t x = int(uint32_t(-floor(u)) % uint32_t(size));
+    return x ? size - x : 0;
+  }
+  return int(uint32_t(u) % uint32_t(size));
+}
+
+/**
  * Wrapped nearest sampling. (u,v) is repeated to be inside the image size.
  */
 
@@ -172,10 +186,8 @@ inline void interpolate_nearest_wrap_byte(
     const uchar *buffer, uchar *output, int width, int height, float u, float v)
 {
   BLI_assert(buffer);
-  u = floored_fmod(u, float(width));
-  v = floored_fmod(v, float(height));
-  int x = int(u);
-  int y = int(v);
+  int x = wrap_coord(u, width);
+  int y = wrap_coord(v, height);
   BLI_assert(x >= 0 && y >= 0 && x < width && y < height);
 
   const uchar *data = buffer + (int64_t(width) * y + x) * 4;
@@ -197,10 +209,8 @@ inline void interpolate_nearest_wrap_fl(
     const float *buffer, float *output, int width, int height, int components, float u, float v)
 {
   BLI_assert(buffer);
-  u = floored_fmod(u, float(width));
-  v = floored_fmod(v, float(height));
-  int x = int(u);
-  int y = int(v);
+  int x = wrap_coord(u, width);
+  int y = wrap_coord(v, height);
   BLI_assert(x >= 0 && y >= 0 && x < width && y < height);
 
   const float *data = buffer + (int64_t(width) * y + x) * components;

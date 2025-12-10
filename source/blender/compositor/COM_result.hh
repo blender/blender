@@ -666,22 +666,31 @@ BLI_INLINE_METHOD void Result::store_pixel_generic_type(const int2 &texel,
   this->get_cpp_type().copy_assign(pixel_value, this->cpu_data()[this->get_pixel_index(texel)]);
 }
 
-BLI_INLINE int wrap_coordinates(float coordinates, int size, const ExtensionMode extension_mode)
+BLI_INLINE int32_t wrap_coordinates(float u, int32_t size, const ExtensionMode extension_mode)
 {
-  switch (extension_mode) {
-    case ExtensionMode::Extend:
-      return math::clamp(int(coordinates), 0, size - 1);
-    case ExtensionMode::Repeat:
-      return int(math::floored_mod(coordinates, float(size)));
-    case ExtensionMode::Clip:
-      if (coordinates < 0.0f || coordinates >= size) {
+  if (u >= 0) {
+    if (u < float(size)) {
+      return int32_t(u);
+    }
+    switch (extension_mode) {
+      default: /* case ExtensionMode::Extend: */
+        return size - 1;
+      case ExtensionMode::Repeat:
+        return int32_t(uint32_t(u) % uint32_t(size));
+      case ExtensionMode::Clip:
         return -1;
-      }
-      return int(coordinates);
+    }
   }
-
-  BLI_assert_unreachable();
-  return 0;
+  switch (extension_mode) {
+    default: /* case ExtensionMode::Extend: */
+      return 0;
+    case ExtensionMode::Repeat: {
+      int32_t x = int32_t(uint32_t(-floorf(u)) % uint32_t(size));
+      return x ? size - x : 0;
+    }
+    case ExtensionMode::Clip:
+      return -1;
+  }
 }
 
 template<typename T, bool CouldBeSingleValue>
