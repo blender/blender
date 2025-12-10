@@ -13,6 +13,7 @@
 
 #include "COM_node_operation.hh"
 #include "COM_realize_on_domain_operation.hh"
+#include "COM_utilities.hh"
 
 #include "node_composite_util.hh"
 
@@ -26,6 +27,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value({0.0f, 0.0f})
       .min(0.0f)
       .max(1.0f)
+      .structure_type(StructureType::Dynamic)
       .description(
           "A value that is relative to the image size and needs to be converted to be in pixels");
   b.add_input<decl::Float>("Value", "Float Value")
@@ -33,14 +35,17 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR)
       .min(0.0f)
       .max(1.0f)
+      .structure_type(StructureType::Dynamic)
       .description(
           "A value that is relative to the image size and needs to be converted to be in pixels");
   b.add_input<decl::Color>("Image")
       .compositor_realization_mode(CompositorInputRealizationMode::None)
       .structure_type(StructureType::Dynamic);
 
-  b.add_output<decl::Float>("Value", "Float Value");
-  b.add_output<decl::Vector>("Value", "Vector Value").dimensions(2);
+  b.add_output<decl::Float>("Value", "Float Value").structure_type(StructureType::Dynamic);
+  b.add_output<decl::Vector>("Value", "Vector Value")
+      .dimensions(2)
+      .structure_type(StructureType::Dynamic);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -163,41 +168,205 @@ class RelativeToPixelOperation : public NodeOperation {
 
   void execute() override
   {
-    const float2 input_value = this->get_input_value();
-    const float2 reference_size = this->compute_reference_size();
-
-    const float2 value_in_pixels = input_value * reference_size;
-
-    /* The float output doesn't exist if the reference is per dimension, since each dimension can
-     * be different. */
-    const bool is_per_dimension = this->get_reference_dimension() ==
-                                  CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_PER_DIMENSION;
-    if (this->get_data_type() == CMP_NODE_RELATIVE_TO_PIXEL_DATA_TYPE_FLOAT && !is_per_dimension) {
-      Result &output_float_value = this->get_result("Float Value");
-      if (output_float_value.should_compute()) {
-        output_float_value.allocate_single_value();
-        /* Both values of the float2 are identical in this case, so just set the x component. */
-        output_float_value.set_single_value(value_in_pixels.x);
+    if (this->get_data_type() == CMP_NODE_RELATIVE_TO_PIXEL_DATA_TYPE_FLOAT) {
+      const Result &input = this->get_input("Float Value");
+      if (this->get_reference_dimension() !=
+          CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_PER_DIMENSION)
+      {
+        if (input.is_single_value()) {
+          this->execute_float_single();
+        }
+        else {
+          this->execute_float();
+        }
+      }
+      else {
+        if (input.is_single_value()) {
+          this->execute_float_per_dimension_single();
+        }
+        else {
+          this->execute_float_per_dimension();
+        }
       }
     }
-
-    /* The vector output exist if the reference is per dimension even if the data type is float,
-     * since each dimension can be different. */
-    if (this->get_data_type() == CMP_NODE_RELATIVE_TO_PIXEL_DATA_TYPE_VECTOR || is_per_dimension) {
-      Result &output_vector_value = this->get_result("Vector Value");
-      if (output_vector_value.should_compute()) {
-        output_vector_value.allocate_single_value();
-        output_vector_value.set_single_value(value_in_pixels);
+    else {
+      const Result &input = this->get_input("Vector Value");
+      if (input.is_single_value()) {
+        this->execute_vector_single();
+      }
+      else {
+        this->execute_vector();
       }
     }
   }
 
-  float2 get_input_value()
+  void execute_float_single()
   {
-    if (this->get_data_type() == CMP_NODE_RELATIVE_TO_PIXEL_DATA_TYPE_FLOAT) {
-      return float2(this->get_input("Float Value").get_single_value_default(0.0f));
+    const float input_value = this->get_input("Float Value").get_single_value_default(0.0f);
+    const float2 reference_size = this->compute_reference_size();
+
+    const float value_in_pixels = input_value * reference_size.x;
+
+    Result &output = this->get_result("Float Value");
+    output.allocate_single_value();
+    output.set_single_value(value_in_pixels);
+  }
+
+  void execute_float()
+  {
+    if (this->context().use_gpu()) {
+      this->execute_float_gpu();
     }
-    return this->get_input("Vector Value").get_single_value_default(float2(0.0f));
+    else {
+      this->execute_float_cpu();
+    }
+  }
+
+  void execute_float_gpu()
+  {
+    gpu::Shader *shader = context().get_shader("compositor_relative_to_pixel_float");
+    GPU_shader_bind(shader);
+
+    const float reference_size = this->compute_reference_size().x;
+    GPU_shader_uniform_1f(shader, "reference_size", reference_size);
+
+    const Result &input = this->get_input("Float Value");
+    input.bind_as_texture(shader, "input_tx");
+
+    Result &output = this->get_result("Float Value");
+    output.allocate_texture(input.domain());
+    output.bind_as_image(shader, "output_img");
+
+    compute_dispatch_threads_at_least(shader, input.domain().data_size);
+
+    input.unbind_as_texture();
+    output.unbind_as_image();
+    GPU_shader_unbind();
+  }
+
+  void execute_float_cpu()
+  {
+    const Result &input = this->get_input("Float Value");
+    const float reference_size = this->compute_reference_size().x;
+
+    Result &output = this->get_result("Float Value");
+    output.allocate_texture(input.domain());
+    parallel_for(input.domain().data_size, [&](const int2 texel) {
+      output.store_pixel(texel, input.load_pixel<float>(texel) * reference_size);
+    });
+  }
+
+  void execute_float_per_dimension_single()
+  {
+    const float input_value = this->get_input("Float Value").get_single_value_default(0.0f);
+    const float2 reference_size = this->compute_reference_size();
+
+    const float2 value_in_pixels = input_value * reference_size;
+
+    Result &output = this->get_result("Vector Value");
+    output.allocate_single_value();
+    output.set_single_value(value_in_pixels);
+  }
+
+  void execute_float_per_dimension()
+  {
+    if (this->context().use_gpu()) {
+      this->execute_float_per_dimension_gpu();
+    }
+    else {
+      this->execute_float_per_dimension_cpu();
+    }
+  }
+
+  void execute_float_per_dimension_gpu()
+  {
+    gpu::Shader *shader = context().get_shader("compositor_relative_to_pixel_float_per_dimension");
+    GPU_shader_bind(shader);
+
+    const float2 reference_size = this->compute_reference_size();
+    GPU_shader_uniform_2fv(shader, "reference_size", reference_size);
+
+    const Result &input = this->get_input("Float Value");
+    input.bind_as_texture(shader, "input_tx");
+
+    Result &output = this->get_result("Vector Value");
+    output.allocate_texture(input.domain());
+    output.bind_as_image(shader, "output_img");
+
+    compute_dispatch_threads_at_least(shader, input.domain().data_size);
+
+    input.unbind_as_texture();
+    output.unbind_as_image();
+    GPU_shader_unbind();
+  }
+
+  void execute_float_per_dimension_cpu()
+  {
+    const Result &input = this->get_input("Float Value");
+    const float2 reference_size = this->compute_reference_size();
+
+    Result &output = this->get_result("Vector Value");
+    output.allocate_texture(input.domain());
+    parallel_for(input.domain().data_size, [&](const int2 texel) {
+      output.store_pixel(texel, input.load_pixel<float>(texel) * reference_size);
+    });
+  }
+
+  void execute_vector_single()
+  {
+    const float2 input_value =
+        this->get_input("Vector Value").get_single_value_default(float2(0.0f));
+    const float2 reference_size = this->compute_reference_size();
+
+    const float2 value_in_pixels = input_value * reference_size;
+
+    Result &output = this->get_result("Vector Value");
+    output.allocate_single_value();
+    output.set_single_value(value_in_pixels);
+  }
+
+  void execute_vector()
+  {
+    if (this->context().use_gpu()) {
+      this->execute_vector_gpu();
+    }
+    else {
+      this->execute_vector_cpu();
+    }
+  }
+
+  void execute_vector_gpu()
+  {
+    gpu::Shader *shader = context().get_shader("compositor_relative_to_pixel_vector");
+    GPU_shader_bind(shader);
+
+    const float2 reference_size = this->compute_reference_size();
+    GPU_shader_uniform_2fv(shader, "reference_size", reference_size);
+
+    const Result &input = this->get_input("Vector Value");
+    input.bind_as_texture(shader, "input_tx");
+
+    Result &output = this->get_result("Vector Value");
+    output.allocate_texture(input.domain());
+    output.bind_as_image(shader, "output_img");
+
+    compute_dispatch_threads_at_least(shader, input.domain().data_size);
+
+    input.unbind_as_texture();
+    output.unbind_as_image();
+    GPU_shader_unbind();
+  }
+
+  void execute_vector_cpu()
+  {
+    const Result &input = this->get_input("Vector Value");
+    const float2 reference_size = this->compute_reference_size();
+
+    Result &output = this->get_result("Vector Value");
+    output.allocate_texture(input.domain());
+    parallel_for(input.domain().data_size, [&](const int2 texel) {
+      output.store_pixel(texel, input.load_pixel<float2>(texel) * reference_size);
+    });
   }
 
   float2 compute_reference_size()
