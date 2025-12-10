@@ -52,16 +52,6 @@ struct MetalRTIntersectionShadowPayload {
   uint visibility;
 };
 
-struct MetalRTIntersectionShadowAllPayload {
-  RaySelfPrimitives self;
-  uint visibility;
-  int state;
-  float throughput;
-  short max_transparent_hits;
-  short num_transparent_hits;
-  short num_recorded_hits;
-};
-
 #ifdef __HAIR__
 ccl_device_forceinline bool curve_ribbon_accept(KernelGlobals kg,
                                                 const float u,
@@ -476,13 +466,8 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
 #endif
 
 #ifdef __TRANSPARENT_SHADOWS__
-ccl_device_intersect void scene_intersect_shadow_all(KernelGlobals kg,
-                                                     IntegratorShadowState state,
-                                                     const ccl_private Ray *ray,
-                                                     const uint visibility,
-                                                     const uint max_transparent_hits,
-                                                     ccl_private uint *num_recorded_hits,
-                                                     ccl_private float *throughput)
+ccl_device_intersect void scene_intersect_shadow_all_metalrt(
+    const ccl_private Ray *ray, ccl_private BVHShadowAllPayload &ccl_restrict payload)
 {
   metal::raytracing::ray r(ray->P, ray->D, ray->tmin, ray->tmax);
   metalrt_intersector_type metalrt_intersect;
@@ -494,17 +479,8 @@ ccl_device_intersect void scene_intersect_shadow_all(KernelGlobals kg,
       (kernel_data.bvh.have_points ? metal::raytracing::geometry_type::bounding_box :
                                      metal::raytracing::geometry_type::none));
 
-  MetalRTIntersectionShadowAllPayload payload;
-  payload.self = ray->self;
-  payload.max_transparent_hits = max_transparent_hits;
-  payload.num_transparent_hits = 0;
-  payload.num_recorded_hits = 0;
-  payload.throughput = 1.0f;
-  payload.state = state;
-  payload.visibility = visibility;
-
-  uint ray_mask = visibility & 0xFF;
-  if (0 == ray_mask && (visibility & ~0xFF) != 0) {
+  uint ray_mask = payload.base.ray_visibility & 0xFF;
+  if (0 == ray_mask && (payload.base.ray_visibility & ~0xFF) != 0) {
     ray_mask = 0xFF;
   }
 
@@ -522,8 +498,7 @@ ccl_device_intersect void scene_intersect_shadow_all(KernelGlobals kg,
       r, metal_ancillaries->accel_struct, ray_mask, metal_ancillaries->ift_shadow_all, payload);
 #  endif
 
-  *num_recorded_hits = payload.num_recorded_hits;
-  *throughput = payload.throughput;
+  (void)intersection;
 }
 #endif
 

@@ -146,6 +146,7 @@ set(SRC_KERNEL_BAKE_HEADERS
 
 set(SRC_KERNEL_BVH_HEADERS
   bvh/bvh.h
+  bvh/intersect_filter.h
   bvh/nodes.h
   bvh/shadow_all.h
   bvh/local.h

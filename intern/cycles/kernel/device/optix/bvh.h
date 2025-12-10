@@ -2,7 +2,15 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-/* OptiX implementation of ray-scene intersection. */
+/* OptiX implementation of ray-scene intersection.
+ *
+ * Note on the payload registers.
+ * Intersection and filtering functions might be sharing the same registers, even if it is not
+ * very obvious from the trace/traverse call. The registers that have special meaning and are to
+ * be kept "locked" to their meaning:
+ *   uint p4 = visibility;
+ *   uint p6 = pointer_pack_to_uint_0(ray);
+ *   uint p7 = pointer_pack_to_uint_1(ray); */
 
 #pragma once
 
@@ -39,6 +47,42 @@ ccl_device_forceinline int get_object_id()
 #else
   return optixGetInstanceId();
 #endif
+}
+
+ccl_device_forceinline Intersection get_intersection()
+{
+  Intersection isect;
+
+  isect.t = optixGetRayTmax();
+  isect.prim = optixGetPrimitiveIndex();
+  isect.object = get_object_id();
+
+  if (optixIsTriangleHit()) {
+    /* Triangle. */
+    const float2 barycentrics = optixGetTriangleBarycentrics();
+    isect.u = barycentrics.x;
+    isect.v = barycentrics.y;
+    isect.type = kernel_data_fetch(objects, isect.object).primitive_type;
+  }
+#ifdef __HAIR__
+  else if ((optixGetHitKind() & (~PRIMITIVE_MOTION)) != PRIMITIVE_POINT) {
+    /* Curve. */
+    isect.u = __uint_as_float(optixGetAttribute_0());
+    isect.v = __uint_as_float(optixGetAttribute_1());
+
+    const KernelCurveSegment segment = kernel_data_fetch(curve_segments, isect.prim);
+    isect.type = segment.type;
+    isect.prim = segment.prim;
+  }
+#endif
+  else {
+    /* Point. */
+    isect.u = 0.0f;
+    isect.v = 0.0f;
+    isect.type = kernel_data_fetch(objects, isect.object).primitive_type;
+  }
+
+  return isect;
 }
 
 /* Hit/miss functions. */
@@ -143,135 +187,40 @@ extern "C" __global__ void __anyhit__kernel_optix_local_hit()
 extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
 {
 #ifdef __TRANSPARENT_SHADOWS__
-  int prim = optixGetPrimitiveIndex();
-  const uint object = get_object_id();
-#  ifdef __VISIBILITY_FLAG__
-  const uint visibility = optixGetPayload_4();
-  if ((kernel_data_fetch(objects, object).visibility & visibility) == 0) {
-    return optixIgnoreIntersection();
-  }
-#  endif
+  KernelGlobals kg = nullptr;
 
-  float u = 0.0f, v = 0.0f;
-  int type = 0;
-  if (optixIsTriangleHit()) {
-    /* Triangle. */
-    const float2 barycentrics = optixGetTriangleBarycentrics();
-    u = barycentrics.x;
-    v = barycentrics.y;
-    type = kernel_data_fetch(objects, object).primitive_type;
-  }
-#  ifdef __HAIR__
-  else if ((optixGetHitKind() & (~PRIMITIVE_MOTION)) != PRIMITIVE_POINT) {
-    /* Curve. */
-    u = __uint_as_float(optixGetAttribute_0());
-    v = __uint_as_float(optixGetAttribute_1());
-
-    const KernelCurveSegment segment = kernel_data_fetch(curve_segments, prim);
-    type = segment.type;
-    prim = segment.prim;
-  }
-#  endif
-  else {
-    /* Point. */
-    type = kernel_data_fetch(objects, object).primitive_type;
-    u = 0.0f;
-    v = 0.0f;
-  }
-
+  ccl_private BVHShadowAllPayload *payload = get_payload_ptr_0<BVHShadowAllPayload>();
+  const uint ray_visibility = optixGetPayload_4();
   ccl_private Ray *const ray = get_payload_ptr_6<Ray>();
-  if (intersection_skip_self_shadow(ray->self, object, prim)) {
-    return optixIgnoreIntersection();
-  }
 
-#  ifdef __SHADOW_LINKING__
-  if (intersection_skip_shadow_link(nullptr, ray->self, object)) {
-    return optixIgnoreIntersection();
-  }
-#  endif
-
-#  ifndef __TRANSPARENT_SHADOWS__
-  /* No transparent shadows support compiled in, make opaque. */
-  optixSetPayload_1(__float_as_uint(0.0f));
-  return optixTerminateRay();
-#  else
-  const uint max_transparent_hits = optixGetPayload_3();
-  const uint num_hits_packed = optixGetPayload_2();
-  const uint num_recorded_hits = uint16_unpack_from_uint_0(num_hits_packed);
-  uint num_transparent_hits = uint16_unpack_from_uint_1(num_hits_packed);
-
-  /* If no transparent shadows, all light is blocked and we can stop immediately. */
-  const int flags = intersection_get_shader_flags(nullptr, prim, type);
-  if (!(flags & SD_HAS_TRANSPARENT_SHADOW)) {
-    optixSetPayload_1(__float_as_uint(0.0f));
-    return optixTerminateRay();
-  }
-
-  /* Only count transparent bounces, volume bounds bounces are counted during shading. */
-  num_transparent_hits += !(flags & SD_HAS_ONLY_VOLUME);
-  if (num_transparent_hits > max_transparent_hits) {
-    /* Max number of hits exceeded. */
-    optixSetPayload_1(__float_as_uint(0.0f));
-    return optixTerminateRay();
-  }
-
-  /* Always use baked shadow transparency for curves. */
-  if (type & PRIMITIVE_CURVE) {
-    float throughput = __uint_as_float(optixGetPayload_1());
-    throughput *= intersection_curve_shadow_transparency(nullptr, object, prim, type, u);
-    optixSetPayload_1(__float_as_uint(throughput));
-    optixSetPayload_2(uint16_pack_to_uint(num_recorded_hits, num_transparent_hits));
-
-    if (throughput < CURVE_SHADOW_TRANSPARENCY_CUTOFF) {
-      optixSetPayload_1(__float_as_uint(0.0f));
-      return optixTerminateRay();
-    }
-    /* Continue tracing. */
-    optixIgnoreIntersection();
+  Intersection isect = get_intersection();
+  if (!bvh_shadow_all_anyhit_filter<true>(
+          kg, payload->state, *payload, ray->self, ray_visibility, isect))
+  {
+    optixTerminateRay();
     return;
   }
 
-  /* Record transparent intersection. */
-  optixSetPayload_2(uint16_pack_to_uint(num_recorded_hits + 1, num_transparent_hits));
-
-  uint record_index = num_recorded_hits;
-
-  const IntegratorShadowState state = optixGetPayload_0();
-
-  const uint max_record_hits = INTEGRATOR_SHADOW_ISECT_SIZE;
-  if (record_index >= max_record_hits) {
-    /* If maximum number of hits reached, find a hit to replace. */
-    float max_recorded_t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 0, t);
-    uint max_recorded_hit = 0;
-
-    for (int i = 1; i < max_record_hits; i++) {
-      const float isect_t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, i, t);
-      if (isect_t > max_recorded_t) {
-        max_recorded_t = isect_t;
-        max_recorded_hit = i;
-      }
-    }
-
-    if (optixGetRayTmax() >= max_recorded_t) {
-      /* Accept hit, so that OptiX won't consider any more hits beyond the distance of the
-       * current hit anymore. */
-      return;
-    }
-
-    record_index = max_recorded_hit;
+  /* The idea here is to accept the hit, so that traversal won't consider any more hits beyond the
+   * distance of the current hit anymore.
+   *
+   * We could accept the hit which is furthest away from the ones that are already recorded (for
+   * this `>` needs to be replaced with `>=`). However, doing so has a performance impact in the
+   * pabellon benchmark scene. The hypothesis here is that allowing to traverse one extra hit after
+   * the array is filled allows to hit an opaque surface and do early exit from the shadow shading.
+   *
+   * Similar to this logic (allowing an extra hit) was in the original OptiX integration, so we
+   * just keep following it to avoid performance regression. There is no the correct solution here,
+   * as it depends on the scene. For example, if there are many transparent surfaces with no opaque
+   * hit then it is faster to start accepting hits as soon as possible. However, if there are many
+   * transparent surfaces, followed up with an opaque surface, it is faster to not accept any hit
+   * and allow the opaque optimization to lead to an early output from the intersect-shade loop. */
+  if (isect.t > payload->max_record_isect_t) {
+    return;
   }
 
-  INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, record_index, u) = u;
-  INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, record_index, v) = v;
-  INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, record_index, t) = optixGetRayTmax();
-  INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, record_index, prim) = prim;
-  INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, record_index, object) = object;
-  INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, record_index, type) = type;
-
-  /* Continue tracing. */
   optixIgnoreIntersection();
-#  endif /* __TRANSPARENT_SHADOWS__ */
-#endif   /* __TRANSPARENT_SHADOWS__ */
+#endif
 }
 
 extern "C" __global__ void __anyhit__kernel_optix_volume_test()
@@ -474,6 +423,9 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
                                           const uint visibility,
                                           ccl_private Intersection *isect)
 {
+  /* Note: some registers have hardcoded meaning.
+   * Be careful when changing the values here. See the note at the top of this file for more
+   * details. */
   uint p0 = 0;
   uint p1 = 0;
   uint p2 = 0;
@@ -526,6 +478,9 @@ ccl_device_intersect bool scene_intersect_shadow(KernelGlobals kg,
                                                  const ccl_private Ray *ray,
                                                  const uint visibility)
 {
+  /* Note: some registers have hardcoded meaning.
+   * Be careful when changing the values here. See the note at the top of this file for more
+   * details. */
   uint p0 = 0;
   uint p1 = 0;
   uint p2 = 0;
@@ -576,6 +531,9 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
                                                 ccl_private uint *lcg_state,
                                                 const int max_hits)
 {
+  /* Note: some registers have hardcoded meaning.
+   * Be careful when changing the values here. See the note at the top of this file for more
+   * details. */
   uint p0 = pointer_pack_to_uint_0(lcg_state);
   uint p1 = pointer_pack_to_uint_1(lcg_state);
   uint p2 = pointer_pack_to_uint_0(local_isect);
@@ -616,25 +574,25 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
 #endif
 
 #ifdef __TRANSPARENT_SHADOWS__
-ccl_device_intersect void scene_intersect_shadow_all(KernelGlobals kg,
-                                                     IntegratorShadowState state,
-                                                     const ccl_private Ray *ray,
-                                                     const uint visibility,
-                                                     const uint max_transparent_hits,
-                                                     ccl_private uint *num_recorded_hits,
-                                                     ccl_private float *throughput)
+ccl_device_intersect void scene_intersect_shadow_all_optix(
+    const ccl_private Ray *ccl_restrict ray,
+    const uint ray_visibility,
+    ccl_private BVHShadowAllPayload &ccl_restrict payload)
 {
-  uint p0 = state;
-  uint p1 = __float_as_uint(1.0f); /* Throughput. */
-  uint p2 = 0;                     /* Number of hits. */
-  uint p3 = max_transparent_hits;
-  uint p4 = visibility;
+  /* Note: some registers have hardcoded meaning.
+   * Be careful when changing the values here. See the note at the top of this file for more
+   * details. */
+  uint p0 = pointer_pack_to_uint_0(&payload);
+  uint p1 = pointer_pack_to_uint_1(&payload);
+  uint p2 = 0;
+  uint p3 = 0;
+  uint p4 = ray_visibility;
   uint p5 = 0;
   uint p6 = pointer_pack_to_uint_0(ray);
   uint p7 = pointer_pack_to_uint_1(ray);
 
-  uint ray_mask = visibility & 0xFF;
-  if (0 == ray_mask && (visibility & ~0xFF) != 0) {
+  uint ray_mask = ray_visibility & 0xFF;
+  if (0 == ray_mask && (ray_visibility & ~0xFF) != 0) {
     ray_mask = 0xFF;
   }
 
@@ -658,9 +616,6 @@ ccl_device_intersect void scene_intersect_shadow_all(KernelGlobals kg,
                 p5,
                 p6,
                 p7);
-
-  *num_recorded_hits = uint16_unpack_from_uint_0(p2);
-  *throughput = __uint_as_float(p1);
 }
 #endif
 
@@ -670,6 +625,9 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
                                                  ccl_private Intersection *isect,
                                                  const uint visibility)
 {
+  /* Note: some registers have hardcoded meaning.
+   * Be careful when changing the values here. See the note at the top of this file for more
+   * details. */
   uint p0 = 0;
   uint p1 = 0;
   uint p2 = 0;
