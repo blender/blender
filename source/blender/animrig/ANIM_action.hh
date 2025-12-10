@@ -110,8 +110,7 @@ class Action : public ::bAction {
   /**
    * Return whether this Action has any data at all.
    *
-   * \return true when `bAction::layer_array` and `bAction::slot_array`, as well as
-   * the legacy `curves` list, are empty.
+   * \return true when `bAction::layer_array` and `bAction::slot_array` are empty.
    */
   bool is_empty() const;
   /**
@@ -137,8 +136,6 @@ class Action : public ::bAction {
    *
    * - Animation data is stored in `bAction::layer_array`.
    * - Evaluated for data-blocks based on their slot handle.
-   *
-   * \note An empty Action is valid as both a legacy and layered Action.
    *
    * \note This method will be removed when runtime support for legacy Actions
    * is removed, so only use it in such runtime code. See
@@ -393,9 +390,6 @@ class Action : public ::bAction {
 
   /**
    * Check if the slot with this handle has any keyframes.
-   *
-   * If called on a legacy action, `action_slot_handle` is ignored and the
-   * fcurves of the legacy action are checked for keyframes.
    *
    * \see is_slot_animated()
    */
@@ -1447,14 +1441,6 @@ enum class ActionSlotAssignmentResult : int8_t {
 };
 
 /**
- * Return whether the given Action can be assigned to the ID.
- *
- * This always returns `true` for layered Actions. For legacy Actions it
- * returns `true` if the Action's `idroot` matches the ID.
- */
-[[nodiscard]] bool is_action_assignable_to(const bAction *dna_action, ID_Type id_code);
-
-/**
  * Assign the Action to the ID.
  *
  * This will make a best-effort guess as to which slot to use, in this
@@ -1479,8 +1465,7 @@ enum class ActionSlotAssignmentResult : int8_t {
  * Use this function when you already have the AnimData struct of this ID.
  *
  * \return true when successful, false otherwise. This can fail when the NLA is in tweak mode (no
- * action changes allowed) or when a legacy Action is assigned and it doesn't match the animated
- * ID's type.
+ * action changes allowed).
  */
 [[nodiscard]] bool assign_action(bAction *action, OwnedAnimData owned_adt);
 
@@ -1506,8 +1491,7 @@ ActionSlotAssignmentResult assign_action_and_slot(Action *action,
  *
  * \returns the assigned slot if the assignment was successful, or `nullptr` otherwise. Reasons the
  * assignment can fail is when the given ID is of an animatable type, when the ID is in NLA Tweak
- * mode (in which case no Action assignments can happen), or when the legacy Action ID type doesn't
- * match the animated ID.
+ * mode (in which case no Action assignments can happen).
  *
  * \note Contrary to `assign_action()` this skips the search by slot identifier when the Action is
  * already assigned. It should be possible for an animator to un-assign a slot, then create a new
@@ -1639,9 +1623,6 @@ animrig::Channelbag *channelbag_for_action_slot(Action &action, slot_handle_t sl
  * The use of this function is also an indicator for code that will have to be altered when
  * multi-layered Actions are getting implemented.
  *
- * \note This function requires a layered Action. To transparently handle legacy Actions, see the
- * `animrig::legacy` namespace.
- *
  * \see #blender::animrig::legacy::fcurves_for_action_slot
  */
 Span<FCurve *> fcurves_for_action_slot(Action &action, slot_handle_t slot_handle);
@@ -1688,8 +1669,8 @@ FCurve &action_fcurve_ensure(Main *bmain,
  * Find or create an F-Curve on the given action that matches the given fcurve
  * descriptor.
  *
- * This function is primarily intended for use with legacy actions, but for
- * reasons of expedience it now also works with layered actions under the
+ * This function was primarily intended for use with legacy actions, but for
+ * reasons of expedience it also works with layered actions under the
  * following limited circumstances: `ptr` must be non-null and must have an
  * `owner_id` that already uses `act`. See the comments in the implementation
  * for more details.
@@ -1711,24 +1692,8 @@ FCurve &action_fcurve_ensure(Main *bmain,
  */
 FCurve *action_fcurve_ensure_ex(Main *bmain,
                                 bAction *act,
-                                const char group[],
                                 PointerRNA *ptr,
                                 const FCurveDescriptor &fcurve_descriptor);
-
-/**
- * Same as above, but creates a legacy Action.
- *
- * \note this function should ONLY be used in unit tests, in order to create
- * legacy Actions for testing. Or in the very rare cases where handling of
- * legacy Actions is still necessary AND you have no PointerRNA. In all other
- * cases, just call #action_fcurve_ensure, it'll do the right thing
- * transparently on whatever Action you give it.
- */
-FCurve *action_fcurve_ensure_legacy(Main *bmain,
-                                    bAction *act,
-                                    const char group[],
-                                    PointerRNA *ptr,
-                                    const FCurveDescriptor &fcurve_descriptor);
 
 /**
  * Find the F-Curve in the given Action.
@@ -1771,9 +1736,6 @@ bool fcurve_matches_collection_path(const FCurve &fcurve,
 /**
  * Return the F-Curves in the given action+slot for which `predicate` returns
  * true.
- *
- * This works for both layered and legacy actions. For legacy actions the slot
- * handle is ignored.
  */
 Vector<FCurve *> fcurves_in_action_slot_filtered(
     bAction *act, slot_handle_t slot_handle, FunctionRef<bool(const FCurve &fcurve)> predicate);
@@ -1795,8 +1757,6 @@ Vector<FCurve *> fcurves_in_listbase_filtered(ListBase /* FCurve * */ fcurves,
  * Remove the given FCurve from the action by searching for it in all channelbags.
  * This assumes that an FCurve can only exist in an action once.
  *
- * Compatible with both legacy and layered Actions.
- *
  *  \returns true if the given FCurve was removed.
  *
  * \see action_fcurve_detach
@@ -1805,9 +1765,6 @@ bool action_fcurve_remove(Action &action, FCurve &fcu);
 
 /**
  * Detach the F-Curve from the Action, searching for it in all channelbags.
- *
- * Compatible with both legacy and layered Actions. The slot handles are ignored
- * for legacy Actions.
  *
  * The F-Curve is not freed, and ownership is transferred to the caller.
  *
@@ -1822,10 +1779,8 @@ bool action_fcurve_detach(Action &action, FCurve &fcurve_to_detach);
 /**
  * Attach the F-Curve to the Action Slot.
  *
- * Compatible with both legacy and layered Actions. The slot handle is ignored
- * for legacy Actions.
  *
- * On layered Actions, this assumes the 'Baklava Phase 1' invariants (one layer,
+ * This assumes the 'Baklava Phase 1' invariants (one layer,
  * one keyframe strip).
  *
  * \see action_fcurve_detach
@@ -1842,9 +1797,6 @@ void action_fcurve_attach(Action &action,
  * If the F-Curve was part of a channel group, the group membership also carries
  * over to the destination Action. If no group with the same name exists, it is
  * created. This only happens for layered Actions, though.
- *
- * Compatible with both legacy and layered Actions. The slot handle and group
- * membership are ignored for legacy Actions.
  *
  * The F-Curve must exist on the source Action. All channelbags for all slots
  * are searched for the F-Curve.
@@ -1876,11 +1828,6 @@ void channelbag_fcurves_move(Channelbag &channelbag_dst, Channelbag &channelbag_
 
 /**
  * Find an appropriate user of the given Action + Slot for keyframing purposes.
- *
- * (NOTE: although this function exists for handling situations caused by the
- * expanded capabilities of layered actions, for convenience it also works with
- * legacy actions. For legacy actions this simply returns `primary_id` as long
- * as it's a user of `action`.)
  *
  * Usually this function shouldn't be necessary, because you'll already have an
  * obvious ID that you're keying. But in some cases (such as the action editor
@@ -1931,8 +1878,7 @@ ID *action_slot_get_id_best_guess(Main &bmain, Slot &slot, ID *primary_id);
  * TODO: Maybe at some point this function should get extended with an ID type parameter, to return
  * the first slot that is suitable for that ID type.
  *
- * \return The handle of the first slot, or #Slot::unassigned if there is no slot (which includes
- * legacy Actions).
+ * \return The handle of the first slot, or #Slot::unassigned if there is no slot.
  */
 slot_handle_t first_slot_handle(const ::bAction &dna_action);
 
@@ -1940,8 +1886,7 @@ slot_handle_t first_slot_handle(const ::bAction &dna_action);
  * Assert the invariants of Project Baklava phase 1.
  *
  * For an action the invariants are that it:
- * - Is a legacy action.
- * - OR has zero layers.
+ * - has zero layers.
  * - OR has a single layer that adheres to the phase 1 invariants for layers.
  *
  * For a layer the invariants are that it:

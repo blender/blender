@@ -1157,40 +1157,6 @@ bool rna_Action_id_poll(PointerRNA *ptr, PointerRNA value)
 }
 
 /**
- * Used to check if an action (value pointer)
- * can be assigned to Action Editor given current mode.
- */
-bool rna_Action_actedit_assign_poll(PointerRNA *ptr, PointerRNA value)
-{
-  SpaceAction *saction = (SpaceAction *)ptr->data;
-  bAction *action = (bAction *)value.owner_id;
-
-  if (!saction) {
-    /* Unable to determine what this Action is going to be assigned to, so
-     * reject it for now. This is mostly to have a non-functional refactor of
-     * this code; personally I (Sybren) wouldn't mind to always return `true` in
-     * this case. */
-    return false;
-  }
-
-  switch (saction->mode) {
-    case SACTCONT_ACTION:
-      return blender::animrig::is_action_assignable_to(action, ID_OB);
-    case SACTCONT_SHAPEKEY:
-      return blender::animrig::is_action_assignable_to(action, ID_KE);
-    case SACTCONT_GPENCIL:
-    case SACTCONT_DOPESHEET:
-    case SACTCONT_MASK:
-    case SACTCONT_CACHEFILE:
-      break;
-  }
-
-  /* Same as above, I (Sybren) wouldn't mind returning `true` here to just
-   * always show all Actions in an unexpected place. */
-  return false;
-}
-
-/**
  * Iterate the FCurves of the given bAnimContext and validate the RNA path. Sets the flag
  * #FCURVE_DISABLED if the path can't be resolved.
  */

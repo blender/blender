@@ -668,61 +668,22 @@ int clear_keyframe(Main *bmain, ReportList *reports, ID *id, const RNAPath &rna_
   Action &action = act->wrap();
   int key_count = 0;
 
-  if (action.is_action_layered()) {
-    if (adt->slot_handle) {
-      Vector<FCurve *> fcurves;
-      foreach_fcurve_in_action_slot(action, adt->slot_handle, [&](FCurve &fcurve) {
-        if (rna_path.index.has_value() && rna_path.index.value() != fcurve.array_index) {
-          return;
-        }
-        if (rna_path.path != fcurve.rna_path) {
-          return;
-        }
-        fcurves.append(&fcurve);
-      });
-
-      for (FCurve *fcu : fcurves) {
-        if (action_fcurve_remove(action, *fcu)) {
-          key_count++;
-        }
+  if (adt->slot_handle) {
+    Vector<FCurve *> fcurves;
+    foreach_fcurve_in_action_slot(action, adt->slot_handle, [&](FCurve &fcurve) {
+      if (rna_path.index.has_value() && rna_path.index.value() != fcurve.array_index) {
+        return;
       }
-    }
-  }
-  else {
-    int array_index = rna_path.index.value_or(0);
-    int array_index_max = array_index + 1;
-    if (!rna_path.index.has_value()) {
-      array_index_max = RNA_property_array_length(&ptr, prop);
-
-      /* For single properties, increase max_index so that the property itself gets included,
-       * but don't do this for standard arrays since that can cause corruption issues
-       * (extra unused curves).
-       */
-      if (array_index_max == array_index) {
-        array_index_max++;
+      if (rna_path.path != fcurve.rna_path) {
+        return;
       }
-    }
-    /* Will only loop once unless the array index was -1. */
-    for (; array_index < array_index_max; array_index++) {
-      FCurve *fcu = fcurve_find_in_action(act, {rna_path.path, array_index});
+      fcurves.append(&fcurve);
+    });
 
-      if (fcu == nullptr) {
-        continue;
+    for (FCurve *fcu : fcurves) {
+      if (action_fcurve_remove(action, *fcu)) {
+        key_count++;
       }
-
-      if (BKE_fcurve_is_protected(fcu)) {
-        BKE_reportf(reports,
-                    RPT_WARNING,
-                    "Not clearing all keyframes from locked F-Curve '%s' for %s '%s'",
-                    fcu->rna_path,
-                    BKE_idtype_idcode_to_name(GS(id->name)),
-                    id->name + 2);
-        continue;
-      }
-
-      animdata_fcurve_delete(adt, fcu);
-
-      key_count++;
     }
   }
 
@@ -770,7 +731,6 @@ static SingleKeyingResult insert_key_layer(Main *bmain,
 
 static std::pair<Layer *, Slot *> prep_action_layer_for_keying(Action &action, ID &animated_id)
 {
-  BLI_assert(action.is_action_layered());
   BLI_assert_msg(
       ELEM(get_action(animated_id), &action, nullptr),
       "The animated ID should not be using another Action than the one passed to this function");
@@ -809,7 +769,6 @@ static CombinedKeyingResult insert_key_layered_action(
     const BitSpan keying_mask)
 {
   BLI_assert(bmain != nullptr);
-  BLI_assert(action.is_action_layered());
 
   int property_array_index = 0;
   CombinedKeyingResult combined_result;

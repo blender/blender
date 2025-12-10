@@ -25,13 +25,6 @@ namespace blender::animrig {
 
 void foreach_fcurve_in_action(Action &action, FunctionRef<void(FCurve &fcurve)> callback)
 {
-  if (action.is_action_legacy()) {
-    LISTBASE_FOREACH (FCurve *, fcurve, &action.curves) {
-      callback(*fcurve);
-    }
-    return;
-  }
-
   for (Layer *layer : action.layers()) {
     for (Strip *strip : layer->strips()) {
       if (strip->type() != Strip::Type::Keyframe) {
@@ -50,25 +43,18 @@ void foreach_fcurve_in_action_slot(Action &action,
                                    slot_handle_t handle,
                                    FunctionRef<void(FCurve &fcurve)> callback)
 {
-  if (action.is_action_legacy()) {
-    LISTBASE_FOREACH (FCurve *, fcurve, &action.curves) {
-      callback(*fcurve);
-    }
-  }
-  else if (action.is_action_layered()) {
-    for (Layer *layer : action.layers()) {
-      for (Strip *strip : layer->strips()) {
-        if (strip->type() != Strip::Type::Keyframe) {
+  for (Layer *layer : action.layers()) {
+    for (Strip *strip : layer->strips()) {
+      if (strip->type() != Strip::Type::Keyframe) {
+        continue;
+      }
+      for (Channelbag *bag : strip->data<StripKeyframeData>(action).channelbags()) {
+        if (bag->slot_handle != handle) {
           continue;
         }
-        for (Channelbag *bag : strip->data<StripKeyframeData>(action).channelbags()) {
-          if (bag->slot_handle != handle) {
-            continue;
-          }
-          for (FCurve *fcu : bag->fcurves()) {
-            BLI_assert(fcu != nullptr);
-            callback(*fcu);
-          }
+        for (FCurve *fcu : bag->fcurves()) {
+          BLI_assert(fcu != nullptr);
+          callback(*fcu);
         }
       }
     }

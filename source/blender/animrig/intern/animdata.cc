@@ -182,7 +182,7 @@ static bAction *find_related_action(Main &bmain, ID &id)
 
   for (ID *related_id : related_ids) {
     Action *action = get_action(*related_id);
-    if (action && action->is_action_layered() && BKE_id_is_editable(&bmain, &action->id)) {
+    if (action && BKE_id_is_editable(&bmain, &action->id)) {
       /* Returning the first action found means highest priority has the action closest in the
        * relationship graph. */
       return action;
@@ -264,41 +264,10 @@ void animdata_fcurve_delete(AnimData *adt, FCurve *fcu)
   }
   else if (adt->action) {
     Action &action = adt->action->wrap();
-
-    if (action.is_action_legacy()) {
-      /* Remove from group or action, whichever one "owns" the F-Curve. */
-      if (fcu->grp) {
-        bActionGroup *agrp = fcu->grp;
-
-        /* Remove F-Curve from group+action. */
-        action_groups_remove_channel(&action, fcu);
-
-        /* If group has no more channels, remove it too,
-         * otherwise can have many dangling groups #33541.
-         */
-        if (BLI_listbase_is_empty(&agrp->channels)) {
-          BLI_freelinkN(&action.groups, agrp);
-        }
-      }
-      else {
-        BLI_remlink(&action.curves, fcu);
-      }
-
-      /* If action has no more F-Curves as a result of this, unlink it from
-       * AnimData if it did not come from a NLA Strip being tweaked.
-       *
-       * This is done so that we don't have dangling Object+Action entries in
-       * channel list that are empty, and linger around long after the data they
-       * are for has disappeared (and probably won't come back).
-       */
-      animdata_remove_empty_action(adt);
-    }
-    else {
-      action_fcurve_remove(action, *fcu);
-      /* Return early to avoid the call to BKE_fcurve_free because the fcu has already been freed
-       * by action_fcurve_remove. */
-      return;
-    }
+    action_fcurve_remove(action, *fcu);
+    /* Return early to avoid the call to BKE_fcurve_free because the fcu has already been freed
+     * by action_fcurve_remove. */
+    return;
   }
   else {
     BLI_assert_unreachable();
@@ -335,7 +304,6 @@ const FCurve *fcurve_find_by_rna_path(const AnimData &adt,
   }
 
   const Action &action = adt.action->wrap();
-  BLI_assert(action.is_action_layered());
 
   const Slot *slot = action.slot_for_handle(adt.slot_handle);
   if (!slot) {

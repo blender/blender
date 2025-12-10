@@ -733,16 +733,6 @@ void Action::slot_setup_for_id(Slot &slot, const ID &animated_id)
 
 bool Action::has_keyframes(const slot_handle_t action_slot_handle) const
 {
-  if (this->is_action_legacy()) {
-    /* Old BKE_action_has_motion(const bAction *act) implementation. */
-    LISTBASE_FOREACH (const FCurve *, fcu, &this->curves) {
-      if (fcu->totvert) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   for (const FCurve *fcu : fcurves_for_action_slot(*this, action_slot_handle)) {
     if (fcu->totvert) {
       return true;
@@ -813,17 +803,7 @@ float2 Action::get_frame_range_of_slot(const slot_handle_t slot_handle) const
     return {this->frame_start, this->frame_end};
   }
 
-  Vector<const FCurve *> legacy_fcurves;
-  Span<const FCurve *> fcurves_to_consider;
-
-  if (this->is_action_layered()) {
-    fcurves_to_consider = fcurves_for_action_slot(*this, slot_handle);
-  }
-  else {
-    legacy_fcurves = legacy::fcurves_all(this);
-    fcurves_to_consider = legacy_fcurves;
-  }
-
+  Span<const FCurve *> fcurves_to_consider = fcurves_for_action_slot(*this, slot_handle);
   return get_frame_range_of_fcurves(fcurves_to_consider, false);
 }
 
@@ -1309,21 +1289,6 @@ bool generic_assign_action(ID &animated_id,
 {
   BLI_assert(slot_identifier);
 
-  if (action_to_assign && legacy::action_treat_as_legacy(*action_to_assign)) {
-    /* Check that the Action is suitable for this ID type.
-     * This is only necessary for legacy Actions. */
-    if (!BKE_animdata_action_ensure_idroot(&animated_id, action_to_assign)) {
-      BKE_reportf(
-          nullptr,
-          RPT_ERROR,
-          "Could not set action '%s' to animate ID '%s', as it does not have suitably rooted "
-          "paths for this purpose",
-          action_to_assign->id.name + 2,
-          animated_id.name);
-      return false;
-    }
-  }
-
   /* Un-assign any previously-assigned Action first. */
   if (action_ptr_ref) {
     /* Un-assign the slot. This will always succeed, so no need to check the result. */
@@ -1529,30 +1494,6 @@ ActionSlotAssignmentResult generic_assign_action_slot_handle(slot_handle_t slot_
   Slot *slot = action_ptr_ref->wrap().slot_for_handle(slot_handle_to_assign);
   return generic_assign_action_slot(
       slot, animated_id, action_ptr_ref, slot_handle_ref, slot_identifier);
-}
-
-bool is_action_assignable_to(const bAction *dna_action, const ID_Type id_code)
-{
-  if (!dna_action) {
-    /* Clearing the Action is always possible. */
-    return true;
-  }
-
-  if (dna_action->idroot == 0) {
-    /* This is either a never-assigned legacy action, or a layered action. In
-     * any case, it can be assigned to any ID. */
-    return true;
-  }
-
-  const animrig::Action &action = dna_action->wrap();
-  if (legacy::action_treat_as_legacy(action)) {
-    /* Legacy Actions can only be assigned if their idroot matches. Empty
-     * Actions are considered both 'layered' and 'legacy' at the same time,
-     * hence this condition checks for 'not layered' rather than 'legacy'. */
-    return action.idroot == id_code;
-  }
-
-  return true;
 }
 
 ActionSlotAssignmentResult assign_action_slot(Slot *slot_to_assign, ID &animated_id)
@@ -2567,7 +2508,6 @@ animrig::Channelbag *channelbag_for_action_slot(Action &action, const slot_handl
 
 Span<FCurve *> fcurves_for_action_slot(Action &action, const slot_handle_t slot_handle)
 {
-  BLI_assert(action.is_action_layered());
   assert_baklava_phase_1_invariants(action);
   animrig::Channelbag *bag = channelbag_for_action_slot(action, slot_handle);
   if (!bag) {
@@ -2578,7 +2518,6 @@ Span<FCurve *> fcurves_for_action_slot(Action &action, const slot_handle_t slot_
 
 Span<const FCurve *> fcurves_for_action_slot(const Action &action, const slot_handle_t slot_handle)
 {
-  BLI_assert(action.is_action_layered());
   assert_baklava_phase_1_invariants(action);
   const animrig::Channelbag *bag = channelbag_for_action_slot(action, slot_handle);
   if (!bag) {
@@ -2594,11 +2533,6 @@ FCurve *fcurve_find_in_action(bAction *act, const FCurveDescriptor &fcurve_descr
   }
 
   Action &action = act->wrap();
-  if (action.is_action_legacy()) {
-    return BKE_fcurve_find(
-        &act->curves, fcurve_descriptor.rna_path.c_str(), fcurve_descriptor.array_index);
-  }
-
   assert_baklava_phase_1_invariants(action);
   Layer *layer = action.layer(0);
   if (!layer) {
@@ -2635,11 +2569,6 @@ FCurve *fcurve_find_in_action_slot(bAction *act,
   }
 
   Action &action = act->wrap();
-  if (action.is_action_legacy()) {
-    return BKE_fcurve_find(
-        &act->curves, fcurve_descriptor.rna_path.c_str(), fcurve_descriptor.array_index);
-  }
-
   Channelbag *cbag = channelbag_for_action_slot(action, slot_handle);
   if (!cbag) {
     return nullptr;
@@ -2719,16 +2648,11 @@ Vector<FCurve *> fcurves_in_listbase_filtered(ListBase /* FCurve * */ fcurves,
 
 FCurve *action_fcurve_ensure_ex(Main *bmain,
                                 bAction *act,
-                                const char group[],
                                 PointerRNA *ptr,
                                 const FCurveDescriptor &fcurve_descriptor)
 {
   if (act == nullptr) {
     return nullptr;
-  }
-
-  if (animrig::legacy::action_treat_as_legacy(*act)) {
-    return action_fcurve_ensure_legacy(bmain, act, group, ptr, fcurve_descriptor);
   }
 
   /* NOTE: for layered actions we require the following:
@@ -2783,83 +2707,6 @@ FCurve &action_fcurve_ensure(Main *bmain,
   return channelbag.fcurve_ensure(bmain, fcurve_descriptor);
 }
 
-FCurve *action_fcurve_ensure_legacy(Main *bmain,
-                                    bAction *act,
-                                    const char group[],
-                                    PointerRNA *ptr,
-                                    const FCurveDescriptor &fcurve_descriptor)
-{
-  if (!act) {
-    return nullptr;
-  }
-
-  BLI_assert(act->wrap().is_empty() || act->wrap().is_action_legacy());
-
-  /* Try to find f-curve matching for this setting.
-   * - add if not found and allowed to add one
-   *   TODO: add auto-grouping support? how this works will need to be resolved
-   */
-  FCurve *fcu = animrig::fcurve_find_in_action(act, fcurve_descriptor);
-
-  if (fcu != nullptr) {
-    return fcu;
-  }
-
-  /* Determine the property (sub)type if we can. */
-  std::optional<PropertyType> prop_type = std::nullopt;
-  std::optional<PropertySubType> prop_subtype = std::nullopt;
-  if (ptr != nullptr) {
-    PropertyRNA *resolved_prop;
-    PointerRNA resolved_ptr;
-    PointerRNA id_ptr = RNA_id_pointer_create(ptr->owner_id);
-    const bool resolved = RNA_path_resolve_property(
-        &id_ptr, fcurve_descriptor.rna_path.c_str(), &resolved_ptr, &resolved_prop);
-    if (resolved) {
-      prop_type = RNA_property_type(resolved_prop);
-      prop_subtype = RNA_property_subtype(resolved_prop);
-    }
-  }
-
-  BLI_assert_msg(!fcurve_descriptor.prop_type.has_value(),
-                 "Did not expect a prop_type to be passed in. This is fine, but does need some "
-                 "changes to action_fcurve_ensure_legacy() to deal with it");
-  BLI_assert_msg(!fcurve_descriptor.prop_subtype.has_value(),
-                 "Did not expect a prop_subtype to be passed in. This is fine, but does need some "
-                 "changes to action_fcurve_ensure_legacy() to deal with it");
-  fcu = create_fcurve_for_channel(
-      {fcurve_descriptor.rna_path, fcurve_descriptor.array_index, prop_type, prop_subtype});
-
-  if (BLI_listbase_is_empty(&act->curves)) {
-    fcu->flag |= FCURVE_ACTIVE;
-  }
-
-  if (group) {
-    bActionGroup *agrp = BKE_action_group_find_name(act, group);
-
-    if (agrp == nullptr) {
-      agrp = action_groups_add_new(act, group);
-
-      /* Sync bone group colors if applicable. */
-      if (ptr && (ptr->type == &RNA_PoseBone) && ptr->data) {
-        const bPoseChannel *pchan = static_cast<const bPoseChannel *>(ptr->data);
-        action_group_colors_set_from_posebone(agrp, pchan);
-      }
-    }
-
-    action_groups_add_channel(act, agrp, fcu);
-  }
-  else {
-    BLI_addtail(&act->curves, fcu);
-  }
-
-  /* New f-curve was added, meaning it's possible that it affects
-   * dependency graph component which wasn't previously animated.
-   */
-  DEG_relations_tag_update(bmain);
-
-  return fcu;
-}
-
 bool action_fcurve_remove(Action &action, FCurve &fcu)
 {
   if (action_fcurve_detach(action, fcu)) {
@@ -2872,10 +2719,6 @@ bool action_fcurve_remove(Action &action, FCurve &fcu)
 
 bool action_fcurve_detach(Action &action, FCurve &fcurve_to_detach)
 {
-  if (action.is_action_legacy()) {
-    return BLI_remlink_safe(&action.curves, &fcurve_to_detach);
-  }
-
   for (Layer *layer : action.layers()) {
     for (Strip *strip : layer->strips()) {
       if (!(strip->type() == Strip::Type::Keyframe)) {
@@ -2898,11 +2741,6 @@ void action_fcurve_attach(Action &action,
                           FCurve &fcurve_to_attach,
                           std::optional<StringRefNull> group_name)
 {
-  if (animrig::legacy::action_treat_as_legacy(action)) {
-    BLI_addtail(&action.curves, &fcurve_to_attach);
-    return;
-  }
-
   Slot *slot = action.slot_for_handle(action_slot);
   BLI_assert(slot);
   if (!slot) {
@@ -3041,13 +2879,6 @@ ID *action_slot_get_id_for_keying(Main &bmain,
                                   const slot_handle_t slot_handle,
                                   ID *primary_id)
 {
-  if (animrig::legacy::action_treat_as_legacy(action)) {
-    if (primary_id && get_action(*primary_id) == &action) {
-      return primary_id;
-    }
-    return nullptr;
-  }
-
   Slot *slot = action.slot_for_handle(slot_handle);
   if (slot == nullptr) {
     return nullptr;
@@ -3093,9 +2924,6 @@ slot_handle_t first_slot_handle(const ::bAction &dna_action)
 
 void assert_baklava_phase_1_invariants(const Action &action)
 {
-  if (action.is_action_legacy()) {
-    return;
-  }
   if (action.layers().is_empty()) {
     return;
   }
