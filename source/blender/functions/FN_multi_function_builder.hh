@@ -125,15 +125,13 @@ namespace detail {
  * as output parameters. Usually types in #args are devirtualized (e.g. a `Span<int>` is passed in
  * instead of a `VArray<int>`).
  */
-template<typename MaskT, typename... Args, typename... ParamTags, size_t... I, typename ElementFn>
+template<typename MaskT, typename... Args, typename ElementFn>
 /* Perform additional optimizations on this loop because it is a very hot loop. For example, the
  * math node in geometry nodes is processed here. */
 #if (defined(__GNUC__) && !defined(__clang__))
 [[gnu::optimize("-funroll-loops")]] [[gnu::optimize("O3")]]
 #endif
-inline void execute_array(TypeSequence<ParamTags...> /*param_tags*/,
-                          std::index_sequence<I...> /*indices*/,
-                          const ElementFn &element_fn,
+inline void execute_array(const ElementFn &element_fn,
                           MaskT mask,
                           /* Use restrict to tell the compiler that pointer inputs do not alias
                            * each other. This is important for some compiler optimizations. */
@@ -418,19 +416,11 @@ inline void execute_element_fn_as_multi_function(const ElementFn &element_fn,
           for (const std::variant<IndexRange, IndexMaskSegment> &segment : mask_segments) {
             if (std::holds_alternative<IndexRange>(segment)) {
               const auto segment_range = std::get<IndexRange>(segment);
-              execute_array(TypeSequence<ParamTags...>(),
-                            std::index_sequence<I...>(),
-                            element_fn,
-                            segment_range,
-                            std::forward<decltype(args)>(args)...);
+              execute_array(element_fn, segment_range, std::forward<decltype(args)>(args)...);
             }
             else {
               const auto segment_indices = std::get<IndexMaskSegment>(segment);
-              execute_array(TypeSequence<ParamTags...>(),
-                            std::index_sequence<I...>(),
-                            element_fn,
-                            segment_indices,
-                            std::forward<decltype(args)>(args)...);
+              execute_array(element_fn, segment_indices, std::forward<decltype(args)>(args)...);
             }
           }
         });
@@ -456,23 +446,22 @@ inline void execute_element_fn_as_multi_function(const ElementFn &element_fn,
     else {
       /* This fallback is slower because it uses virtual method calls for every element. */
       mask.foreach_segment([&](const IndexMaskSegment segment) {
-        execute_array(
-            TypeSequence<ParamTags...>(), std::index_sequence<I...>(), element_fn, segment, [&]() {
-              /* Use `typedef` instead of `using` to work around a compiler bug. */
-              using ParamTag = ParamTags;
-              using T = typename ParamTag::base_type;
-              if constexpr (ParamTag::category == ParamCategory::SingleInput) {
-                const GVArrayImpl &varray_impl = *std::get<I>(loaded_params);
-                return GVArray(&varray_impl).typed<T>();
-              }
-              else if constexpr (ELEM(ParamTag::category,
-                                      ParamCategory::SingleOutput,
-                                      ParamCategory::SingleMutable))
-              {
-                T *ptr = std::get<I>(loaded_params);
-                return ptr;
-              }
-            }()...);
+        execute_array(element_fn, segment, [&]() {
+          /* Use `typedef` instead of `using` to work around a compiler bug. */
+          using ParamTag = ParamTags;
+          using T = typename ParamTag::base_type;
+          if constexpr (ParamTag::category == ParamCategory::SingleInput) {
+            const GVArrayImpl &varray_impl = *std::get<I>(loaded_params);
+            return GVArray(&varray_impl).typed<T>();
+          }
+          else if constexpr (ELEM(ParamTag::category,
+                                  ParamCategory::SingleOutput,
+                                  ParamCategory::SingleMutable))
+          {
+            T *ptr = std::get<I>(loaded_params);
+            return ptr;
+          }
+        }()...);
       });
     }
   }
