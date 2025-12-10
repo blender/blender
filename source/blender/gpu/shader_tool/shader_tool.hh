@@ -182,6 +182,7 @@ struct ParsedResource {
     else if (res_type == "storage") {
       ss << ".storage_buf(" << res_slot;
       ss << ", Qualifier::" << res_qualifier;
+      ss << ", \"" << var_type << "\"";
       ss << ", \"" << var_name << var_array << "\"";
       ss << ", Frequency::" << res_frequency;
       ss << res_condition_lambda << ")";
@@ -2962,7 +2963,7 @@ class Preprocessor {
 
         Token prev_tok = attributes.start().prev().prev();
         if (prev_tok == '(' || prev_tok == '{' || prev_tok == ';' || prev_tok == ',' ||
-            prev_tok == '}' || prev_tok == ')' || prev_tok.is_invalid())
+            prev_tok == '}' || prev_tok == ')' || prev_tok == '\n' || prev_tok.is_invalid())
         {
           /* Placement is maybe correct. Could refine a bit more. */
         }
