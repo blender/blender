@@ -117,7 +117,7 @@ static wmOperatorStatus weight_from_bones_exec(bContext *C, wmOperator *op)
   ED_object_vgroup_calc_from_armature(
       op->reports, depsgraph, scene, ob, armob, type, (mesh->symmetry & ME_SYMMETRY_X));
 
-  DEG_id_tag_update(&mesh->id, 0);
+  DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
   DEG_relations_tag_update(CTX_data_main(C));
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
 
@@ -489,7 +489,7 @@ static bool weight_paint_set(Object *ob, float paintweight)
 
   wpaint_prev_destroy(&wpp);
 
-  DEG_id_tag_update(&mesh->id, 0);
+  DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
 
   return true;
 }

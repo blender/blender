@@ -1681,7 +1681,7 @@ static wmOperatorStatus wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
    * exit (exit needs doing regardless because we
    * should re-deform).
    */
-  DEG_id_tag_update(&mesh->id, 0);
+  DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
 
   WM_event_add_notifier(C, NC_SCENE | ND_MODE, &scene);
 
@@ -1876,7 +1876,7 @@ void WeightPaintStroke::update_step(wmOperator *op, PointerRNA *itemptr)
 
   BKE_mesh_batch_cache_dirty_tag(&mesh, BKE_MESH_BATCH_DIRTY_ALL);
 
-  DEG_id_tag_update(&mesh.id, 0);
+  DEG_id_tag_update(&mesh.id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(this->evil_C, NC_OBJECT | ND_DRAW, ob);
   swap_m4m4(wpd->vc.rv3d->persmat, mat);
 
@@ -1906,7 +1906,7 @@ void WeightPaintStroke::done(bool /*is_cancel*/)
     }
   }
 
-  DEG_id_tag_update((ID *)ob.data, 0);
+  DEG_id_tag_update((ID *)ob.data, ID_RECALC_GEOMETRY);
 
   WM_event_add_notifier(this->evil_C, NC_OBJECT | ND_DRAW, &ob);
 
