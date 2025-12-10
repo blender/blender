@@ -84,20 +84,10 @@ static CustomData *rna_mesh_vdata_helper(Mesh *mesh)
   return (mesh->runtime->edit_mesh) ? &mesh->runtime->edit_mesh->bm->vdata : &mesh->vert_data;
 }
 
-static CustomData *rna_mesh_ldata_helper(Mesh *mesh)
-{
-  return (mesh->runtime->edit_mesh) ? &mesh->runtime->edit_mesh->bm->ldata : &mesh->corner_data;
-}
-
 static CustomData *rna_mesh_vdata(const PointerRNA *ptr)
 {
   Mesh *mesh = rna_mesh(ptr);
   return rna_mesh_vdata_helper(mesh);
-}
-static CustomData *rna_mesh_ldata(const PointerRNA *ptr)
-{
-  Mesh *mesh = rna_mesh(ptr);
-  return rna_mesh_ldata_helper(mesh);
 }
 
 /** \} */
