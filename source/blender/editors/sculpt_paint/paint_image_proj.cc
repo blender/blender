@@ -458,16 +458,16 @@ struct ProjPaintState {
   blender::Span<int3> corner_tris_eval;
   blender::Span<int> corner_tri_faces_eval;
 
-  const float (*uv_map_stencil_eval)[2];
+  const blender::float2 *uv_map_stencil_eval;
 
   /**
    * \note These UV layers are aligned to \a faces_eval
    * but each pointer references the start of the layer,
    * so a loop indirection is needed as well.
    */
-  const float (**poly_to_loop_uv)[2];
+  const blender::float2 **poly_to_loop_uv;
   /** other UV map, use for cloning between layers. */
-  const float (**poly_to_loop_uv_clone)[2];
+  const blender::float2 **poly_to_loop_uv_clone;
 
   /* Actual material for each index, either from object or Mesh datablock... */
   Material **mat_array;
@@ -4131,35 +4131,47 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   ps->corner_tris_eval = ps->mesh_eval->corner_tris();
   ps->corner_tri_faces_eval = ps->mesh_eval->corner_tri_faces();
 
-  ps->poly_to_loop_uv = static_cast<const float (**)[2]>(
-      MEM_mallocN(ps->faces_num_eval * sizeof(float (*)[2]), "proj_paint_mtfaces"));
+  ps->poly_to_loop_uv = static_cast<const blender::float2 **>(
+      MEM_mallocN(ps->faces_num_eval * sizeof(const blender::float2 **), "proj_paint_mtfaces"));
 
   return true;
 }
 
 struct ProjPaintLayerClone {
-  const float (*uv_map_clone_base)[2];
+  const blender::float2 *uv_map_clone_base;
   const TexPaintSlot *slot_last_clone;
   const TexPaintSlot *slot_clone;
 };
 
 static void proj_paint_layer_clone_init(ProjPaintState *ps, ProjPaintLayerClone *layer_clone)
 {
+  using namespace blender;
   const Mesh &mesh_orig = *static_cast<const Mesh *>(ps->ob->data);
-  const float (*uv_map_clone_base)[2] = nullptr;
+  const bke::AttributeAccessor attributes = ps->mesh_eval->attributes();
+  const blender::float2 *uv_map_clone_base = nullptr;
 
   /* use clone mtface? */
   if (ps->do_layer_clone) {
-    ps->poly_to_loop_uv_clone = static_cast<const float (**)[2]>(
-        MEM_mallocN(ps->faces_num_eval * sizeof(float (*)[2]), "proj_paint_mtfaces"));
+    ps->poly_to_loop_uv_clone = static_cast<const blender::float2 **>(
+        MEM_mallocN(ps->faces_num_eval * sizeof(const blender::float2 **), "proj_paint_mtfaces"));
 
-    uv_map_clone_base = static_cast<const float (*)[2]>(CustomData_get_layer_named(
-        &ps->mesh_eval->corner_data, CD_PROP_FLOAT2, mesh_orig.clone_uv_map_attribute));
+    if (const bke::GAttributeReader attr = attributes.lookup(mesh_orig.clone_uv_map_attribute)) {
+      if (attr.domain == bke::AttrDomain::Corner && attr.varray.type().is<float2>()) {
+        if (attr.varray.is_span()) {
+          uv_map_clone_base = attr.varray.get_internal_span().typed<float2>().data();
+        }
+      }
+    }
 
     if (uv_map_clone_base == nullptr) {
       /* get active instead */
-      uv_map_clone_base = static_cast<const float (*)[2]>(CustomData_get_layer_named(
-          &ps->mesh_eval->corner_data, CD_PROP_FLOAT2, ps->mesh_eval->active_uv_map_name()));
+      if (const bke::GAttributeReader attr = attributes.lookup(mesh_orig.active_uv_map_name())) {
+        if (attr.domain == bke::AttrDomain::Corner && attr.varray.type().is<float2>()) {
+          if (attr.varray.is_span()) {
+            uv_map_clone_base = attr.varray.get_internal_span().typed<float2>().data();
+          }
+        }
+      }
     }
   }
 
@@ -4173,6 +4185,9 @@ static bool project_paint_clone_face_skip(ProjPaintState *ps,
                                           const TexPaintSlot *slot,
                                           const int tri_index)
 {
+  using namespace blender;
+  const bke::AttributeAccessor attributes = ps->mesh_eval->attributes();
+  const StringRef active_uv_map_name = ps->mesh_eval->active_uv_map_name();
   if (ps->do_layer_clone) {
     if (ps->do_material_slots) {
       lc->slot_clone = project_paint_face_clone_slot(ps, tri_index);
@@ -4187,12 +4202,23 @@ static bool project_paint_clone_face_skip(ProjPaintState *ps,
 
     if (ps->do_material_slots) {
       if (lc->slot_clone != lc->slot_last_clone) {
-        if (!lc->slot_clone->uvname ||
-            !(lc->uv_map_clone_base = static_cast<const float (*)[2]>(CustomData_get_layer_named(
-                  &ps->mesh_eval->corner_data, CD_PROP_FLOAT2, lc->slot_clone->uvname))))
-        {
-          lc->uv_map_clone_base = static_cast<const float (*)[2]>(CustomData_get_layer_named(
-              &ps->mesh_eval->corner_data, CD_PROP_FLOAT2, ps->mesh_eval->active_uv_map_name()));
+        if (lc->slot_clone->uvname) {
+          if (const bke::GAttributeReader attr = attributes.lookup(slot->uvname)) {
+            if (attr.domain == bke::AttrDomain::Corner && attr.varray.type().is<float2>()) {
+              if (attr.varray.is_span()) {
+                lc->uv_map_clone_base = attr.varray.get_internal_span().typed<float2>().data();
+              }
+            }
+          }
+        }
+        if (!lc->uv_map_clone_base) {
+          if (const bke::GAttributeReader attr = attributes.lookup(active_uv_map_name)) {
+            if (attr.domain == bke::AttrDomain::Corner && attr.varray.type().is<float2>()) {
+              if (attr.varray.is_span()) {
+                lc->uv_map_clone_base = attr.varray.get_internal_span().typed<float2>().data();
+              }
+            }
+          }
         }
         lc->slot_last_clone = lc->slot_clone;
       }
@@ -4212,16 +4238,28 @@ struct ProjPaintFaceLookup {
 
 static void proj_paint_face_lookup_init(const ProjPaintState *ps, ProjPaintFaceLookup *face_lookup)
 {
+  using namespace blender;
   memset(face_lookup, 0, sizeof(*face_lookup));
   Mesh *orig_mesh = (Mesh *)ps->ob->data;
   face_lookup->index_mp_to_orig = static_cast<const int *>(
       CustomData_get_layer(&ps->mesh_eval->face_data, CD_ORIGINDEX));
+  const bke::AttributeAccessor attributes = orig_mesh->attributes();
   if (ps->do_face_sel) {
-    face_lookup->select_poly_orig = static_cast<const bool *>(
-        CustomData_get_layer_named(&orig_mesh->face_data, CD_PROP_BOOL, ".select_poly"));
+    if (const bke::GAttributeReader attr = attributes.lookup(".select_poly")) {
+      if (attr.domain == bke::AttrDomain::Face && attr.varray.type().is<bool>()) {
+        if (attr.varray.is_span()) {
+          face_lookup->select_poly_orig = attr.varray.get_internal_span().typed<bool>().data();
+        }
+      }
+    }
   }
-  face_lookup->hide_poly_orig = static_cast<const bool *>(
-      CustomData_get_layer_named(&orig_mesh->face_data, CD_PROP_BOOL, ".hide_poly"));
+  if (const bke::GAttributeReader attr = attributes.lookup(".hide_poly")) {
+    if (attr.domain == bke::AttrDomain::Face && attr.varray.type().is<bool>()) {
+      if (attr.varray.is_span()) {
+        face_lookup->hide_poly_orig = attr.varray.get_internal_span().typed<bool>().data();
+      }
+    }
+  }
 }
 
 /* Return true if face should be considered paintable, false otherwise */
@@ -4345,9 +4383,12 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
                                             MemArena *arena,
                                             const ProjPaintFaceLookup *face_lookup,
                                             ProjPaintLayerClone *layer_clone,
-                                            const float (*uv_map_base)[2],
+                                            const blender::float2 *uv_map_base,
                                             const bool is_multi_view)
 {
+  using namespace blender;
+  const bke::AttributeAccessor attributes = ps->mesh_eval->attributes();
+  const StringRef active_uv_name = ps->mesh_eval->active_uv_map_name();
   /* Image Vars - keep track of images we have used */
   ListBase used_images = {nullptr};
 
@@ -4372,18 +4413,35 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
       slot = project_paint_face_paint_slot(ps, tri_index);
       /* all faces should have a valid slot, reassert here */
       if (slot == nullptr) {
-        uv_map_base = static_cast<const float (*)[2]>(CustomData_get_layer_named(
-            &ps->mesh_eval->corner_data, CD_PROP_FLOAT2, ps->mesh_eval->active_uv_map_name()));
+        if (const bke::GAttributeReader attr = attributes.lookup(active_uv_name)) {
+          if (attr.domain == bke::AttrDomain::Corner && attr.varray.type().is<float2>()) {
+            if (attr.varray.is_span()) {
+              uv_map_base = attr.varray.get_internal_span().typed<float2>().data();
+            }
+          }
+        }
         tpage = ps->canvas_ima;
       }
       else {
         if (slot != slot_last) {
-          if (!slot->uvname ||
-              !(uv_map_base = static_cast<const float (*)[2]>(CustomData_get_layer_named(
-                    &ps->mesh_eval->corner_data, CD_PROP_FLOAT2, slot->uvname))))
-          {
-            uv_map_base = static_cast<const float (*)[2]>(CustomData_get_layer_named(
-                &ps->mesh_eval->corner_data, CD_PROP_FLOAT2, ps->mesh_eval->active_uv_map_name()));
+          if (slot->uvname) {
+            if (const bke::GAttributeReader attr = attributes.lookup(slot->uvname)) {
+              if (attr.domain == bke::AttrDomain::Corner && attr.varray.type().is<float2>()) {
+                if (attr.varray.is_span()) {
+                  uv_map_base = attr.varray.get_internal_span().typed<float2>().data();
+                }
+              }
+            }
+          }
+
+          if (!uv_map_base) {
+            if (const bke::GAttributeReader attr = attributes.lookup(active_uv_name)) {
+              if (attr.domain == bke::AttrDomain::Corner && attr.varray.type().is<float2>()) {
+                if (attr.varray.is_span()) {
+                  uv_map_base = attr.varray.get_internal_span().typed<float2>().data();
+                }
+              }
+            }
           }
           slot_last = slot;
         }
@@ -4530,9 +4588,10 @@ static void project_paint_begin(const bContext *C,
                                 const bool is_multi_view,
                                 const char symmetry_flag)
 {
+  using namespace blender;
   ProjPaintLayerClone layer_clone;
   ProjPaintFaceLookup face_lookup;
-  const float (*uv_map_base)[2] = nullptr;
+  const float2 *uv_map_base = nullptr;
 
   /* At the moment this is just ps->arena_mt[0], but use this to show were not multi-threading. */
   MemArena *arena;
@@ -4560,17 +4619,29 @@ static void project_paint_begin(const bContext *C,
     }
   }
 
+  const bke::AttributeAccessor attributes = ps->mesh_eval->attributes();
+
   proj_paint_face_lookup_init(ps, &face_lookup);
   proj_paint_layer_clone_init(ps, &layer_clone);
 
   if (ps->do_layer_stencil || ps->do_stencil_brush) {
-    ps->uv_map_stencil_eval = static_cast<const float (*)[2]>(CustomData_get_layer_named(
-        &ps->mesh_eval->corner_data, CD_PROP_FLOAT2, mesh_orig.stencil_uv_map_attribute));
+    if (const bke::GAttributeReader attr = attributes.lookup(mesh_orig.stencil_uv_map_attribute)) {
+      if (attr.domain == bke::AttrDomain::Corner && attr.varray.type().is<float2>()) {
+        if (attr.varray.is_span()) {
+          ps->uv_map_stencil_eval = attr.varray.get_internal_span().typed<float2>().data();
+        }
+      }
+    }
 
     if (ps->uv_map_stencil_eval == nullptr) {
       /* get active instead */
-      ps->uv_map_stencil_eval = static_cast<const float (*)[2]>(CustomData_get_layer_named(
-          &ps->mesh_eval->corner_data, CD_PROP_FLOAT2, ps->mesh_eval->active_uv_map_name()));
+      if (const bke::GAttributeReader attr = attributes.lookup(mesh_orig.active_uv_map_name())) {
+        if (attr.domain == bke::AttrDomain::Corner && attr.varray.type().is<float2>()) {
+          if (attr.varray.is_span()) {
+            ps->uv_map_stencil_eval = attr.varray.get_internal_span().typed<float2>().data();
+          }
+        }
+      }
     }
 
     if (ps->do_stencil_brush) {
