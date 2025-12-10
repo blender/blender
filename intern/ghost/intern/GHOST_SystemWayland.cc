@@ -6219,22 +6219,20 @@ static void keyboard_handle_repeat_info(void *data,
   CLOG_DEBUG(LOG, "info (rate=%d, delay=%d)", rate, delay);
 
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+#ifdef USE_EVENT_BACKGROUND_THREAD
+  std::lock_guard lock_timer_guard{*seat->system->timer_mutex};
+#endif
   seat->key_repeat.rate = rate;
   seat->key_repeat.delay = delay;
 
-  {
-#ifdef USE_EVENT_BACKGROUND_THREAD
-    std::lock_guard lock_timer_guard{*seat->system->timer_mutex};
-#endif
-    /* Unlikely possible this setting changes while repeating. */
-    if (seat->key_repeat.timer) {
-      if (rate > 0) {
-        keyboard_handle_key_repeat_reset(seat, false);
-      }
-      else {
-        /* A zero rate disables. */
-        keyboard_handle_key_repeat_cancel(seat);
-      }
+  /* Unlikely possible this setting changes while repeating. */
+  if (seat->key_repeat.timer) {
+    if (rate > 0) {
+      keyboard_handle_key_repeat_reset(seat, false);
+    }
+    else {
+      /* A zero rate disables. */
+      keyboard_handle_key_repeat_cancel(seat);
     }
   }
 }
