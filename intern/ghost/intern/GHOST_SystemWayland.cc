@@ -3736,6 +3736,8 @@ static void data_source_handle_cancelled(void *data, wl_data_source *wl_data_sou
 {
   CLOG_DEBUG(LOG, "cancelled");
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+  std::lock_guard lock{seat->data_source_mutex};
+
   GWL_DataSource *data_source = seat->data_source;
   if (seat->data_source->wl.source == wl_data_source) {
     data_source->wl.source = nullptr;
@@ -6369,6 +6371,7 @@ static void primary_selection_source_cancelled(void *data, zwp_primary_selection
   CLOG_DEBUG(LOG, "cancelled");
 
   GWL_PrimarySelection *primary = static_cast<GWL_PrimarySelection *>(data);
+  std::lock_guard lock{primary->data_source_mutex};
 
   if (source == primary->data_source->wp.source) {
     gwl_primary_selection_discard_source(primary);
