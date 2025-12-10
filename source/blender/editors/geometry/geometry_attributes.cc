@@ -298,6 +298,30 @@ static const EnumPropertyItem *geometry_attribute_domain_itemf(bContext *C,
   return rna_enum_attribute_domain_itemf(owner, false, r_free);
 }
 
+static void set_active_default_status_on_add(Mesh &mesh,
+                                             const bke::AttrDomain domain,
+                                             const bke::AttrType type,
+                                             const StringRefNull name)
+{
+  if (bke::mesh::is_color_attribute({domain, type})) {
+    if (!BKE_id_attributes_color_find(&mesh.id, mesh.active_color_attribute)) {
+      BKE_id_attributes_active_color_set(&mesh.id, name);
+    }
+    if (!BKE_id_attributes_color_find(&mesh.id, mesh.default_color_attribute)) {
+      BKE_id_attributes_default_color_set(&mesh.id, name);
+    }
+  }
+  else if (bke::mesh::is_uv_map({domain, type})) {
+    const VectorSet<StringRefNull> uv_maps = mesh.uv_map_names();
+    if (!uv_maps.contains(mesh.active_uv_map_name())) {
+      mesh.uv_maps_active_set(name);
+    }
+    if (!uv_maps.contains(mesh.default_uv_map_name())) {
+      mesh.uv_maps_default_set(name);
+    }
+  }
+}
+
 static wmOperatorStatus geometry_attribute_add_exec(bContext *C, wmOperator *op)
 {
   Object *ob = object::context_object(C);
@@ -319,23 +343,7 @@ static wmOperatorStatus geometry_attribute_add_exec(bContext *C, wmOperator *op)
     const StringRefNull new_name = layer->name;
     BKE_attributes_active_set(owner, new_name);
 
-    if (bke::mesh::is_color_attribute({domain, type})) {
-      if (!BKE_id_attributes_color_find(id, mesh.active_color_attribute)) {
-        BKE_id_attributes_active_color_set(id, new_name);
-      }
-      if (!BKE_id_attributes_color_find(id, mesh.default_color_attribute)) {
-        BKE_id_attributes_default_color_set(id, new_name);
-      }
-    }
-    else if (bke::mesh::is_uv_map({domain, type})) {
-      const VectorSet<StringRefNull> uv_maps = mesh.uv_map_names();
-      if (!uv_maps.contains(mesh.active_uv_map_name())) {
-        mesh.uv_maps_active_set(new_name);
-      }
-      if (!uv_maps.contains(mesh.default_uv_map_name())) {
-        mesh.uv_maps_default_set(new_name);
-      }
-    }
+    set_active_default_status_on_add(mesh, domain, type, new_name);
 
     DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GEOM | ND_DATA, id);
