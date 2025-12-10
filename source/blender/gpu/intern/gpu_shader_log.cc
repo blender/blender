@@ -370,6 +370,9 @@ size_t GPULogParser::source_line_get(StringRefNull source_combined, size_t pos)
 
 void printf_begin(Context *ctx)
 {
+#if GPU_SHADER_PRINTF_ENABLE == 0
+  return;
+#endif
   if (ctx == nullptr) {
     return;
   }
@@ -384,6 +387,9 @@ void printf_begin(Context *ctx)
 
 void printf_end(Context *ctx)
 {
+#if GPU_SHADER_PRINTF_ENABLE == 0
+  return;
+#endif
   if (ctx == nullptr) {
     return;
   }
