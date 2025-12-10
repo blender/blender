@@ -2391,7 +2391,7 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
 {
   const bool show_menu_icon = ui_but_draw_menu_icon(but);
   const float alpha = float(wcol->text[3]) / 255.0f;
-  char password_str[UI_MAX_DRAW_STR];
+  std::string password_str;
   bool no_text_padding = but->drawflag & BUT_NO_TEXT_PADDING;
 
   button_text_password_hide(password_str, but, false);

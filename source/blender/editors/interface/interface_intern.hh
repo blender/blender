@@ -1244,7 +1244,7 @@ void button_semi_modal_state_free(const bContext *C, Button *but);
  */
 void button_update_view_for_active(const bContext *C, const Block *block);
 int button_menu_direction(Button *but);
-void button_text_password_hide(char password_str[128], Button *but, bool restore);
+void button_text_password_hide(std::string &password_str, Button *but, bool restore);
 /**
  * Finds the pressed button in an aligned row (typically an expanded enum).
  *
