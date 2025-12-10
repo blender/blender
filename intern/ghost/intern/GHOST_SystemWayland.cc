@@ -780,8 +780,7 @@ static const GHOST_TButton gwl_pointer_events_ebutton[] = {
     GHOST_kButtonMaskButton7, /* `Button6_*` / #BTN_BACK. */
 };
 
-static_assert(ARRAY_SIZE(gwl_pointer_events_ebutton) ==
-                  GHOST_kButtonNum - (int(GHOST_kButtonMaskNone) + 1),
+static_assert(ARRAY_SIZE(gwl_pointer_events_ebutton) == size_t(GHOST_kButtonNum),
               "Buttons missing");
 
 struct GWL_SeatStatePointer_Events {
@@ -3175,7 +3174,7 @@ static bool gwl_window_csd_active_elem_motion(GWL_Seat *seat,
   GHOST_CSD_EventState &event_state = win->csd_eventstate_get();
   event_state.event_xy[0] = event_xy[0];
   event_state.event_xy[1] = event_xy[1];
-  GHOST_CSD_EventState_Button &event_button = event_state.buttons[0];
+  GHOST_CSD_EventState_Button &event_button = event_state.buttons[GHOST_kButtonMaskLeft];
   if (event_button.action_history_num > 0) {
     GHOST_CSD_EventState_ButtonAction &press = event_button.action_history[0];
     if (press.is_press && (press.type == GHOST_kCSDTypeTitlebar)) {
@@ -3305,10 +3304,10 @@ static void gwl_window_csd_active_elem_button(GWL_Seat *seat,
   GHOST_TCSD_Type press_type = GHOST_kCSDTypeBody;
 
   bool is_double_click = false;
-  if (ebutton == GHOST_kButtonMaskLeft) {
+  if (ebutton < ARRAY_SIZE(GHOST_CSD_EventState::buttons)) {
     const GHOST_CSD_Params &params = seat->system->getWindowCSD();
     GHOST_CSD_EventState &event_state = win->csd_eventstate_get();
-    GHOST_CSD_EventState_Button &event_button = event_state.buttons[0];
+    GHOST_CSD_EventState_Button &event_button = event_state.buttons[ebutton];
 
     if (event_button.action_history_num >= 1) {
       const GHOST_CSD_EventState_ButtonAction *actions = event_button.action_history;
@@ -3466,7 +3465,8 @@ static void gwl_window_csd_active_elem_button(GWL_Seat *seat,
           /* Note that for GNOME 49 it's important the `serial` used is from the "press" event
            * (not this "release" event). Otherwise the menu won't show at all. */
           const GHOST_CSD_EventState &event_state = win->csd_eventstate_get();
-          const GHOST_CSD_EventState_Button &event_button = event_state.buttons[0];
+          const GHOST_CSD_EventState_Button &event_button =
+              event_state.buttons[GHOST_kButtonMaskLeft];
           if (event_button.action_history_num > 1) {
             const GHOST_CSD_EventState_ButtonAction &action = event_button.action_history[1];
             if (action.is_press && (active_type == action.type)) {

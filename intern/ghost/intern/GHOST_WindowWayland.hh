@@ -77,8 +77,14 @@ struct GHOST_CSD_EventState_Button {
 
 struct GHOST_CSD_EventState {
   int32_t event_xy[2] = {0, 0};
-  /** Mouse buttons (just the Left mouse for now). */
-  GHOST_CSD_EventState_Button buttons[1];
+  /**
+   * Pointing device button, indexed with #GHOST_TButton.
+   *
+   * Only track the the left-button for now since there is no need
+   * to track double-click or press-drag for other buttons.
+   * Extend as needed.
+   */
+  GHOST_CSD_EventState_Button buttons[/*GHOST_kButtonMaskLeft + 1*/ 1];
 };
 
 class GHOST_WindowWayland : public GHOST_Window {

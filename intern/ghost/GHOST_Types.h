@@ -302,8 +302,9 @@ typedef enum {
 #endif
 } GHOST_TDrawingContextType;
 
+/** Set "None" as -1 so this can be used as an index. */
 typedef enum {
-  GHOST_kButtonMaskNone,
+  GHOST_kButtonMaskNone = -1,
   GHOST_kButtonMaskLeft,
   GHOST_kButtonMaskMiddle,
   GHOST_kButtonMaskRight,
