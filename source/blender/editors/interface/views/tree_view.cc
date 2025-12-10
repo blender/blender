@@ -487,6 +487,11 @@ std::optional<DropLocation> TreeViewItemDropTarget::choose_drop_location(
 
 /* ---------------------------------------------------------------------- */
 
+AbstractTreeViewItem::AbstractTreeViewItem()
+{
+  activate_for_context_menu_ = true;
+}
+
 void AbstractTreeViewItem::add_treerow_button(Block &block)
 {
   /* For some reason a width > (UI_UNIT_X * 2) make the layout system use all available width. */

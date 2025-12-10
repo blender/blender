@@ -224,6 +224,7 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
   std::string label_;
 
  public:
+  AbstractTreeViewItem();
   /* virtual */ ~AbstractTreeViewItem() override = default;
 
   virtual void build_row(Layout &row) = 0;
