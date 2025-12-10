@@ -18,3 +18,9 @@
        reinterpret_cast<const char *>(pos) < \
        (reinterpret_cast<const char *>((array)->data) + (array)->size); \
        (pos)++)
+
+#ifdef WITH_GHOST_CSD
+struct GHOST_CSD_Layout;
+bool GHOST_WindowCSD_LayoutFromSystem(GHOST_CSD_Layout &layout);
+void GHOST_WindowCSD_LayoutDefault(GHOST_CSD_Layout &layout);
+#endif

@@ -493,6 +493,7 @@ class GHOST_ISystem {
    ***************************************************************************************/
 
   virtual void setWindowCSD(const GHOST_CSD_Params &params) = 0;
+  virtual const GHOST_CSD_Layout &getWindowCSD_Layout() const = 0;
 
   /***************************************************************************************
    * System Message Box.

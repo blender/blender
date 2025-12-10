@@ -11,6 +11,7 @@
 
 #include "GPU_platform_backend_enum.h"
 
+struct GHOST_CSD_Layout;
 struct bContext;
 struct wmWindow;
 
@@ -48,6 +49,7 @@ void wm_test_gpu_backend_fallback(bContext *C);
  */
 void WM_window_csd_draw_titlebar_ex(const int win_size[2],
                                     char win_state,
+                                    const GHOST_CSD_Layout *csd_layout,
                                     bool is_active,
                                     const uint16_t dpi,
                                     const char *title,
@@ -68,8 +70,13 @@ int WM_window_csd_fracitonal_scale_apply(int value, const int fractional_scale[2
  * Callback for GHOST that defines the layout of client side decorations.
  *
  * Also used to calculate the visible area of a window when #WM_window_is_csd returns true.
+ *
+ * \param csd_layout: When null, buttons won't be included.
  */
 int WM_window_csd_layout_callback(const int window_size[2],
                                   const int fractional_scale[2],
                                   char window_state,
+                                  const GHOST_CSD_Layout *csd_layout,
                                   GHOST_CSD_Elem *csd_elems);
+
+const GHOST_CSD_Layout *WM_window_csd_layout_get();

@@ -2185,10 +2185,11 @@ void wm_window_events_process(const bContext *C)
 static int32_t wm_window_csd_layout_callback(const int32_t window_size[2],
                                              const int32_t fractional_scale[2],
                                              GHOST_TWindowState window_state,
+                                             const GHOST_CSD_Layout *csd_layout,
                                              GHOST_CSD_Elem *csd_elems)
 {
   return WM_window_csd_layout_callback(
-      window_size, fractional_scale, char(window_state), csd_elems);
+      window_size, fractional_scale, char(window_state), csd_layout, csd_elems);
 }
 
 void WM_window_csd_params_update()
@@ -2204,6 +2205,11 @@ void WM_window_csd_params_update()
       /*cursor_double_click_ms*/ U.dbl_click_time,
   };
   GHOST_SetWindowCSD(g_system, &csd_params);
+}
+
+const GHOST_CSD_Layout *WM_window_csd_layout_get()
+{
+  return GHOST_GetWindowCSD_Layout(g_system);
 }
 
 #endif /* WITH_GHOST_CSD */

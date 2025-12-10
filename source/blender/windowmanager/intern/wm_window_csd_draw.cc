@@ -20,6 +20,7 @@
 #include "GPU_viewport.hh" /* #GLA_PIXEL_OFS */
 
 #include "WM_api.hh"
+#include "wm_window.hh"
 #include "wm_window_private.hh" /* Own include. */
 
 #include "UI_interface_c.hh"
@@ -35,6 +36,7 @@
 
 void WM_window_csd_draw_titlebar_ex(const int win_size[2],
                                     const char win_state,
+                                    const GHOST_CSD_Layout *csd_layout,
                                     const bool is_active,
                                     const uint16_t dpi,
                                     const char *title,
@@ -51,7 +53,7 @@ void WM_window_csd_draw_titlebar_ex(const int win_size[2],
       dpi,
   };
   const int csd_elems_num = WM_window_csd_layout_callback(
-      win_size, fractional_scale, win_state, csd_elems_orig);
+      win_size, fractional_scale, win_state, csd_layout, csd_elems_orig);
 
   if (csd_elems_num <= 0) {
     return;
@@ -275,6 +277,7 @@ void WM_window_csd_draw_titlebar(const wmWindow *win)
 {
   BLI_assert(WM_window_is_csd(win));
   const blender::int2 win_size = WM_window_native_pixel_size(win);
+  const GHOST_CSD_Layout *csd_layout = WM_window_csd_layout_get();
   const uint16_t dpi = GHOST_GetDPIHint(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin));
   const char win_state = GHOST_TWindowState(win->windowstate);
   char *title = GHOST_GetTitle(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin));
@@ -295,6 +298,7 @@ void WM_window_csd_draw_titlebar(const wmWindow *win)
   const float alpha = 1.0f;
   WM_window_csd_draw_titlebar_ex(win_size,
                                  win_state,
+                                 csd_layout,
                                  is_active,
                                  dpi,
                                  title,

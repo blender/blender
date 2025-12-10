@@ -22,6 +22,7 @@ GHOST_System::GHOST_System()
       window_focus_(true),
       auto_focus_(true),
       window_csd_params_({nullptr}),
+      window_csd_layout_({0}),
       timer_manager_(nullptr),
       window_manager_(nullptr),
       event_manager_(nullptr),
@@ -64,6 +65,15 @@ void GHOST_System::setWindowCSD(const GHOST_CSD_Params &params)
 const GHOST_CSD_Params &GHOST_System::getWindowCSD() const
 {
   return window_csd_params_;
+}
+
+const GHOST_CSD_Layout &GHOST_System::getWindowCSD_Layout() const
+{
+  return window_csd_layout_;
+}
+void GHOST_System::setWindowCSD_Layout(const GHOST_CSD_Layout &layout)
+{
+  window_csd_layout_ = layout;
 }
 
 GHOST_ITimerTask *GHOST_System::installTimer(uint64_t delay,

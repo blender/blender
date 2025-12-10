@@ -1088,12 +1088,22 @@ struct GHOST_CSD_Elem {
   GHOST_TCSD_Type type;
 };
 
+/**
+ * CSD Layout.
+ * Currently only supports configuring button order separated by the title text.
+ */
+typedef struct GHOST_CSD_Layout {
+  int32_t buttons_num;
+  GHOST_TCSD_Type buttons[5];
+} GHOST_CSD_Layout;
+
 #define GHOST_CSD_DPI_FRACTIONAL_BASE 96
 
 typedef struct GHOST_CSD_Params {
   int32_t (*layout_callback)(const int32_t window_size[2],
                              const int32_t fractional_scale[2],
                              GHOST_TWindowState windowstate,
+                             const struct GHOST_CSD_Layout *csd_layout,
                              GHOST_CSD_Elem *csd_elems);
   /** Used for window interactions. */
   int cursor_drag_threshold;

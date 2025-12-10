@@ -110,7 +110,7 @@ static signed char has_wl_trackpad_physical_direction = -1;
 
 #ifdef WITH_GHOST_CSD
 /** Use when developing CSD on a compositor that doesn't require CSD.  */
-// #  define USE_GHOST_CSD_FORCE
+#  define USE_GHOST_CSD_FORCE
 #endif
 
 /** \} */
@@ -8106,7 +8106,17 @@ GHOST_SystemWayland::GHOST_SystemWayland(const bool background)
   use_window_frame_csd = true;
 #  endif
 
+  if (use_window_frame_csd) {
+    GHOST_CSD_Layout csd_layout = {0};
+    if (!GHOST_WindowCSD_LayoutFromSystem(csd_layout)) {
+      GHOST_WindowCSD_LayoutDefault(csd_layout);
+    }
+
+    this->setWindowCSD_Layout(csd_layout);
+  }
+
   display_->use_window_frame_csd = use_window_frame_csd;
+
 #endif /* WITH_GHOST_CSD */
 
   {

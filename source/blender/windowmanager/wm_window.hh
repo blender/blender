@@ -10,7 +10,6 @@
 
 #include "BLI_compiler_attrs.h"
 
-struct GHOST_CSD_Elem;
 struct bContext;
 struct Main;
 struct PointerRNA;

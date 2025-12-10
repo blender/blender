@@ -321,6 +321,7 @@ static bool playanim_window_contains_point(GHOST_WindowHandle ghost_window,
   if (cx >= 0 && cx < window_size[0] && cy >= 0 && cy <= window_size[1]) {
 #ifdef WITH_GHOST_CSD
     if (use_window_csd) {
+      const GHOST_CSD_Layout *csd_layout = nullptr; /* Not needed to get the "body" area. */
       const GHOST_TWindowState state = GHOST_GetWindowState(ghost_window);
       GHOST_CSD_Elem csd_elems[GHOST_kCSDType_NUM];
       const int fractional_scale[2] = {
@@ -328,7 +329,7 @@ static bool playanim_window_contains_point(GHOST_WindowHandle ghost_window,
           GHOST_GetDPIHint(ghost_window),
       };
       const int csd_elems_num = WM_window_csd_layout_callback(
-          window_size, fractional_scale, state, csd_elems);
+          window_size, fractional_scale, state, csd_layout, csd_elems);
       for (int i = 0; i < csd_elems_num; i += 1) {
         GHOST_CSD_Elem &elem = csd_elems[i];
         if (elem.type == GHOST_kCSDTypeBody) {
@@ -354,10 +355,11 @@ static bool playanim_window_contains_point(GHOST_WindowHandle ghost_window,
 static int32_t wm_window_csd_layout_callback(const int32_t window_size[2],
                                              const int32_t fractional_scale[2],
                                              GHOST_TWindowState window_state,
+                                             const GHOST_CSD_Layout *csd_layout,
                                              GHOST_CSD_Elem *csd_elems)
 {
   return WM_window_csd_layout_callback(
-      window_size, fractional_scale, char(window_state), csd_elems);
+      window_size, fractional_scale, char(window_state), csd_layout, csd_elems);
 }
 
 static void playanim_window_csd_params_update(GhostData &ghost_data)
@@ -869,6 +871,8 @@ static void playanim_toscreen_ex(GhostData &ghost_data,
     const GHOST_TWindowState state = GHOST_GetWindowState(ghost_data.window);
     if (ELEM(state, GHOST_kWindowStateNormal, GHOST_kWindowStateMaximized)) {
       GPU_matrix_push();
+
+      const GHOST_CSD_Layout *csd_layout = GHOST_GetWindowCSD_Layout(ghost_data.system);
       const uint16_t dpi = GHOST_GetDPIHint(ghost_data.window);
       const blender::int2 window_size = playanim_window_size_get(ghost_data.window);
       const bool is_active = true; /* Alpha is zero when inactive. */
@@ -877,6 +881,7 @@ static void playanim_toscreen_ex(GhostData &ghost_data,
       const uchar text_color[3] = {255, 255, 255};
       WM_window_csd_draw_titlebar_ex(window_size,
                                      state,
+                                     csd_layout,
                                      is_active,
                                      dpi,
                                      playanim_window_title,

@@ -239,6 +239,12 @@ void GHOST_SetWindowCSD(GHOST_SystemHandle systemhandle, GHOST_CSD_Params *param
   system->setWindowCSD(*params);
 }
 
+extern const GHOST_CSD_Layout *GHOST_GetWindowCSD_Layout(GHOST_SystemHandle systemhandle)
+{
+  GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
+  return &system->getWindowCSD_Layout();
+}
+
 bool GHOST_ProcessEvents(GHOST_SystemHandle systemhandle, bool waitForEvent)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;

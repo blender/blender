@@ -306,6 +306,7 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
 
     list(APPEND SRC
       intern/GHOST_SystemWayland.cc
+      intern/GHOST_WaylandUtils.cc
       intern/GHOST_WindowWayland.cc
 
       intern/GHOST_SystemWayland.hh

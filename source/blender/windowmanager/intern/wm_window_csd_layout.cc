@@ -28,6 +28,7 @@ int WM_window_csd_fracitonal_scale_apply(int value, const int fractional_scale[2
 int WM_window_csd_layout_callback(const int window_size[2],
                                   const int fractional_scale[2],
                                   const char window_state,
+                                  const GHOST_CSD_Layout *csd_layout,
                                   GHOST_CSD_Elem *csd_elems)
 {
   constexpr int csd_title_height = 25;
@@ -40,108 +41,73 @@ int WM_window_csd_layout_callback(const int window_size[2],
   BLI_assert(window_state != GHOST_kWindowStateFullScreen);
   int decor_num = 0;
 
+  const int32_t border = (window_state == GHOST_kWindowStateMaximized) ?
+                             0 :
+                             WM_window_csd_fracitonal_scale_apply(csd_border_size,
+                                                                  fractional_scale);
   GHOST_CSD_Elem *elem;
 
-  if (window_state == GHOST_kWindowStateMaximized) {
+  /* Window contents. */
+  elem = &csd_elems[decor_num++];
+  elem->type = GHOST_kCSDTypeBody;
+  elem->bounds[0][0] = border;
+  elem->bounds[0][1] = window_size[0] - border;
+  elem->bounds[1][0] = border + title;
+  elem->bounds[1][1] = window_size[1] - border;
 
-    elem = &csd_elems[decor_num++];
-    elem->type = GHOST_kCSDTypeBody;
-    elem->bounds[0][0] = 0;
-    elem->bounds[0][1] = window_size[0];
-    elem->bounds[1][0] = title;
-    elem->bounds[1][1] = window_size[1];
+  /* Allow this to be null for callers that only need to know about
+   * the "title" & "body" regions. */
+  if (csd_layout != nullptr) {
+    int button_layout_title_index = 0;
 
-    /* Buttons. */
-    int button_index = 0;
-    elem = &csd_elems[decor_num++];
-    elem->type = GHOST_kCSDTypeButtonClose;
-    elem->bounds[0][0] = (window_size[0] - title) - (title * button_index);
-    elem->bounds[0][1] = (window_size[0]) - (title * button_index);
-    elem->bounds[1][0] = 0;
-    elem->bounds[1][1] = title;
+    /* Buttons on the left. */
+    {
+      int button_index = 0;
+      for (int i = 0; i < csd_layout->buttons_num; i++) {
+        if (csd_layout->buttons[i] == GHOST_kCSDTypeTitlebar) {
+          button_layout_title_index = i;
+          break;
+        }
 
-    button_index++;
-    elem = &csd_elems[decor_num++];
-    elem->type = GHOST_kCSDTypeButtonMaximize;
-    elem->bounds[0][0] = (window_size[0] - title) - (title * button_index);
-    elem->bounds[0][1] = (window_size[0]) - (title * button_index);
-    elem->bounds[1][0] = 0;
-    elem->bounds[1][1] = title;
+        GHOST_TCSD_Type type = GHOST_TCSD_Type(csd_layout->buttons[i]);
+        elem = &csd_elems[decor_num++];
+        elem->type = type;
+        elem->bounds[0][0] = border + (title * button_index);
+        elem->bounds[0][1] = border + title + (title * button_index);
+        elem->bounds[1][0] = border;
+        elem->bounds[1][1] = border + title;
 
-    button_index++;
-    elem = &csd_elems[decor_num++];
-    elem->type = GHOST_kCSDTypeButtonMinimize;
-    elem->bounds[0][0] = (window_size[0] - title) - (title * button_index);
-    elem->bounds[0][1] = (window_size[0]) - (title * button_index);
-    elem->bounds[1][0] = 0;
-    elem->bounds[1][1] = title;
+        button_index++;
+      }
+    }
 
-    elem = &csd_elems[decor_num++];
-    elem->type = GHOST_kCSDTypeButtonMenu;
-    elem->bounds[0][0] = 0;
-    elem->bounds[0][1] = title;
-    elem->bounds[1][0] = 0;
-    elem->bounds[1][1] = title;
-
-    /* Title bar. */
-    elem = &csd_elems[decor_num++];
-    elem->type = GHOST_kCSDTypeTitlebar;
-    elem->bounds[0][0] = 0;
-    elem->bounds[0][1] = window_size[0];
-    elem->bounds[1][0] = 0;
-    elem->bounds[1][1] = title;
+    /* Buttons on the right. */
+    {
+      int button_index = 0;
+      for (int i = csd_layout->buttons_num - 1; i > button_layout_title_index; i--) {
+        GHOST_TCSD_Type type = csd_layout->buttons[i];
+        elem = &csd_elems[decor_num++];
+        elem->type = type;
+        elem->bounds[0][0] = (window_size[0] - (border + title)) - (title * button_index);
+        elem->bounds[0][1] = (window_size[0] - (border)) - (title * button_index);
+        elem->bounds[1][0] = border;
+        elem->bounds[1][1] = border + title;
+        button_index++;
+      }
+    }
   }
-  else { /* #GHOST_kWindowStateNormal */
-    const int32_t border = WM_window_csd_fracitonal_scale_apply(csd_border_size, fractional_scale);
+
+  /* Title bar. */
+  elem = &csd_elems[decor_num++];
+  elem->type = GHOST_kCSDTypeTitlebar;
+  elem->bounds[0][0] = border;
+  elem->bounds[0][1] = window_size[0] - border;
+  elem->bounds[1][0] = border;
+  elem->bounds[1][1] = border + title;
+
+  if (window_state != GHOST_kWindowStateMaximized) {
     const int32_t border_corner = WM_window_csd_fracitonal_scale_apply(csd_border_corner_size,
                                                                        fractional_scale);
-    /* Window contents. */
-    elem = &csd_elems[decor_num++];
-    elem->type = GHOST_kCSDTypeBody;
-    elem->bounds[0][0] = border;
-    elem->bounds[0][1] = window_size[0] - border;
-    elem->bounds[1][0] = border + title;
-    elem->bounds[1][1] = window_size[1] - border;
-
-    /* Buttons. */
-    int button_index = 0;
-    elem = &csd_elems[decor_num++];
-    elem->type = GHOST_kCSDTypeButtonClose;
-    elem->bounds[0][0] = (window_size[0] - (border + title)) - (title * button_index);
-    elem->bounds[0][1] = (window_size[0] - (border)) - (title * button_index);
-    elem->bounds[1][0] = border;
-    elem->bounds[1][1] = border + title;
-
-    button_index++;
-    elem = &csd_elems[decor_num++];
-    elem->type = GHOST_kCSDTypeButtonMaximize;
-    elem->bounds[0][0] = (window_size[0] - (border + title)) - (title * button_index);
-    elem->bounds[0][1] = (window_size[0] - (border)) - (title * button_index);
-    elem->bounds[1][0] = border;
-    elem->bounds[1][1] = border + title;
-
-    button_index++;
-    elem = &csd_elems[decor_num++];
-    elem->type = GHOST_kCSDTypeButtonMinimize;
-    elem->bounds[0][0] = (window_size[0] - (border + title)) - (title * button_index);
-    elem->bounds[0][1] = (window_size[0] - (border)) - (title * button_index);
-    elem->bounds[1][0] = border;
-    elem->bounds[1][1] = border + title;
-
-    elem = &csd_elems[decor_num++];
-    elem->type = GHOST_kCSDTypeButtonMenu;
-    elem->bounds[0][0] = border;
-    elem->bounds[0][1] = border + title;
-    elem->bounds[1][0] = border;
-    elem->bounds[1][1] = border + title;
-
-    /* Title bar. */
-    elem = &csd_elems[decor_num++];
-    elem->type = GHOST_kCSDTypeTitlebar;
-    elem->bounds[0][0] = border;
-    elem->bounds[0][1] = window_size[0] - border;
-    elem->bounds[1][0] = border;
-    elem->bounds[1][1] = border + title;
 
     /* Border: corners. */
     elem = &csd_elems[decor_num++];
@@ -207,6 +173,7 @@ int WM_window_csd_layout_callback(const int window_size[2],
 
 void WM_window_csd_rect_calc(const wmWindow *win, rcti *r_rect)
 {
+  const GHOST_CSD_Layout *csd_layout = WM_window_csd_layout_get();
   const int fractional_scale[2] = {
       GHOST_CSD_DPI_FRACTIONAL_BASE,
       GHOST_GetDPIHint(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin)),
@@ -216,7 +183,7 @@ void WM_window_csd_rect_calc(const wmWindow *win, rcti *r_rect)
 
   const blender::int2 win_size = WM_window_native_pixel_size(win);
   const int decor_num = WM_window_csd_layout_callback(
-      win_size, fractional_scale, GHOST_TWindowState(win->windowstate), csd_elems);
+      win_size, fractional_scale, GHOST_TWindowState(win->windowstate), csd_layout, csd_elems);
 
   const GHOST_CSD_Elem *elem = nullptr;
   for (int i = 0; i < decor_num; i++) {

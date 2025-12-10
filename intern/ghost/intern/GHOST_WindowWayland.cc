@@ -922,13 +922,17 @@ static void gwl_window_frame_update_from_pending_no_lock(GWL_Window *win)
     else {
       GHOST_SystemWayland *system = win->ghost_system;
       const GHOST_CSD_Params &params = system->getWindowCSD();
+      const GHOST_CSD_Layout &button_layout = system->getWindowCSD_Layout();
 
       const int32_t fractional_scale[2] = {
           GHOST_CSD_DPI_FRACTIONAL_BASE,
           win->ghost_window->getDPIHint(),
       };
-      xdg_csd->csd_elems_num = params.layout_callback(
-          win->frame.size, fractional_scale, gwl_window_state_get(win), xdg_csd->csd_elems);
+      xdg_csd->csd_elems_num = params.layout_callback(win->frame.size,
+                                                      fractional_scale,
+                                                      gwl_window_state_get(win),
+                                                      &button_layout,
+                                                      xdg_csd->csd_elems);
 
       if (state_changed) {
         /* NOTE(@ideasman42) This is not technically correct because after the
