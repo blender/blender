@@ -3170,19 +3170,23 @@ static bool gwl_window_csd_active_elem_motion(GWL_Seat *seat,
     return false;
   }
 
-  /* Double click to maximize. */
-  const GHOST_CSD_Params &params = seat->system->getWindowCSD();
+  /* Update motion. */
   GHOST_CSD_EventState &event_state = win->csd_eventstate_get();
   event_state.event_xy[0] = event_xy[0];
   event_state.event_xy[1] = event_xy[1];
-  GHOST_CSD_EventState_Button &event_button = event_state.buttons[GHOST_kButtonMaskLeft];
-  if (event_button.action_history_num > 0) {
-    GHOST_CSD_EventState_ButtonAction &press = event_button.action_history[0];
-    if (press.is_press && (press.type == GHOST_kCSDTypeTitlebar)) {
-      if ((std::abs(press.xy[0] - event_xy[0]) + std::abs(press.xy[1] - event_xy[1])) >
-          gwl_window_dpi_scale_value(win, params.cursor_drag_threshold))
-      {
-        xdg_toplevel_move(win->xdg_toplevel_get(), seat->wl.seat, press.serial);
+
+  {
+    /* Detect press-drag. */
+    GHOST_CSD_EventState_Button &event_button = event_state.buttons[GHOST_kButtonMaskLeft];
+    if (event_button.action_history_num > 0) {
+      GHOST_CSD_EventState_ButtonAction &press = event_button.action_history[0];
+      if (press.is_press && (press.type == GHOST_kCSDTypeTitlebar)) {
+        const GHOST_CSD_Params &params = seat->system->getWindowCSD();
+        if ((std::abs(press.xy[0] - event_xy[0]) + std::abs(press.xy[1] - event_xy[1])) >
+            gwl_window_dpi_scale_value(win, params.cursor_drag_threshold))
+        {
+          xdg_toplevel_move(win->xdg_toplevel_get(), seat->wl.seat, press.serial);
+        }
       }
     }
   }
@@ -5589,7 +5593,7 @@ static void tablet_tool_handle_frame(void *data,
   gwl_tablet_tool_frame_event_reset(tablet_tool);
 }
 
-static const zwp_tablet_tool_v2_listener tablet_tool_listner = {
+static const zwp_tablet_tool_v2_listener tablet_tool_listener = {
     /*type*/ tablet_tool_handle_type,
     /*hardware_serial*/ tablet_tool_handle_hardware_serial,
     /*hardware_id_wacom*/ tablet_tool_handle_hardware_id_wacom,
@@ -5646,7 +5650,7 @@ static void tablet_seat_handle_tool_added(void *data,
   wl_surface_add_listener(
       tablet_tool->wl.surface_cursor, &cursor_surface_listener, static_cast<void *>(seat));
 
-  zwp_tablet_tool_v2_add_listener(id, &tablet_tool_listner, tablet_tool);
+  zwp_tablet_tool_v2_add_listener(id, &tablet_tool_listener, tablet_tool);
 
   seat->wp.tablet_tools.insert(id);
 }
@@ -5681,13 +5685,13 @@ static void keyboard_handle_keymap(void *data,
                                    const int32_t fd,
                                    const uint32_t size)
 {
-  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
-
   if ((!data) || (format != WL_KEYBOARD_KEYMAP_FORMAT_XKB_V1)) {
     CLOG_DEBUG(LOG, "keymap (no data or wrong version)");
     close(fd);
     return;
   }
+
+  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
 
   char *map_str = static_cast<char *>(mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fd, 0));
   if (map_str == MAP_FAILED) {
