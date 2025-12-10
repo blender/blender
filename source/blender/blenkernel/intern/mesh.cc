@@ -462,7 +462,6 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_string(reader, &mesh->default_color_attribute);
   BLO_read_string(reader, &mesh->active_uv_map_attribute);
   BLO_read_string(reader, &mesh->default_uv_map_attribute);
-
   BLO_read_string(reader, &mesh->stencil_uv_map_attribute);
   BLO_read_string(reader, &mesh->clone_uv_map_attribute);
 
