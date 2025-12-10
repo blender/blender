@@ -133,6 +133,7 @@ template<typename T, int Sz> struct SwizzleBase : VecOp<T, Sz> {
 
   constexpr VecT operator=(const VecT &) RET;
   operator VecT() const RET;
+  VecT operator()() const RET;
 };
 
 #define SWIZZLE_XY(T) \
