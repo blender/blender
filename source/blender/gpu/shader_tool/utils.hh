@@ -32,6 +32,9 @@ struct IndexRange {
 
   bool overlaps(IndexRange other) const
   {
+    if (start == other.start && size == other.size) {
+      return true;
+    }
     return ((start < other.start) && (other.start < (start + size))) ||
            ((other.start < start) && (start < (other.start + other.size)));
   }

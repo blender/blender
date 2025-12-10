@@ -89,6 +89,9 @@ struct IntermediateForm {
   /* Main access operator. Returns the root scope (aka global scope). */
   Scope operator()() const
   {
+    if (data_.scope_types.empty()) {
+      return Scope::invalid();
+    }
     return Scope::from_position(&data_, 0);
   }
 

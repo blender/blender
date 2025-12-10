@@ -80,6 +80,7 @@ enum TokenType : char {
   Using = 'u',
   Private = 'v',
   Public = 'V',
+  Inline = 'l',
 };
 
 static inline TokenType to_type(const char c)
@@ -309,15 +310,26 @@ struct Token {
     return str.substr(1, str.length() - 2);
   }
 
-  /* Return the line number this token is found at. Take into account the #line directives. */
-  size_t line_number() const
+  /* Return the line number this token is found at. Take into account the #line directives.
+   * If `at_end` is true, return the line number after this token. */
+  size_t line_number(bool at_end = false) const
   {
+    if (is_invalid()) {
+      return 0;
+    }
+    if (at_end) {
+      return parser::line_number(data->str, str_index_last()) +
+             int(data->str[str_index_last()] == '\n');
+    }
     return parser::line_number(data->str, str_index_start());
   }
 
   /* Return the offset to the start of the line. */
   size_t char_number() const
   {
+    if (is_invalid()) {
+      return 0;
+    }
     return parser::char_number(data->str, str_index_start());
   }
 
