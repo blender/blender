@@ -741,7 +741,7 @@ struct SRT {
 
 #if defined(CREATE_INFO_SRT)
 #line 5
-  void method(                   inout SRT _inout_sta this_ _inout_end, int t) {
+  void method(_ref(SRT ,this_), int t) {
     srt_access(SRT, a);
   }
 
@@ -816,7 +816,7 @@ void func([[resource_table]] Resources &srt)
 
 #if defined(CREATE_INFO_Resources)
 #line 2
-void func(                   inout Resources _inout_sta srt _inout_end)
+void func(_ref(Resources ,srt))
 {
 
 #if constant_srt_access(Resources, use_color_band)
@@ -1197,7 +1197,7 @@ int _pad;};
          NS_S NS_S_static_method(NS_S s) {
     return NS_S(0);
   }
-  NS_S other_method(inout NS_S _inout_sta this_ _inout_end, int s) {
+  NS_S other_method(_ref(NS_S ,this_), int s) {
     some_method(this_);
     return NS_S(0);
   }
@@ -1531,7 +1531,7 @@ struct S {
     return a;
   }
 #line 18
-  S function(inout S _inout_sta this_ _inout_end, int i)
+  S function(_ref(S ,this_), int i)
   {
     this_.member = i;
     this_member++;
@@ -1599,7 +1599,7 @@ float fn([[resource_table]] SRT &srt) {
 
 #if defined(CREATE_INFO_SRT)
 #line 2
-float fn(                   inout SRT _inout_sta srt _inout_end) {
+float fn(_ref(SRT ,srt)) {
   return srt_access(SRT, member);
 }
 
@@ -1632,7 +1632,7 @@ float fn([[resource_table]] SRT &srt) {
 
 #if defined(CREATE_INFO_SRT)
 #line 2
-float fn(                   inout SRT _inout_sta srt _inout_end) {
+float fn(_ref(SRT ,srt)) {
 
   return srt_access(OtherSRT, member);
 }
