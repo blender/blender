@@ -2309,13 +2309,11 @@ class Preprocessor {
             access_macros += member.var_name + "\n";
           }
         }
-        parser.insert_after(end_of_srt.next().line_end() + 1, access_macros);
+        parser.insert_before(struct_tok, access_macros);
+        parser.insert_before(struct_tok, get_create_info_placeholder(srt.name));
 
-        parser.insert_after(end_of_srt.next().line_end() + 1,
-                            get_create_info_placeholder(srt.name));
-
-        parser.insert_line_number(end_of_srt.next().line_end() + 1,
-                                  end_of_srt.next().line_number() + 2);
+        parser.insert_before(struct_tok, "\n");
+        parser.insert_line_number(struct_tok.str_index_start() - 1, struct_tok.line_number());
 
         /* Insert attribute so that method mutations know that this struct is an SRT. */
         parser.insert_before(struct_tok, "[[resource_table]] ");

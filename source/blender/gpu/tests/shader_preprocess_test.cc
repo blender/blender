@@ -647,19 +647,6 @@ struct SRT {
 };
 )";
     string expect = R"(
-struct SRT {
-                           T  a;
-#line 12
-};
-#line 5
-       SRT SRT_new_()
-{
-  SRT result;
-  result.a = T_new_();
-  return result;
-#line 3
-}
-#line 5
 #define access_SRT_a() T_new_()
 #ifdef CREATE_INFO_RES_PASS_SRT
 CREATE_INFO_RES_PASS_SRT
@@ -673,7 +660,20 @@ CREATE_INFO_RES_GEOMETRY_SRT
 #ifdef CREATE_INFO_RES_SHARED_VARS_SRT
 CREATE_INFO_RES_SHARED_VARS_SRT
 #endif
-#line 6
+#line 2
+struct SRT {
+                           T  a;
+#line 12
+};
+#line 5
+       SRT SRT_new_()
+{
+  SRT result;
+  result.a = T_new_();
+  return result;
+#line 3
+}
+#line 5
 )";
     string error;
     string output = process_test_string(input, error);
@@ -733,6 +733,20 @@ struct SRT {
 };
 )";
     string expect = R"(
+#define access_SRT_a() T_new_()
+#ifdef CREATE_INFO_RES_PASS_SRT
+CREATE_INFO_RES_PASS_SRT
+#endif
+#ifdef CREATE_INFO_RES_BATCH_SRT
+CREATE_INFO_RES_BATCH_SRT
+#endif
+#ifdef CREATE_INFO_RES_GEOMETRY_SRT
+CREATE_INFO_RES_GEOMETRY_SRT
+#endif
+#ifdef CREATE_INFO_RES_SHARED_VARS_SRT
+CREATE_INFO_RES_SHARED_VARS_SRT
+#endif
+#line 2
 struct SRT {
                            T  a;
 #line 16
@@ -755,20 +769,6 @@ struct SRT {
 #line 7
 }
 #line 9
-#define access_SRT_a() T_new_()
-#ifdef CREATE_INFO_RES_PASS_SRT
-CREATE_INFO_RES_PASS_SRT
-#endif
-#ifdef CREATE_INFO_RES_BATCH_SRT
-CREATE_INFO_RES_BATCH_SRT
-#endif
-#ifdef CREATE_INFO_RES_GEOMETRY_SRT
-CREATE_INFO_RES_GEOMETRY_SRT
-#endif
-#ifdef CREATE_INFO_RES_SHARED_VARS_SRT
-CREATE_INFO_RES_SHARED_VARS_SRT
-#endif
-#line 10
 )";
     string error;
     string output = process_test_string(input, error);
