@@ -145,7 +145,7 @@ PyDoc_STRVAR(
     "When None, the path of the currently open file is used.\n"
     "   :type filepath: str | bytes | None\n"
     "\n"
-    "   :return: Blend file data which is freed once the context exists.\n"
+    "   :return: Blend file data which is freed once the context exits.\n"
     "   :rtype: :class:`bpy.types.BlendData`\n");
 static PyObject *bpy_rna_data_temp_data(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {

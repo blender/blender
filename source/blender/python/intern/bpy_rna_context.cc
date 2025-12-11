@@ -698,7 +698,7 @@ PyDoc_STRVAR(
     "   :arg region: Region override or None.\n"
     "   :type region: :class:`bpy.types.Region`\n"
     "   :arg keywords: Additional keywords override context members.\n"
-    "   :return: The context manager .\n"
+    "   :return: The context manager.\n"
     "   :rtype: ContextTempOverride\n");
 static PyObject *bpy_context_temp_override(PyObject *self, PyObject *args, PyObject *kwds)
 {
