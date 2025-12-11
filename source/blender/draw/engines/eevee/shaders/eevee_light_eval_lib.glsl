@@ -36,6 +36,10 @@ SHADER_LIBRARY_CREATE_INFO(eevee_light_data)
 #  define PIXEL float2(0)
 #endif
 
+#ifdef GLSL_CPP_STUBS
+#  define LIGHT_CLOSURE_EVAL_COUNT 3
+#endif
+
 #if !defined(LIGHT_CLOSURE_EVAL_COUNT)
 #  define LIGHT_CLOSURE_EVAL_COUNT 1
 #  define SKIP_LIGHT_EVAL

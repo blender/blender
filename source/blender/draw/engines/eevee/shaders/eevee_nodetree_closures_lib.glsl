@@ -25,6 +25,10 @@ packed_float3 g_volume_absorption;
 #define Closure float
 #define CLOSURE_DEFAULT 0.0f
 
+#ifdef GLSL_CPP_STUBS
+#  define CLOSURE_BIN_COUNT 3
+#endif
+
 /* Maximum number of picked closure. */
 #ifndef CLOSURE_BIN_COUNT
 #  define CLOSURE_BIN_COUNT 1
