@@ -45,12 +45,12 @@ uint32_t GHOST_EventManager::getNumEvents(GHOST_TEventType type)
   return numEvents;
 }
 
-GHOST_TSuccess GHOST_EventManager::pushEvent(const GHOST_IEvent *event)
+GHOST_TSuccess GHOST_EventManager::pushEvent(std::unique_ptr<const GHOST_IEvent> event)
 {
   GHOST_TSuccess success;
   GHOST_ASSERT(event, "invalid event");
   if (events_.size() < events_.max_size()) {
-    events_.push_front(event);
+    events_.push_front(std::move(event));
     success = GHOST_kSuccess;
   }
   else {
@@ -70,11 +70,12 @@ void GHOST_EventManager::dispatchEvent(const GHOST_IEvent *event)
 
 void GHOST_EventManager::dispatchEvent()
 {
-  const GHOST_IEvent *event = events_.back();
+  std::unique_ptr<const GHOST_IEvent> event = std::move(events_.back());
   events_.pop_back();
-  handled_events_.push_back(event);
+  const GHOST_IEvent *event_ptr = event.get();
+  handled_events_.push_back(std::move(event));
 
-  dispatchEvent(event);
+  dispatchEvent(event_ptr);
 }
 
 void GHOST_EventManager::dispatchEvents()
@@ -129,14 +130,14 @@ void GHOST_EventManager::removeWindowEvents(const GHOST_IWindow *window)
   TEventStack::iterator iter;
   iter = events_.begin();
   while (iter != events_.end()) {
-    const GHOST_IEvent *event = *iter;
+    std::unique_ptr<const GHOST_IEvent> &event = *iter;
     if (event->getWindow() == window) {
       GHOST_PRINT("GHOST_EventManager::removeWindowEvents(): removing event\n");
       /*
        * Found an event for this window, remove it.
        * The iterator will become invalid.
        */
-      delete event;
+      event.reset();
       events_.erase(iter);
       iter = events_.begin();
     }
@@ -151,14 +152,14 @@ void GHOST_EventManager::removeTypeEvents(GHOST_TEventType type, const GHOST_IWi
   TEventStack::iterator iter;
   iter = events_.begin();
   while (iter != events_.end()) {
-    const GHOST_IEvent *event = *iter;
+    std::unique_ptr<const GHOST_IEvent> &event = *iter;
     if ((event->getType() == type) && (!window || (event->getWindow() == window))) {
       GHOST_PRINT("GHOST_EventManager::removeTypeEvents(): removing event\n");
       /*
        * Found an event of this type for the window, remove it.
        * The iterator will become invalid.
        */
-      delete event;
+      event.reset();
       events_.erase(iter);
       iter = events_.begin();
     }
@@ -172,13 +173,13 @@ void GHOST_EventManager::disposeEvents()
 {
   while (handled_events_.empty() == false) {
     GHOST_ASSERT(handled_events_[0], "invalid event");
-    delete handled_events_[0];
+    handled_events_[0].reset();
     handled_events_.pop_front();
   }
 
   while (events_.empty() == false) {
     GHOST_ASSERT(events_[0], "invalid event");
-    delete events_[0];
+    events_[0].reset();
     events_.pop_front();
   }
 }

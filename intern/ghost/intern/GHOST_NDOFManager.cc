@@ -476,13 +476,13 @@ void GHOST_NDOFManager::sendButtonEvent(GHOST_NDOF_ButtonT button,
   GHOST_ASSERT(button > GHOST_NDOF_BUTTON_NONE && button < GHOST_NDOF_BUTTON_USER,
                "rogue button trying to escape GHOST_NDOF manager");
 
-  const GHOST_EventNDOFButton *event = new GHOST_EventNDOFButton(time, window);
+  auto event = std::make_unique<GHOST_EventNDOFButton>(time, window);
   GHOST_TEventNDOFButtonData *data = (GHOST_TEventNDOFButtonData *)event->getData();
 
   data->action = press ? GHOST_kPress : GHOST_kRelease;
   data->button = button;
 
-  system_.pushEvent(event);
+  system_.pushEvent(std::move(event));
 }
 
 void GHOST_NDOFManager::sendKeyEvent(GHOST_TKey key,
@@ -491,9 +491,9 @@ void GHOST_NDOFManager::sendKeyEvent(GHOST_TKey key,
                                      GHOST_IWindow *window)
 {
   GHOST_TEventType type = press ? GHOST_kEventKeyDown : GHOST_kEventKeyUp;
-  const GHOST_EventKey *event = new GHOST_EventKey(time, type, window, key, false);
+  auto event = std::make_unique<GHOST_EventKey>(time, type, window, key, false);
 
-  system_.pushEvent(event);
+  system_.pushEvent(std::move(event));
 }
 
 void GHOST_NDOFManager::updateButton(GHOST_NDOF_ButtonT button, bool press, uint64_t time)
@@ -689,7 +689,7 @@ bool GHOST_NDOFManager::sendMotionEvent()
     return false;
   }
 
-  const GHOST_EventNDOFMotion *event = new GHOST_EventNDOFMotion(motion_time_, window);
+  auto event = std::make_unique<GHOST_EventNDOFMotion>(motion_time_, window);
   GHOST_TEventNDOFMotionData *data = (GHOST_TEventNDOFMotionData *)event->getData();
 
   /* Scale axis values here to normalize them to around +/- 1
@@ -723,7 +723,6 @@ bool GHOST_NDOFManager::sendMotionEvent()
       else {
         /* Send no event and keep current state. */
         CLOG_DEBUG(&LOG, "Motion ignored");
-        delete event;
         return false;
       }
       break;
@@ -768,7 +767,7 @@ bool GHOST_NDOFManager::sendMotionEvent()
              rotation_[2],
              ndof_progress_string[data->progress]);
 #endif
-  system_.pushEvent(event);
+  system_.pushEvent(std::move(event));
 
   return true;
 }

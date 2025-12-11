@@ -53,7 +53,7 @@ class GHOST_EventManager {
    * Do not delete the event!
    * \param event: The event to push on the stack.
    */
-  GHOST_TSuccess pushEvent(const GHOST_IEvent *event);
+  GHOST_TSuccess pushEvent(std::unique_ptr<const GHOST_IEvent> event);
 
   /**
    * Dispatches the given event directly, bypassing the event stack.
@@ -108,11 +108,11 @@ class GHOST_EventManager {
   void disposeEvents();
 
   /** A stack with events. */
-  using TEventStack = std::deque<const GHOST_IEvent *>;
+  using TEventStack = std::deque<std::unique_ptr<const GHOST_IEvent>>;
 
   /** The event stack. */
-  std::deque<const GHOST_IEvent *> events_;
-  std::deque<const GHOST_IEvent *> handled_events_;
+  TEventStack events_;
+  TEventStack handled_events_;
 
   /** A vector with event consumers. */
   using TConsumerVector = std::vector<GHOST_IEventConsumer *>;

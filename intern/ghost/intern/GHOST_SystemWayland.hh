@@ -287,7 +287,7 @@ class GHOST_SystemWayland : public GHOST_System {
    * Push an event, with support for calling from a thread.
    * NOTE: only needed for `USE_EVENT_BACKGROUND_THREAD`.
    */
-  GHOST_TSuccess pushEvent_maybe_pending(const GHOST_IEvent *event);
+  GHOST_TSuccess pushEvent_maybe_pending(std::unique_ptr<const GHOST_IEvent> event);
 
   /** Set this seat to be active. */
   void seat_active_set(const struct GWL_Seat *seat);

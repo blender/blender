@@ -213,7 +213,7 @@ class GHOST_System : public GHOST_ISystem {
    * Do not delete the event!
    * \param event: The event to push on the stack.
    */
-  GHOST_TSuccess pushEvent(const GHOST_IEvent *event);
+  GHOST_TSuccess pushEvent(std::unique_ptr<const GHOST_IEvent> event);
 
   /**
    * \return The timer manager.
