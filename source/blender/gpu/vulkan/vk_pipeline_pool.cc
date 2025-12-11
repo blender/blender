@@ -360,6 +360,9 @@ std::string VKGraphicsInfo::pipeline_info_source() const
     case GPU_BLEND_OVERLAY_MASK_FROM_ALPHA:
       result << "GPU_BLEND_OVERLAY_MASK_FROM_ALPHA";
       break;
+    case GPU_BLEND_TRANSPARENCY:
+      result << "GPU_BLEND_TRANSPARENCY";
+      break;
     default:
       BLI_assert_unreachable();
   }
