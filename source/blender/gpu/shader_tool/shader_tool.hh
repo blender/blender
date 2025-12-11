@@ -3927,6 +3927,10 @@ class Preprocessor {
   {
     /* Example: `out float var[2]` > `REF(float, var)[2]` */
     parser().foreach_match("www", [&](const Tokens &toks) {
+      if (toks[0].scope().type() == parser::ScopeType::Preprocessor) {
+        /* Don't mutate the actual implementation. */
+        return;
+      }
       if (toks[0].str() == "inout" || toks[0].str() == "out") {
         parser.replace(toks[0], "_ref(");
         parser.insert_after(toks[1], ",");
