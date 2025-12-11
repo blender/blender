@@ -286,7 +286,7 @@ static bool rna_RenderEngine_unregister(Main *bmain, StructRNA *type)
   RE_FreeAllPersistentData();
 
   RNA_struct_free_extension(type, &et->rna_ext);
-  RNA_struct_free(&BLENDER_RNA, type);
+  RNA_struct_free(&RNA_blender_rna_get(), type);
   BLI_freelinkN(&R_engines, et);
   return true;
 }
@@ -353,7 +353,7 @@ static StructRNA *rna_RenderEngine_register(Main *bmain,
   et = MEM_mallocN<RenderEngineType>("Python render engine");
   memcpy(et, &dummy_et, sizeof(dummy_et));
 
-  et->rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, et->idname, &RNA_RenderEngine);
+  et->rna_ext.srna = RNA_def_struct_ptr(&RNA_blender_rna_get(), et->idname, &RNA_RenderEngine);
   et->rna_ext.data = data;
   et->rna_ext.call = call;
   et->rna_ext.free = free;

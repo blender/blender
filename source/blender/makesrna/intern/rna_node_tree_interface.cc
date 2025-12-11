@@ -198,7 +198,7 @@ static bool rna_NodeTreeInterfaceSocket_unregister(Main * /*bmain*/, StructRNA *
 
   RNA_struct_free_extension(type, &st->ext_interface);
 
-  RNA_struct_free(&BLENDER_RNA, type);
+  RNA_struct_free(&RNA_blender_rna_get(), type);
 
   /* update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
@@ -356,10 +356,10 @@ static StructRNA *rna_NodeTreeInterfaceSocket_register(Main * /*bmain*/,
   if (st->ext_interface.srna) {
     StructRNA *srna = st->ext_interface.srna;
     RNA_struct_free_extension(srna, &st->ext_interface);
-    RNA_struct_free(&BLENDER_RNA, srna);
+    RNA_struct_free(&RNA_blender_rna_get(), srna);
   }
   st->ext_interface.srna = RNA_def_struct_ptr(
-      &BLENDER_RNA, identifier, &RNA_NodeTreeInterfaceSocket);
+      &RNA_blender_rna_get(), identifier, &RNA_NodeTreeInterfaceSocket);
   st->ext_interface.data = data;
   st->ext_interface.call = call;
   st->ext_interface.free = free;

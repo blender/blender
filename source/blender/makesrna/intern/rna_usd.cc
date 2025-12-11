@@ -38,7 +38,7 @@ static bool rna_USDHook_unregister(Main * /*bmain*/, StructRNA *type)
 
   /* free RNA data referencing this */
   RNA_struct_free_extension(type, &hook->rna_ext);
-  RNA_struct_free(&BLENDER_RNA, type);
+  RNA_struct_free(&RNA_blender_rna_get(), type);
 
   WM_main_add_notifier(NC_WINDOW, nullptr);
 
@@ -104,7 +104,7 @@ static StructRNA *rna_USDHook_register(Main *bmain,
   *hook = dummy_hook;
 
   /* set RNA-extensions info */
-  hook->rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, hook->idname, &RNA_USDHook);
+  hook->rna_ext.srna = RNA_def_struct_ptr(&RNA_blender_rna_get(), hook->idname, &RNA_USDHook);
   hook->rna_ext.data = data;
   hook->rna_ext.call = call;
   hook->rna_ext.free = free;

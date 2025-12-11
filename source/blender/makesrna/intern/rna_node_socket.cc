@@ -145,7 +145,7 @@ static bool rna_NodeSocket_unregister(Main *bmain, StructRNA *type)
   }
 
   RNA_struct_free_extension(type, &st->ext_socket);
-  RNA_struct_free(&BLENDER_RNA, type);
+  RNA_struct_free(&RNA_blender_rna_get(), type);
 
   blender::bke::node_unregister_socket_type(*st);
 
@@ -202,9 +202,10 @@ static StructRNA *rna_NodeSocket_register(Main *bmain,
   if (st->ext_socket.srna) {
     StructRNA *srna = st->ext_socket.srna;
     RNA_struct_free_extension(srna, &st->ext_socket);
-    RNA_struct_free(&BLENDER_RNA, srna);
+    RNA_struct_free(&RNA_blender_rna_get(), srna);
   }
-  st->ext_socket.srna = RNA_def_struct_ptr(&BLENDER_RNA, st->idname.c_str(), &RNA_NodeSocket);
+  st->ext_socket.srna = RNA_def_struct_ptr(
+      &RNA_blender_rna_get(), st->idname.c_str(), &RNA_NodeSocket);
   st->ext_socket.data = data;
   st->ext_socket.call = call;
   st->ext_socket.free = free;

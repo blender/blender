@@ -178,16 +178,16 @@ static void rna_brna_structs_add(BlenderRNA *brna, StructRNA *srna)
   /* This exception is only needed for pre-processing.
    * otherwise we don't allow empty names. */
   if ((srna->flag & STRUCT_PUBLIC_NAMESPACE) && (srna->identifier[0] != '\0')) {
-    brna->structs_map->add(srna->identifier, srna);
+    brna->structs_map.add(srna->identifier, srna);
   }
 }
 
 #ifdef RNA_RUNTIME
 static void rna_brna_structs_remove_and_free(BlenderRNA *brna, StructRNA *srna)
 {
-  if ((srna->flag & STRUCT_PUBLIC_NAMESPACE) && brna->structs_map) {
+  if ((srna->flag & STRUCT_PUBLIC_NAMESPACE)) {
     if (srna->identifier[0] != '\0') {
-      brna->structs_map->remove(srna->identifier);
+      brna->structs_map.remove(srna->identifier);
     }
   }
 
@@ -699,14 +699,11 @@ static bool rna_range_from_int_type(const char *dnatype, int r_range[2])
 
 BlenderRNA *RNA_create()
 {
-  BlenderRNA *brna;
-
-  brna = MEM_callocN<BlenderRNA>("BlenderRNA");
+  BlenderRNA *brna = MEM_new<BlenderRNA>(__func__);
   const char *error_message = nullptr;
 
   BLI_listbase_clear(&DefRNA.structs);
-  brna->structs_map = MEM_new<BlenderRNA::StructsMap>(__func__);
-  brna->structs_map->reserve(2048);
+  brna->structs_map.reserve(2048);
 
   DefRNA.error = false;
   DefRNA.preprocess = true;
@@ -867,9 +864,6 @@ void RNA_free(BlenderRNA *brna)
   StructRNA *srna, *nextsrna;
   FunctionRNA *func;
 
-  MEM_delete(brna->structs_map);
-  brna->structs_map = nullptr;
-
   if (DefRNA.preprocess) {
     RNA_define_free(brna);
 
@@ -888,7 +882,7 @@ void RNA_free(BlenderRNA *brna)
 
     rna_freelistN(&brna->structs);
 
-    MEM_freeN(brna);
+    MEM_delete(brna);
   }
   else {
     for (srna = static_cast<StructRNA *>(brna->structs.first); srna; srna = nextsrna) {
@@ -1084,7 +1078,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
   if (from) {
     /* find struct to derive from */
     /* Inline RNA_struct_find(...) because it won't link from here. */
-    srnafrom = brna->structs_map->lookup_default(from, nullptr);
+    srnafrom = brna->structs_map.lookup_default(from, nullptr);
     if (!srnafrom) {
       CLOG_ERROR(&LOG, "struct %s not found to define %s.", from, identifier);
       DefRNA.error = true;
@@ -1170,7 +1164,7 @@ void RNA_def_struct_nested(BlenderRNA *brna, StructRNA *srna, const char *struct
   StructRNA *srnafrom;
 
   /* find struct to derive from */
-  srnafrom = brna->structs_map->lookup_default(structname, nullptr);
+  srnafrom = brna->structs_map.lookup_default(structname, nullptr);
   if (!srnafrom) {
     CLOG_ERROR(&LOG, "struct %s not found for %s.", structname, srna->identifier);
     DefRNA.error = true;
@@ -1305,10 +1299,10 @@ void RNA_def_struct_identifier(BlenderRNA *brna, StructRNA *srna, const char *id
   if (srna->flag & STRUCT_PUBLIC_NAMESPACE) {
     if (identifier != srna->identifier) {
       if (srna->identifier[0] != '\0') {
-        brna->structs_map->remove(srna->identifier);
+        brna->structs_map.remove(srna->identifier);
       }
       if (identifier[0] != '\0') {
-        brna->structs_map->add(identifier, srna);
+        brna->structs_map.add(identifier, srna);
       }
     }
   }
@@ -5110,8 +5104,8 @@ void RNA_def_struct_duplicate_pointers(BlenderRNA *brna, StructRNA *srna)
     srna->identifier = BLI_strdup(srna->identifier);
     if (srna->flag & STRUCT_PUBLIC_NAMESPACE) {
       /* Replace the pointer to the identifier in the map. */
-      brna->structs_map->remove(srna->identifier);
-      brna->structs_map->add(srna->identifier, srna);
+      brna->structs_map.remove(srna->identifier);
+      brna->structs_map.add(srna->identifier, srna);
     }
   }
   if (srna->name) {
@@ -5130,7 +5124,7 @@ void RNA_def_struct_free_pointers(BlenderRNA *brna, StructRNA *srna)
     if (srna->identifier) {
       if (srna->flag & STRUCT_PUBLIC_NAMESPACE) {
         if (brna != nullptr) {
-          brna->structs_map->remove(srna->identifier);
+          brna->structs_map.remove(srna->identifier);
         }
       }
       MEM_freeN(srna->identifier);

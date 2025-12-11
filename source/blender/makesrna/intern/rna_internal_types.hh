@@ -754,15 +754,14 @@ struct StructRNA {
  * Root RNA data structure that lists all struct types.
  */
 struct BlenderRNA {
-  ListBase structs;
+  ListBase structs = {nullptr, nullptr};
   /**
    * A map of structs: `{StructRNA.identifier -> StructRNA}`
    * These are ensured to have unique names (with #STRUCT_PUBLIC_NAMESPACE enabled).
    */
-  using StructsMap = blender::Map<blender::StringRef, StructRNA *>;
-  StructsMap *structs_map;
+  blender::Map<blender::StringRef, StructRNA *> structs_map;
   /** Needed because types with an empty identifier aren't included in `structs_map`. */
-  unsigned int structs_len;
+  unsigned int structs_len = 0;
 };
 
 #define CONTAINER_RNA_ID(cont) (*(const char **)(((ContainerRNA *)(cont)) + 1))

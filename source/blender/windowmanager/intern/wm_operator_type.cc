@@ -109,7 +109,7 @@ static wmOperatorType *wm_operatortype_append__begin()
 
   BLI_assert(ot_prop_basic_count == -1);
 
-  ot->srna = RNA_def_struct_ptr(&BLENDER_RNA, "", &RNA_OperatorProperties);
+  ot->srna = RNA_def_struct_ptr(&RNA_blender_rna_get(), "", &RNA_OperatorProperties);
   RNA_def_struct_property_tags(ot->srna, rna_enum_operator_property_tag_items);
   /* Set the default i18n context now, so that opfunc can redefine it if needed! */
   RNA_def_struct_translation_context(ot->srna, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
@@ -131,7 +131,7 @@ static void wm_operatortype_append__end(wmOperatorType *ot)
   /* XXX All ops should have a description but for now allow them not to. */
   RNA_def_struct_ui_text(
       ot->srna, ot->name, ot->description ? ot->description : UNDOCUMENTED_OPERATOR_TIP);
-  RNA_def_struct_identifier(&BLENDER_RNA, ot->srna, ot->idname);
+  RNA_def_struct_identifier(&RNA_blender_rna_get(), ot->srna, ot->idname);
 
   BLI_assert(WM_operator_bl_idname_is_valid(ot->idname));
   get_operators_map().add_new(ot);
@@ -174,7 +174,7 @@ void WM_operatortype_remove_ptr(wmOperatorType *ot)
   BPY_free_srna_pytype(ot->srna);
 #endif
 
-  RNA_struct_free(&BLENDER_RNA, ot->srna);
+  RNA_struct_free(&RNA_blender_rna_get(), ot->srna);
 
   if (ot->last_properties) {
     IDP_FreeProperty(ot->last_properties);
@@ -496,7 +496,7 @@ wmOperatorType *WM_operatortype_append_macro(const char *idname,
   }
 
   ot = MEM_new<wmOperatorType>(__func__);
-  ot->srna = RNA_def_struct_ptr(&BLENDER_RNA, "", &RNA_OperatorProperties);
+  ot->srna = RNA_def_struct_ptr(&RNA_blender_rna_get(), "", &RNA_OperatorProperties);
 
   ot->idname = idname;
   ot->name = name;
@@ -514,7 +514,7 @@ wmOperatorType *WM_operatortype_append_macro(const char *idname,
 
   RNA_def_struct_ui_text(
       ot->srna, ot->name, ot->description ? ot->description : UNDOCUMENTED_OPERATOR_TIP);
-  RNA_def_struct_identifier(&BLENDER_RNA, ot->srna, ot->idname);
+  RNA_def_struct_identifier(&RNA_blender_rna_get(), ot->srna, ot->idname);
   /* Use i18n context from rna_ext.srna if possible (py operators). */
   i18n_context = ot->rna_ext.srna ? RNA_struct_translation_context(ot->rna_ext.srna) :
                                     BLT_I18NCONTEXT_OPERATOR_DEFAULT;
@@ -533,7 +533,7 @@ void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType *ot, void *u
   wmOperatorType *ot;
 
   ot = MEM_new<wmOperatorType>(__func__);
-  ot->srna = RNA_def_struct_ptr(&BLENDER_RNA, "", &RNA_OperatorProperties);
+  ot->srna = RNA_def_struct_ptr(&RNA_blender_rna_get(), "", &RNA_OperatorProperties);
 
   ot->flag = OPTYPE_MACRO;
   ot->exec = wm_macro_exec;
@@ -552,7 +552,7 @@ void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType *ot, void *u
 
   RNA_def_struct_ui_text(
       ot->srna, ot->name, ot->description ? ot->description : UNDOCUMENTED_OPERATOR_TIP);
-  RNA_def_struct_identifier(&BLENDER_RNA, ot->srna, ot->idname);
+  RNA_def_struct_identifier(&RNA_blender_rna_get(), ot->srna, ot->idname);
 
   BLI_assert(WM_operator_bl_idname_is_valid(ot->idname));
   get_operators_map().add_new(ot);

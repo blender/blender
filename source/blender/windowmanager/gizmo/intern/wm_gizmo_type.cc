@@ -74,7 +74,7 @@ const wmGizmoType *WM_gizmotype_find(const StringRef idname, bool quiet)
 static wmGizmoType *wm_gizmotype_append__begin()
 {
   wmGizmoType *gzt = MEM_callocN<wmGizmoType>("gizmotype");
-  gzt->srna = RNA_def_struct_ptr(&BLENDER_RNA, "", &RNA_GizmoProperties);
+  gzt->srna = RNA_def_struct_ptr(&RNA_blender_rna_get(), "", &RNA_GizmoProperties);
 #if 0
   /* Set the default i18n context now, so that opfunc can redefine it if needed! */
   RNA_def_struct_translation_context(ot->srna, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
@@ -86,7 +86,7 @@ static void wm_gizmotype_append__end(wmGizmoType *gzt)
 {
   BLI_assert(gzt->struct_size >= sizeof(wmGizmo));
 
-  RNA_def_struct_identifier(&BLENDER_RNA, gzt->srna, gzt->idname);
+  RNA_def_struct_identifier(&RNA_blender_rna_get(), gzt->srna, gzt->idname);
 
   get_gizmo_type_map().add(gzt);
 }

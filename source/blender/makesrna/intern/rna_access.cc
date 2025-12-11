@@ -89,11 +89,12 @@ void RNA_init()
 {
   StructRNA *srna;
 
-  BLENDER_RNA.structs_map = MEM_new<BlenderRNA::StructsMap>(__func__);
-  BLENDER_RNA.structs_map->reserve(2048);
-  BLENDER_RNA.structs_len = 0;
+  BlenderRNA &brna = RNA_blender_rna_get();
 
-  for (srna = static_cast<StructRNA *>(BLENDER_RNA.structs.first); srna;
+  brna.structs_map.reserve(2048);
+  brna.structs_len = 0;
+
+  for (srna = static_cast<StructRNA *>(brna.structs.first); srna;
        srna = static_cast<StructRNA *>(srna->cont.next))
   {
     if (!srna->cont.prop_lookup_set) {
@@ -108,8 +109,8 @@ void RNA_init()
       }
     }
     BLI_assert(srna->flag & STRUCT_PUBLIC_NAMESPACE);
-    BLENDER_RNA.structs_map->add(srna->identifier, srna);
-    BLENDER_RNA.structs_len += 1;
+    brna.structs_map.add(srna->identifier, srna);
+    brna.structs_len += 1;
   }
 }
 
@@ -118,7 +119,7 @@ void RNA_bpy_exit()
 #ifdef WITH_PYTHON
   StructRNA *srna;
 
-  for (srna = static_cast<StructRNA *>(BLENDER_RNA.structs.first); srna;
+  for (srna = static_cast<StructRNA *>(RNA_blender_rna_get().structs.first); srna;
        srna = static_cast<StructRNA *>(srna->cont.next))
   {
     /* NOTE(@ideasman42): each call locks the Python's GIL. Only locking/unlocking once
@@ -132,13 +133,13 @@ void RNA_exit()
 {
   StructRNA *srna;
 
-  for (srna = static_cast<StructRNA *>(BLENDER_RNA.structs.first); srna;
+  for (srna = static_cast<StructRNA *>(RNA_blender_rna_get().structs.first); srna;
        srna = static_cast<StructRNA *>(srna->cont.next))
   {
     MEM_SAFE_DELETE(srna->cont.prop_lookup_set);
   }
 
-  RNA_free(&BLENDER_RNA);
+  RNA_free(&RNA_blender_rna_get());
 }
 
 /* Pointer */
@@ -250,7 +251,7 @@ PointerRNA RNA_blender_rna_pointer_create()
   PointerRNA ptr = {};
   ptr.owner_id = nullptr;
   ptr.type = &RNA_BlenderRNA;
-  ptr.data = &BLENDER_RNA;
+  ptr.data = &RNA_blender_rna_get();
   return ptr;
 }
 
@@ -704,7 +705,7 @@ static const char *rna_ensure_property_name(const PropertyRNA *prop)
 
 StructRNA *RNA_struct_find(const char *identifier)
 {
-  return BLENDER_RNA.structs_map->lookup_default(identifier, nullptr);
+  return RNA_blender_rna_get().structs_map.lookup_default(identifier, nullptr);
 }
 
 const char *RNA_struct_identifier(const StructRNA *type)

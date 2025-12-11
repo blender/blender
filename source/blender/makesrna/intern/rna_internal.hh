@@ -136,7 +136,7 @@ extern BlenderDefRNA DefRNA;
 
 /* Define functions for all types */
 #ifndef __RNA_ACCESS_H__
-extern BlenderRNA BLENDER_RNA;
+extern BlenderRNA RNA_blender_rna_get();
 #endif
 
 void RNA_def_ID(BlenderRNA *brna);
