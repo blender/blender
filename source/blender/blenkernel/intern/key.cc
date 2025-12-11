@@ -387,7 +387,7 @@ void key_curve_tangent_weights(float t, float data[4], KeyInterpolationType type
   }
 }
 
-void key_curve_normal_weights(float t, float data[4], KeyInterpolationType type)
+void key_curve_normal_weights(const float t, float data[4], const KeyInterpolationType type)
 {
   float fc;
 
@@ -423,139 +423,105 @@ void key_curve_normal_weights(float t, float data[4], KeyInterpolationType type)
   }
 }
 
-/* Return 1 means k[2] is the position, return 0 means interpolate. */
-static int setkeys(
-    float fac, ListBase * /* KeyBlock */ keyblocks, KeyBlock *k[], float t[4], const int cycl)
+/**
+ * Determine the keys to use for absolute shapekey evaluation.
+ * The values in `r_weights` indicate how much of a given shapekey should be used.
+ * This is done to support different interpolation modes.
+ *
+ * The key in `r_target_keys[2]` is the key just after the fac threshold.
+ *
+ * \return true means the key in r_target_keys[2] should be copied as is, false means interpolate.
+ */
+static bool get_keys_for_absolute_eval(float eval_time,
+                                       const ListBase * /* KeyBlock */ keyblocks,
+                                       KeyBlock *r_target_keys[4],
+                                       float r_weights[4])
 {
   KeyBlock *firstkey = static_cast<KeyBlock *>(keyblocks->first);
-  KeyBlock *k1 = static_cast<KeyBlock *>(keyblocks->last);
-  const float lastpos = k1->pos;
-  const float delta_pos = lastpos - firstkey->pos;
+  KeyBlock *lastkey = static_cast<KeyBlock *>(keyblocks->last);
+  eval_time = clamp_f(eval_time, firstkey->pos, lastkey->pos);
 
-  if (fac < firstkey->pos) {
-    fac = firstkey->pos;
-  }
-  else if (fac > k1->pos) {
-    fac = k1->pos;
-  }
+  r_target_keys[0] = r_target_keys[1] = r_target_keys[2] = r_target_keys[3] = firstkey;
+  r_weights[0] = r_weights[1] = r_weights[2] = r_weights[3] = firstkey->pos;
 
-  k1 = k[0] = k[1] = k[2] = k[3] = firstkey;
-  t[0] = t[1] = t[2] = t[3] = k1->pos;
-
-  if (k1->next == nullptr) {
-    return 1;
+  if (firstkey->next == nullptr) {
+    /* There is only a single shapekey, we cannot do interpolation in this case. */
+    return true;
   }
 
-  float offset = 0;
-  if (cycl) { /* Pre-sort. */
-    k[2] = k1->next;
-    k[3] = k[2]->next;
-    if (k[3] == nullptr) {
-      k[3] = k1;
-    }
-    while (k1) {
-      if (k1->next == nullptr) {
-        k[0] = k1;
-      }
-      k1 = k1->next;
-    }
-    t[0] = k[0]->pos;
-    t[1] += delta_pos;
-    t[2] = k[2]->pos + delta_pos;
-    t[3] = k[3]->pos + delta_pos;
-    fac += delta_pos;
-    offset = delta_pos;
-    if (k[3] == k[1]) {
-      t[3] += delta_pos;
-      offset = 2.0f * delta_pos;
-    }
-    if (fac < t[1]) {
-      fac += delta_pos;
-    }
-    k1 = k[3];
+  r_target_keys[2] = firstkey->next;
+  r_weights[2] = r_target_keys[2]->pos;
+  r_target_keys[3] = r_target_keys[2]->next;
+  if (r_target_keys[3] == nullptr) {
+    r_target_keys[3] = r_target_keys[2];
   }
-  else { /* Pre-sort. */
-    k[2] = k1->next;
-    t[2] = k[2]->pos;
-    k[3] = k[2]->next;
-    if (k[3] == nullptr) {
-      k[3] = k[2];
-    }
-    t[3] = k[3]->pos;
-    k1 = k[3];
-  }
+  r_weights[3] = r_target_keys[3]->pos;
+  KeyBlock *key_iter = r_target_keys[3];
 
-  while (t[2] < fac) { /* Find correct location. */
-    if (k1->next == nullptr) {
-      if (cycl) {
-        k1 = firstkey;
-        offset += delta_pos;
-      }
-      else if (t[2] == t[3]) {
+  /* Find the correct shapekeys. */
+  while (r_weights[2] < eval_time) {
+    if (key_iter->next == nullptr) {
+      /* This triggers when key_iter->next has been a nullptr for one loop. */
+      if (r_weights[2] == r_weights[3]) {
         break;
       }
     }
     else {
-      k1 = k1->next;
+      key_iter = key_iter->next;
     }
 
-    t[0] = t[1];
-    k[0] = k[1];
-    t[1] = t[2];
-    k[1] = k[2];
-    t[2] = t[3];
-    k[2] = k[3];
-    t[3] = k1->pos + offset;
-    k[3] = k1;
-
-    if (offset > 2.1f + lastpos) {
-      break;
-    }
+    r_weights[0] = r_weights[1];
+    r_target_keys[0] = r_target_keys[1];
+    r_weights[1] = r_weights[2];
+    r_target_keys[1] = r_target_keys[2];
+    r_weights[2] = r_weights[3];
+    r_target_keys[2] = r_target_keys[3];
+    r_weights[3] = key_iter->pos;
+    r_target_keys[3] = key_iter;
   }
 
-  short bsplinetype = 0;
-  if (k[1]->type == KEY_BSPLINE || k[2]->type == KEY_BSPLINE) {
-    bsplinetype = 1;
+  bool bsplinetype = false;
+  if (r_target_keys[1]->type == KEY_BSPLINE || r_target_keys[2]->type == KEY_BSPLINE) {
+    bsplinetype = true;
   }
 
-  if (cycl == 0) {
-    if (bsplinetype == 0) { /* B spline doesn't go through the control points. */
-      if (fac <= t[1]) {    /* fac for 1st key. */
-        t[2] = t[1];
-        k[2] = k[1];
-        return 1;
-      }
-      if (fac >= t[2]) { /* fac after 2nd key. */
-        return 1;
-      }
+  if (bsplinetype == false) { /* B spline doesn't go through the control points. */
+    if (eval_time <= r_weights[1]) {
+      /* This can happen if there are only 2 shapekeys. */
+      r_weights[2] = r_weights[1];
+      r_target_keys[2] = r_target_keys[1];
+      return true;
     }
-    else if (fac > t[2]) { /* Last key. */
-      fac = t[2];
-      k[3] = k[2];
-      t[3] = t[2];
+    if (eval_time >= r_weights[2]) { /* eval_time after 2nd key. */
+      return true;
     }
   }
+  else if (eval_time > r_weights[2]) { /* Last key. */
+    eval_time = r_weights[2];
+    r_target_keys[3] = r_target_keys[2];
+    r_weights[3] = r_weights[2];
+  }
 
-  float delta = t[2] - t[1];
+  float delta = r_weights[2] - r_weights[1];
   if (delta == 0.0f) {
-    if (bsplinetype == 0) {
-      return 1; /* Both keys equal. */
+    if (bsplinetype == false) {
+      return true; /* Both keys equal. */
     }
   }
   else {
-    delta = (fac - t[1]) / delta;
+    delta = (eval_time - r_weights[1]) / delta;
   }
 
   /* Interpolation. */
-  key_curve_position_weights(delta, t, KeyInterpolationType(k[1]->type));
+  key_curve_position_weights(delta, r_weights, KeyInterpolationType(r_target_keys[1]->type));
 
-  if (k[1]->type != k[2]->type) {
+  if (r_target_keys[1]->type != r_target_keys[2]->type) {
     float t_other[4];
-    key_curve_position_weights(delta, t_other, KeyInterpolationType(k[2]->type));
-    interp_v4_v4v4(t, t, t_other, delta);
+    key_curve_position_weights(delta, t_other, KeyInterpolationType(r_target_keys[2]->type));
+    interp_v4_v4v4(r_weights, r_weights, t_other, delta);
   }
 
-  return 0;
+  return false;
 }
 
 static void flerp(const int tot,
@@ -564,7 +530,7 @@ static void flerp(const int tot,
                   const float *f1,
                   const float *f2,
                   const float *f3,
-                  const float *t)
+                  const float t[4])
 {
   for (int a = 0; a < tot; a++) {
     in[a] = t[0] * f0[a] + t[1] * f1[a] + t[2] * f2[a] + t[3] * f3[a];
@@ -778,15 +744,18 @@ static void key_evaluate_relative_float3(Key *key,
   }
 }
 
-static void do_key(const int start,
-                   int end,
-                   const int tot,
-                   char *poin,
-                   Key *key,
-                   KeyBlock *actkb,
-                   KeyBlock **k,
-                   float *t,
-                   const int mode)
+/**
+ * Absolute interpolation between up to 4 shapekeys. The resulting data is stored in `r_target`.
+ */
+static void key_evaluate_absolute(const int start,
+                                  int end,
+                                  const int vertex_count,
+                                  char *r_target,
+                                  Key *key,
+                                  KeyBlock *active_keyblock,
+                                  KeyBlock *shapekeys[4],
+                                  const float weights[4],
+                                  const int mode)
 {
   int a, ofs[32];
 
@@ -809,52 +778,52 @@ static void do_key(const int start,
     return;
   }
 
-  end = std::min(end, tot);
+  end = std::min(end, vertex_count);
 
   char *freek1, *freek2, *freek3, *freek4;
-  char *k1 = key_block_get_data(key, actkb, k[0], &freek1);
-  char *k2 = key_block_get_data(key, actkb, k[1], &freek2);
-  char *k3 = key_block_get_data(key, actkb, k[2], &freek3);
-  char *k4 = key_block_get_data(key, actkb, k[3], &freek4);
+  char *k1 = key_block_get_data(key, active_keyblock, shapekeys[0], &freek1);
+  char *k2 = key_block_get_data(key, active_keyblock, shapekeys[1], &freek2);
+  char *k3 = key_block_get_data(key, active_keyblock, shapekeys[2], &freek3);
+  char *k4 = key_block_get_data(key, active_keyblock, shapekeys[3], &freek4);
 
   float k1tot = 0.0, k2tot = 0.0, k3tot = 0.0, k4tot = 0.0;
   float k1d = 0.0, k2d = 0.0, k3d = 0.0, k4d = 0.0;
   /* Test for more or less points (per key!) */
-  if (tot != k[0]->totelem) {
+  if (vertex_count != shapekeys[0]->totelem) {
     k1tot = 0.0;
     flagflo |= K1_FLAG;
-    if (k[0]->totelem) {
-      k1d = k[0]->totelem / float(tot);
+    if (shapekeys[0]->totelem) {
+      k1d = shapekeys[0]->totelem / float(vertex_count);
     }
     else {
       flagdo &= ~K1_FLAG;
     }
   }
-  if (tot != k[1]->totelem) {
+  if (vertex_count != shapekeys[1]->totelem) {
     k2tot = 0.0;
     flagflo |= K2_FLAG;
-    if (k[0]->totelem) {
-      k2d = k[1]->totelem / float(tot);
+    if (shapekeys[0]->totelem) {
+      k2d = shapekeys[1]->totelem / float(vertex_count);
     }
     else {
       flagdo &= ~K2_FLAG;
     }
   }
-  if (tot != k[2]->totelem) {
+  if (vertex_count != shapekeys[2]->totelem) {
     k3tot = 0.0;
     flagflo |= K3_FLAG;
-    if (k[0]->totelem) {
-      k3d = k[2]->totelem / float(tot);
+    if (shapekeys[0]->totelem) {
+      k3d = shapekeys[2]->totelem / float(vertex_count);
     }
     else {
       flagdo &= ~K3_FLAG;
     }
   }
-  if (tot != k[3]->totelem) {
+  if (vertex_count != shapekeys[3]->totelem) {
     k4tot = 0.0;
     flagflo |= K4_FLAG;
-    if (k[0]->totelem) {
-      k4d = k[3]->totelem / float(tot);
+    if (shapekeys[0]->totelem) {
+      k4d = shapekeys[3]->totelem / float(vertex_count);
     }
     else {
       flagdo &= ~K4_FLAG;
@@ -864,7 +833,7 @@ static void do_key(const int start,
   /* This exception is needed for curves with multiple splines. */
   if (start != 0) {
 
-    poin += pointer_size * start;
+    r_target += pointer_size * start;
 
     if (flagdo & K1_FLAG) {
       if (flagflo & K1_FLAG) {
@@ -942,30 +911,30 @@ static void do_key(const int start,
       switch (cp[1]) {
         case IPO_FLOAT:
           flerp(KEYELEM_FLOAT_LEN_COORD,
-                (float *)poin,
+                (float *)r_target,
                 (float *)k1,
                 (float *)k2,
                 (float *)k3,
                 (float *)k4,
-                t);
+                weights);
           break;
         case IPO_BPOINT:
           flerp(KEYELEM_FLOAT_LEN_BPOINT,
-                (float *)poin,
+                (float *)r_target,
                 (float *)k1,
                 (float *)k2,
                 (float *)k3,
                 (float *)k4,
-                t);
+                weights);
           break;
         case IPO_BEZTRIPLE:
           flerp(KEYELEM_FLOAT_LEN_BEZTRIPLE,
-                (float *)poin,
+                (float *)r_target,
                 (float *)k1,
                 (float *)k2,
                 (float *)k3,
                 (float *)k4,
-                t);
+                weights);
           break;
         default:
           BLI_assert_unreachable();
@@ -985,7 +954,7 @@ static void do_key(const int start,
           return;
       }
 
-      poin += *ofsp;
+      r_target += *ofsp;
       cp += 2;
       ofsp++;
     }
@@ -1182,23 +1151,28 @@ static void do_mesh_key(Object *ob, Key *key, char *out, const int tot)
     keyblock_free_per_block_weights(key, per_keyblock_weights, &cache);
   }
   else {
-    KeyBlock *k[4];
     const float ctime_scaled = key->ctime / 100.0f;
+    KeyBlock *shapekeys[4];
+    float weights[4];
+    const bool simple_copy = get_keys_for_absolute_eval(
+        ctime_scaled, &key->block, shapekeys, weights);
 
-    float t[4];
-    const int flag = setkeys(ctime_scaled, &key->block, k, t, 0);
-
-    if (flag == 0) {
-      do_key(0, tot, tot, out, key, actkb, k, t, KEY_MODE_DUMMY);
+    if (simple_copy == false) {
+      key_evaluate_absolute(0, tot, tot, out, key, actkb, shapekeys, weights, KEY_MODE_DUMMY);
     }
     else {
-      copy_key_float3(tot, key, actkb, k[2], reinterpret_cast<float *>(out));
+      copy_key_float3(tot, key, actkb, shapekeys[2], reinterpret_cast<float *>(out));
     }
   }
 }
 
-static void do_cu_key(
-    Curve *cu, Key *key, KeyBlock *actkb, KeyBlock **k, float *t, char *out, const int tot)
+static void do_cu_key(Curve *cu,
+                      Key *key,
+                      KeyBlock *actkb,
+                      KeyBlock *shapekeys[4],
+                      float weights[4],
+                      char *out,
+                      const int tot)
 {
   Nurb *nu;
   int a, step;
@@ -1206,11 +1180,13 @@ static void do_cu_key(
   for (a = 0, nu = static_cast<Nurb *>(cu->nurb.first); nu; nu = nu->next, a += step) {
     if (nu->bp) {
       step = KEYELEM_ELEM_LEN_BPOINT * nu->pntsu * nu->pntsv;
-      do_key(a, a + step, tot, out, key, actkb, k, t, KEY_MODE_BPOINT);
+      key_evaluate_absolute(
+          a, a + step, tot, out, key, actkb, shapekeys, weights, KEY_MODE_BPOINT);
     }
     else if (nu->bezt) {
       step = KEYELEM_ELEM_LEN_BEZTRIPLE * nu->pntsu;
-      do_key(a, a + step, tot, out, key, actkb, k, t, KEY_MODE_BEZTRIPLE);
+      key_evaluate_absolute(
+          a, a + step, tot, out, key, actkb, shapekeys, weights, KEY_MODE_BEZTRIPLE);
     }
     else {
       step = 0;
@@ -1227,17 +1203,17 @@ static void do_curve_key(Object *ob, Key *key, char *out, const int tot)
     key_evaluate_relative_float3(key, actkb, tot, nullptr, (float *)out);
   }
   else {
-    KeyBlock *k[4];
     const float ctime_scaled = key->ctime / 100.0f;
+    KeyBlock *shapekeys[4];
+    float weights[4];
+    const bool simple_copy = get_keys_for_absolute_eval(
+        ctime_scaled, &key->block, shapekeys, weights);
 
-    float t[4];
-    const int flag = setkeys(ctime_scaled, &key->block, k, t, 0);
-
-    if (flag == 0) {
-      do_cu_key(cu, key, actkb, k, t, out, tot);
+    if (simple_copy == false) {
+      do_cu_key(cu, key, actkb, shapekeys, weights, out, tot);
     }
     else {
-      copy_key_float3(tot, key, actkb, k[2], reinterpret_cast<float *>(out));
+      copy_key_float3(tot, key, actkb, shapekeys[2], reinterpret_cast<float *>(out));
     }
   }
 }
@@ -1255,17 +1231,17 @@ static void do_latt_key(Object *ob, Key *key, char *out, const int tot)
     keyblock_free_per_block_weights(key, per_keyblock_weights, nullptr);
   }
   else {
-    KeyBlock *k[4];
     const float ctime_scaled = key->ctime / 100.0f;
+    KeyBlock *shapekeys[4];
+    float weights[4];
+    const bool simple_copy = get_keys_for_absolute_eval(
+        ctime_scaled, &key->block, shapekeys, weights);
 
-    float t[4];
-    const int flag = setkeys(ctime_scaled, &key->block, k, t, 0);
-
-    if (flag == 0) {
-      do_key(0, tot, tot, out, key, actkb, k, t, KEY_MODE_DUMMY);
+    if (simple_copy == false) {
+      key_evaluate_absolute(0, tot, tot, out, key, actkb, shapekeys, weights, KEY_MODE_DUMMY);
     }
     else {
-      copy_key_float3(tot, key, actkb, k[2], reinterpret_cast<float *>(out));
+      copy_key_float3(tot, key, actkb, shapekeys[2], reinterpret_cast<float *>(out));
     }
   }
 
