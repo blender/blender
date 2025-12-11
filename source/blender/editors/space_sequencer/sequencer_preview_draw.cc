@@ -1018,17 +1018,19 @@ static void strip_draw_image_origin_and_outline(const bContext *C,
       CTX_data_sequencer_scene(C), strip);
 
   /* Origin. */
+  GPU_program_point_size(true);
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA);
   immUniform1f("outlineWidth", 1.5f);
   immUniformColor3f(1.0f, 1.0f, 1.0f);
   immUniform4f("outlineColor", 0.0f, 0.0f, 0.0f, 1.0f);
-  immUniform1f("size", 15.0f * U.pixelsize);
+  immUniform1f("size", 7.0f * U.pixelsize);
   immBegin(GPU_PRIM_POINTS, 1);
   immVertex2f(pos, origin[0], origin[1]);
   immEnd();
   immUnbindProgram();
+  GPU_program_point_size(false);
 
   /* Outline. */
   const Array<float2> strip_image_quad = seq::image_transform_final_quad_get(
