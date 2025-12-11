@@ -4508,6 +4508,8 @@ static wmOperatorStatus edbm_separate_exec(bContext *C, wmOperator *op)
       BMesh *bm_old = BM_mesh_create(&bm_mesh_allocsize_default, &create_params);
 
       BMeshFromMeshParams from_mesh_params{};
+      from_mesh_params.calc_face_normal = true;
+      from_mesh_params.calc_vert_normal = true;
       BM_mesh_bm_from_me(bm_old, mesh, &from_mesh_params);
 
       bool changed = false;
