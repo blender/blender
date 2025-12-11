@@ -617,7 +617,9 @@ class FileOutputOperation : public NodeOperation {
       case ResultType::Float3:
         /* Float3 results might be stored in 4-component textures due to hardware limitations, so
          * we need to convert the buffer to a 3-component buffer on the host. */
-        if (this->context().use_gpu() && GPU_texture_component_len(GPU_texture_format(result))) {
+        if (!result.is_single_value() && this->context().use_gpu() &&
+            GPU_texture_component_len(GPU_texture_format(result)) == 4)
+        {
           file_output.add_pass(pass_name, view_name, "XYZ", float4_to_float3_image(size, buffer));
         }
         else {
@@ -704,7 +706,9 @@ class FileOutputOperation : public NodeOperation {
       case ResultType::Float3:
         /* Float3 results might be stored in 4-component textures due to hardware limitations, so
          * we need to convert the buffer to a 3-component buffer on the host. */
-        if (this->context().use_gpu() && GPU_texture_component_len(GPU_texture_format(result))) {
+        if (!result.is_single_value() && this->context().use_gpu() &&
+            GPU_texture_component_len(GPU_texture_format(result)) == 4)
+        {
           file_output.add_view(view_name, 3, float4_to_float3_image(size, buffer));
         }
         else {
