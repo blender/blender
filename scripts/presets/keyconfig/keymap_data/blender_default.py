@@ -3076,6 +3076,10 @@ def km_sequencer(params):
         ("sequencer.select_circle", {"type": 'C', "value": 'PRESS'}, None),
         ("sequencer.select_grouped", {"type": 'G', "value": 'PRESS', "shift": True}, None),
         *_template_items_select_actions(params, "sequencer.select_all"),
+        ("sequencer.select_side_of_frame", {"type": 'LEFT_BRACKET', "value": 'PRESS'},
+         {"properties": [("side", 'LEFT')]}),
+        ("sequencer.select_side_of_frame", {"type": 'RIGHT_BRACKET', "value": 'PRESS'},
+         {"properties": [("side", 'RIGHT')]}),
         ("sequencer.split", {"type": 'K', "value": 'PRESS'},
          {"properties": [("type", 'SOFT')]}),
         ("sequencer.split", {"type": 'K', "value": 'PRESS', "shift": True},
@@ -3158,10 +3162,6 @@ def km_sequencer(params):
         ("transform.transform", {"type": 'E', "value": 'PRESS'},
          {"properties": [("mode", 'TIME_EXTEND')]}),
         ("marker.add", {"type": 'M', "value": 'PRESS'}, None),
-        ("sequencer.select_side_of_frame", {"type": 'LEFT_BRACKET', "value": 'PRESS'},
-         {"properties": [("side", 'LEFT')]}),
-        ("sequencer.select_side_of_frame", {"type": 'RIGHT_BRACKET', "value": 'PRESS'},
-         {"properties": [("side", 'RIGHT')]}),
         ("wm.context_toggle", {"type": 'Z', "value": 'PRESS', "alt": True, "shift": True},
          {"properties": [("data_path", "space_data.show_overlays")]}),
         *_template_items_context_menu("SEQUENCER_MT_context_menu", params.context_menu_event),
@@ -9056,6 +9056,12 @@ def generate_keymaps(params=None):
         km_3d_view_tool_paint_grease_pencil_primitive_circle(params),
         km_3d_view_tool_paint_grease_pencil_primitive_arc(params),
         km_3d_view_tool_paint_grease_pencil_primitive_curve(params),
+        km_3d_view_tool_paint_grease_pencil_trim(params),
+        km_3d_view_tool_paint_grease_pencil_interpolate(params),
+        km_3d_view_tool_paint_grease_pencil_eyedropper(params),
+        km_3d_view_tool_edit_grease_pencil_texture_gradient(params),
+        km_3d_view_tool_edit_grease_pencil_pen(params),
+        km_3d_view_tool_edit_grease_pencil_interpolate(params),
         *(km_sequencer_tool_generic_select_box(params, fallback=fallback)
           for fallback in (False, True)),
         *(km_sequencer_preview_tool_generic_select(params, fallback=fallback)
@@ -9070,8 +9076,6 @@ def generate_keymaps(params=None):
           for fallback in (False, True)),
         *(km_sequencer_tool_generic_select_circle(params, fallback=fallback)
           for fallback in (False, True)),
-        km_3d_view_tool_paint_grease_pencil_trim(params),
-        km_3d_view_tool_edit_grease_pencil_texture_gradient(params),
         km_sequencer_tool_blade(params),
         km_sequencer_tool_slip(params),
         km_sequencer_preview_tool_generic_cursor(params),
@@ -9079,10 +9083,6 @@ def generate_keymaps(params=None):
         km_sequencer_preview_tool_move(params),
         km_sequencer_preview_tool_rotate(params),
         km_sequencer_preview_tool_scale(params),
-        km_3d_view_tool_edit_grease_pencil_pen(params),
-        km_3d_view_tool_edit_grease_pencil_interpolate(params),
-        km_3d_view_tool_paint_grease_pencil_interpolate(params),
-        km_3d_view_tool_paint_grease_pencil_eyedropper(params),
     ]
 
 
