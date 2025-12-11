@@ -693,7 +693,7 @@ static void image_zoom_apply(ViewZoomData *vpd,
     zoom = round(zoom * 10.0f) / 10.0f;
   }
   char str[5];
-  BLI_snprintf(str, sizeof(str), "%i%%", int(round(vpd->sima->zoom * 100.0f)));
+  SNPRINTF(str, "%i%%", int(round(vpd->sima->zoom * 100.0f)));
   ED_area_status_text(vpd->area, str);
 
   RNA_float_set(op->ptr, "factor", factor);

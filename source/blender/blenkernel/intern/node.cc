@@ -499,7 +499,7 @@ static void node_foreach_working_space_color(ID *id, const IDTypeForeachColorFun
                 (STREQ(node->idname, "ShaderNodeSubsurfaceScattering") &&
                  STREQ(socket->name, "Radius")) ||
                 (STREQ(node->idname, "ShaderNodeBsdfMetallic") &&
-                 (STREQ(socket->name, "IOR") || STREQ(socket->name, "Extinction")))))
+                 (STR_ELEM(socket->name, "IOR", "Extinction")))))
       {
         bNodeSocketValueVector *vec = static_cast<bNodeSocketValueVector *>(socket->default_value);
         float length;

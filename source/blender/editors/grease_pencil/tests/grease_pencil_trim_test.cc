@@ -304,7 +304,7 @@ TEST(grease_pencil_trim, trim_cyclical_corner)
                                             {30.0f, 10.0f},
                                             {30.0f, 0.0f},
                                             {0.0f, 30.0f},
-                                            {10.f, 30.0f}};
+                                            {10.0f, 30.0f}};
   expect_near_positions(dst.positions(), expected_positions);
 }
 

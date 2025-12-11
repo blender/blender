@@ -839,11 +839,11 @@ static void bchunk_list_fill_from_array(const BArrayInfo *info,
  *
  * \{ */
 
-static inline uint32_t rotl32(uint32_t n, unsigned int c)
+static inline uint32_t rotl32(uint32_t n, uint c)
 {
   /* NOTE: can be replaced with `std::rotl` with C++ 20. */
   /* NOTE: Expected to optimize to a single bit-roll on x64. */
-  constexpr unsigned int mask = (8 * sizeof(n) - 1);
+  constexpr uint mask = (8 * sizeof(n) - 1);
   c &= mask;
   return (n << c) | (n >> ((-c) & mask));
 }
