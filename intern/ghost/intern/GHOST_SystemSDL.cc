@@ -649,7 +649,7 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
   }
 
   if (g_event) {
-    pushEvent(g_event);
+    pushEvent(std::move(g_event));
   }
 }
 
