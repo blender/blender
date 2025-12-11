@@ -39,7 +39,6 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
 
   RayPayload payload;
   payload.self = ray->self;
-  payload.kg = kg;
   payload.visibility = visibility;
   payload.ray_time = ray->time;
 
@@ -57,7 +56,7 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
   }
 
   if (hit.hasHit()) {
-    set_intersect_point(kg, hit, isect);
+    set_intersect_point(hit, isect);
     return true;
   }
 
@@ -117,7 +116,6 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
   ray_hip.minT = ray->tmin;
 
   LocalPayload payload = {0};
-  payload.kg = kg;
   payload.self = ray->self;
   payload.ray_time = ray->time;
   payload.local_object = local_object;
@@ -176,7 +174,6 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
   SET_HIPRT_RAY(ray_hip, ray)
 
   ShadowPayload payload;
-  payload.kg = kg;
   payload.self = ray->self;
   payload.visibility = visibility;
   payload.ray_time = ray->time;
@@ -217,7 +214,6 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
 
   RayPayload payload;
   payload.self = ray->self;
-  payload.kg = kg;
   payload.visibility = visibility;
   payload.ray_time = ray->time;
 
@@ -226,7 +222,7 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
   GET_TRAVERSAL_CLOSEST_HIT(table_volume_intersect, 3, ray->time)
   const hiprtHit hit = traversal.getNextHit();
   if (hit.hasHit()) {
-    set_intersect_point(kg, hit, isect);
+    set_intersect_point(hit, isect);
     return true;
   }
 
