@@ -574,14 +574,23 @@ class Preprocessor {
         /* Unroll last to avoid processing more tokens in other phases. */
         lower_loop_unroll(parser, report_error);
 
+        /* GLSL syntax compatibility.
+         * TODO(fclem): Remove. */
+        lower_argument_qualifiers(parser, report_error);
+
         /* Cleanup to make output more human readable and smaller for runtime. */
         cleanup_whitespace(parser, report_error);
         cleanup_empty_lines(parser, report_error);
         cleanup_line_directives(parser, report_error);
         str = parser.result_get();
       }
+
+      str = line_directive_prefix(filename) + str;
+      r_metadata = metadata;
+      return str;
     }
-    else if (language == MSL) {
+
+    if (language == MSL) {
       Parser parser(str, report_error);
       parse_pragma_runtime_generated(parser);
       parse_includes(parser, report_error);
@@ -2661,7 +2670,7 @@ class Preprocessor {
           return;
         }
         condition += "defined(CREATE_INFO_" + tokens[7].str() + ")";
-        parser.erase(tokens[0].scope());
+        parser.replace(tokens[0].scope(), "");
       });
 
       if (!condition.empty()) {
@@ -3914,6 +3923,19 @@ class Preprocessor {
       report_error(ERROR_TOK(tokens[4]),
                    "Reference is defined inside a global or unterminated scope.");
     });
+  }
+
+  void lower_argument_qualifiers(Parser &parser, report_callback /*report_error*/)
+  {
+    /* Example: `out float var[2]` > `REF(float, var)[2]` */
+    parser().foreach_match("www", [&](const Tokens &toks) {
+      if (toks[0].str() == "inout" || toks[0].str() == "out") {
+        parser.replace(toks[0], "_ref(");
+        parser.insert_after(toks[1], ",");
+        parser.insert_after(toks[2], ")");
+      }
+    });
+    parser.apply_mutations();
   }
 
   std::string argument_decorator_macro_injection(const std::string &str)
