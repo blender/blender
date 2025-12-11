@@ -668,9 +668,9 @@ struct CollectionPropertyRNA {
  */
 struct StructRNA {
   /** Structs are containers of properties. */
-  ContainerRNA cont;
+  ContainerRNA cont = {};
   /** Unique identifier, keep after `cont`. */
-  const char *identifier;
+  const char *identifier = nullptr;
 
   /**
    * Python type, this is a sub-type of #pyrna_struct_Type
@@ -678,34 +678,34 @@ struct StructRNA {
    *
    * Owns a reference so the value isn't freed by Python.
    */
-  void *py_type;
-  void *blender_type;
+  void *py_type = nullptr;
+  void *blender_type = nullptr;
 
   /** Various options. */
-  int flag;
+  int flag = 0;
   /**
    * Each StructRNA type can define its own tags which properties can set
    * (PropertyRNA.tags) for changed behavior based on struct-type.
    */
-  const EnumPropertyItem *prop_tag_defines;
+  const EnumPropertyItem *prop_tag_defines = nullptr;
 
   /** User readable name. */
-  const char *name;
+  const char *name = nullptr;
   /** Single line description, displayed in the tool-tip for example. */
-  const char *description;
+  const char *description = nullptr;
   /** Context for translation. */
-  const char *translation_context;
+  const char *translation_context = nullptr;
   /** Icon ID. */
-  int icon;
+  int icon = 0;
 
   /** Property that defines the name. */
-  PropertyRNA *nameproperty;
+  PropertyRNA *nameproperty = nullptr;
 
   /** Property to iterate over properties. */
-  PropertyRNA *iteratorproperty;
+  PropertyRNA *iteratorproperty = nullptr;
 
   /** Struct this is derived from. */
-  StructRNA *base;
+  StructRNA *base = nullptr;
 
   /**
    * Only use for nested structs, where both the parent and child access
@@ -713,18 +713,18 @@ struct StructRNA {
    * The parent property is used so we know NULL checks are not needed,
    * and that this struct will never exist without its parent.
    */
-  StructRNA *nested;
+  StructRNA *nested = nullptr;
 
   /** Function to give the more specific type. */
-  StructRefineFunc refine;
+  StructRefineFunc refine = nullptr;
 
   /** Function to find path to this struct in an ID. */
-  StructPathFunc path;
+  StructPathFunc path = nullptr;
 
   /** Function to register/unregister sub-classes. */
-  StructRegisterFunc reg;
+  StructRegisterFunc reg = nullptr;
   /** Function to unregister sub-classes. */
-  StructUnregisterFunc unreg;
+  StructUnregisterFunc unreg = nullptr;
   /**
    * Optionally support reusing Python instances for this type.
    *
@@ -736,16 +736,16 @@ struct StructRNA {
    * the Python instance when the data has been removed, see: #BPY_DECREF_RNA_INVALIDATE
    * so accessing the variables from Python raises an exception instead of crashing.
    */
-  StructInstanceFunc instance;
+  StructInstanceFunc instance = nullptr;
 
   /** Return the location of the struct's pointer to the user-defined root group IDProperty. */
-  IDPropertiesFunc idproperties;
+  IDPropertiesFunc idproperties = nullptr;
 
   /** Return the location of the struct's pointer to the system-defined root group IDProperty. */
-  IDPropertiesFunc system_idproperties;
+  IDPropertiesFunc system_idproperties = nullptr;
 
   /** Functions of this struct. */
-  ListBase functions;
+  ListBase functions = {nullptr, nullptr};
 };
 
 /**
@@ -754,14 +754,12 @@ struct StructRNA {
  * Root RNA data structure that lists all struct types.
  */
 struct BlenderRNA {
-  ListBase structs = {nullptr, nullptr};
+  blender::Vector<StructRNA *> structs;
   /**
    * A map of structs: `{StructRNA.identifier -> StructRNA}`
    * These are ensured to have unique names (with #STRUCT_PUBLIC_NAMESPACE enabled).
    */
   blender::Map<blender::StringRef, StructRNA *> structs_map;
-  /** Needed because types with an empty identifier aren't included in `structs_map`. */
-  unsigned int structs_len = 0;
 };
 
 #define CONTAINER_RNA_ID(cont) (*(const char **)(((ContainerRNA *)(cont)) + 1))

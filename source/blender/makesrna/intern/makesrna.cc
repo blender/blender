@@ -294,12 +294,9 @@ static const char *rna_safe_id(const char *id)
 
 /* Sorting */
 
-static int cmp_struct(const void *a, const void *b)
+static int cmp_struct(const StructRNA *structa, const StructRNA *structb)
 {
-  const StructRNA *structa = *(const StructRNA **)a;
-  const StructRNA *structb = *(const StructRNA **)b;
-
-  return strcmp(structa->identifier, structb->identifier);
+  return strcmp(structa->identifier, structb->identifier) < 0;
 }
 
 static int cmp_property(const void *a, const void *b)
@@ -329,7 +326,7 @@ static int cmp_def_struct(const void *a, const void *b)
   const StructDefRNA *dsa = *(const StructDefRNA **)a;
   const StructDefRNA *dsb = *(const StructDefRNA **)b;
 
-  return cmp_struct(&dsa->srna, &dsb->srna);
+  return cmp_struct(dsa->srna, dsb->srna);
 }
 
 static int cmp_def_property(const void *a, const void *b)
@@ -3553,14 +3550,11 @@ static void rna_auto_types()
 static void rna_sort(BlenderRNA *brna)
 {
   StructDefRNA *ds;
-  StructRNA *srna;
 
-  rna_sortlist(&brna->structs, cmp_struct);
+  std::sort(brna->structs.begin(), brna->structs.end(), cmp_struct);
   rna_sortlist(&DefRNA.structs, cmp_def_struct);
 
-  for (srna = static_cast<StructRNA *>(brna->structs.first); srna;
-       srna = static_cast<StructRNA *>(srna->cont.next))
-  {
+  for (StructRNA *srna : brna->structs) {
     rna_sortlist(&srna->cont.properties, cmp_property);
   }
 
@@ -3720,11 +3714,7 @@ static const char *rna_property_subtype_unit(PropertySubType type)
 
 static void rna_generate_struct_rna_prototypes(BlenderRNA *brna, FILE *f)
 {
-  StructRNA *srna;
-
-  for (srna = static_cast<StructRNA *>(brna->structs.first); srna;
-       srna = static_cast<StructRNA *>(srna->cont.next))
-  {
+  for (const StructRNA *srna : brna->structs) {
     fprintf(f, "extern struct StructRNA RNA_%s;\n", srna->identifier);
   }
   fprintf(f, "\n");
@@ -3732,32 +3722,18 @@ static void rna_generate_struct_rna_prototypes(BlenderRNA *brna, FILE *f)
 
 static void rna_generate_blender(BlenderRNA *brna, FILE *f)
 {
-  StructRNA *srna;
-
   fprintf(f,
           "BlenderRNA &RNA_blender_rna_get()\n"
           "{\n"
           "\tstatic BlenderRNA BLENDER_RNA = []() {\n"
           "\t\tBlenderRNA dst{};\n"
           "\t\tdst.structs = {");
-  srna = static_cast<StructRNA *>(brna->structs.first);
-  if (srna) {
-    fprintf(f, "&RNA_%s, ", srna->identifier);
+  for (StructRNA *srna : brna->structs) {
+    fprintf(f, "\t\t&RNA_%s,\n", srna->identifier);
   }
-  else {
-    fprintf(f, "nullptr, ");
-  }
-
-  srna = static_cast<StructRNA *>(brna->structs.last);
-  if (srna) {
-    fprintf(f, "&RNA_%s};\n", srna->identifier);
-  }
-  else {
-    fprintf(f, "nullptr};\n");
-  }
-
   /* structs_map is created by RNA_init(). */
   fprintf(f,
+          "\t};\n"
           "\t\treturn dst;\n"
           "\t}();\n"
           "\treturn BLENDER_RNA;\n"
@@ -3773,9 +3749,7 @@ static void rna_generate_external_property_prototypes(BlenderRNA *brna, FILE *f)
   /* NOTE: Generate generic `PropertyRNA &` references. The actual, type-refined properties data
    * are static variables in their translation units (the `_gen.cc` files), which are assigned to
    * these public generic `PointerRNA &` references. */
-  for (StructRNA *srna = static_cast<StructRNA *>(brna->structs.first); srna;
-       srna = static_cast<StructRNA *>(srna->cont.next))
-  {
+  for (StructRNA *srna : brna->structs) {
     LISTBASE_FOREACH (PropertyRNA *, prop, &srna->cont.properties) {
       fprintf(f, "extern PropertyRNA &rna_%s_%s;\n", srna->identifier, prop->identifier);
     }

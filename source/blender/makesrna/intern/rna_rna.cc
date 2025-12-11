@@ -1343,7 +1343,8 @@ static bool rna_Function_use_self_type_get(PointerRNA *ptr)
 
 static bool rna_struct_is_publc(CollectionPropertyIterator * /*iter*/, void *data)
 {
-  StructRNA *srna = static_cast<StructRNA *>(data);
+  const StructRNA **srna_ptr_ptr = static_cast<const StructRNA **>(data);
+  const StructRNA *srna = *srna_ptr_ptr;
 
   return !(srna->flag & STRUCT_PUBLIC_NAMESPACE);
 }
@@ -1351,21 +1352,25 @@ static bool rna_struct_is_publc(CollectionPropertyIterator * /*iter*/, void *dat
 static void rna_BlenderRNA_structs_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   BlenderRNA *brna = static_cast<BlenderRNA *>(ptr->data);
-  rna_iterator_listbase_begin(iter, ptr, &brna->structs, rna_struct_is_publc);
+  rna_iterator_array_begin(iter,
+                           ptr,
+                           brna->structs.data(),
+                           sizeof(StructRNA *),
+                           brna->structs.size(),
+                           false,
+                           rna_struct_is_publc);
 }
 
 /* optional, for faster lookups */
 static int rna_BlenderRNA_structs_length(PointerRNA *ptr)
 {
   BlenderRNA *brna = static_cast<BlenderRNA *>(ptr->data);
-  BLI_assert(brna->structs_len == BLI_listbase_count(&brna->structs));
-  return brna->structs_len;
+  return brna->structs.size();
 }
 static bool rna_BlenderRNA_structs_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
   BlenderRNA *brna = static_cast<BlenderRNA *>(ptr->data);
-  StructRNA *srna = static_cast<StructRNA *>(
-      index < brna->structs_len ? BLI_findlink(&brna->structs, index) : nullptr);
+  StructRNA *srna = index < brna->structs.size() ? brna->structs[index] : nullptr;
   if (srna != nullptr) {
     *r_ptr = RNA_pointer_create_discrete(nullptr, &RNA_Struct, srna);
     return true;
@@ -3917,9 +3922,9 @@ void RNA_def_rna(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "Struct");
   RNA_def_property_collection_funcs(prop,
                                     "rna_BlenderRNA_structs_begin",
-                                    "rna_iterator_listbase_next",
-                                    "rna_iterator_listbase_end",
-                                    "rna_iterator_listbase_get",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_dereference_get",
 /* included for speed, can be removed */
 #  if 0
                                     nullptr,
