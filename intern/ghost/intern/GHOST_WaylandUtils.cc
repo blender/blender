@@ -156,15 +156,15 @@ static bool ghost_window_csd_layout_from_gnome(GHOST_CSD_Layout &layout)
   uint32_t button_mask = 0;
   for (int side = 0; side < 2; side++) {
     int buttons_capacity = ARRAY_SIZE(layout.buttons) - i;
-    i += string_parse_buttons(
-        output_pair[side], &button_mask, &layout.buttons[i], buttons_capacity);
-    if (side == 0) {
+    if (side == 1) {
       /* Add the title divider. */
       if (buttons_capacity > 0) {
         layout.buttons[i++] = GHOST_kCSDTypeTitlebar;
         buttons_capacity--;
       }
     }
+    i += string_parse_buttons(
+        output_pair[side], &button_mask, &layout.buttons[i], buttons_capacity);
   }
   layout.buttons_num = i;
   return true;
