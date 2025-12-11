@@ -1695,7 +1695,7 @@ GHOST_WindowWayland::~GHOST_WindowWayland()
   }
 
 #ifdef WITH_GHOST_CSD
-  if (window_->xdg_decor) {
+  if (window_->xdg_csd) {
     delete window_->xdg_csd;
     window_->xdg_csd = nullptr;
   }
