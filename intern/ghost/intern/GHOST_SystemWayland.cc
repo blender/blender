@@ -2363,7 +2363,7 @@ static std::vector<std::string_view> gwl_clipboard_uri_ranges(const char *data_b
       end = data.size();
     }
     /* Account for 'CRLF' case. */
-    if (data[end - 1] == '\r') {
+    if ((end > 0) && (data[end - 1] == '\r')) {
       end -= 1;
     }
 
