@@ -32,7 +32,7 @@ class FileOutputTest(unittest.TestCase):
     def setUpClass(cls):
         cls.testdir = pathlib.Path(args.testdir)
         cls.outdir = pathlib.Path(args.outdir)
-        cls.execution_device = "GPU" if args.gpu_backend else "CPU"
+        cls.execution_device = args.device
         cls.update = os.getenv("BLENDER_TEST_UPDATE") is not None
 
         # Images that look similar enough should pass the test
@@ -244,7 +244,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--testdir", required=True)
     parser.add_argument("--outdir", required=True)
-    parser.add_argument("--gpu-backend", required=False)
+    parser.add_argument("--device", required=True)
     args, remaining = parser.parse_known_args(argv)
 
     unittest.main(argv=remaining)
