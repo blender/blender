@@ -63,6 +63,8 @@ using blender::Vector;
 
 static const char *value_rna_name[NUM_VALUE_KINDS] = {
     "offset", "offset_pct", "profile", "segments"};
+static const float value_snap_increments[NUM_VALUE_KINDS] = {0.1f, 5.0f, 0.0f, 0.0f};
+static const float value_increments_precision_factors[NUM_VALUE_KINDS] = {0.1f, 0.2f, 0.0f, 0.0f};
 static const float value_clamp_min[NUM_VALUE_KINDS] = {0.0f, 0.0f, PROFILE_HARD_MIN, 1.0f};
 static const float value_clamp_max[NUM_VALUE_KINDS] = {1e6, 100.0f, 1.0f, SEGMENTS_HARD_MAX};
 static const float value_start[NUM_VALUE_KINDS] = {0.0f, 0.0f, 0.5f, 1.0f};
@@ -83,6 +85,8 @@ struct BevelData {
   float max_obj_scale;
   bool is_modal;
 
+  bool use_snap;
+  bool use_precision;
   Vector<BevelObjectStore> ob_store;
 
   /* modal only */
@@ -116,6 +120,10 @@ enum {
   BEV_MODAL_INNER_MITER_CHANGE,
   BEV_MODAL_PROFILE_TYPE_CHANGE,
   BEV_MODAL_VERTEX_MESH_CHANGE,
+  BEV_MODAL_SNAP_ON,
+  BEV_MODAL_SNAP_OFF,
+  BEV_MODAL_PRECISION_ON,
+  BEV_MODAL_PRECISION_OFF
 };
 
 static float get_bevel_offset(wmOperator *op)
@@ -180,6 +188,9 @@ static void edbm_bevel_update_status_text(bContext *C, wmOperator *op)
   WorkspaceStatus status(C);
   status.opmodal(IFACE_("Confirm"), op->type, BEV_MODAL_CONFIRM);
   status.opmodal(IFACE_("Cancel"), op->type, BEV_MODAL_CANCEL);
+  status.opmodal(
+      IFACE_("Precision mode"), op->type, BEV_MODAL_PRECISION_ON, opdata->use_precision);
+  status.opmodal(IFACE_("Snap"), op->type, BEV_MODAL_SNAP_ON, opdata->use_snap);
   status.opmodal(IFACE_("Width Type"), op->type, BEV_MODAL_OFFSET_MODE_CHANGE);
 
   status.opmodal(
@@ -565,7 +576,7 @@ static void edbm_bevel_mouse_set_value(wmOperator *op, const wmEvent *event)
   value = value_start[vmode] + value * opdata->scale[vmode];
 
   /* Fake shift-transform... */
-  if (event->modifier & KM_SHIFT) {
+  if (opdata->use_precision) {
     if (opdata->shift_value[vmode] < 0.0f) {
       opdata->shift_value[vmode] = (vmode == SEGMENTS_VALUE) ?
                                        opdata->segments :
@@ -575,6 +586,16 @@ static void edbm_bevel_mouse_set_value(wmOperator *op, const wmEvent *event)
   }
   else if (opdata->shift_value[vmode] >= 0.0f) {
     opdata->shift_value[vmode] = -1.0f;
+  }
+
+  if (opdata->use_snap) {
+    const float increment_factor = opdata->use_precision ?
+                                       (value_snap_increments[vmode] *
+                                        value_increments_precision_factors[vmode]) :
+                                       value_snap_increments[vmode];
+    if (increment_factor != 0.0f) {
+      value = increment_factor * roundf(value / increment_factor);
+    }
   }
 
   /* Clamp according to value mode, and store value back. */
@@ -662,6 +683,10 @@ wmKeyMap *bevel_modal_keymap(wmKeyConfig *keyconf)
        0,
        "Change Intersection Method",
        "Cycle through intersection methods"},
+      {BEV_MODAL_SNAP_ON, "SNAP_ON", 0, "Snap", ""},
+      {BEV_MODAL_SNAP_OFF, "SNAP_OFF", 0, "Snap (OFF)", ""},
+      {BEV_MODAL_PRECISION_ON, "PRECISION_ON", 0, "Precision", ""},
+      {BEV_MODAL_PRECISION_OFF, "PRECISION_OFF", 0, "Precision (OFF)", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -893,6 +918,34 @@ static wmOperatorStatus edbm_bevel_modal(bContext *C, wmOperator *op, const wmEv
         }
         RNA_enum_set(op->ptr, "vmesh_method", vmesh_method);
         edbm_bevel_calc(op);
+        edbm_bevel_update_status_text(C, op);
+        handled = true;
+        break;
+      }
+      case BEV_MODAL_PRECISION_ON: {
+        opdata->use_precision = true;
+        edbm_bevel_calc_initial_length(op, event, true);
+        edbm_bevel_update_status_text(C, op);
+        handled = true;
+        break;
+      }
+      case BEV_MODAL_PRECISION_OFF: {
+        opdata->use_precision = false;
+        edbm_bevel_calc_initial_length(op, event, true);
+        edbm_bevel_update_status_text(C, op);
+        handled = true;
+        break;
+      }
+      case BEV_MODAL_SNAP_ON: {
+        opdata->use_snap = true;
+        edbm_bevel_calc_initial_length(op, event, true);
+        edbm_bevel_update_status_text(C, op);
+        handled = true;
+        break;
+      }
+      case BEV_MODAL_SNAP_OFF: {
+        opdata->use_snap = false;
+        edbm_bevel_calc_initial_length(op, event, true);
         edbm_bevel_update_status_text(C, op);
         handled = true;
         break;
