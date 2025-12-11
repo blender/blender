@@ -56,8 +56,6 @@ BLOCKLIST_METAL = [
 ]
 
 BLOCKLIST_VULKAN = [
-    # Blocked due to difference in screen space tracing (to be fixed).
-    "sss_reflection_clamp.blend",
     # Blocked due to difference in screen space tracing (to be investigated).
     "image.blend"
 ]
