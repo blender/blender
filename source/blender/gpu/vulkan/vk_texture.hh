@@ -31,6 +31,7 @@ enum class VKImageViewFlags {
 ENUM_OPERATORS(VKImageViewFlags)
 
 class VKTexture : public Texture {
+  friend class VKDescriptorSetTracker;
   friend class VKDescriptorSetUpdator;
   friend class VKContext;
 

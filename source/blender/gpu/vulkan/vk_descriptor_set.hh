@@ -90,31 +90,24 @@ class VKDescriptorSetUpdator {
                                            render_graph::VKPipelineData &r_pipeline_data) = 0;
   void bind_shader_resources(const VKDevice &device,
                              const VKStateManager &state_manager,
-                             VKShader &shader,
-                             render_graph::VKResourceAccessInfo &access_info);
+                             VKShader &shader);
   virtual void upload_descriptor_sets() = 0;
 
  private:
   void bind_image_resource(const VKStateManager &state_manager,
-                           const VKResourceBinding &resource_binding,
-                           render_graph::VKResourceAccessInfo &access_info);
+                           const VKResourceBinding &resource_binding);
   void bind_texture_resource(const VKDevice &device,
                              const VKStateManager &state_manager,
-                             const VKResourceBinding &resource_binding,
-                             render_graph::VKResourceAccessInfo &access_info);
+                             const VKResourceBinding &resource_binding);
   void bind_storage_buffer_resource(const VKStateManager &state_manager,
-                                    const VKResourceBinding &resource_binding,
-                                    render_graph::VKResourceAccessInfo &access_info);
+                                    const VKResourceBinding &resource_binding);
   void bind_uniform_buffer_resource(const VKStateManager &state_manager,
-                                    const VKResourceBinding &resource_binding,
-                                    render_graph::VKResourceAccessInfo &access_info);
+                                    const VKResourceBinding &resource_binding);
   void bind_input_attachment_resource(const VKDevice &device,
                                       const VKStateManager &state_manager,
-                                      const VKResourceBinding &resource_binding,
-                                      render_graph::VKResourceAccessInfo &access_info);
+                                      const VKResourceBinding &resource_binding);
 
-  void bind_push_constants(VKPushConstants &push_constants,
-                           render_graph::VKResourceAccessInfo &access_info);
+  void bind_push_constants(VKPushConstants &push_constants);
 
  protected:
   virtual void bind_texel_buffer(VKVertexBuffer &vertex_buffer,
@@ -191,6 +184,34 @@ class VKDescriptorSetTracker {
   void upload_descriptor_sets();
 
  private:
+  /**
+   * Add resources of the descriptor set to the resource access info.
+   */
+  static void update_resource_access_info(
+      VKContext &context, render_graph::VKResourceAccessInfo &resource_access_info);
+  static void update_resource_access_info_binding(const VKStateManager &state_manager,
+                                                  const VKResourceBinding &resource_binding,
+                                                  render_graph::VKResourceAccessInfo &access_info);
+  static void update_resource_access_info_binding_uniform_buffer(
+      const VKStateManager &state_manager,
+      const VKResourceBinding &resource_binding,
+      render_graph::VKResourceAccessInfo &access_info);
+  static void update_resource_access_info_binding_image(
+      const VKStateManager &state_manager,
+      const VKResourceBinding &resource_binding,
+      render_graph::VKResourceAccessInfo &access_info);
+  static void update_resource_access_info_binding_sampler(
+      const VKStateManager &state_manager,
+      const VKResourceBinding &resource_binding,
+      render_graph::VKResourceAccessInfo &access_info);
+  static void update_resource_access_info_binding_storage_buffer(
+      const VKStateManager &state_manager,
+      const VKResourceBinding &resource_binding,
+      render_graph::VKResourceAccessInfo &access_info);
+  static void update_resource_access_info_binding_input_attachment(
+      const VKStateManager &state_manager,
+      const VKResourceBinding &resource_binding,
+      render_graph::VKResourceAccessInfo &access_info);
 };
 
 }  // namespace blender::gpu
