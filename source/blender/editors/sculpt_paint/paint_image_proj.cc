@@ -4203,7 +4203,7 @@ static bool project_paint_clone_face_skip(ProjPaintState *ps,
     if (ps->do_material_slots) {
       if (lc->slot_clone != lc->slot_last_clone) {
         if (lc->slot_clone->uvname) {
-          if (const bke::GAttributeReader attr = attributes.lookup(slot->uvname)) {
+          if (const bke::GAttributeReader attr = attributes.lookup(lc->slot_clone->uvname)) {
             if (attr.domain == bke::AttrDomain::Corner && attr.varray.type().is<float2>()) {
               if (attr.varray.is_span()) {
                 lc->uv_map_clone_base = attr.varray.get_internal_span().typed<float2>().data();
