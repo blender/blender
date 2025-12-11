@@ -8,7 +8,6 @@ struct RayPayload {
   KernelGlobals kg;
   RaySelfPrimitives self;
   uint visibility;
-  int prim_type;
   float ray_time;
 };
 
@@ -75,16 +74,33 @@ ccl_device_inline void set_intersect_point(KernelGlobals kg,
                                            const hiprtHit &hit,
                                            ccl_private Intersection *isect)
 {
-  const int object_id = kernel_data_fetch(user_instance_id, hit.instanceID);
-  const int prim_offset = kernel_data_fetch(object_prim_offset, object_id);
-
-  isect->type = kernel_data_fetch(objects, object_id).primitive_type;
+  const int object = kernel_data_fetch(user_instance_id, hit.instanceID);
 
   isect->t = hit.t;
-  isect->prim = hit.primID + prim_offset;
-  isect->object = object_id;
   isect->u = hit.uv.x;
   isect->v = hit.uv.y;
+
+  isect->object = object;
+  isect->type = kernel_data_fetch(objects, object).primitive_type;
+
+  if (isect->type & PRIMITIVE_CURVE) {
+    /* For curves the isect->type is a packed segment information, which is different from the
+     * primitive type associated with the object. */
+
+    /* TODO(sergey): Try to solve this with less fetches.
+     *
+     * Ideally avoid having HIP-RT specific custom_prim_info tables, allowing them to be removed
+     * in order to minimize the memory usage. */
+
+    const int2 data_offset = kernel_data_fetch(custom_prim_info_offset, object);
+    const int2 prim_info = kernel_data_fetch(custom_prim_info, hit.primID + data_offset.x);
+    isect->prim = prim_info.x + data_offset.y;
+    isect->type = prim_info.y;
+  }
+  else {
+    const int prim_offset = kernel_data_fetch(object_prim_offset, object);
+    isect->prim = hit.primID + prim_offset;
+  }
 }
 
 /* --------------------------------------------------------------------
@@ -151,8 +167,6 @@ ccl_device_inline bool curve_custom_intersect(const hiprtRay &ray,
     hit.uv.x = isect.u;
     hit.uv.y = isect.v;
     hit.t = isect.t;
-    hit.primID = isect.prim;
-    payload->prim_type = isect.type; /* packed_curve_type */
   }
 
   return b_hit;
@@ -191,8 +205,6 @@ ccl_device_inline bool motion_triangle_custom_intersect(const hiprtRay &ray,
     hit.uv.x = isect.u;
     hit.uv.y = isect.v;
     hit.t = isect.t;
-    hit.primID = isect.prim;
-    payload->prim_type = isect.type;
   }
 
   return b_hit;
@@ -279,8 +291,6 @@ ccl_device_inline bool motion_triangle_custom_volume_intersect(const hiprtRay &r
     hit.uv.x = isect.u;
     hit.uv.y = isect.v;
     hit.t = isect.t;
-    hit.primID = isect.prim;
-    payload->prim_type = isect.type;
   }
 
   return b_hit;
@@ -342,8 +352,6 @@ ccl_device_inline bool point_custom_intersect(const hiprtRay &ray,
     hit.uv.x = isect.u;
     hit.uv.y = isect.v;
     hit.t = isect.t;
-    hit.primID = isect.prim;
-    payload->prim_type = isect.type;
   }
 
   return b_hit;
@@ -482,7 +490,9 @@ ccl_device_inline bool shadow_intersection_filter_curves(const hiprtRay &ray,
   const RaySelfPrimitives &self = payload->self;
 
   const int object = kernel_data_fetch(user_instance_id, hit.instanceID);
-  const int prim = hit.primID;
+  const int2 data_offset = kernel_data_fetch(custom_prim_info_offset, object);
+  const int2 prim_info = kernel_data_fetch(custom_prim_info, hit.primID + data_offset.x);
+  const int prim = prim_info.x + data_offset.y;
 
   const float ray_tmax = hit.t;
 
@@ -516,7 +526,8 @@ ccl_device_inline bool shadow_intersection_filter_curves(const hiprtRay &ray,
     return true; /* Continue traversal. */
   }
 
-  const int primitive_type = payload->prim_type;
+  const KernelCurveSegment segment = kernel_data_fetch(curve_segments, prim);
+  const int primitive_type = segment.type;
 
 #  ifndef __TRANSPARENT_SHADOWS__
   return false;

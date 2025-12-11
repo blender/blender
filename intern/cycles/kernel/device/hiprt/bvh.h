@@ -41,7 +41,6 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
   payload.self = ray->self;
   payload.kg = kg;
   payload.visibility = visibility;
-  payload.prim_type = PRIMITIVE_NONE;
   payload.ray_time = ray->time;
 
   hiprtHit hit;
@@ -59,10 +58,6 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
 
   if (hit.hasHit()) {
     set_intersect_point(kg, hit, isect);
-    if (isect->type > 1) { /* Should be applied only for curves. */
-      isect->type = payload.prim_type;
-      isect->prim = hit.primID;
-    }
     return true;
   }
 
@@ -184,7 +179,6 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
   payload.kg = kg;
   payload.self = ray->self;
   payload.visibility = visibility;
-  payload.prim_type = PRIMITIVE_NONE;
   payload.ray_time = ray->time;
   payload.in_state = state;
   payload.max_transparent_hits = max_transparent_hits;
@@ -225,7 +219,6 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
   payload.self = ray->self;
   payload.kg = kg;
   payload.visibility = visibility;
-  payload.prim_type = PRIMITIVE_NONE;
   payload.ray_time = ray->time;
 
   GET_TRAVERSAL_STACK()
@@ -234,10 +227,6 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
   const hiprtHit hit = traversal.getNextHit();
   if (hit.hasHit()) {
     set_intersect_point(kg, hit, isect);
-    if (isect->type > 1) { /* Should be applied only for curves. */
-      isect->type = payload.prim_type;
-      isect->prim = hit.primID;
-    }
     return true;
   }
 
