@@ -480,7 +480,7 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
                                   args,
                                   kw,
                                   "s|$ifsOs!:bpy_struct.keyframe_delete()",
-                                  "bpy_struct.keyframe_insert()",
+                                  "bpy_struct.keyframe_delete()",
                                   &path_full,
                                   &index,
                                   &cfra,
