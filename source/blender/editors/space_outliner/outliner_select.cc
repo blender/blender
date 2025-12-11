@@ -439,6 +439,12 @@ static void tree_element_camera_activate(bContext *C, Scene *scene, TreeElement 
 {
   Object *ob = (Object *)outliner_search_back(te, ID_OB);
 
+  if (ob == nullptr) {
+    /* Happens in "Blender File" view (there is simply no object up in the hierarchy in this case).
+     */
+    return;
+  }
+
   scene->camera = ob;
 
   Main *bmain = CTX_data_main(C);
