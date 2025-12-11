@@ -10,6 +10,8 @@
 
 #include "GHOST_C-api.h"
 
+#include "BLI_rect.h"
+
 #include "WM_api.hh"
 #include "wm_window.hh"
 #include "wm_window_private.hh"

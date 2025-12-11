@@ -7,6 +7,7 @@
 /* For constants. */
 #include "BLI_math_constants.h"
 
+#include "DNA_ID.h"
 #include "DNA_anim_enums.h"
 #include "DNA_curve_enums.h"
 #include "DNA_space_enums.h"

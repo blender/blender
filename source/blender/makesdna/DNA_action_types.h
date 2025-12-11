@@ -17,7 +17,6 @@
 #include "DNA_listBase.h"
 #include "DNA_session_uid_types.h"
 #include "DNA_userdef_types.h" /* ThemeWireColor */
-#include "DNA_vec_types.h"
 #include "DNA_view2d_types.h"
 
 #include "BLI_enum_flags.hh"

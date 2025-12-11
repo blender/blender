@@ -8,15 +8,13 @@
 
 #pragma once
 
-#include "BLI_rect.h"
-
-#include "DNA_ID.h"
 #include "DNA_colorband_types.h"
+#include "DNA_defs.h"
 #include "DNA_listBase.h"
 #include "DNA_theme_types.h" /* IWYU pragma: export */
 #include "DNA_userdef_enums.h"
+#include "DNA_vec_types.h"
 
-struct ColorBand;
 struct IDProperty;
 
 typedef struct bAddon {
