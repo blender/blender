@@ -175,6 +175,8 @@ class SnapData {
   virtual void get_vert_co(const int /*index*/, const float ** /*r_co*/) {};
   virtual void get_edge_verts_index(const int /*index*/, int /*r_v_index*/[2]) {};
   virtual void copy_vert_no(const int /*index*/, float /*r_no*/[3]) {};
+  virtual void get_face_center(const int /*face_index*/, float3 & /*r_center*/) {};
+  virtual void copy_face_no(const int /*face_index*/, float /*r_no*/[3]) {};
 };
 
 /* `transform_snap_object.cc` */
@@ -197,6 +199,13 @@ void cb_snap_edge(void *userdata,
                   const float (*clip_plane)[4],
                   const int clip_plane_len,
                   BVHTreeNearest *nearest);
+
+void cb_snap_face_midpoint(void *userdata,
+                           int face_index,
+                           const DistProjectedAABBPrecalc *precalc,
+                           const float (*clip_plane)[4],
+                           int clip_plane_len,
+                           BVHTreeNearest *nearest);
 
 bool nearest_world_tree(SnapObjectContext *sctx,
                         const BVHTree *tree,

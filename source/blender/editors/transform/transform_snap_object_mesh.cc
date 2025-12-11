@@ -228,6 +228,11 @@ class SnapData_Mesh : public SnapData {
   const int *corner_verts;
   const int *corner_edges;
   const int3 *corner_tris;
+  const int *corner_tri_faces;
+  const float3 *face_normals;
+  const int *face_offsets;
+  int verts_num;
+  int corners_num;
 
   SnapData_Mesh(SnapObjectContext *sctx, const Mesh *mesh_eval, const float4x4 &obmat)
       : SnapData(sctx, obmat)
@@ -238,6 +243,11 @@ class SnapData_Mesh : public SnapData {
     this->corner_verts = mesh_eval->corner_verts().data();
     this->corner_edges = mesh_eval->corner_edges().data();
     this->corner_tris = mesh_eval->corner_tris().data();
+    this->corner_tri_faces = mesh_eval->corner_tri_faces().data();
+    this->face_normals = mesh_eval->face_normals().data();
+    this->face_offsets = mesh_eval->face_offsets().data();
+    this->verts_num = mesh_eval->verts_num;
+    this->corners_num = mesh_eval->corners_num;
   };
 
   void get_vert_co(const int index, const float **r_co) override
@@ -255,6 +265,23 @@ class SnapData_Mesh : public SnapData {
   void copy_vert_no(const int index, float r_no[3]) override
   {
     copy_v3_v3(r_no, this->vert_normals[index]);
+  }
+
+  void get_face_center(const int face_index, float3 &r_center) override
+  {
+    const int start = this->face_offsets[face_index];
+    const int end = this->face_offsets[face_index + 1];
+    const IndexRange face = IndexRange::from_begin_end(start, end);
+
+    const Span<int> face_verts = Span<int>(corner_verts, corners_num).slice(face);
+    const Span<float3> positions(vert_positions, verts_num);
+
+    r_center = bke::mesh::face_center_calc(positions, face_verts);
+  }
+
+  void copy_face_no(const int face_index, float r_no[3]) override
+  {
+    copy_v3_v3(r_no, this->face_normals[face_index]);
   }
 };
 
@@ -350,6 +377,34 @@ static void cb_snap_tri_edges(void *userdata,
   }
 }
 
+static void cb_snap_tri_faces_midpoint(void *userdata,
+                                       const int tri_index,
+                                       const DistProjectedAABBPrecalc *precalc,
+                                       const float (*clip_plane)[4],
+                                       const int clip_plane_len,
+                                       BVHTreeNearest *nearest)
+{
+  SnapData_Mesh *data = static_cast<SnapData_Mesh *>(userdata);
+
+  const int *corner_verts = data->corner_verts;
+  const int3 &tri = data->corner_tris[tri_index];
+
+  if (data->use_backface_culling) {
+    const float3 *positions = data->vert_positions;
+    const float3 &t0 = positions[corner_verts[tri[0]]];
+    const float3 &t1 = positions[corner_verts[tri[1]]];
+    const float3 &t2 = positions[corner_verts[tri[2]]];
+
+    float dummy[3];
+    if (raycast_tri_backface_culling_test(precalc->ray_direction, t0, t1, t2, dummy)) {
+      return;
+    }
+  }
+
+  const int face_index = data->corner_tri_faces[tri_index];
+  cb_snap_face_midpoint(userdata, face_index, precalc, clip_plane, clip_plane_len, nearest);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -439,7 +494,8 @@ static eSnapMode mesh_snap_mode_supported(const Mesh *mesh, bool skip_hidden)
   eSnapMode snap_mode_supported = (skip_hidden || mesh->loose_verts().count) ? SCE_SNAP_TO_POINT :
                                                                                SCE_SNAP_TO_NONE;
   if (mesh->faces_num) {
-    snap_mode_supported |= SCE_SNAP_TO_FACE | SCE_SNAP_INDIVIDUAL_NEAREST | SNAP_TO_EDGE_ELEMENTS;
+    snap_mode_supported |= SCE_SNAP_TO_FACE | SCE_SNAP_TO_FACE_MIDPOINT |
+                           SCE_SNAP_INDIVIDUAL_NEAREST | SNAP_TO_EDGE_ELEMENTS;
   }
   else if (mesh->edges_num) {
     snap_mode_supported |= SNAP_TO_EDGE_ELEMENTS;
@@ -469,7 +525,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
   }
 
   snap_to &= mesh_snap_mode_supported(mesh_eval, skip_hidden) &
-             (SNAP_TO_EDGE_ELEMENTS | SCE_SNAP_TO_POINT);
+             (SNAP_TO_EDGE_ELEMENTS | SCE_SNAP_TO_POINT | SCE_SNAP_TO_FACE_MIDPOINT);
   if (snap_to == SCE_SNAP_TO_NONE) {
     return SCE_SNAP_TO_NONE;
   }
@@ -515,6 +571,24 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
     if (nearest.index != -1) {
       last_index = nearest.index;
       elem = SCE_SNAP_TO_POINT;
+    }
+  }
+
+  if (snap_to & SCE_SNAP_TO_FACE_MIDPOINT) {
+    BLI_bvhtree_find_nearest_projected(
+        treedata.tree,
+        nearest2d.pmat_local.ptr(),
+        sctx->runtime.win_size,
+        sctx->runtime.mval,
+        reinterpret_cast<float (*)[4]>(nearest2d.clip_planes.data()),
+        nearest2d.clip_planes.size(),
+        &nearest,
+        cb_snap_tri_faces_midpoint,
+        &nearest2d);
+
+    if (nearest.index != -1) {
+      last_index = nearest.index;
+      elem = SCE_SNAP_TO_FACE_MIDPOINT;
     }
   }
 
@@ -607,7 +681,7 @@ eSnapMode snap_object_mesh(SnapObjectContext *sctx,
   eSnapMode elem = SCE_SNAP_TO_NONE;
   const Mesh *mesh_eval = reinterpret_cast<const Mesh *>(id);
 
-  if (snap_to_flag & (SNAP_TO_EDGE_ELEMENTS | SCE_SNAP_TO_POINT)) {
+  if (snap_to_flag & (SNAP_TO_EDGE_ELEMENTS | SCE_SNAP_TO_POINT | SCE_SNAP_TO_FACE_MIDPOINT)) {
     elem = snapMesh(sctx, ob_eval, mesh_eval, obmat, skip_hidden, is_editmesh, snap_to_flag);
     if (elem) {
       return elem;
