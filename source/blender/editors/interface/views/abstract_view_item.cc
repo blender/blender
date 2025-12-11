@@ -93,8 +93,12 @@ void AbstractViewItem::activate_for_context_menu(bContext &C)
 
 void AbstractViewItem::deactivate()
 {
+  if (is_active_) {
+    /* Deselect only active item, otherwise selection state before active item is cleared, see:
+     * !150891 */
+    is_selected_ = false;
+  }
   is_active_ = false;
-  is_selected_ = false;
 }
 
 std::optional<bool> AbstractViewItem::should_be_selected() const
