@@ -1459,7 +1459,11 @@ class Preprocessor {
     }
 
     Token before_body = body.start().prev();
-    string test = "constant_" + condition.str_exclusive();
+
+    string test = "SRT_CONSTANT_" + condition[5].str();
+    if (condition[7] != condition.end().prev()) {
+      test += parser.substr_range_inclusive(condition[7], condition.end().prev());
+    }
     string directive = (if_tok.prev() == Else ? "#elif " : "#if ");
 
     parser.insert_directive(before_body, directive + test);

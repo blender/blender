@@ -819,14 +819,14 @@ void func([[resource_table]] Resources &srt)
 void func(_ref(Resources ,srt))
 {
 
-#if constant_srt_access(Resources, use_color_band)
+#if SRT_CONSTANT_use_color_band
 #line 4
                                                                {
     test;
   }
 #endif
 
-#if constant_srt_access(Resources, use_color_band)== 1
+#if SRT_CONSTANT_use_color_band== 1
 #line 8
                                                                    {
     test;
@@ -838,24 +838,24 @@ void func(_ref(Resources ,srt))
   }
 #endif
 
-#if constant_srt_access(Resources, use_color_band)
+#if SRT_CONSTANT_use_color_band
 #line 14
                                                                {
     test;
   }
-#elif constant_srt_access(Resources, use_color_band)
+#elif SRT_CONSTANT_use_color_band
 #line 16
                                                                       {
     test;
   }
 #endif
 
-#if constant_srt_access(Resources, use_color_band)
+#if SRT_CONSTANT_use_color_band
 #line 20
                                                                {
     test;
   }
-#elif constant_srt_access(Resources, use_color_band)
+#elif SRT_CONSTANT_use_color_band
 #line 22
                                                                       {
     test;
