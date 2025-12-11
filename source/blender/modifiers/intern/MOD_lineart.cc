@@ -13,6 +13,7 @@
 #include "DNA_collection_types.h"
 #include "DNA_defaults.h"
 #include "DNA_gpencil_modifier_types.h"
+#include "DNA_lineart_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_collection.hh"
