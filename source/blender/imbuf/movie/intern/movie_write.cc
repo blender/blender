@@ -1303,7 +1303,7 @@ static bool start_ffmpeg_impl(MovieWriter *context,
     {
       context->ffmpeg_crf = blender::math::clamp(context->ffmpeg_crf, 0, 51);
     }
-    else if ((video_codec == AV_CODEC_ID_VP9)) {
+    else if (video_codec == AV_CODEC_ID_VP9) {
       context->ffmpeg_crf = blender::math::clamp(context->ffmpeg_crf, 0, 63);
     }
     else if (video_codec == AV_CODEC_ID_MPEG4) {
