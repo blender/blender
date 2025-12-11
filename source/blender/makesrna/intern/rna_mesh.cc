@@ -796,10 +796,8 @@ static void rna_Mesh_uv_layer_active_index_set(PointerRNA *ptr, int value)
 
 static PointerRNA rna_Mesh_uv_layer_clone_get(PointerRNA *ptr)
 {
-  PointerRNA attr_ptr = rna_AttributeGroup_lookup_string(*ptr,
-                                                         rna_mesh(ptr)->clone_uv_map_attribute,
-                                                         ATTR_DOMAIN_MASK_CORNER,
-                                                         CD_MASK_PROP_BYTE_COLOR);
+  PointerRNA attr_ptr = rna_AttributeGroup_lookup_string(
+      *ptr, rna_mesh(ptr)->clone_uv_map_attribute, ATTR_DOMAIN_MASK_CORNER, CD_MASK_PROP_FLOAT2);
   attr_ptr.type = &RNA_MeshUVLoopLayer;
   return attr_ptr;
 }
@@ -840,10 +838,8 @@ static void rna_Mesh_uv_layer_clone_index_set(PointerRNA *ptr, int value)
 
 static PointerRNA rna_Mesh_uv_layer_stencil_get(PointerRNA *ptr)
 {
-  PointerRNA attr_ptr = rna_AttributeGroup_lookup_string(*ptr,
-                                                         rna_mesh(ptr)->stencil_uv_map_attribute,
-                                                         ATTR_DOMAIN_MASK_CORNER,
-                                                         CD_MASK_PROP_BYTE_COLOR);
+  PointerRNA attr_ptr = rna_AttributeGroup_lookup_string(
+      *ptr, rna_mesh(ptr)->stencil_uv_map_attribute, ATTR_DOMAIN_MASK_CORNER, CD_MASK_PROP_FLOAT2);
   attr_ptr.type = &RNA_MeshUVLoopLayer;
   return attr_ptr;
 }
