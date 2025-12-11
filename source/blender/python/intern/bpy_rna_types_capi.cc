@@ -9,7 +9,7 @@
  *
  * We should avoid adding code here, and prefer:
  * - `source/blender/makesrna/intern/rna_context.cc` using the RNA C API.
- * - `scripts/modules/_bpy_types.py` when additions c an be written in Python.
+ * - `scripts/modules/_bpy_types.py` when additions can be written in Python.
  *
  * Otherwise functions can be added here as a last resort.
  */

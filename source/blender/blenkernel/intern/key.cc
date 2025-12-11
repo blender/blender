@@ -428,9 +428,10 @@ void key_curve_normal_weights(const float t, float data[4], const KeyInterpolati
  * The values in `r_weights` indicate how much of a given shapekey should be used.
  * This is done to support different interpolation modes.
  *
- * The key in `r_target_keys[2]` is the key just after the fac threshold.
+ * The key in `r_target_keys[2]` is the key just after the factor threshold.
  *
- * \return true means the key in r_target_keys[2] should be copied as is, false means interpolate.
+ * \return true means the key in `r_target_keys[2]` should be copied as is,
+ * false means interpolate.
  */
 static bool get_keys_for_absolute_eval(float eval_time,
                                        const ListBase * /* KeyBlock */ keyblocks,
@@ -461,7 +462,7 @@ static bool get_keys_for_absolute_eval(float eval_time,
   /* Find the correct shapekeys. */
   while (r_weights[2] < eval_time) {
     if (key_iter->next == nullptr) {
-      /* This triggers when key_iter->next has been a nullptr for one loop. */
+      /* This triggers when `key_iter->next` has been a nullptr for one loop. */
       if (r_weights[2] == r_weights[3]) {
         break;
       }
@@ -492,7 +493,7 @@ static bool get_keys_for_absolute_eval(float eval_time,
       r_target_keys[2] = r_target_keys[1];
       return true;
     }
-    if (eval_time >= r_weights[2]) { /* eval_time after 2nd key. */
+    if (eval_time >= r_weights[2]) { /* `eval_time` after 2nd key. */
       return true;
     }
   }

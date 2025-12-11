@@ -5,7 +5,7 @@
 /** \file
  * \ingroup pythonintern
  *
- * This adds helpers to #blenderL::ui::Layout which can't be added easily to RNA itself.
+ * This adds helpers to #blender::ui::Layout which can't be added easily to RNA itself.
  */
 
 #include <Python.h>
