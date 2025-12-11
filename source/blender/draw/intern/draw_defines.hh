@@ -44,5 +44,7 @@
  */
 #define DRW_VIEW_MAX 64
 
+#define DRW_POINTCLOUD_STRIP_TILE_SIZE 8
+
 /* TODO(fclem): Move to overlay. */
 #define OVERLAY_GLOBALS_SLOT 7

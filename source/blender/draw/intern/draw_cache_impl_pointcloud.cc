@@ -35,6 +35,8 @@
 #include "draw_cache_inline.hh"
 #include "draw_pointcloud_private.hh" /* own include */
 
+#include "draw_defines.hh"
+
 namespace blender::draw {
 
 /* -------------------------------------------------------------------- */
@@ -47,9 +49,6 @@ struct PointCloudEvalCache {
   /* Triangle primitive types. */
   gpu::Batch *surface;
   gpu::Batch **surface_per_mat;
-
-  /* Triangles indices to draw the points. */
-  gpu::IndexBuf *geom_indices;
 
   /* Position and radius. */
   gpu::VertBuf *pos_rad;
@@ -160,7 +159,6 @@ static void pointcloud_batch_cache_clear(PointCloud &pointcloud)
   GPU_BATCH_DISCARD_SAFE(cache->eval_cache.surface);
   GPU_VERTBUF_DISCARD_SAFE(cache->eval_cache.pos_rad);
   GPU_VERTBUF_DISCARD_SAFE(cache->eval_cache.attr_viewer);
-  GPU_INDEXBUF_DISCARD_SAFE(cache->eval_cache.geom_indices);
 
   GPU_INDEXBUF_DISCARD_SAFE(cache->edit_selection_indices);
   GPU_BATCH_DISCARD_SAFE(cache->edit_selection);
@@ -220,49 +218,6 @@ void DRW_pointcloud_batch_cache_free_old(PointCloud *pointcloud, int ctime)
 /* -------------------------------------------------------------------- */
 /** \name PointCloud extraction
  * \{ */
-
-static const uint half_octahedron_tris[4][3] = {
-    {0, 1, 2},
-    {0, 2, 3},
-    {0, 3, 4},
-    {0, 4, 1},
-};
-
-static void pointcloud_extract_indices(const PointCloud &pointcloud, PointCloudBatchCache &cache)
-{
-  /* Overlap shape and point indices to avoid both having to store the indices into a separate
-   * buffer and avoid rendering points as instances. */
-  uint32_t vertid_max = pointcloud.totpoint << 3;
-  constexpr uint32_t tri_count_per_point = ARRAY_SIZE(half_octahedron_tris);
-  uint32_t primitive_len = pointcloud.totpoint * tri_count_per_point;
-
-  GPUIndexBufBuilder builder;
-
-  /* Max allowed points to ensure the size of the index buffer will not overflow.
-   * NOTE: pointcloud.totpoint is an int we assume that we can safely use 31 bits. */
-  const uint32_t max_totpoint = INT32_MAX / uint32_t(tri_count_per_point *
-                                                     GPU_indexbuf_primitive_len(GPU_PRIM_TRIS));
-  if (pointcloud.totpoint > max_totpoint) {
-    GPU_indexbuf_init(&builder, GPU_PRIM_TRIS, 0, 0);
-    GPU_indexbuf_build_in_place_ex(&builder, 0, 0, false, cache.eval_cache.geom_indices);
-    return;
-  }
-
-  GPU_indexbuf_init(&builder, GPU_PRIM_TRIS, primitive_len, vertid_max);
-  MutableSpan<uint3> data = GPU_indexbuf_get_data(&builder).cast<uint3>();
-
-  /* TODO(fclem): Could be build on GPU or not be built at all. */
-  threading::parallel_for(IndexRange(pointcloud.totpoint), 1024, [&](const IndexRange range) {
-    for (int p : range) {
-      for (int i : IndexRange(tri_count_per_point)) {
-        data[p * tri_count_per_point + i] = uint3(half_octahedron_tris[i]) | (p << 3);
-      }
-    }
-  });
-
-  GPU_indexbuf_build_in_place_ex(
-      &builder, 0, primitive_len * 3, false, cache.eval_cache.geom_indices);
-}
 
 static void pointcloud_extract_position_and_radius(const PointCloud &pointcloud,
                                                    PointCloudBatchCache &cache)
@@ -381,8 +336,15 @@ gpu::Batch **pointcloud_surface_shaded_get(PointCloud *pointcloud,
 
 gpu::Batch *pointcloud_surface_get(PointCloud *pointcloud)
 {
-  PointCloudBatchCache *cache = pointcloud_batch_cache_get(*pointcloud);
-  return DRW_batch_request(&cache->eval_cache.surface);
+  PointCloudBatchCache &cache = *pointcloud_batch_cache_get(*pointcloud);
+  if (cache.eval_cache.surface != nullptr) {
+    return cache.eval_cache.surface;
+  }
+
+  cache.eval_cache.surface = GPU_batch_create_procedural(
+      GPU_PRIM_TRI_STRIP, DRW_POINTCLOUD_STRIP_TILE_SIZE * pointcloud->totpoint);
+  DRW_vbo_request(nullptr, &cache.eval_cache.pos_rad);
+  return cache.eval_cache.surface;
 }
 
 /** \} */
@@ -467,14 +429,9 @@ void DRW_pointcloud_batch_cache_create_requested(Object *ob)
     DRW_vbo_request(cache.edit_selection, &cache.eval_cache.pos_rad);
   }
 
-  if (DRW_batch_requested(cache.eval_cache.surface, GPU_PRIM_TRIS)) {
-    DRW_ibo_request(cache.eval_cache.surface, &cache.eval_cache.geom_indices);
-    DRW_vbo_request(cache.eval_cache.surface, &cache.eval_cache.pos_rad);
-  }
   for (int i = 0; i < cache.eval_cache.mat_len; i++) {
     if (DRW_batch_requested(cache.eval_cache.surface_per_mat[i], GPU_PRIM_TRIS)) {
       /* TODO(fclem): Per material ranges. */
-      DRW_ibo_request(cache.eval_cache.surface_per_mat[i], &cache.eval_cache.geom_indices);
     }
   }
   for (const int j : cache.eval_cache.attr_used.index_range()) {
@@ -487,10 +444,6 @@ void DRW_pointcloud_batch_cache_create_requested(Object *ob)
 
   if (DRW_ibo_requested(cache.edit_selection_indices)) {
     build_edit_selection_indices(pointcloud, *cache.edit_selection_indices);
-  }
-
-  if (DRW_ibo_requested(cache.eval_cache.geom_indices)) {
-    pointcloud_extract_indices(pointcloud, cache);
   }
 
   if (DRW_vbo_requested(cache.eval_cache.pos_rad)) {
