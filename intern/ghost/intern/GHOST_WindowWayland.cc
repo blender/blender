@@ -81,7 +81,7 @@ struct GWL_WindowCSD {
   /** Track the active type, intersecting the pointing device. */
   GHOST_TCSD_Type active_type = GHOST_kCSDTypeBody;
   /** For tracking double click/drag. */
-  GHOST_CSD_EventState event_state = {0};
+  GHOST_CSD_EventState event_state = {{0}};
 };
 
 #endif /* WITH_GHOST_CSD */
