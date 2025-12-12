@@ -288,6 +288,11 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     endif()
 
     if(WITH_GHOST_CSD)
+      list(APPEND SRC
+        intern/GHOST_WindowWaylandCSD.cc
+
+        intern/GHOST_WindowWaylandCSD.hh
+      )
       add_definitions(-DWITH_GHOST_CSD)
     endif()
 
@@ -306,7 +311,6 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
 
     list(APPEND SRC
       intern/GHOST_SystemWayland.cc
-      intern/GHOST_WaylandUtils.cc
       intern/GHOST_WindowWayland.cc
 
       intern/GHOST_SystemWayland.hh

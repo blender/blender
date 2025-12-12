@@ -33,6 +33,10 @@
 #  include "GHOST_NDOFManagerUnix.hh"
 #endif
 
+#ifdef WITH_GHOST_CSD
+#  include "GHOST_WindowWaylandCSD.hh"
+#endif
+
 #ifdef WITH_GHOST_WAYLAND_DYNLOAD
 #  include <wayland_dynload_API.h> /* For `ghost_wl_dynload_libraries`. */
 #endif
@@ -1961,35 +1965,6 @@ static uint32_t rgba_straight_to_premul_inverted(uint32_t rgba_uint)
   rgba[1] = uint8_t(((alpha * (0xff - rgba[1])) + (0xff / 2)) / 0xff);
   rgba[2] = uint8_t(((alpha * (0xff - rgba[2])) + (0xff / 2)) / 0xff);
   return rgba_uint;
-}
-
-static const char *strchr_or_end(const char *str, const char ch)
-{
-  const char *p = str;
-  while (!ELEM(*p, ch, '\0')) {
-    p++;
-  }
-  return p;
-}
-
-static bool string_elem_split_by_delim(const char *haystack, const char delim, const char *needle)
-{
-  /* Local copy of #BLI_string_elem_split_by_delim (would be a bad level call). */
-
-  /* May be zero, returns true when an empty span exists. */
-  const size_t needle_len = strlen(needle);
-  const char *p = haystack, *p_next;
-  while (true) {
-    p_next = strchr_or_end(p, delim);
-    if ((size_t(p_next - p) == needle_len) && (memcmp(p, needle, needle_len) == 0)) {
-      return true;
-    }
-    if (*p_next == '\0') {
-      break;
-    }
-    p = p_next + 1;
-  }
-  return false;
 }
 
 static uint64_t sub_abs_u64(const uint64_t a, const uint64_t b)
@@ -8081,30 +8056,14 @@ GHOST_SystemWayland::GHOST_SystemWayland(const bool background)
   }
 
 #ifdef WITH_GHOST_CSD
-  bool use_window_frame_csd = false;
   if (use_window_frame) {
-    const char *xdg_current_desktop = [] {
-      /* Account for VSCode overriding this value (TSK!), see: #133921. */
-      const char *key = "ORIGINAL_XDG_CURRENT_DESKTOP";
-      const char *value = getenv(key);
-      return value ? value : getenv(key + 9);
-    }();
-
-    if (xdg_current_desktop) {
-      /* See the free-desktop specifications for details on `XDG_CURRENT_DESKTOP`.
-       * https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html
-       */
-      if (string_elem_split_by_delim(xdg_current_desktop, ':', "GNOME")) {
-        use_window_frame_csd = true;
-      }
-    }
-  }
-
 #  ifdef USE_GHOST_CSD_FORCE
-  use_window_frame_csd = true;
+    display_->use_window_frame_csd = true;
+#  else
+    display_->use_window_frame_csd = GHOST_WindowCSD_Check();
 #  endif
-
-  if (use_window_frame_csd) {
+  }
+  if (display_->use_window_frame_csd) {
     GHOST_CSD_Layout csd_layout = {0};
     if (!GHOST_WindowCSD_LayoutFromSystem(csd_layout)) {
       GHOST_WindowCSD_LayoutDefault(csd_layout);
@@ -8112,9 +8071,6 @@ GHOST_SystemWayland::GHOST_SystemWayland(const bool background)
 
     this->setWindowCSD_Layout(csd_layout);
   }
-
-  display_->use_window_frame_csd = use_window_frame_csd;
-
 #endif /* WITH_GHOST_CSD */
 
   {

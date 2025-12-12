@@ -7,26 +7,25 @@
  */
 
 /* Currently all of the logic is for CSD. */
-#ifdef WITH_GHOST_CSD
 
-#  include "GHOST_WaylandUtils.hh"
-#  include "GHOST_Types.h"
-#  include "GHOST_utildefines.hh"
+#include "GHOST_WindowWaylandCSD.hh" /* Own include. */
+#include "GHOST_Types.h"
+#include "GHOST_utildefines.hh"
 
-#  include <array> /* For `std::array`. */
-#  include <optional>
-#  include <sstream> /* For `std::stringstream`. */
-#  include <string>
+#include <array> /* For `std::array`. */
+#include <optional>
+#include <sstream> /* For `std::stringstream`. */
+#include <string>
 
 /* Logging, use `ghost.wl.*` prefix. */
-#  include "CLG_log.h"
+#include "CLG_log.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Private CSD Integration
  * \{ */
 
 static CLG_LogRef LOG_WL_CSD = {"ghost.wl.csd"};
-#  define LOG (&LOG_WL_CSD)
+#define LOG (&LOG_WL_CSD)
 
 static std::optional<std::string> command_exec(const char *cmd, const size_t output_limit)
 {
@@ -59,6 +58,35 @@ static std::optional<std::string> command_exec(const char *cmd, const size_t out
     return std::nullopt;
   }
   return result.str();
+}
+
+static const char *strchr_or_end(const char *str, const char ch)
+{
+  const char *p = str;
+  while (!ELEM(*p, ch, '\0')) {
+    p++;
+  }
+  return p;
+}
+
+static bool string_elem_split_by_delim(const char *haystack, const char delim, const char *needle)
+{
+  /* Local copy of #BLI_string_elem_split_by_delim (would be a bad level call). */
+
+  /* May be zero, returns true when an empty span exists. */
+  const size_t needle_len = strlen(needle);
+  const char *p = haystack, *p_next;
+  while (true) {
+    p_next = strchr_or_end(p, delim);
+    if ((size_t(p_next - p) == needle_len) && (memcmp(p, needle, needle_len) == 0)) {
+      return true;
+    }
+    if (*p_next == '\0') {
+      break;
+    }
+    p = p_next + 1;
+  }
+  return false;
 }
 
 static std::array<std::string_view, 2> string_partition(std::string_view s, const char delimiter)
@@ -196,6 +224,25 @@ void GHOST_WindowCSD_LayoutDefault(GHOST_CSD_Layout &layout)
   layout.buttons_num = i;
 }
 
-/** \} */
+bool GHOST_WindowCSD_Check()
+{
+  bool result = false;
+  const char *xdg_current_desktop = [] {
+    /* Account for VSCode overriding this value (TSK!), see: #133921. */
+    const char *key = "ORIGINAL_XDG_CURRENT_DESKTOP";
+    const char *value = getenv(key);
+    return value ? value : getenv(key + 9);
+  }();
 
-#endif /* WITH_GHOST_CSD */
+  if (xdg_current_desktop) {
+    /* See the free-desktop specifications for details on `XDG_CURRENT_DESKTOP`.
+     * https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html
+     */
+    if (string_elem_split_by_delim(xdg_current_desktop, ':', "GNOME")) {
+      result = true;
+    }
+  }
+  return result;
+}
+
+/** \} */
