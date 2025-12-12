@@ -434,7 +434,6 @@ void template_collection_exporters(Layout *layout, bContext *C)
                              3,
                              5,
                              UILST_LAYOUT_DEFAULT,
-                             1,
                              TEMPLATE_LIST_FLAG_NONE);
 
   Layout *col = &row.column(true);

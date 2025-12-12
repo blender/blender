@@ -119,7 +119,6 @@ void template_list_flags(Layout *layout, const bContext *C, PointerRNA *fileptr)
                 1,
                 5,
                 UILST_LAYOUT_DEFAULT,
-                1,
                 TEMPLATE_LIST_FLAG_NONE);
 
   col = &row.column(true);

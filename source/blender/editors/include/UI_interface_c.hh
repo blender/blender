@@ -2543,11 +2543,6 @@ enum TemplateListFlags {
   TEMPLATE_LIST_SORT_LOCK = (1 << 1),
   /** Don't allow resizing the list, i.e. don't add the grip button. */
   TEMPLATE_LIST_NO_GRIP = (1 << 2),
-  /** Do not show filtering options, not even the button to expand/collapse them. Also hides the
-   * grip button. */
-  TEMPLATE_LIST_NO_FILTER_OPTIONS = (1 << 3),
-  /** For #UILST_LAYOUT_BIG_PREVIEW_GRID, don't reserve space for the name label. */
-  TEMPLATE_LIST_NO_NAMES = (1 << 4),
 };
 ENUM_OPERATORS(TemplateListFlags);
 
@@ -2558,28 +2553,12 @@ void template_list(Layout *layout,
                    PointerRNA *dataptr,
                    StringRefNull propname,
                    PointerRNA *active_dataptr,
-                   const char *active_propname,
+                   StringRefNull active_propname,
                    const char *item_dyntip_propname,
                    int rows,
                    int maxrows,
                    int layout_type,
-                   int columns,
                    enum TemplateListFlags flags);
-uiList *template_list_ex(Layout *layout,
-                         const bContext *C,
-                         const char *listtype_name,
-                         const char *list_id,
-                         PointerRNA *dataptr,
-                         StringRefNull propname,
-                         PointerRNA *active_dataptr,
-                         StringRefNull active_propname,
-                         const char *item_dyntip_propname,
-                         int rows,
-                         int maxrows,
-                         int layout_type,
-                         int columns,
-                         enum TemplateListFlags flags,
-                         void *customdata);
 }  // namespace blender::ui
 
 void uiTemplateNodeLink(

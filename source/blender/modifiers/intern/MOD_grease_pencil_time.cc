@@ -561,7 +561,6 @@ static void panel_draw(const bContext *C, Panel *panel)
                       3,
                       10,
                       0,
-                      1,
                       ui::TEMPLATE_LIST_FLAG_NONE);
 
     col = &row->column(false);

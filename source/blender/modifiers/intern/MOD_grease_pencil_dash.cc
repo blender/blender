@@ -420,7 +420,6 @@ static void panel_draw(const bContext *C, Panel *panel)
                 3,
                 10,
                 0,
-                1,
                 blender::ui::TEMPLATE_LIST_FLAG_NONE);
 
   ui::Layout &col = row.column(false);

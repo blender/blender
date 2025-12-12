@@ -283,9 +283,6 @@ typedef struct uiListDyn {
   /** Minimal visual height of the list (in rows). */
   int visual_height_min;
 
-  /** Number of columns drawn for grid layouts. */
-  int columns;
-
   /** Number of items in collection. */
   int items_len;
   /** Number of items actually visible after filtering. */
@@ -661,7 +658,6 @@ enum {
 enum {
   UILST_LAYOUT_DEFAULT = 0,
   UILST_LAYOUT_COMPACT = 1,
-  UILST_LAYOUT_BIG_PREVIEW_GRID = 3,
 };
 
 /** #uiList.flag */

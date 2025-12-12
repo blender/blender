@@ -852,7 +852,6 @@ void draw_data_blocks(const bContext *C, ui::Layout &layout, PointerRNA &bake_rn
                       3,
                       5,
                       UILST_LAYOUT_DEFAULT,
-                      0,
                       ui::TEMPLATE_LIST_FLAG_NONE);
   }
 }

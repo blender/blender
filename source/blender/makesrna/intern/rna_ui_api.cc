@@ -709,7 +709,7 @@ void rna_template_list(Layout *layout,
                        const int rows,
                        const int maxrows,
                        const int layout_type,
-                       const int columns,
+                       const int /*columns*/,
                        const bool sort_reverse,
                        const bool sort_lock)
 {
@@ -733,7 +733,6 @@ void rna_template_list(Layout *layout,
                              rows,
                              maxrows,
                              layout_type,
-                             columns,
                              flags);
 }
 

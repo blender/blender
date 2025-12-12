@@ -6,7 +6,6 @@
  * \ingroup edinterface
  */
 
-#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 
@@ -80,7 +79,6 @@ struct TemplateListLayoutDrawData {
 
   int rows;
   int maxrows;
-  int columns;
 };
 
 struct TemplateListVisualInfo {
@@ -347,7 +345,6 @@ static void uilist_free_dyn_data(uiList *ui_list)
 
   MEM_SAFE_FREE(dyn_data->items_filter_flags);
   MEM_SAFE_FREE(dyn_data->items_filter_neworder);
-  MEM_SAFE_FREE(dyn_data->customdata);
 }
 
 /**
@@ -536,7 +533,6 @@ static void uilist_prepare(uiList *ui_list,
 
   int actual_rows = layout_data->rows;
   int actual_maxrows = layout_data->maxrows;
-  int columns = layout_data->columns;
 
   /* default rows */
   if (actual_rows <= 0) {
@@ -546,21 +542,10 @@ static void uilist_prepare(uiList *ui_list,
   if (actual_maxrows < actual_rows) {
     actual_maxrows = max_ii(actual_rows, 5);
   }
-  if (columns <= 0) {
-    columns = 9;
-  }
 
   int activei_row;
-  if (columns > 1) {
-    dyn_data->height = int(ceil(double(items->item_vec.size()) / double(columns)));
-    activei_row = int(floor(double(items->active_item_idx) / double(columns)));
-  }
-  else {
-    dyn_data->height = items->item_vec.size();
-    activei_row = items->active_item_idx;
-  }
-
-  dyn_data->columns = columns;
+  dyn_data->height = items->item_vec.size();
+  activei_row = items->active_item_idx;
 
   if (!use_auto_size) {
     /* No auto-size, yet we clamp at min size! */
@@ -589,10 +574,9 @@ static void uilist_prepare(uiList *ui_list,
   CLAMP(ui_list->list_scroll, 0, max_scroll);
   ui_list->list_last_len = items->item_vec.size();
   dyn_data->visual_height = actual_rows;
-  r_visual_info->visual_items = actual_rows * columns;
-  r_visual_info->start_idx = ui_list->list_scroll * columns;
-  r_visual_info->end_idx = min_ii(r_visual_info->start_idx + actual_rows * columns,
-                                  items->item_vec.size());
+  r_visual_info->visual_items = actual_rows;
+  r_visual_info->start_idx = ui_list->list_scroll;
+  r_visual_info->end_idx = min_ii(r_visual_info->start_idx + actual_rows, items->item_vec.size());
 }
 
 static void uilist_resize_update(bContext *C, uiList *ui_list)
@@ -727,7 +711,6 @@ static void ui_template_list_layout_draw(const bContext *C,
       col = &row->column(true);
 
       TemplateListLayoutDrawData adjusted_layout_data = *layout_data;
-      adjusted_layout_data.columns = 1;
       /* init numbers */
       uilist_prepare(ui_list, items, &adjusted_layout_data, &visual_info);
 
@@ -880,101 +863,9 @@ static void ui_template_list_layout_draw(const bContext *C,
         button_flag_enable(but, BUT_DISABLED);
       }
       break;
-    case UILST_LAYOUT_BIG_PREVIEW_GRID:
-      box = &layout.list_box(ui_list, &input_data->active_dataptr, input_data->activeprop);
-      /* For grip button. */
-      glob = &box->column(true);
-      /* For scroll-bar. */
-      row = &glob->row(false);
-
-      const bool show_names = (flags & TEMPLATE_LIST_NO_NAMES) == 0;
-
-      const int size_x = preview_tile_size_x();
-      const int size_y = show_names ? preview_tile_size_y() : preview_tile_size_y_no_label();
-
-      const int cols_per_row = std::max(int((box->width() - V2D_SCROLL_WIDTH) / size_x), 1);
-      Layout &grid = row->grid_flow(true, cols_per_row, true, true, true);
-
-      TemplateListLayoutDrawData adjusted_layout_data = *layout_data;
-      adjusted_layout_data.columns = cols_per_row;
-      uilist_prepare(ui_list, items, &adjusted_layout_data, &visual_info);
-
-      if (input_data->dataptr.data && input_data->prop) {
-        /* create list items */
-        for (int i = visual_info.start_idx; i < visual_info.end_idx; i++) {
-          PointerRNA *itemptr = &items->item_vec[i].item;
-          const int org_i = items->item_vec[i].org_idx;
-          const int flt_flag = items->item_vec[i].flt_flag;
-
-          overlap = &grid.overlap();
-          col = &overlap->column(false);
-
-          Block *subblock = col->block();
-          block_flag_enable(subblock, BLOCK_LIST_ITEM);
-
-          but = uiDefButR_prop(subblock,
-                               ButtonType::ListRow,
-                               "",
-                               0,
-                               0,
-                               size_x,
-                               size_y,
-                               &input_data->active_dataptr,
-                               input_data->activeprop,
-                               0,
-                               0,
-                               org_i,
-                               std::nullopt);
-          button_drawflag_enable(but, BUT_NO_TOOLTIP);
-
-          col = &overlap->column(false);
-
-          icon = icon_from_rnaptr(C, itemptr, rnaicon, false);
-          layout_data->draw_item(ui_list,
-                                 C,
-                                 *col,
-                                 &input_data->dataptr,
-                                 itemptr,
-                                 icon,
-                                 &input_data->active_dataptr,
-                                 active_propname,
-                                 org_i,
-                                 flt_flag);
-
-          /* Items should be able to set context pointers for the layout. But the list-row button
-           * swallows events, so it needs the context storage too for handlers to see it. */
-          but->context = col->context_store();
-
-          /* If we are "drawing" active item, set all labels as active. */
-          if (i == items->active_item_idx) {
-            layout_list_set_labels_active(col);
-          }
-
-          block_flag_disable(subblock, BLOCK_LIST_ITEM);
-        }
-      }
-
-      if (items->item_vec.size() > visual_info.visual_items) {
-        /* col = */ row->column(false);
-        but = uiDefButI(block,
-                        ButtonType::Scroll,
-                        "",
-                        0,
-                        0,
-                        V2D_SCROLL_WIDTH,
-                        size_y * dyn_data->visual_height,
-                        &ui_list->list_scroll,
-                        0,
-                        dyn_data->height - dyn_data->visual_height,
-                        "");
-        auto *but_scroll = reinterpret_cast<ButtonScrollBar *>(but);
-        but_scroll->visual_height = dyn_data->visual_height;
-      }
-      break;
   }
 
-  const bool add_filters_but = (flags & TEMPLATE_LIST_NO_FILTER_OPTIONS) == 0;
-  if (glob && add_filters_but) {
+  if (glob) {
     const bool add_grip_but = (flags & TEMPLATE_LIST_NO_GRIP) == 0;
 
     /* About #ButtonType::Grip drag-resize:
@@ -1080,21 +971,19 @@ static void ui_template_list_layout_draw(const bContext *C,
   }
 }
 
-uiList *template_list_ex(Layout *layout,
-                         const bContext *C,
-                         const char *listtype_name,
-                         const char *list_id,
-                         PointerRNA *dataptr,
-                         const StringRefNull propname,
-                         PointerRNA *active_dataptr,
-                         const StringRefNull active_propname,
-                         const char *item_dyntip_propname,
-                         int rows,
-                         int maxrows,
-                         int layout_type,
-                         int columns,
-                         enum TemplateListFlags flags,
-                         void *customdata)
+void template_list(Layout *layout,
+                   const bContext *C,
+                   const char *listtype_name,
+                   const char *list_id,
+                   PointerRNA *dataptr,
+                   const StringRefNull propname,
+                   PointerRNA *active_dataptr,
+                   const StringRefNull active_propname,
+                   const char *item_dyntip_propname,
+                   int rows,
+                   int maxrows,
+                   int layout_type,
+                   enum TemplateListFlags flags)
 {
   TemplateListInputData input_data = {};
   uiListType *ui_list_type;
@@ -1108,7 +997,7 @@ uiList *template_list_ex(Layout *layout,
                                       &input_data,
                                       &ui_list_type))
   {
-    return nullptr;
+    return;
   }
 
   uiListDrawItemFunc draw_item = ui_list_type->draw_item ? ui_list_type->draw_item :
@@ -1124,10 +1013,6 @@ uiList *template_list_ex(Layout *layout,
                                    layout_type,
                                    flags & TEMPLATE_LIST_SORT_REVERSE,
                                    flags & TEMPLATE_LIST_SORT_LOCK);
-  uiListDyn *dyn_data = ui_list->dyn_data;
-
-  MEM_SAFE_FREE(dyn_data->customdata);
-  dyn_data->customdata = customdata;
 
   /* When active item changed since last draw, scroll to it. */
   if (input_data.active_item_idx != ui_list->list_last_activei) {
@@ -1143,43 +1028,8 @@ uiList *template_list_ex(Layout *layout,
   layout_data.draw_filter = draw_filter;
   layout_data.rows = rows;
   layout_data.maxrows = maxrows;
-  layout_data.columns = columns;
 
   ui_template_list_layout_draw(C, ui_list, *layout, &input_data, &items, &layout_data, flags);
-
-  return ui_list;
-}
-
-void template_list(Layout *layout,
-                   const bContext *C,
-                   const char *listtype_name,
-                   const char *list_id,
-                   PointerRNA *dataptr,
-                   StringRefNull propname,
-                   PointerRNA *active_dataptr,
-                   const char *active_propname,
-                   const char *item_dyntip_propname,
-                   int rows,
-                   int maxrows,
-                   int layout_type,
-                   int columns,
-                   enum TemplateListFlags flags)
-{
-  template_list_ex(layout,
-                   C,
-                   listtype_name,
-                   list_id,
-                   dataptr,
-                   propname,
-                   active_dataptr,
-                   active_propname,
-                   item_dyntip_propname,
-                   rows,
-                   maxrows,
-                   layout_type,
-                   columns,
-                   flags,
-                   nullptr);
 }
 
 /* -------------------------------------------------------------------- */
