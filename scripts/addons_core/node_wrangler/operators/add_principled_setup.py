@@ -7,7 +7,7 @@ from bpy.types import Operator
 from bpy.props import BoolProperty, CollectionProperty, StringProperty
 from bpy_extras.io_utils import ImportHelper
 from bpy_extras.node_utils import connect_sockets
-from bpy.app.translations import pgettext_rpt as rpt_
+from .. import __package__ as base_package
 
 from os import path
 from mathutils import Vector
@@ -84,7 +84,7 @@ class NODE_OT_add_principled_setup(Operator, NWBase, ImportHelper):
 
         # Filter textures names for texture-types in filenames.
         # [Socket Name, [abbreviations and keyword list], Filename placeholder]
-        tags = context.preferences.addons[__package__].preferences.principled_tags
+        tags = context.preferences.addons[base_package].preferences.principled_tags
         normal_abbr = tags.normal.split(' ')
         bump_abbr = tags.bump.split(' ')
         gloss_abbr = tags.gloss.split(' ')
