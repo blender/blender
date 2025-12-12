@@ -31,9 +31,8 @@ static std::string cache_image_file(
     const char *file_ext[BKE_IMAGE_PATH_EXT_MAX];
     file_ext[0] = BLI_path_extension_or_end(image->id.name);
     if (!pxr::HioImageRegistry::GetInstance().IsSupportedImageFile(image->id.name)) {
-      BKE_image_path_ext_from_imformat(&scene->r.im_format, file_ext);
-      BKE_image_format_free(&opts.im_format);
-      BKE_image_format_copy(&opts.im_format, &scene->r.im_format);
+      BKE_image_format_set(&opts.im_format, nullptr, R_IMF_IMTYPE_PNG);
+      BKE_image_path_ext_from_imformat(&opts.im_format, file_ext);
     }
 
     char file_name[FILE_MAX];
