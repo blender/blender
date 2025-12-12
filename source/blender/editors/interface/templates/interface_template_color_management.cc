@@ -10,6 +10,8 @@
 
 #include "BLT_translation.hh"
 
+#include "DNA_color_types.h"
+
 #include "RNA_access.hh"
 
 #include "UI_interface.hh"

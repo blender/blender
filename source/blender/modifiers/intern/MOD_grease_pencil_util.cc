@@ -11,10 +11,10 @@
 #include "BLI_set.hh"
 #include "BLI_vector_set.hh"
 
+#include "DNA_color_types.h"
 #include "DNA_grease_pencil_types.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_screen_types.h"
 
 #include "BKE_colortools.hh"
 #include "BKE_curves.hh"

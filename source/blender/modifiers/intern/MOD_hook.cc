@@ -14,6 +14,7 @@
 
 #include "BLT_translation.hh"
 
+#include "DNA_color_types.h"
 #include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"

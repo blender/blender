@@ -8,6 +8,8 @@
 
 #include "BLI_string_ref.hh"
 
+#include "DNA_color_types.h"
+
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 

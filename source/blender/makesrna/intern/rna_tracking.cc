@@ -17,6 +17,7 @@
 
 #include "rna_internal.hh"
 
+#include "DNA_movieclip_types.h"
 #include "DNA_object_types.h" /* SELECT */
 #include "DNA_scene_types.h"
 

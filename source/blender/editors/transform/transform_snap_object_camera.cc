@@ -12,6 +12,8 @@
 #include "BKE_object.hh"
 #include "BKE_tracking.hh"
 
+#include "DNA_movieclip_types.h"
+
 #include "transform_snap_object.hh"
 
 namespace blender::ed::transform {

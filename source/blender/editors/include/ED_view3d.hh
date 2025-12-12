@@ -60,6 +60,9 @@ struct wmWindowManager;
 namespace blender::ed::transform {
 struct SnapObjectContext;
 }
+namespace blender::gpu {
+class Texture;
+}
 
 /** For mesh drawing callbacks, for viewport selection, etc. */
 struct ViewContext {
