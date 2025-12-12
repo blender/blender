@@ -1666,6 +1666,12 @@ enum AutoPropButsReturn {
 
 ENUM_OPERATORS(AutoPropButsReturn);
 
+/**
+ * \param button_type_override: Overrides the default button type defined to int/float properties
+ * which can be either #ButtonType::Num or #ButtonType::NumSlider or to enum properties which can
+ * be either #ButtonType::Menu or #ButtonType::SearchMenu, this has no effect on other property
+ * types.
+ */
 Button *uiDefAutoButR(Block *block,
                       PointerRNA *ptr,
                       PropertyRNA *prop,
@@ -1675,7 +1681,8 @@ Button *uiDefAutoButR(Block *block,
                       int x,
                       int y,
                       int width,
-                      int height);
+                      int height,
+                      std::optional<ButtonType> button_type_override = std::nullopt);
 void uiDefAutoButsArrayR(Block *block,
                          PointerRNA *ptr,
                          PropertyRNA *prop,
@@ -2847,11 +2854,6 @@ const uiStyle *style_get_dpi();
 /* #UI_OT_editsource helpers. */
 bool editsource_enable_check();
 void editsource_active_but_test(Button *but);
-/**
- * Remove the editsource data for \a old_but and reinsert it for \a new_but. Use when the button
- * was reallocated, e.g. to have a new type (#button_change_type()).
- */
-void editsource_but_replace(const Button *old_but, Button *new_but);
 
 /**
  * Adjust the view so the rectangle of \a but is in view, with some extra margin.

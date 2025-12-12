@@ -4267,46 +4267,6 @@ static std::unique_ptr<Button> ui_but_new(const ButtonType type)
   return but;
 }
 
-Button *button_change_type(Button *but, ButtonType new_type)
-{
-  if (but->type == new_type) {
-    /* Nothing to do. */
-    return but;
-  }
-
-  const int64_t but_index = but->block->but_index(but);
-
-  /* Remove old button address */
-  std::unique_ptr<Button> old_but_ptr = std::move(but->block->buttons[but_index]);
-
-  /* Button may have pointer to a member within itself, this will have to be updated. */
-  const bool has_poin_ptr_to_self = but->poin == (char *)but;
-
-  /* Copy construct button with the new type. */
-  but->block->buttons[but_index] = ui_but_new(new_type);
-  but = but->block->buttons[but_index].get();
-  *but = *old_but_ptr;
-  /* We didn't mean to override this :) */
-  but->type = new_type;
-  if (has_poin_ptr_to_self) {
-    but->poin = (char *)but;
-  }
-
-  if (but->layout) {
-    const bool found_layout = layout_replace_but_ptr(but->layout, old_but_ptr.get(), but);
-    BLI_assert(found_layout);
-    UNUSED_VARS_NDEBUG(found_layout);
-    button_group_replace_but_ptr(but->layout->block(), old_but_ptr.get(), but);
-  }
-#ifdef WITH_PYTHON
-  if (editsource_enable_check()) {
-    editsource_but_replace(old_but_ptr.get(), but);
-  }
-#endif
-
-  return but;
-}
-
 /**
  * \param x, y: The lower left hand corner of the button (X axis)
  * \param width, height: The size of the button.

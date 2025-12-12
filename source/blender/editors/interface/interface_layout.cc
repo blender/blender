@@ -730,26 +730,19 @@ static void ui_item_array(Layout *layout,
        * map these to rows/columns. */
       col = a % dim_size[1];
       row = a / dim_size[1];
-
-      Button *but = uiDefAutoButR(block,
-                                  ptr,
-                                  prop,
-                                  a,
-                                  "",
-                                  ICON_NONE,
-                                  x + w * col,
-                                  y + (dim_size[0] * UI_UNIT_Y) - (row * UI_UNIT_Y),
-                                  w,
-                                  UI_UNIT_Y);
-      if (slider && but->type == ButtonType::Num) {
-        ButtonNumber *number_but = (ButtonNumber *)but;
-        const float step_size = number_but->step_size;
-        const float precision = number_but->precision;
-        but = button_change_type(but, ButtonType::NumSlider);
-        auto *slider_but = reinterpret_cast<ButtonNumberSlider *>(but);
-        slider_but->step_size = step_size;
-        slider_but->precision = precision;
-      }
+      std::optional<ButtonType> button_type = slider ? std::optional(ButtonType::NumSlider) :
+                                                       std::nullopt;
+      uiDefAutoButR(block,
+                    ptr,
+                    prop,
+                    a,
+                    "",
+                    ICON_NONE,
+                    x + w * col,
+                    y + (dim_size[0] * UI_UNIT_Y) - (row * UI_UNIT_Y),
+                    w,
+                    UI_UNIT_Y,
+                    button_type);
     }
   }
   else if (subtype == PROP_DIRECTION && !expand) {
@@ -808,18 +801,10 @@ static void ui_item_array(Layout *layout,
         const int width_item = ((compact && type == PROP_BOOLEAN) ?
                                     min_ii(w, ui_text_icon_width(layout, str_buf, icon, false)) :
                                     w);
-
+        std::optional<ButtonType> button_type = slider ? std::optional(ButtonType::NumSlider) :
+                                                         std::nullopt;
         Button *but = uiDefAutoButR(
-            block, ptr, prop, a, str_buf, icon, 0, 0, width_item, UI_UNIT_Y);
-        if (slider && but->type == ButtonType::Num) {
-          ButtonNumber *number_but = (ButtonNumber *)but;
-          const float step_size = number_but->step_size;
-          const float precision = number_but->precision;
-          but = button_change_type(but, ButtonType::NumSlider);
-          auto *slider_but = reinterpret_cast<ButtonNumberSlider *>(but);
-          slider_but->step_size = step_size;
-          slider_but->precision = precision;
-        }
+            block, ptr, prop, a, str_buf, icon, 0, 0, width_item, UI_UNIT_Y, button_type);
         if ((toggle == 1) && but->type == ButtonType::Checkbox) {
           but->type = ButtonType::Toggle;
         }
@@ -1080,6 +1065,7 @@ static void ui_keymap_but_cb(bContext * /*C*/, void *but_v, void * /*key_v*/)
  *
  * \param w_hint: For varying width layout, this becomes the label width.
  *                Otherwise it's used to fit both items into it.
+ * \param button_type: Overrides the default button type for \a prop, see #uiDefAutoButR.
  */
 static Button *ui_item_with_label(Layout *layout,
                                   Block *block,
@@ -1092,7 +1078,8 @@ static Button *ui_item_with_label(Layout *layout,
                                   const int y,
                                   const int w_hint,
                                   const int h,
-                                  const int flag)
+                                  const int flag,
+                                  std::optional<ButtonType> button_type_override = std::nullopt)
 {
   Layout *sub = layout;
   int prop_but_width = w_hint;
@@ -1217,7 +1204,8 @@ static Button *ui_item_with_label(Layout *layout,
     const std::optional<StringRefNull> str = (type == PROP_ENUM && !(flag & ITEM_R_ICON_ONLY)) ?
                                                  std::nullopt :
                                                  std::make_optional<StringRefNull>("");
-    but = uiDefAutoButR(block, ptr, prop, index, str, icon, x, y, prop_but_width, h);
+    but = uiDefAutoButR(
+        block, ptr, prop, index, str, icon, x, y, prop_but_width, h, button_type_override);
   }
 
   /* Highlight in red on path template validity errors. */
@@ -2237,15 +2225,6 @@ void Layout::prop(PointerRNA *ptr,
           but, [bmain, id](const std::string &new_name) { ED_id_rename(*bmain, *id, new_name); });
     }
 
-    bool results_are_suggestions = false;
-    if (type == PROP_STRING) {
-      const eStringPropertySearchFlag search_flag = RNA_property_string_search_flag(prop);
-      if (search_flag & PROP_STRING_SEARCH_SUGGESTION) {
-        results_are_suggestions = true;
-      }
-    }
-    but = but_add_search(but, ptr, prop, nullptr, nullptr, nullptr, results_are_suggestions);
-
     if (layout->red_alert()) {
       button_flag_enable(but, BUT_REDALERT);
     }
@@ -2256,17 +2235,9 @@ void Layout::prop(PointerRNA *ptr,
   }
   /* single button */
   else {
-    but = uiDefAutoButR(block, ptr, prop, index, name, icon, 0, 0, w, h);
-
-    if (slider && but->type == ButtonType::Num) {
-      ButtonNumber *number_but = (ButtonNumber *)but;
-      const float step_size = number_but->step_size;
-      const float precision = number_but->precision;
-      but = button_change_type(but, ButtonType::NumSlider);
-      auto *slider_but = reinterpret_cast<ButtonNumberSlider *>(but);
-      slider_but->step_size = step_size;
-      slider_but->precision = precision;
-    }
+    std::optional<ButtonType> button_type = slider ? std::optional(ButtonType::NumSlider) :
+                                                     std::nullopt;
+    but = uiDefAutoButR(block, ptr, prop, index, name, icon, 0, 0, w, h, button_type);
 
     if (flag & ITEM_R_CHECKBOX_INVERT) {
       if (ELEM(but->type,
@@ -2614,13 +2585,13 @@ static void ui_rna_collection_search_arg_free_fn(void *ptr)
   MEM_delete(coll_search);
 }
 
-Button *but_add_search(Button *but,
-                       PointerRNA *ptr,
-                       PropertyRNA *prop,
-                       PointerRNA *searchptr,
-                       PropertyRNA *searchprop,
-                       PropertyRNA *item_searchprop,
-                       const bool results_are_suggestions)
+void button_configure_search(Button *but,
+                             PointerRNA *ptr,
+                             PropertyRNA *prop,
+                             PointerRNA *searchptr,
+                             PropertyRNA *searchprop,
+                             PropertyRNA *item_searchprop,
+                             const bool results_are_suggestions)
 {
   /* for ID's we do automatic lookup */
   bool has_search_fn = false;
@@ -2640,10 +2611,9 @@ Button *but_add_search(Button *but,
   /* turn button into search button */
   if (has_search_fn || searchprop) {
     RNACollectionSearch *coll_search = MEM_new<RNACollectionSearch>(__func__);
-    ButtonSearch *search_but;
 
-    but = button_change_type(but, ButtonType::SearchMenu);
-    search_but = (ButtonSearch *)but;
+    BLI_assert(but->type == ButtonType::SearchMenu);
+    ButtonSearch *search_but = (ButtonSearch *)but;
 
     if (searchptr) {
       search_but->rnasearchpoin = *searchptr;
@@ -2702,8 +2672,6 @@ Button *but_add_search(Button *but,
      * so other code might have already set but->type to search menu... */
     but->flag |= BUT_DISABLED;
   }
-
-  return but;
 }
 
 void Layout::prop_search(PointerRNA *ptr,
@@ -2763,9 +2731,10 @@ void Layout::prop_search(PointerRNA *ptr,
   int w, h;
   ui_item_rna_size(this, name, icon, ptr, prop, 0, false, false, &w, &h);
   w += UI_UNIT_X; /* X icon needs more space */
-  Button *but = ui_item_with_label(this, block, name, icon, ptr, prop, 0, 0, 0, w, h, 0);
-
-  but = but_add_search(
+  Button *but = ui_item_with_label(
+      this, block, name, icon, ptr, prop, 0, 0, 0, w, h, 0, ButtonType::SearchMenu);
+  BLI_assert(but->type == ButtonType::SearchMenu);
+  button_configure_search(
       but, ptr, prop, searchptr, searchprop, item_searchprop, results_are_suggestions);
 }
 

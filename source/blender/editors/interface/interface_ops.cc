@@ -1957,7 +1957,7 @@ static bool jump_to_target_button(bContext *C, bool poll)
 
         bool found = false;
         /* Jump to target only works with search properties currently, not search callbacks yet.
-         * See ui_but_add_search. */
+         * See #button_configure_search. */
         if (coll_search->search_prop != nullptr) {
           found = RNA_property_collection_lookup_string(
               &coll_search->search_ptr, coll_search->search_prop, str_ptr, &target_ptr);
@@ -2089,15 +2089,6 @@ void editsource_active_but_test(Button *but)
   }
 
   ui_editsource_info->hash.add(but, std::move(but_store));
-}
-
-void editsource_but_replace(const Button *old_but, Button *new_but)
-{
-  std::unique_ptr<EditSourceButStore> but_store = ui_editsource_info->hash.pop_default(old_but,
-                                                                                       nullptr);
-  if (but_store) {
-    ui_editsource_info->hash.add(new_but, std::move(but_store));
-  }
 }
 
 static wmOperatorStatus editsource_text_edit(bContext *C,

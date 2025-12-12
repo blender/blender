@@ -770,15 +770,6 @@ void region_winrct_get_no_margin(const ARegion *region, rcti *r_rect);
 void block_add_dynamic_listener(Block *block,
                                 void (*listener_func)(const wmRegionListenerParams *params));
 
-/**
- * Reallocate the button (new address is returned) for a new button type.
- * This should generally be avoided and instead the correct type be created right away.
- *
- * \note Only the #Button data can be kept. If the old button used a derived type (e.g.
- * #ButtonTab), the data that is not inside #Button will be lost.
- */
-Button *button_change_type(Button *but, ButtonType new_type);
-
 double button_value_get(Button *but);
 void button_value_set(Button *but, double value);
 /**
@@ -1428,17 +1419,19 @@ void layout_remove_but(Layout *layout, const Button *but);
  * \return true if the button was successfully replaced.
  */
 bool layout_replace_but_ptr(Layout *layout, const void *old_but_ptr, Button *new_but);
+
 /**
- * \note May reallocate \a but, so the possibly new address is returned. May also override the
- *       #BUT_DISABLED flag depending on if a search pointer-property pair was provided/found.
+ * \note \a but type must be a ButtonType::SearchMenu. If the property is a string property and
+ * does not contains the #PROP_STRING_SEARCH_SUPPORTED flag or if the search pointer-property pair
+ * is not provided/found it will disable the button.
  */
-Button *but_add_search(Button *but,
-                       PointerRNA *ptr,
-                       PropertyRNA *prop,
-                       PointerRNA *searchptr,
-                       PropertyRNA *searchprop,
-                       PropertyRNA *item_searchprop,
-                       bool results_are_suggestions);
+void button_configure_search(Button *but,
+                             PointerRNA *ptr,
+                             PropertyRNA *prop,
+                             PointerRNA *searchptr,
+                             PropertyRNA *searchprop,
+                             PropertyRNA *item_searchprop,
+                             bool results_are_suggestions);
 /**
  * Check all buttons defined in this layout,
  * and set any button flagged as BUT_LIST_ITEM as active/selected.

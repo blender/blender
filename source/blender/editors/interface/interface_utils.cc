@@ -61,7 +61,8 @@ Button *uiDefAutoButR(Block *block,
                       int x,
                       int y,
                       int width,
-                      int height)
+                      int height,
+                      std::optional<ButtonType> button_type_override)
 {
   Button *but = nullptr;
 
@@ -159,19 +160,11 @@ Button *uiDefAutoButR(Block *block,
                              std::nullopt);
       }
       else {
-        but = uiDefButR_prop(block,
-                             ButtonType::Num,
-                             name,
-                             x,
-                             y,
-                             width,
-                             height,
-                             ptr,
-                             prop,
-                             index,
-                             0,
-                             0,
-                             std::nullopt);
+        const ButtonType button_type = button_type_override.value_or(ButtonType::Num);
+        BLI_assert(ELEM(button_type, ButtonType::Num, ButtonType::NumSlider));
+
+        but = uiDefButR_prop(
+            block, button_type, name, x, y, width, height, ptr, prop, index, 0, 0, std::nullopt);
       }
 
       if (RNA_property_flag(prop) & PROP_TEXTEDIT_UPDATE) {
@@ -179,25 +172,16 @@ Button *uiDefAutoButR(Block *block,
       }
       break;
     }
-    case PROP_ENUM:
+    case PROP_ENUM: {
+      const ButtonType button_type = button_type_override.value_or(ButtonType::Menu);
+      BLI_assert(ELEM(button_type, ButtonType::Menu, ButtonType::SearchMenu));
       if (icon && name && name->is_empty()) {
-        but = uiDefIconButR_prop(block,
-                                 ButtonType::Menu,
-                                 icon,
-                                 x,
-                                 y,
-                                 width,
-                                 height,
-                                 ptr,
-                                 prop,
-                                 index,
-                                 0,
-                                 0,
-                                 std::nullopt);
+        but = uiDefIconButR_prop(
+            block, button_type, icon, x, y, width, height, ptr, prop, index, 0, 0, std::nullopt);
       }
       else if (icon) {
         but = uiDefIconTextButR_prop(block,
-                                     ButtonType::Menu,
+                                     button_type,
                                      icon,
                                      std::nullopt,
                                      x,
@@ -212,40 +196,21 @@ Button *uiDefAutoButR(Block *block,
                                      std::nullopt);
       }
       else {
-        but = uiDefButR_prop(block,
-                             ButtonType::Menu,
-                             name,
-                             x,
-                             y,
-                             width,
-                             height,
-                             ptr,
-                             prop,
-                             index,
-                             0,
-                             0,
-                             std::nullopt);
+        but = uiDefButR_prop(
+            block, button_type, name, x, y, width, height, ptr, prop, index, 0, 0, std::nullopt);
       }
       break;
-    case PROP_STRING:
+    }
+    case PROP_STRING: {
+      const eStringPropertySearchFlag search_flag = RNA_property_string_search_flag(prop);
+      const ButtonType button_type = bool(search_flag) ? ButtonType::SearchMenu : ButtonType::Text;
       if (icon && name && name->is_empty()) {
-        but = uiDefIconButR_prop(block,
-                                 ButtonType::Text,
-                                 icon,
-                                 x,
-                                 y,
-                                 width,
-                                 height,
-                                 ptr,
-                                 prop,
-                                 index,
-                                 0,
-                                 0,
-                                 std::nullopt);
+        but = uiDefIconButR_prop(
+            block, button_type, icon, x, y, width, height, ptr, prop, index, 0, 0, std::nullopt);
       }
       else if (icon) {
         but = uiDefIconTextButR_prop(block,
-                                     ButtonType::Text,
+                                     button_type,
                                      icon,
                                      name,
                                      x,
@@ -260,19 +225,17 @@ Button *uiDefAutoButR(Block *block,
                                      std::nullopt);
       }
       else {
-        but = uiDefButR_prop(block,
-                             ButtonType::Text,
-                             name,
-                             x,
-                             y,
-                             width,
-                             height,
-                             ptr,
-                             prop,
-                             index,
-                             0,
-                             0,
-                             std::nullopt);
+        but = uiDefButR_prop(
+            block, button_type, name, x, y, width, height, ptr, prop, index, 0, 0, std::nullopt);
+      }
+      if (search_flag) {
+        button_configure_search(but,
+                                ptr,
+                                prop,
+                                nullptr,
+                                nullptr,
+                                nullptr,
+                                search_flag & PROP_STRING_SEARCH_SUGGESTION);
       }
 
       if (RNA_property_flag(prop) & PROP_TEXTEDIT_UPDATE) {
@@ -281,6 +244,7 @@ Button *uiDefAutoButR(Block *block,
         button_flag_enable(but, BUT_TEXTEDIT_UPDATE | BUT_VALUE_CLEAR);
       }
       break;
+    }
     case PROP_POINTER: {
       if (icon == 0) {
         const PointerRNA pptr = RNA_property_pointer_get(ptr, prop);
@@ -304,7 +268,7 @@ Button *uiDefAutoButR(Block *block,
                                    0,
                                    0,
                                    std::nullopt);
-      but_add_search(but, ptr, prop, nullptr, nullptr, nullptr, false);
+      button_configure_search(but, ptr, prop, nullptr, nullptr, nullptr, false);
       break;
     }
     case PROP_COLLECTION: {
