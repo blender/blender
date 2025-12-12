@@ -4922,8 +4922,7 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
   fprintf(f,
           "\n"
           "/* Automatically generated struct definitions for the Data API.\n"
-          " * Do not edit manually, changes will be overwritten.           */\n\n"
-          "#define RNA_RUNTIME\n\n");
+          " * Do not edit manually, changes will be overwritten.           */\n\n");
 
   fprintf(f, "#include <float.h>\n");
   fprintf(f, "#include <stdio.h>\n");
@@ -5028,10 +5027,6 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
   }
 
   if (filename && STREQ(filename, "rna_ID.cc")) {
-    /* this is ugly, but we cannot have c files compiled for both
-     * makesrna and blender with some build systems at the moment */
-    fprintf(f, "#include \"rna_define.cc\"\n\n");
-
     rna_generate_blender(brna, f);
   }
 }
