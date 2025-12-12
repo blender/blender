@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
+/* Do not apply C++ processing to this file. */
+#pragma no_processing
 
 #include "gpu_shader_glsl_extension.glsl"
 

@@ -976,8 +976,9 @@ float2 SMAACalculateDiagWeights(SMAATexture2D(edgesTex),
     d.xz = SMAASearchDiag1(SMAATexturePass2D(edgesTex), texcoord, float2(-1.0f, 1.0f), end);
     d.x += float(end.y > 0.9f);
   }
-  else
+  else {
     d.xz = float2(0.0f, 0.0f);
+  }
   d.yw = SMAASearchDiag1(SMAATexturePass2D(edgesTex), texcoord, float2(1.0f, -1.0f), end);
 
   SMAA_BRANCH
@@ -1014,8 +1015,9 @@ float2 SMAACalculateDiagWeights(SMAATexture2D(edgesTex),
     d.yw = SMAASearchDiag2(SMAATexturePass2D(edgesTex), texcoord, float2(1.0f, 1.0f), end);
     d.y += float(end.y > 0.9f);
   }
-  else
+  else {
     d.yw = float2(0.0f, 0.0f);
+  }
 
   SMAA_BRANCH
   if (d.x + d.y > 2.0f) {  // d.x + d.y + 1 > 3
@@ -1300,8 +1302,9 @@ float4 SMAABlendingWeightCalculationPS(float2 texcoord,
 
 #  if !defined(SMAA_DISABLE_DIAG_DETECTION)
     }
-    else
+    else {
       e.r = 0.0f;  // Skip vertical processing.
+    }
 #  endif
   }
 

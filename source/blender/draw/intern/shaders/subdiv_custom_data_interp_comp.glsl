@@ -92,7 +92,7 @@ void write_vertex(uint index, Vertex v)
 #else
   uint base_index = uint(shader_data.dst_offset) + index * DIMENSIONS;
 #  ifdef NORMALIZE
-  vec3 value = vec3(v.vertex_data[0], v.vertex_data[1], v.vertex_data[2]);
+  float3 value = float3(v.vertex_data[0], v.vertex_data[1], v.vertex_data[2]);
   value = normalize(value);
   v.vertex_data[0] = value.x;
   v.vertex_data[1] = value.y;
