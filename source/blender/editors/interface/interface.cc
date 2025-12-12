@@ -2289,6 +2289,17 @@ void block_draw(const bContext *C, Block *block)
       continue;
     }
 
+    /* Don't draw buttons that are wider than enclosing panel. #150173 */
+    if (block->panel && block->panel->sizex > 0) {
+      int panel_width = (block->panel->sizex * UI_SCALE_FAC / block->aspect);
+      if (panel_should_show_background(region, block->panel->type)) {
+        panel_width -= int(UI_PANEL_MARGIN_X / block->aspect * 2.0f);
+      }
+      if (BLI_rcti_size_x(&rect) > panel_width) {
+        continue;
+      }
+    }
+
     /* XXX: figure out why invalid coordinates happen when closing render window */
     /* and material preview is redrawn in main window (temp fix for bug #23848) */
     if (rect.xmin < rect.xmax && rect.ymin < rect.ymax) {
