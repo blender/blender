@@ -108,6 +108,11 @@ RenderEngineType *RE_engines_find(const char *idname)
   return type;
 }
 
+bool RE_engines_is_registered(const char *idname)
+{
+  return BLI_findstring(&R_engines, idname, offsetof(RenderEngineType, idname)) != nullptr;
+}
+
 bool RE_engine_is_external(const Render *re)
 {
   return (re->engine && re->engine->type && re->engine->type->render);

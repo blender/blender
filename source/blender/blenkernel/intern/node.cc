@@ -992,6 +992,36 @@ static void write_legacy_properties(bNodeTree &ntree)
   }
 }
 
+/* The NodeImageLayer storage for the output sockets were removed, so they need to be allocated
+ * again and their pass name set to the identifier. Those need to be freed again after writing by
+ * calling free_legacy_socket_storage. */
+static void initialize_legacy_socket_storage(bNode &node)
+{
+  if (node.type_legacy == CMP_NODE_R_LAYERS) {
+    LISTBASE_FOREACH (bNodeSocket *, output, &node.outputs) {
+      NodeImageLayer *storage = MEM_callocN<NodeImageLayer>(__func__);
+      output->storage = storage;
+      /* Alpha is derived from the combined pass. */
+      if (STREQ(output->identifier, "Alpha")) {
+        STRNCPY_UTF8(storage->pass_name, RE_PASSNAME_COMBINED);
+      }
+      else {
+        STRNCPY_UTF8(storage->pass_name, output->identifier);
+      }
+    }
+  }
+}
+/* See initialize_legacy_socket_storage. */
+static void free_legacy_socket_storage(bNode &node)
+{
+  if (node.type_legacy == CMP_NODE_R_LAYERS) {
+    LISTBASE_FOREACH (bNodeSocket *, output, &node.outputs) {
+      MEM_freeN(output->storage);
+      output->storage = nullptr;
+    }
+  }
+}
+
 }  // namespace forward_compat
 
 static void write_node_socket_default_value(BlendWriter *writer, const bNodeSocket *sock)
@@ -1214,6 +1244,10 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
       IDP_BlendWrite(writer, node->system_properties);
     }
 
+    if (!BLO_write_is_undo(writer)) {
+      forward_compat::initialize_legacy_socket_storage(*node);
+    }
+
     LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
       write_node_socket(writer, sock);
     }
@@ -1250,6 +1284,16 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
       writer, bNestedNodeRef, ntree->nested_node_refs_num, ntree->nested_node_refs);
 
   BKE_previewimg_blend_write(writer, ntree->preview);
+
+  /* Freeing temporary allocations needs to happen at the very end, because if we free after the
+   * data is no longer needed, future allocations might be given the same address by the OS, which
+   * will produce a corrupt blend file because multiple data use the same identifier/address in the
+   * same ID. */
+  if (!BLO_write_is_undo(writer)) {
+    for (bNode *node : ntree->all_nodes()) {
+      forward_compat::free_legacy_socket_storage(*node);
+    }
+  }
 }
 
 static void ntree_blend_write(BlendWriter *writer, ID *id, const void *id_address)

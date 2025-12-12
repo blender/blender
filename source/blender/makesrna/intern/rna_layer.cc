@@ -33,6 +33,7 @@
 #  include "BKE_layer.hh"
 #  include "BKE_mesh.hh"
 #  include "BKE_node.hh"
+#  include "BKE_node_tree_update.hh"
 #  include "BKE_scene.hh"
 
 #  include "NOD_composite.hh"
@@ -149,12 +150,11 @@ static bool rna_LayerCollection_visible_get(LayerCollection *layer_collection, b
   return false;
 }
 
-static void rna_ViewLayer_update_render_passes(ID *id)
+static void rna_ViewLayer_update_render_passes(ID *id, Main *bmain)
 {
   Scene *scene = (Scene *)id;
-  if (scene->compositing_node_group) {
-    ntreeCompositUpdateRLayers(scene->compositing_node_group);
-  }
+  BKE_ntree_update_tag_id_changed(bmain, &scene->id);
+  BKE_ntree_update(*bmain);
 
   RenderEngineType *engine_type = RE_engines_find(scene->r.engine);
   if (engine_type->update_render_passes) {
@@ -622,7 +622,7 @@ void RNA_def_view_layer(BlenderRNA *brna)
   func = RNA_def_function(srna, "update_render_passes", "rna_ViewLayer_update_render_passes");
   RNA_def_function_ui_description(func,
                                   "Requery the enabled render passes from the render engine");
-  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_NO_SELF);
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_NO_SELF);
 
   prop = RNA_def_property(srna, "layer_collection", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "LayerCollection");

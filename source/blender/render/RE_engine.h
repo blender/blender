@@ -275,6 +275,7 @@ void RE_engines_exit(void);
 void RE_engines_register(RenderEngineType *render_type);
 
 RenderEngineType *RE_engines_find(const char *idname);
+bool RE_engines_is_registered(const char *idname);
 
 const rcti *RE_engine_get_current_tiles(struct Render *re, int *r_total_tiles);
 struct RenderData *RE_engine_get_render_data(struct Render *re);

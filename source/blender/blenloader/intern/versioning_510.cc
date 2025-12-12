@@ -319,6 +319,72 @@ static void version_clear_unused_strip_flags(Main &bmain)
   }
 }
 
+static const char *legacy_pass_name_to_new_name(const char *name)
+{
+  if (STREQ(name, "DiffDir")) {
+    return "Diffuse Direct";
+  }
+  if (STREQ(name, "DiffInd")) {
+    return "Diffuse Indirect";
+  }
+  if (STREQ(name, "DiffCol")) {
+    return "Diffuse Color";
+  }
+  if (STREQ(name, "GlossDir")) {
+    return "Glossy Direct";
+  }
+  if (STREQ(name, "GlossInd")) {
+    return "Glossy Indirect";
+  }
+  if (STREQ(name, "GlossCol")) {
+    return "Glossy Color";
+  }
+  if (STREQ(name, "TransDir")) {
+    return "Transmission Direct";
+  }
+  if (STREQ(name, "TransInd")) {
+    return "Transmission Indirect";
+  }
+  if (STREQ(name, "TransCol")) {
+    return "Transmission Color";
+  }
+  if (STREQ(name, "VolumeDir")) {
+    return "Volume Direct";
+  }
+  if (STREQ(name, "VolumeInd")) {
+    return "Volume Indirect";
+  }
+  if (STREQ(name, "VolumeCol")) {
+    return "Volume Color";
+  }
+  if (STREQ(name, "AO")) {
+    return "Ambient Occlusion";
+  }
+  if (STREQ(name, "Env")) {
+    return "Environment";
+  }
+  if (STREQ(name, "IndexMA")) {
+    return "Material Index";
+  }
+  if (STREQ(name, "IndexOB")) {
+    return "Object Index";
+  }
+  if (STREQ(name, "GreasePencil")) {
+    return "Grease Pencil";
+  }
+  if (STREQ(name, "Emit")) {
+    return "Emission";
+  }
+  if (STREQ(name, "Z")) {
+    return "Depth";
+  }
+  if (STREQ(name, "Speed")) {
+    return "Vector";
+  }
+
+  return name;
+}
+
 void do_versions_after_linking_510(FileData * /*fd*/, Main *bmain)
 {
   /* Some blend files were saved with an invalid active viewer key, possibly due to a bug that was
@@ -418,6 +484,43 @@ void blo_do_versions_510(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     }
     FOREACH_NODETREE_END;
   }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 13)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_R_LAYERS) {
+            LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
+              const char *new_pass_name = legacy_pass_name_to_new_name(socket->name);
+              STRNCPY(socket->name, new_pass_name);
+              const char *new_pass_identifier = legacy_pass_name_to_new_name(socket->identifier);
+              STRNCPY(socket->identifier, new_pass_identifier);
+            }
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  /* This has no version check and always runs for all versions because there is forward
+   * compatibility code at write time that reallocates the storage, so we need to free it
+   * regardless of the version. */
+  FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+    if (node_tree->type == NTREE_COMPOSIT) {
+      LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+        if (node->type_legacy == CMP_NODE_R_LAYERS) {
+          LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
+            if (socket->storage) {
+              MEM_freeN(socket->storage);
+              socket->storage = nullptr;
+            }
+          }
+        }
+      }
+    }
+  }
+  FOREACH_NODETREE_END;
 
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning

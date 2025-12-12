@@ -216,24 +216,6 @@ void register_node_tree_type_cmp()
 
 /* *********************************************** */
 
-void ntreeCompositUpdateRLayers(bNodeTree *ntree)
-{
-  if (ntree == nullptr) {
-    return;
-  }
-
-  for (bNode *node : ntree->all_nodes()) {
-    if (node->type_legacy == CMP_NODE_R_LAYERS) {
-      node_cmp_rlayers_outputs(ntree, node);
-    }
-    else if (node->type_legacy == CMP_NODE_CRYPTOMATTE &&
-             node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER)
-    {
-      node->typeinfo->updatefunc(ntree, node);
-    }
-  }
-}
-
 void ntreeCompositTagRender(Scene *scene)
 {
   /* XXX Think using G_MAIN here is valid, since you want to update current file's scene nodes,

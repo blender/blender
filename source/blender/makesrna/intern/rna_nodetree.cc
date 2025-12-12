@@ -3246,10 +3246,6 @@ static void rna_Node_image_layer_update(Main *bmain, Scene *scene, PointerRNA *p
   BKE_image_signal(bmain, ima, iuser, IMA_SIGNAL_SRC_CHANGE);
 
   rna_Node_update(bmain, scene, ptr);
-
-  if (scene != nullptr && scene->compositing_node_group != nullptr) {
-    ntreeCompositUpdateRLayers(scene->compositing_node_group);
-  }
 }
 
 static const EnumPropertyItem *renderresult_layers_add_enum(RenderLayer *rl)
@@ -3443,14 +3439,6 @@ static const EnumPropertyItem *rna_Node_view_layer_itemf(bContext * /*C*/,
   *r_free = true;
 
   return item;
-}
-
-static void rna_Node_view_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-  rna_Node_update_relations(bmain, scene, ptr);
-  if (scene != nullptr && scene->compositing_node_group != nullptr) {
-    ntreeCompositUpdateRLayers(scene->compositing_node_group);
-  }
 }
 
 static void rna_Image_Node_update_id(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -6380,7 +6368,7 @@ static void def_cmp_render_layers(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Scene", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_view_layer_update");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update_relations");
 
   prop = RNA_def_property(srna, "layer", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "custom1");
@@ -6388,7 +6376,7 @@ static void def_cmp_render_layers(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_Node_view_layer_itemf");
   RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
   RNA_def_property_ui_text(prop, "Layer", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_view_layer_update");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update_relations");
 }
 
 static void rna_def_cmp_file_output_item(BlenderRNA *brna)

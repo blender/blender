@@ -37,7 +37,12 @@ static void add_passes_used_by_render_layer_node(const bNode *node, Set<std::str
 {
   for (const bNodeSocket *output : node->output_sockets()) {
     if (output->is_logically_linked()) {
-      used_passes.add(static_cast<NodeImageLayer *>(output->storage)->pass_name);
+      if (output->identifier == StringRef("Alpha")) {
+        used_passes.add(RE_PASSNAME_COMBINED);
+      }
+      else {
+        used_passes.add(output->identifier);
+      }
     }
   }
 }

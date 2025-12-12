@@ -317,6 +317,52 @@ static void do_version_hue_sat_node(bNodeTree *ntree, bNode *node)
   node->storage = nullptr;
 }
 
+static blender::bke::bNodeSocketTemplate legacy_render_layers_outputs[] = {
+    {SOCK_RGBA, N_("Image"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, N_("Alpha"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, RE_PASSNAME_DEPTH, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_VECTOR, RE_PASSNAME_NORMAL, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_VECTOR, RE_PASSNAME_UV, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_VECTOR, RE_PASSNAME_VECTOR, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_VECTOR, RE_PASSNAME_POSITION, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, RE_PASSNAME_DEPRECATED, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, RE_PASSNAME_DEPRECATED, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, RE_PASSNAME_SHADOW, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, RE_PASSNAME_AO, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, RE_PASSNAME_DEPRECATED, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, RE_PASSNAME_DEPRECATED, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, RE_PASSNAME_DEPRECATED, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, RE_PASSNAME_INDEXOB, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, RE_PASSNAME_INDEXMA, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, RE_PASSNAME_MIST, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, RE_PASSNAME_EMIT, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, RE_PASSNAME_ENVIRONMENT, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, RE_PASSNAME_DIFFUSE_DIRECT, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, RE_PASSNAME_DIFFUSE_INDIRECT, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, RE_PASSNAME_DIFFUSE_COLOR, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, RE_PASSNAME_GLOSSY_DIRECT, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, RE_PASSNAME_GLOSSY_INDIRECT, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, RE_PASSNAME_GLOSSY_COLOR, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, RE_PASSNAME_TRANSM_DIRECT, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, RE_PASSNAME_TRANSM_INDIRECT, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, RE_PASSNAME_TRANSM_COLOR, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, RE_PASSNAME_SUBSURFACE_DIRECT, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, RE_PASSNAME_SUBSURFACE_INDIRECT, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, RE_PASSNAME_SUBSURFACE_COLOR, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {-1, ""},
+};
+#define NUM_LEGACY_SOCKETS (ARRAY_SIZE(legacy_render_layers_outputs) - 1)
+
+static const char *legacy_socket_index_to_pass_name(int sock_index)
+{
+  if (sock_index >= NUM_LEGACY_SOCKETS) {
+    return nullptr;
+  }
+  const char *name = legacy_render_layers_outputs[sock_index].name;
+  /* Exception for alpha, which is derived from Combined. */
+  return STREQ(name, "Alpha") ? RE_PASSNAME_COMBINED : name;
+}
+
 static void do_versions_compositor_render_passes_storage(bNode *node)
 {
   int pass_index = 0;
@@ -328,7 +374,7 @@ static void do_versions_compositor_render_passes_storage(bNode *node)
     if (sock->storage == nullptr) {
       NodeImageLayer *sockdata = MEM_callocN<NodeImageLayer>("node image layer");
       sock->storage = sockdata;
-      STRNCPY_UTF8(sockdata->pass_name, node_cmp_rlayers_sock_to_pass(pass_index));
+      STRNCPY_UTF8(sockdata->pass_name, legacy_socket_index_to_pass_name(pass_index));
 
       if (pass_index == 0) {
         sockname = "Image";
@@ -337,7 +383,7 @@ static void do_versions_compositor_render_passes_storage(bNode *node)
         sockname = "Alpha";
       }
       else {
-        sockname = node_cmp_rlayers_sock_to_pass(pass_index);
+        sockname = legacy_socket_index_to_pass_name(pass_index);
       }
       STRNCPY_UTF8(sock->name, sockname);
     }
@@ -352,10 +398,6 @@ static void do_versions_compositor_render_passes(bNodeTree *ntree)
        * This is important because otherwise verification will
        * drop links from sockets which were renamed.
        */
-      do_versions_compositor_render_passes_storage(node);
-      /* Make sure new sockets are properly created. */
-      node_verify_sockets(ntree, node, false);
-      /* Make sure all possibly created sockets have proper storage. */
       do_versions_compositor_render_passes_storage(node);
     }
   }

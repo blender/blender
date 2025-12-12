@@ -34,7 +34,6 @@ void register_node_tree_type_cmp();
 void register_node_type_cmp_custom_group(blender::bke::bNodeType *ntype);
 
 void node_cmp_rlayers_outputs(bNodeTree *ntree, bNode *node);
-const char *node_cmp_rlayers_sock_to_pass(int sock_index);
 
 /**
  * Called from render pipeline, to tag render input and output.
@@ -43,17 +42,6 @@ const char *node_cmp_rlayers_sock_to_pass(int sock_index);
 void ntreeCompositTagRender(Scene *scene);
 
 void ntreeCompositTagNeedExec(bNode *node);
-
-/**
- * Update the outputs of the render layer nodes.
- * Since the outputs depend on the render engine, this part is a bit complex:
- * - #ntreeCompositUpdateRLayers is called and loops over all render layer nodes.
- * - Each render layer node calls the update function of the
- *   render engine that's used for its scene.
- * - The render engine calls RE_engine_register_pass for each pass.
- * - #RE_engine_register_pass calls #node_cmp_rlayers_register_pass.
- */
-void ntreeCompositUpdateRLayers(bNodeTree *ntree);
 
 void ntreeCompositClearTags(bNodeTree *ntree);
 

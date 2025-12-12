@@ -85,6 +85,7 @@
 #include "BKE_main.hh"
 #include "BKE_main_namemap.hh"
 #include "BKE_node.hh"
+#include "BKE_node_tree_update.hh"
 #include "BKE_packedFile.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
@@ -803,12 +804,10 @@ static void wm_file_read_post(bContext *C,
      * Cycles. So we need to update compositor node trees after reading the file when add-ons are
      * now loaded. */
     if (is_startup_file) {
-      FOREACH_NODETREE_BEGIN (bmain, node_tree, owner_id) {
-        if (node_tree->type == NTREE_COMPOSIT) {
-          ntreeCompositUpdateRLayers(node_tree);
-        }
+      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+        BKE_ntree_update_tag_id_changed(bmain, &scene->id);
       }
-      FOREACH_NODETREE_END;
+      BKE_ntree_update(*bmain);
     }
 
 #if 1
