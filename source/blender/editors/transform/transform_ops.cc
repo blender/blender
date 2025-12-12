@@ -1282,6 +1282,7 @@ static void TRANSFORM_OT_vert_slide(wmOperatorType *ot)
   ot->poll = ED_operator_editmesh;
   ot->poll_property = transform_poll_property;
 
+  PropertyRNA *prop;
   RNA_def_float_factor(ot->srna, "value", 0, -10.0f, 10.0f, "Factor", "", -1.0f, 1.0f);
   RNA_def_boolean(ot->srna,
                   "use_even",
@@ -1297,6 +1298,18 @@ static void TRANSFORM_OT_vert_slide(wmOperatorType *ot)
                   "Flipped",
                   "When Even mode is active, flips between the two adjacent edge loops");
   RNA_def_boolean(ot->srna, "use_clamp", true, "Clamp", "Clamp within the edge extents");
+  /* The direction is only needed to support "redo", see: #147956. */
+  prop = RNA_def_float_vector(ot->srna,
+                              "direction",
+                              3,
+                              nullptr,
+                              -FLT_MAX,
+                              FLT_MAX,
+                              "Slide Direction",
+                              "World-space direction",
+                              -FLT_MAX,
+                              FLT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
   properties_register(ot, P_MIRROR | P_GEO_SNAP | P_CORRECT_UV);
 }

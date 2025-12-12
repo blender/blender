@@ -12,6 +12,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_rand.h"
@@ -1522,6 +1523,35 @@ Object *transform_object_deform_pose_armature_get(const TransInfo *t, Object *ob
     }
   }
   return nullptr;
+}
+
+std::optional<float3> mouse_delta_to_world_dir(const TransInfo *t, const float2 &delta)
+{
+  if (math::is_zero(delta)) {
+    return std::nullopt;
+  }
+  float3 dir;
+
+  if (t->spacetype == SPACE_VIEW3D) {
+    if (!(t->region && t->region->regiondata)) {
+      return std::nullopt;
+    }
+
+    const RegionView3D *rv3d = static_cast<const RegionView3D *>(t->region->regiondata);
+    dir = (float4x4(rv3d->viewinv) * float4(delta, 0.0f, 0.0f)).xyz();
+  }
+  else {
+    /* In 2D views (UV Editor), use the mouse movement directly on the XY plane. */
+    dir = float3(delta.x, delta.y, 0.0f);
+  }
+
+  dir = math::normalize(dir);
+  /* Skip zero length results after transform. */
+  if (math::is_zero(dir)) {
+    return std::nullopt;
+  }
+
+  return dir;
 }
 
 }  // namespace blender::ed::transform
