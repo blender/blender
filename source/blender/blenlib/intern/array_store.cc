@@ -850,9 +850,14 @@ static inline uint32_t rotl32(uint32_t n, uint c)
 
 #define HASH_INIT (5381)
 
-#define HASH_VALUE_IMPL_MUL(h, value) \
+/**
+ * The DJB2 algorithm was originally used for bytes, so it's kept
+ * although the rotating method from #HASH_VALUE_IMPL_ADD may be
+ * acceptable in this case too.
+ */
+#define HASH_VALUE_IMPL_ADD_BYTES(h, value) \
   { \
-    h = hash_key(int32_t((h << 5) + h) * (value)); \
+    h = hash_key(int32_t((h << 5) + h) + (value)); \
   } \
   ((void)0)
 
@@ -872,7 +877,7 @@ template<typename T> BLI_INLINE void hash_value_generic(hash_key &h, const T &va
                 std::is_same<T, UInt96_Data>() || std::is_same<T, UInt128_Data>());
 
   if constexpr (std::is_same_v<T, uint8_t>) {
-    HASH_VALUE_IMPL_MUL(h, int8_t(value));
+    HASH_VALUE_IMPL_ADD_BYTES(h, int8_t(value));
   }
   else if constexpr (std::is_same_v<T, uint16_t>) {
     HASH_VALUE_IMPL_ADD(h, value);
