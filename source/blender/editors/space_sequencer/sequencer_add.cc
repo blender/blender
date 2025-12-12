@@ -1780,7 +1780,7 @@ static bool sequencer_add_image_sequence_force(bContext *C,
                                                seq::LoadData &load_data)
 {
   if ((op->flag & OP_IS_INVOKE) && !WM_operator_poll_or_report_error(C, op->type, op->reports)) {
-    return OPERATOR_CANCELLED;
+    return false;
   }
 
   Main *bmain = CTX_data_main(C);
