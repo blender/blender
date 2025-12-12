@@ -1030,6 +1030,76 @@ static void scene_foreach_cache(ID *id,
   }
 }
 
+static void scene_blend_write_compositor_forward_compat(Scene &scene,
+                                                        const bNodeTree &compositing_node_group,
+                                                        BlendWriter *writer)
+{
+  bNodeTree *temp_nodetree_copy = blender::bke::node_tree_copy_tree_ex(
+      compositing_node_group, nullptr, false);
+
+  temp_nodetree_copy->id.flag |= ID_FLAG_EMBEDDED_DATA;
+  temp_nodetree_copy->owner_id = &scene.id;
+  temp_nodetree_copy->id.lib = scene.id.lib;
+  /* Set deprecated chunksize for forward compatibility. */
+  temp_nodetree_copy->chunksize = 256;
+
+  /* The Composite node was replaced by the Group Output node in 5.0, so we add one to ensure
+   * forward compatibility. */
+  bNodeSocket *group_output_first_input = nullptr;
+  bNode *composite_node = nullptr;
+  bNodeSocket *composite_input = nullptr;
+  blender::bke::bNodeType ntype;
+  LISTBASE_FOREACH_MUTABLE (bNode *, node, &temp_nodetree_copy->nodes) {
+    if (node->is_type("NodeGroupOutput") && (node->flag & NODE_DO_OUTPUT)) {
+      composite_node = &version_node_add_unknown(*temp_nodetree_copy,
+                                                 ntype,
+                                                 "CompositorNodeComposite",
+                                                 CMP_NODE_COMPOSITE_DEPRECATED,
+                                                 "Composite",
+                                                 "Final render output",
+                                                 "COMPOSITE",
+                                                 NODE_CLASS_OUTPUT,
+                                                 false);
+      composite_input = &version_node_add_socket(
+          *temp_nodetree_copy, *composite_node, SOCK_IN, "NodeSocketColor", "Image");
+
+      composite_node->location[0] = node->location[0] - 20.0f;
+      composite_node->location[1] = node->location[1];
+      group_output_first_input = static_cast<bNodeSocket *>(node->inputs.first);
+      break;
+    }
+  }
+
+  bNodeLink *ngroup_input_link = nullptr;
+  LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &temp_nodetree_copy->links) {
+    if (link->tosock && link->tosock == group_output_first_input) {
+      ngroup_input_link = link;
+      break;
+    }
+  }
+  if (ngroup_input_link) {
+    version_node_add_link(*temp_nodetree_copy,
+                          *ngroup_input_link->fromnode,
+                          *ngroup_input_link->fromsock,
+                          *composite_node,
+                          *composite_input);
+  }
+
+  BLO_Write_IDBuffer temp_embedded_id_buffer{temp_nodetree_copy->id, writer};
+  bNodeTree *temp_nodetree = reinterpret_cast<bNodeTree *>(temp_embedded_id_buffer.get());
+  BLO_write_struct_at_address(writer, bNodeTree, scene.nodetree, temp_nodetree);
+
+  /* Todo(#140111): Forward compatibility support will be removed in 6.0. Do not write an embedded
+   * nodetree at `scene->nodetree` anymore. */
+  blender::bke::node_tree_blend_write(writer, temp_nodetree);
+
+  blender::bke::node_tree_free_embedded_tree(temp_nodetree_copy);
+  MEM_freeN(temp_nodetree_copy);
+  temp_nodetree_copy = nullptr;
+  MEM_freeN(reinterpret_cast<void *>(scene.nodetree));
+  scene.nodetree = nullptr;
+}
+
 static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Scene *sce = (Scene *)id;
@@ -1172,70 +1242,8 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
     BLO_write_struct(writer, SceneRenderView, srv);
   }
 
-  /* Todo(#140111): Forward compatibility support will be removed in 6.0. Do not write an embedded
-   * nodetree at `scene->nodetree` anymore. */
   if (sce->compositing_node_group && !is_write_undo) {
-    bNodeTree *temp_nodetree_copy = blender::bke::node_tree_copy_tree_ex(
-        *sce->compositing_node_group, nullptr, false);
-
-    temp_nodetree_copy->id.flag |= ID_FLAG_EMBEDDED_DATA;
-    temp_nodetree_copy->owner_id = &sce->id;
-    temp_nodetree_copy->id.lib = sce->id.lib;
-    /* Set deprecated chunksize for forward compatibility. */
-    temp_nodetree_copy->chunksize = 256;
-
-    /* The Composite node was replaced by the Group Output node in 5.0, so we add one to ensure
-     * forward compatibility. */
-    bNodeSocket *group_output_first_input = nullptr;
-    bNode *composite_node = nullptr;
-    bNodeSocket *composite_input = nullptr;
-    blender::bke::bNodeType ntype;
-    LISTBASE_FOREACH_MUTABLE (bNode *, node, &temp_nodetree_copy->nodes) {
-      if (node->is_type("NodeGroupOutput") && (node->flag & NODE_DO_OUTPUT)) {
-        composite_node = &version_node_add_unknown(*temp_nodetree_copy,
-                                                   ntype,
-                                                   "CompositorNodeComposite",
-                                                   CMP_NODE_COMPOSITE_DEPRECATED,
-                                                   "Composite",
-                                                   "Final render output",
-                                                   "COMPOSITE",
-                                                   NODE_CLASS_OUTPUT,
-                                                   false);
-        composite_input = &version_node_add_socket(
-            *temp_nodetree_copy, *composite_node, SOCK_IN, "NodeSocketColor", "Image");
-
-        composite_node->location[0] = node->location[0] - 20.0f;
-        composite_node->location[1] = node->location[1];
-        group_output_first_input = static_cast<bNodeSocket *>(node->inputs.first);
-        break;
-      }
-    }
-
-    bNodeLink *ngroup_input_link = nullptr;
-    LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &temp_nodetree_copy->links) {
-      if (link->tosock && link->tosock == group_output_first_input) {
-        ngroup_input_link = link;
-        break;
-      }
-    }
-    if (ngroup_input_link) {
-      version_node_add_link(*temp_nodetree_copy,
-                            *ngroup_input_link->fromnode,
-                            *ngroup_input_link->fromsock,
-                            *composite_node,
-                            *composite_input);
-    }
-
-    BLO_Write_IDBuffer temp_embedded_id_buffer{temp_nodetree_copy->id, writer};
-    bNodeTree *temp_nodetree = reinterpret_cast<bNodeTree *>(temp_embedded_id_buffer.get());
-    BLO_write_struct_at_address(writer, bNodeTree, sce->nodetree, temp_nodetree);
-    blender::bke::node_tree_blend_write(writer, temp_nodetree);
-
-    blender::bke::node_tree_free_embedded_tree(temp_nodetree_copy);
-    MEM_freeN(temp_nodetree_copy);
-    temp_nodetree_copy = nullptr;
-    MEM_freeN(reinterpret_cast<void *>(sce->nodetree));
-    sce->nodetree = nullptr;
+    scene_blend_write_compositor_forward_compat(*sce, *sce->compositing_node_group, writer);
   }
 
   BKE_color_managed_view_settings_blend_write(writer, &sce->view_settings);
