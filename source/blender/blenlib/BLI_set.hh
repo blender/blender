@@ -705,8 +705,12 @@ class Set {
   }
 
  private:
-  BLI_NOINLINE void realloc_and_reinsert(const int64_t min_usable_slots)
+  BLI_NOINLINE void realloc_and_reinsert(int64_t min_usable_slots)
   {
+    /* Avoid rebuilding the hash table just to get rid of a few removed slots. In this case, also
+     * increase the set size to avoid a bad edge case. */
+    min_usable_slots = std::max(min_usable_slots, this->size() * 2);
+
     int64_t total_slots, usable_slots;
     max_load_factor_.compute_total_and_usable_slots(
         SlotArray::inline_buffer_capacity(), min_usable_slots, &total_slots, &usable_slots);
