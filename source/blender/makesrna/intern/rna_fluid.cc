@@ -975,6 +975,10 @@ static void rna_FluidModifier_density_grid_get(PointerRNA *ptr, float *values)
   int size = rna_FluidModifier_grid_get_length(ptr, length);
   float *density;
 
+  if (size == 0) {
+    return;
+  }
+
   BLI_rw_mutex_lock(static_cast<ThreadRWMutex *>(fds->fluid_mutex), THREAD_LOCK_READ);
 
   if (fds->flags & FLUID_DOMAIN_USE_NOISE && fds->fluid) {
@@ -997,6 +1001,10 @@ static void rna_FluidModifier_velocity_grid_get(PointerRNA *ptr, float *values)
   float *vx, *vy, *vz;
   int i;
 
+  if (size == 0) {
+    return;
+  }
+
   BLI_rw_mutex_lock(static_cast<ThreadRWMutex *>(fds->fluid_mutex), THREAD_LOCK_READ);
 
   vx = manta_get_velocity_x(fds->fluid);
@@ -1017,6 +1025,10 @@ static void rna_FluidModifier_color_grid_get(PointerRNA *ptr, float *values)
   FluidDomainSettings *fds = (FluidDomainSettings *)ptr->data;
   int length[RNA_MAX_ARRAY_DIMENSION];
   int size = rna_FluidModifier_grid_get_length(ptr, length);
+
+  if (size == 0) {
+    return;
+  }
 
   BLI_rw_mutex_lock(static_cast<ThreadRWMutex *>(fds->fluid_mutex), THREAD_LOCK_READ);
 
@@ -1052,6 +1064,10 @@ static void rna_FluidModifier_flame_grid_get(PointerRNA *ptr, float *values)
   int size = rna_FluidModifier_grid_get_length(ptr, length);
   float *flame;
 
+  if (size == 0) {
+    return;
+  }
+
   BLI_rw_mutex_lock(static_cast<ThreadRWMutex *>(fds->fluid_mutex), THREAD_LOCK_READ);
 
   if (fds->flags & FLUID_DOMAIN_USE_NOISE && fds->fluid) {
@@ -1078,6 +1094,10 @@ static void rna_FluidModifier_heat_grid_get(PointerRNA *ptr, float *values)
   int size = rna_FluidModifier_heat_grid_get_length(ptr, length);
   float *heat;
 
+  if (size == 0) {
+    return;
+  }
+
   BLI_rw_mutex_lock(static_cast<ThreadRWMutex *>(fds->fluid_mutex), THREAD_LOCK_READ);
 
   heat = manta_smoke_get_heat(fds->fluid);
@@ -1101,6 +1121,10 @@ static void rna_FluidModifier_temperature_grid_get(PointerRNA *ptr, float *value
   int length[RNA_MAX_ARRAY_DIMENSION];
   int size = rna_FluidModifier_grid_get_length(ptr, length);
   float *flame;
+
+  if (size == 0) {
+    return;
+  }
 
   BLI_rw_mutex_lock(static_cast<ThreadRWMutex *>(fds->fluid_mutex), THREAD_LOCK_READ);
 
