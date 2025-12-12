@@ -1854,7 +1854,7 @@ static bool wm_keymap_test_and_clear_update(wmKeyMap *km)
   km->flag &= ~KEYMAP_UPDATE;
 
   LISTBASE_FOREACH (wmKeyMapItem *, kmi, &km->items) {
-    update = update || (kmi->flag & KMI_UPDATE);
+    update |= (kmi->flag & KMI_UPDATE);
     kmi->flag &= ~KMI_UPDATE;
   }
 
