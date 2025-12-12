@@ -12,9 +12,13 @@
 
 #include "DNA_collection_types.h"
 #include "DNA_image_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
+#include "DNA_sound_types.h"
+#include "DNA_text_types.h"
+#include "DNA_vfont_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_lasso_2d.hh"
@@ -1548,6 +1552,31 @@ static void node_find_update_fn(const bContext *C,
         case SOCK_IMAGE: {
           add_data_block_item(
               *node, id_cast<ID *>(socket->default_value_typed<bNodeSocketValueImage>()->value));
+          break;
+        }
+        case SOCK_FONT: {
+          add_data_block_item(
+              *node, id_cast<ID *>(socket->default_value_typed<bNodeSocketValueFont>()->value));
+          break;
+        }
+        case SOCK_SCENE: {
+          add_data_block_item(
+              *node, id_cast<ID *>(socket->default_value_typed<bNodeSocketValueScene>()->value));
+          break;
+        }
+        case SOCK_TEXT_ID: {
+          add_data_block_item(
+              *node, id_cast<ID *>(socket->default_value_typed<bNodeSocketValueText>()->value));
+          break;
+        }
+        case SOCK_MASK: {
+          add_data_block_item(
+              *node, id_cast<ID *>(socket->default_value_typed<bNodeSocketValueMask>()->value));
+          break;
+        }
+        case SOCK_SOUND: {
+          add_data_block_item(
+              *node, id_cast<ID *>(socket->default_value_typed<bNodeSocketValueSound>()->value));
           break;
         }
       }

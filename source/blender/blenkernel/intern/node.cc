@@ -22,11 +22,15 @@
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_light_types.h"
 #include "DNA_linestyle_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_sound_types.h"
+#include "DNA_text_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_vfont_types.h"
 #include "DNA_world_types.h"
 
 #include "BLI_color.hh"
@@ -336,6 +340,31 @@ static void library_foreach_node_socket(bNodeSocket *sock, LibraryForeachIDData 
     case SOCK_MATERIAL: {
       bNodeSocketValueMaterial &default_value =
           *sock->default_value_typed<bNodeSocketValueMaterial>();
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, default_value.value, IDWALK_CB_USER);
+      break;
+    }
+    case SOCK_FONT: {
+      bNodeSocketValueFont &default_value = *sock->default_value_typed<bNodeSocketValueFont>();
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, default_value.value, IDWALK_CB_USER);
+      break;
+    }
+    case SOCK_SCENE: {
+      bNodeSocketValueScene &default_value = *sock->default_value_typed<bNodeSocketValueScene>();
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, default_value.value, IDWALK_CB_USER);
+      break;
+    }
+    case SOCK_TEXT_ID: {
+      bNodeSocketValueText &default_value = *sock->default_value_typed<bNodeSocketValueText>();
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, default_value.value, IDWALK_CB_USER);
+      break;
+    }
+    case SOCK_MASK: {
+      bNodeSocketValueMask &default_value = *sock->default_value_typed<bNodeSocketValueMask>();
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, default_value.value, IDWALK_CB_USER);
+      break;
+    }
+    case SOCK_SOUND: {
+      bNodeSocketValueSound &default_value = *sock->default_value_typed<bNodeSocketValueSound>();
       BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, default_value.value, IDWALK_CB_USER);
       break;
     }
@@ -1005,6 +1034,21 @@ static void write_node_socket_default_value(BlendWriter *writer, const bNodeSock
     case SOCK_MATERIAL:
       BLO_write_struct(writer, bNodeSocketValueMaterial, sock->default_value);
       break;
+    case SOCK_FONT:
+      BLO_write_struct(writer, bNodeSocketValueFont, sock->default_value);
+      break;
+    case SOCK_SCENE:
+      BLO_write_struct(writer, bNodeSocketValueScene, sock->default_value);
+      break;
+    case SOCK_TEXT_ID:
+      BLO_write_struct(writer, bNodeSocketValueText, sock->default_value);
+      break;
+    case SOCK_MASK:
+      BLO_write_struct(writer, bNodeSocketValueMask, sock->default_value);
+      break;
+    case SOCK_SOUND:
+      BLO_write_struct(writer, bNodeSocketValueSound, sock->default_value);
+      break;
     case SOCK_ROTATION:
       BLO_write_struct(writer, bNodeSocketValueRotation, sock->default_value);
       break;
@@ -1243,6 +1287,11 @@ static bool is_node_socket_supported(const bNodeSocket *sock)
     case SOCK_COLLECTION:
     case SOCK_TEXTURE:
     case SOCK_MATERIAL:
+    case SOCK_FONT:
+    case SOCK_SCENE:
+    case SOCK_TEXT_ID:
+    case SOCK_MASK:
+    case SOCK_SOUND:
     case SOCK_ROTATION:
     case SOCK_MENU:
     case SOCK_MATRIX:
@@ -1433,6 +1482,21 @@ static void direct_link_node_socket_default_value(BlendDataReader *reader, bNode
       case SOCK_MATERIAL:
         BLO_read_struct(reader, bNodeSocketValueMaterial, &sock->default_value);
         break;
+      case SOCK_FONT:
+        BLO_read_struct(reader, bNodeSocketValueFont, &sock->default_value);
+        break;
+      case SOCK_SCENE:
+        BLO_read_struct(reader, bNodeSocketValueScene, &sock->default_value);
+        break;
+      case SOCK_TEXT_ID:
+        BLO_read_struct(reader, bNodeSocketValueText, &sock->default_value);
+        break;
+      case SOCK_MASK:
+        BLO_read_struct(reader, bNodeSocketValueMask, &sock->default_value);
+        break;
+      case SOCK_SOUND:
+        BLO_read_struct(reader, bNodeSocketValueSound, &sock->default_value);
+        break;
       case SOCK_ROTATION:
         BLO_read_struct(reader, bNodeSocketValueRotation, &sock->default_value);
         break;
@@ -1609,6 +1673,12 @@ static void direct_link_node_socket_default_value(BlendDataReader *reader, bNode
       case SOCK_CUSTOM:
         /* Custom node sockets where default_value is defined were using custom properties for
          * storage. */
+      case SOCK_FONT:
+      case SOCK_SCENE:
+      case SOCK_TEXT_ID:
+      case SOCK_MASK:
+      case SOCK_SOUND:
+        /* Those data-block types did not exist in the older version. */
       case SOCK_SHADER:
       case SOCK_GEOMETRY:
       case SOCK_BUNDLE:
@@ -2327,6 +2397,16 @@ bNodeTreeType *node_tree_type_find(const StringRef idname)
   return *value;
 }
 
+bNodeTreeType *node_tree_type_find_builtin(const int tree_type)
+{
+  for (bNodeTreeType *type : get_node_tree_type_map()) {
+    if (type->type == tree_type) {
+      return type;
+    }
+  }
+  return nullptr;
+}
+
 static void defer_free_tree_type(bNodeTreeType *tree_type)
 {
   static ResourceScope scope;
@@ -2673,6 +2753,31 @@ static void socket_id_user_increment(bNodeSocket *sock)
       id_us_plus(reinterpret_cast<ID *>(default_value.value));
       break;
     }
+    case SOCK_FONT: {
+      bNodeSocketValueFont &default_value = *sock->default_value_typed<bNodeSocketValueFont>();
+      id_us_plus(id_cast<ID *>(default_value.value));
+      break;
+    }
+    case SOCK_SCENE: {
+      bNodeSocketValueScene &default_value = *sock->default_value_typed<bNodeSocketValueScene>();
+      id_us_plus(id_cast<ID *>(default_value.value));
+      break;
+    }
+    case SOCK_TEXT_ID: {
+      bNodeSocketValueText &default_value = *sock->default_value_typed<bNodeSocketValueText>();
+      id_us_plus(id_cast<ID *>(default_value.value));
+      break;
+    }
+    case SOCK_MASK: {
+      bNodeSocketValueMask &default_value = *sock->default_value_typed<bNodeSocketValueMask>();
+      id_us_plus(id_cast<ID *>(default_value.value));
+      break;
+    }
+    case SOCK_SOUND: {
+      bNodeSocketValueSound &default_value = *sock->default_value_typed<bNodeSocketValueSound>();
+      id_us_plus(id_cast<ID *>(default_value.value));
+      break;
+    }
     case SOCK_FLOAT:
     case SOCK_VECTOR:
     case SOCK_RGBA:
@@ -2721,6 +2826,31 @@ static bool socket_id_user_decrement(bNodeSocket *sock)
       bNodeSocketValueMaterial &default_value =
           *sock->default_value_typed<bNodeSocketValueMaterial>();
       id_us_min(reinterpret_cast<ID *>(default_value.value));
+      return default_value.value != nullptr;
+    }
+    case SOCK_FONT: {
+      bNodeSocketValueFont &default_value = *sock->default_value_typed<bNodeSocketValueFont>();
+      id_us_min(id_cast<ID *>(default_value.value));
+      return default_value.value != nullptr;
+    }
+    case SOCK_SCENE: {
+      bNodeSocketValueScene &default_value = *sock->default_value_typed<bNodeSocketValueScene>();
+      id_us_min(id_cast<ID *>(default_value.value));
+      return default_value.value != nullptr;
+    }
+    case SOCK_TEXT_ID: {
+      bNodeSocketValueText &default_value = *sock->default_value_typed<bNodeSocketValueText>();
+      id_us_min(id_cast<ID *>(default_value.value));
+      return default_value.value != nullptr;
+    }
+    case SOCK_MASK: {
+      bNodeSocketValueMask &default_value = *sock->default_value_typed<bNodeSocketValueMask>();
+      id_us_min(id_cast<ID *>(default_value.value));
+      return default_value.value != nullptr;
+    }
+    case SOCK_SOUND: {
+      bNodeSocketValueSound &default_value = *sock->default_value_typed<bNodeSocketValueSound>();
+      id_us_min(id_cast<ID *>(default_value.value));
       return default_value.value != nullptr;
     }
     case SOCK_FLOAT:
@@ -2794,6 +2924,11 @@ void node_modify_socket_type(bNodeTree &ntree,
         case SOCK_COLLECTION:
         case SOCK_TEXTURE:
         case SOCK_MATERIAL:
+        case SOCK_FONT:
+        case SOCK_SCENE:
+        case SOCK_TEXT_ID:
+        case SOCK_MASK:
+        case SOCK_SOUND:
         case SOCK_MENU:
         case SOCK_BUNDLE:
         case SOCK_CLOSURE:
@@ -2998,6 +3133,16 @@ std::optional<StringRefNull> node_static_socket_type(const int type,
       return "NodeSocketTexture";
     case SOCK_MATERIAL:
       return "NodeSocketMaterial";
+    case SOCK_FONT:
+      return "NodeSocketFont";
+    case SOCK_SCENE:
+      return "NodeSocketScene";
+    case SOCK_TEXT_ID:
+      return "NodeSocketText";
+    case SOCK_MASK:
+      return "NodeSocketMask";
+    case SOCK_SOUND:
+      return "NodeSocketSound";
     case SOCK_MENU:
       return "NodeSocketMenu";
     case SOCK_BUNDLE:
@@ -3155,6 +3300,16 @@ std::optional<StringRefNull> node_static_socket_interface_type_new(
       return "NodeTreeInterfaceSocketTexture";
     case SOCK_MATERIAL:
       return "NodeTreeInterfaceSocketMaterial";
+    case SOCK_FONT:
+      return "NodeTreeInterfaceSocketFont";
+    case SOCK_SCENE:
+      return "NodeTreeInterfaceSocketScene";
+    case SOCK_TEXT_ID:
+      return "NodeTreeInterfaceSocketText";
+    case SOCK_MASK:
+      return "NodeTreeInterfaceSocketMask";
+    case SOCK_SOUND:
+      return "NodeTreeInterfaceSocketSound";
     case SOCK_MENU:
       return "NodeTreeInterfaceSocketMenu";
     case SOCK_BUNDLE:
@@ -3200,6 +3355,16 @@ std::optional<StringRefNull> node_static_socket_label(const int type, const int 
       return "Texture";
     case SOCK_MATERIAL:
       return "Material";
+    case SOCK_FONT:
+      return "Font";
+    case SOCK_SCENE:
+      return "Scene";
+    case SOCK_TEXT_ID:
+      return "Text";
+    case SOCK_MASK:
+      return "Mask";
+    case SOCK_SOUND:
+      return "Sound";
     case SOCK_MENU:
       return "Menu";
     case SOCK_BUNDLE:
@@ -3717,6 +3882,16 @@ static void *socket_value_storage(bNodeSocket &socket)
       return &socket.default_value_typed<bNodeSocketValueObject>()->value;
     case SOCK_MATERIAL:
       return &socket.default_value_typed<bNodeSocketValueMaterial>()->value;
+    case SOCK_FONT:
+      return &socket.default_value_typed<bNodeSocketValueFont>()->value;
+    case SOCK_SCENE:
+      return &socket.default_value_typed<bNodeSocketValueScene>()->value;
+    case SOCK_TEXT_ID:
+      return &socket.default_value_typed<bNodeSocketValueText>()->value;
+    case SOCK_MASK:
+      return &socket.default_value_typed<bNodeSocketValueMask>()->value;
+    case SOCK_SOUND:
+      return &socket.default_value_typed<bNodeSocketValueSound>()->value;
     case SOCK_ROTATION:
       return &socket.default_value_typed<bNodeSocketValueRotation>()->value_euler;
     case SOCK_MENU:
@@ -3808,7 +3983,12 @@ void node_socket_move_default_value(Main & /*bmain*/,
            SOCK_IMAGE,
            SOCK_MATERIAL,
            SOCK_TEXTURE,
-           SOCK_OBJECT))
+           SOCK_OBJECT,
+           SOCK_FONT,
+           SOCK_SCENE,
+           SOCK_TEXT_ID,
+           SOCK_MASK,
+           SOCK_SOUND))
   {
     src_type.value_initialize(src_value);
   }
@@ -5316,6 +5496,21 @@ std::optional<eNodeSocketDatatype> geo_nodes_base_cpp_type_to_socket_type(const 
   if (type.is<Image *>()) {
     return SOCK_IMAGE;
   }
+  if (type.is<VFont *>()) {
+    return SOCK_FONT;
+  }
+  if (type.is<Scene *>()) {
+    return SOCK_SCENE;
+  }
+  if (type.is<Text *>()) {
+    return SOCK_TEXT_ID;
+  }
+  if (type.is<Mask *>()) {
+    return SOCK_MASK;
+  }
+  if (type.is<bSound *>()) {
+    return SOCK_SOUND;
+  }
 
   return std::nullopt;
 }
@@ -5563,6 +5758,18 @@ void node_tree_remove_layer_n(bNodeTree *ntree, Scene *scene, const int layer_in
       }
     }
   }
+}
+
+bool node_tree_type_supports_socket_type_static(const int ntree_type,
+                                                const eNodeSocketDatatype socket_type)
+{
+  if (bke::bNodeTreeType *ttype = bke::node_tree_type_find_builtin(ntree_type)) {
+    bke::bNodeSocketType *stype = bke::node_socket_type_find_static(socket_type);
+    if (ttype->valid_socket_type) {
+      return ttype->valid_socket_type(ttype, stype);
+    }
+  }
+  return false;
 }
 
 }  // namespace blender::bke

@@ -537,6 +537,26 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
       row.prop_search(ctx.properties_ptr, rna_path, ctx.bmain_ptr, "textures", name, ICON_TEXTURE);
       break;
     }
+    case SOCK_FONT: {
+      row.prop_search(ctx.properties_ptr, rna_path, ctx.bmain_ptr, "fonts", name, ICON_FONT_DATA);
+      break;
+    }
+    case SOCK_SCENE: {
+      row.prop_search(ctx.properties_ptr, rna_path, ctx.bmain_ptr, "scenes", name, ICON_SCENE);
+      break;
+    }
+    case SOCK_TEXT_ID: {
+      row.prop_search(ctx.properties_ptr, rna_path, ctx.bmain_ptr, "texts", name, ICON_TEXT);
+      break;
+    }
+    case SOCK_MASK: {
+      row.prop_search(ctx.properties_ptr, rna_path, ctx.bmain_ptr, "masks", name, ICON_NONE);
+      break;
+    }
+    case SOCK_SOUND: {
+      row.prop_search(ctx.properties_ptr, rna_path, ctx.bmain_ptr, "sounds", name, ICON_SOUND);
+      break;
+    }
     case SOCK_IMAGE: {
       PropertyRNA *prop = RNA_struct_find_property(ctx.properties_ptr, rna_path.c_str());
       if (prop && RNA_property_type(prop) == PROP_POINTER) {

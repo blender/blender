@@ -1961,6 +1961,21 @@ void DepsgraphNodeBuilder::build_nodetree_socket(bNodeSocket *socket)
   else if (socket->type == SOCK_MATERIAL) {
     build_id((ID *)((bNodeSocketValueMaterial *)socket->default_value)->value);
   }
+  else if (socket->type == SOCK_FONT) {
+    build_id((ID *)((bNodeSocketValueFont *)socket->default_value)->value);
+  }
+  else if (socket->type == SOCK_SCENE) {
+    build_id((ID *)((bNodeSocketValueScene *)socket->default_value)->value);
+  }
+  else if (socket->type == SOCK_TEXT_ID) {
+    /* Text data-blocks don't use the depsgraph. */
+  }
+  else if (socket->type == SOCK_MASK) {
+    build_id((ID *)((bNodeSocketValueMask *)socket->default_value)->value);
+  }
+  else if (socket->type == SOCK_SOUND) {
+    build_id((ID *)((bNodeSocketValueSound *)socket->default_value)->value);
+  }
 }
 
 void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)

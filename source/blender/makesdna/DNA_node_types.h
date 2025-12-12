@@ -320,6 +320,12 @@ typedef enum eNodeSocketDatatype {
   SOCK_MATRIX = 16,
   SOCK_BUNDLE = 17,
   SOCK_CLOSURE = 18,
+  SOCK_FONT = 19,
+  SOCK_SCENE = 20,
+  /** Has _ID suffix to avoid using it instead of SOCK_STRING accidentally. */
+  SOCK_TEXT_ID = 21,
+  SOCK_MASK = 22,
+  SOCK_SOUND = 23,
 } eNodeSocketDatatype;
 
 /** Socket shape. */
@@ -1038,6 +1044,26 @@ typedef struct bNodeSocketValueTexture {
 typedef struct bNodeSocketValueMaterial {
   struct Material *value;
 } bNodeSocketValueMaterial;
+
+typedef struct bNodeSocketValueFont {
+  struct VFont *value;
+} bNodeSocketValueFont;
+
+typedef struct bNodeSocketValueScene {
+  struct Scene *value;
+} bNodeSocketValueScene;
+
+typedef struct bNodeSocketValueText {
+  struct Text *value;
+} bNodeSocketValueText;
+
+typedef struct bNodeSocketValueMask {
+  struct Mask *value;
+} bNodeSocketValueMask;
+
+typedef struct bNodeSocketValueSound {
+  struct bSound *value;
+} bNodeSocketValueSound;
 
 typedef struct bNodeSocketValueMenu {
   /* Default input enum identifier. */

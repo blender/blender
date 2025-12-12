@@ -29,7 +29,11 @@
 #include "BKE_node_tree_update.hh"
 
 #include "DNA_collection_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_material_types.h"
+#include "DNA_sound_types.h"
+#include "DNA_text_types.h"
+#include "DNA_vfont_types.h"
 
 #include "RNA_access.hh"
 
@@ -552,6 +556,11 @@ bool socket_type_always_single(const eNodeSocketDatatype socket_type)
     case SOCK_CLOSURE:
     case SOCK_BUNDLE:
     case SOCK_STRING:
+    case SOCK_FONT:
+    case SOCK_SCENE:
+    case SOCK_TEXT_ID:
+    case SOCK_MASK:
+    case SOCK_SOUND:
       return true;
     case SOCK_CUSTOM:
     case SOCK_FLOAT:
@@ -712,6 +721,36 @@ void node_socket_init_default_value_data(eNodeSocketDatatype datatype, int subty
       *data = dval;
       break;
     }
+    case SOCK_FONT: {
+      bNodeSocketValueFont *dval = MEM_callocN<bNodeSocketValueFont>("node socket value font");
+      dval->value = nullptr;
+      *data = dval;
+      break;
+    }
+    case SOCK_SCENE: {
+      bNodeSocketValueScene *dval = MEM_callocN<bNodeSocketValueScene>("node socket value scene");
+      dval->value = nullptr;
+      *data = dval;
+      break;
+    }
+    case SOCK_TEXT_ID: {
+      bNodeSocketValueText *dval = MEM_callocN<bNodeSocketValueText>("node socket value text");
+      dval->value = nullptr;
+      *data = dval;
+      break;
+    }
+    case SOCK_MASK: {
+      bNodeSocketValueMask *dval = MEM_callocN<bNodeSocketValueMask>("node socket value mask");
+      dval->value = nullptr;
+      *data = dval;
+      break;
+    }
+    case SOCK_SOUND: {
+      bNodeSocketValueSound *dval = MEM_callocN<bNodeSocketValueSound>("node socket value sound");
+      dval->value = nullptr;
+      *data = dval;
+      break;
+    }
 
     case SOCK_CUSTOM:
     case SOCK_GEOMETRY:
@@ -811,6 +850,41 @@ void node_socket_copy_default_value_data(eNodeSocketDatatype datatype, void *to,
       bNodeSocketValueMaterial *fromval = (bNodeSocketValueMaterial *)from;
       *toval = *fromval;
       id_us_plus(reinterpret_cast<ID *>(toval->value));
+      break;
+    }
+    case SOCK_FONT: {
+      bNodeSocketValueFont *toval = (bNodeSocketValueFont *)to;
+      bNodeSocketValueFont *fromval = (bNodeSocketValueFont *)from;
+      *toval = *fromval;
+      id_us_plus(id_cast<ID *>(toval->value));
+      break;
+    }
+    case SOCK_SCENE: {
+      bNodeSocketValueScene *toval = (bNodeSocketValueScene *)to;
+      bNodeSocketValueScene *fromval = (bNodeSocketValueScene *)from;
+      *toval = *fromval;
+      id_us_plus(id_cast<ID *>(toval->value));
+      break;
+    }
+    case SOCK_TEXT_ID: {
+      bNodeSocketValueText *toval = (bNodeSocketValueText *)to;
+      bNodeSocketValueText *fromval = (bNodeSocketValueText *)from;
+      *toval = *fromval;
+      id_us_plus(id_cast<ID *>(toval->value));
+      break;
+    }
+    case SOCK_MASK: {
+      bNodeSocketValueMask *toval = (bNodeSocketValueMask *)to;
+      bNodeSocketValueMask *fromval = (bNodeSocketValueMask *)from;
+      *toval = *fromval;
+      id_us_plus(id_cast<ID *>(toval->value));
+      break;
+    }
+    case SOCK_SOUND: {
+      bNodeSocketValueSound *toval = (bNodeSocketValueSound *)to;
+      bNodeSocketValueSound *fromval = (bNodeSocketValueSound *)from;
+      *toval = *fromval;
+      id_us_plus(id_cast<ID *>(toval->value));
       break;
     }
 
@@ -1238,6 +1312,89 @@ static bke::bNodeSocketType *make_socket_type_material()
   return socktype;
 }
 
+static bke::bNodeSocketType *make_socket_type_font()
+{
+  bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_FONT, PROP_NONE);
+  socktype->base_cpp_type = &blender::CPPType::get<VFont *>();
+  socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
+    *(VFont **)r_value = ((bNodeSocketValueFont *)socket_value)->value;
+  };
+  socktype->get_geometry_nodes_cpp_value = [](const void *socket_value) {
+    VFont *font = static_cast<const bNodeSocketValueFont *>(socket_value)->value;
+    return SocketValueVariant::From(font);
+  };
+  static SocketValueVariant default_value = SocketValueVariant::From(
+      static_cast<VFont *>(nullptr));
+  socktype->geometry_nodes_default_value = &default_value;
+  return socktype;
+}
+
+static bke::bNodeSocketType *make_socket_type_scene()
+{
+  bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_SCENE, PROP_NONE);
+  socktype->base_cpp_type = &blender::CPPType::get<Scene *>();
+  socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
+    *(Scene **)r_value = ((bNodeSocketValueScene *)socket_value)->value;
+  };
+  socktype->get_geometry_nodes_cpp_value = [](const void *socket_value) {
+    Scene *scene = static_cast<const bNodeSocketValueScene *>(socket_value)->value;
+    return SocketValueVariant::From(scene);
+  };
+  static SocketValueVariant default_value = SocketValueVariant::From(
+      static_cast<Scene *>(nullptr));
+  socktype->geometry_nodes_default_value = &default_value;
+  return socktype;
+}
+
+static bke::bNodeSocketType *make_socket_type_text()
+{
+  bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_TEXT_ID, PROP_NONE);
+  socktype->base_cpp_type = &blender::CPPType::get<Text *>();
+  socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
+    *(Text **)r_value = ((bNodeSocketValueText *)socket_value)->value;
+  };
+  socktype->get_geometry_nodes_cpp_value = [](const void *socket_value) {
+    Text *text = static_cast<const bNodeSocketValueText *>(socket_value)->value;
+    return SocketValueVariant::From(text);
+  };
+  static SocketValueVariant default_value = SocketValueVariant::From(static_cast<Text *>(nullptr));
+  socktype->geometry_nodes_default_value = &default_value;
+  return socktype;
+}
+
+static bke::bNodeSocketType *make_socket_type_mask()
+{
+  bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_MASK, PROP_NONE);
+  socktype->base_cpp_type = &blender::CPPType::get<Mask *>();
+  socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
+    *(Mask **)r_value = ((bNodeSocketValueMask *)socket_value)->value;
+  };
+  socktype->get_geometry_nodes_cpp_value = [](const void *socket_value) {
+    Mask *mask = static_cast<const bNodeSocketValueMask *>(socket_value)->value;
+    return SocketValueVariant::From(mask);
+  };
+  static SocketValueVariant default_value = SocketValueVariant::From(static_cast<Mask *>(nullptr));
+  socktype->geometry_nodes_default_value = &default_value;
+  return socktype;
+}
+
+static bke::bNodeSocketType *make_socket_type_sound()
+{
+  bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_SOUND, PROP_NONE);
+  socktype->base_cpp_type = &blender::CPPType::get<bSound *>();
+  socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
+    *(bSound **)r_value = ((bNodeSocketValueSound *)socket_value)->value;
+  };
+  socktype->get_geometry_nodes_cpp_value = [](const void *socket_value) {
+    bSound *sound = static_cast<const bNodeSocketValueSound *>(socket_value)->value;
+    return SocketValueVariant::From(sound);
+  };
+  static SocketValueVariant default_value = SocketValueVariant::From(
+      static_cast<bSound *>(nullptr));
+  socktype->geometry_nodes_default_value = &default_value;
+  return socktype;
+}
+
 void register_standard_node_socket_types()
 {
   /* Draw callbacks are set in `drawnode.cc` to avoid bad-level calls. */
@@ -1302,17 +1459,18 @@ void register_standard_node_socket_types()
 
   bke::node_register_socket_type(*make_standard_socket_type(SOCK_SHADER, PROP_NONE));
 
-  bke::node_register_socket_type(*make_socket_type_object());
-
   bke::node_register_socket_type(*make_socket_type_geometry());
 
+  bke::node_register_socket_type(*make_socket_type_object());
   bke::node_register_socket_type(*make_socket_type_collection());
-
   bke::node_register_socket_type(*make_socket_type_texture());
-
   bke::node_register_socket_type(*make_socket_type_image());
-
   bke::node_register_socket_type(*make_socket_type_material());
+  bke::node_register_socket_type(*make_socket_type_font());
+  bke::node_register_socket_type(*make_socket_type_scene());
+  bke::node_register_socket_type(*make_socket_type_text());
+  bke::node_register_socket_type(*make_socket_type_mask());
+  bke::node_register_socket_type(*make_socket_type_sound());
 
   bke::node_register_socket_type(*make_socket_type_bundle());
   bke::node_register_socket_type(*make_socket_type_closure());

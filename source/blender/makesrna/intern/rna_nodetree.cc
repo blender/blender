@@ -63,6 +63,11 @@ const EnumPropertyItem rna_enum_node_socket_data_type_items[] = {
     {SOCK_MATERIAL, "MATERIAL", ICON_NODE_SOCKET_MATERIAL, "Material", ""},
     {SOCK_BUNDLE, "BUNDLE", ICON_NODE_SOCKET_BUNDLE, "Bundle", ""},
     {SOCK_CLOSURE, "CLOSURE", ICON_NODE_SOCKET_CLOSURE, "Closure", ""},
+    {SOCK_FONT, "FONT", ICON_NODE_SOCKET_FONT, "Font", ""},
+    {SOCK_SCENE, "SCENE", ICON_NODE_SOCKET_SCENE, "Scene", ""},
+    {SOCK_TEXT_ID, "TEXT", ICON_NODE_SOCKET_TEXT, "Text", ""},
+    {SOCK_MASK, "MASK", ICON_NODE_SOCKET_MASK, "Mask", ""},
+    {SOCK_SOUND, "SOUND", ICON_NODE_SOCKET_SOUND, "Sound", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

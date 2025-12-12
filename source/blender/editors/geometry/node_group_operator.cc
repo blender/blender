@@ -749,6 +749,16 @@ static std::optional<ID_Type> socket_type_to_id_type(const eNodeSocketDatatype s
       return ID_TE;
     case SOCK_MATERIAL:
       return ID_MA;
+    case SOCK_FONT:
+      return ID_VF;
+    case SOCK_SCENE:
+      return ID_SCE;
+    case SOCK_TEXT_ID:
+      return ID_TXT;
+    case SOCK_MASK:
+      return ID_MSK;
+    case SOCK_SOUND:
+      return ID_SO;
   }
   return std::nullopt;
 }

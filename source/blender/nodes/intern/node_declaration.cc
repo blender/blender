@@ -354,6 +354,21 @@ static bool socket_type_to_static_decl_type(const eNodeSocketDatatype socket_typ
     case SOCK_MATERIAL:
       fn(TypeTag<decl::Material>());
       return true;
+    case SOCK_FONT:
+      fn(TypeTag<decl::Font>());
+      return true;
+    case SOCK_SCENE:
+      fn(TypeTag<decl::Scene>());
+      return true;
+    case SOCK_TEXT_ID:
+      fn(TypeTag<decl::Text>());
+      return true;
+    case SOCK_MASK:
+      fn(TypeTag<decl::Mask>());
+      return true;
+    case SOCK_SOUND:
+      fn(TypeTag<decl::Sound>());
+      return true;
     case SOCK_MENU:
       fn(TypeTag<decl::Menu>());
       return true;

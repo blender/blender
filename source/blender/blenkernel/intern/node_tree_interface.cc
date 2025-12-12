@@ -19,9 +19,13 @@
 #include "BLO_read_write.hh"
 
 #include "DNA_collection_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_tree_interface_types.h"
 #include "DNA_node_types.h"
+#include "DNA_sound_types.h"
+#include "DNA_text_types.h"
+#include "DNA_vfont_types.h"
 
 #include "NOD_node_declaration.hh"
 #include "NOD_socket_declarations.hh"
@@ -80,6 +84,26 @@ template<> void socket_data_id_user_increment(bNodeSocketValueMaterial &data)
 {
   id_us_plus(reinterpret_cast<ID *>(data.value));
 }
+template<> void socket_data_id_user_increment(bNodeSocketValueFont &data)
+{
+  id_us_plus(reinterpret_cast<ID *>(data.value));
+}
+template<> void socket_data_id_user_increment(bNodeSocketValueScene &data)
+{
+  id_us_plus(reinterpret_cast<ID *>(data.value));
+}
+template<> void socket_data_id_user_increment(bNodeSocketValueText &data)
+{
+  id_us_plus(reinterpret_cast<ID *>(data.value));
+}
+template<> void socket_data_id_user_increment(bNodeSocketValueMask &data)
+{
+  id_us_plus(reinterpret_cast<ID *>(data.value));
+}
+template<> void socket_data_id_user_increment(bNodeSocketValueSound &data)
+{
+  id_us_plus(reinterpret_cast<ID *>(data.value));
+}
 
 /** \} */
 
@@ -105,6 +129,26 @@ template<> void socket_data_id_user_decrement(bNodeSocketValueTexture &data)
   id_us_min(reinterpret_cast<ID *>(data.value));
 }
 template<> void socket_data_id_user_decrement(bNodeSocketValueMaterial &data)
+{
+  id_us_min(reinterpret_cast<ID *>(data.value));
+}
+template<> void socket_data_id_user_decrement(bNodeSocketValueFont &data)
+{
+  id_us_min(reinterpret_cast<ID *>(data.value));
+}
+template<> void socket_data_id_user_decrement(bNodeSocketValueScene &data)
+{
+  id_us_min(reinterpret_cast<ID *>(data.value));
+}
+template<> void socket_data_id_user_decrement(bNodeSocketValueText &data)
+{
+  id_us_min(reinterpret_cast<ID *>(data.value));
+}
+template<> void socket_data_id_user_decrement(bNodeSocketValueMask &data)
+{
+  id_us_min(reinterpret_cast<ID *>(data.value));
+}
+template<> void socket_data_id_user_decrement(bNodeSocketValueSound &data)
 {
   id_us_min(reinterpret_cast<ID *>(data.value));
 }
@@ -171,6 +215,26 @@ template<> void socket_data_init_impl(bNodeSocketValueTexture &data)
   data.value = nullptr;
 }
 template<> void socket_data_init_impl(bNodeSocketValueMaterial &data)
+{
+  data.value = nullptr;
+}
+template<> void socket_data_init_impl(bNodeSocketValueFont &data)
+{
+  data.value = nullptr;
+}
+template<> void socket_data_init_impl(bNodeSocketValueScene &data)
+{
+  data.value = nullptr;
+}
+template<> void socket_data_init_impl(bNodeSocketValueText &data)
+{
+  data.value = nullptr;
+}
+template<> void socket_data_init_impl(bNodeSocketValueMask &data)
+{
+  data.value = nullptr;
+}
+template<> void socket_data_init_impl(bNodeSocketValueSound &data)
 {
   data.value = nullptr;
 }
@@ -328,6 +392,26 @@ inline void socket_data_write_impl(BlendWriter *writer, bNodeSocketValueMaterial
 {
   BLO_write_struct(writer, bNodeSocketValueMaterial, &data);
 }
+inline void socket_data_write_impl(BlendWriter *writer, bNodeSocketValueFont &data)
+{
+  BLO_write_struct(writer, bNodeSocketValueFont, &data);
+}
+inline void socket_data_write_impl(BlendWriter *writer, bNodeSocketValueScene &data)
+{
+  BLO_write_struct(writer, bNodeSocketValueScene, &data);
+}
+inline void socket_data_write_impl(BlendWriter *writer, bNodeSocketValueText &data)
+{
+  BLO_write_struct(writer, bNodeSocketValueText, &data);
+}
+inline void socket_data_write_impl(BlendWriter *writer, bNodeSocketValueMask &data)
+{
+  BLO_write_struct(writer, bNodeSocketValueMask, &data);
+}
+inline void socket_data_write_impl(BlendWriter *writer, bNodeSocketValueSound &data)
+{
+  BLO_write_struct(writer, bNodeSocketValueSound, &data);
+}
 inline void socket_data_write_impl(BlendWriter *writer, bNodeSocketValueMenu &data)
 {
   BLO_write_struct(writer, bNodeSocketValueMenu, &data);
@@ -407,6 +491,26 @@ void socket_data_foreach_id_impl(LibraryForeachIDData *cb, bNodeSocketValueTextu
 }
 template<>
 void socket_data_foreach_id_impl(LibraryForeachIDData *cb, bNodeSocketValueMaterial &data)
+{
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(cb, data.value, IDWALK_CB_USER);
+}
+template<> void socket_data_foreach_id_impl(LibraryForeachIDData *cb, bNodeSocketValueFont &data)
+{
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(cb, data.value, IDWALK_CB_USER);
+}
+template<> void socket_data_foreach_id_impl(LibraryForeachIDData *cb, bNodeSocketValueScene &data)
+{
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(cb, data.value, IDWALK_CB_USER);
+}
+template<> void socket_data_foreach_id_impl(LibraryForeachIDData *cb, bNodeSocketValueText &data)
+{
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(cb, data.value, IDWALK_CB_USER);
+}
+template<> void socket_data_foreach_id_impl(LibraryForeachIDData *cb, bNodeSocketValueMask &data)
+{
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(cb, data.value, IDWALK_CB_USER);
+}
+template<> void socket_data_foreach_id_impl(LibraryForeachIDData *cb, bNodeSocketValueSound &data)
 {
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(cb, data.value, IDWALK_CB_USER);
 }

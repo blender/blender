@@ -605,6 +605,11 @@ DEF_ICON_NODE_SOCKET_DRAW(geometry, eNodeSocketDatatype::SOCK_GEOMETRY)
 DEF_ICON_NODE_SOCKET_DRAW(collection, eNodeSocketDatatype::SOCK_COLLECTION)
 DEF_ICON_NODE_SOCKET_DRAW(texture, eNodeSocketDatatype::SOCK_TEXTURE)
 DEF_ICON_NODE_SOCKET_DRAW(material, eNodeSocketDatatype::SOCK_MATERIAL)
+DEF_ICON_NODE_SOCKET_DRAW(font, eNodeSocketDatatype::SOCK_FONT)
+DEF_ICON_NODE_SOCKET_DRAW(scene, eNodeSocketDatatype::SOCK_SCENE)
+DEF_ICON_NODE_SOCKET_DRAW(text, eNodeSocketDatatype::SOCK_TEXT_ID)
+DEF_ICON_NODE_SOCKET_DRAW(mask, eNodeSocketDatatype::SOCK_MASK)
+DEF_ICON_NODE_SOCKET_DRAW(sound, eNodeSocketDatatype::SOCK_SOUND)
 DEF_ICON_NODE_SOCKET_DRAW(rotation, eNodeSocketDatatype::SOCK_ROTATION)
 DEF_ICON_NODE_SOCKET_DRAW(menu, eNodeSocketDatatype::SOCK_MENU)
 DEF_ICON_NODE_SOCKET_DRAW(matrix, eNodeSocketDatatype::SOCK_MATRIX)
@@ -998,6 +1003,11 @@ static void init_internal_icons()
   def_internal_vicon(ICON_NODE_SOCKET_MATRIX, icon_node_socket_draw_matrix);
   def_internal_vicon(ICON_NODE_SOCKET_BUNDLE, icon_node_socket_draw_bundle);
   def_internal_vicon(ICON_NODE_SOCKET_CLOSURE, icon_node_socket_draw_closure);
+  def_internal_vicon(ICON_NODE_SOCKET_FONT, icon_node_socket_draw_font);
+  def_internal_vicon(ICON_NODE_SOCKET_SCENE, icon_node_socket_draw_scene);
+  def_internal_vicon(ICON_NODE_SOCKET_TEXT, icon_node_socket_draw_text);
+  def_internal_vicon(ICON_NODE_SOCKET_MASK, icon_node_socket_draw_mask);
+  def_internal_vicon(ICON_NODE_SOCKET_SOUND, icon_node_socket_draw_sound);
 }
 
 #else
