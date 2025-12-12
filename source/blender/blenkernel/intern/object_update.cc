@@ -228,6 +228,18 @@ void BKE_object_sync_to_original(Depsgraph *depsgraph, Object *object)
   /* Base flags. */
   object_orig->base_flag = object->base_flag;
   object_orig->base_local_view_bits = object->base_local_view_bits;
+
+  /* Particle edit mode draws from the original object, so sync imat from evaluated to original
+   * object so drawing uses the correct transform. */
+  for (ParticleSystem *
+           psys_eval = static_cast<ParticleSystem *>(object->particlesystem.first),
+          *psys_orig = static_cast<ParticleSystem *>(object_orig->particlesystem.first);
+       psys_eval && psys_orig;
+       psys_eval = psys_eval->next, psys_orig = psys_orig->next)
+  {
+    copy_m4_m4(psys_orig->imat, psys_eval->imat);
+  }
+
   /* Transformation flags. */
   copy_m4_m4(object_orig->runtime->object_to_world.ptr(), object->object_to_world().ptr());
   copy_m4_m4(object_orig->runtime->world_to_object.ptr(), object->world_to_object().ptr());
