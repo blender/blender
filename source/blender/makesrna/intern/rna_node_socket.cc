@@ -1924,6 +1924,7 @@ static void rna_def_node_socket_font(BlenderRNA *brna, const char *identifier)
 
   srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
   RNA_def_struct_ui_text(srna, "Font Node Socket", "Font socket of a node");
+  RNA_def_struct_ui_icon(srna, ICON_NODE_SOCKET_FONT);
   RNA_def_struct_sdna(srna, "bNodeSocket");
 
   RNA_def_struct_sdna_from(srna, "bNodeSocketValueFont", "default_value");
@@ -1966,6 +1967,7 @@ static void rna_def_node_socket_scene(BlenderRNA *brna, const char *identifier)
 
   srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
   RNA_def_struct_ui_text(srna, "Scene Node Socket", "Scene socket of a node");
+  RNA_def_struct_ui_icon(srna, ICON_NODE_SOCKET_SCENE);
   RNA_def_struct_sdna(srna, "bNodeSocket");
 
   RNA_def_struct_sdna_from(srna, "bNodeSocketValueScene", "default_value");
@@ -2008,6 +2010,7 @@ static void rna_def_node_socket_text(BlenderRNA *brna, const char *identifier)
 
   srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
   RNA_def_struct_ui_text(srna, "Text Node Socket", "Text socket of a node");
+  RNA_def_struct_ui_icon(srna, ICON_NODE_SOCKET_TEXT);
   RNA_def_struct_sdna(srna, "bNodeSocket");
 
   RNA_def_struct_sdna_from(srna, "bNodeSocketValueText", "default_value");
@@ -2050,6 +2053,7 @@ static void rna_def_node_socket_mask(BlenderRNA *brna, const char *identifier)
 
   srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
   RNA_def_struct_ui_text(srna, "Mask Node Socket", "Mask socket of a node");
+  RNA_def_struct_ui_icon(srna, ICON_NODE_SOCKET_MASK);
   RNA_def_struct_sdna(srna, "bNodeSocket");
 
   RNA_def_struct_sdna_from(srna, "bNodeSocketValueMask", "default_value");
@@ -2092,6 +2096,7 @@ static void rna_def_node_socket_sound(BlenderRNA *brna, const char *identifier)
 
   srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
   RNA_def_struct_ui_text(srna, "Sound Node Socket", "Sound socket of a node");
+  RNA_def_struct_ui_icon(srna, ICON_NODE_SOCKET_SOUND);
   RNA_def_struct_sdna(srna, "bNodeSocket");
 
   RNA_def_struct_sdna_from(srna, "bNodeSocketValueSound", "default_value");
