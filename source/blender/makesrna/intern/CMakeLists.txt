@@ -459,6 +459,7 @@ set(SRC
   rna_curves_utils.hh
   rna_internal.hh
   rna_internal_types.hh
+  rna_screen_utils.hh
 )
 
 set(LIB

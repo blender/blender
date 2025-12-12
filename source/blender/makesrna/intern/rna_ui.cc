@@ -283,7 +283,11 @@ static StructRNA *rna_Panel_register(Main *bmain,
     return nullptr;
   }
 
-  if ((1 << dummy_pt.region_type) & RGN_TYPE_HAS_CATEGORY_MASK) {
+  if (!(art = region_type_find(reports, dummy_pt.space_type, dummy_pt.region_type))) {
+    return nullptr;
+  }
+
+  if (BKE_regiontype_uses_categories(art)) {
     if (dummy_pt.category[0] == '\0') {
       /* Use a fallback, otherwise an empty value will draw the panel in every category. */
       STRNCPY(dummy_pt.category, PNL_CATEGORY_FALLBACK);
@@ -304,10 +308,6 @@ static StructRNA *rna_Panel_register(Main *bmain,
         return nullptr;
       }
     }
-  }
-
-  if (!(art = region_type_find(reports, dummy_pt.space_type, dummy_pt.region_type))) {
-    return nullptr;
   }
 
   /* check if we have registered this panel type before, and remove it */

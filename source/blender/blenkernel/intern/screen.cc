@@ -296,6 +296,25 @@ bool BKE_spacetype_exists(int spaceid)
   return BKE_spacetype_from_id(spaceid) != nullptr;
 }
 
+bool BKE_regiontype_uses_categories(const ARegionType *region_type)
+{
+  if (BKE_regiontype_uses_category_tabs(region_type)) {
+    return true;
+  }
+
+  return bool(region_type->flag & ARegionTypeFlag::UsePanelCategories);
+}
+
+bool BKE_regiontype_uses_category_tabs(const ARegionType *region_type)
+{
+  /* Some region types always support category tabs. */
+  if (ELEM(region_type->regionid, RGN_TYPE_UI)) {
+    return true;
+  }
+
+  return bool(region_type->flag & ARegionTypeFlag::UsePanelCategoryTabs);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -918,6 +937,22 @@ ScrArea *BKE_screen_find_area_from_space(const bScreen *screen, const SpaceLink 
     }
   }
 
+  return nullptr;
+}
+
+ARegion *BKE_screen_find_region_in_space(const bScreen *screen,
+                                         const SpaceLink *sl,
+                                         const int region_type)
+{
+  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+    LISTBASE_FOREACH (SpaceLink *, slink, &area->spacedata) {
+      if (slink == sl) {
+        ListBase *regionbase = (slink == area->spacedata.first) ? &area->regionbase :
+                                                                  &slink->regionbase;
+        return BKE_region_find_in_listbase_by_type(regionbase, region_type);
+      }
+    }
+  }
   return nullptr;
 }
 

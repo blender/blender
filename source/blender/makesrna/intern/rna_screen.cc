@@ -38,7 +38,7 @@ const EnumPropertyItem rna_enum_region_type_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static const EnumPropertyItem rna_enum_region_panel_category_items[] = {
+const EnumPropertyItem rna_enum_region_panel_category_items[] = {
     {-1, "UNSUPPORTED", 0, "Not Supported", "This region does not support panel categories"},
     {0, nullptr, 0, nullptr, nullptr},
 };
@@ -65,6 +65,8 @@ static const EnumPropertyItem rna_enum_region_panel_category_items[] = {
 #  include "UI_view2d.hh"
 
 #  include "BLT_translation.hh"
+
+#  include "rna_screen_utils.hh"
 
 #  ifdef WITH_PYTHON
 #    include "BPY_extern.hh"
@@ -301,11 +303,17 @@ static PointerRNA rna_Region_data_get(PointerRNA *ptr)
   return PointerRNA_NULL;
 }
 
+static int rna_region_has_panel_categories(const ARegion *region)
+{
+  return !BLI_listbase_is_empty(&region->runtime->panels_category);
+}
+
 static int rna_Region_active_panel_category_editable_get(const PointerRNA *ptr,
                                                          const char **r_info)
 {
+
   ARegion *region = static_cast<ARegion *>(ptr->data);
-  if (BLI_listbase_is_empty(&region->runtime->panels_category)) {
+  if (!rna_region_has_panel_categories(region)) {
     if (r_info) {
       *r_info = N_("This region does not support panel categories");
     }
@@ -314,29 +322,32 @@ static int rna_Region_active_panel_category_editable_get(const PointerRNA *ptr,
   return PROP_EDITABLE;
 }
 
+int rna_region_active_panel_category_get(ARegion *region)
+{
+  const char *idname = blender::ui::panel_category_active_get(region, true);
+  return blender::ui::panel_category_index_find(region, idname);
+}
 static int rna_Region_active_panel_category_get(PointerRNA *ptr)
 {
   ARegion *region = static_cast<ARegion *>(ptr->data);
-  const char *idname = blender::ui::panel_category_active_get(region, false);
-  return blender::ui::panel_category_index_find(region, idname);
+  return rna_region_active_panel_category_get(region);
 }
 
-static void rna_Region_active_panel_category_set(PointerRNA *ptr, int value)
+void rna_region_active_panel_category_set(ARegion *region, const int value)
 {
-  BLI_assert(rna_Region_active_panel_category_editable_get(ptr, nullptr));
-
-  ARegion *region = static_cast<ARegion *>(ptr->data);
   blender::ui::panel_category_index_active_set(region, value);
 }
-
-static const EnumPropertyItem *rna_Region_active_panel_category_itemf(bContext * /*C*/,
-                                                                      PointerRNA *ptr,
-                                                                      PropertyRNA * /*prop*/,
-                                                                      bool *r_free)
+static void rna_Region_active_panel_category_set(PointerRNA *ptr, const int value)
 {
   ARegion *region = static_cast<ARegion *>(ptr->data);
+  BLI_assert(rna_region_has_panel_categories(region));
 
-  if (!rna_Region_active_panel_category_editable_get(ptr, nullptr)) {
+  rna_region_active_panel_category_set(region, value);
+}
+
+const EnumPropertyItem *rna_region_active_panel_category_itemf(const ARegion *region, bool *r_free)
+{
+  if (!rna_region_has_panel_categories(region)) {
     *r_free = false;
     return rna_enum_region_panel_category_items;
   }
@@ -357,6 +368,14 @@ static const EnumPropertyItem *rna_Region_active_panel_category_itemf(bContext *
   RNA_enum_item_end(&items, &totitems);
   *r_free = true;
   return items;
+}
+static const EnumPropertyItem *rna_Region_active_panel_category_itemf(bContext * /*C*/,
+                                                                      PointerRNA *ptr,
+                                                                      PropertyRNA * /*prop*/,
+                                                                      bool *r_free)
+{
+  ARegion *region = static_cast<ARegion *>(ptr->data);
+  return rna_region_active_panel_category_itemf(region, r_free);
 }
 
 static void rna_View2D_region_to_view(View2D *v2d, float x, float y, float result[2])

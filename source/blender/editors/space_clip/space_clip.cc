@@ -1295,6 +1295,7 @@ void ED_spacetype_clip()
   /* regions: tools */
   art = MEM_callocN<ARegionType>("spacetype clip region tools");
   art->regionid = RGN_TYPE_TOOLS;
+  art->flag = ARegionTypeFlag::UsePanelCategoryTabs;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_FRAMES | ED_KEYMAP_UI;
   art->poll = clip_tools_region_poll;

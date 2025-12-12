@@ -202,6 +202,21 @@ struct RegionPollParams {
   const bContext *context;
 };
 
+enum class ARegionTypeFlag {
+  /**
+   * Use panel categories, where #PanelType.category and #ARegion.panels_category_active define
+   * which panels are visible. Available categories are collected during layout and cached in
+   * #ARegion.panels_category_active.
+   */
+  UsePanelCategories = (1 << 0),
+  /**
+   * Same as #UsePanelCategories, plus panel drawing will draw tabs for the categories in this
+   * region.
+   */
+  UsePanelCategoryTabs = (1 << 1),
+};
+ENUM_OPERATORS(ARegionTypeFlag)
+
 /* #ARegionType::lock */
 enum ARegionDrawLockFlags {
   REGION_DRAW_LOCK_NONE = 0,
@@ -282,6 +297,8 @@ struct ARegionType {
    * when the `v2d->tot` is changed and `cur` is adopted accordingly).
    */
   void (*on_view2d_changed)(const bContext *C, ARegion *region);
+
+  ARegionTypeFlag flag;
 
   /** Custom drawing callbacks. */
   ListBase drawcalls;
@@ -717,6 +734,9 @@ bool BKE_spacetype_exists(int spaceid);
 /** Only for quitting blender. */
 void BKE_spacetypes_free();
 
+bool BKE_regiontype_uses_categories(const ARegionType *region_type);
+bool BKE_regiontype_uses_category_tabs(const ARegionType *region_type);
+
 /* Space-data. */
 
 void BKE_spacedata_freelist(ListBase *lb);
@@ -821,6 +841,10 @@ ARegion *BKE_screen_find_main_region_at_xy(const bScreen *screen, int space_type
  */
 ScrArea *BKE_screen_find_area_from_space(const bScreen *screen,
                                          const SpaceLink *sl) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(1, 2);
+ARegion *BKE_screen_find_region_in_space(const bScreen *screen,
+                                         const SpaceLink *sl,
+                                         int region_type) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 2);
 /**
  * \note used to get proper RNA paths for spaces (editors).

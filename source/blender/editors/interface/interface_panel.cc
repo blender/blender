@@ -641,8 +641,8 @@ static void panel_set_runtime_flag_recursive(Panel *panel, short flag, bool valu
 
 static void panels_collapse_all(ARegion *region, const Panel *from_panel)
 {
-  const bool has_category_tabs = panel_category_is_visible(region);
-  const char *category = has_category_tabs ? panel_category_active_get(region, false) : nullptr;
+  const bool has_category = panel_category_is_visible(region);
+  const char *category = has_category ? panel_category_active_get(region, false) : nullptr;
   const PanelType *from_pt = from_panel->type;
 
   LISTBASE_FOREACH (Panel *, panel, &region->panels) {
@@ -791,7 +791,7 @@ void panel_header_buttons_end(Panel *panel)
 
 static float panel_region_offset_x_get(const ARegion *region)
 {
-  if (panel_category_is_visible(region)) {
+  if (panel_category_tabs_is_visible(region)) {
     if (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) != RGN_ALIGN_RIGHT) {
       return UI_PANEL_CATEGORY_MARGIN_WIDTH;
     }
@@ -1405,7 +1405,7 @@ bool panel_should_show_background(const ARegion *region, const PanelType *panel_
 #define TABS_PADDING_BETWEEN_FACTOR 4.0f
 #define TABS_PADDING_TEXT_FACTOR 6.0f
 
-void panel_category_draw_all(ARegion *region, const char *category_id_active)
+void panel_category_tabs_draw_all(ARegion *region, const char *category_id_active)
 {
   // #define USE_FLAT_INACTIVE
   const bool is_left = RGN_ALIGN_ENUM_FROM_MASK(region->alignment) != RGN_ALIGN_RIGHT;
@@ -1472,7 +1472,7 @@ void panel_category_draw_all(ARegion *region, const char *category_id_active)
 
   /* Check the region type supports categories to avoid an assert
    * for showing 3D view panels in the properties space. */
-  if ((1 << region->regiontype) & RGN_TYPE_HAS_CATEGORY_MASK) {
+  if (BKE_regiontype_uses_category_tabs(region->runtime->type)) {
     BLI_assert(panel_category_is_visible(region));
   }
 
@@ -1663,6 +1663,9 @@ static int ui_panel_category_show_active_tab(ARegion *region, const int mval[2])
   if (!ED_region_panel_category_gutter_isect_xy(region, mval)) {
     return WM_UI_HANDLER_CONTINUE;
   }
+
+  BLI_assert(BKE_regiontype_uses_category_tabs(region->runtime->type));
+
   const View2D *v2d = &region->v2d;
   LISTBASE_FOREACH (PanelCategoryDyn *, pc_dyn, &region->runtime->panels_category) {
     const bool is_active = STREQ(pc_dyn->idname, region->runtime->category);
@@ -2304,7 +2307,7 @@ static void ui_handle_panel_header(const bContext *C,
   BLI_assert(!(panel->type->flag & PANEL_TYPE_NO_HEADER));
 
   const bool is_subpanel = (panel->type->parent != nullptr);
-  const bool use_pin = panel_category_is_visible(region) && panel_can_be_pinned(panel);
+  const bool use_pin = panel_category_tabs_is_visible(region) && panel_can_be_pinned(panel);
   const bool show_pin = use_pin && (panel->flag & PNL_PIN);
   const bool show_drag = !is_subpanel;
 
@@ -2391,6 +2394,12 @@ bool panel_category_is_visible(const ARegion *region)
   /* Check for more than one category. */
   return region->runtime->panels_category.first &&
          region->runtime->panels_category.first != region->runtime->panels_category.last;
+}
+
+bool panel_category_tabs_is_visible(const ARegion *region)
+{
+  return panel_category_is_visible(region) &&
+         BKE_regiontype_uses_category_tabs(region->runtime->type);
 }
 
 PanelCategoryDyn *panel_category_find(const ARegion *region, const char *idname)
@@ -2496,6 +2505,8 @@ const char *panel_category_active_get(ARegion *region, bool set_fallback)
 
 static PanelCategoryDyn *panel_categories_find_mouse_over(ARegion *region, const wmEvent *event)
 {
+  BLI_assert(BKE_regiontype_uses_category_tabs(region->runtime->type));
+
   LISTBASE_FOREACH (PanelCategoryDyn *, ptd, &region->runtime->panels_category) {
     if (BLI_rcti_isect_pt(&ptd->rect, event->mval[0], event->mval[1])) {
       return ptd;
@@ -2524,6 +2535,8 @@ static int ui_handle_panel_category_cycling(const wmEvent *event,
                                             ARegion *region,
                                             const Button *active_but)
 {
+  BLI_assert(BKE_regiontype_uses_category_tabs(region->runtime->type));
+
   const bool is_mousewheel = ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE);
   const bool inside_tabregion =
       ((RGN_ALIGN_ENUM_FROM_MASK(region->alignment) != RGN_ALIGN_RIGHT) ?
@@ -2618,7 +2631,7 @@ int handler_panel_region(bContext *C,
   int retval = WM_UI_HANDLER_CONTINUE;
 
   /* Handle category tabs. */
-  if (panel_category_is_visible(region)) {
+  if (panel_category_tabs_is_visible(region)) {
     if (event->type == LEFTMOUSE) {
       PanelCategoryDyn *pc_dyn = panel_categories_find_mouse_over(region, event);
       if (pc_dyn) {

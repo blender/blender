@@ -73,7 +73,7 @@ bool ED_region_overlap_isect_any_xy(const ScrArea *area, const int event_xy[2])
 bool ED_region_panel_category_gutter_calc_rect(const ARegion *region, rcti *r_region_gutter)
 {
   *r_region_gutter = region->winrct;
-  if (blender::ui::panel_category_is_visible(region)) {
+  if (blender::ui::panel_category_tabs_is_visible(region)) {
     const int category_tabs_width = round_fl_to_int(blender::ui::view2d_scale_get_x(&region->v2d) *
                                                     UI_PANEL_CATEGORY_MARGIN_WIDTH);
     const int alignment = RGN_ALIGN_ENUM_FROM_MASK(region->alignment);

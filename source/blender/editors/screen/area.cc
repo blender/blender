@@ -3220,17 +3220,9 @@ static bool panel_add_check(const bContext *C,
   return true;
 }
 
-static bool region_uses_category_tabs(const ScrArea *area, const ARegion *region)
-{
-  /* XXX, should use some better check? */
-  /* For now also has hardcoded check for clip editor until it supports actual toolbar. */
-  return ((1 << region->regiontype) & RGN_TYPE_HAS_CATEGORY_MASK) ||
-         (region->regiontype == RGN_TYPE_TOOLS && area->spacetype == SPACE_CLIP);
-}
-
 static const char *region_panels_collect_categories(ARegion *region,
                                                     LinkNode *panel_types_stack,
-                                                    bool *use_category_tabs)
+                                                    bool *use_categories)
 {
   blender::ui::panel_category_clear_all(region);
 
@@ -3248,7 +3240,7 @@ static const char *region_panels_collect_categories(ARegion *region,
     return blender::ui::panel_category_active_get(region, true);
   }
 
-  *use_category_tabs = false;
+  *use_categories = false;
   return nullptr;
 }
 
@@ -3283,8 +3275,10 @@ void ED_region_panels_layout_ex(const bContext *C,
   ScrArea *area = CTX_wm_area(C);
   View2D *v2d = &region->v2d;
 
+  bool use_categories = (category_override == nullptr) &&
+                        BKE_regiontype_uses_categories(region->runtime->type);
   bool use_category_tabs = (category_override == nullptr) &&
-                           region_uses_category_tabs(area, region);
+                           BKE_regiontype_uses_category_tabs(region->runtime->type);
   /* offset panels for small vertical tab area */
   const char *category = nullptr;
   const int category_tabs_width = UI_PANEL_CATEGORY_MARGIN_WIDTH;
@@ -3307,8 +3301,11 @@ void ED_region_panels_layout_ex(const bContext *C,
   }
 
   /* collect categories */
-  if (use_category_tabs) {
-    category = region_panels_collect_categories(region, panel_types_stack, &use_category_tabs);
+  if (use_categories) {
+    category = region_panels_collect_categories(region, panel_types_stack, &use_categories);
+    if (!use_categories) {
+      use_category_tabs = false;
+    }
   }
   if (use_category_tabs) {
     margin_x = category_tabs_width;
@@ -3337,7 +3334,7 @@ void ED_region_panels_layout_ex(const bContext *C,
     }
     Panel *panel = blender::ui::panel_find_by_type(&region->panels, pt);
 
-    if (use_category_tabs && pt->category[0] && !STREQ(category, pt->category)) {
+    if (use_categories && pt->category[0] && !STREQ(category, pt->category)) {
       if ((panel == nullptr) || ((panel->flag & PNL_PIN) == 0)) {
         continue;
       }
@@ -3362,8 +3359,7 @@ void ED_region_panels_layout_ex(const bContext *C,
       if (!(panel->type->flag & PANEL_TYPE_INSTANCED)) {
         continue;
       }
-      if (use_category_tabs && panel->type->category[0] && !STREQ(category, panel->type->category))
-      {
+      if (use_categories && panel->type->category[0] && !STREQ(category, panel->type->category)) {
         continue;
       }
       if (!panel_add_check(C, workspace, contexts, category_override, panel->type)) {
@@ -3441,7 +3437,7 @@ void ED_region_panels_layout_ex(const bContext *C,
     blender::ui::view2d_totRect_set(v2d, x, y);
   }
 
-  if (use_category_tabs) {
+  if (use_categories) {
     region->runtime->category = category;
   }
 }
@@ -3583,9 +3579,9 @@ void ED_region_panels_draw(const bContext *C, ARegion *region)
   blender::ui::blocklist_update_window_matrix(C, &region->runtime->uiblocks);
 
   /* draw panels if they are large enough. */
-  const bool has_categories = (region->panels_category_active.first != nullptr);
-  const short min_draw_size = has_categories ? short(UI_PANEL_CATEGORY_MIN_WIDTH) + 20 :
-                                               std::min(region->runtime->type->prefsizex, 20);
+  const bool has_category_tabs = blender::ui::panel_category_tabs_is_visible(region);
+  const short min_draw_size = has_category_tabs ? short(UI_PANEL_CATEGORY_MIN_WIDTH) + 20 :
+                                                  std::min(region->runtime->type->prefsizex, 20);
   if (region->winx >= (min_draw_size * UI_SCALE_FAC / aspect)) {
     blender::ui::panels_draw(C, region);
   }
@@ -3594,8 +3590,8 @@ void ED_region_panels_draw(const bContext *C, ARegion *region)
   blender::ui::view2d_view_restore(C);
 
   /* Set in layout. */
-  if (region->runtime->category) {
-    blender::ui::panel_category_draw_all(region, region->runtime->category);
+  if (has_category_tabs && region->runtime->category) {
+    blender::ui::panel_category_tabs_draw_all(region, region->runtime->category);
   }
 
   /* scrollers */
@@ -3603,7 +3599,7 @@ void ED_region_panels_draw(const bContext *C, ARegion *region)
   rcti mask;
   const short alignment = RGN_ALIGN_ENUM_FROM_MASK(region->alignment);
   if (region->runtime->category && ELEM(alignment, RGN_ALIGN_RIGHT, RGN_ALIGN_LEFT) &&
-      blender::ui::panel_category_is_visible(region))
+      has_category_tabs)
   {
     use_mask = true;
     blender::ui::view2d_mask_from_win(v2d, &mask);
@@ -3620,8 +3616,8 @@ void ED_region_panels_draw(const bContext *C, ARegion *region)
   ED_region_draw_overflow_indication(CTX_wm_area(C), region, use_mask ? &mask : nullptr);
 
   /* Hide scrollbars below a threshold. */
-  int min_width = blender::ui::panel_category_is_visible(region) ? 60.0f * UI_SCALE_FAC / aspect :
-                                                                   40.0f * UI_SCALE_FAC / aspect;
+  int min_width = has_category_tabs ? 60.0f * UI_SCALE_FAC / aspect :
+                                      40.0f * UI_SCALE_FAC / aspect;
   if (BLI_rcti_size_x(&region->winrct) <= min_width) {
     v2d->scroll &= ~(V2D_SCROLL_HORIZONTAL | V2D_SCROLL_VERTICAL);
   }
@@ -3775,10 +3771,10 @@ bool ED_region_property_search(const bContext *C,
   }
 
   const char *category = nullptr;
-  bool use_category_tabs = (category_override == nullptr) &&
-                           region_uses_category_tabs(area, region);
-  if (use_category_tabs) {
-    category = region_panels_collect_categories(region, panel_types_stack, &use_category_tabs);
+  bool use_categories = (category_override == nullptr) &&
+                        BKE_regiontype_uses_categories(region->runtime->type);
+  if (use_categories) {
+    category = region_panels_collect_categories(region, panel_types_stack, &use_categories);
   }
 
   /* Run property search for each panel, stopping if a result is found. */
@@ -3792,7 +3788,7 @@ bool ED_region_property_search(const bContext *C,
       continue;
     }
 
-    if (use_category_tabs) {
+    if (use_categories) {
       if (panel_type->category[0] && !STREQ(category, panel_type->category)) {
         continue;
       }
@@ -3813,7 +3809,7 @@ bool ED_region_property_search(const bContext *C,
       if (panel->type == nullptr || !(panel->type->flag & PANEL_TYPE_INSTANCED)) {
         continue;
       }
-      if (use_category_tabs) {
+      if (use_categories) {
         if (panel->type->category[0] && !STREQ(category, panel->type->category)) {
           continue;
         }

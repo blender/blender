@@ -71,7 +71,7 @@ int ED_region_generic_tools_region_snap_size(const ARegion *region, int size, in
 int ED_region_generic_panel_region_snap_size(const ARegion *region, int size, int axis)
 {
   if (axis == 0) {
-    if (!blender::ui::panel_category_is_visible(region)) {
+    if (!blender::ui::panel_category_tabs_is_visible(region)) {
       return size;
     }
 
