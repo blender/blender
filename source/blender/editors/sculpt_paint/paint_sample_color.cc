@@ -68,15 +68,16 @@
 /** \name Sample Color Operator
  * \{ */
 
+namespace blender::ed::sculpt_paint {
+
 /* compute uv coordinates of mouse in face */
-static blender::float2 imapaint_pick_uv(const Mesh *mesh_eval,
-                                        Scene *scene,
-                                        Object *ob_eval,
-                                        const int tri_index,
-                                        const blender::float3 &bary_coord)
+static float2 imapaint_pick_uv(const Mesh *mesh_eval,
+                               Scene &scene,
+                               Object *ob_eval,
+                               const int tri_index,
+                               const float3 &bary_coord)
 {
-  using namespace blender;
-  const ePaintCanvasSource mode = ePaintCanvasSource(scene->toolsettings->imapaint.mode);
+  const ePaintCanvasSource mode = ePaintCanvasSource(scene.toolsettings->imapaint.mode);
 
   const Span<int3> tris = mesh_eval->corner_tris();
   const Span<int> tri_faces = mesh_eval->corner_tri_faces();
@@ -91,11 +92,8 @@ static blender::float2 imapaint_pick_uv(const Mesh *mesh_eval,
   VArraySpan<float2> uv_map;
 
   if (mode == PAINT_CANVAS_SOURCE_MATERIAL) {
-    const Material *ma;
-    const TexPaintSlot *slot;
-
-    ma = BKE_object_material_get(ob_eval, material_indices[face_i] + 1);
-    slot = &ma->texpaintslot[ma->paint_active_slot];
+    const Material *ma = BKE_object_material_get(ob_eval, material_indices[face_i] + 1);
+    const TexPaintSlot *slot = &ma->texpaintslot[ma->paint_active_slot];
     if (slot && slot->uvname) {
       uv_map = *attributes.lookup<float2>(slot->uvname, bke::AttrDomain::Corner);
     }
@@ -110,19 +108,19 @@ static blender::float2 imapaint_pick_uv(const Mesh *mesh_eval,
 }
 
 /* returns 0 if not found, otherwise 1 */
-static int imapaint_pick_face(ViewContext *vc,
-                              const int mval[2],
-                              int *r_tri_index,
-                              int *r_face_index,
-                              blender::float3 *r_bary_coord,
-                              const Mesh &mesh)
+static bool imapaint_pick_face(ViewContext *vc,
+                               const int mval[2],
+                               int *r_tri_index,
+                               int *r_face_index,
+                               float3 *r_bary_coord,
+                               const Mesh &mesh)
 {
-  using namespace blender;
   if (mesh.faces_num == 0) {
-    return 0;
+    return false;
   }
 
-  float3 start_world, end_world;
+  float3 start_world;
+  float3 end_world;
   ED_view3d_win_to_segment_clipped(
       vc->depsgraph, vc->region, vc->v3d, float2(mval[0], mval[1]), start_world, end_world, true);
 
@@ -143,7 +141,7 @@ static int imapaint_pick_face(ViewContext *vc,
                        mesh_bvh.raycast_callback,
                        &mesh_bvh);
   if (ray_hit.index == -1) {
-    return 0;
+    return false;
   }
 
   *r_bary_coord = bke::mesh_surface_sample::compute_bary_coord_in_triangle(
@@ -151,190 +149,186 @@ static int imapaint_pick_face(ViewContext *vc,
 
   *r_tri_index = ray_hit.index;
   *r_face_index = mesh.corner_tri_faces()[ray_hit.index];
-  return 1;
+  return true;
 }
 
-static void paint_sample_color(
-    bContext *C, ARegion *region, int x, int y, bool texpaint_proj, bool use_palette)
+static std::optional<float3> sample_texture_paint_color(
+    const Depsgraph &depsgraph, Scene &scene, ViewContext &vc, Object *object, const int2 mval)
 {
-  using namespace blender;
+  if (!object) {
+    return std::nullopt;
+  }
+
+  Object *ob_eval = DEG_get_evaluated(&depsgraph, object);
+
+  const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
+  const bke::AttributeAccessor attributes = mesh_eval->attributes();
+  const VArray<int> material_indices = *attributes.lookup_or_default<int>(
+      "material_index", bke::AttrDomain::Face, 0);
+
+  if (mesh_eval->uv_map_names().is_empty()) {
+    return std::nullopt;
+  }
+
+  int tri_index;
+  float3 bary_coord;
+  int face_index;
+  const VArray<bool> hide_poly = *mesh_eval->attributes().lookup_or_default<bool>(
+      ".hide_poly", bke::AttrDomain::Face, false);
+  const bool is_hit = imapaint_pick_face(
+                          &vc, mval, &tri_index, &face_index, &bary_coord, *mesh_eval) &&
+                      !hide_poly[face_index];
+
+  if (!is_hit) {
+    return std::nullopt;
+  }
+
+  ImagePaintSettings *imapaint = &scene.toolsettings->imapaint;
+  bool use_material = imapaint->mode == IMAGEPAINT_MODE_MATERIAL;
+  Image *image = nullptr;
+  int interp = SHD_INTERP_LINEAR;
+  if (use_material) {
+    /* Image and texture interpolation from material. */
+    Material *ma = BKE_object_material_get(ob_eval, material_indices[face_index] + 1);
+
+    /* Force refresh since paint slots are not updated when changing interpolation. */
+    BKE_texpaint_slot_refresh_cache(&scene, ma, object);
+
+    if (ma && ma->texpaintslot) {
+      image = ma->texpaintslot[ma->paint_active_slot].ima;
+      interp = ma->texpaintslot[ma->paint_active_slot].interp;
+    }
+  }
+  else {
+    /* Image and texture interpolation from tool settings. */
+    image = imapaint->canvas;
+    interp = imapaint->interp;
+  }
+
+  if (!image) {
+    return std::nullopt;
+  }
+
+  /* XXX get appropriate ImageUser instead */
+  ImageUser iuser;
+  BKE_imageuser_default(&iuser);
+  iuser.framenr = image->lastframe;
+
+  float2 uv = imapaint_pick_uv(mesh_eval, scene, ob_eval, tri_index, bary_coord);
+  if (image->source == IMA_SRC_TILED) {
+    float new_uv[2];
+    iuser.tile = BKE_image_get_tile_from_pos(image, uv, new_uv, nullptr);
+    uv[0] = new_uv[0];
+    uv[1] = new_uv[1];
+  }
+
+  ImBuf *ibuf = BKE_image_acquire_ibuf(image, &iuser, nullptr);
+  BLI_SCOPED_DEFER([&]() { BKE_image_release_ibuf(image, ibuf, nullptr); });
+  if (!ibuf || (!ibuf->byte_buffer.data && !ibuf->float_buffer.data)) {
+    return std::nullopt;
+  }
+
+  const float u = uv[0] * ibuf->x;
+  const float v = uv[1] * ibuf->y;
+
+  float4 rgba_f;
+  if (ibuf->float_buffer.data) {
+    rgba_f = interp == SHD_INTERP_CLOSEST ? imbuf::interpolate_nearest_wrap_fl(ibuf, u, v) :
+                                            imbuf::interpolate_bilinear_wrap_fl(ibuf, u, v);
+    rgba_f = math::clamp(rgba_f, 0.0f, 1.0f);
+    straight_to_premul_v4(rgba_f);
+  }
+  else {
+    uchar4 rgba = interp == SHD_INTERP_CLOSEST ? imbuf::interpolate_nearest_wrap_byte(ibuf, u, v) :
+                                                 imbuf::interpolate_bilinear_wrap_byte(ibuf, u, v);
+    rgba_uchar_to_float(rgba_f, rgba);
+
+    if ((ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA) == 0) {
+      IMB_colormanagement_colorspace_to_scene_linear_v3(rgba_f, ibuf->byte_buffer.colorspace);
+    }
+  }
+  return rgba_f.xyz();
+}
+
+static void apply_sampled_color(Main &bMain,
+                                Paint &paint,
+                                const float3 &sampled_color,
+                                const bool use_palette)
+{
+  if (use_palette) {
+    Palette *palette = BKE_paint_palette(&paint);
+    if (!palette) {
+      palette = BKE_palette_add(&bMain, "Palette");
+      BKE_paint_palette_set(&paint, palette);
+    }
+
+    PaletteColor *color = BKE_palette_color_add(palette);
+    palette->active_color = BLI_listbase_count(&palette->colors) - 1;
+    BKE_palette_color_set(color, sampled_color);
+  }
+  else {
+    Brush *br = BKE_paint_brush(&paint);
+    BKE_brush_color_set(&paint, br, sampled_color);
+  }
+}
+
+static float3 paint_sample_color(bContext *C,
+                                 ARegion *region,
+                                 const int2 mval,
+                                 const bool use_merged_texture)
+{
   Scene *scene = CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Paint *paint = BKE_paint_get_active_from_context(C);
-  Palette *palette = BKE_paint_palette(paint);
-  PaletteColor *color = nullptr;
-  Brush *br = BKE_paint_brush(BKE_paint_get_active_from_context(C));
-
-  CLAMP(x, 0, region->winx);
-  CLAMP(y, 0, region->winy);
-
-  if (use_palette) {
-    if (!palette) {
-      palette = BKE_palette_add(CTX_data_main(C), "Palette");
-      BKE_paint_palette_set(paint, palette);
-    }
-
-    color = BKE_palette_color_add(palette);
-    palette->active_color = BLI_listbase_count(&palette->colors) - 1;
-  }
+  const PaintMode mode = paint->runtime->paint_mode;
 
   SpaceImage *sima = CTX_wm_space_image(C);
   const View3D *v3d = CTX_wm_view3d(C);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
-  if (v3d && texpaint_proj) {
-    /* first try getting a color directly from the mesh faces if possible */
+  std::optional<float3> sampled_color;
+  if (v3d && mode == PaintMode::Texture3D && !use_merged_texture) {
+    /* Attempt to sample from the mesh & active texture */
     ViewLayer *view_layer = CTX_data_view_layer(C);
     BKE_view_layer_synced_ensure(scene, view_layer);
     Object *ob = BKE_view_layer_active_object_get(view_layer);
-    Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
-    ImagePaintSettings *imapaint = &scene->toolsettings->imapaint;
-    bool use_material = (imapaint->mode == IMAGEPAINT_MODE_MATERIAL);
 
-    if (ob) {
-      const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
-      const bke::AttributeAccessor attributes = mesh_eval->attributes();
-      const VArray material_indices = *attributes.lookup_or_default<int>(
-          "material_index", bke::AttrDomain::Face, 0);
-
-      if (!mesh_eval->uv_map_names().is_empty()) {
-        ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
-
-        const int mval[2] = {x, y};
-        int tri_index;
-        float3 bary_coord;
-        int faceindex;
-        const VArray<bool> hide_poly = *mesh_eval->attributes().lookup_or_default<bool>(
-            ".hide_poly", bke::AttrDomain::Face, false);
-        const bool is_hit = imapaint_pick_face(
-                                &vc, mval, &tri_index, &faceindex, &bary_coord, *mesh_eval) &&
-                            !hide_poly[faceindex];
-
-        if (is_hit) {
-          Image *image = nullptr;
-          int interp = SHD_INTERP_LINEAR;
-
-          if (use_material) {
-            /* Image and texture interpolation from material. */
-            Material *ma = BKE_object_material_get(ob_eval, material_indices[faceindex] + 1);
-
-            /* Force refresh since paint slots are not updated when changing interpolation. */
-            BKE_texpaint_slot_refresh_cache(scene, ma, ob);
-
-            if (ma && ma->texpaintslot) {
-              image = ma->texpaintslot[ma->paint_active_slot].ima;
-              interp = ma->texpaintslot[ma->paint_active_slot].interp;
-            }
-          }
-          else {
-            /* Image and texture interpolation from tool settings. */
-            image = imapaint->canvas;
-            interp = imapaint->interp;
-          }
-
-          if (image) {
-            /* XXX get appropriate ImageUser instead */
-            ImageUser iuser;
-            BKE_imageuser_default(&iuser);
-            iuser.framenr = image->lastframe;
-
-            float2 uv = imapaint_pick_uv(mesh_eval, scene, ob_eval, tri_index, bary_coord);
-
-            if (image->source == IMA_SRC_TILED) {
-              float new_uv[2];
-              iuser.tile = BKE_image_get_tile_from_pos(image, uv, new_uv, nullptr);
-              uv[0] = new_uv[0];
-              uv[1] = new_uv[1];
-            }
-
-            ImBuf *ibuf = BKE_image_acquire_ibuf(image, &iuser, nullptr);
-            if (ibuf && (ibuf->byte_buffer.data || ibuf->float_buffer.data)) {
-              float u = uv[0] * ibuf->x;
-              float v = uv[1] * ibuf->y;
-
-              if (ibuf->float_buffer.data) {
-                float4 rgba_f = interp == SHD_INTERP_CLOSEST ?
-                                    imbuf::interpolate_nearest_wrap_fl(ibuf, u, v) :
-                                    imbuf::interpolate_bilinear_wrap_fl(ibuf, u, v);
-                rgba_f = math::clamp(rgba_f, 0.0f, 1.0f);
-                straight_to_premul_v4(rgba_f);
-                if (use_palette) {
-                  BKE_palette_color_set(color, rgba_f);
-                }
-                else {
-                  BKE_brush_color_set(paint, br, rgba_f);
-                }
-              }
-              else {
-                uchar4 rgba = interp == SHD_INTERP_CLOSEST ?
-                                  imbuf::interpolate_nearest_wrap_byte(ibuf, u, v) :
-                                  imbuf::interpolate_bilinear_wrap_byte(ibuf, u, v);
-                float rgba_f[4];
-                rgba_uchar_to_float(rgba_f, rgba);
-
-                if ((ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA) == 0) {
-                  IMB_colormanagement_colorspace_to_scene_linear_v3(rgba_f,
-                                                                    ibuf->byte_buffer.colorspace);
-                }
-
-                if (use_palette) {
-                  BKE_palette_color_set(color, rgba_f);
-                }
-                else {
-                  BKE_brush_color_set(paint, br, rgba_f);
-                }
-              }
-              BKE_image_release_ibuf(image, ibuf, nullptr);
-              return;
-            }
-
-            BKE_image_release_ibuf(image, ibuf, nullptr);
-          }
-        }
-      }
-    }
+    sampled_color = sample_texture_paint_color(*depsgraph, *scene, vc, ob, mval);
   }
   else if (sima != nullptr) {
     /* Sample from the active image buffer. The sampled color is in
      * Linear Scene Reference Space. */
-    float rgba_f[3];
+    float3 rgba_f;
     bool is_data;
-    if (ED_space_image_color_sample(sima, region, blender::int2(x, y), rgba_f, &is_data)) {
-      if (use_palette) {
-        BKE_palette_color_set(color, rgba_f);
-      }
-      else {
-        BKE_brush_color_set(paint, br, rgba_f);
-      }
-      return;
+    if (ED_space_image_color_sample(sima, region, mval, rgba_f, &is_data)) {
+      sampled_color = rgba_f;
     }
   }
 
   /* No sample found; sample directly from the GPU front buffer. */
-  {
-    float rgb_fl[3];
-    WM_window_pixels_read_sample(C,
-                                 CTX_wm_window(C),
-                                 blender::int2(x + region->winrct.xmin, y + region->winrct.ymin),
-                                 rgb_fl);
+  if (!sampled_color) {
+    float3 rgb_f;
+    WM_window_pixels_read_sample(
+        C,
+        CTX_wm_window(C),
+        blender::int2(mval.x + region->winrct.xmin, mval.y + region->winrct.ymin),
+        rgb_f);
 
     /* The sampled color is in display colorspace, convert to scene linear. */
     const ColorManagedDisplay *display = IMB_colormanagement_display_get_named(
         scene->display_settings.display_device);
-    IMB_colormanagement_display_to_scene_linear_v3(rgb_fl, display);
-
-    if (use_palette) {
-      BKE_palette_color_set(color, rgb_fl);
-    }
-    else {
-      BKE_brush_color_set(paint, br, rgb_fl);
-    }
+    IMB_colormanagement_display_to_scene_linear_v3(rgb_f, display);
+    sampled_color = rgb_f;
   }
+
+  BLI_assert(sampled_color);
+  return sampled_color.value_or(float3(0.0f));
 }
 
 struct SampleColorData {
   bool show_cursor;
   short launch_event;
-  float initcolor[3];
+  float3 initial_color;
   bool sample_palette;
 };
 
@@ -357,23 +351,25 @@ static wmOperatorStatus sample_color_exec(bContext *C, wmOperator *op)
 {
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
-  PaintMode mode = BKE_paintmode_get_active_from_context(C);
   ARegion *region = CTX_wm_region(C);
   wmWindow *win = CTX_wm_window(C);
   const bool show_cursor = ((paint->flags & PAINT_SHOW_BRUSH) != 0);
-  int location[2];
   paint->flags &= ~PAINT_SHOW_BRUSH;
 
   /* force redraw without cursor */
   WM_paint_cursor_tag_redraw(win, region);
   WM_redraw_windows(C);
 
+  int2 location;
   RNA_int_get_array(op->ptr, "location", location);
-  const bool use_palette = RNA_boolean_get(op->ptr, "palette");
-  const bool use_sample_texture = (mode == PaintMode::Texture3D) &&
-                                  !RNA_boolean_get(op->ptr, "merged");
+  location.x = std::clamp(location.x, 0, (int)region->winx);
+  location.y = std::clamp(location.y, 0, (int)region->winy);
 
-  paint_sample_color(C, region, location[0], location[1], use_sample_texture, use_palette);
+  const bool use_merged_texture = RNA_boolean_get(op->ptr, "merged");
+  const bool use_palette = RNA_boolean_get(op->ptr, "palette");
+
+  const float3 sampled_color = paint_sample_color(C, region, location, use_merged_texture);
+  apply_sampled_color(*CTX_data_main(C), *paint, sampled_color, use_palette);
 
   if (show_cursor) {
     paint->flags |= PAINT_SHOW_BRUSH;
@@ -388,13 +384,13 @@ static wmOperatorStatus sample_color_invoke(bContext *C, wmOperator *op, const w
 {
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
-  SampleColorData *data = MEM_new<SampleColorData>("sample color custom data");
+  SampleColorData *data = MEM_new<SampleColorData>(__func__);
   ARegion *region = CTX_wm_region(C);
   wmWindow *win = CTX_wm_window(C);
 
   data->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
   data->show_cursor = ((paint->flags & PAINT_SHOW_BRUSH) != 0);
-  copy_v3_v3(data->initcolor, BKE_brush_color_get(paint, brush));
+  data->initial_color = BKE_brush_color_get(paint, brush);
   data->sample_palette = false;
   op->customdata = data;
   paint->flags &= ~PAINT_SHOW_BRUSH;
@@ -409,11 +405,13 @@ static wmOperatorStatus sample_color_invoke(bContext *C, wmOperator *op, const w
 
   RNA_int_set_array(op->ptr, "location", event->mval);
 
-  PaintMode mode = BKE_paintmode_get_active_from_context(C);
-  const bool use_sample_texture = (mode == PaintMode::Texture3D) &&
-                                  !RNA_boolean_get(op->ptr, "merged");
+  const bool use_merged_texture = RNA_boolean_get(op->ptr, "merged");
 
-  paint_sample_color(C, region, event->mval[0], event->mval[1], use_sample_texture, false);
+  const float3 sampled_color = paint_sample_color(
+      C, region, int2(event->mval[0], event->mval[1]), use_merged_texture);
+  /* On initial invoke, we never sample to the palette. */
+  apply_sampled_color(*CTX_data_main(C), *paint, sampled_color, false);
+
   WM_cursor_modal_set(win, WM_CURSOR_EYEDROPPER);
 
   WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, brush);
@@ -433,7 +431,8 @@ static wmOperatorStatus sample_color_modal(bContext *C, wmOperator *op, const wm
     }
 
     if (data->sample_palette) {
-      BKE_brush_color_set(paint, brush, data->initcolor);
+      /* If we sampled any colors to the palette, reset the brush to its initial color */
+      BKE_brush_color_set(paint, brush, data->initial_color);
       RNA_boolean_set(op->ptr, "palette", true);
       WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, brush);
     }
@@ -444,15 +443,15 @@ static wmOperatorStatus sample_color_modal(bContext *C, wmOperator *op, const wm
     return OPERATOR_FINISHED;
   }
 
-  PaintMode mode = BKE_paintmode_get_active_from_context(C);
-  const bool use_sample_texture = (mode == PaintMode::Texture3D) &&
-                                  !RNA_boolean_get(op->ptr, "merged");
+  const bool use_merged_texture = RNA_boolean_get(op->ptr, "merged");
 
   switch (event->type) {
     case MOUSEMOVE: {
       ARegion *region = CTX_wm_region(C);
       RNA_int_set_array(op->ptr, "location", event->mval);
-      paint_sample_color(C, region, event->mval[0], event->mval[1], use_sample_texture, false);
+      const float3 sampled_color = paint_sample_color(
+          C, region, int2(event->mval[0], event->mval[1]), use_merged_texture);
+      apply_sampled_color(*CTX_data_main(C), *paint, sampled_color, false);
       WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, brush);
       break;
     }
@@ -461,7 +460,9 @@ static wmOperatorStatus sample_color_modal(bContext *C, wmOperator *op, const wm
       if (event->val == KM_PRESS) {
         ARegion *region = CTX_wm_region(C);
         RNA_int_set_array(op->ptr, "location", event->mval);
-        paint_sample_color(C, region, event->mval[0], event->mval[1], use_sample_texture, true);
+        const float3 sampled_color = paint_sample_color(
+            C, region, int2(event->mval[0], event->mval[1]), use_merged_texture);
+        apply_sampled_color(*CTX_data_main(C), *paint, sampled_color, true);
         if (!data->sample_palette) {
           data->sample_palette = true;
           sample_color_update_header(data, C);
@@ -511,5 +512,7 @@ void PAINT_OT_sample_color(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "merged", false, "Sample Merged", "Sample the output display color");
   RNA_def_boolean(ot->srna, "palette", false, "Add to Palette", "");
 }
+
+}  // namespace blender::ed::sculpt_paint
 
 /** \} */

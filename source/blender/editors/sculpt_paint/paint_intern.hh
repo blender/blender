@@ -495,7 +495,9 @@ void paint_brush_init_tex(Brush *brush);
 void paint_brush_exit_tex(Brush *brush);
 
 void PAINT_OT_grab_clone(wmOperatorType *ot);
+namespace blender::ed::sculpt_paint {
 void PAINT_OT_sample_color(wmOperatorType *ot);
+}
 void PAINT_OT_brush_colors_flip(wmOperatorType *ot);
 void PAINT_OT_texture_paint_toggle(wmOperatorType *ot);
 void PAINT_OT_project_image(wmOperatorType *ot);
