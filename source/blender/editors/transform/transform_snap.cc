@@ -145,6 +145,11 @@ void transform_snap_flag_from_modifiers_set(TransInfo *t)
                      (((t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) == MOD_SNAP) ||
                       ((t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) == MOD_SNAP_INVERT)),
                      SCE_SNAP);
+
+  /* Clear stale snap flags when snapping is disabled. */
+  if (!(t->tsnap.flag & SCE_SNAP)) {
+    t->tsnap.status &= ~(SNAP_TARGET_FOUND | SNAP_SOURCE_FOUND);
+  }
 }
 
 bool transform_snap_is_active(const TransInfo *t)
