@@ -4,7 +4,7 @@
 
 #include "testing/testing.h"
 
-#include "BLI_kdtree.hh"
+#include "BLI_kdtree_op.hh"
 
 #include <cmath>
 

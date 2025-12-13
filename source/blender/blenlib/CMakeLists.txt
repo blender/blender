@@ -86,7 +86,6 @@ set(SRC
   intern/index_mask_expression.cc
   intern/index_range.cc
   intern/jitter_2d.cc
-  intern/kdtree_impl.hh
   intern/lasso_2d.cc
   intern/lazy_threading.cc
   intern/length_parameterize.cc
@@ -272,7 +271,7 @@ set(SRC
   BLI_iterator.h
   BLI_jitter_2d.h
   BLI_kdopbvh.hh
-  BLI_kdtree.hh
+  BLI_kdtree_op.hh
   BLI_kdtree_types.hh
   BLI_lasso_2d.hh
   BLI_lazy_threading.hh

@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-#include "BLI_kdtree.hh"
+#include "BLI_kdtree_op.hh"
 #include "BLI_listbase.h"
 #include "BLI_rand.hh"
 #include "BLI_task.hh"

@@ -16,7 +16,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_types.hh"
 
-#include "BLI_kdtree.hh"
+#include "BLI_kdtree_op.hh"
 
 #include "ED_mesh.hh"
 
