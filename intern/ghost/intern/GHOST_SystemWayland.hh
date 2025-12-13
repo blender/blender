@@ -233,15 +233,13 @@ class GHOST_SystemWayland : public GHOST_System {
 
   bool cursor_grab_use_software_display_get(const GHOST_TGrabCursorMode mode);
 
-#ifdef USE_EVENT_BACKGROUND_THREAD
   /**
    * Return a separate WAYLAND local timer manager to #GHOST_System::getTimerManager
    * Manipulation & access must lock with #GHOST_WaylandSystem::server_mutex.
    *
-   * See #GWL_Display::ghost_timer_manager doc-string for details on why this is needed.
+   * See #GWL_Display::key_repeat_timer_manager doc-string for details on why this is needed.
    */
-  GHOST_TimerManager *ghost_timer_manager();
-#endif
+  GHOST_TimerManager *key_repeat_timer_manager();
 
   /* WAYLAND direct-data access. */
 

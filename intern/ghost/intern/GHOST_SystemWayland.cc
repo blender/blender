@@ -99,9 +99,7 @@
 /* Logging, use `ghost.wl.*` prefix. */
 #include "CLG_log.h"
 
-#ifdef USE_EVENT_BACKGROUND_THREAD
-#  include "GHOST_TimerTask.hh"
-#endif
+#include "GHOST_TimerTask.hh"
 
 static signed char has_wl_trackpad_physical_direction = -1;
 
@@ -1369,14 +1367,10 @@ static void gwl_seat_key_repeat_timer_add(GWL_Seat *seat,
 
   static_cast<GWL_KeyRepeatPlayload *>(payload)->time_ms_init = time_now;
 
-#ifdef USE_EVENT_BACKGROUND_THREAD
   GHOST_TimerTask *timer = new GHOST_TimerTask(
       time_now + time_start, time_step, key_repeat_fn, payload);
   seat->key_repeat.timer = timer;
-  system->ghost_timer_manager()->addTimer(timer);
-#else
-  seat->key_repeat.timer = system->installTimer(time_start, time_step, key_repeat_fn, payload);
-#endif
+  system->key_repeat_timer_manager()->addTimer(timer);
 }
 
 /**
@@ -1385,12 +1379,8 @@ static void gwl_seat_key_repeat_timer_add(GWL_Seat *seat,
 static void gwl_seat_key_repeat_timer_remove(GWL_Seat *seat)
 {
   GHOST_SystemWayland *system = seat->system;
-#ifdef USE_EVENT_BACKGROUND_THREAD
-  system->ghost_timer_manager()->removeTimer(
+  system->key_repeat_timer_manager()->removeTimer(
       static_cast<GHOST_TimerTask *>(seat->key_repeat.timer));
-#else
-  system->removeTimer(seat->key_repeat.timer);
-#endif
   seat->key_repeat.timer = nullptr;
 }
 
@@ -1580,18 +1570,26 @@ struct GWL_Display {
   std::vector<std::unique_ptr<const GHOST_IEvent>> events_pending;
   /** Guard against multiple threads accessing `events_pending` at once. */
   std::mutex events_pending_mutex;
+#endif /* USE_EVENT_BACKGROUND_THREAD */
 
   /**
-   * A separate timer queue, needed so the WAYLAND thread can lock access.
-   * Using the system's #GHOST_System::getTimerManager is not thread safe because
-   * access to the timer outside of WAYLAND specific logic will not lock.
+   * A timer manager for key-repeat events.
    *
-   * Needed because #GHOST_System::dispatchEvents fires timers
-   * outside of WAYLAND (without locking the `timer_mutex`).
+   * There are two reasons a separate timer manager is needed:
+   *
+   * - It's necessary to fire the timer immediately after events have been processed,
+   *   (not before - like regular system timers), otherwise the release events won't
+   *   have been handled and repeat events may be sent after the keys have been released,
+   *   see: #151359.
+   *
+   * - A separate timer queue, needed so the WAYLAND thread can lock access.
+   *   Using the system's #GHOST_System::getTimerManager is not thread safe because
+   *   access to the timer outside of WAYLAND specific logic will not lock.
+   *
+   *   Needed because #GHOST_System::dispatchEvents fires timers
+   *   outside of WAYLAND (without locking the `timer_mutex`).
    */
-  GHOST_TimerManager *ghost_timer_manager = nullptr;
-
-#endif /* USE_EVENT_BACKGROUND_THREAD */
+  GHOST_TimerManager *key_repeat_timer_manager = nullptr;
 };
 
 /**
@@ -1640,14 +1638,13 @@ static void gwl_display_destroy(GWL_Display *display)
       display->system->server_mutex->unlock();
     }
   }
+#endif /* USE_EVENT_BACKGROUND_THREAD */
 
   /* Important to remove after the seats which may have key repeat timers active. */
-  if (display->ghost_timer_manager) {
-    delete display->ghost_timer_manager;
-    display->ghost_timer_manager = nullptr;
+  if (display->key_repeat_timer_manager) {
+    delete display->key_repeat_timer_manager;
+    display->key_repeat_timer_manager = nullptr;
   }
-
-#endif /* USE_EVENT_BACKGROUND_THREAD */
 
   if (display->wl.display) {
     wl_display_disconnect(display->wl.display);
@@ -8096,10 +8093,10 @@ GHOST_SystemWayland::GHOST_SystemWayland(const bool background)
   else {
     gwl_display_event_thread_create(display_);
   }
+#endif
   /* Could be null in background mode, however there are enough
    * references to the timer-manager that it's safer to create it. */
-  display_->ghost_timer_manager = new GHOST_TimerManager();
-#endif
+  display_->key_repeat_timer_manager = new GHOST_TimerManager();
 }
 
 void GHOST_SystemWayland::display_destroy_and_free_all()
@@ -8178,16 +8175,8 @@ bool GHOST_SystemWayland::processEvents(bool waitForEvent)
   }
 #endif /* USE_EVENT_BACKGROUND_THREAD */
 
+  const uint64_t now = getMilliSeconds();
   {
-    const uint64_t now = getMilliSeconds();
-#ifdef USE_EVENT_BACKGROUND_THREAD
-    {
-      std::lock_guard lock_timer_guard{*display_->system->timer_mutex};
-      if (ghost_timer_manager()->fireTimers(now)) {
-        any_processed = true;
-      }
-    }
-#endif
     if (getTimerManager()->fireTimers(now)) {
       any_processed = true;
     }
@@ -8225,6 +8214,18 @@ bool GHOST_SystemWayland::processEvents(bool waitForEvent)
       ghost_wl_display_report_error(display_->wl.display);
     }
 #endif /* !USE_EVENT_BACKGROUND_THREAD */
+  }
+
+  /* It's important to fire the repeat timers after handing events,
+   * otherwise any key-release events may not have been consumed,
+   * causing repeat events to be generated for keys the user has released, see: #151359. */
+  {
+#ifdef USE_EVENT_BACKGROUND_THREAD
+    std::lock_guard lock_timer_guard{*display_->system->timer_mutex};
+#endif
+    if (key_repeat_timer_manager()->fireTimers(now)) {
+      any_processed = true;
+    }
   }
 
   if (getEventManager()->getNumEvents() > 0) {
@@ -9738,12 +9739,10 @@ wl_shm *GHOST_SystemWayland::wl_shm_get() const
   return display_->wl.shm;
 }
 
-#ifdef USE_EVENT_BACKGROUND_THREAD
-GHOST_TimerManager *GHOST_SystemWayland::ghost_timer_manager()
+GHOST_TimerManager *GHOST_SystemWayland::key_repeat_timer_manager()
 {
-  return display_->ghost_timer_manager;
+  return display_->key_repeat_timer_manager;
 }
-#endif
 
 bool GHOST_SystemWayland::use_window_frame_get() const
 {
