@@ -271,7 +271,7 @@ set(SRC
   BLI_iterator.h
   BLI_jitter_2d.h
   BLI_kdopbvh.hh
-  BLI_kdtree_op.hh
+  BLI_kdtree.hh
   BLI_kdtree_types.hh
   BLI_lasso_2d.hh
   BLI_lazy_threading.hh
