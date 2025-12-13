@@ -12,8 +12,6 @@
 #include <pxr/usd/usdShade/material.h>
 #include <pxr/usd/usdUtils/sparseValueWriter.h>
 
-#include "WM_types.hh"
-
 #include <string>
 
 struct ID;
@@ -57,10 +55,7 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
   const pxr::SdfPath &usd_path() const;
 
   /** Get the wmJobWorkerStatus-provided `reports` list pointer, to use with the BKE_report API. */
-  ReportList *reports() const
-  {
-    return usd_export_context_.export_params.worker_status->reports;
-  }
+  ReportList *reports() const;
 
  protected:
   virtual void do_write(HierarchyContext &context) = 0;

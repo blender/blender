@@ -9,7 +9,7 @@
 
 #include "usd.hh"
 #include "usd_reader_curve.hh"
-#include "usd_reader_geom.hh"
+#include "usd_reader_prim.hh"
 
 #include <pxr/usd/usd/prim.h>
 #include <pxr/usd/usdGeom/nurbsCurves.h>

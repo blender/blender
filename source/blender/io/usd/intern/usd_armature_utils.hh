@@ -12,8 +12,6 @@
 #include <pxr/base/tf/token.h>
 #include <pxr/usd/usdSkel/animation.h>
 
-#include <string>
-
 struct Bone;
 struct Depsgraph;
 struct FCurve;

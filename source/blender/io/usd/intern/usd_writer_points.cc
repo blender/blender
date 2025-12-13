@@ -10,6 +10,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_report.hh"
 
+#include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
 
 #include <pxr/base/vt/array.h>

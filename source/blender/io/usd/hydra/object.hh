@@ -17,7 +17,11 @@
 #include "id.hh"
 #include "material.hh"
 
+struct Material;
+
 namespace blender::io::hydra {
+
+class HydraSceneDelegate;
 
 class ObjectData : public IdData {
  public:

@@ -4,8 +4,11 @@
 
 #include "volume_modifier.hh"
 
+#include <pxr/base/tf/token.h>
 #include <pxr/usdImaging/usdVolImaging/tokens.h>
 
+#include "DNA_fluid_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_path_utils.hh"

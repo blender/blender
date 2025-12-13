@@ -10,9 +10,7 @@
 
 #include "DNA_light_types.h"
 
-#include "IMB_colormanagement.hh"
-
-#include "BLI_math_rotation.h"
+#include "BLI_math_constants.h"
 
 #include "hydra_scene_delegate.hh"
 

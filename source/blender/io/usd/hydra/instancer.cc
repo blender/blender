@@ -4,16 +4,14 @@
 
 #include "instancer.hh"
 
-#include <pxr/base/gf/vec2f.h>
-#include <pxr/imaging/hd/light.h>
+#include <pxr/base/vt/types.h>
+#include <pxr/base/vt/value.h>
 
 #include "BKE_duplilist.hh"
 #include "BKE_particle.h"
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
-
-#include "DEG_depsgraph_query.hh"
 
 #include "DNA_particle_types.h"
 

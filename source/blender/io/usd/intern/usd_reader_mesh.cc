@@ -12,11 +12,9 @@
 #include "usd_mesh_utils.hh"
 #include "usd_reader_material.hh"
 #include "usd_skel_convert.hh"
-#include "usd_utils.hh"
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
-#include "BKE_customdata.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_main.hh"
 #include "BKE_material.hh"
@@ -35,11 +33,9 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_customdata_types.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include <pxr/base/gf/matrix4f.h>
 #include <pxr/base/vt/array.h>

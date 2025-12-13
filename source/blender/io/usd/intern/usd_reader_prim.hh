@@ -13,8 +13,6 @@
 #include "BLI_map.hh"
 #include "BLI_set.hh"
 
-#include "WM_types.hh"
-
 #include <pxr/usd/sdf/path.h>
 #include <pxr/usd/usd/prim.h>
 
@@ -109,10 +107,7 @@ class USDPrimReader {
   }
 
   /** Get the wmJobWorkerStatus-provided `reports` list pointer, to use with the BKE_report API. */
-  ReportList *reports() const
-  {
-    return import_params_.worker_status ? import_params_.worker_status->reports : nullptr;
-  }
+  ReportList *reports() const;
 
   /* Since readers might be referenced through handles
    * maintained by modifiers and constraints, we provide

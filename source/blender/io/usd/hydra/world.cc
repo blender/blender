@@ -6,12 +6,10 @@
 #include "usd_private.hh"
 
 #include <pxr/base/gf/rotation.h>
-#include <pxr/base/gf/vec2f.h>
 #include <pxr/base/gf/vec3f.h>
-#include <pxr/base/vt/array.h>
 #include <pxr/imaging/hd/light.h>
-#include <pxr/imaging/hd/renderDelegate.h>
 #include <pxr/imaging/hd/tokens.h>
+#include <pxr/usd/sdf/assetPath.h>
 #include <pxr/usd/usdLux/tokens.h>
 
 #include "DNA_scene_types.h"

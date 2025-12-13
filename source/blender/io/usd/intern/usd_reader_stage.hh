@@ -115,10 +115,7 @@ class USDStageReader {
   }
 
   /** Get the wmJobWorkerStatus-provided `reports` list pointer, to use with the BKE_report API. */
-  ReportList *reports() const
-  {
-    return params_.worker_status ? params_.worker_status->reports : nullptr;
-  }
+  ReportList *reports() const;
 
   /** Clear all cached reader collections. */
   void clear_readers();

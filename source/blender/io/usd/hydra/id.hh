@@ -8,9 +8,9 @@
 #include <pxr/base/vt/value.h>
 #include <pxr/usd/sdf/path.h>
 
-#include "DNA_ID.h"
-
 #include "BLI_hash.hh"
+
+struct ID;
 
 template<> struct blender::DefaultHash<pxr::SdfPath> {
   uint64_t operator()(const pxr::SdfPath &value) const

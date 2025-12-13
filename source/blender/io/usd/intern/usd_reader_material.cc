@@ -6,7 +6,6 @@
 #include "usd_asset_utils.hh"
 #include "usd_hash_types.hh"
 #include "usd_reader_utils.hh"
-#include "usd_utils.hh"
 
 #include "BKE_image.hh"
 #include "BKE_lib_id.hh"
@@ -32,6 +31,8 @@
 #include "DNA_material_types.h"
 
 #include "IMB_colormanagement.hh"
+
+#include "WM_types.hh"
 
 #include <pxr/base/gf/vec3f.h>
 #include <pxr/usd/ar/packageUtils.h>
@@ -455,6 +456,11 @@ void NodePlacementContext::cache_node(const pxr::UsdShadeShader &usd_shader,
 USDMaterialReader::USDMaterialReader(const USDImportParams &params, Main &bmain)
     : params_(params), bmain_(bmain)
 {
+}
+
+ReportList *USDMaterialReader::reports() const
+{
+  return params_.worker_status ? params_.worker_status->reports : nullptr;
 }
 
 Material *USDMaterialReader::add_material(const pxr::UsdShadeMaterial &usd_material,

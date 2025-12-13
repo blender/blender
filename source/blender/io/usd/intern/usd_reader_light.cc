@@ -9,8 +9,6 @@
 #include "BKE_light.h"
 #include "BKE_object.hh"
 
-#include "IMB_colormanagement.hh"
-
 #include "DNA_light_types.h"
 #include "DNA_object_types.h"
 

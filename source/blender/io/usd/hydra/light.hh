@@ -5,7 +5,6 @@
 #pragma once
 
 #include <pxr/base/tf/hashmap.h>
-#include <pxr/usd/sdf/assetPath.h>
 #include <pxr/usd/sdf/path.h>
 
 #include "BKE_light.h"

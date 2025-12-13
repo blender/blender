@@ -5,8 +5,6 @@
 
 #include "usd.hh"
 
-#include "WM_types.hh"
-
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
@@ -120,10 +118,7 @@ class USDMaterialReader {
   void import_usd_preview(Material *mtl, const pxr::UsdShadeMaterial &usd_material) const;
 
   /** Get the wmJobWorkerStatus-provided `reports` list pointer, to use with the BKE_report API. */
-  ReportList *reports() const
-  {
-    return params_.worker_status ? params_.worker_status->reports : nullptr;
-  }
+  ReportList *reports() const;
 
  protected:
   /** Create the Principled BSDF shader node network. */

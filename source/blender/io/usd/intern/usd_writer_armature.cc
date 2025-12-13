@@ -14,6 +14,7 @@
 #include "BKE_action.hh"
 
 #include "DNA_armature_types.h"
+#include "DNA_object_types.h"
 
 #include <pxr/base/gf/matrix4d.h>
 #include <pxr/base/gf/matrix4f.h>

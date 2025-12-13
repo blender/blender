@@ -22,7 +22,6 @@
 
 #include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute.hh"
-#include "BKE_customdata.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_material.hh"
 #include "BKE_mesh.hh"
@@ -40,6 +39,7 @@
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_object_types.h"
 
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.usd"};

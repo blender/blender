@@ -11,7 +11,6 @@
 
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "usd_attribute_utils.hh"
 #include "usd_mesh_utils.hh"

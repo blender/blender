@@ -10,9 +10,10 @@
 
 #include "BKE_object.hh"
 
+#include "DNA_object_types.h"
+
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
-#include "BLI_string.h"
 #include "BLI_vector.hh"
 
 #include "CLG_log.h"

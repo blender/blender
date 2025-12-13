@@ -41,7 +41,6 @@
 #include "DNA_world_types.h"
 
 #include <cmath>
-#include <cstdint>
 #include <string>
 
 #include "CLG_log.h"
@@ -120,7 +119,7 @@ static Image *load_image(std::string tex_path, Main *bmain, const USDImportParam
 /* Create a new node of type 'new_node_type' and connect it
  * as an upstream source to 'dst_node' with the given sockets. */
 static bNode *append_node(bNode *dst_node,
-                          int16_t new_node_type,
+                          int new_node_type,
                           const StringRef out_sock,
                           const StringRef in_sock,
                           bNodeTree *ntree,

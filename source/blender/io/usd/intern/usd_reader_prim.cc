@@ -16,7 +16,14 @@
 
 #include "BLI_assert.h"
 
+#include "WM_types.hh"
+
 namespace blender::io::usd {
+
+ReportList *USDPrimReader::reports() const
+{
+  return import_params_.worker_status ? import_params_.worker_status->reports : nullptr;
+}
 
 void USDPrimReader::set_props(const bool merge_with_parent, const pxr::UsdTimeCode time)
 {

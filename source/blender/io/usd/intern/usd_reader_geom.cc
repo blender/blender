@@ -12,6 +12,7 @@
 
 #include "DNA_cachefile_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_object_types.h"
 
 namespace blender::io::usd {
 

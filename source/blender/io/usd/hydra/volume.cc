@@ -2,7 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include <pxr/imaging/hd/bprim.h>
 #include <pxr/imaging/hd/tokens.h>
 #include <pxr/imaging/hd/volumeFieldSchema.h>
 #include <pxr/usd/usdHydra/tokens.h>

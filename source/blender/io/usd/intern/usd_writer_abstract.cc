@@ -12,13 +12,13 @@
 #include <pxr/usd/usdGeom/scope.h>
 #include <pxr/usd/usdUI/accessibilityAPI.h>
 
-#include "BKE_customdata.hh"
-
 #include "BLI_assert.h"
 #include "BLI_bounds_types.hh"
 
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
+
+#include "WM_types.hh"
 
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.usd"};
@@ -235,6 +235,11 @@ pxr::UsdTimeCode USDAbstractWriter::get_export_time_code() const
   /* By using the default time-code USD won't even write a single `timeSample` for non-animated
    * data. Instead, it writes it as non-time-sampled. */
   return pxr::UsdTimeCode::Default();
+}
+
+ReportList *USDAbstractWriter::reports() const
+{
+  return usd_export_context_.export_params.worker_status->reports;
 }
 
 void USDAbstractWriter::write(HierarchyContext &context)

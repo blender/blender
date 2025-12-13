@@ -11,8 +11,6 @@
 
 #include "BKE_attribute.hh"
 
-#include "DNA_customdata_types.h"
-
 #include <pxr/usd/sdf/valueTypeName.h>
 
 #include <optional>

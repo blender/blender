@@ -12,6 +12,7 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector_types.hh"
 
+#include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 
 namespace blender::io::usd {

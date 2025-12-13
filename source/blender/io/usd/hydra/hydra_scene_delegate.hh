@@ -4,10 +4,7 @@
 
 #pragma once
 
-#include <pxr/base/gf/vec2f.h>
 #include <pxr/imaging/hd/sceneDelegate.h>
-
-#include "DEG_depsgraph.hh"
 
 #include "CLG_log.h"
 
@@ -20,7 +17,11 @@
 #include "world.hh"
 
 struct Depsgraph;
+struct ID;
 struct Main;
+struct Material;
+struct Object;
+struct ParticleSystem;
 struct Scene;
 struct View3D;
 

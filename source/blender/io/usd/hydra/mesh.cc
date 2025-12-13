@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include <pxr/base/gf/vec2f.h>
-#include <pxr/base/tf/staticTokens.h>
+#include <pxr/base/tf/token.h>
 #include <pxr/imaging/hd/tokens.h>
 
 #include "BLI_array_utils.hh"
@@ -11,7 +10,6 @@
 #include "BLI_vector_set.hh"
 
 #include "BKE_attribute.hh"
-#include "BKE_customdata.hh"
 #include "BKE_material.hh"
 #include "BKE_mesh.hh"
 

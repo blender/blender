@@ -6,16 +6,13 @@
 #include "usd_hierarchy_iterator.hh"
 #include "usd_utils.hh"
 
-#include <pxr/base/gf/vec3f.h>
 #include <pxr/base/tf/pathUtils.h>
-#include <pxr/base/vt/array.h>
 #include <pxr/base/vt/value.h>
 #include <pxr/usd/usdVol/openVDBAsset.h>
 #include <pxr/usd/usdVol/volume.h>
 
 #include "DNA_scene_types.h"
 #include "DNA_volume_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BKE_report.hh"
 #include "BKE_volume.hh"

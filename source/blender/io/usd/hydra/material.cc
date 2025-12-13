@@ -5,9 +5,6 @@
 #include "material.hh"
 #include "usd_private.hh"
 
-#include <Python.h>
-#include <unicodeobject.h>
-
 #include <pxr/base/tf/stringUtils.h>
 #include <pxr/imaging/hd/material.h>
 #include <pxr/imaging/hd/renderDelegate.h>

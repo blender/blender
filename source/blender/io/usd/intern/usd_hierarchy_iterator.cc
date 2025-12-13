@@ -35,6 +35,8 @@
 #include "DNA_layer_types.h"
 #include "DNA_object_types.h"
 
+#include "WM_types.hh"
+
 namespace blender::io::usd {
 
 USDHierarchyIterator::USDHierarchyIterator(Main *bmain,
