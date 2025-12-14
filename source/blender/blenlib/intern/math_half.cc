@@ -14,11 +14,12 @@
 #  include <arm_neon.h>
 #endif
 #if (defined(__x86_64__) || defined(_M_X64))
-/* All AVX2 CPUs have F16C instructions, so use those if we're compiling for AVX2.
- * Otherwise use "manual" SSE2 4x-wide conversion. */
-#  if defined(__AVX2__)
+/* Sandy Bridge has AVX but no F16C. MSVC does not define __F16C__, but any CPU having AVX2 is sure
+ * to have it. */
+#  if (defined(__AVX__) && defined(__F16C__)) || defined(__AVX2__)
 #    define USE_HARDWARE_FP16_F16C
 #  else
+/* Use "manual" SSE2 4x-wide conversion. */
 #    define USE_SSE2_FP16
 #  endif
 #  include <immintrin.h>
@@ -238,11 +239,11 @@ static inline __m128 F16_to_F32_4x(const __m128i &h)
 void blender::math::float_to_half_array(const float *src, uint16_t *dst, size_t length)
 {
   size_t i = 0;
-#if defined(USE_HARDWARE_FP16_F16C) /* 8-wide loop using AVX2 F16C */
+#if defined(USE_HARDWARE_FP16_F16C) /* 8-wide loop using F16C and AVX */
   for (; i + 7 < length; i += 8) {
-    __m256 src8 = _mm256_loadu_ps(src);
-    __m128i h8 = _mm256_cvtps_ph(src8, _MM_FROUND_TO_NEAREST_INT);
-    _mm_storeu_epi32(dst, h8);
+    __m256 src8 = _mm256_loadu_ps(src);                            /* AVX */
+    __m128i h8 = _mm256_cvtps_ph(src8, _MM_FROUND_TO_NEAREST_INT); /* F16C */
+    _mm_storeu_si128((__m128i *)dst, h8);                          /* SSE2 */
     src += 8;
     dst += 8;
   }
@@ -368,11 +369,11 @@ void blender::math::float_to_half_make_finite_array(const float *src, uint16_t *
 void blender::math::half_to_float_array(const uint16_t *src, float *dst, size_t length)
 {
   size_t i = 0;
-#if defined(USE_HARDWARE_FP16_F16C) /* 8-wide loop using AVX2 F16C */
+#if defined(USE_HARDWARE_FP16_F16C) /* 8-wide loop using F16C and AVX */
   for (; i + 7 < length; i += 8) {
-    __m128i src8 = _mm_loadu_epi32(src);
-    __m256 f8 = _mm256_cvtph_ps(src8);
-    _mm256_storeu_ps(dst, f8);
+    __m128i src8 = _mm_loadu_si128((__m128i *)src); /* SSE2 */
+    __m256 f8 = _mm256_cvtph_ps(src8);              /* F16C */
+    _mm256_storeu_ps(dst, f8);                      /* AVX */
     src += 8;
     dst += 8;
   }

@@ -161,8 +161,12 @@ elseif(CMAKE_COMPILER_IS_GNUCC OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
   list(APPEND CYCLES_MATH_FLAGS "-fno-math-errno")
   # Let compiler optimize 0.0 - x without worrying about signed zeros.
   list(APPEND CYCLES_MATH_FLAGS "-fno-signed-zeros")
-  # Let the compiler generate fused multiply-add instructions
-  list(APPEND CYCLES_MATH_FLAGS "-ffp-contract=fast")
+  # Disable FMA auto-vectorization across different statements,
+  # which creates havoc in "intern/cycles/blender/camera.cpp"
+  # with GCC-15.2.1, for something like:
+  #   const float2 dv = 2.0f * (aspectratio * bcam->shift + bcam->offset * aspect * 2.0f);
+  # (probably due to https://gcc.gnu.org/bugzilla/show_bug.cgi?id=106902).
+  list(APPEND CYCLES_MATH_FLAGS "-ffp-contract=on")
   # Let the compiler replace x/y with x*(1/y)
   list(APPEND CYCLES_MATH_FLAGS "-freciprocal-math")
   # Let the compiler reorder terms to save operations
@@ -440,11 +444,6 @@ endif()
 # Subdirectories
 
 if(WITH_CYCLES_BLENDER)
-  # Not needed to make cycles automated tests pass with -march=native.
-  # However Blender itself needs this flag.
-  # Note: the clang-cl style removal must go first, to avoid a dangling "/clang:"
-  remove_cc_flag("/clang:-ffp-contract=off")
-  remove_cc_flag("-ffp-contract=off")
   add_definitions(-DWITH_BLENDER_GUARDEDALLOC)
   add_subdirectory(blender)
 endif()
