@@ -1211,10 +1211,6 @@ wmOperatorStatus PenToolOperation::modal(bContext *C, wmOperator *op, const wmEv
   this->xy = float2(event->xy);
   this->prev_xy = float2(event->prev_xy);
 
-  if (event->type == EVENT_NONE) {
-    return OPERATOR_RUNNING_MODAL;
-  }
-
   if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
     return OPERATOR_FINISHED;
   }
@@ -1241,32 +1237,33 @@ wmOperatorStatus PenToolOperation::modal(bContext *C, wmOperator *op, const wmEv
 
   std::atomic<bool> changed = false;
   this->center_of_mass_co = calculate_center_of_mass(*this, false);
+  if (event->type == MOUSEMOVE || event->type == INBETWEEN_MOUSEMOVE) {
+    if (this->move_seg && this->closest_element.element_mode == ElementMode::Edge) {
+      const int curves_index = this->closest_element.drawing_index;
+      const float4x4 &layer_to_world = this->layer_to_world_per_curves[curves_index];
+      bke::CurvesGeometry &curves = this->get_curves(curves_index);
 
-  if (this->move_seg && this->closest_element.element_mode == ElementMode::Edge) {
-    const int curves_index = this->closest_element.drawing_index;
-    const float4x4 &layer_to_world = this->layer_to_world_per_curves[curves_index];
-    bke::CurvesGeometry &curves = this->get_curves(curves_index);
+      move_segment(*this, curves, layer_to_world);
+      this->tag_curve_changed(curves_index);
+      changed.store(true, std::memory_order_relaxed);
+    }
+    else {
+      threading::parallel_for(this->curves_range(), 1, [&](const IndexRange curves_range) {
+        for (const int curves_index : curves_range) {
+          bke::CurvesGeometry &curves = this->get_curves(curves_index);
+          const float4x4 &layer_to_object = this->layer_to_object_per_curves[curves_index];
+          const float4x4 &layer_to_world = this->layer_to_world_per_curves[curves_index];
 
-    move_segment(*this, curves, layer_to_world);
-    this->tag_curve_changed(curves_index);
-    changed.store(true, std::memory_order_relaxed);
-  }
-  else {
-    threading::parallel_for(this->curves_range(), 1, [&](const IndexRange curves_range) {
-      for (const int curves_index : curves_range) {
-        bke::CurvesGeometry &curves = this->get_curves(curves_index);
-        const float4x4 &layer_to_object = this->layer_to_object_per_curves[curves_index];
-        const float4x4 &layer_to_world = this->layer_to_world_per_curves[curves_index];
+          IndexMaskMemory memory;
+          const IndexMask selection = this->all_selected_points(curves_index, memory);
 
-        IndexMaskMemory memory;
-        const IndexMask selection = this->all_selected_points(curves_index, memory);
-
-        if (move_handles_in_curve(*this, curves, selection, layer_to_world, layer_to_object)) {
-          changed.store(true, std::memory_order_relaxed);
-          this->tag_curve_changed(curves_index);
+          if (move_handles_in_curve(*this, curves, selection, layer_to_world, layer_to_object)) {
+            changed.store(true, std::memory_order_relaxed);
+            this->tag_curve_changed(curves_index);
+          }
         }
-      }
-    });
+      });
+    }
   }
 
   pen_status_indicators(C, op);
