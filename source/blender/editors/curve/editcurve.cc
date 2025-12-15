@@ -602,8 +602,14 @@ static void calc_keyHandles(ListBase *nurb, float *key)
         prevfp = nullptr;
       }
 
-      nextp = bezt + 1;
-      nextfp = fp + KEYELEM_FLOAT_LEN_BEZTRIPLE;
+      if (nu->pntsu > 1) {
+        nextp = bezt + 1;
+        nextfp = fp + KEYELEM_FLOAT_LEN_BEZTRIPLE;
+      }
+      else {
+        nextp = nullptr;
+        nextfp = nullptr;
+      }
 
       while (a--) {
         key_to_bezt(fp, bezt, &cur);
