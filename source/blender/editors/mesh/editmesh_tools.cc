@@ -9516,6 +9516,12 @@ static void edbm_normals_tools_ui(bContext *C, wmOperator *op)
                    false);
 }
 
+static bool edbm_normals_tools_ui_poll(wmOperatorType * /*ot*/, PointerRNA *ptr)
+{
+  const int mode = RNA_enum_get(ptr, "mode");
+  return mode == EDBM_CLNOR_TOOLS_PASTE;
+}
+
 void MESH_OT_normals_tools(wmOperatorType *ot)
 {
   /* identifiers */
@@ -9527,6 +9533,7 @@ void MESH_OT_normals_tools(wmOperatorType *ot)
   ot->exec = edbm_normals_tools_exec;
   ot->poll = ED_operator_editmesh;
   ot->ui = edbm_normals_tools_ui;
+  ot->ui_poll = edbm_normals_tools_ui_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
