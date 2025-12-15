@@ -4715,6 +4715,78 @@ float raycast_init(ViewContext *vc,
   return math::distance(r_ray_start, r_ray_end);
 }
 
+std::optional<ActiveElementInfo> active_element_info_get(ViewContext &vc, const float2 mval)
+{
+  Object &ob = *vc.obact;
+  SculptSession &ss = *ob.sculpt;
+
+  BKE_view_layer_synced_ensure(vc.scene, vc.view_layer);
+
+  bke::pbvh::Tree *pbvh = bke::object::pbvh_get(ob);
+
+  if (!pbvh || !vc.rv3d ||
+      !BKE_base_is_visible(vc.v3d, BKE_view_layer_base_find(vc.view_layer, &ob)))
+  {
+    return std::nullopt;
+  }
+
+  vert_random_access_ensure(ob);
+
+  float3 ray_start;
+  float3 ray_end;
+  float3 ray_normal;
+  float depth = raycast_init(&vc, mval, ray_start, ray_end, ray_normal, false);
+
+  RaycastData srd{};
+  srd.object = &ob;
+  srd.ray_start = ray_start;
+  srd.ray_normal = ray_normal;
+  srd.hit = false;
+  srd.depth = depth;
+
+  srd.is_mid_stroke = false;
+  srd.use_original = false;
+  if (pbvh->type() == bke::pbvh::Type::Mesh) {
+    const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+    srd.vert_positions = bke::pbvh::vert_positions_eval(*vc.depsgraph, ob);
+    srd.faces = mesh.faces();
+    srd.corner_verts = mesh.corner_verts();
+    srd.corner_tris = mesh.corner_tris();
+    const bke::AttributeAccessor attributes = mesh.attributes();
+    srd.hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
+  }
+  else if (pbvh->type() == bke::pbvh::Type::Grids) {
+    srd.subdiv_ccg = ss.subdiv_ccg;
+  }
+
+  isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
+  bke::pbvh::raycast(
+      *pbvh,
+      [&](bke::pbvh::Node &node, float *tmin) { sculpt_raycast_cb(node, srd, tmin); },
+      ray_start,
+      ray_normal,
+      srd.use_original);
+
+  /* Cursor is not over the mesh, return default values. */
+  if (!srd.hit) {
+    return std::nullopt;
+  }
+
+  ActiveElementInfo info;
+  info.vert = srd.active_vertex;
+  switch (pbvh->type()) {
+    case bke::pbvh::Type::Mesh:
+      info.active_face_idx = srd.active_face_grid_index;
+      break;
+    case bke::pbvh::Type::Grids:
+      info.active_grid_idx = srd.active_face_grid_index;
+      break;
+    case bke::pbvh::Type::BMesh:
+      break;
+  }
+  return info;
+}
+
 bool cursor_geometry_info_update(bContext *C,
                                  CursorGeometryInfo *out,
                                  const float2 &mval,
