@@ -188,7 +188,10 @@ static void assert_valid_panels_recursive(const NodeDeclaration &node_decl,
     if (const auto *socket_decl = dynamic_cast<const SocketDeclaration *>(item_decl)) {
       if (socket_decl->in_out == SOCK_IN) {
         BLI_assert(node_decl.allow_any_socket_order || !found_panel);
-        found_input = true;
+        /* Panel toggles are always the first socket, breaking expected outputs-inputs ordering. */
+        if (!socket_decl->is_panel_toggle) {
+          found_input = true;
+        }
         r_flat_inputs.append(socket_decl);
       }
       else {
