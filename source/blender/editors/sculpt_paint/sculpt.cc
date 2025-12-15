@@ -4715,7 +4715,7 @@ float raycast_init(ViewContext *vc,
   return math::distance(r_ray_start, r_ray_end);
 }
 
-std::optional<ActiveElementInfo> active_element_info_get(ViewContext &vc, const float2 mval)
+std::optional<ActiveElementInfo> active_element_info_get(ViewContext &vc, const float2 &mval)
 {
   Object &ob = *vc.obact;
   SculptSession &ss = *ob.sculpt;
