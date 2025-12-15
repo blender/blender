@@ -6131,13 +6131,13 @@ void button_func_rename_set(Button *but, ButtonHandleRenameFunc func, void *arg1
 void button_func_rename_full_set(Button *but,
                                  std::function<void(std::string &new_name)> rename_full_func)
 {
-  but->rename_full_func = rename_full_func;
+  but->rename_full_func = std::move(rename_full_func);
 }
 
 void button_func_drawextra_set(Block *block,
                                std::function<void(const bContext *C, rcti *rect)> func)
 {
-  block->drawextra = func;
+  block->drawextra = std::move(func);
 }
 
 void button_func_set(Button *but, ButtonHandleFunc func, void *arg1, void *arg2)
@@ -6217,7 +6217,7 @@ void button_func_tooltip_custom_set(Button *but,
 
 void button_func_pushed_state_set(Button *but, std::function<bool(const Button &)> func)
 {
-  but->pushed_state_func = func;
+  but->pushed_state_func = std::move(func);
   button_update(but);
 }
 
