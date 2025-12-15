@@ -60,6 +60,13 @@ class GroupInputOperation : public NodeOperation {
                               this->context().get_compositing_domain() :
                               input.domain();
 
+    if (this->context().get_input_region().min == int2(0) &&
+        domain.data_size == input.domain().data_size)
+    {
+      result.wrap_external(input);
+      return;
+    }
+
     result.allocate_texture(domain);
     result.set_transformation(input.domain().transformation);
     if (this->context().use_gpu()) {
