@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <pxr/base/gf/vec2f.h>
 #include <pxr/imaging/hd/sceneDelegate.h>
 
 #include "CLG_log.h"
