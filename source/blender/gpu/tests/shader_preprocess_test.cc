@@ -541,6 +541,42 @@ static void test_preprocess_reference()
 }
 GPU_TEST(preprocess_reference);
 
+static void test_preprocess_cleanup()
+{
+  using namespace shader;
+  using namespace std;
+
+  {
+    string input = R"(
+#line 2
+int b = 0;          
+            
+#if 0
+           
+int a = 1;
+#elif 1
+#line 321
+#line 321
+int a = 0;          
+#endif
+)";
+    string expect = R"(
+int b = 0;
+
+#if 0
+#elif 1
+#line 321
+int a = 0;
+#endif
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+}
+GPU_TEST(preprocess_cleanup);
+
 static void test_preprocess_default_arguments()
 {
   using namespace shader;

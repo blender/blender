@@ -3314,6 +3314,9 @@ class Preprocessor {
     using namespace shader::parser;
 
     parser().foreach_match("#w0\n", [&](vector<Token> toks) {
+      if (toks[1].str() != "line") {
+        return;
+      }
       /* Workaround the foreach_match not matching overlapping patterns. */
       if (toks.back().next() == '#' && toks.back().next().next() == 'w' &&
           toks.back().next().next().next() == '0' &&
@@ -3325,6 +3328,9 @@ class Preprocessor {
     parser.apply_mutations();
 
     parser().foreach_match("#w0\n#w\n", [&](vector<Token> toks) {
+      if (toks[1].str() != "line") {
+        return;
+      }
       /* Workaround the foreach_match not matching overlapping patterns. */
       if (toks.back().next() == '#' && toks.back().next().next() == 'w' &&
           toks.back().next().next().next() == '0' &&
@@ -3336,6 +3342,9 @@ class Preprocessor {
     parser.apply_mutations();
 
     parser().foreach_match("#w0\n", [&](vector<Token> toks) {
+      if (toks[1].str() != "line") {
+        return;
+      }
       /* True if directive is noop. */
       if (toks[0].line_number() == stol(toks[2].str())) {
         parser.replace(toks[0].line_start(), toks[0].line_end() + 1, "");
