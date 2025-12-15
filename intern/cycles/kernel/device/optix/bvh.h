@@ -302,6 +302,12 @@ extern "C" __global__ void __anyhit__kernel_optix_volume_test()
   if (intersection_skip_self(ray->self, object, prim)) {
     return optixIgnoreIntersection();
   }
+
+  const int shader = kernel_data_fetch(tri_shader, prim);
+  const int shader_flag = kernel_data_fetch(shaders, (shader & SHADER_MASK)).flags;
+  if (!(shader_flag & SD_HAS_VOLUME)) {
+    return optixIgnoreIntersection();
+  }
 }
 
 extern "C" __global__ void __anyhit__kernel_optix_visibility_test()

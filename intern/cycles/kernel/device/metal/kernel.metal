@@ -386,6 +386,13 @@ __intersection__volume_tri(constant KernelParamsMetal &launch_params_metal [[buf
     return result;
   }
 
+  const int shader = kernel_data_fetch(tri_shader, prim);
+  const int shader_flag = kernel_data_fetch(shaders, (shader & SHADER_MASK)).flags;
+  if ((shader_flag & SD_HAS_VOLUME) == 0) {
+    result.accept = false;
+    return result;
+  }
+
   result.accept = true;
   return result;
 }

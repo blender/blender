@@ -505,9 +505,7 @@ ccl_device_forceinline void kernel_embree_filter_occluded_volume_all_func_impl(
     ++ctx->num_hits;
     *isect = current_isect;
     /* Only primitives from volume object. */
-    uint tri_object = isect->object;
-    int object_flag = kernel_data_fetch(object_flag, tri_object);
-    if ((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
+    if ((intersection_get_shader_flags(kg, isect->prim, isect->type) & SD_HAS_VOLUME) == 0) {
       --ctx->num_hits;
 #ifndef __VOLUME_RECORD_ALL__
       /* Without __VOLUME_RECORD_ALL__ we need only a first counted hit, so we will

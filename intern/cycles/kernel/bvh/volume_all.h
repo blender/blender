@@ -135,8 +135,8 @@ ccl_device_inline
                 if (intersection_skip_self(ray->self, prim_object, prim)) {
                   continue;
                 }
-                int object_flag = kernel_data_fetch(object_flag, prim_object);
-                if ((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
+                const int shader_flag = intersection_get_shader_flags(kg, prim, type);
+                if ((shader_flag & SD_HAS_VOLUME) == 0) {
                   continue;
                 }
                 hit = triangle_intersect(kg,
@@ -174,8 +174,8 @@ ccl_device_inline
                 if (intersection_skip_self(ray->self, prim_object, prim)) {
                   continue;
                 }
-                int object_flag = kernel_data_fetch(object_flag, prim_object);
-                if ((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
+                const int shader_flag = intersection_get_shader_flags(kg, prim, type);
+                if ((shader_flag & SD_HAS_VOLUME) == 0) {
                   continue;
                 }
                 hit = motion_triangle_intersect(kg,
