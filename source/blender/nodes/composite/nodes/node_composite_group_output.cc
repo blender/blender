@@ -51,7 +51,7 @@ class GroupOutputOperation : public NodeOperation {
 
   Domain compute_domain() override
   {
-    if (this->context().use_context_bounds_for_input_output()) {
+    if (this->context().use_compositing_domain_for_input_output()) {
       return this->context().get_compositing_domain();
     }
     return NodeOperation::compute_domain();

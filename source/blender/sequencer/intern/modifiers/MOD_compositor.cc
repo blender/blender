@@ -100,7 +100,7 @@ class CompositorContext : public compositor::Context {
     return true;
   }
 
-  bool use_context_bounds_for_input_output() const override
+  bool use_compositing_domain_for_input_output() const override
   {
     return false;
   }
