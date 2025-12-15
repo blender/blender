@@ -163,6 +163,11 @@ struct Main : blender::NonCopyable, blender::NonMovable {
    * Runtime vector storing all split Mains (one Main for each library data), during readfile or
    * linking process.
    * Shared across all of the split mains when defined.
+   *
+   * \note The order stability properties of #VectorSet elements is used in readfile code (in
+   * particular during memfile/undo reading), to ensure that the local Main is always the first
+   * item, even once library ones are moved between the old and new Mains (see also
+   * #read_undo_move_libmain_data).
    */
   std::shared_ptr<blender::VectorSet<Main *>> split_mains = {};
   /**
