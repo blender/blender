@@ -975,11 +975,11 @@ class USDImportTest(AbstractUSDTest):
         self.assertAlmostEqual(f.evaluate(10), 0.0, 2, "Unexpected value for rotation quaternion Z curve at frame 10")
 
     def check_curve(self, blender_curve, usd_curve):
-        curve_type_map = {"linear-bezier": 1, "linear-catmullRom": 1, "cubic-bezier": 2, "cubic-bspline": 3}
+        curve_type_map = {"linear-bezier": 1, "cubic-catmullRom": 0, "cubic-bezier": 2, "cubic-bspline": 3}
         cyclic_map = {"pinned": False, "nonperiodic": False, "periodic": True}
 
         # Check correct spline count.
-        blender_spline_count = len(blender_curve.attributes["curve_type"].data)
+        blender_spline_count = len(blender_curve.curves)
         usd_spline_count = len(usd_curve.GetCurveVertexCountsAttr().Get())
         self.assertEqual(blender_spline_count, usd_spline_count)
 
@@ -990,7 +990,9 @@ class USDImportTest(AbstractUSDTest):
         expected_cyclic = cyclic_map[usd_cyclic]
 
         for i in range(0, blender_spline_count):
-            blender_curve_type = blender_curve.attributes["curve_type"].data[i].value
+            blender_curve_type = 0
+            if "curve_type" in blender_curve.attributes:
+                blender_curve_type = blender_curve.attributes["curve_type"].data[i].value
             blender_cyclic = False
             if "cyclic" in blender_curve.attributes:
                 blender_cyclic = blender_curve.attributes["cyclic"].data[i].value
@@ -1003,7 +1005,7 @@ class USDImportTest(AbstractUSDTest):
         blender_positions = blender_curve.attributes["position"].data
 
         point_count = 0
-        if usd_curve_type_basis in ("linear-bezier", "linear-catmullRom"):
+        if usd_curve_type_basis in ("linear-bezier", "cubic-catmullRom"):
             point_count = len(usd_positions)
             self.assertEqual(len(blender_positions), point_count)
         elif usd_curve_type_basis == "cubic-bezier":
