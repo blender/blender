@@ -1141,7 +1141,17 @@ static Button *ui_item_with_label(Layout *layout,
   Button *but;
   if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH)) {
     block_layout_set_current(block, &sub->row(true));
-    but = uiDefAutoButR(block, ptr, prop, index, "", icon, x, y, prop_but_width - UI_UNIT_X, h);
+    but = uiDefAutoButR(block,
+                        ptr,
+                        prop,
+                        index,
+                        "",
+                        icon,
+                        x,
+                        y,
+                        prop_but_width - UI_UNIT_X,
+                        h,
+                        button_type_override);
 
     if (but != nullptr) {
       if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH)) {

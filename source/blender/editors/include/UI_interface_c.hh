@@ -1667,10 +1667,14 @@ enum AutoPropButsReturn {
 ENUM_OPERATORS(AutoPropButsReturn);
 
 /**
- * \param button_type_override: Overrides the default button type defined to int/float properties
- * which can be either #ButtonType::Num or #ButtonType::NumSlider or to enum properties which can
- * be either #ButtonType::Menu or #ButtonType::SearchMenu, this has no effect on other property
- * types.
+ * \param button_type_override \parblock
+ * Overrides the default button type defined for some properties:
+ * - Int/Float properties allows #ButtonType::Num or #ButtonType::NumSlider.
+ * - Enum properties allows #ButtonType::Menu or #ButtonType::SearchMenu.
+ * - String properties allows #ButtonType::Text or #ButtonType::SearchMenu.
+ *
+ * This has no effect on other property types.
+ * \endparblock
  */
 Button *uiDefAutoButR(Block *block,
                       PointerRNA *ptr,
