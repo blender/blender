@@ -36,7 +36,7 @@ float square_sdf(float2 absCo, float2 half_size)
 
 float2 rotate_45(float2 co)
 {
-  return from_rotation(AngleRadian(M_PI * 0.25f)) * co;
+  return from_rotation(AngleRadian{M_PI * 0.25f}) * co;
 }
 
 /* Calculates an upper and lower limit for an anti-aliased cutoff of the squared distance. */

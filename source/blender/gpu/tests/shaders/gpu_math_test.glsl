@@ -87,7 +87,7 @@ void main()
                                 float4(-0.0587266f, -0.426918f, 0.902382f, 0),
                                 float4(-0.909297f, -0.350175f, -0.224845f, 0),
                                 float4(0, 0, 0, 1)));
-    EulerXYZ euler = EulerXYZ(1, 2, 3);
+    EulerXYZ euler = EulerXYZ{1, 2, 3};
     Quaternion quat = to_quaternion(euler);
     AxisAngle axis_angle = to_axis_angle(euler);
     m = to_float4x4(from_rotation(euler));
@@ -112,14 +112,14 @@ void main()
         float4(1, 0, 0, 0), float4(0, 2, 0, 0), float4(0, 0, 1, 0), float4(0, 0, 0, 1));
     EXPECT_TRUE(is_equal(m, expect, 0.00001f));
 
-    m = from_loc_rot(float3(1, 2, 3), EulerXYZ(1, 2, 3));
+    m = from_loc_rot(float3(1, 2, 3), EulerXYZ{1, 2, 3});
     expect = float4x4(float4(0.411982f, -0.0587266f, -0.909297f, 0),
                       float4(-0.833738f, -0.426918f, -0.350175f, 0),
                       float4(-0.36763f, 0.902382f, -0.224845f, 0),
                       float4(1, 2, 3, 1));
     EXPECT_TRUE(is_equal(m, expect, 0.00001f));
 
-    m = from_loc_rot_scale(float3(1, 2, 3), EulerXYZ(1, 2, 3), float3(1, 2, 3));
+    m = from_loc_rot_scale(float3(1, 2, 3), EulerXYZ{1, 2, 3}, float3(1, 2, 3));
     expect = float4x4(float4(0.411982f, -0.0587266f, -0.909297f, 0),
                       float4(-1.66748f, -0.853835f, -0.700351f, 0),
                       float4(-1.10289f, 2.70714f, -0.674535f, 0),
@@ -146,7 +146,7 @@ void main()
 
     expect = float4x4(
         float4(0, 0, -2, 0), float4(2, 0, 0, 0), float4(0, 3, 0, 0), float4(0, 0, 0, 1));
-    result = rotate(m1, AxisAngle(float3(0, 1, 0), M_PI_2));
+    result = rotate(m1, AxisAngle{float3(0, 1, 0), M_PI_2});
     EXPECT_NEAR(result, expect, epsilon);
 
     expect = float4x4(
@@ -199,8 +199,8 @@ void main()
   {
     float4x4 m = float4x4(
         float4(0, 3, 0, 0), float4(2, 0, 0, 0), float4(0, 0, 2, 0), float4(0, 1, 0, 1));
-    EulerXYZ expect_eul = EulerXYZ(0, 0, M_PI_2);
-    Quaternion expect_qt = Quaternion(0, -M_SQRT1_2, M_SQRT1_2, 0);
+    EulerXYZ expect_eul = EulerXYZ{0, 0, M_PI_2};
+    Quaternion expect_qt = Quaternion{0, -M_SQRT1_2, M_SQRT1_2, 0};
     float3 expect_scale = float3(3, 2, 2);
     float3 expect_location = float3(0, 1, 0);
 
@@ -277,8 +277,8 @@ void main()
   {
     float3 expect, result;
     constexpr float3 p = float3(1, 2, 3);
-    float4x4 m4 = from_loc_rot(float3(10, 0, 0), EulerXYZ(M_PI_2, M_PI_2, M_PI_2));
-    float3x3 m3 = from_rotation(EulerXYZ(M_PI_2, M_PI_2, M_PI_2));
+    float4x4 m4 = from_loc_rot(float3(10, 0, 0), EulerXYZ{M_PI_2, M_PI_2, M_PI_2});
+    float3x3 m3 = from_rotation(EulerXYZ{M_PI_2, M_PI_2, M_PI_2});
     float4x4 pers4 = projection_perspective(-0.1f, 0.1f, -0.1f, 0.1f, -0.1f, -1.0f);
     float3x3 pers3 = float3x3(float3(1, 0, 0.1f), float3(0, 1, 0.1f), float3(0, 0.1f, 1));
 

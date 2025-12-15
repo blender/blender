@@ -45,7 +45,7 @@ Quaternion interpolate(Quaternion a, Quaternion b, float t)
   }
   float2 w = interpolate_dot_slerp(t, cosom);
   quat = w.x * quat + w.y * b.as_float4();
-  return Quaternion(UNPACK4(quat));
+  return Quaternion{UNPACK4(quat)};
 }
 
 /** \} */
@@ -103,13 +103,13 @@ float3x3 rotate(float3x3 mat, EulerXYZ rotation)
 {
   AxisAngle axis_angle;
   if (rotation.y == 0.0f && rotation.z == 0.0f) {
-    axis_angle = AxisAngle(float3(1.0f, 0.0f, 0.0f), rotation.x);
+    axis_angle = AxisAngle{float3(1.0f, 0.0f, 0.0f), rotation.x};
   }
   else if (rotation.x == 0.0f && rotation.z == 0.0f) {
-    axis_angle = AxisAngle(float3(0.0f, 1.0f, 0.0f), rotation.y);
+    axis_angle = AxisAngle{float3(0.0f, 1.0f, 0.0f), rotation.y};
   }
   else if (rotation.x == 0.0f && rotation.y == 0.0f) {
-    axis_angle = AxisAngle(float3(0.0f, 0.0f, 1.0f), rotation.z);
+    axis_angle = AxisAngle{float3(0.0f, 0.0f, 1.0f), rotation.z};
   }
   else {
     /* Un-optimized case. Arbitrary rotation. */

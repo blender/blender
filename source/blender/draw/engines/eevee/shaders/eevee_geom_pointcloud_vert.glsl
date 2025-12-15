@@ -49,7 +49,7 @@ void main()
 #endif
 
   init_globals();
-  attrib_load(PointCloudPoint(0));
+  attrib_load(PointCloudPoint{0});
 
   interp.P += nodetree_displacement();
 

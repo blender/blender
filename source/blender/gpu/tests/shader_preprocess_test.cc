@@ -2056,6 +2056,112 @@ GPU_SHADER_CREATE_END()
 }
 GPU_TEST(preprocess_pipeline_description);
 
+static void test_preprocess_initializer_list()
+{
+  using namespace std;
+  using namespace shader::parser;
+
+  {
+    string input = R"(
+T fn1() { return T{1, 2}; }
+T fn2() { return T{1, 2, }; }
+T fn3() { return T{.a=1, .b=2}; }
+T fn4() { return T{.a=1, .b=2, }; }
+T fn5() { return {1, 2}; }
+T fn6() { return {1, 2, }; }
+T fn7() { return {.a=1, .b=2}; }
+T fn8() { return {.a=1, .b=2, }; }
+void fn() {
+  T t1=T{1, 2};
+  T t2=T{1, 2, };
+  T t3=T{.a=1, .b=2};
+  T t4=T{.a=1, .b=2, };
+  T t5={1, 2};
+  T t6={1, 2, };
+  T t7={.a=1, .b=2};
+  T t8={.a=1, .b=2, };
+  T t9=T{.a=1, .b=T{0, 2}.x};
+  T t10=T{1, T{0, 2}.x};
+}
+)";
+    string expect = R"(
+T fn1() { return _ctor(T) 1, 2 _rotc() ; }
+T fn2() { return _ctor(T) 1, 2   _rotc() ; }
+T fn3() { {T _tmp ;    _tmp.a=1;  _tmp.b=2;   return T_tmp;}; }
+T fn4() { {T _tmp ;    _tmp.a=1;  _tmp.b=2;     return T_tmp;}; }
+T fn5() { return _ctor(T) 1, 2 _rotc() ; }
+T fn6() { return _ctor(T) 1, 2   _rotc() ; }
+T fn7() { {T _tmp ;    _tmp.a=1;  _tmp.b=2;   return _tmp;}; }
+T fn8() { {T _tmp ;    _tmp.a=1;  _tmp.b=2;     return _tmp;}; }
+void fn() {
+  T t1=_ctor(T) 1, 2 _rotc() ;
+  T t2=_ctor(T) 1, 2   _rotc() ;
+  T t3;   t3.a=1;  t3.b=2;
+  T t4;   t4.a=1;  t4.b=2;
+  T t5=_ctor(T) 1, 2 _rotc() ;
+  T t6=_ctor(T) 1, 2   _rotc() ;
+  T t7;   t7.a=1;  t7.b=2;
+  T t8;   t8.a=1;  t8.b=2;
+  T t9;   t9.a=1;  t9.b=_ctor(T) 0, 2 _rotc() .x;
+  T t10=_ctor(T) 1, _ctor(T) 0, 2 _rotc() .x _rotc() ;
+}
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+void fn() {
+  T t9={1, T{.a=1, .b=2}.a};
+}
+)";
+    string error;
+    shader::metadata::Source metadata;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(error, "Designated initializers are only supported in assignments");
+  }
+  {
+    string input = R"(
+void fn() {
+  T t10={1, float4{0}};
+}
+)";
+    string error;
+    shader::metadata::Source metadata;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(
+        error,
+        "Aggregate is error prone for built-in vector and matrix types, use constructors instead");
+  }
+  {
+    string input = R"(
+void fn() {
+  T t11={.a=1, .b=T{.a=1, .b=2}.a};
+}
+)";
+    string error;
+    shader::metadata::Source metadata;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(error, "Nested initializer lists are not supported");
+  }
+  {
+    string input = R"(
+void fn() {
+  T t12={.a=1, .b=float4{0}};
+}
+)";
+    string error;
+    shader::metadata::Source metadata;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(
+        error,
+        "Aggregate is error prone for built-in vector and matrix types, use constructors instead");
+  }
+}
+GPU_TEST(preprocess_initializer_list);
+
 static void test_preprocess_parser()
 {
   using namespace std;

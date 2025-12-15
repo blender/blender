@@ -122,7 +122,7 @@ void main()
   float golden_angle = M_PI * (3.0f - sqrt(5.0f));
   float theta = interleaved_gradient_noise(float2(texel), 0, 0.0f) * golden_angle;
 
-  float2x2 sample_space = from_scale(sample_scale) * from_rotation(AngleRadian(theta));
+  float2x2 sample_space = from_scale(sample_scale) * from_rotation(AngleRadian{theta});
 
   float3 accum_weight = float3(0.0f);
   float3 accum_radiance = float3(0.0f);

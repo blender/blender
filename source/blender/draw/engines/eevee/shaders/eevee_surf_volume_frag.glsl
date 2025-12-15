@@ -70,7 +70,7 @@ VolumeProperties eval_froxel(int3 froxel, float jitter)
 #endif
 
   g_data = init_globals(wP);
-  attrib_load(VolumePoint(0));
+  attrib_load(VolumePoint{0});
   nodetree_volume();
 
 #if defined(MAT_GEOM_VOLUME)

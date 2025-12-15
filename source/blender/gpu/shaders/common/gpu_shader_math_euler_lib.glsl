@@ -8,16 +8,15 @@
 
 struct EulerXYZ {
   float x, y, z;
-  METAL_CONSTRUCTOR_3(EulerXYZ, float, x, float, y, float, z)
 
   static EulerXYZ from_float3(float3 eul)
   {
-    return EulerXYZ(eul.x, eul.y, eul.z);
+    return {eul.x, eul.y, eul.z};
   }
 
   static EulerXYZ identity()
   {
-    return EulerXYZ(0, 0, 0);
+    return {0, 0, 0};
   }
 
   float3 as_float3() const

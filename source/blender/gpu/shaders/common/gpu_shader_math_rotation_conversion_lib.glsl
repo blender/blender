@@ -286,7 +286,7 @@ AxisAngle to_axis_angle(Quaternion quat)
   if (is_zero(axis)) {
     axis[1] = 1.0f;
   }
-  return AxisAngle(axis, angle);
+  return {axis, angle};
 }
 
 AxisAngle to_axis_angle(EulerXYZ eul)

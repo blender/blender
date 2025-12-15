@@ -9,11 +9,9 @@
 struct Quaternion {
   float x, y, z, w;
 
-  METAL_CONSTRUCTOR_4(Quaternion, float, x, float, y, float, z, float, w)
-
   static Quaternion identity()
   {
-    return Quaternion(1, 0, 0, 0);
+    return {1, 0, 0, 0};
   }
 
   float4 as_float4() const

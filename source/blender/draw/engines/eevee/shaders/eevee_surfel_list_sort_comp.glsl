@@ -30,8 +30,7 @@ void main()
   int list_id = surfel_buf[surfel_id].list_id;
   float ray_distance = list_item_distance_buf[item_id];
 
-  IndexRange list_range = IndexRange(list_range_buf[list_id * 2 + 0],
-                                     list_range_buf[list_id * 2 + 1]);
+  IndexRange list_range{list_range_buf[list_id * 2 + 0], list_range_buf[list_id * 2 + 1]};
   int prefix = 0;
   /* Prefix sum inside the list range. */
   for (int i = list_range.start(); i <= list_range.last(); i++) {

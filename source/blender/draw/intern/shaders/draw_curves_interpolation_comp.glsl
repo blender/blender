@@ -22,11 +22,9 @@ struct InterpPosition {
   /* Position, Radius. */
   float4 data;
 
-  METAL_CONSTRUCTOR_1(InterpPosition, float4, data)
-
   static InterpPosition zero()
   {
-    return InterpPosition(float4(0));
+    return {float4(0)};
   }
 };
 
@@ -350,7 +348,7 @@ template void evaluate_segment<float4>(int2, IndexRange);
 
 IndexRange per_curve_point_offsets_range(const IndexRange points, const int curve_index)
 {
-  return IndexRange(curve_index + points.start(), points.size() + 1);
+  return {curve_index + points.start(), points.size() + 1};
 }
 
 int2 get_points(uint point_id, IndexRange points, const bool cyclic)
@@ -450,8 +448,8 @@ void evaluate_curve(const IndexRange points,
   const bool is_curve_cyclic = curve_cyclic_get(curve_index);
 
   /* Recover original points range without closing cyclic point. */
-  const IndexRange evaluated_points = IndexRange(evaluated_points_padded.start(),
-                                                 evaluated_points_padded.size() - int(use_cyclic));
+  const IndexRange evaluated_points{evaluated_points_padded.start(),
+                                    evaluated_points_padded.size() - int(use_cyclic)};
 
   const int start_indices_range_start = basis_cache_start;
   const int weights_range_start = basis_cache_start + evaluated_points.size();
@@ -466,7 +464,7 @@ void evaluate_curve(const IndexRange points,
     output_set_zero<InterpType>(evaluated_point_index);
     float total_weight = 0.0f;
 
-    const IndexRange point_weights = IndexRange(weights_range_start + i * order, order);
+    const IndexRange point_weights{weights_range_start + i * order, order};
     const int start_index = floatBitsToInt(basis_cache_buf[start_indices_range_start + i]);
 
     for (int j = 0; j < point_weights.size(); j++) {
@@ -525,8 +523,8 @@ template<typename InterpType> void evaluate_curve()
       evaluated_points_by_curve_buf, curve_index);
 
   if (use_cyclic) {
-    evaluated_points = IndexRange(evaluated_points.start() + curve_index,
-                                  evaluated_points.size() + 1);
+    evaluated_points = IndexRange{evaluated_points.start() + curve_index,
+                                  evaluated_points.size() + 1};
   }
 
   if (CurveType(evaluated_type) == CURVE_TYPE_CATMULL_ROM) {

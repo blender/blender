@@ -184,6 +184,7 @@ struct Scope {
                             end.str_index_last_no_whitespace() - start.str_index_start() + 1);
   }
 
+  /* Return first occurrence of token_type inside this scope. */
   Token find_token(const char token_type) const
   {
     if (this->is_invalid()) {

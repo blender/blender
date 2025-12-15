@@ -50,8 +50,8 @@ void evaluate_length_intercept()
       evaluated_points_by_curve_buf, curve_index);
 
   if (use_cyclic) {
-    evaluated_points = IndexRange(evaluated_points.start() + curve_index,
-                                  evaluated_points.size() + 1);
+    evaluated_points = IndexRange{evaluated_points.start() + curve_index,
+                                  evaluated_points.size() + 1};
   }
 
   evaluate_length_and_time(evaluated_points, curve_index);

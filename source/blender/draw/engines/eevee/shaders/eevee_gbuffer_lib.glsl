@@ -490,8 +490,6 @@ struct Header {
 struct AdditionalInfo {
   float thickness;
 
-  METAL_CONSTRUCTOR_1(AdditionalInfo, float, thickness)
-
   static float2 pack(float thickness)
   {
     return float2(thickness_pack(thickness), 0.0f /* UNUSED */);
@@ -499,7 +497,7 @@ struct AdditionalInfo {
 
   static AdditionalInfo unpack(float2 data)
   {
-    return AdditionalInfo(thickness_unpack(data.x));
+    return {thickness_unpack(data.x)};
   }
 };
 

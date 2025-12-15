@@ -67,7 +67,7 @@ void main()
 #endif
 
   init_globals();
-  attrib_load(CurvesPoint(ws_pt.curve_id, ws_pt.point_id, ws_pt.curve_segment));
+  attrib_load(CurvesPoint{ws_pt.curve_id, ws_pt.point_id, ws_pt.curve_segment});
 
   interp.P += nodetree_displacement();
 

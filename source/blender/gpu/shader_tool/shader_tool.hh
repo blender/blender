@@ -574,6 +574,10 @@ class Preprocessor {
         lower_strings(parser, report_error);
         lower_printf(parser, report_error);
         /* Lower other C++ constructs. */
+        lower_implicit_return_types(parser, report_error);
+        lower_initializer_implicit_types(parser, report_error);
+        lower_designated_initializers(parser, report_error);
+        lower_aggregate_initializers(parser, report_error);
         lower_array_initializations(parser, report_error);
         lower_scope_resolution_operators(parser, report_error);
         /* Lower references. */
@@ -3181,6 +3185,144 @@ class Preprocessor {
     };
     parser().foreach_token(Private, process_access);
     parser().foreach_token(Public, process_access);
+  }
+
+  void lower_implicit_return_types(Parser &parser, report_callback /*report_error*/)
+  {
+    using namespace std;
+    using namespace shader::parser;
+
+    parser().foreach_function([&](bool, Token type, Token, Scope, bool, Scope fn_body) {
+      fn_body.foreach_match("rw?{..};", [&](Tokens toks) {
+        Scope list = toks[3].scope();
+        if (list.start().next() == '.') {
+          /* `return {1, 2};` > `T tmp = T{1, 2}; return tmp;`
+           * This syntax allow to support designated initializer. */
+          parser.insert_before(toks[0],
+                               "{" + type.str() + " _tmp = " + type.str() + list.str() + "; ");
+          parser.replace(list, "_tmp;}");
+        }
+        else if (toks[1].is_invalid()) {
+          /* Regular initializer list. Keep it simple. */
+          parser.insert_after(toks[0], type.str());
+        }
+      });
+    });
+  }
+
+  void lower_initializer_implicit_types(Parser &parser, report_callback /*report_error*/)
+  {
+    using namespace std;
+    using namespace shader::parser;
+
+    auto process_scope = [&](Scope s) {
+      /* Auto insert equal. */
+      s.foreach_match("ww{..}", [&](Tokens t) { parser.insert_before(t[2], " = " + t[0].str()); });
+      /* Auto insert type. */
+      s.foreach_match("ww={..}", [&](Tokens t) { parser.insert_before(t[3], t[0].str()); });
+    };
+
+    parser().foreach_scope(ScopeType::FunctionArg, process_scope);
+    parser().foreach_scope(ScopeType::Function, process_scope);
+    parser.apply_mutations();
+  }
+
+  void lower_designated_initializers(Parser &parser, report_callback report_error)
+  {
+    using namespace std;
+    using namespace shader::parser;
+
+    /* Transform to compatibility macro. */
+    parser().foreach_match("w{.w=", [&](Tokens t) {
+      if (t[0].prev() != '=' || t[0].prev().prev() != 'w') {
+        report_error(ERROR_TOK(t[0]), "Designated initializers are only supported in assignments");
+        return;
+      }
+      /* Lint for nested aggregates. */
+      Token nested_aggregate_end = t[0].scope().find_token(BracketClose);
+      if (nested_aggregate_end != t[3]) {
+        Token nested_aggregate_start = nested_aggregate_end.scope().start();
+        if (nested_aggregate_start.prev() != Word) {
+          report_error(ERROR_TOK(nested_aggregate_start),
+                       "Nested anonymous aggregate is not supported");
+          return;
+        }
+      }
+      Token assign_tok = t[0].prev();
+      Token var = t[0].prev().prev();
+      Scope aggrega = t[2].scope();
+
+      parser.insert_before(assign_tok, ";");
+      parser.erase(assign_tok, t[1]);
+      aggrega.foreach_match(".w=", [&](Tokens t) {
+        if (t[0].scope() != aggrega) {
+          report_error(ERROR_TOK(t[0]), "Nested initializer lists are not supported");
+          return;
+        }
+        parser.insert_before(t[0], var.str());
+        Token value_end = t[2].scope().end();
+        parser.insert_after(value_end, ";");
+        if (value_end.next() == ',') {
+          parser.erase(value_end.next());
+        }
+      });
+      parser.erase(aggrega.end(), aggrega.end().next());
+
+      /* TODO: Lint for vector/matrix type (unsafe aggregate). */
+    });
+
+    parser.apply_mutations();
+  }
+
+  /* Support for **full** aggregate initialization.
+   * They are converted to default constructor for GLSL. */
+  void lower_aggregate_initializers(Parser &parser, report_callback report_error)
+  {
+    using namespace std;
+    using namespace shader::parser;
+
+    std::unordered_set<string> builtin_types = {
+        "float2",   "float3",   "float4",   "float2x2", "float2x3", "float2x4",
+        "float3x2", "float3x3", "float3x4", "float4x2", "float4x3", "float4x4",
+        "float2x2", "float3x3", "float4x4", "int2",     "int3",     "int4",
+        "uint2",    "uint3",    "uint4",    "bool2",    "bool3",    "bool4",
+    };
+
+    do {
+      /* Transform to compatibility macro. */
+      parser().foreach_match("w{..}", [&](Tokens t) {
+        if (t[0].prev() == Struct) {
+          return;
+        }
+        if (t[1].scope().token_count() == 2) {
+          report_error(ERROR_TOK(t[0]), "Empty brace initializer is not supported");
+        }
+        if (builtin_types.find(t[0].str()) != builtin_types.end()) {
+          report_error(ERROR_TOK(t[0]),
+                       "Aggregate is error prone for built-in vector and matrix types, use "
+                       "constructors instead");
+        }
+        /* Lint for nested aggregates. */
+        Token nested_aggregate_end = t[1].scope().find_token(BracketClose);
+        if (nested_aggregate_end != t[4]) {
+          Token nested_aggregate_start = nested_aggregate_end.scope().start();
+          if (nested_aggregate_start.prev() != Word) {
+            report_error(ERROR_TOK(nested_aggregate_start),
+                         "Nested anonymous aggregate is not supported");
+          }
+        }
+        parser.insert_before(t[0], "_ctor(");
+        parser.insert_before(t[1], ")");
+        parser.erase(t[1]);
+        if (t[4].prev() == ',') {
+          parser.erase(t[4].prev());
+        }
+        parser.insert_before(t[4], " _rotc()");
+        parser.erase(t[4]);
+
+        /* TODO: Lint for vector/matrix type (unsafe aggregate). */
+      });
+    } while (parser.apply_mutations());
   }
 
   /* Auto detect array length, and lower to GLSL compatible syntax.
