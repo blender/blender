@@ -407,8 +407,9 @@ static wmOperatorStatus sample_color_invoke(bContext *C, wmOperator *op, const w
 
   const bool use_merged_texture = RNA_boolean_get(op->ptr, "merged");
 
-  const float3 sampled_color = paint_sample_color(
-      C, region, int2(event->mval[0], event->mval[1]), use_merged_texture);
+  int2 mval(std::clamp(event->mval[0], 0, (int)region->winx),
+            std::clamp(event->mval[1], 0, (int)region->winy));
+  const float3 sampled_color = paint_sample_color(C, region, mval, use_merged_texture);
   /* On initial invoke, we never sample to the palette. */
   apply_sampled_color(*CTX_data_main(C), *paint, sampled_color, false);
 
@@ -442,15 +443,16 @@ static wmOperatorStatus sample_color_modal(bContext *C, wmOperator *op, const wm
 
     return OPERATOR_FINISHED;
   }
+  ARegion *region = CTX_wm_region(C);
+  int2 mval(std::clamp(event->mval[0], 0, (int)region->winx),
+            std::clamp(event->mval[1], 0, (int)region->winy));
 
   const bool use_merged_texture = RNA_boolean_get(op->ptr, "merged");
 
   switch (event->type) {
     case MOUSEMOVE: {
-      ARegion *region = CTX_wm_region(C);
       RNA_int_set_array(op->ptr, "location", event->mval);
-      const float3 sampled_color = paint_sample_color(
-          C, region, int2(event->mval[0], event->mval[1]), use_merged_texture);
+      const float3 sampled_color = paint_sample_color(C, region, mval, use_merged_texture);
       apply_sampled_color(*CTX_data_main(C), *paint, sampled_color, false);
       WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, brush);
       break;
@@ -458,10 +460,8 @@ static wmOperatorStatus sample_color_modal(bContext *C, wmOperator *op, const wm
 
     case LEFTMOUSE:
       if (event->val == KM_PRESS) {
-        ARegion *region = CTX_wm_region(C);
         RNA_int_set_array(op->ptr, "location", event->mval);
-        const float3 sampled_color = paint_sample_color(
-            C, region, int2(event->mval[0], event->mval[1]), use_merged_texture);
+        const float3 sampled_color = paint_sample_color(C, region, mval, use_merged_texture);
         apply_sampled_color(*CTX_data_main(C), *paint, sampled_color, true);
         if (!data->sample_palette) {
           data->sample_palette = true;
