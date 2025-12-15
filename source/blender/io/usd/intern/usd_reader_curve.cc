@@ -320,8 +320,14 @@ void USDBasisCurvesReader::read_curve_sample(Curves *curves_id, const pxr::UsdTi
       const bool is_bezier_vertex_interp = (type == pxr::UsdGeomTokens->cubic &&
                                             basis == pxr::UsdGeomTokens->bezier &&
                                             widths_interp == pxr::UsdGeomTokens->vertex);
+      const bool is_bspline_varying_interp = (type == pxr::UsdGeomTokens->cubic &&
+                                              basis == pxr::UsdGeomTokens->bspline &&
+                                              widths_interp == pxr::UsdGeomTokens->varying);
+      const bool is_catmull_varying_interp = (type == pxr::UsdGeomTokens->cubic &&
+                                              basis == pxr::UsdGeomTokens->catmullRom &&
+                                              widths_interp == pxr::UsdGeomTokens->varying);
       if (is_bezier_vertex_interp) {
-        /* Blender does not support 'vertex-varying' interpolation.
+        /* Blender does not support bezier 'vertex' interpolation.
          * Assign the widths as-if it were 'varying' only. */
         int usd_point_offset = 0;
         int point_offset = 0;
@@ -339,8 +345,34 @@ void USDBasisCurvesReader::read_curve_sample(Curves *curves_id, const pxr::UsdTi
           usd_point_offset += usd_point_count;
         }
       }
+      else if (!is_cyclic && (is_bspline_varying_interp || is_catmull_varying_interp)) {
+        /* Blender does not support general cubic 'varying' interpolation. Duplicate the first/last
+         * radius values as a best-effort solution. */
+        int radii_offset = 0;
+        int width_offset = 0;
+        for (const int i : curves.curves_range()) {
+          const int radii_count = counts[i];
+          const int width_count = std::max(2, counts[i] - 2);
+
+          Span<float> usd_curve_widths = widths.slice_safe(width_offset, width_count);
+          MutableSpan<float> curve_radii = radii.slice_safe(radii_offset, radii_count);
+          if (usd_curve_widths.size() != width_count || curve_radii.size() != radii_count) {
+            /* Generally unsafe to continue loading data. */
+            break;
+          }
+
+          curve_radii.first() = usd_curve_widths.first() / 2.0f;
+          curve_radii.last() = usd_curve_widths.last() / 2.0f;
+          for (const int i : usd_curve_widths.index_range()) {
+            curve_radii[i + 1] = usd_curve_widths[i] / 2.0f;
+          }
+
+          radii_offset += radii_count;
+          width_offset += width_count;
+        }
+      }
       else {
-        for (const int i_point : curves.points_range()) {
+        for (const int i_point : IndexRange(std::min(radii.size(), widths.size()))) {
           radii[i_point] = widths[i_point] / 2.0f;
         }
       }

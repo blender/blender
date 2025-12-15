@@ -2199,6 +2199,10 @@ class USDImportComparisonTest(unittest.TestCase):
             io_report.Report.side_to_print_multi_line = 3
 
             CompareTestSupportHook.reset_config()
+            if input_file_path.name in ("usd_curve_bspline_all.usda"):
+                CompareTestSupportHook.do_curve_rename = False
+                io_report.Report.side_to_print_single_line = 10
+                io_report.Report.side_to_print_multi_line = 10
             if input_file_path.name in ("nurbs-gen-single.usda", "nurbs-gen-multiple.usda", "nurbs-custom.usda"):
                 CompareTestSupportHook.do_curve_rename = True
                 io_report.Report.side_to_print_single_line = 10
