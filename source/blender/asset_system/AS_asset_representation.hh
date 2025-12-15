@@ -33,15 +33,8 @@ struct ReportList;
 namespace blender::asset_system {
 
 class AssetLibrary;
-
-/**
- * Combination of a URL of a remote resource, and its hash.
- */
-struct URLWithHash {
-  std::string url;
-  /** String in the form `{HASH_TYPE}:{HASH_VALUE}`. */
-  std::string hash;
-};
+struct OnlineAssetInfo;
+struct URLWithHash;
 
 class AssetRepresentation : NonCopyable, NonMovable {
   /** Pointer back to the asset library that owns this asset representation. */
@@ -53,17 +46,6 @@ class AssetRepresentation : NonCopyable, NonMovable {
   /* Mutable to allow lazy updating on name changes in #library_relative_identifier(). */
   mutable std::string relative_identifier_;
 
-  /** Information specific to online assets. */
-  /* TODO move to #AS_remote_library.hh, use instead of passing individual members through API
-   * functions? */
-  struct OnlineAssetInfo {
-    /** The path this file should be downloaded to. Usually relative, but isn't required to. The
-     * downloader accepts both cases, see #download_asset() in Python. */
-    std::string download_dst_filepath_;
-    URLWithHash asset_url_;
-    std::optional<URLWithHash> preview_url_;
-  };
-
   struct ExternalAsset {
     std::string name;
     int id_type = 0;
@@ -71,7 +53,7 @@ class AssetRepresentation : NonCopyable, NonMovable {
     PreviewImage *preview_ = nullptr;
 
     /** Set if this is an online asset only. */
-    std::unique_ptr<OnlineAssetInfo> online_info_ = nullptr;
+    std::unique_ptr<OnlineAssetInfo> online_info_;
   };
   std::variant<ExternalAsset, ID *> asset_;
 
@@ -99,9 +81,7 @@ class AssetRepresentation : NonCopyable, NonMovable {
                       int id_type,
                       std::unique_ptr<AssetMetaData> metadata,
                       AssetLibrary &owner_asset_library,
-                      StringRef download_dst_filepath,
-                      URLWithHash download_url,
-                      std::optional<URLWithHash> preview_url);
+                      OnlineAssetInfo online_info);
   /**
    * Constructs an asset representation for an ID stored in the current file. This makes the asset
    * local and fully editable.

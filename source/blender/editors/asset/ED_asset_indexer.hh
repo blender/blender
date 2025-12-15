@@ -13,7 +13,7 @@
 
 #include "BLI_function_ref.hh"
 
-#include "AS_asset_representation.hh" /* For URLWithHash. */
+#include "AS_remote_library.hh"
 
 #include "ED_file_indexer.hh"
 
@@ -48,11 +48,7 @@ struct RemoteListingAssetEntry {
   BLODataBlockInfo datablock_info = {};
   short idcode = 0;
 
-  /* The path of the blend file that contains the asset, relative to the library root. */
-  std::string file_path;
-  /** The URL the asset should be downloaded from. */
-  asset_system::URLWithHash download_url;
-  std::optional<asset_system::URLWithHash> thumbnail_url;
+  asset_system::OnlineAssetInfo online_info;
 
   RemoteListingAssetEntry() = default;
   RemoteListingAssetEntry(const RemoteListingAssetEntry &) = delete;

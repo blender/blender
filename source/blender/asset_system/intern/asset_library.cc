@@ -11,6 +11,7 @@
 #include "AS_asset_catalog_tree.hh"
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
+#include "AS_remote_library.hh"
 
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
@@ -298,19 +299,10 @@ std::weak_ptr<AssetRepresentation> AssetLibrary::add_external_online_asset(
     StringRef name,
     const int id_type,
     std::unique_ptr<AssetMetaData> metadata,
-    StringRef download_dst_filepath,
-    URLWithHash download_url,
-    std::optional<URLWithHash> preview_url)
+    OnlineAssetInfo online_info)
 {
-  return asset_storage_.external_assets.lookup_key_or_add(
-      std::make_shared<AssetRepresentation>(relative_asset_path,
-                                            name,
-                                            id_type,
-                                            std::move(metadata),
-                                            *this,
-                                            download_dst_filepath,
-                                            download_url,
-                                            preview_url));
+  return asset_storage_.external_assets.lookup_key_or_add(std::make_shared<AssetRepresentation>(
+      relative_asset_path, name, id_type, std::move(metadata), *this, online_info));
 }
 
 std::weak_ptr<AssetRepresentation> AssetLibrary::add_local_id_asset(ID &id)

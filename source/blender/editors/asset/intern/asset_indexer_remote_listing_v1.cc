@@ -69,7 +69,7 @@ static std::optional<RemoteListingAssetEntry> listing_entry_from_asset_dictionar
 
   /* 'file': required string. */
   if (const std::optional<StringRef> file_path = dictionary.lookup_str("file")) {
-    listing_entry.file_path = *file_path;
+    listing_entry.online_info.download_dst_filepath = *file_path;
   }
   else {
     *r_failure_reason = "could not read asset location, 'file' field not set";
@@ -78,10 +78,9 @@ static std::optional<RemoteListingAssetEntry> listing_entry_from_asset_dictionar
 
   /* Look up the file URL and hash from the <files> section of the JSON. */
   if (const RemoteListingFileEntry *file_entry = file_path_to_entry_map.lookup_ptr(
-          listing_entry.file_path))
+          listing_entry.online_info.download_dst_filepath))
   {
-    listing_entry.download_url.url = file_entry->download_url.url;
-    listing_entry.download_url.hash = file_entry->download_url.hash;
+    listing_entry.online_info.asset_url = file_entry->download_url;
   }
   else {
     /* TODO: include the path that's not found. */
@@ -90,7 +89,7 @@ static std::optional<RemoteListingAssetEntry> listing_entry_from_asset_dictionar
   }
 
   /* 'thumbnail': URL and hash of the preview image. */
-  listing_entry.thumbnail_url = ed::asset::index::parse_url_with_hash_dict(
+  listing_entry.online_info.preview_url = ed::asset::index::parse_url_with_hash_dict(
       dictionary.lookup_dict("thumbnail"));
 
   /* 'metadata': optional dictionary. If all the metadata fields are empty, this can be left out of

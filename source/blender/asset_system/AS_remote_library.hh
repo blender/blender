@@ -21,6 +21,29 @@ struct ReportList;
 
 namespace blender::asset_system {
 
+/**
+ * Combination of a URL of a remote resource, and its hash.
+ */
+struct URLWithHash {
+  std::string url;
+  /** String in the form `{HASH_TYPE}:{HASH_VALUE}`. */
+  std::string hash;
+};
+
+/**
+ * Information specific to online assets.
+ *
+ * This is constructed from the remote asset listing and contains all data needed to download and
+ * verify related fragments. #AssetRepresentation stores this for online assets.
+ */
+struct OnlineAssetInfo {
+  /** The path this file should be downloaded to. Relative to the library root. */
+  std::string download_dst_filepath;
+  /** The URL the asset should be downloaded from. */
+  URLWithHash asset_url;
+  std::optional<URLWithHash> preview_url;
+};
+
 class AssetRepresentation;
 
 /**

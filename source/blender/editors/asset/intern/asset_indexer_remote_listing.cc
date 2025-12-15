@@ -38,9 +38,7 @@ RemoteListingAssetEntry::RemoteListingAssetEntry(RemoteListingAssetEntry &&other
   other.datablock_info = {};
   this->idcode = other.idcode;
 
-  this->file_path = std::move(other.file_path);
-  this->download_url = std::move(other.download_url);
-  this->thumbnail_url = std::move(other.thumbnail_url);
+  this->online_info = std::move(other.online_info);
 }
 
 RemoteListingAssetEntry &RemoteListingAssetEntry::operator=(RemoteListingAssetEntry &&other)
