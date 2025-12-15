@@ -137,13 +137,18 @@ class KeyingScreenOperation : public NodeOperation {
 
   int2 get_size()
   {
+    MovieClip *movie_clip = this->get_movie_clip();
+    if (!this->get_movie_clip()) {
+      return int2(1);
+    }
+
     MovieClipUser movie_clip_user = *DNA_struct_default_get(MovieClipUser);
     const int scene_frame = context().get_frame_number();
-    const int clip_frame = BKE_movieclip_remap_scene_to_clip_frame(get_movie_clip(), scene_frame);
+    const int clip_frame = BKE_movieclip_remap_scene_to_clip_frame(movie_clip, scene_frame);
     BKE_movieclip_user_set_frame(&movie_clip_user, clip_frame);
 
     int2 size;
-    BKE_movieclip_get_size(get_movie_clip(), &movie_clip_user, &size.x, &size.y);
+    BKE_movieclip_get_size(movie_clip, &movie_clip_user, &size.x, &size.y);
     return size;
   }
 
