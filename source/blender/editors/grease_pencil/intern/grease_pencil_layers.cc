@@ -261,6 +261,7 @@ static wmOperatorStatus grease_pencil_layer_move_exec(bContext *C, wmOperator *o
 
   DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+  WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
 
   WM_msg_publish_rna_prop(
       CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencil, layers);
