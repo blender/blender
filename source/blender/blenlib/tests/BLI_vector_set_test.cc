@@ -201,6 +201,38 @@ TEST(vector_set, Remove)
   EXPECT_FALSE(set.contains(5));
 }
 
+TEST(vector_set, OrderPreservation)
+{
+  Vector<int> ref_vec = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  VectorSet<int> set = {ref_vec.as_span().take_front(5)};
+  EXPECT_EQ(set.as_span(), ref_vec.as_span().take_front(5));
+
+  /* Only adding items always preserve to full order. */
+  set.add(ref_vec[5]);
+  set.add_multiple(ref_vec.as_span().slice(6, 4));
+  EXPECT_EQ(set.as_span(), ref_vec.as_span());
+
+  /* Removing items and adding others should not affect the order of items added before the oldest
+   * removed one. */
+  set.remove(ref_vec[8]);
+  EXPECT_NE(set.as_span(), ref_vec.as_span());
+  EXPECT_EQ(set.as_span().take_front(8), ref_vec.as_span().take_front(8));
+
+  set.remove(ref_vec[5]);
+  EXPECT_EQ(set.as_span().take_front(5), ref_vec.as_span().take_front(5));
+
+  set.add(ref_vec[5]);
+  set.add(ref_vec[8]);
+  EXPECT_NE(set.as_span(), ref_vec.as_span());
+  EXPECT_EQ(set.as_span().take_front(5), ref_vec.as_span().take_front(5));
+
+  /* Add enough elements to ensure that some re-allocation happens in the VectorSet. */
+  for (int i = 10; i < 1000; i++) {
+    set.add(i);
+  }
+  EXPECT_EQ(set.as_span().take_front(5), ref_vec.as_span().take_front(5));
+}
+
 TEST(vector_set, SpanConstructorExceptions)
 {
   std::array<ExceptionThrower, 5> array = {1, 2, 3, 4, 5};

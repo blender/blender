@@ -10,6 +10,8 @@
  * A `blender::VectorSet<Key>` is an ordered container for elements of type `Key`. It has the same
  * interface as `blender::Set` with the following extensions:
  * - The insertion order of keys is maintained as long as no elements are removed.
+ *   - Once elements are removed, the order of keys is only maintained for the elements added
+ *     _before_ any removed element.
  * - The keys are stored in a contiguous array.
  *
  * All core operations (add, remove and contains) can be done in O(1) amortized expected time.
@@ -407,7 +409,9 @@ class VectorSet {
 
   /**
    * Deletes the key from the set. Returns true when the key existed in the set and is now removed.
-   * This might change the order of elements in the vector.
+   *
+   * This might change the order of elements in the vector. However, this will never affect the
+   * order of any element added _before_ the removed one.
    *
    * This is similar to std::unordered_set::erase.
    */
