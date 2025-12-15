@@ -669,6 +669,8 @@ static bool node_group_separate_selected(
     BKE_ntree_update_tag_all(&ngroup);
   }
 
+  DEG_relations_tag_update(&bmain);
+
   return true;
 }
 
