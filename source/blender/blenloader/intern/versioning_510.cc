@@ -15,6 +15,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_workspace_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
@@ -501,6 +502,19 @@ void blo_do_versions_510(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 14)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_IMAGE) {
+            SpaceImage *sima = reinterpret_cast<SpaceImage *>(sl);
+            sima->uv_edge_opacity = sima->uv_opacity;
+          }
+        }
+      }
+    }
   }
 
   /* This has no version check and always runs for all versions because there is forward
