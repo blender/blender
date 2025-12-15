@@ -7882,7 +7882,7 @@ class VIEW3D_PT_grease_pencil_origin(Panel):
             row = layout.row()
             row.prop(tool_settings, "use_gpencil_project_only_selected")
 
-        if tool_settings.gpencil_stroke_placement_view3d == 'STROKE':
+        if tool_settings.gpencil_stroke_placement_view3d in {'STROKE', 'SURFACE'}:
             row = layout.row()
             row.label(text="Target")
             row = layout.row()
