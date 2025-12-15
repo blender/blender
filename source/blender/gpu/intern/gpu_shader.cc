@@ -256,8 +256,14 @@ blender::gpu::Shader *GPU_shader_create_from_info_python(const GPUShaderCreateIn
       "gpu_shader_python_typedef_lib.glsl",
   };
 
+  if (!info.typedef_source_generated.empty()) {
+    info.generated_sources.append(
+        {"gpu_shader_python_typedef_lib.glsl", {}, "\n" + info.typedef_source_generated});
+  }
+
   auto preprocess_source = [&](const std::string &input_src) {
     std::string processed_str;
+    processed_str += "\n";
     processed_str += "#ifdef CREATE_INFO_RES_PASS_pyGPU_Shader\n";
     processed_str += "CREATE_INFO_RES_PASS_pyGPU_Shader\n";
     processed_str += "#endif\n";
