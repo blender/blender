@@ -35,6 +35,7 @@
 #include "BKE_context.hh"
 #include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
+#include "BKE_global.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object_deform.h"
 #include "BKE_paint.hh"
@@ -1831,7 +1832,6 @@ void WeightPaintStroke::update_step(wmOperator *op, PointerRNA *itemptr)
   vc = &wpd->vc;
   ob = vc->obact;
 
-  view3d_operator_needs_gpu(this->evil_C);
   ED_view3d_init_mats_rv3d(ob, vc->rv3d);
 
   mul_m4_m4m4(mat, vc->rv3d->persmat, ob->object_to_world().ptr());
@@ -1916,6 +1916,10 @@ void WeightPaintStroke::done(bool /*is_cancel*/)
 
 static wmOperatorStatus wpaint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  if (!G.background) {
+    view3d_operator_needs_gpu(C);
+  }
+
   WeightPaintStroke *stroke = MEM_new<WeightPaintStroke>(__func__, C, op, event->type);
   op->customdata = stroke;
 
