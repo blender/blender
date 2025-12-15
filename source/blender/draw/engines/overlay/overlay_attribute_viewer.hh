@@ -136,7 +136,7 @@ class AttributeViewer : Overlay {
         break;
       }
       case OB_POINTCLOUD: {
-        auto &sub = *pointcloud_sub_;
+        auto &sub = *instance_sub_;
         gpu::Batch *batch = pointcloud_sub_pass_setup(sub, &object, nullptr);
         sub.push_constant("ucolor", float4(color));
         sub.draw(batch, manager.unique_handle(ob_ref));
