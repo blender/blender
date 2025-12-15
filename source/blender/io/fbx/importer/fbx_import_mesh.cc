@@ -480,6 +480,14 @@ void import_meshes(Main &bmain,
     }
     import_skin_vertex_groups(mapping, fmesh, mesh);
 
+    /* Add vertex groups to the object. */
+    VectorSet<std::string> bone_set = get_skin_bone_name_set(mapping, fmesh);
+    for (const std::string &name : bone_set) {
+      bDeformGroup *defgroup = MEM_callocN<bDeformGroup>("bDeformGroup");
+      StringRef(name).copy_utf8_truncated(defgroup->name);
+      BLI_addtail(&mesh->vertex_group_names, defgroup);
+    }
+
     /* Validate if needed. */
     if (params.validate_meshes) {
       bool verbose_validate = false;
@@ -547,12 +555,6 @@ void import_meshes(Main &bmain,
 
       /* Skinned mesh. */
       if (fmesh->skin_deformers.count > 0) {
-        /* Add vertex groups to the object. */
-        VectorSet<std::string> bone_set = get_skin_bone_name_set(mapping, fmesh);
-        for (const std::string &name : bone_set) {
-          BKE_object_defgroup_add_name(obj, name.c_str());
-        }
-
         /* Add armature modifiers for each skin deformer. */
         for (const ufbx_skin_deformer *skin : fmesh->skin_deformers) {
           if (!is_skin_deformer_usable(fmesh, skin)) {

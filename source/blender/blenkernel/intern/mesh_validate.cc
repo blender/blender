@@ -7,7 +7,6 @@
  */
 
 #include <algorithm>
-#include <climits>
 #include <fmt/format.h>
 
 #include "BKE_attribute_legacy_convert.hh"
@@ -20,6 +19,7 @@
 #include "BLI_array_utils.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_index_ranges_builder.hh"
+#include "BLI_listbase.h"
 #include "BLI_ordered_edge.hh"
 
 #include "BKE_attribute.hh"
@@ -499,6 +499,7 @@ static bool validate_vertex_groups(const Mesh &mesh, const bool verbose, Mesh *m
   if (dverts.is_empty()) {
     return true;
   }
+  const int vertex_groups_num = BLI_listbase_count(&mesh.vertex_group_names);
   Mutex mutex;
   Vector<std::pair<int, Vector<std::string, 0>>> all_errors;
   Vector<std::pair<int, Vector<MDeformWeight, 0>>> replacements;
@@ -511,7 +512,7 @@ static bool validate_vertex_groups(const Mesh &mesh, const bool verbose, Mesh *m
       Vector<MDeformWeight, 64> fixed_weights;
       for (const MDeformWeight &dw : Span(dvert.dw, dvert.totweight)) {
         const uint def_nr = dw.def_nr;
-        if (dw.def_nr > INT_MAX) {
+        if (dw.def_nr >= vertex_groups_num) {
           invalid = true;
           if (verbose) {
             std::lock_guard lock(mutex);
