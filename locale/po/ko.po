@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-08 10:32+0000\n"
+"POT-Creation-Date: 2025-12-16 11:27+0000\n"
 "PO-Revision-Date: 2025-07-23 15:30+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -11704,6 +11704,22 @@ msgid "Bundle"
 msgstr "번들"
 
 
+msgid "Font"
+msgstr "폰트"
+
+
+msgid "Text"
+msgstr "텍스트"
+
+
+msgid "Mask"
+msgstr "마스크"
+
+
+msgid "Sound"
+msgstr "사운드"
+
+
 msgid "Freestyle Line Set"
 msgstr "프리스타일 라인 설정"
 
@@ -14624,10 +14640,6 @@ msgstr "커브에 대한 텍스트"
 
 msgid "Curve deforming text object"
 msgstr "커브 변형 텍스트 오브젝트"
-
-
-msgid "Font"
-msgstr "폰트"
 
 
 msgid "Font Bold"
@@ -18946,10 +18958,6 @@ msgstr "피치"
 
 msgid "Playback pitch of the sound"
 msgstr "사운드의 재생 피치"
-
-
-msgid "Sound"
-msgstr "사운드"
 
 
 msgid "Sound data-block used by this speaker"
@@ -23612,10 +23620,6 @@ msgid "Disable stencil and overlap self intersections with alpha materials"
 msgstr "알파 매테리얼과 함께 스텐실 비활성화 및 자체 겹침"
 
 
-msgid "Mask"
-msgstr "마스크"
-
-
 msgid "Material slot in an object"
 msgstr "오브젝트에 매테리얼 슬롯"
 
@@ -23632,16 +23636,72 @@ msgid "Material slot name"
 msgstr "매테리얼 슬롯 이름"
 
 
-msgid "Assign Material"
-msgstr "매테리얼을 할당"
+msgid "Mirror"
+msgstr "미러"
+
+
+msgid "Snap"
+msgstr "스냅"
+
+
+msgid "UV Mapping"
+msgstr "UV 맵핑"
+
+
+msgid "Local View"
+msgstr "로컬 뷰"
+
+
+msgid "Viewpoint"
+msgstr "뷰포트"
+
+
+msgid "Navigation"
+msgstr "네비게이션"
+
+
+msgid "Align View"
+msgstr "뷰를 정렬"
+
+
+msgid "Align View to Active"
+msgstr "뷰를 활성에 정렬"
+
+
+msgid "View Regions"
+msgstr "뷰 지역"
 
 
 msgid "Select More/Less"
 msgstr "선택 증가/감소"
 
 
+msgid "Select Similar"
+msgstr "유사한 선택"
+
+
+msgid "Select All by Trait"
+msgstr "형질로 모두 선택"
+
+
+msgid "Select Linked"
+msgstr "연결된 선택"
+
+
+msgid "Select Loops"
+msgstr "루프를 선택"
+
+
+msgid "Assign Material"
+msgstr "매테리얼을 할당"
+
+
 msgid "Metaball"
 msgstr "메타볼"
+
+
+msgid "Layout"
+msgstr "레이아웃"
 
 
 msgid "Light"
@@ -23664,12 +23724,24 @@ msgid "Rigid Body"
 msgstr "리지드 바디"
 
 
+msgid "Keying"
+msgstr "키잉"
+
+
 msgid "Apply"
 msgstr "적용"
 
 
+msgid "Tracking"
+msgstr "트래킹"
+
+
 msgid "Track"
 msgstr "트랙"
+
+
+msgid "Math"
+msgstr "수학"
 
 
 msgid "Quick Effects"
@@ -23682,10 +23754,6 @@ msgstr "표시/숨기기"
 
 msgid "Clean Up"
 msgstr "정리"
-
-
-msgid "Layout"
-msgstr "레이아웃"
 
 
 msgid "Asset"
@@ -23704,24 +23772,12 @@ msgid "Sculpt Set Pivot"
 msgstr "스컬프트 설정 피벗"
 
 
-msgid "Keying"
-msgstr "키잉"
-
-
-msgid "Tracking"
-msgstr "트래킹"
-
-
 msgid "Clear Transform"
 msgstr "변환을 지우기"
 
 
 msgid "In-Betweens"
 msgstr "사이에서"
-
-
-msgid "Math"
-msgstr "수학"
 
 
 msgid "Propagate"
@@ -23764,22 +23820,6 @@ msgid "Merge"
 msgstr "병합"
 
 
-msgid "Special Characters"
-msgstr "특수 문자"
-
-
-msgid "Kerning"
-msgstr "자간"
-
-
-msgid "Text"
-msgstr "텍스트"
-
-
-msgid "Bone Roll"
-msgstr "본 롤"
-
-
 msgid "Sample"
 msgstr "샘플"
 
@@ -23788,12 +23828,28 @@ msgid "Primitives"
 msgstr "프리미티브"
 
 
+msgid "Special Characters"
+msgstr "특수 문자"
+
+
+msgid "Kerning"
+msgstr "자간"
+
+
+msgid "Bone Roll"
+msgstr "본 롤"
+
+
+msgid "Import"
+msgstr "가져오기"
+
+
 msgid "Pivot Point"
 msgstr "피벗 포인트"
 
 
-msgid "Snap"
-msgstr "스냅"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Proportional Editing Falloff"
@@ -23802,62 +23858,6 @@ msgstr "비례 편집 감소"
 
 msgid "Mask Edit"
 msgstr "마스크 편집"
-
-
-msgid "Import"
-msgstr "가져오기"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Mirror"
-msgstr "미러"
-
-
-msgid "UV Mapping"
-msgstr "UV 맵핑"
-
-
-msgid "Local View"
-msgstr "로컬 뷰"
-
-
-msgid "Viewpoint"
-msgstr "뷰포트"
-
-
-msgid "Navigation"
-msgstr "네비게이션"
-
-
-msgid "Align View"
-msgstr "뷰를 정렬"
-
-
-msgid "Align View to Active"
-msgstr "뷰를 활성에 정렬"
-
-
-msgid "View Regions"
-msgstr "뷰 지역"
-
-
-msgid "Select Similar"
-msgstr "유사한 선택"
-
-
-msgid "Select All by Trait"
-msgstr "형질로 모두 선택"
-
-
-msgid "Select Linked"
-msgstr "연결된 선택"
-
-
-msgid "Select Loops"
-msgstr "루프를 선택"
 
 
 msgid "Basic"
@@ -53252,6 +53252,42 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
+msgid "Overlays"
+msgstr "오버레이"
+
+
+msgid "Guides"
+msgstr "가이드"
+
+
+msgid "Motion Tracking"
+msgstr "모션 트래킹"
+
+
+msgid "Mesh Edit Mode"
+msgstr "메쉬 에디트 모드"
+
+
+msgid "Measurement"
+msgstr "측정"
+
+
+msgid "Curve Edit Mode"
+msgstr "커브 에디트 모드"
+
+
+msgid "Transform Orientations"
+msgstr "변환 오리엔테이션"
+
+
+msgid "Stroke Placement"
+msgstr "스트로크 배치"
+
+
+msgid "Drawing Plane"
+msgstr "드로잉 평면"
+
+
 msgid "Quad View"
 msgstr "쿼드 뷰"
 
@@ -53290,42 +53326,6 @@ msgstr "캐비티"
 
 msgid "Render Pass"
 msgstr "렌더 패스"
-
-
-msgid "Overlays"
-msgstr "오버레이"
-
-
-msgid "Guides"
-msgstr "가이드"
-
-
-msgid "Motion Tracking"
-msgstr "모션 트래킹"
-
-
-msgid "Mesh Edit Mode"
-msgstr "메쉬 에디트 모드"
-
-
-msgid "Measurement"
-msgstr "측정"
-
-
-msgid "Curve Edit Mode"
-msgstr "커브 에디트 모드"
-
-
-msgid "Transform Orientations"
-msgstr "변환 오리엔테이션"
-
-
-msgid "Stroke Placement"
-msgstr "스트로크 배치"
-
-
-msgid "Drawing Plane"
-msgstr "드로잉 평면"
 
 
 msgid "Bone Constraints"
@@ -71297,10 +71297,6 @@ msgstr "ID = %s에서 키 프레임을 삭제하는 작업이 없습니다"
 
 msgid "Could not clear keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
 msgstr "RNA 경로가 지정된 ID에 유효하지 않으므로 키 프레임을 지울 수 없습니다 (ID = %s, 경로 = %s)"
-
-
-msgid "Not clearing all keyframes from locked F-Curve '%s' for %s '%s'"
-msgstr "잠긴 F-커브 '%s'에서 모든 키 프레임을 지우지 않음, %s '%s'에 대해"
 
 
 msgid "Skipping path in keying set, as it has no ID (KS = '%s', path = '%s[%d]')"

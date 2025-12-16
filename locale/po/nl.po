@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-08 10:32+0000\n"
+"POT-Creation-Date: 2025-12-16 11:27+0000\n"
 "PO-Revision-Date: 2025-07-23 14:52+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -1748,6 +1748,22 @@ msgid "Collection"
 msgstr "Collectie"
 
 
+msgid "Font"
+msgstr "Lettertype"
+
+
+msgid "Text"
+msgstr "Tekst"
+
+
+msgid "Mask"
+msgstr "Mask"
+
+
+msgid "Sound"
+msgstr "Geluid"
+
+
 msgid "Inclusive"
 msgstr "Inclusief"
 
@@ -2127,10 +2143,6 @@ msgid "Edit Format"
 msgstr "Bewerk Formaat"
 
 
-msgid "Font"
-msgstr "Lettertype"
-
-
 msgid "Font Size"
 msgstr "Groote Lettertype"
 
@@ -2428,10 +2440,6 @@ msgid "Mute the speaker"
 msgstr "Demp de speaker"
 
 
-msgid "Sound"
-msgstr "Geluid"
-
-
 msgid "Mirror X"
 msgstr "Spiegel X"
 
@@ -2678,8 +2686,28 @@ msgid "Dots"
 msgstr "Stippen"
 
 
-msgid "Mask"
-msgstr "Mask"
+msgid "Mirror"
+msgstr "Spiegel"
+
+
+msgid "Local View"
+msgstr "Lokale Scherm"
+
+
+msgid "Navigation"
+msgstr "Navigatie"
+
+
+msgid "Select Similar"
+msgstr "Selecteer Vergelijkbaar"
+
+
+msgid "Select Linked"
+msgstr "Selecteer Aaneengesloten"
+
+
+msgid "Layout"
+msgstr "Indeling"
 
 
 msgid "Light"
@@ -2706,10 +2734,6 @@ msgid "Show/Hide"
 msgstr "Toon/Verberg"
 
 
-msgid "Layout"
-msgstr "Indeling"
-
-
 msgid "Convert"
 msgstr "Converteer"
 
@@ -2726,32 +2750,8 @@ msgid "Names"
 msgstr "Namen"
 
 
-msgid "Text"
-msgstr "Tekst"
-
-
 msgid "Import"
 msgstr "Importeren"
-
-
-msgid "Mirror"
-msgstr "Spiegel"
-
-
-msgid "Local View"
-msgstr "Lokale Scherm"
-
-
-msgid "Navigation"
-msgstr "Navigatie"
-
-
-msgid "Select Similar"
-msgstr "Selecteer Vergelijkbaar"
-
-
-msgid "Select Linked"
-msgstr "Selecteer Aaneengesloten"
 
 
 msgctxt "MovieClip"

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-08 10:32+0000\n"
-"PO-Revision-Date: 2025-12-07 07:59+0000\n"
+"POT-Creation-Date: 2025-12-16 11:27+0000\n"
+"PO-Revision-Date: 2025-12-14 15:58+0000\n"
 "Last-Translator: golden dragon <trmhtk2@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
 "Language: he\n"
@@ -338,8 +338,20 @@ msgid "Full"
 msgstr "אלמ"
 
 
+msgid "KHR_materials_variants_ui"
+msgstr "KHR_materials_variants_ui"
+
+
+msgid "Displays glTF UI to manage material variants"
+msgstr ".םירמוח תויורשפא לוהינל glTF יצבק רובע שמתשמ קשממ גיצמ"
+
+
 msgid "Allow glTF Embedded format"
 msgstr "עמטומ glTF טמרופ רשפא"
+
+
+msgid "Display glTF UI to manage animations"
+msgstr "תויצמינא לוהינל glTF יצבק רובע שמתשמ קשממ גיצמ"
 
 
 msgid "Show only hotkeys that have this text in their name"
@@ -532,6 +544,14 @@ msgstr "בחור"
 
 msgid "Active Bone"
 msgstr "הליעפ םצע"
+
+
+msgid "Regions for quick access to assets"
+msgstr "םיסכנל הריהמ השיגל םירוזא"
+
+
+msgid "Show the basic building blocks and utilities coming with Blender"
+msgstr "Blender םע םיעיגמש םירזעו היינבה יקולב תא גצה"
 
 
 msgid "Options"
@@ -1354,6 +1374,22 @@ msgid "Force field based on a texture"
 msgstr "םקרמ סיסב לע חוכ הדש"
 
 
+msgid "File Select Parameters"
+msgstr "ץבוק תריחב ירטמרפ"
+
+
+msgid "Save"
+msgstr "רומש"
+
+
+msgid "Whether this path is saved in bookmarks, or generated from OS"
+msgstr ".הלעפהה תכרעממ רצוימ וא ,תוינמיסב רומש הז ביתנ םאה"
+
+
+msgid "File Extensions"
+msgstr "םיצבק תומויס"
+
+
 msgid "Image strip"
 msgstr "הנומת תעוצר"
 
@@ -1408,6 +1444,10 @@ msgstr "םידוקדוק תצובק"
 
 msgid "Collection"
 msgstr "ףסוא"
+
+
+msgid "Mask"
+msgstr "הכסמ"
 
 
 msgid "Sphere Radius"
@@ -1703,8 +1743,100 @@ msgid "Use whole collection at once"
 msgstr "תחא תבב ףסואה לכב שמתשה"
 
 
+msgid "Speed of Sound"
+msgstr "לילצ תוריהמ"
+
+
+msgid "Background Scene"
+msgstr "עקר תנצס"
+
+
+msgid "Active camera, used for rendering the scene"
+msgstr "הנצסה דוביעל תשמשמ ,הליעפ המלצמ"
+
+
+msgid "Scene root collection that owns all the objects and other collections instantiated in the scene"
+msgstr "הנצסה ךותבש םירחאה םיפסואהו םיטקייבואה לכ תא קיזחמש הנצסל שרוש ףסוא"
+
+
 msgid "3D Cursor"
 msgstr "דממ-תלת ןמס"
+
+
+msgid "Cycles Render Settings"
+msgstr "Cycles דוביע תורדגה"
+
+
+msgid "Cycles render settings"
+msgstr "Cycles דוביע תורדגה"
+
+
+msgid "Cycles Curves Rendering Settings"
+msgstr "Cycles תומוקע דוביע תורדגה"
+
+
+msgid "Cycles curves rendering settings"
+msgstr "Cycles תומוקע דוביע תורדגה"
+
+
+msgid "Scene Display"
+msgstr "הנצס תגוצת"
+
+
+msgid "Scene display settings for 3D viewport"
+msgstr "דממ-תלתה תגוצתל הנצסה תגוצת תורדגה"
+
+
+msgid "Display Settings"
+msgstr "הגוצת תורדגה"
+
+
+msgid "EEVEE"
+msgstr "EEVEE"
+
+
+msgid "EEVEE settings for the scene"
+msgstr "הנצסל EEVEE תורדגה"
+
+
+msgid "Current Frame"
+msgstr "תיחכונ תרגסמ"
+
+
+msgid "Current frame, to update animation data from Python frame_set() instead"
+msgstr "Python -ב ()frame_set -מ היצמינאה ינותנ ןוכדעל ,תיחכונ תרגסמ"
+
+
+msgid "Final frame of the playback/rendering range"
+msgstr "הגצה\\דוביעה חווט לש תיפוס תרגסמ"
+
+
+msgid "Current Subframe"
+msgstr "תיחכונ תרגסמ-תת"
+
+
+msgid "Preview Range End Frame"
+msgstr "המידקמ-הגוצתה חווטל םויס תרגסמ"
+
+
+msgid "Alternative end frame for UI playback"
+msgstr "שמתשמה קשממב הגצהל תיפולח םויס תרגסמ"
+
+
+msgid "Preview Range Start Frame"
+msgstr "המידקמ-הגוצתה חווטל הלחתה תרגסמ"
+
+
+msgid "Alternative start frame for UI playback"
+msgstr "שמתשמה קשממב הגצהל תיפולח הלחתה תרגסמ"
+
+
+msgid "First frame of the playback/rendering range"
+msgstr "הגצה\\דוביעה חווט לש הנושאר תרגסמ"
+
+
+msgid "Number of frames to skip forward while rendering/playing back each frame"
+msgstr "תרגסמ לכ רובע הגצה\\דוביע ןמזב המידק גולידל תורגסמ רפסמ"
 
 
 msgid "Outer Cone Volume"
@@ -1803,16 +1935,16 @@ msgid "Grease Pencil Color"
 msgstr "Grease Pencil יאבצ"
 
 
-msgid "Mask"
-msgstr "הכסמ"
-
-
-msgid "Apply"
-msgstr "לחה"
+msgid "Mirror"
+msgstr "הארמ"
 
 
 msgid "Layout"
 msgstr "הסירפ"
+
+
+msgid "Apply"
+msgstr "לחה"
 
 
 msgid "Convert"
@@ -1821,10 +1953,6 @@ msgstr "רמה"
 
 msgid "Face Data"
 msgstr "האפ ינותנ"
-
-
-msgid "Mirror"
-msgstr "הארמ"
 
 
 msgid "Proxy"

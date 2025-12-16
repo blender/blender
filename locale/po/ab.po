@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
 "Report-Msgid-Bugs-To: \n"
 "PO-Revision-Date: 2025-07-23 15:29+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
@@ -183,6 +183,10 @@ msgid "Start"
 msgstr "Алагара"
 
 
+msgid "Text"
+msgstr "Аҳәоу"
+
+
 msgid "Window"
 msgstr "Аԥенџьыр"
 
@@ -276,10 +280,6 @@ msgstr "Алашара"
 
 msgid "Keying"
 msgstr " Аиҭаганҵа"
-
-
-msgid "Text"
-msgstr "Аҳәоу"
 
 
 msgid "Marker"

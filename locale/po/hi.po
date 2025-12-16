@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-08 10:32+0000\n"
+"POT-Creation-Date: 2025-12-16 11:27+0000\n"
 "PO-Revision-Date: 2025-12-04 22:18+0000\n"
 "Last-Translator: Jackson Zheng <business.jackson.zheng@gmail.com>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -1524,6 +1524,22 @@ msgid "Add fire"
 msgstr "अग्नि में जोड़ें"
 
 
+msgid "Font"
+msgstr "मुद्र"
+
+
+msgid "Text"
+msgstr "पाठ"
+
+
+msgid "Mask"
+msgstr "आवरण"
+
+
+msgid "Sound"
+msgstr "ध्वनि"
+
+
 msgid "Border"
 msgstr "सीमांत"
 
@@ -1806,10 +1822,6 @@ msgstr "स्वरूप संपादन"
 
 msgid "Text on Curve"
 msgstr "वक्र पर पाठ"
-
-
-msgid "Font"
-msgstr "मुद्र"
 
 
 msgid "Font Bold"
@@ -2289,10 +2301,6 @@ msgid "Mute the speaker"
 msgstr "स्पीकर म्यूट करें"
 
 
-msgid "Sound"
-msgstr "ध्वनि"
-
-
 msgid "Current Line"
 msgstr "वर्तमान रेखा"
 
@@ -2573,8 +2581,12 @@ msgid "Dots"
 msgstr "बिन्दु्"
 
 
-msgid "Mask"
-msgstr "आवरण"
+msgid "Mirror"
+msgstr "दर्पण"
+
+
+msgid "Snap"
+msgstr "स्नैप"
 
 
 msgid "Light"
@@ -2585,12 +2597,20 @@ msgid "Rigid Body"
 msgstr "कठोर-पदार्थ"
 
 
+msgid "Keying"
+msgstr "कुंजीयन"
+
+
 msgid "Apply"
 msgstr "लागू करें"
 
 
 msgid "Track"
 msgstr "ट्रैक"
+
+
+msgid "Math"
+msgstr "गणित"
 
 
 msgid "Quick Effects"
@@ -2609,14 +2629,6 @@ msgid "Hooks"
 msgstr "खूँटी"
 
 
-msgid "Keying"
-msgstr "कुंजीयन"
-
-
-msgid "Math"
-msgstr "गणित"
-
-
 msgid "Names"
 msgstr "नाम"
 
@@ -2633,16 +2645,8 @@ msgid "Merge"
 msgstr "विलय करें"
 
 
-msgid "Text"
-msgstr "पाठ"
-
-
 msgid "Bone Roll"
 msgstr "हड्डी पंजी"
-
-
-msgid "Snap"
-msgstr "स्नैप"
 
 
 msgid "Import"
@@ -2651,10 +2655,6 @@ msgstr "आयात करें"
 
 msgid "UV"
 msgstr "यूवी"
-
-
-msgid "Mirror"
-msgstr "दर्पण"
 
 
 msgid "Basic"

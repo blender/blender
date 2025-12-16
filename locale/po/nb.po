@@ -1,13 +1,13 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-08 10:32+0000\n"
-"PO-Revision-Date: 2025-12-07 22:42+0000\n"
+"POT-Creation-Date: 2025-12-16 11:27+0000\n"
+"PO-Revision-Date: 2025-12-14 10:50+0000\n"
 "Last-Translator: Martin Hansen <mh306602@gmail.com>\n"
 "Language-Team: Norwegian Bokmål <https://translate.blender.org/projects/blender-ui/ui/nb_NO/>\n"
-"Language: nb_NO\n"
+"Language: nb\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -16,7 +16,7 @@ msgstr ""
 
 
 msgid "Shader AOV"
-msgstr "Fargelegger-AOV"
+msgstr "Skyggelegger-AOV"
 
 
 msgid "Valid"
@@ -64,7 +64,7 @@ msgstr "Animasjons-kanalpose"
 
 
 msgid "Collection of animation channels, typically associated with an action slot"
-msgstr "Samling av animasjons-kanaler, vanligvis forbundet med en handlings-plass"
+msgstr "Samling av animasjons-kanaler, vanligvis knyttet til en handlings-plass"
 
 
 msgid "F-Curves"
@@ -224,7 +224,7 @@ msgstr "Farger"
 
 
 msgid "Copy of the colors associated with the group's color set"
-msgstr "Kopi av fargen bundet med gruppens fargesett"
+msgstr "Kopi av fargen knyttet til gruppens fargesett"
 
 
 msgid "Color set is user-defined instead of a fixed theme color set"
@@ -401,7 +401,7 @@ msgstr "Pensel"
 
 msgctxt "ID"
 msgid "Cache File"
-msgstr "Hurtiglagringsfil"
+msgstr "Hurtiglager-fil"
 
 
 msgctxt "ID"
@@ -721,7 +721,7 @@ msgstr "Tildel minne på tvers av enheter"
 
 
 msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
-msgstr "Gi mer plass for store scener ved å tildele minne på tvers av sammenkoblede enheter (f.eks. via NVLink) i stedet for å duplisere det"
+msgstr "Gi mer plass for store scener ved å tildele minne på tvers av sammenkoblede enheter (f.eks. via NVLink) i stedet for å kopiere det"
 
 
 msgid "HIP RT"
@@ -765,7 +765,7 @@ msgstr "Sti til gltfpack-binær"
 
 
 msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
-msgstr "Viser glTF materiellutdatanode i fargelegger redigering (Legg til meny → utdata)"
+msgstr "Viser glTF materiellutdatanode i skyggelegger redigering (Legg til meny → utdata)"
 
 
 msgid "        Filter by Name"
@@ -793,11 +793,11 @@ msgstr "Skjul alltid de nye sammenflettingsnodene"
 
 
 msgid "Non-Shader"
-msgstr "Ingen-fargelegging"
+msgstr "Ingen-skyggelegging"
 
 
 msgid "Collapse in all cases except for shaders"
-msgstr "Fold sammen i alle tilfeller unntatt fargeleggere"
+msgstr "Fold sammen i alle tilfeller unntatt skyggeleggere"
 
 
 msgid "Never"
@@ -1325,7 +1325,7 @@ msgstr "Strøk"
 
 
 msgid "Freehand curves defining the sketch on this frame"
-msgstr "Frihåndskurver som definerer skissen på dette bildet"
+msgstr "Frihåndskurver som tilpasser skissen på dette bildet"
 
 
 msgid "Annotation Frames"
@@ -1513,7 +1513,7 @@ msgstr "Merknadsstrøk"
 
 
 msgid "Freehand curve defining part of a sketch"
-msgstr "Frihåndskurve som definerer en del av en skisse"
+msgstr "Frihåndskurve som tilpasser en del av en skisse"
 
 
 msgid "Stroke Points"
@@ -1605,7 +1605,7 @@ msgstr "UV/bildebehandler"
 
 
 msgid "View and edit images and UV Maps"
-msgstr "Vis og rediger bilder og UV-kart"
+msgstr "Vis og rediger bilder og UV-avbildninger"
 
 
 msgid "Node Editor"
@@ -1613,7 +1613,7 @@ msgstr "Noderedigering"
 
 
 msgid "Editor for node-based shading and compositing tools"
-msgstr "Program for node-basert fargelegging og sammensettelses verktøy"
+msgstr "Program for node-basert skyggelegging og sammensettelses verktøy"
 
 
 msgid "Video Sequencer"
@@ -2022,7 +2022,7 @@ msgstr "ID-navn"
 
 
 msgid "If this is set, the asset gets a custom ID, otherwise it takes the name of the class used to define the asset (for example, if the class name is \"OBJECT_AST_hello\", and bl_idname is not set by the script, then bl_idname = \"OBJECT_AST_hello\")"
-msgstr "Hvis dette er valgt, vil eiendelen få et tilpasset ID, ellers vil den ta navnet til klassen brukt for definering av eiendelen (f.eks. hvis klassens navn er «OBJEKT_AST_hei», og bl_idname ikke er satt av skriptet, da blir bl_idname = \"OBJEKT_AST_hei\")"
+msgstr "Hvis dette er valgt, vil eiendelen få et tilpasset ID, ellers vil den ta navnet til klassen brukt for tilpassing av eiendelen (f.eks. hvis klassens navn er «OBJEKT_AST_hei», og bl_idname ikke er satt av skriptet, da blir bl_idname = \"OBJEKT_AST_hei\")"
 
 
 msgid "Options"
@@ -2378,7 +2378,7 @@ msgstr "Eiendel-merke"
 
 
 msgid "User defined tag (name token)"
-msgstr "Brukerdefinert merke (symbolnavn)"
+msgstr "Brukertilpasset merke (symbolnavn)"
 
 
 msgid "The identifier that makes up this tag"
@@ -2458,7 +2458,7 @@ msgstr "Flyttall med kvaternion rotasjon"
 
 
 msgid "4x4 Matrix"
-msgstr "4 · 3 matrise"
+msgstr "4 × 3 matrise"
 
 
 msgid "Floating point matrix"
@@ -2657,7 +2657,7 @@ msgstr "Geometri-egenskap som lagrer flytetall 2D-vektorer"
 
 
 msgid "4x4 Matrix Attribute"
-msgstr "4 · 3 matrise-egenskap"
+msgstr "4 × 3 matrise-egenskap"
 
 
 msgid "Geometry attribute that stores a 4 by 4 float matrix"
@@ -2845,7 +2845,7 @@ msgstr "Bilde filsti for bruk ved ekstern lagring"
 
 
 msgid "Vertical dimension of the baking map"
-msgstr "Vertikal dimensjon av bakekartet"
+msgstr "Vertikal dimensjon av bakeavbildningen"
 
 
 msgid "Image Format"
@@ -2936,8 +2936,1181 @@ msgid "Choose normal space for baking"
 msgstr "Velg en normal plass for baking"
 
 
+msgid "Bake the normals in object space"
+msgstr "Bak normalene i objektplassen"
+
+
+msgid "Bake the normals in tangent space"
+msgstr "Bak normalene i tangentplassen"
+
+
+msgid "Pass Filter"
+msgstr "Passfilter"
+
+
+msgid "Passes to include in the active baking pass"
+msgstr "Pass å inkludere i det gjeldende bakepasset"
+
+
+msgid "None"
+msgstr "Ingen"
+
+
+msgid "Emit"
+msgstr "Send"
+
+
+msgid "Direct"
+msgstr "Direkte"
+
+
+msgid "Indirect"
+msgstr "Indirekte"
+
+
+msgid "Diffuse"
+msgstr "Diffus"
+
+
+msgid "Glossy"
+msgstr "Glans"
+
+
+msgid "Transmission"
+msgstr "Overføring"
+
+
+msgid "Save Mode"
+msgstr "Lagringsmodus"
+
+
+msgid "Where to save baked image textures"
+msgstr "Hvor det skal lagres bakte bildeteksturer"
+
+
+msgid "Internal"
+msgstr "Intern"
+
+
+msgid "Save the baking map in an internal image data-block"
+msgstr "Lagre bakeavbildningen i en intern bilde datablokk"
+
+
+msgid "External"
+msgstr "Ekstern"
+
+
+msgid "Save the baking map in an external file"
+msgstr "Lagre bakeavbildningen i en ekstern fil"
+
+
+msgid "Target"
+msgstr "Mål"
+
+
+msgid "Where to output the baked map"
+msgstr "Hvor det bakeavbildningen skal sendes ut"
+
+
+msgid "Image Textures"
+msgstr "Bildeteksturer"
+
+
+msgid "Bake to image data-blocks associated with active image texture nodes in materials"
+msgstr "Bak til bildedatablokkene knyttet til det gjeldende bildeteksturnoden i materialene"
+
+
+msgid "Bake to the active color attribute on meshes"
+msgstr "Bak til den gjeldende fargeegenskapen på maskenettene"
+
+
+msgid "Bake Type"
+msgstr "Baketype"
+
+
+msgid "Choose shading information to bake into the image"
+msgstr "Velg skyggelegging informasjon å bake til bildet"
+
+
+msgid "Normals"
+msgstr "Normaler"
+
+
+msgid "Bake normals"
+msgstr "Bak normaler"
+
+
+msgid "Displacement"
+msgstr "Forskyvning"
+
+
+msgid "Bake displacement"
+msgstr "Bak forskyvning"
+
+
+msgid "Vector Displacement"
+msgstr "Vektorforskyvning"
+
+
+msgid "Bake vector displacement"
+msgstr "Bak vektorforskyvning"
+
+
+msgid "Automatic Name"
+msgstr "Automatisk navn"
+
+
+msgid "Automatically name the output file with the pass type (external only)"
+msgstr "Navngi utdatafila automatisk med passtypen (kun ekstern)"
+
+
+msgid "Cage"
+msgstr "Bur"
+
+
+msgid "Cast rays to active object from a cage"
+msgstr "Kast stråler til gjeldende objekt fra et bur"
+
+
+msgid "Clear"
+msgstr "Tøm"
+
+
+msgid "Clear Images before baking (internal only)"
+msgstr "Tøm bilder før baking (kun intern)"
+
+
+msgid "Low Resolution Mesh"
+msgstr "Maskenett med lav oppløsning"
+
+
+msgid "Calculate heights against unsubdivided low resolution mesh"
+msgstr "Beregn høyder mot ikke-underinndelt maskenett med lav oppløsning"
+
+
+msgid "Bake from Multires"
+msgstr "Bak fra fleroppløsning"
+
+
+msgid "Bake directly from multires object"
+msgstr "Bak direkte fra fleroppløsnings objekter"
+
+
+msgid "Color the pass"
+msgstr "Fargelegg passet"
+
+
+msgid "Add diffuse contribution"
+msgstr "Legg til diffust bidrag"
+
+
+msgid "Add direct lighting contribution"
+msgstr "Legg til direkte belysnings bidrag"
+
+
+msgid "Emission"
+msgstr "Utsending"
+
+
+msgid "Add emission contribution"
+msgstr "Legg til utsending bidrag"
+
+
+msgid "Add glossy contribution"
+msgstr "Legg til glans bidrag"
+
+
+msgid "Add indirect lighting contribution"
+msgstr "Legg til indirekte belysnings bidrag"
+
+
+msgid "Add transmission contribution"
+msgstr "Legg til overførings bidrag"
+
+
+msgid "Selected to Active"
+msgstr "Valgt til gjeldende"
+
+
+msgid "Bake shading on the surface of selected objects to the active object"
+msgstr "Bak skyggelegging på overflaten av de valgte objektene til det gjeldende objektet"
+
+
+msgid "Split Materials"
+msgstr "Delte materialer"
+
+
+msgid "Split external images per material (external only)"
+msgstr "Del eksterne bilder per material (kun ekstern)"
+
+
+msgid "View From"
+msgstr "Vis fra"
+
+
+msgid "Source of reflection ray directions"
+msgstr "Kilde for refleksjonsstråleretninger"
+
+
+msgid "Above Surface"
+msgstr "Over overflaten"
+
+
+msgid "Cast rays from above the surface"
+msgstr "Kast stråler ovenfra overflaten"
+
+
+msgid "Active Camera"
+msgstr "Gjeldende kamera"
+
+
+msgid "Use the active camera's position to cast rays"
+msgstr "Bruk posisjonen til det gjeldende kamera for kasting av stråler"
+
+
+msgid "Horizontal dimension of the baking map"
+msgstr "Horisontal dimensjon av bakeavbildningen"
+
+
+msgid "Bézier Curve Point"
+msgstr "Bézier-kurvepunkt"
+
+
+msgid "Bézier curve point with two handles"
+msgstr "Bézier-kurve med to håndtak"
+
+
+msgid "Control Point"
+msgstr "Styringspunkt"
+
+
+msgid "Coordinates of the control point"
+msgstr "Koordinatene til styringspunktet"
+
+
+msgid "Handle 1"
+msgstr "Håndtak 1"
+
+
+msgid "Coordinates of the first handle"
+msgstr "Koordinatene til det første håndtaket"
+
+
+msgid "Handle 1 Type"
+msgstr "Type for håndtak 1"
+
+
+msgid "Handle types"
+msgstr "Håndtaktype"
+
+
+msgid "Free"
+msgstr "Fri"
+
+
+msgid "Aligned"
+msgstr "Justert"
+
+
+msgid "Handle 2"
+msgstr "Håndtak 2"
+
+
+msgid "Coordinates of the second handle"
+msgstr "Koordinatene til det andre håndtaket"
+
+
+msgid "Handle 2 Type"
+msgstr "Type for håndtak 2"
+
+
+msgid "Visibility status"
+msgstr "Synlighetsstatus"
+
+
+msgid "Bevel Radius"
+msgstr "Avrunding-radius"
+
+
+msgid "Radius for beveling"
+msgstr "Radius for avrunding"
+
+
+msgid "Control Point selected"
+msgstr "Styringspunkt valgt"
+
+
+msgid "Control point selection status"
+msgstr "Status for valg av styringspunkt"
+
+
+msgid "Handle 1 selected"
+msgstr "Håndtak 1 valgt"
+
+
+msgid "Handle 1 selection status"
+msgstr "Status for for valg av håndtak 1"
+
+
+msgid "Handle 2 selected"
+msgstr "Håndtak 2 valgt"
+
+
+msgid "Handle 2 selection status"
+msgstr "Status for for valg av håndtak 2"
+
+
+msgid "Tilt"
+msgstr "Helling"
+
+
+msgid "Tilt in 3D View"
+msgstr "Helling i 3D-visning"
+
+
+msgid "Weight"
+msgstr "Vekt"
+
+
+msgid "Softbody goal weight"
+msgstr "Målvekt for myk kropp"
+
+
+msgid "Blend-File Data"
+msgstr "Blend-fildata"
+
+
+msgid "Main data structure representing a .blend file and all its data-blocks"
+msgstr "Hoveddatastruktur som representerer en .blend-fil og alle dens datablokker"
+
+
+msgid "Action data-blocks"
+msgstr "Handlings datablokker"
+
+
+msgid "Annotation"
+msgstr "Merknader"
+
+
+msgid "Annotation data-blocks (legacy Grease Pencil)"
+msgstr "Merknads datablokker (gammel Grease Pencil)"
+
+
+msgid "Armature data-blocks"
+msgstr "Armatur datablokker"
+
+
+msgid "Brush data-blocks"
+msgstr "Pensel datablokker"
+
+
+msgid "Cache Files data-blocks"
+msgstr "Hurtiglager-filer datablokker"
+
+
+msgid "Camera data-blocks"
+msgstr "Kamera datablokker"
+
+
+msgid "Collection data-blocks"
+msgstr "Samlings datablokker"
+
+
+msgid "Color Space"
+msgstr "Fargerom"
+
+
+msgid "Information about the color space used for data-blocks in a blend file"
+msgstr "Informasjon om fargerommet brukt av datablokkene i en blend-fil"
+
+
+msgid "Curve data-blocks"
+msgstr "Kurve datablokker"
+
+
+msgid "Filename"
+msgstr "Filnavn"
+
+
+msgid "Path to the .blend file"
+msgstr "Sti til .blend-fila"
+
+
+msgid "Vector Fonts"
+msgstr "Vektor skrifttyper"
+
+
+msgid "Vector font data-blocks"
+msgstr "Vektor skrifttyper datablokker"
+
+
+msgid "Grease Pencil data-blocks"
+msgstr "Grease Pencil datablokker"
+
+
+msgid "Hair curve data-blocks"
+msgstr "Hårkurve datablokker"
+
+
+msgid "Image data-blocks"
+msgstr "Bilde datablokker"
+
+
+msgid "File Has Unsaved Changes"
+msgstr "Fila har ulagrede endringer"
+
+
+msgid "Have recent edits been saved to disk"
+msgstr "Er de siste endringene lagret på disk"
+
+
+msgid "File is Saved"
+msgstr "Fila er lagret"
+
+
+msgid "Has the current session been saved to disk as a .blend file"
+msgstr "Er den gjeldende økta blitt lagret på disk som en .blend-fil"
+
+
+msgid "Lattice data-blocks"
+msgstr "Gitter datablokker"
+
+
+msgid "Libraries"
+msgstr "Bibliotek"
+
+
+msgid "Library data-blocks"
+msgstr "Bibliotek datablokker"
+
+
+msgid "Light Probe data-blocks"
+msgstr "Lyssonder datablokker"
+
+
+msgid "Light data-blocks"
+msgstr "Lys datablokker"
+
+
+msgid "Line Styles"
+msgstr "Linjestiler"
+
+
+msgid "Line Style data-blocks"
+msgstr "Linjestil datablokker"
+
+
+msgid "Masks data-blocks"
+msgstr "Maske datablokker"
+
+
+msgid "Material data-blocks"
+msgstr "Material datablokker"
+
+
+msgid "Mesh data-blocks"
+msgstr "Maskenett datablokker"
+
+
+msgid "Metaball data-blocks"
+msgstr "Metaball datablokker"
+
+
+msgid "Movie Clip data-blocks"
+msgstr "Filmklipp datablokker"
+
+
+msgid "Node Groups"
+msgstr "Node grupper"
+
+
+msgid "Node group data-blocks"
+msgstr "Node gruppe datablokker"
+
+
+msgid "Object data-blocks"
+msgstr "Objekt datablokker"
+
+
+msgid "Paint Curves data-blocks"
+msgstr "Malingskurver datablokker"
+
+
+msgid "Palette data-blocks"
+msgstr "Palett datablokker"
+
+
+msgid "Particles"
+msgstr "Partikler"
+
+
+msgid "Particle data-blocks"
+msgstr "Partikkel datablokker"
+
+
+msgid "Point cloud data-blocks"
+msgstr "Punktsky datablokker"
+
+
+msgid "Scene data-blocks"
+msgstr "Scene datablokker"
+
+
+msgid "Screens"
+msgstr "Skjermer"
+
+
+msgid "Screen data-blocks"
+msgstr "Skjerm datablokker"
+
+
+msgid "Shape Keys"
+msgstr "Formnøkler"
+
+
+msgid "Shape Key data-blocks"
+msgstr "Formnøkkel datablokker"
+
+
+msgid "Sound data-blocks"
+msgstr "Lyd datablokker"
+
+
+msgid "Speaker data-blocks"
+msgstr "Høyttaler datablokker"
+
+
+msgid "Text data-blocks"
+msgstr "Tekst datablokker"
+
+
+msgid "Texture data-blocks"
+msgstr "Tekstur datablokker"
+
+
+msgid "Use Auto-Pack"
+msgstr "Bruk automatisk pakking"
+
+
+msgid "Automatically pack all external data into .blend file"
+msgstr "Pakk alle eksterne data på automatisk vis til en .blend-fil"
+
+
 msgid "Version"
 msgstr "Versjon"
+
+
+msgid "File format version the .blend file was saved with"
+msgstr "Filformatversjonen som .blend-fila ble lagret med"
+
+
+msgid "Volume data-blocks"
+msgstr "Volum datablokker"
+
+
+msgid "Window Managers"
+msgstr "Vindubehandlere"
+
+
+msgid "Window manager data-blocks"
+msgstr "Vindubehandler datablokker"
+
+
+msgid "Workspace data-blocks"
+msgstr "Arbeidsområde datablokker"
+
+
+msgid "World data-blocks"
+msgstr "Verden datablokker"
+
+
+msgid "Main Actions"
+msgstr "Hoved handlinger"
+
+
+msgid "Collection of actions"
+msgstr "Samling av handlinger"
+
+
+msgid "Main Annotations"
+msgstr "Hovedmerknader"
+
+
+msgid "Collection of annotations"
+msgstr "Samling av merknader"
+
+
+msgid "Main Armatures"
+msgstr "Hoved armaturer"
+
+
+msgid "Collection of armatures"
+msgstr "Samling av armaturer"
+
+
+msgid "Main Brushes"
+msgstr "Hovedpensler"
+
+
+msgid "Collection of brushes"
+msgstr "Samling av pensler"
+
+
+msgid "Main Cache Files"
+msgstr "Hoved hurtiglager-filer"
+
+
+msgid "Collection of cache files"
+msgstr "Samling av hurtiglager-filer"
+
+
+msgid "Main Cameras"
+msgstr "Hoved kameraer"
+
+
+msgid "Collection of cameras"
+msgstr "Samling av kameraer"
+
+
+msgid "Main Collections"
+msgstr "Hovedsamlinger"
+
+
+msgid "Collection of collections"
+msgstr "Samling av samlinger"
+
+
+msgid "Main Curves"
+msgstr "Hovedkurver"
+
+
+msgid "Collection of curves"
+msgstr "Samling av kurver"
+
+
+msgid "Main Fonts"
+msgstr "Hovedskrifttyper"
+
+
+msgid "Collection of fonts"
+msgstr "Samling av skrifttyper"
+
+
+msgid "Main Grease Pencils"
+msgstr "Hoved Grease Pencils"
+
+
+msgid "Collection of Grease Pencils"
+msgstr "Samling av Grease Pencils"
+
+
+msgid "Main Hair Curves"
+msgstr "Hoved hårkurver"
+
+
+msgid "Collection of hair curves"
+msgstr "Samling av hårkurver"
+
+
+msgid "Main Images"
+msgstr "Hovedbilder"
+
+
+msgid "Collection of images"
+msgstr "Samling av bilder"
+
+
+msgid "Main Lattices"
+msgstr "Hoved gitter"
+
+
+msgid "Collection of lattices"
+msgstr "Samling av gitter"
+
+
+msgid "Main Libraries"
+msgstr "Hoved bibliotek"
+
+
+msgid "Collection of libraries"
+msgstr "Samling av bibliotek"
+
+
+msgid "Main Lights"
+msgstr "Hovedlys"
+
+
+msgid "Collection of lights"
+msgstr "Samling av lys"
+
+
+msgid "Main Line Styles"
+msgstr "Hovedlinjestiler"
+
+
+msgid "Collection of line styles"
+msgstr "Samling av linjestiler"
+
+
+msgid "Main Masks"
+msgstr "Hoved masker"
+
+
+msgid "Collection of masks"
+msgstr "Samling av masker"
+
+
+msgid "Main Materials"
+msgstr "Hoved materialer"
+
+
+msgid "Collection of materials"
+msgstr "Samling av materialer"
+
+
+msgid "Main Meshes"
+msgstr "Hoved nettmasker"
+
+
+msgid "Collection of meshes"
+msgstr "Samling av nettmasker"
+
+
+msgid "Main Metaballs"
+msgstr "Hoved metaballer"
+
+
+msgid "Collection of metaballs"
+msgstr "Samling av metaballer"
+
+
+msgid "Main Movie Clips"
+msgstr "Hoved filmklipp"
+
+
+msgid "Collection of movie clips"
+msgstr "Samling av filmklipp"
+
+
+msgid "Main Node Trees"
+msgstr "Hoved nodetrær"
+
+
+msgid "Collection of node trees"
+msgstr "Samling av nodetrær"
+
+
+msgid "Main Objects"
+msgstr "Hovedobjekter"
+
+
+msgid "Collection of objects"
+msgstr "Samling av objekter"
+
+
+msgid "Main Paint Curves"
+msgstr "Hoved malingskurver"
+
+
+msgid "Collection of paint curves"
+msgstr "Samling av malingskurver"
+
+
+msgid "Main Palettes"
+msgstr "Hovedpaletter"
+
+
+msgid "Collection of palettes"
+msgstr "Samling av paletter"
+
+
+msgid "Main Particle Settings"
+msgstr "Hoved partikkelinnstillinger"
+
+
+msgid "Collection of particle settings"
+msgstr "Samling av partikkelinnstillinger"
+
+
+msgid "Main Point Clouds"
+msgstr "Hoved punktskyer"
+
+
+msgid "Collection of point clouds"
+msgstr "Samling av punktskyer"
+
+
+msgid "Main Light Probes"
+msgstr "Hoved lyssonder"
+
+
+msgid "Collection of light probes"
+msgstr "Samling av lyssonder"
+
+
+msgid "Main Scenes"
+msgstr "Hovedscener"
+
+
+msgid "Collection of scenes"
+msgstr "Samling av scener"
+
+
+msgid "Main Screens"
+msgstr "Hovedskjermer"
+
+
+msgid "Collection of screens"
+msgstr "Samling av skjermer"
+
+
+msgid "Main Sounds"
+msgstr "Hovedlyder"
+
+
+msgid "Collection of sounds"
+msgstr "Samling av lyder"
+
+
+msgid "Main Speakers"
+msgstr "Hovedhøyttalere"
+
+
+msgid "Collection of speakers"
+msgstr "Samling av høyttalere"
+
+
+msgid "Main Texts"
+msgstr "Hovedtekster"
+
+
+msgid "Collection of texts"
+msgstr "Samling av tekster"
+
+
+msgid "Main Textures"
+msgstr "Hovedteksturer"
+
+
+msgid "Collection of textures"
+msgstr "Samling av teksturer"
+
+
+msgid "Main Volumes"
+msgstr "Hovedvolumer"
+
+
+msgid "Collection of volumes"
+msgstr "Samling av volumer"
+
+
+msgid "Main Window Managers"
+msgstr "Hovedvindubehandlere"
+
+
+msgid "Collection of window managers"
+msgstr "Samling av vindubehandlere"
+
+
+msgid "Main Workspaces"
+msgstr "Hovedarbeidsområder"
+
+
+msgid "Collection of workspaces"
+msgstr "Samlinger av arbeidsområder"
+
+
+msgid "Main Worlds"
+msgstr "Hovedverdener"
+
+
+msgid "Collection of worlds"
+msgstr "Samling av verdener"
+
+
+msgid "Blend-File Color Space"
+msgstr "Blend-fil fargerom"
+
+
+msgid "Missing OpenColorIO Configuration"
+msgstr "Mangler OpenColorIO-oppsett"
+
+
+msgid "A color space, view or display was not found, which likely means the OpenColorIO config used to create this blend file is missing"
+msgstr "Fant ikke et fargerom, visning eller skjerm, noe som sannsynligvis betyr at OpenColorIO-oppsettet brukt til opprettelse av denne blend-fila mangler"
+
+
+msgid "Working Space"
+msgstr "Arbeidsplass"
+
+
+msgid "Color space used for all scene linear colors in this file, and for compositing, shader and geometry nodes processing"
+msgstr "Fargerom brukt for alle lineære scenefarger i denne fila, og for sammensetting, skyggelegging og behandling av geometrinoder"
+
+
+msgid "Linear Rec.709"
+msgstr "Lineær Rec.709"
+
+
+msgid "Linear BT.709 with illuminant D65 white point"
+msgstr "Lineær BT.709 med D65 lyskilde hvitpunkt"
+
+
+msgid "Linear Rec.2020"
+msgstr "Lineær Rec.2020"
+
+
+msgid "Linear BT.2020 with illuminant D65 white point"
+msgstr "Lineær BT.2020 med D65 lyskilde hvitpunkt"
+
+
+msgid "ACEScg"
+msgstr "ACEScg"
+
+
+msgid "Linear AP1 with ACES white point"
+msgstr "Lineær AP1 med ACES hvitpunkt"
+
+
+msgid "Working Space Interop ID"
+msgstr "Samspill-ID for arbeidsplass"
+
+
+msgid "Unique identifier for common color spaces, as defined by the Color Interop Forum. May be empty if there is no interop ID for the working space. Common values are lin_rec709_scene, lin_rec2020_scene and lin_ap1_scene (for ACEScg)"
+msgstr "Unik identifikator for felles fargerom, som definert av Color Interop Forum. Kan være tom hvis det ikke finnes noen samspill-ID for arbeidsplassen. Kan være tom hvis det ikke finnes noen samspill-ID for arbeidsplassen. Vanlige verdier er lin_rec709_scene, lin_rec2020_scene og lin_ap1_scene (for ACEScg)"
+
+
+msgid "Blendfile Import Context"
+msgstr "Blend-fil importsammenheng"
+
+
+msgid "Contextual data for a blendfile library/linked-data related operation. Currently only exposed as read-only data for the pre/post blendimport handlers"
+msgstr "Sammenhengende data for en blend-fil bibliotek/lenket-data relatert operasjon. For øyeblikket kun vist som skrivebeskyttet for før/etter blendimport-behandlere"
+
+
+msgid "Options for this blendfile import operation"
+msgstr "Innstillinger for denne blend-fil importoperasjon"
+
+
+msgid "Only link data, instead of appending it"
+msgstr "Bare lenk data, i stedet for å tilføye dem"
+
+
+msgid "Make paths of used library blendfiles relative to current blendfile"
+msgstr "Gjør stiene for brukte blend-filer i bibliotek relative til gjeldende blend-fil"
+
+
+msgid "Generate a placeholder (empty ID) if not found in any library files"
+msgstr "Lag en plassholder (tom-ID) hvis det ikke finnes i noen bibliotekfiler"
+
+
+msgid "Force loaded ID to be tagged as indirectly linked (used in reload context only)"
+msgstr "Tving innlastet ID til å merkes som indirekte lenket (brukes kun i sammenhenger med omstart)"
+
+
+msgid "Set fake user on appended IDs"
+msgstr "Velg falsk bruker på tilføyde ID-er"
+
+
+msgid "Append (make local) also indirect dependencies of appended IDs coming from other libraries. NOTE: All IDs (including indirectly linked ones) coming from the same initial library are always made local"
+msgstr "Tilføy (gjør lokal) også indirekte avhengigheter av tilføyde ID-er, det kommer fra andre bibliotek. MERK: Alle ID-er (inkludert indirekte lenkede), det kommer fra det samme opprinnelige bibliotek, gjøres alltid til lokal"
+
+
+msgid "Try to re-use previously appended matching IDs when appending them again, instead of creating local duplicates"
+msgstr "Prøv å gjenbruke tidligere tilføyet samsvarende ID-er, når du tilføyer dem igjen, i stedet for å opprette lokale kopier"
+
+
+msgid "Clear the asset data on append (it is always kept for linked data)"
+msgstr "Tøm eiendelsdata ved tilføyelse (beholdes alltid for lenkede data)"
+
+
+msgid "Automatically select imported objects"
+msgstr "Velg automatisk importerte objekter"
+
+
+msgid "Use the active Collection of the current View Layer to instantiate imported collections and objects"
+msgstr "Bruk den gjeldende samlingen av det nåværende visningslaget for å instansiere importerte samlinger og objekter"
+
+
+msgid "Instantiate object data IDs (i.e. create objects for them if needed)"
+msgstr "Instansier ID-en for objektdata (f.eks. opprette objekter for dem hvis det trengs)"
+
+
+msgid "Instantiate collections as empties, instead of linking them into the current view layer"
+msgstr "Instansier samlinger som tomme, i stedet for å lenke dem til det gjeldende visningslaget"
+
+
+msgid "Current stage of the import process"
+msgstr "Gjeldende stadie for importprosessen"
+
+
+msgid "Blendfile import context has been initialized and filled with a list of items to import, no data has been linked or appended yet"
+msgstr "Blend-fil importsammenhengen er startet opp og lista oppføres med elementer å importere, ingen data er lenket eller tilføyet enda"
+
+
+msgid "All data has been imported and is available in the list of \"import_items\""
+msgstr "Alle data er importert og er tilgjengelig i lista over «import_items»"
+
+
+msgid "Blendfile Import Context Item"
+msgstr "Blend-fil importsammenheng element"
+
+
+msgid "An item (representing a data-block) in a BlendImportContext data. Currently only exposed as read-only data for the pre/post linking handlers"
+msgstr "Et element (representerer en datablokk) i en blender importsammenheng-data. For øyeblikket kun vist som skrivebeskyttet for før/etter lenke-behandlere"
+
+
+msgid "Append Action"
+msgstr "Tilføy handling"
+
+
+msgid "How this item has been handled by the append operation. Only set if the data has been appended"
+msgstr "Hvordan dette elementet er blitt behandlet av tilføyingsoperasjonen. Velges kun hvis dataene er blitt tilføyet"
+
+
+msgid "Not yet defined"
+msgstr "Ikke tilpasset enda"
+
+
+msgid "ID has been kept linked"
+msgstr "ID-en beholdes lenket"
+
+
+msgid "An existing matching local ID has been re-used"
+msgstr "En eksisterende samsvarende lokal ID er gjenbrukt"
+
+
+msgid "The newly linked ID has been made local"
+msgstr "Det nylig lenkede ID-en er gjort lokal"
+
+
+msgid "The linked ID had other unrelated usages, so it has been duplicated into a local copy"
+msgstr "Den lenkede ID-en hadde andre urelaterte bruksområder, så den kopieres til en lokal kopi"
+
+
+msgid "Imported ID"
+msgstr "Importert ID"
+
+
+msgid "The imported ID. None until it has been linked or appended. May be the same as ``reusable_local_id`` when appended"
+msgstr "Den importerte ID-en. Ingen før den er lenket eller tilføyet. Kan være den samme som «reusable_local_id» når tilføyet"
+
+
+msgctxt "ID"
+msgid "ID Type"
+msgstr "ID-type"
+
+
+msgid "ID type of the item"
+msgstr "ID-type for elementet"
+
+
+msgid "Import Info"
+msgstr "Importinformasjon"
+
+
+msgid "Various status info about an item after it has been imported"
+msgstr "Diverse statusinformasjon om et element etter det er importert"
+
+
+msgid "That item was added for an indirectly imported ID, as a dependency of another data-block"
+msgstr "Det elementet ble lagt til for en indirekte importert ID, som en avhengighet av en annen datablokk"
+
+
+msgid "That item represents an ID also used as liboverride dependency (either directly, as a liboverride reference, or indirectly, as data used by a liboverride reference). It should never be directly made local. Mutually exclusive with `LIBOVERRIDE_DEPENDENCY_ONLY`"
+msgstr "Det elementet representerer en ID også brukt som en avhengighet av en bibliotekoverstyring (enten direkte, som en bibliotekoverstyring referanse, eller indirekte, som data brukt av en bibliotekoverstyring referanse). Det burde aldri direkte gjøres lokalt. Gjensidig utelukkende med «LIBOVERRIDE_DEPENDENCY_ONLY»"
+
+
+msgid "That item represents an ID only used as liboverride dependency (either directly or indirectly, see `LIBOVERRIDE_DEPENDENCY` for precisions). It should not be considered during the 'make local' (append) process, and remain purely linked data. Mutually exclusive with `LIBOVERRIDE_DEPENDENCY`"
+msgstr "Det elementet representerer en ID kun brukt som en avhengighet av en bibliotekoverstyring (enten direkte eller indirekte, se «LIBOVERRIDE_DEPENDENCY» for presisjoner). Det skal ikke vurderes under «gjør lokal» (tilføy)-prosessen, og forbli utelukkende lenket data. Gjensidig utelukkende med «LIBOVERRIDE_DEPENDENCY_ONLY»"
+
+
+msgid "Library Overridden ID"
+msgstr "Bibliotek overstyrt ID"
+
+
+msgid "The library override of the linked ID. None until it has been created"
+msgstr "Bibliotek overstyrelse av den lenkede ID-en. Ingen før den er opprettet"
+
+
+msgid "ID name of the item"
+msgstr "ID-navnet på elementet"
+
+
+msgid "Reusable Local ID"
+msgstr "Gjenbrukbar lokal-ID"
+
+
+msgid "The already existing local ID that may be reused in append & reuse case. None until it has been found"
+msgstr "Den eksisterende lokale ID-en som kan gjenbrukes i tilfeller av tilføyelse og gjenbruk. Ingen før den er funnet"
+
+
+msgid "Source Libraries"
+msgstr "Kildebibliotek"
+
+
+msgid "List of libraries to search and import that ID from. The ID will be imported from the first file in that list that contains it"
+msgstr "Liste over bibliotek å søke og importere ID fra. ID-en vil importeres fra den første fila i den lista den inneholder"
+
+
+msgid "Source Library"
+msgstr "Kildebibliotek"
+
+
+msgid "Library ID representing the blendfile from which the ID was imported. None until the ID has been linked or appended"
+msgstr "Bibliotek-ID representerer blend-fila som ID-en ble importert fra. Ingen før ID-en er lenket eller tilføyet"
+
+
+msgid "Blendfile Import Context Items"
+msgstr "Blend-fil importsammenheng elementer"
+
+
+msgid "Collection of blendfile import context items"
+msgstr "Samling av blend-fil importsammenheng elementer"
+
+
+msgid "Blendfile Import Context Libraries"
+msgstr "Blend-fil importsammenheng bibliotek"
+
+
+msgid "Collection of source libraries, i.e. blendfile paths"
+msgstr "Samling av kildebibliotek, f.eks. blend-fil-stier"
+
+
+msgid "Blendfile Import Context Library"
+msgstr "Blend-fil importsammenheng bibliotek"
+
+
+msgid "Library (blendfile) reference in a BlendImportContext data. Currently only exposed as read-only data for the pre/post blendimport handlers"
+msgstr "Bibliotek (blend-fil) referanse i en blender importsammenheng-data. For øyeblikket kun vist som skrivebeskyttet for før/etter blendimport-behandlere"
+
+
+msgid "Blender RNA"
+msgstr "Blender RNA"
+
+
+msgid "Blender RNA structure definitions"
+msgstr "Definisjoner av RNA-struktur i Blender"
+
+
+msgid "Structs"
+msgstr "Strukturer"
+
+
+msgid "Boid Rule"
+msgstr "Boid-regel"
+
+
+msgid "Boid rule name"
+msgstr "Boid-regel navn"
+
+
+msgid "Goal"
+msgstr "Mål"
+
+
+msgid "Go to assigned object or loudest assigned signal source"
+msgstr "Gå til tildelt objekt eller den høyeste tildelte signalkilden"
 
 
 msgid "Left"
@@ -2946,6 +4119,10 @@ msgstr "Venstre"
 
 msgid "Right"
 msgstr "Høyre"
+
+
+msgid "Linear"
+msgstr "Lineær"
 
 
 msgid "Camera"
@@ -2964,12 +4141,20 @@ msgid "Save"
 msgstr "Lagre"
 
 
+msgid "Emitter"
+msgstr "Sender"
+
+
 msgid "Window"
 msgstr "Vindu"
 
 
 msgid "Up"
 msgstr "Opp"
+
+
+msgid "Attribute"
+msgstr "Egenskap"
 
 
 msgid "Interface"
@@ -3054,6 +4239,15 @@ msgid "Language"
 msgstr "Språk"
 
 
+msgctxt "Operator"
+msgid "Make Local"
+msgstr "Gjør lokal"
+
+
+msgid "Make Local"
+msgstr "Gjør lokal"
+
+
 msgid "Rendered"
 msgstr "Gjengitt"
 
@@ -3095,6 +4289,10 @@ msgstr "Språk"
 
 msgid "Language used for translation"
 msgstr "Språk brukt for oversettelse"
+
+
+msgid "Lock Interface"
+msgstr "Lås grensesnitt"
 
 
 msgctxt "MovieClip"
@@ -3166,6 +4364,31 @@ msgid "Windowing Environment: {:s}"
 msgstr "Vindumiljø: {:s}"
 
 
+msgctxt "Operator"
+msgid "Render Animation"
+msgstr "Gjengi animasjon"
+
+
+msgctxt "Operator"
+msgid "Render Audio..."
+msgstr "Gjengi lyd …"
+
+
+msgctxt "Operator"
+msgid "View Render"
+msgstr "Vis gjengivelse"
+
+
+msgctxt "Operator"
+msgid "View Animation"
+msgstr "Vis animasjon"
+
+
+msgctxt "Operator"
+msgid "Render Image"
+msgstr "Gjengi bilde"
+
+
 msgid "Blender Version"
 msgstr "Blender-versjon"
 
@@ -3176,8 +4399,87 @@ msgstr "Søk"
 
 
 msgctxt "WorkSpace"
+msgid "2D Animation"
+msgstr "2D-animasjon"
+
+
+msgctxt "WorkSpace"
+msgid "Animation"
+msgstr "Animasjon"
+
+
+msgctxt "WorkSpace"
+msgid "Compositing"
+msgstr "Sammensetting"
+
+
+msgctxt "WorkSpace"
+msgid "Geometry Nodes"
+msgstr "Geometrinoder"
+
+
+msgctxt "WorkSpace"
+msgid "Layout"
+msgstr "Utforming"
+
+
+msgctxt "WorkSpace"
+msgid "Modeling"
+msgstr "Modellering"
+
+
+msgctxt "WorkSpace"
 msgid "Rendering"
-msgstr "Gjengir"
+msgstr "Gjengivelse"
+
+
+msgctxt "WorkSpace"
+msgid "Scripting"
+msgstr "Skripting"
+
+
+msgctxt "WorkSpace"
+msgid "Sculpting"
+msgstr "Skulptere"
+
+
+msgctxt "WorkSpace"
+msgid "Shading"
+msgstr "Skyggelegging"
+
+
+msgctxt "WorkSpace"
+msgid "Texture Paint"
+msgstr "Teksturmaling"
+
+
+msgctxt "WorkSpace"
+msgid "UV Editing"
+msgstr "UV-redigering"
+
+
+msgid "UV Layout"
+msgstr "UV-utforming"
+
+
+msgctxt "Preferences"
+msgid "Animation"
+msgstr "Animasjon"
+
+
+msgctxt "Preferences"
+msgid "Compositing"
+msgstr "Sammensetting"
+
+
+msgctxt "Preferences"
+msgid "Geometry Nodes"
+msgstr "Geometrinoder"
+
+
+msgctxt "Preferences"
+msgid "Modeling"
+msgstr "Modellering"
 
 
 msgctxt "Preferences"

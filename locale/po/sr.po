@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-08 10:32+0000\n"
+"POT-Creation-Date: 2025-12-16 11:27+0000\n"
 "PO-Revision-Date: 2025-07-23 15:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -4644,6 +4644,18 @@ msgid "Shader"
 msgstr "Сенчења"
 
 
+msgid "Font"
+msgstr "Фонт"
+
+
+msgid "Mask"
+msgstr "Маска"
+
+
+msgid "Sound"
+msgstr "Звук"
+
+
 msgid "Freestyle Line Set"
 msgstr "Збирка слободоручних линија"
 
@@ -5512,10 +5524,6 @@ msgstr "Објекта фонта"
 
 msgid "Text on Curve"
 msgstr "Текст на кривој"
-
-
-msgid "Font"
-msgstr "Фонт"
 
 
 msgid "Font Bold"
@@ -7232,10 +7240,6 @@ msgid "Pitch"
 msgstr "Висина тона"
 
 
-msgid "Sound"
-msgstr "Звук"
-
-
 msgid "Maximum Volume"
 msgstr "Максимална јачина"
 
@@ -8485,16 +8489,40 @@ msgid "Dots"
 msgstr "Туфне"
 
 
-msgid "Mask"
-msgstr "Маска"
-
-
 msgid "Material slot in an object"
 msgstr "Слот материјала у објекту"
 
 
 msgid "Material slot name"
 msgstr "Назив слота материјала"
+
+
+msgid "Mirror"
+msgstr "Огледало"
+
+
+msgid "Snap"
+msgstr "Лепљење"
+
+
+msgid "UV Mapping"
+msgstr "UV Мапирање"
+
+
+msgid "Local View"
+msgstr "Локални поглед"
+
+
+msgid "Navigation"
+msgstr "Навигација"
+
+
+msgid "Align View"
+msgstr "Поравнај поглед"
+
+
+msgid "Select Linked"
+msgstr "Изабери повезано"
 
 
 msgid "Metaball"
@@ -8513,12 +8541,24 @@ msgid "Rigid Body"
 msgstr "Круто тело"
 
 
+msgid "Keying"
+msgstr "Збирка тастера"
+
+
 msgid "Apply"
 msgstr "Примени"
 
 
+msgid "Tracking"
+msgstr "Праћење"
+
+
 msgid "Track"
 msgstr "Стаза"
+
+
+msgid "Math"
+msgstr "Математика"
 
 
 msgid "Quick Effects"
@@ -8533,24 +8573,12 @@ msgid "Hooks"
 msgstr "Удице"
 
 
-msgid "Keying"
-msgstr "Збирка тастера"
-
-
-msgid "Tracking"
-msgstr "Праћење"
-
-
 msgid "Clear Transform"
 msgstr "Очисти трансформације"
 
 
 msgid "In-Betweens"
 msgstr "У међувремену"
-
-
-msgid "Math"
-msgstr "Математика"
 
 
 msgid "Propagate"
@@ -8589,40 +8617,12 @@ msgid "Bone Roll"
 msgstr "Ролна костију"
 
 
-msgid "Snap"
-msgstr "Лепљење"
-
-
 msgid "Import"
 msgstr "Увоз"
 
 
 msgid "UV"
 msgstr "UV"
-
-
-msgid "Mirror"
-msgstr "Огледало"
-
-
-msgid "UV Mapping"
-msgstr "UV Мапирање"
-
-
-msgid "Local View"
-msgstr "Локални поглед"
-
-
-msgid "Navigation"
-msgstr "Навигација"
-
-
-msgid "Align View"
-msgstr "Поравнај поглед"
-
-
-msgid "Select Linked"
-msgstr "Изабери повезано"
 
 
 msgid "Basic"

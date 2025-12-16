@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-08 10:32+0000\n"
+"POT-Creation-Date: 2025-12-16 11:27+0000\n"
 "PO-Revision-Date: 2025-07-31 16:24+0000\n"
 "Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
@@ -3477,6 +3477,14 @@ msgid "Top"
 msgstr "Top"
 
 
+msgid "Text"
+msgstr "Tekst"
+
+
+msgid "Sound"
+msgstr "Lyd"
+
+
 msgid "Visibility"
 msgstr "Synlighed"
 
@@ -3554,10 +3562,6 @@ msgid "Pitch"
 msgstr "Toneleje"
 
 
-msgid "Sound"
-msgstr "Lyd"
-
-
 msgid "Blend"
 msgstr "Bland"
 
@@ -3616,10 +3620,6 @@ msgstr "Maksimal vinkel"
 
 msgid "Min Angle"
 msgstr "Minimum vinkel"
-
-
-msgid "Text"
-msgstr "Tekst"
 
 
 msgid "Key"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-08 10:32+0000\n"
+"POT-Creation-Date: 2025-12-16 11:27+0000\n"
 "PO-Revision-Date: 2025-07-23 15:13+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Basque <https://translate.blender.org/projects/blender-ui/ui/eu/>\n"
@@ -415,6 +415,14 @@ msgid "Normal"
 msgstr "Normala"
 
 
+msgid "Text"
+msgstr "Testua"
+
+
+msgid "Sound"
+msgstr "Soinua"
+
+
 msgid "Grid"
 msgstr "Sarea"
 
@@ -478,10 +486,6 @@ msgstr "Zirkulua"
 
 msgid "Angular Velocity"
 msgstr "Abiadura-angeluarra"
-
-
-msgid "Sound"
-msgstr "Soinua"
 
 
 msgid "Image Texture"
@@ -559,10 +563,6 @@ msgstr "Loturak"
 
 msgid "Show/Hide"
 msgstr "Erakutsi/Ezkutatu"
-
-
-msgid "Text"
-msgstr "Testua"
 
 
 msgid "Import"

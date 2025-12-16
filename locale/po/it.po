@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-08 10:32+0000\n"
+"POT-Creation-Date: 2025-12-16 11:27+0000\n"
 "PO-Revision-Date: 2025-11-12 16:04+0000\n"
 "Last-Translator: blend-it <blend-it@users.noreply.translate.blender.org>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -13130,6 +13130,22 @@ msgid "Closure"
 msgstr "Chiusura"
 
 
+msgid "Font"
+msgstr "Carattere"
+
+
+msgid "Text"
+msgstr "Testo"
+
+
+msgid "Mask"
+msgstr "Maschera"
+
+
+msgid "Sound"
+msgstr "Suono"
+
+
 msgid "Freestyle Line Set"
 msgstr "Gruppi Linee Freestyle"
 
@@ -16145,10 +16161,6 @@ msgstr "Testo su Curva"
 
 msgid "Curve deforming text object"
 msgstr "Curva che deforma l'oggetto testo"
-
-
-msgid "Font"
-msgstr "Carattere"
 
 
 msgid "Font Bold"
@@ -20166,10 +20178,6 @@ msgstr "Timbro"
 
 msgid "Playback pitch of the sound"
 msgstr "Timbro di riproduzione del suono"
-
-
-msgid "Sound"
-msgstr "Suono"
 
 
 msgid "Sound data-block used by this speaker"
@@ -24558,10 +24566,6 @@ msgid "Use Material Mask"
 msgstr "Utilizza Maschera Materiale"
 
 
-msgid "Mask"
-msgstr "Maschera"
-
-
 msgid "Material slot in an object"
 msgstr "Slot del materiale in un oggetto"
 
@@ -24578,16 +24582,72 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Assign Material"
-msgstr "Assegna Materiale"
+msgid "Mirror"
+msgstr "Specchia"
+
+
+msgid "Snap"
+msgstr "Aggancia"
+
+
+msgid "UV Mapping"
+msgstr "Mappatura UV"
+
+
+msgid "Local View"
+msgstr "Vista Locale"
+
+
+msgid "Viewpoint"
+msgstr "Punto di vista"
+
+
+msgid "Navigation"
+msgstr "Navigazione"
+
+
+msgid "Align View"
+msgstr "Allinea Vista"
+
+
+msgid "Align View to Active"
+msgstr "Allinea Vista a Attivo"
+
+
+msgid "View Regions"
+msgstr "Regione Vista"
 
 
 msgid "Select More/Less"
 msgstr "Seleziona Più/Meno"
 
 
+msgid "Select Similar"
+msgstr "Seleziona Simili"
+
+
+msgid "Select All by Trait"
+msgstr "Seleziona Tutto per Caratteristica"
+
+
+msgid "Select Linked"
+msgstr "Seleziona Collegati"
+
+
+msgid "Select Loops"
+msgstr "Seleziona Anelli"
+
+
+msgid "Assign Material"
+msgstr "Assegna Materiale"
+
+
 msgid "Metaball"
 msgstr "Metaball"
+
+
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Light"
@@ -24606,16 +24666,36 @@ msgid "Relations"
 msgstr "Relazioni"
 
 
+msgid "Adjust"
+msgstr "Regola"
+
+
 msgid "Rigid Body"
 msgstr "Corpo Rigido"
+
+
+msgid "Keying"
+msgstr "Keying"
 
 
 msgid "Apply"
 msgstr "Applica"
 
 
+msgid "Tracking"
+msgstr "Tracciamento"
+
+
 msgid "Track"
 msgstr "Traccia"
+
+
+msgid "Utilities"
+msgstr "Utilità"
+
+
+msgid "Math"
+msgstr "Matematica"
 
 
 msgid "Quick Effects"
@@ -24628,10 +24708,6 @@ msgstr "Mostra/Nascondi"
 
 msgid "Clean Up"
 msgstr "Ripulisci"
-
-
-msgid "Layout"
-msgstr "Layout"
 
 
 msgid "Asset"
@@ -24658,28 +24734,12 @@ msgid "Vertex Group Locks"
 msgstr "Blocchi del Gruppo di Vertici"
 
 
-msgid "Adjust"
-msgstr "Regola"
-
-
 msgid "Face Sets Init"
 msgstr "Init Sets di Facce"
 
 
-msgid "Keying"
-msgstr "Keying"
-
-
 msgid "Random Mask"
 msgstr "Maschera Casuale"
-
-
-msgid "Tracking"
-msgstr "Tracciamento"
-
-
-msgid "Utilities"
-msgstr "Utilità"
 
 
 msgid "Clear Transform"
@@ -24688,10 +24748,6 @@ msgstr "Cancella Trasformazione"
 
 msgid "In-Betweens"
 msgstr "Intermedio"
-
-
-msgid "Math"
-msgstr "Matematica"
 
 
 msgid "Propagate"
@@ -24738,22 +24794,6 @@ msgid "Merge"
 msgstr "Unisci"
 
 
-msgid "Special Characters"
-msgstr "Caratteri Speciali"
-
-
-msgid "Kerning"
-msgstr "Crenatura"
-
-
-msgid "Text"
-msgstr "Testo"
-
-
-msgid "Bone Roll"
-msgstr "Rollio Osso"
-
-
 msgid "Read"
 msgstr "Lettura"
 
@@ -24770,12 +24810,32 @@ msgid "Primitives"
 msgstr "Primitive"
 
 
+msgid "Special Characters"
+msgstr "Caratteri Speciali"
+
+
+msgid "Kerning"
+msgstr "Crenatura"
+
+
+msgid "Instances"
+msgstr "Istanze"
+
+
+msgid "Bone Roll"
+msgstr "Rollio Osso"
+
+
+msgid "Import"
+msgstr "Importa"
+
+
 msgid "Pivot Point"
 msgstr "Punto di Perno"
 
 
-msgid "Snap"
-msgstr "Aggancia"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Proportional Editing Falloff"
@@ -24790,68 +24850,8 @@ msgid "Automasking"
 msgstr "Automascheramento"
 
 
-msgid "Instances"
-msgstr "Istanze"
-
-
 msgid "Face Sets Edit"
 msgstr "Modifica Sets di Facce"
-
-
-msgid "Import"
-msgstr "Importa"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Mirror"
-msgstr "Specchia"
-
-
-msgid "UV Mapping"
-msgstr "Mappatura UV"
-
-
-msgid "Local View"
-msgstr "Vista Locale"
-
-
-msgid "Viewpoint"
-msgstr "Punto di vista"
-
-
-msgid "Navigation"
-msgstr "Navigazione"
-
-
-msgid "Align View"
-msgstr "Allinea Vista"
-
-
-msgid "Align View to Active"
-msgstr "Allinea Vista a Attivo"
-
-
-msgid "View Regions"
-msgstr "Regione Vista"
-
-
-msgid "Select Similar"
-msgstr "Seleziona Simili"
-
-
-msgid "Select All by Trait"
-msgstr "Seleziona Tutto per Caratteristica"
-
-
-msgid "Select Linked"
-msgstr "Seleziona Collegati"
-
-
-msgid "Select Loops"
-msgstr "Seleziona Anelli"
 
 
 msgid "Keyframe Insert Pie"
@@ -31460,16 +31460,16 @@ msgid "Blur Attribute"
 msgstr "Attributo Sfocatura"
 
 
+msgid "Original"
+msgstr "Originale"
+
+
 msgid "Capture Attribute"
 msgstr "Attributo Cattura"
 
 
 msgid "Collection Info"
 msgstr "Informazioni Raccolta"
-
-
-msgid "Original"
-msgstr "Originale"
 
 
 msgid "Convex Hull"
@@ -49978,10 +49978,6 @@ msgid "New Main Window"
 msgstr "Nuova Finestra Principale"
 
 
-msgid "Sample Count"
-msgstr "Conteggio Campioni"
-
-
 msgctxt "Operator"
 msgid "Add Workspace"
 msgstr "Aggiungi Spazio di Lavoro"
@@ -50308,6 +50304,34 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
+msgid "Overlays"
+msgstr "Sovrapposizioni"
+
+
+msgid "Guides"
+msgstr "Guide"
+
+
+msgid "Motion Tracking"
+msgstr "Tracciatura Movimento"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Modalità Modifica Mesh"
+
+
+msgid "Measurement"
+msgstr "Misurazione"
+
+
+msgid "Transform Orientations"
+msgstr "Assi (Orientamenti Trasformazione)"
+
+
+msgid "Stroke Placement"
+msgstr "Giacitura Tratto"
+
+
 msgid "Stereoscopy"
 msgstr "Stereoscopia"
 
@@ -50338,34 +50362,6 @@ msgstr "Passaggi Render"
 
 msgid "Compositor"
 msgstr "Compositore"
-
-
-msgid "Overlays"
-msgstr "Sovrapposizioni"
-
-
-msgid "Guides"
-msgstr "Guide"
-
-
-msgid "Motion Tracking"
-msgstr "Tracciatura Movimento"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Modalità Modifica Mesh"
-
-
-msgid "Measurement"
-msgstr "Misurazione"
-
-
-msgid "Transform Orientations"
-msgstr "Assi (Orientamenti Trasformazione)"
-
-
-msgid "Stroke Placement"
-msgstr "Giacitura Tratto"
 
 
 msgid "Chain Scaling"
@@ -53941,6 +53937,10 @@ msgstr "Trasmissione Indiretto"
 
 msgid "Transmission Color"
 msgstr "Colore trasmissivo"
+
+
+msgid "Sample Count"
+msgstr "Conteggio Campioni"
 
 
 msgid "Show Active Pixels"
@@ -59980,6 +59980,16 @@ msgstr "Alterna Marca come Netto"
 
 
 msgctxt "WindowManager"
+msgid "Snap"
+msgstr "Aggancia"
+
+
+msgctxt "WindowManager"
+msgid "Precision"
+msgstr "Precisione"
+
+
+msgctxt "WindowManager"
 msgid "Paint Stroke Modal"
 msgstr "Dipingi Tratto Modale"
 
@@ -60052,11 +60062,6 @@ msgstr "Saltare"
 msgctxt "WindowManager"
 msgid "Pan"
 msgstr "Scorrimento"
-
-
-msgctxt "WindowManager"
-msgid "Precision"
-msgstr "Precisione"
 
 
 msgctxt "WindowManager"
@@ -60262,11 +60267,6 @@ msgstr "Nessuna Operazione"
 msgctxt "WindowManager"
 msgid "Move"
 msgstr "Muovi"
-
-
-msgctxt "WindowManager"
-msgid "Snap"
-msgstr "Aggancia"
 
 
 msgctxt "WindowManager"

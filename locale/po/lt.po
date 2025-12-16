@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-08 10:32+0000\n"
+"POT-Creation-Date: 2025-12-16 11:27+0000\n"
 "PO-Revision-Date: 2025-07-23 15:18+0000\n"
 "Last-Translator: Aras Pranckevičius <aras@nesnausk.org>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -2245,6 +2245,18 @@ msgid "Menu"
 msgstr "Meniu"
 
 
+msgid "Font"
+msgstr "Šriftas"
+
+
+msgid "Text"
+msgstr "Tekstas"
+
+
+msgid "Sound"
+msgstr "Garsas"
+
+
 msgid "Visibility"
 msgstr "Matomumas"
 
@@ -2427,10 +2439,6 @@ msgstr "Teisinti"
 
 msgid "Middle"
 msgstr "Vidurys"
-
-
-msgid "Font"
-msgstr "Šriftas"
 
 
 msgid "Font Size"
@@ -2738,10 +2746,6 @@ msgstr "Vieneto nustatymai"
 msgctxt "World"
 msgid "World"
 msgstr "Pasaulis"
-
-
-msgid "Sound"
-msgstr "Garsas"
 
 
 msgctxt "Text"
@@ -3089,6 +3093,10 @@ msgid "Dots"
 msgstr "Taškai"
 
 
+msgid "Layout"
+msgstr "Išdėstymas/Maketas"
+
+
 msgid "Apply"
 msgstr "Pritaikyti"
 
@@ -3099,14 +3107,6 @@ msgstr "Sekti"
 
 msgid "Show/Hide"
 msgstr "Rodyti/Slėpti"
-
-
-msgid "Layout"
-msgstr "Išdėstymas/Maketas"
-
-
-msgid "Text"
-msgstr "Tekstas"
 
 
 msgid "Import"

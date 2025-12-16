@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-08 10:32+0000\n"
+"POT-Creation-Date: 2025-12-16 11:27+0000\n"
 "PO-Revision-Date: 2025-11-18 20:05+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -5211,6 +5211,22 @@ msgid "Collection"
 msgstr "Samling"
 
 
+msgid "Font"
+msgstr "Typsnitt"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Mask"
+msgstr "Mask"
+
+
+msgid "Sound"
+msgstr "Ljud"
+
+
 msgid "Exclusive"
 msgstr "Exklusiv"
 
@@ -6255,10 +6271,6 @@ msgstr "Redigera format"
 
 msgid "Text on Curve"
 msgstr "Text på kurva"
-
-
-msgid "Font"
-msgstr "Typsnitt"
 
 
 msgid "X Offset"
@@ -7348,10 +7360,6 @@ msgstr "Cachning"
 msgctxt "Sound"
 msgid "Mute"
 msgstr "Tyst"
-
-
-msgid "Sound"
-msgstr "Ljud"
 
 
 msgid "Minimum Volume"
@@ -9331,148 +9339,12 @@ msgid "Use Material Mask"
 msgstr "Använd materialmask"
 
 
-msgid "Mask"
-msgstr "Mask"
-
-
-msgid "Assign Material"
-msgstr "Tilldela material"
-
-
-msgid "Select More/Less"
-msgstr "Markera mera/mindre"
-
-
-msgid "Metaball"
-msgstr "Metaboll"
-
-
-msgid "Light"
-msgstr "Ljus"
-
-
-msgid "Light Probe"
-msgstr "Ljussond"
-
-
-msgid "Add Image"
-msgstr "Lägg till bild"
-
-
-msgid "Relations"
-msgstr "Relationer"
-
-
-msgid "Rigid Body"
-msgstr "Rigid kropp"
-
-
-msgid "Apply"
-msgstr "Applicera"
-
-
-msgid "Track"
-msgstr "Spår"
-
-
-msgid "Quick Effects"
-msgstr "Snabbeffekter"
-
-
-msgid "Show/Hide"
-msgstr "Visa/dölj"
-
-
-msgid "Clean Up"
-msgstr "Städa upp"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Asset"
-msgstr "Tillgång"
-
-
-msgid "Convert"
-msgstr "Konvertera"
-
-
-msgid "Link/Transfer Data"
-msgstr "Länka/överför data"
-
-
-msgid "Adjust"
-msgstr "Justera"
-
-
-msgid "Utilities"
-msgstr "Verktyg"
-
-
-msgid "Math"
-msgstr "Matematik"
-
-
-msgid "Propagate"
-msgstr "Propagera"
-
-
-msgid "Names"
-msgstr "Namn"
-
-
-msgid "Merge"
-msgstr "Sammanfoga"
-
-
-msgid "Special Characters"
-msgstr "Specialtecken"
-
-
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Read"
-msgstr "Läs"
-
-
-msgid "Write"
-msgstr "Skriv"
-
-
-msgid "Primitives"
-msgstr "Primitiver"
-
-
-msgid "Pivot Point"
-msgstr "Fast punkt"
+msgid "Mirror"
+msgstr "Spegla"
 
 
 msgid "Snap"
 msgstr "Snäpp"
-
-
-msgid "Instances"
-msgstr "Instanser"
-
-
-msgid "Import"
-msgstr "Importera"
-
-
-msgid "Deprecated"
-msgstr "Föråldrad"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Mirror"
-msgstr "Spegla"
 
 
 msgid "Local View"
@@ -9493,6 +9365,134 @@ msgstr "Justera vy"
 
 msgid "Align View to Active"
 msgstr "Justera vy till aktiv"
+
+
+msgid "Select More/Less"
+msgstr "Markera mera/mindre"
+
+
+msgid "Assign Material"
+msgstr "Tilldela material"
+
+
+msgid "Metaball"
+msgstr "Metaboll"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
+msgid "Light"
+msgstr "Ljus"
+
+
+msgid "Light Probe"
+msgstr "Ljussond"
+
+
+msgid "Add Image"
+msgstr "Lägg till bild"
+
+
+msgid "Relations"
+msgstr "Relationer"
+
+
+msgid "Adjust"
+msgstr "Justera"
+
+
+msgid "Rigid Body"
+msgstr "Rigid kropp"
+
+
+msgid "Apply"
+msgstr "Applicera"
+
+
+msgid "Track"
+msgstr "Spår"
+
+
+msgid "Utilities"
+msgstr "Verktyg"
+
+
+msgid "Math"
+msgstr "Matematik"
+
+
+msgid "Quick Effects"
+msgstr "Snabbeffekter"
+
+
+msgid "Show/Hide"
+msgstr "Visa/dölj"
+
+
+msgid "Clean Up"
+msgstr "Städa upp"
+
+
+msgid "Asset"
+msgstr "Tillgång"
+
+
+msgid "Convert"
+msgstr "Konvertera"
+
+
+msgid "Link/Transfer Data"
+msgstr "Länka/överför data"
+
+
+msgid "Propagate"
+msgstr "Propagera"
+
+
+msgid "Names"
+msgstr "Namn"
+
+
+msgid "Merge"
+msgstr "Sammanfoga"
+
+
+msgid "Read"
+msgstr "Läs"
+
+
+msgid "Write"
+msgstr "Skriv"
+
+
+msgid "Primitives"
+msgstr "Primitiver"
+
+
+msgid "Special Characters"
+msgstr "Specialtecken"
+
+
+msgid "Instances"
+msgstr "Instanser"
+
+
+msgid "Import"
+msgstr "Importera"
+
+
+msgid "Deprecated"
+msgstr "Föråldrad"
+
+
+msgid "Pivot Point"
+msgstr "Fast punkt"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Animals"
@@ -21371,22 +21371,6 @@ msgid "Palette Color"
 msgstr "Palettfärg"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "Active Tool"
-msgstr "Aktivt verktyg"
-
-
-msgid "Cavity"
-msgstr "Hålrum"
-
-
-msgid "Render Pass"
-msgstr "Renderingspass"
-
-
 msgid "Overlays"
 msgstr "Överlägg"
 
@@ -21401,6 +21385,22 @@ msgstr "Mätning"
 
 msgid "Stroke Placement"
 msgstr "Streckplacering"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "Active Tool"
+msgstr "Aktivt verktyg"
+
+
+msgid "Cavity"
+msgstr "Hålrum"
+
+
+msgid "Render Pass"
+msgstr "Renderingspass"
 
 
 msgid "Import Settings"
@@ -25529,6 +25529,16 @@ msgstr "Öka segment"
 
 
 msgctxt "WindowManager"
+msgid "Snap"
+msgstr "Snäpp"
+
+
+msgctxt "WindowManager"
+msgid "Precision"
+msgstr "Precision"
+
+
+msgctxt "WindowManager"
 msgid "Lock Angle"
 msgstr "Lås vinkel"
 
@@ -25566,11 +25576,6 @@ msgstr "Hoppa"
 msgctxt "WindowManager"
 msgid "Jump (Off)"
 msgstr "Hoppa (av)"
-
-
-msgctxt "WindowManager"
-msgid "Precision"
-msgstr "Precision"
 
 
 msgctxt "WindowManager"
@@ -25736,11 +25741,6 @@ msgstr "Börja"
 msgctxt "WindowManager"
 msgid "Move"
 msgstr "Flytta"
-
-
-msgctxt "WindowManager"
-msgid "Snap"
-msgstr "Snäpp"
 
 
 msgctxt "WindowManager"
@@ -26246,12 +26246,12 @@ msgid "Use Geometry Nodes"
 msgstr "Använd geometrinoder"
 
 
-msgid "Node {} deleted"
-msgstr "Noden {} togs bort"
-
-
 msgid "{} does not exist"
 msgstr "{} finns inte"
+
+
+msgid "Node {} deleted"
+msgstr "Noden {} togs bort"
 
 
 msgid "Deleted {} nodes"
@@ -34356,26 +34356,6 @@ msgstr "filer"
 
 msgid "microphone"
 msgstr "mikrofon"
-
-
-msgid "Estonian - Eesti keel"
-msgstr "Estniska - Eesti keel"
-
-
-msgid "Amharic - አማርኛ"
-msgstr "Amhariska - አማርኛ"
-
-
-msgid "Uzbek (Latin) - Oʻzbek"
-msgstr "Uzbekiska (latin) - Oʻzbek"
-
-
-msgid "Uzbek (Cyrillic) - Ўзбек"
-msgstr "Uzbekisk (kyrilliska) - Ўзбек"
-
-
-msgid "Kazakh - Қазақша"
-msgstr "Kazakiska - Қазақша"
 
 
 msgid "Add & Subtract"

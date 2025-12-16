@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-12-08 10:32+0000\n"
+"POT-Creation-Date: 2025-12-16 11:27+0000\n"
 "PO-Revision-Date: 2025-11-11 12:13+0000\n"
 "Last-Translator: Rafael Teixeira de Avila Soares <rafaeltas@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -10765,6 +10765,22 @@ msgid "Bundle"
 msgstr "Encapsulamento"
 
 
+msgid "Font"
+msgstr "Fonte"
+
+
+msgid "Text"
+msgstr "Texto"
+
+
+msgid "Mask"
+msgstr "Máscara"
+
+
+msgid "Sound"
+msgstr "Som"
+
+
 msgid "Freestyle Line Set"
 msgstr "Freestyle - Conjuntos de linhas"
 
@@ -12996,10 +13012,6 @@ msgstr "Texto em curva"
 
 msgid "Curve deforming text object"
 msgstr "Curva deformando o objeto de texto"
-
-
-msgid "Font"
-msgstr "Fonte"
 
 
 msgid "Font Bold"
@@ -16664,10 +16676,6 @@ msgstr "Compasso"
 
 msgid "Playback pitch of the sound"
 msgstr "Valor de compasso para a reprodução dos sons."
-
-
-msgid "Sound"
-msgstr "Som"
 
 
 msgid "Sound data-block used by this speaker"
@@ -21207,10 +21215,6 @@ msgid "UV Factor"
 msgstr "Fator UV"
 
 
-msgid "Mask"
-msgstr "Máscara"
-
-
 msgid "Material slot in an object"
 msgstr "Compartimentos de material dentro de um objeto."
 
@@ -21227,12 +21231,68 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
+msgid "Mirror"
+msgstr "Espelhar"
+
+
+msgid "Snap"
+msgstr "Atrair"
+
+
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
+
+
+msgid "Local View"
+msgstr "Visão local"
+
+
+msgid "Viewpoint"
+msgstr "Ponto de visualização"
+
+
+msgid "Navigation"
+msgstr "Navegação"
+
+
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o ativo"
+
+
+msgid "View Regions"
+msgstr "Visualizar Regiões"
+
+
 msgid "Select More/Less"
 msgstr "Selecionar mais ou menos"
 
 
+msgid "Select Similar"
+msgstr "Selecionar por similaridades"
+
+
+msgid "Select All by Trait"
+msgstr "Selecionar todos por características..."
+
+
+msgid "Select Linked"
+msgstr "Selecionar vinculados(as)"
+
+
+msgid "Select Loops"
+msgstr "Selecionar anéis"
+
+
 msgid "Metaball"
 msgstr "Meta-esfera"
+
+
+msgid "Layout"
+msgstr "Organizar"
 
 
 msgid "Light"
@@ -21255,12 +21315,24 @@ msgid "Rigid Body"
 msgstr "Corpo rígido"
 
 
+msgid "Keying"
+msgstr "Inserção de chaves"
+
+
 msgid "Apply"
 msgstr "Aplicar"
 
 
+msgid "Tracking"
+msgstr "Rastreamento"
+
+
 msgid "Track"
 msgstr "Rastrear"
+
+
+msgid "Math"
+msgstr "Matemática"
 
 
 msgid "Quick Effects"
@@ -21275,10 +21347,6 @@ msgid "Clean Up"
 msgstr "Limpeza"
 
 
-msgid "Layout"
-msgstr "Organizar"
-
-
 msgid "Make Single User"
 msgstr "Tornar usuário único"
 
@@ -21291,16 +21359,8 @@ msgid "Hooks"
 msgstr "Ganchos"
 
 
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
 msgid "Random Mask"
 msgstr "Máscara Aleatória"
-
-
-msgid "Tracking"
-msgstr "Rastreamento"
 
 
 msgid "Clear Transform"
@@ -21309,10 +21369,6 @@ msgstr "Limpar transformações"
 
 msgid "In-Betweens"
 msgstr "Entre as continuidades"
-
-
-msgid "Math"
-msgstr "Matemática"
 
 
 msgid "Propagate"
@@ -21351,84 +21407,28 @@ msgid "Special Characters"
 msgstr "Caracteres especiais"
 
 
-msgid "Text"
-msgstr "Texto"
+msgid "Instances"
+msgstr "Instâncias"
 
 
 msgid "Bone Roll"
 msgstr "Rolagem dos ossos"
 
 
-msgid "Pivot Point"
-msgstr "Pontos de pivô"
-
-
-msgid "Snap"
-msgstr "Atrair"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Instances"
-msgstr "Instâncias"
-
-
 msgid "Import"
 msgstr "Importar"
+
+
+msgid "Pivot Point"
+msgstr "Pontos de pivô"
 
 
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Mirror"
-msgstr "Espelhar"
-
-
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
-
-
-msgid "Local View"
-msgstr "Visão local"
-
-
-msgid "Viewpoint"
-msgstr "Ponto de visualização"
-
-
-msgid "Navigation"
-msgstr "Navegação"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o ativo"
-
-
-msgid "View Regions"
-msgstr "Visualizar Regiões"
-
-
-msgid "Select Similar"
-msgstr "Selecionar por similaridades"
-
-
-msgid "Select All by Trait"
-msgstr "Selecionar todos por características..."
-
-
-msgid "Select Linked"
-msgstr "Selecionar vinculados(as)"
-
-
-msgid "Select Loops"
-msgstr "Selecionar anéis"
+msgid "Proportional Editing Falloff"
+msgstr "Tipo de decaimento para edição proporcional"
 
 
 msgid "Basic"
@@ -48295,6 +48295,14 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
+msgid "Motion Tracking"
+msgstr "Captura de movimentos"
+
+
+msgid "Transform Orientations"
+msgstr "Orientações de transformação"
+
+
 msgid "Quad View"
 msgstr "Exibição Quadrante"
 
@@ -48305,14 +48313,6 @@ msgstr "Estereoscopia"
 
 msgid "Render Pass"
 msgstr "Passo de renderização"
-
-
-msgid "Motion Tracking"
-msgstr "Captura de movimentos"
-
-
-msgid "Transform Orientations"
-msgstr "Orientações de transformação"
 
 
 msgid "Bone Constraints"
@@ -62613,10 +62613,6 @@ msgstr "Sem ação a partir da qual apagar os quadros-chave no identificador = %
 
 msgid "Could not clear keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
 msgstr "Não é possível limpar o quadro-chave, pois o caminho RNA é inválido para o identificador fornecido (ID = %s, Path = %s)."
-
-
-msgid "Not clearing all keyframes from locked F-Curve '%s' for %s '%s'"
-msgstr "Não é possível a limpeza de todos os quadros-chave a partir da curva-f bloqueada '%s' para %s '%s'"
 
 
 msgid "Skipping path in keying set, as it has no ID (KS = '%s', path = '%s[%d]')"

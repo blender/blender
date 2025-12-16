@@ -10,7 +10,6 @@
 # Highest ID currently in use: 59
 0:Automatic:DEFAULT:100%
 45:Abkhaz - Аԥсуа бызшәа:ab:0%
-# Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #37:Amharic - አማርኛ:am_ET:0%
 21:Arabic - ﺔﻴﺑﺮﻌﻟﺍ:ar_EG:24%
 42:Basque - Euskara:eu_EU:1%
 52:Belarusian - беларуску:be:0%
@@ -18,34 +17,28 @@
 10:Catalan - Català:ca_AD:100%
 13:Chinese (Simplified) - 简体中文:zh_HANS:100%
 14:Chinese (Traditional) - 繁體中文:zh_HANT:51%
-16:Croatian - Hrvatski:hr_HR:0%
 11:Czech - Čeština:cs_CZ:27%
 53:Danish - Dansk:da:3%
 3:Dutch - Nederlands:nl_NL:5%
 57:English (UK):en_GB:100%
 1:English (US):en_US:100%
 35:Esperanto - Esperanto:eo:0%
-# Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #34:Estonian - Eesti keel:et_EE:0%
 6:Finnish - Suomi:fi_FI:11%
 8:French - Français:fr_FR:99%
 48:Georgian - ქართული:ka:100%
 5:German - Deutsch:de_DE:37%
 23:Greek - Ελληνικά:el_GR:1%
-43:Hausa - Hausa:ha:0%
 33:Hebrew - תירִבְעִ:he_IL:2%
 40:Hindi - हिन्दी:hi_IN:4%
 31:Hungarian - Magyar:hu_HU:11%
 27:Indonesian - Bahasa indonesia:id_ID:21%
-4:Italian - Italiano:it_IT:45%
+4:Italian - Italiano:it_IT:44%
 2:Japanese - 日本語:ja_JP:99%
-# Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #44:Kazakh - Қазақша:kk_KZ:0%
-50:Khmer - ខ្មែរ:km:0%
 24:Korean - 한국어:ko_KR:50%
 29:Kyrgyz - Кыргыз тили:ky_KG:2%
 56:Lithuanian - Lietuviškai:lt:3%
 58:Malayalam - മലയാളം:ml:0%
-25:Nepali - नेपाली:ne_NP:0%
-59:Norwegian (Bokmål) - Norsk bokmål:nb:2%
+59:Norwegian (Bokmål) - Norsk bokmål:nb:3%
 26:Persian - ﯽﺳﺭﺎﻓ:fa_IR:3%
 19:Polish - Polski:pl_PL:18%
 32:Portuguese (Brazil) - Português brasileiro:pt_BR:43%
@@ -58,12 +51,10 @@
 54:Slovenian - Slovenščina:sl:50%
 9:Spanish - Español:es:100%
 51:Swahili - Kiswahili:sw:73%
-7:Swedish - Svenska:sv_SE:22%
+7:Swedish - Svenska:sv_SE:21%
 49:Tamil - தமிழ்:ta:94%
 46:Thai - ภาษาไทย:th_TH:3%
 30:Turkish - Türkçe:tr_TR:79%
 18:Ukrainian - Українська:uk_UA:57%
 55:Urdu - وُدرُا:ur:87%
-# Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #39:Uzbek (Cyrillic) - Ўзбек:uz_UZ@cyrillic:0%
-# Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #38:Uzbek (Latin) - Oʻzbek:uz_UZ@latin:0%
-41:Vietnamese - Tiếng Việt:vi_VN:95%
+41:Vietnamese - Tiếng Việt:vi_VN:94%

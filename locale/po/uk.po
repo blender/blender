@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-08 10:32+0000\n"
+"POT-Creation-Date: 2025-12-16 11:27+0000\n"
 "PO-Revision-Date: 2025-07-23 15:08+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -13118,6 +13118,22 @@ msgid "Bundle"
 msgstr "Пакет"
 
 
+msgid "Font"
+msgstr "Шрифт"
+
+
+msgid "Text"
+msgstr "Текст"
+
+
+msgid "Mask"
+msgstr "Маска"
+
+
+msgid "Sound"
+msgstr "Звук"
+
+
 msgid "Freestyle Line Set"
 msgstr "Набір ліній Freestyle"
 
@@ -16782,10 +16798,6 @@ msgstr "Текст по кривій"
 
 msgid "Curve deforming text object"
 msgstr "Текстовий об'єкт, що деформується за кривою"
-
-
-msgid "Font"
-msgstr "Шрифт"
 
 
 msgid "Font Bold"
@@ -21428,10 +21440,6 @@ msgstr "Висота"
 
 msgid "Playback pitch of the sound"
 msgstr "Висота відтворення звуку"
-
-
-msgid "Sound"
-msgstr "Звук"
 
 
 msgid "Sound data-block used by this speaker"
@@ -26334,10 +26342,6 @@ msgid "Disable stencil and overlap self intersections with alpha materials"
 msgstr "Вимкнути трафарет та перекриття самоперетинів з альфа матеріалів"
 
 
-msgid "Mask"
-msgstr "Маска"
-
-
 msgid "Material slot in an object"
 msgstr "Гніздо матеріалу об'єкта"
 
@@ -26354,16 +26358,72 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
-msgid "Assign Material"
-msgstr "Призначити Матеріал"
+msgid "Mirror"
+msgstr "Дзеркалення"
+
+
+msgid "Snap"
+msgstr "Підхоп"
+
+
+msgid "UV Mapping"
+msgstr "Розкладання UV"
+
+
+msgid "Local View"
+msgstr "Огляд Локально"
+
+
+msgid "Viewpoint"
+msgstr "Точка зору"
+
+
+msgid "Navigation"
+msgstr "Навігація"
+
+
+msgid "Align View"
+msgstr "Вирівняти Огляд"
+
+
+msgid "Align View to Active"
+msgstr "Вирівняти Огляд за Активним"
+
+
+msgid "View Regions"
+msgstr "Регіони Огляду"
 
 
 msgid "Select More/Less"
 msgstr "Вибрати більше/менше"
 
 
+msgid "Select Similar"
+msgstr "Вибрати подібні"
+
+
+msgid "Select All by Trait"
+msgstr "Вибрати все за рисою"
+
+
+msgid "Select Linked"
+msgstr "Виділити пов'язане"
+
+
+msgid "Select Loops"
+msgstr "Виділити петлі"
+
+
+msgid "Assign Material"
+msgstr "Призначити Матеріал"
+
+
 msgid "Metaball"
 msgstr "Метакуля"
+
+
+msgid "Layout"
+msgstr "Розстановка"
 
 
 msgid "Light"
@@ -26386,12 +26446,28 @@ msgid "Rigid Body"
 msgstr "Тверде тіло"
 
 
+msgid "Keying"
+msgstr "Ключування"
+
+
 msgid "Apply"
 msgstr "Застосувати"
 
 
+msgid "Tracking"
+msgstr "Стеження"
+
+
 msgid "Track"
 msgstr "Стеження"
+
+
+msgid "Utilities"
+msgstr "Утиліти"
+
+
+msgid "Math"
+msgstr "Математика"
 
 
 msgid "Quick Effects"
@@ -26404,10 +26480,6 @@ msgstr "Показати/приховати"
 
 msgid "Clean Up"
 msgstr "Вичищення"
-
-
-msgid "Layout"
-msgstr "Розстановка"
 
 
 msgid "Asset"
@@ -26442,28 +26514,12 @@ msgid "Face Sets Init"
 msgstr "Ініціація Наборів Граней"
 
 
-msgid "Keying"
-msgstr "Ключування"
-
-
-msgid "Tracking"
-msgstr "Стеження"
-
-
-msgid "Utilities"
-msgstr "Утиліти"
-
-
 msgid "Clear Transform"
 msgstr "Зчистити трансформації"
 
 
 msgid "In-Betweens"
 msgstr "У проміжках"
-
-
-msgid "Math"
-msgstr "Математика"
 
 
 msgid "Propagate"
@@ -26506,22 +26562,6 @@ msgid "Merge"
 msgstr "Об'єднання"
 
 
-msgid "Special Characters"
-msgstr "Спеціальні символи"
-
-
-msgid "Kerning"
-msgstr "Кернінг"
-
-
-msgid "Text"
-msgstr "Текст"
-
-
-msgid "Bone Roll"
-msgstr "Прокручення Кістки"
-
-
 msgid "Sample"
 msgstr "Вибірка"
 
@@ -26530,12 +26570,28 @@ msgid "Primitives"
 msgstr "Примітиви"
 
 
+msgid "Special Characters"
+msgstr "Спеціальні символи"
+
+
+msgid "Kerning"
+msgstr "Кернінг"
+
+
+msgid "Bone Roll"
+msgstr "Прокручення Кістки"
+
+
+msgid "Import"
+msgstr "Імпортувати"
+
+
 msgid "Pivot Point"
 msgstr "Точка Опертя"
 
 
-msgid "Snap"
-msgstr "Підхоп"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Proportional Editing Falloff"
@@ -26552,62 +26608,6 @@ msgstr "Автомаскування"
 
 msgid "Face Sets Edit"
 msgstr "Редагування Наборів Граней"
-
-
-msgid "Import"
-msgstr "Імпортувати"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Mirror"
-msgstr "Дзеркалення"
-
-
-msgid "UV Mapping"
-msgstr "Розкладання UV"
-
-
-msgid "Local View"
-msgstr "Огляд Локально"
-
-
-msgid "Viewpoint"
-msgstr "Точка зору"
-
-
-msgid "Navigation"
-msgstr "Навігація"
-
-
-msgid "Align View"
-msgstr "Вирівняти Огляд"
-
-
-msgid "Align View to Active"
-msgstr "Вирівняти Огляд за Активним"
-
-
-msgid "View Regions"
-msgstr "Регіони Огляду"
-
-
-msgid "Select Similar"
-msgstr "Вибрати подібні"
-
-
-msgid "Select All by Trait"
-msgstr "Вибрати все за рисою"
-
-
-msgid "Select Linked"
-msgstr "Виділити пов'язане"
-
-
-msgid "Select Loops"
-msgstr "Виділити петлі"
 
 
 msgid "Basic"
@@ -34380,12 +34380,16 @@ msgid "Bake"
 msgstr "Запікання"
 
 
-msgid "Collection Info"
-msgstr "Інфо Колекції"
+msgid "The transformation of the vector and geometry outputs"
+msgstr "Трансформація виводів вектора та геометрії"
 
 
 msgid "Original"
 msgstr "Оригінал"
+
+
+msgid "Collection Info"
+msgstr "Інфо Колекції"
 
 
 msgid "Output the geometry relative to the collection offset"
@@ -34486,10 +34490,6 @@ msgstr "Сфера UV"
 
 msgid "Object Info"
 msgstr "Інформація об'єкта"
-
-
-msgid "The transformation of the vector and geometry outputs"
-msgstr "Трансформація виводів вектора та геометрії"
 
 
 msgid "Output the geometry relative to the input object transform, and the location, rotation and scale relative to the world origin"
@@ -55592,6 +55592,14 @@ msgid "Replace Selection"
 msgstr "Замінити вибір"
 
 
+msgid "Ignore Selection"
+msgstr "Ігнорувати Вибрання"
+
+
+msgid "The type of split operation to perform on strips"
+msgstr "Тип операції розділення для здійснення на смужках"
+
+
 msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "Змінити тип ефекту"
@@ -56211,16 +56219,8 @@ msgid "Frame where selected strips will be split"
 msgstr "Кадр, де вибрані смужки будуть розділятися"
 
 
-msgid "Ignore Selection"
-msgstr "Ігнорувати Вибрання"
-
-
 msgid "The side that remains selected after splitting"
 msgstr "Сторона, що залишається вибраною після розділяння"
-
-
-msgid "The type of split operation to perform on strips"
-msgstr "Тип операції розділення для здійснення на смужках"
 
 
 msgid "Split at position of the cursor instead of current frame"
@@ -60403,10 +60403,6 @@ msgid "Create a new main window with its own workspace and scene selection"
 msgstr "Створити нове головне вікно з його власним робпростором та вибранням сцени"
 
 
-msgid "Sample Count"
-msgstr "Рахунок Вибірок"
-
-
 msgctxt "Operator"
 msgid "Toggle VR Session"
 msgstr "Перемкнути Сесію ВР"
@@ -60935,6 +60931,42 @@ msgid "Panel containing UI elements"
 msgstr "Панель, що містить елементи Інтерфейсу Користувача"
 
 
+msgid "Overlays"
+msgstr "Накладки"
+
+
+msgid "Guides"
+msgstr "Напрямні"
+
+
+msgid "Motion Tracking"
+msgstr "Відстеження руху"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Режим Редагування Сіті"
+
+
+msgid "Measurement"
+msgstr "Вимірювання"
+
+
+msgid "Curve Edit Mode"
+msgstr "Режим Редагування Кривої"
+
+
+msgid "Transform Orientations"
+msgstr "Орієнтації Трансформ"
+
+
+msgid "Stroke Placement"
+msgstr "Розміщення Штриха"
+
+
+msgid "Drawing Plane"
+msgstr "Площина Рисування"
+
+
 msgid "Quad View"
 msgstr "Чотирибічний Огляд"
 
@@ -60981,42 +61013,6 @@ msgstr "Порожнинність"
 
 msgid "Render Pass"
 msgstr "Прохід Рендера"
-
-
-msgid "Overlays"
-msgstr "Накладки"
-
-
-msgid "Guides"
-msgstr "Напрямні"
-
-
-msgid "Motion Tracking"
-msgstr "Відстеження руху"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Режим Редагування Сіті"
-
-
-msgid "Measurement"
-msgstr "Вимірювання"
-
-
-msgid "Curve Edit Mode"
-msgstr "Режим Редагування Кривої"
-
-
-msgid "Transform Orientations"
-msgstr "Орієнтації Трансформ"
-
-
-msgid "Stroke Placement"
-msgstr "Розміщення Штриха"
-
-
-msgid "Drawing Plane"
-msgstr "Площина Рисування"
 
 
 msgid "Chain Scaling"
@@ -65964,6 +65960,10 @@ msgstr "Показ проходу рендера UV"
 
 msgid "Show the Mist render pass"
 msgstr "Показ проходу рендера Імла"
+
+
+msgid "Sample Count"
+msgstr "Рахунок Вибірок"
 
 
 msgid "Maximum number of bounces the background light will contribute to the render"
@@ -82066,10 +82066,6 @@ msgstr "Немає дії, з якої слід видалити ключові 
 
 msgid "Could not clear keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
 msgstr "Неможливо зчистити ключовий кадр з властивості, неправильний RNA-шлях для даного ID (ID = %s, шлях = %s)"
-
-
-msgid "Not clearing all keyframes from locked F-Curve '%s' for %s '%s'"
-msgstr "Не зчищати всі ключкадри із заблокованої Ф-Кривої '%s' для %s '%s'"
 
 
 msgid "Skipping path in keying set, as it has no ID (KS = '%s', path = '%s[%d]')"

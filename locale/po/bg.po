@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-08 10:32+0000\n"
+"POT-Creation-Date: 2025-12-16 11:27+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Just Adam <adam.abbas2009@gmail.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -872,6 +872,22 @@ msgid "Collection"
 msgstr "Колекция"
 
 
+msgid "Font"
+msgstr "Шрифт"
+
+
+msgid "Text"
+msgstr "Текст"
+
+
+msgid "Mask"
+msgstr "Маскиране"
+
+
+msgid "Sound"
+msgstr "Звук"
+
+
 msgid "Exclusive"
 msgstr "Изключващ"
 
@@ -926,10 +942,6 @@ msgstr "Ортографиране"
 
 msgid "Extrude"
 msgstr "Изтегляне"
-
-
-msgid "Font"
-msgstr "Шрифт"
 
 
 msgid "Small Caps"
@@ -1010,10 +1022,6 @@ msgstr "Неродени"
 
 msgid "3D Cursor"
 msgstr "3D Курсор"
-
-
-msgid "Sound"
-msgstr "Звук"
 
 
 msgid "Blend"
@@ -1136,8 +1144,8 @@ msgid "ID Type"
 msgstr "ID тип"
 
 
-msgid "Mask"
-msgstr "Маскиране"
+msgid "UV Mapping"
+msgstr "UV Картиране"
 
 
 msgid "Light"
@@ -1168,16 +1176,8 @@ msgid "Merge"
 msgstr "Слей"
 
 
-msgid "Text"
-msgstr "Текст"
-
-
 msgid "Import"
 msgstr "Внеси"
-
-
-msgid "UV Mapping"
-msgstr "UV Картиране"
 
 
 msgid "Cache"

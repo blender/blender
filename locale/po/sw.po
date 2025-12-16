@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-08 10:32+0000\n"
+"POT-Creation-Date: 2025-12-16 11:27+0000\n"
 "PO-Revision-Date: 2025-11-14 10:59+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -14077,6 +14077,22 @@ msgid "Bundle"
 msgstr "Kifungu"
 
 
+msgid "Font"
+msgstr "Fonti"
+
+
+msgid "Text"
+msgstr "Maandishi"
+
+
+msgid "Mask"
+msgstr "Kinyago"
+
+
+msgid "Sound"
+msgstr "Sauti"
+
+
 msgid "Freestyle Line Set"
 msgstr "Seti ya Mstari Huria"
 
@@ -18406,10 +18422,6 @@ msgstr "Maandishi kwenye Mviringo"
 
 msgid "Curve deforming text object"
 msgstr "Kipengee cha maandishi cha mkunjo"
-
-
-msgid "Font"
-msgstr "Fonti"
 
 
 msgid "Font Bold"
@@ -23787,10 +23799,6 @@ msgid "Playback pitch of the sound"
 msgstr "Kiwango cha kucheza tena cha sauti"
 
 
-msgid "Sound"
-msgstr "Sauti"
-
-
 msgid "Sound data-block used by this speaker"
 msgstr "Kizuizi cha data cha sauti kinachotumiwa na spika hii"
 
@@ -28389,10 +28397,6 @@ msgid "Use material masks to filter out occluded strokes"
 msgstr "Tumia vinyago vya nyenzo kuchuja mipigo iliyozuiliwa"
 
 
-msgid "Mask"
-msgstr "Kinyago"
-
-
 msgid "Material slot in an object"
 msgstr "Nafasi ya nyenzo katika kitu"
 
@@ -28413,8 +28417,28 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
+msgid "Mirror"
+msgstr "Kioo"
+
+
+msgid "Snap"
+msgstr "Picha"
+
+
+msgid "Navigation"
+msgstr "Urambazaji"
+
+
+msgid "Select Linked"
+msgstr "Chagua Imeunganishwa"
+
+
 msgid "Metaball"
 msgstr "Mpira wa miguu"
+
+
+msgid "Layout"
+msgstr "Mpangilio"
 
 
 msgid "Light"
@@ -28425,32 +28449,16 @@ msgid "Light Probe"
 msgstr "Uchunguzi wa Mwanga"
 
 
-msgid "Apply"
-msgstr "Tumia"
-
-
-msgid "Show/Hide"
-msgstr "Onyesha/Ficha"
-
-
-msgid "Clean Up"
-msgstr "Safisha"
-
-
-msgid "Layout"
-msgstr "Mpangilio"
-
-
-msgid "Asset"
-msgstr "Mali"
-
-
 msgid "Adjust"
 msgstr "Rekebisha"
 
 
 msgid "Keying"
 msgstr "Kuweka"
+
+
+msgid "Apply"
+msgstr "Tumia"
 
 
 msgid "Tracking"
@@ -28465,16 +28473,24 @@ msgid "Math"
 msgstr "Hisabati"
 
 
+msgid "Show/Hide"
+msgstr "Onyesha/Ficha"
+
+
+msgid "Clean Up"
+msgstr "Safisha"
+
+
+msgid "Asset"
+msgstr "Mali"
+
+
 msgid "Bone Collections"
 msgstr "Mikusanyo ya Mifupa"
 
 
 msgid "Merge"
 msgstr "Unganisha"
-
-
-msgid "Text"
-msgstr "Maandishi"
 
 
 msgid "Read"
@@ -28493,14 +28509,6 @@ msgid "Primitives"
 msgstr "Watu wa kwanza"
 
 
-msgid "Pivot Point"
-msgstr "Egemeo"
-
-
-msgid "Snap"
-msgstr "Picha"
-
-
 msgid "Instances"
 msgstr "Matukio"
 
@@ -28513,16 +28521,8 @@ msgid "Deprecated"
 msgstr "Imeacha kutumika"
 
 
-msgid "Mirror"
-msgstr "Kioo"
-
-
-msgid "Navigation"
-msgstr "Urambazaji"
-
-
-msgid "Select Linked"
-msgstr "Chagua Imeunganishwa"
+msgid "Pivot Point"
+msgstr "Egemeo"
 
 
 msgid "Keyframe Insert Pie"
@@ -37997,6 +37997,14 @@ msgid "Mix attribute values of neighboring elements"
 msgstr "Changanya thamani za sifa za vipengele vya jirani"
 
 
+msgid "The transformation of the vector and geometry outputs"
+msgstr "Mabadiliko ya vekta na matokeo ya jiometri"
+
+
+msgid "Original"
+msgstr "Asili"
+
+
 msgid "Calculate the limits of a geometry's positions and generate a box mesh with those dimensions"
 msgstr "Hesabu mipaka ya nafasi za jiometri na utengeneze matundu ya kisanduku na vipimo hivyo"
 
@@ -38023,10 +38031,6 @@ msgstr "Rejesha matukio ya jiometri kutoka kwa mkusanyiko"
 
 msgid "The transformation of the instances output. Does not affect the internal geometry"
 msgstr "Mabadiliko ya pato la matukio."
-
-
-msgid "Original"
-msgstr "Asili"
 
 
 msgid "Output the geometry relative to the collection offset"
@@ -38932,10 +38936,6 @@ msgstr "Maelezo ya Kitu"
 
 msgid "Retrieve information from an object"
 msgstr "Rudisha taarifa kutoka kwa kitu"
-
-
-msgid "The transformation of the vector and geometry outputs"
-msgstr "Mabadiliko ya vekta na matokeo ya jiometri"
 
 
 msgid "Output the geometry relative to the input object transform, and the location, rotation and scale relative to the world origin"
@@ -66306,6 +66306,14 @@ msgid "Replace Selection"
 msgstr "Uteuzi wa Nafasi"
 
 
+msgid "Ignore Selection"
+msgstr "Puuza Uteuzi"
+
+
+msgid "The type of split operation to perform on strips"
+msgstr "Aina ya operesheni ya mgawanyiko ya kufanya kwenye vipande"
+
+
 msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "Badilisha Aina ya Athari"
@@ -67137,20 +67145,12 @@ msgid "Frame where selected strips will be split"
 msgstr "Fremu ambapo vipande vilivyochaguliwa vitagawanywa"
 
 
-msgid "Ignore Selection"
-msgstr "Puuza Uteuzi"
-
-
 msgid "Make cut even if strip is not selected preserving selection state after cut"
 msgstr "Fanya kata hata kama strip haijachaguliwa kuhifadhi hali ya uteuzi baada ya kukatwa"
 
 
 msgid "The side that remains selected after splitting"
 msgstr "Upande unaobaki kuchaguliwa baada ya kugawanyika"
-
-
-msgid "The type of split operation to perform on strips"
-msgstr "Aina ya operesheni ya mgawanyiko ya kufanya kwenye vipande"
 
 
 msgid "Split at position of the cursor instead of current frame"
@@ -72414,48 +72414,12 @@ msgid "Set VR viewer location to controller raycast hit location"
 msgstr "Weka eneo la kitazamaji cha Uhalisia Pepe kuwa eneo la kidhibiti cha raycast"
 
 
-msgid "Raycast axis in controller/viewer space"
-msgstr "Mhimili wa Raycast katika nafasi ya kidhibiti/mtazamaji"
-
-
-msgid "Maximum raycast distance"
-msgstr "Umbali wa juu zaidi wa mionzi"
-
-
-msgid "From Viewer"
-msgstr "Kutoka kwa Mtazamaji"
-
-
-msgid "Use viewer pose as raycast origin"
-msgstr "Tumia mkao wa kitazamaji kama asili ya raycast"
-
-
-msgid "Interpolation factor between viewer and hit locations"
-msgstr "Sababu ya kutafsiri kati ya mtazamaji na maeneo maarufu"
-
-
-msgid "Offset along hit normal to subtract from final location"
-msgstr "Kukabiliana na kugonga kawaida ili kutoa kutoka eneo la mwisho"
-
-
-msgid "Sample Count"
-msgstr "Hesabu ya Sampuli"
-
-
 msgid "Selectable Only"
 msgstr "Inaweza Kuchaguliwa Pekee"
 
 
 msgid "Only allow selectable objects to influence raycast result"
 msgstr "Ruhusu tu vitu vinavyoweza kuchaguliwa kuathiri matokeo ya raycast"
-
-
-msgid "Teleport Axes"
-msgstr "Vishoka vya Teleport"
-
-
-msgid "Enabled teleport axes in navigation space"
-msgstr "Vishoka vya teleport vilivyowashwa katika nafasi ya kusogeza"
 
 
 msgctxt "Operator"
@@ -73015,6 +72979,38 @@ msgid "Panel containing UI elements"
 msgstr "Paneli iliyo na vipengele vya UI"
 
 
+msgid "Viewer Node"
+msgstr "Njia ya Mtazamaji"
+
+
+msgid "Motion Tracking"
+msgstr "Kufuatilia Mwendo"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Njia ya Kuhariri Mesh"
+
+
+msgid "Measurement"
+msgstr "Kipimo"
+
+
+msgid "Curve Edit Mode"
+msgstr "Njia ya Kuhariri Curve"
+
+
+msgid "Transform Orientations"
+msgstr "Badilisha Mielekeo"
+
+
+msgid "Stroke Placement"
+msgstr "Uwekaji wa Kiharusi"
+
+
+msgid "Drawing Plane"
+msgstr "Ndege ya Kuchora"
+
+
 msgid "Quad View"
 msgstr "Mtazamo wa Quad"
 
@@ -73057,38 +73053,6 @@ msgstr "Mipangilio ya SSAO"
 
 msgid "Compositor"
 msgstr "Mtunzi"
-
-
-msgid "Viewer Node"
-msgstr "Njia ya Mtazamaji"
-
-
-msgid "Motion Tracking"
-msgstr "Kufuatilia Mwendo"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Njia ya Kuhariri Mesh"
-
-
-msgid "Measurement"
-msgstr "Kipimo"
-
-
-msgid "Curve Edit Mode"
-msgstr "Njia ya Kuhariri Curve"
-
-
-msgid "Transform Orientations"
-msgstr "Badilisha Mielekeo"
-
-
-msgid "Stroke Placement"
-msgstr "Uwekaji wa Kiharusi"
-
-
-msgid "Drawing Plane"
-msgstr "Ndege ya Kuchora"
 
 
 msgid "Motion Blur"
@@ -78442,6 +78406,10 @@ msgstr "Denoising Kawaida"
 
 msgid "Normal pass used by denoiser"
 msgstr "Pasi ya kawaida inayotumiwa na denoiser"
+
+
+msgid "Sample Count"
+msgstr "Hesabu ya Sampuli"
 
 
 msgid "Per-pixel number of samples"
@@ -91539,6 +91507,16 @@ msgstr "Baiskeli kupitia njia za makutano"
 
 
 msgctxt "WindowManager"
+msgid "Snap"
+msgstr "Picha"
+
+
+msgctxt "WindowManager"
+msgid "Precision"
+msgstr "Usahihi"
+
+
+msgctxt "WindowManager"
 msgid "Paint Stroke Modal"
 msgstr "Modali ya Kiharusi cha Rangi"
 
@@ -91884,11 +91862,6 @@ msgstr "Marekebisho ya mhimili wa X (geuza)"
 
 msgid "Z axis correction (toggle)"
 msgstr "Marekebisho ya mhimili wa Z (geuza)"
-
-
-msgctxt "WindowManager"
-msgid "Precision"
-msgstr "Usahihi"
 
 
 msgctxt "WindowManager"
@@ -92259,11 +92232,6 @@ msgstr "Anza"
 msgctxt "WindowManager"
 msgid "Move"
 msgstr "Hoja"
-
-
-msgctxt "WindowManager"
-msgid "Snap"
-msgstr "Picha"
 
 
 msgctxt "WindowManager"
@@ -99587,10 +99555,6 @@ msgid "Could not clear keyframe, as RNA path is invalid for the given ID (ID = %
 msgstr "Imeshindwa kufuta fremu muhimu, kwani njia ya RNA si sahihi kwa kitambulisho kilichotolewa (ID = %s, njia = %s)"
 
 
-msgid "Not clearing all keyframes from locked F-Curve '%s' for %s '%s'"
-msgstr "Kutofuta viunzi vyote muhimu kutoka kwa F-Curve '%s' iliyofungwa kwa %s '%s'"
-
-
 msgid "Skipping path in keying set, as it has no ID (KS = '%s', path = '%s[%d]')"
 msgstr "Njia ya kuruka katika seti ya vitufe, kwani haina kitambulisho (KS = '%s', path = '%s[%d]')"
 
@@ -101347,10 +101311,6 @@ msgstr "Washa katalogi, kufanya mali iliyomo ionekane kwenye rafu ya mali"
 
 msgid "Toggle catalog visibility in the asset shelf"
 msgstr "Geuza mwonekano wa katalogi kwenye rafu ya vipengee"
-
-
-msgid "No applicable assets found"
-msgstr "Hakuna mali inayotumika iliyopatikana"
 
 
 msgid "Catalog Selector"

@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-08 10:32+0000\n"
-"PO-Revision-Date: 2025-11-29 13:12+0000\n"
-"Last-Translator: 居樂行 <oscilloscope9705@gmail.com>\n"
+"POT-Creation-Date: 2025-12-16 11:27+0000\n"
+"PO-Revision-Date: 2025-12-10 16:12+0000\n"
+"Last-Translator: Kisaragi Hiu <mail@kisaragi-hiu.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
 "Language: zh_HANT\n"
 "MIME-Version: 1.0\n"
@@ -1226,6 +1226,10 @@ msgid "In Front"
 msgstr "在前"
 
 
+msgid "Make the layer display in front of objects"
+msgstr "讓該層描繪於物體之前"
+
+
 msgid "Thickness"
 msgstr "厚度"
 
@@ -1534,6 +1538,10 @@ msgid "Armatures active edit bone"
 msgstr "骨架作用中編輯骨骼"
 
 
+msgid "User Asset Libraries"
+msgstr "使用者素材藏庫"
+
+
 msgid "Asset Library Reference"
 msgstr "素材藏庫參照"
 
@@ -1586,6 +1594,10 @@ msgid "Copyright"
 msgstr "著作權"
 
 
+msgid "Copyright notice for this asset. An empty copyright notice does not necessarily indicate that this is copyright-free. Contact the author if any clarification is needed."
+msgstr "這個素材的著作權聲明。著作權聲明空白不代表無著作權，需要說明時請聯繫作者。"
+
+
 msgid "Description"
 msgstr "描述"
 
@@ -1596,6 +1608,10 @@ msgstr "顯示給使用者看的素材描述"
 
 msgid "License"
 msgstr "授權條款"
+
+
+msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed."
+msgstr "這個素材散布時使用的授權條款類型。授權條款名稱空白不代表素材不受授權條款限制。需要說明時請聯繫作者。"
 
 
 msgid "Tags"
@@ -1777,6 +1793,10 @@ msgstr "節點樹"
 
 msgid "Objects"
 msgstr "物體"
+
+
+msgid "Show Object data-blocks"
+msgstr "顯示物體資料組塊"
 
 
 msgid "Paint Curves"
@@ -4922,6 +4942,10 @@ msgid "Show this image as background"
 msgstr "將此影像顯示為背景"
 
 
+msgid "Show the details in the user interface"
+msgstr "在使用者介面中顯示詳細資料"
+
+
 msgid "Show On Foreground"
 msgstr "顯示於前景"
 
@@ -7048,7 +7072,7 @@ msgstr "將運動鎖定至目標運動軌道"
 
 
 msgid "Camera"
-msgstr "攝影機"
+msgstr "相機"
 
 
 msgid "Camera to which motion is parented (if empty active scene camera is used)"
@@ -12393,6 +12417,22 @@ msgid "Bundle"
 msgstr "綁束"
 
 
+msgid "Font"
+msgstr "字型"
+
+
+msgid "Text"
+msgstr "文字"
+
+
+msgid "Mask"
+msgstr "遮罩"
+
+
+msgid "Sound"
+msgstr "聲音"
+
+
 msgid "Freestyle Line Set"
 msgstr "Freestyle 線條集"
 
@@ -13143,6 +13183,10 @@ msgid "Reference"
 msgstr "參照"
 
 
+msgid "User Count"
+msgstr "使用者數量"
+
+
 msgid "Grease Pencil Frame"
 msgstr "蠟筆影格"
 
@@ -13353,6 +13397,10 @@ msgstr "類型"
 
 msgid "Editable"
 msgstr "可編輯的"
+
+
+msgid "This data-block is editable in the user interface. Linked data-blocks are not editable, except if they were loaded as editable assets."
+msgstr "這個資料組塊可以在使用者介面中編輯。已連結的資料組塊只有在作為可編輯素材載入時才能被編輯。"
 
 
 msgid "Embedded Data"
@@ -15138,6 +15186,14 @@ msgid "Disable in Renders"
 msgstr "算繪時停用"
 
 
+msgid "How to use this collection in Line Art calculation"
+msgstr "計算線稿時如何使用這個集盒"
+
+
+msgid "Don't use this collection in Line Art"
+msgstr "不要為線稿使用這個集盒"
+
+
 msgid "Intersection Only"
 msgstr "僅交集"
 
@@ -15408,10 +15464,6 @@ msgstr "曲線路徑文字"
 
 msgid "Curve deforming text object"
 msgstr "曲線變形文字物體"
-
-
-msgid "Font"
-msgstr "字型"
 
 
 msgid "Font Bold"
@@ -16881,6 +16933,14 @@ msgid "The line color of a higher priority is used at material boundaries"
 msgstr "用於材質邊界的高優先度線條色彩"
 
 
+msgid "Line Art Settings"
+msgstr "線稿設定"
+
+
+msgid "Line Art settings for material"
+msgstr "材質的線稿設定"
+
+
 msgid "Metallic"
 msgstr "金屬"
 
@@ -17660,8 +17720,8 @@ msgid "Lightgroup"
 msgstr "燈光群組"
 
 
-msgid "Line Art"
-msgstr "線條藝術"
+msgid "Line Art settings for the object"
+msgstr "物體的線稿設定"
 
 
 msgid "Location of the object"
@@ -19367,10 +19427,6 @@ msgstr "音高"
 
 msgid "Playback pitch of the sound"
 msgstr "回播聲音的音調"
-
-
-msgid "Sound"
-msgstr "聲音"
 
 
 msgid "How loud the sound is"
@@ -23850,16 +23906,16 @@ msgid "Self Overlap"
 msgstr "自身重疊"
 
 
+msgid "Material Line Art"
+msgstr "材質線稿"
+
+
 msgid "Effectiveness"
 msgstr "效果"
 
 
 msgid "Use Material Mask"
 msgstr "使用材質遮罩"
-
-
-msgid "Mask"
-msgstr "遮罩"
 
 
 msgid "Material slot in an object"
@@ -23874,224 +23930,12 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Select More/Less"
-msgstr "選取更多/更少"
-
-
-msgid "Metaball"
-msgstr "變幻球"
-
-
-msgid "Light"
-msgstr "燈光"
-
-
-msgid "Light Probe"
-msgstr "燈光採樣器"
-
-
-msgid "Add Image"
-msgstr "新增影像"
-
-
-msgid "Relations"
-msgstr "關係"
-
-
-msgid "Rigid Body"
-msgstr "剛體"
-
-
-msgid "Apply"
-msgstr "套用"
-
-
-msgid "Track"
-msgstr "追蹤"
-
-
-msgid "Quick Effects"
-msgstr "快速效果"
-
-
-msgid "Show/Hide"
-msgstr "顯示/隱藏"
-
-
-msgid "Clean Up"
-msgstr "清理"
-
-
-msgid "Layout"
-msgstr "配置"
-
-
-msgid "Asset"
-msgstr "素材"
-
-
-msgid "Make Single User"
-msgstr "製作單一使用者"
-
-
-msgid "Convert"
-msgstr "轉換"
-
-
-msgid "Link/Transfer Data"
-msgstr "連結/傳輸資料"
-
-
-msgid "Hooks"
-msgstr "鉤"
-
-
-msgid "Adjust"
-msgstr "調整"
-
-
-msgid "Face Sets Init"
-msgstr "面集初始化"
-
-
-msgid "Keying"
-msgstr "鍵處理"
-
-
-msgid "Random Mask"
-msgstr "隨機遮罩"
-
-
-msgid "Tracking"
-msgstr "跟蹤"
-
-
-msgid "Utilities"
-msgstr "效用"
-
-
-msgid "Clear Transform"
-msgstr "清除變換"
-
-
-msgid "In-Betweens"
-msgstr "內部之間"
-
-
-msgid "Math"
-msgstr "數學公式"
-
-
-msgid "Propagate"
-msgstr "增生"
-
-
-msgid "Bone Collections"
-msgstr "骨骼集盒"
-
-
-msgid "Names"
-msgstr "名稱"
-
-
-msgid "Toggle Bone Options"
-msgstr "開關骨骼選項"
-
-
-msgid "Enable Bone Options"
-msgstr "啟用骨骼設定"
-
-
-msgid "Disable Bone Options"
-msgstr "停用骨骼設定"
-
-
-msgid "Mesh Select Mode"
-msgstr "網格選取模式"
-
-
-msgid "Render Preview"
-msgstr "算繪預覽"
-
-
-msgid "Face Data"
-msgstr "面資料"
-
-
-msgid "Merge"
-msgstr "合併"
-
-
-msgid "Special Characters"
-msgstr "特殊字元"
-
-
-msgid "Kerning"
-msgstr "字間微調"
-
-
-msgid "Text"
-msgstr "文字"
-
-
-msgid "Bone Roll"
-msgstr "骨骼滾動"
-
-
-msgid "Read"
-msgstr "讀取"
-
-
-msgid "Sample"
-msgstr "取樣"
-
-
-msgid "Write"
-msgstr "寫入"
-
-
-msgid "Primitives"
-msgstr "原形"
-
-
-msgid "Pivot Point"
-msgstr "樞紐點"
+msgid "Mirror"
+msgstr "鏡像"
 
 
 msgid "Snap"
 msgstr "吸附"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "比例化編輯衰落"
-
-
-msgid "Mask Edit"
-msgstr "遮罩編輯"
-
-
-msgid "Automasking"
-msgstr "自動遮罩"
-
-
-msgid "Instances"
-msgstr "實例化"
-
-
-msgid "Face Sets Edit"
-msgstr "面集編輯"
-
-
-msgid "Import"
-msgstr "匯入"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Mirror"
-msgstr "鏡像"
 
 
 msgid "UV Mapping"
@@ -24122,12 +23966,220 @@ msgid "View Regions"
 msgstr "檢視範圍"
 
 
+msgid "Select More/Less"
+msgstr "選取更多/更少"
+
+
 msgid "Select Similar"
 msgstr "選取相似者"
 
 
 msgid "Select Linked"
 msgstr "選取連結項"
+
+
+msgid "Metaball"
+msgstr "變幻球"
+
+
+msgid "Layout"
+msgstr "配置"
+
+
+msgid "Light"
+msgstr "燈光"
+
+
+msgid "Light Probe"
+msgstr "燈光採樣器"
+
+
+msgid "Add Image"
+msgstr "新增影像"
+
+
+msgid "Relations"
+msgstr "關係"
+
+
+msgid "Adjust"
+msgstr "調整"
+
+
+msgid "Rigid Body"
+msgstr "剛體"
+
+
+msgid "Keying"
+msgstr "鍵處理"
+
+
+msgid "Apply"
+msgstr "套用"
+
+
+msgid "Tracking"
+msgstr "跟蹤"
+
+
+msgid "Track"
+msgstr "追蹤"
+
+
+msgid "Utilities"
+msgstr "效用"
+
+
+msgid "Math"
+msgstr "數學公式"
+
+
+msgid "Quick Effects"
+msgstr "快速效果"
+
+
+msgid "Show/Hide"
+msgstr "顯示/隱藏"
+
+
+msgid "Clean Up"
+msgstr "清理"
+
+
+msgid "Asset"
+msgstr "素材"
+
+
+msgid "Make Single User"
+msgstr "製作單一使用者"
+
+
+msgid "Convert"
+msgstr "轉換"
+
+
+msgid "Link/Transfer Data"
+msgstr "連結/傳輸資料"
+
+
+msgid "Hooks"
+msgstr "鉤"
+
+
+msgid "Render Preview"
+msgstr "算繪預覽"
+
+
+msgid "Face Sets Init"
+msgstr "面集初始化"
+
+
+msgid "Random Mask"
+msgstr "隨機遮罩"
+
+
+msgid "Clear Transform"
+msgstr "清除變換"
+
+
+msgid "In-Betweens"
+msgstr "內部之間"
+
+
+msgid "Propagate"
+msgstr "增生"
+
+
+msgid "Bone Collections"
+msgstr "骨骼集盒"
+
+
+msgid "Names"
+msgstr "名稱"
+
+
+msgid "Toggle Bone Options"
+msgstr "開關骨骼選項"
+
+
+msgid "Enable Bone Options"
+msgstr "啟用骨骼設定"
+
+
+msgid "Disable Bone Options"
+msgstr "停用骨骼設定"
+
+
+msgid "Mesh Select Mode"
+msgstr "網格選取模式"
+
+
+msgid "Face Data"
+msgstr "面資料"
+
+
+msgid "Merge"
+msgstr "合併"
+
+
+msgid "Read"
+msgstr "讀取"
+
+
+msgid "Sample"
+msgstr "取樣"
+
+
+msgid "Write"
+msgstr "寫入"
+
+
+msgid "Primitives"
+msgstr "原形"
+
+
+msgid "Special Characters"
+msgstr "特殊字元"
+
+
+msgid "Kerning"
+msgstr "字間微調"
+
+
+msgid "Instances"
+msgstr "實例化"
+
+
+msgid "Bone Roll"
+msgstr "骨骼滾動"
+
+
+msgid "Import"
+msgstr "匯入"
+
+
+msgid "Pivot Point"
+msgstr "樞紐點"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "比例化編輯衰落"
+
+
+msgid "Mask Edit"
+msgstr "遮罩編輯"
+
+
+msgid "Automasking"
+msgstr "自動遮罩"
+
+
+msgid "Face Sets Edit"
+msgstr "面集編輯"
 
 
 msgid "Basic"
@@ -25057,6 +25109,10 @@ msgstr "線框"
 
 msgid "Grease Pencil length modifier"
 msgstr "蠟筆長度修改器"
+
+
+msgid "Generate Line Art from scene geometries"
+msgstr "從場景幾何生成線稿"
 
 
 msgid "Multiple Strokes"
@@ -26385,6 +26441,14 @@ msgid "Use Curvature"
 msgstr "使用曲率"
 
 
+msgid "Line Art Modifier"
+msgstr "線稿修改器"
+
+
+msgid "Generate Line Art strokes from selected source"
+msgstr "從所選來源生成線稿筆畫"
+
+
 msgid "Image Threshold"
 msgstr "影像閾值"
 
@@ -26438,8 +26502,16 @@ msgid "Camera Object"
 msgstr "攝影機物體"
 
 
+msgid "Use specified camera object for generating Line Art strokes"
+msgstr "用指定的攝影機物體的角度來生成線稿筆畫"
+
+
 msgid "Source Type"
 msgstr "來源類型"
+
+
+msgid "Line Art stroke source type"
+msgstr "線稿筆畫來源類型"
 
 
 msgid "Angle Splitting"
@@ -30441,16 +30513,16 @@ msgid "Bake"
 msgstr "烘培"
 
 
+msgid "Original"
+msgstr "原始"
+
+
 msgid "Camera Info"
 msgstr "攝影機資訊"
 
 
 msgid "Collection Info"
 msgstr "集盒資訊"
-
-
-msgid "Original"
-msgstr "原始"
 
 
 msgid "Convex Hull"
@@ -32389,6 +32461,14 @@ msgstr "物體約束的集盒"
 
 msgid "Shadow"
 msgstr "陰影"
+
+
+msgid "Object Line Art"
+msgstr "物體線稿"
+
+
+msgid "Object Line Art settings"
+msgstr "物體線稿設定"
 
 
 msgid "Inherit"
@@ -48402,6 +48482,10 @@ msgid "Replace Selection"
 msgstr "替換選取項"
 
 
+msgid "Ignore Selection"
+msgstr "忽略選取項"
+
+
 msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "更改效果類型"
@@ -48859,10 +48943,6 @@ msgstr "將一個聲音片段加入序段編輯器"
 
 msgid "Cache the sound in memory"
 msgstr "將聲音快取到記憶體中"
-
-
-msgid "Ignore Selection"
-msgstr "忽略選取項"
 
 
 msgid "Color 09"
@@ -52430,14 +52510,6 @@ msgid "XR Navigation Teleport"
 msgstr "擴充實境導覽瞬移"
 
 
-msgid "Teleport Axes"
-msgstr "瞬移軸線"
-
-
-msgid "Enabled teleport axes in navigation space"
-msgstr "在瀏覽空間啟用瞬移軸線"
-
-
 msgctxt "Operator"
 msgid "Toggle VR Session"
 msgstr "切換 VR 作業階段"
@@ -52766,7 +52838,7 @@ msgstr "僅使用變形"
 
 
 msgid "Use only deformation modifiers (temporary disable all constructive modifiers except multi-resolution)"
-msgstr "僅使用變形修改器 (暫時停用所有建立性修改器，多解析度修改器除外)"
+msgstr "僅使用變形修改器 (暫時停用所有構造修改器，多解析度修改器除外)"
 
 
 msgid "Properties of vertex and weight paint mode"
@@ -52783,6 +52855,54 @@ msgstr "限制繪製群組中的頂點"
 
 msgid "Palette Color"
 msgstr "色版色彩"
+
+
+msgid "Overlays"
+msgstr "疊層"
+
+
+msgid "Guides"
+msgstr "引導"
+
+
+msgid "Viewer Node"
+msgstr "檢視器節點"
+
+
+msgid "Motion Tracking"
+msgstr "運動跟蹤"
+
+
+msgid "Mesh Edit Mode"
+msgstr "網格編輯模式"
+
+
+msgid "Measurement"
+msgstr "測量"
+
+
+msgid "Curve Edit Mode"
+msgstr "曲線編輯模式"
+
+
+msgid "Curves Edit Mode"
+msgstr "曲線編輯模式"
+
+
+msgid "Transform Orientations"
+msgstr "變換方向"
+
+
+msgid "Stroke Placement"
+msgstr "筆觸放置"
+
+
+msgid "Drawing Plane"
+msgstr "描繪平面"
+
+
+msgid "Grease Pencil Options"
+msgstr "蠟筆選項"
 
 
 msgid "Quad View"
@@ -52851,54 +52971,6 @@ msgstr "算繪通遞"
 
 msgid "Compositor"
 msgstr "合成器"
-
-
-msgid "Overlays"
-msgstr "疊層"
-
-
-msgid "Guides"
-msgstr "引導"
-
-
-msgid "Viewer Node"
-msgstr "檢視器節點"
-
-
-msgid "Motion Tracking"
-msgstr "運動跟蹤"
-
-
-msgid "Mesh Edit Mode"
-msgstr "網格編輯模式"
-
-
-msgid "Measurement"
-msgstr "測量"
-
-
-msgid "Curve Edit Mode"
-msgstr "曲線編輯模式"
-
-
-msgid "Curves Edit Mode"
-msgstr "曲線編輯模式"
-
-
-msgid "Transform Orientations"
-msgstr "變換方向"
-
-
-msgid "Stroke Placement"
-msgstr "筆觸放置"
-
-
-msgid "Drawing Plane"
-msgstr "描繪平面"
-
-
-msgid "Grease Pencil Options"
-msgstr "蠟筆選項"
 
 
 msgid "Import Settings"
@@ -53692,10 +53764,6 @@ msgstr "擴充套件"
 
 msgid "Repositories"
 msgstr "軟體庫"
-
-
-msgid "Extensions Tags"
-msgstr "擴充套件標籤"
 
 
 msgid "Applications"
@@ -66179,6 +66247,16 @@ msgstr "更改偏移模式"
 
 
 msgctxt "WindowManager"
+msgid "Snap"
+msgstr "吸附"
+
+
+msgctxt "WindowManager"
+msgid "Precision"
+msgstr "精準"
+
+
+msgctxt "WindowManager"
 msgid "Paint Stroke Modal"
 msgstr "繪製筆觸典範"
 
@@ -66323,11 +66401,6 @@ msgstr "平移"
 msgctxt "WindowManager"
 msgid "Pan (Off)"
 msgstr "平移（關閉）"
-
-
-msgctxt "WindowManager"
-msgid "Precision"
-msgstr "精準"
 
 
 msgctxt "WindowManager"
@@ -66531,11 +66604,6 @@ msgstr "剪輯律表編輯器"
 
 
 msgctxt "WindowManager"
-msgid "Grease Pencil Paint Mode"
-msgstr "蠟筆繪製模式"
-
-
-msgctxt "WindowManager"
 msgid "Grease Pencil Brush Stroke"
 msgstr "蠟筆筆刷筆觸"
 
@@ -66628,11 +66696,6 @@ msgstr "開始"
 msgctxt "WindowManager"
 msgid "Move"
 msgstr "移動"
-
-
-msgctxt "WindowManager"
-msgid "Snap"
-msgstr "吸附"
 
 
 msgctxt "WindowManager"
@@ -72276,10 +72339,6 @@ msgid "Cannot change action, as it is still being edited in NLA"
 msgstr "無法變更動作，因為它仍在 NLA 編輯中"
 
 
-msgid "Could not set action '%s' to animate ID '%s', as it does not have suitably rooted paths for this purpose"
-msgstr "無法設定動作「%s」於動畫 ID「%s」上，因為對於此用途來說它沒有適當根生的路徑"
-
-
 msgid "%sAction"
 msgstr "%s動作"
 
@@ -73400,10 +73459,6 @@ msgstr "啟用編目，讓其中包含的素材顯示於素材架內"
 
 msgid "Toggle catalog visibility in the asset shelf"
 msgstr "切換編目是否於素材架中顯示"
-
-
-msgid "No applicable assets found"
-msgstr "沒有找到適用的素材"
 
 
 msgid "Catalog Selector"
@@ -74901,7 +74956,7 @@ msgstr "蘇珊猴"
 
 msgctxt "GPencil"
 msgid "LineArt"
-msgstr "線條藝術"
+msgstr "線稿"
 
 
 msgid "Cannot create editmode armature"
@@ -75044,8 +75099,40 @@ msgid "Apply Modifier"
 msgstr "套用修改器"
 
 
+msgid "Cannot apply constructive modifiers on curve. Convert curve to mesh in order to apply"
+msgstr "無法將構造修改器套用到曲線上。要套用請先將曲線轉換為網格"
+
+
+msgid "Applied modifier only changed CV points, not tessellated/bevel vertices"
+msgstr "已套用的修改器只變更了控制點，沒有變更鑲嵌細鋪/切角的頂點"
+
+
+msgid "Constructive modifiers cannot be applied"
+msgstr "構造修改器不能被套用"
+
+
+msgid "Modifiers cannot be applied in edit mode"
+msgstr "修改器不能在編輯模式中套用"
+
+
+msgid "Modifiers cannot be applied to multi-user data"
+msgstr "修改器不能套用到多使用者資料上"
+
+
+msgid "Constructive modifier cannot be applied to multi-res data in sculpt mode"
+msgstr "構造修改器不能在雕刻模式套用到多解析度資料"
+
+
+msgid "Applied modifier was not first, result may not be as expected"
+msgstr "已套用的修改器在套用時不是第一個，因此結果可能與預期會有出入"
+
+
 msgid "Modifier is disabled"
 msgstr "修改器已停用"
+
+
+msgid "Applied modifier: %s"
+msgstr "已套用修改器：%s"
 
 
 msgid "Set Parent To"
@@ -78373,6 +78460,10 @@ msgid "Depth Offset"
 msgstr "深度偏移"
 
 
+msgid "Lineart"
+msgstr "線稿"
+
+
 msgid "Edge Types"
 msgstr "邊線類型"
 
@@ -80628,22 +80719,6 @@ msgstr "檔案"
 
 msgid "network"
 msgstr "網路"
-
-
-msgid "Estonian - Eesti keel"
-msgstr "愛沙尼亞語 - Eesti keel"
-
-
-msgid "Amharic - አማርኛ"
-msgstr "阿姆哈拉語 - አማርኛ"
-
-
-msgid "Uzbek (Cyrillic) - Ўзбек"
-msgstr "烏茲別克語 (西里爾字) - Ўзбек"
-
-
-msgid "Kazakh - Қазақша"
-msgstr "哈薩克語 - Қазақша"
 
 
 msgid "ACES 1.3"

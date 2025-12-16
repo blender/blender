@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-08 10:32+0000\n"
+"POT-Creation-Date: 2025-12-16 11:27+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: Balázs Füvesi <fuvesib@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -3629,6 +3629,22 @@ msgid "Menu"
 msgstr "Menü"
 
 
+msgid "Font"
+msgstr "Betűkészlet"
+
+
+msgid "Text"
+msgstr "Szöveg"
+
+
+msgid "Mask"
+msgstr "Maszk"
+
+
+msgid "Sound"
+msgstr "Hang"
+
+
 msgid "Freestyle Line Set"
 msgstr "Freestyle vonalkészlet"
 
@@ -4281,10 +4297,6 @@ msgstr "Hozzárendelés típusa"
 
 msgid "Path"
 msgstr "Útvonal"
-
-
-msgid "Font"
-msgstr "Betűkészlet"
 
 
 msgid "Text Selected"
@@ -5444,10 +5456,6 @@ msgid "Attenuation"
 msgstr "Gyengítés"
 
 
-msgid "Sound"
-msgstr "Hang"
-
-
 msgid "Memory"
 msgstr "Memória"
 
@@ -6569,8 +6577,20 @@ msgid "Use Material Mask"
 msgstr "Anyagmaszk használata"
 
 
-msgid "Mask"
-msgstr "Maszk"
+msgid "Mirror"
+msgstr "Tükrözés"
+
+
+msgid "Local View"
+msgstr "Helyi nézet"
+
+
+msgid "Navigation"
+msgstr "Navigáció"
+
+
+msgid "Align View"
+msgstr "Nézet igazítása"
 
 
 msgid "Metaball"
@@ -6589,8 +6609,16 @@ msgid "Rigid Body"
 msgstr "Szilárd test"
 
 
+msgid "Keying"
+msgstr "Kulcsozás"
+
+
 msgid "Apply"
 msgstr "Elfogadás"
+
+
+msgid "Tracking"
+msgstr "Követés"
 
 
 msgid "Track"
@@ -6605,20 +6633,8 @@ msgid "Clean Up"
 msgstr "Tisztítás"
 
 
-msgid "Keying"
-msgstr "Kulcsozás"
-
-
-msgid "Tracking"
-msgstr "Követés"
-
-
 msgid "Merge"
 msgstr "Összefésülés"
-
-
-msgid "Text"
-msgstr "Szöveg"
 
 
 msgid "Import"
@@ -6627,22 +6643,6 @@ msgstr "Importálás"
 
 msgid "UV"
 msgstr "UV"
-
-
-msgid "Mirror"
-msgstr "Tükrözés"
-
-
-msgid "Local View"
-msgstr "Helyi nézet"
-
-
-msgid "Navigation"
-msgstr "Navigáció"
-
-
-msgid "Align View"
-msgstr "Nézet igazítása"
 
 
 msgctxt "MovieClip"
@@ -12797,12 +12797,12 @@ msgid "Detail Size"
 msgstr "Részlet mérete"
 
 
-msgid "Render Pass"
-msgstr "Render vezeték"
-
-
 msgid "Motion Tracking"
 msgstr "Mozgáskövetés"
+
+
+msgid "Render Pass"
+msgstr "Render vezeték"
 
 
 msgid "Chain Scaling"

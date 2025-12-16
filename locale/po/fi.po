@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-08 10:32+0000\n"
+"POT-Creation-Date: 2025-12-16 11:27+0000\n"
 "PO-Revision-Date: 2025-07-23 15:32+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -5766,6 +5766,22 @@ msgid "Collection"
 msgstr "Kokoelma"
 
 
+msgid "Font"
+msgstr "Fontti"
+
+
+msgid "Text"
+msgstr "Teksti"
+
+
+msgid "Mask"
+msgstr "Maski"
+
+
+msgid "Sound"
+msgstr "Ääni"
+
+
 msgid "Logical OR"
 msgstr "Looginen TAI"
 
@@ -6256,10 +6272,6 @@ msgstr "Polku"
 
 msgid "Follow"
 msgstr "Seuraa"
-
-
-msgid "Font"
-msgstr "Fontti"
 
 
 msgid "X Offset"
@@ -7027,10 +7039,6 @@ msgid "Sequencer Editors"
 msgstr "Sekvenssieditorit"
 
 
-msgid "Sound"
-msgstr "Ääni"
-
-
 msgid "Memory"
 msgstr "Muisti"
 
@@ -7236,12 +7244,24 @@ msgid "ID Type"
 msgstr "ID-tyyppi"
 
 
-msgid "Mask"
-msgstr "Maski"
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
 
 
 msgid "Select More/Less"
 msgstr "Valitse enemmän/vähemmän"
+
+
+msgid "Select Similar"
+msgstr "Valitse samankaltainen"
+
+
+msgid "Select All by Trait"
+msgstr "Valitse kaikki piirteen mukaan"
+
+
+msgid "Select Loops"
+msgstr "Valitse silmukat"
 
 
 msgid "Metaball"
@@ -7264,6 +7284,14 @@ msgid "Track"
 msgstr "Raide"
 
 
+msgid "Utilities"
+msgstr "Työkalut"
+
+
+msgid "Math"
+msgstr "Matematiikka"
+
+
 msgid "Show/Hide"
 msgstr "Näytä/Piilota"
 
@@ -7276,24 +7304,12 @@ msgid "Random Mask"
 msgstr "Satunnainen maski"
 
 
-msgid "Utilities"
-msgstr "Työkalut"
-
-
-msgid "Math"
-msgstr "Matematiikka"
-
-
 msgid "Names"
 msgstr "Nimet"
 
 
 msgid "Mesh Select Mode"
 msgstr "Muodon valintatila"
-
-
-msgid "Text"
-msgstr "Teksti"
 
 
 msgid "Read"
@@ -7314,22 +7330,6 @@ msgstr "Tuo"
 
 msgid "UV"
 msgstr "UV"
-
-
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
-
-
-msgid "Select Similar"
-msgstr "Valitse samankaltainen"
-
-
-msgid "Select All by Trait"
-msgstr "Valitse kaikki piirteen mukaan"
-
-
-msgid "Select Loops"
-msgstr "Valitse silmukat"
 
 
 msgid "Basic"
@@ -8203,16 +8203,16 @@ msgid "Blur Attribute"
 msgstr "Sumennusattribuutti"
 
 
+msgid "Original"
+msgstr "Alkuperäinen"
+
+
 msgid "Capture Attribute"
 msgstr "Sieppaa attribuutti"
 
 
 msgid "Collection Info"
 msgstr "Kokoelmainfo"
-
-
-msgid "Original"
-msgstr "Alkuperäinen"
 
 
 msgid "Corners of Face"
@@ -11858,6 +11858,11 @@ msgstr "Käännä"
 
 
 msgctxt "WindowManager"
+msgid "Snap"
+msgstr "Napsauta"
+
+
+msgctxt "WindowManager"
 msgid "Forward"
 msgstr "Eteen"
 
@@ -12040,11 +12045,6 @@ msgstr "Poista valinta"
 
 
 msgctxt "WindowManager"
-msgid "Snap"
-msgstr "Napsauta"
-
-
-msgctxt "WindowManager"
 msgid "Rotate Normals"
 msgstr "Kierrä Normaalit"
 
@@ -12165,20 +12165,20 @@ msgid "Limit to"
 msgstr "Rajoita"
 
 
-msgid "No folder selected"
-msgstr "Ei valittuja kansioita"
-
-
-msgid "No files selected"
-msgstr "Ei valittuja tiedostoja"
-
-
 msgid "No file chosen"
 msgstr "Tiedostoa ei valittu"
 
 
 msgid "{} does not exist"
 msgstr "{} ei ole olemassa"
+
+
+msgid "No folder selected"
+msgstr "Ei valittuja kansioita"
+
+
+msgid "No files selected"
+msgstr "Ei valittuja tiedostoja"
 
 
 msgid "Deleted {} nodes"

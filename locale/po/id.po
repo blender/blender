@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-08 10:32+0000\n"
+"POT-Creation-Date: 2025-12-16 11:27+0000\n"
 "PO-Revision-Date: 2025-12-01 14:52+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -10940,6 +10940,22 @@ msgid "Closure"
 msgstr "Penutup"
 
 
+msgid "Font"
+msgstr "Font"
+
+
+msgid "Text"
+msgstr "Teks"
+
+
+msgid "Mask"
+msgstr "Masker"
+
+
+msgid "Sound"
+msgstr "Suara"
+
+
 msgid "A collection of objects based on which feature edges are selected"
 msgstr "Koleksi objek berdasasrkan dengan tepi fitur yang terseleksi"
 
@@ -12556,10 +12572,6 @@ msgid "Text on Curve"
 msgstr "Tekstur"
 
 
-msgid "Font"
-msgstr "Font"
-
-
 msgid "Font Bold"
 msgstr "Huruf Tebal"
 
@@ -13563,10 +13575,6 @@ msgstr "Penyunting Teks"
 
 msgid "Attenuation"
 msgstr "Atenuasi"
-
-
-msgid "Sound"
-msgstr "Suara"
 
 
 msgid "Filename of the text file"
@@ -15520,8 +15528,20 @@ msgid "Use Material Mask"
 msgstr "Gunakan Masker Bahan"
 
 
-msgid "Mask"
-msgstr "Masker"
+msgid "Mirror"
+msgstr "Cermin"
+
+
+msgid "Snap"
+msgstr "Jepret"
+
+
+msgid "Navigation"
+msgstr "Navigasi"
+
+
+msgid "Select Linked"
+msgstr "Seleksi yang Terhubung"
 
 
 msgid "Assign Material"
@@ -15530,6 +15550,10 @@ msgstr "Tugaskan Bahan"
 
 msgid "Metaball"
 msgstr "Metabola"
+
+
+msgid "Layout"
+msgstr "Tata Letak"
 
 
 msgid "Light"
@@ -15548,24 +15572,12 @@ msgid "Apply"
 msgstr "Tetapkan"
 
 
-msgid "Track"
-msgstr "Lacak"
-
-
-msgid "Layout"
-msgstr "Tata Letak"
-
-
-msgid "Asset"
-msgstr "Aset"
-
-
-msgid "Hooks"
-msgstr "Kait"
-
-
 msgid "Tracking"
 msgstr "Pelacakan"
+
+
+msgid "Track"
+msgstr "Lacak"
 
 
 msgid "Utilities"
@@ -15576,6 +15588,14 @@ msgid "Math"
 msgstr "Matematika"
 
 
+msgid "Asset"
+msgstr "Aset"
+
+
+msgid "Hooks"
+msgstr "Kait"
+
+
 msgid "Names"
 msgstr "Nama"
 
@@ -15584,16 +15604,8 @@ msgid "Merge"
 msgstr "Menggabungkan"
 
 
-msgid "Text"
-msgstr "Teks"
-
-
 msgid "Sample"
 msgstr "Sampel"
-
-
-msgid "Snap"
-msgstr "Jepret"
 
 
 msgid "Gizmo"
@@ -15610,18 +15622,6 @@ msgstr "Impor"
 
 msgid "UV"
 msgstr "UV"
-
-
-msgid "Mirror"
-msgstr "Cermin"
-
-
-msgid "Navigation"
-msgstr "Navigasi"
-
-
-msgid "Select Linked"
-msgstr "Seleksi yang Terhubung"
 
 
 msgctxt "MovieClip"
@@ -18176,16 +18176,16 @@ msgid "Blur Attribute"
 msgstr "Atribut Buram"
 
 
+msgid "Original"
+msgstr "Asli"
+
+
 msgid "Collection Info"
 msgstr "Info Koleksi"
 
 
 msgid "Retrieve geometry instances from a collection"
 msgstr "Mengambil contoh-contoh geometri dari koleksi"
-
-
-msgid "Original"
-msgstr "Asli"
 
 
 msgid "Geometry Custom Group"
@@ -23401,6 +23401,10 @@ msgid "Relax Method"
 msgstr "Metode Tenang"
 
 
+msgid "Ignore Selection"
+msgstr "Abaikan Seleksi"
+
+
 msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "Ganti Tipe Efek"
@@ -23657,10 +23661,6 @@ msgstr "Tidak ada Perubahan"
 
 msgid "Use Cursor Position"
 msgstr "Gunakan Posisi Kursor"
-
-
-msgid "Ignore Selection"
-msgstr "Abaikan Seleksi"
 
 
 msgctxt "Operator"
@@ -25182,10 +25182,6 @@ msgid "Frame Based Speed"
 msgstr "Kecepatan Berdasarkan Bingkai"
 
 
-msgid "Sample Count"
-msgstr "Hitungan Sampel"
-
-
 msgid "Add a new workspace"
 msgstr "Tambah spasi kerja baru"
 
@@ -26020,6 +26016,10 @@ msgstr "Orientasi Transformasi"
 
 msgid "Transmission Indirect"
 msgstr "Orientasi Transformasi"
+
+
+msgid "Sample Count"
+msgstr "Hitungan Sampel"
 
 
 msgid "Map Resolution"

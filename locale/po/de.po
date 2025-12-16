@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-08 10:32+0000\n"
+"POT-Creation-Date: 2025-12-16 11:27+0000\n"
 "PO-Revision-Date: 2025-12-02 20:06+0000\n"
 "Last-Translator: Bastitron <bastitronhd@gmail.com>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -10691,6 +10691,22 @@ msgid "Collection"
 msgstr "Sammlung"
 
 
+msgid "Font"
+msgstr "Schrift"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Mask"
+msgstr "Maske"
+
+
+msgid "Sound"
+msgstr "Sound"
+
+
 msgid "A collection of objects based on which feature edges are selected"
 msgstr "Eine Sammlung von Objekten, auf deren Grundlage welche Feature-Kanten ausgewählt werden"
 
@@ -12607,10 +12623,6 @@ msgstr "Objektschriftart"
 
 msgid "Text on Curve"
 msgstr "Text auf Kurve"
-
-
-msgid "Font"
-msgstr "Schrift"
 
 
 msgid "Font Bold"
@@ -15546,10 +15558,6 @@ msgstr "Lautsprecher stumm schalten"
 msgctxt "Sound"
 msgid "Pitch"
 msgstr "Tonhöhe"
-
-
-msgid "Sound"
-msgstr "Sound"
 
 
 msgid "Sound data-block used by this speaker"
@@ -18690,10 +18698,6 @@ msgid "Self Overlap"
 msgstr "Selbstüberlagerung"
 
 
-msgid "Mask"
-msgstr "Maske"
-
-
 msgid "Material slot in an object"
 msgstr "Materialsteckplatz in einem Objekt"
 
@@ -18710,16 +18714,68 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Assign Material"
-msgstr "Material zuweisen"
+msgid "Mirror"
+msgstr "Spiegeln"
+
+
+msgid "Snap"
+msgstr "Einrasten"
+
+
+msgid "Local View"
+msgstr "Lokale Ansicht"
+
+
+msgid "Viewpoint"
+msgstr "Ansicht"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Align View"
+msgstr "Ansicht ausrichten"
+
+
+msgid "Align View to Active"
+msgstr "Ansicht auf Aktiv ausrichten"
+
+
+msgid "View Regions"
+msgstr "Vierfenster Ansicht"
 
 
 msgid "Select More/Less"
 msgstr "Mehr/weniger anzeigen"
 
 
+msgid "Select Similar"
+msgstr "Ähnliche auswählen"
+
+
+msgid "Select All by Trait"
+msgstr "Alles nach Merkmal auswählen"
+
+
+msgid "Select Linked"
+msgstr "Verknüpfte auswählen"
+
+
+msgid "Select Loops"
+msgstr "Schleifen auswählen"
+
+
+msgid "Assign Material"
+msgstr "Material zuweisen"
+
+
 msgid "Metaball"
 msgstr "Metaball"
+
+
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Light"
@@ -18742,12 +18798,24 @@ msgid "Rigid Body"
 msgstr "Rigid Body"
 
 
+msgid "Keying"
+msgstr "Schlüsselbilder"
+
+
 msgid "Apply"
 msgstr "Anwenden"
 
 
+msgid "Tracking"
+msgstr "Verfolgen"
+
+
 msgid "Track"
 msgstr "Spur"
+
+
+msgid "Math"
+msgstr "Mathematisch"
 
 
 msgid "Quick Effects"
@@ -18760,10 +18828,6 @@ msgstr "Zeigen/Verbergen"
 
 msgid "Clean Up"
 msgstr "Aufräumen"
-
-
-msgid "Layout"
-msgstr "Layout"
 
 
 msgid "Asset"
@@ -18786,16 +18850,8 @@ msgid "Vertex Group Locks"
 msgstr "Punktgruppen sperren"
 
 
-msgid "Keying"
-msgstr "Schlüsselbilder"
-
-
 msgid "Random Mask"
 msgstr "Zufällige Maske"
-
-
-msgid "Tracking"
-msgstr "Verfolgen"
 
 
 msgid "Clear Transform"
@@ -18804,10 +18860,6 @@ msgstr "Transformation löschen"
 
 msgid "In-Betweens"
 msgstr "Dazwischen"
-
-
-msgid "Math"
-msgstr "Mathematisch"
 
 
 msgid "Names"
@@ -18838,18 +18890,6 @@ msgid "Merge"
 msgstr "Zusammenführen"
 
 
-msgid "Special Characters"
-msgstr "Sonderzeichen"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Text"
-msgstr "Text"
-
-
 msgid "Read"
 msgstr "Lesen"
 
@@ -18866,20 +18906,12 @@ msgid "Primitives"
 msgstr "Grundkörper"
 
 
-msgid "Pivot Point"
-msgstr "Drehpunkt"
+msgid "Special Characters"
+msgstr "Sonderzeichen"
 
 
-msgid "Snap"
-msgstr "Einrasten"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proportionaler Bearbeitungsabfall"
-
-
-msgid "Mask Edit"
-msgstr "Maskenbearbeitung"
+msgid "Kerning"
+msgstr "Kerning"
 
 
 msgid "Instances"
@@ -18890,52 +18922,20 @@ msgid "Import"
 msgstr "Importieren"
 
 
+msgid "Pivot Point"
+msgstr "Drehpunkt"
+
+
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Mirror"
-msgstr "Spiegeln"
+msgid "Proportional Editing Falloff"
+msgstr "Proportionaler Bearbeitungsabfall"
 
 
-msgid "Local View"
-msgstr "Lokale Ansicht"
-
-
-msgid "Viewpoint"
-msgstr "Ansicht"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Align View"
-msgstr "Ansicht ausrichten"
-
-
-msgid "Align View to Active"
-msgstr "Ansicht auf Aktiv ausrichten"
-
-
-msgid "View Regions"
-msgstr "Vierfenster Ansicht"
-
-
-msgid "Select Similar"
-msgstr "Ähnliche auswählen"
-
-
-msgid "Select All by Trait"
-msgstr "Alles nach Merkmal auswählen"
-
-
-msgid "Select Linked"
-msgstr "Verknüpfte auswählen"
-
-
-msgid "Select Loops"
-msgstr "Schleifen auswählen"
+msgid "Mask Edit"
+msgstr "Maskenbearbeitung"
 
 
 msgid "Assets"
@@ -23394,12 +23394,12 @@ msgid "Bake"
 msgstr "Backen"
 
 
-msgid "Collection Info"
-msgstr "Sammlungsinfo"
-
-
 msgid "Original"
 msgstr "Original"
+
+
+msgid "Collection Info"
+msgstr "Sammlungsinfo"
 
 
 msgid "Convex Hull"
@@ -35878,6 +35878,10 @@ msgid "Replace Selection"
 msgstr "Auswahl ersetzen"
 
 
+msgid "Ignore Selection"
+msgstr "Auswahl ignorrieren"
+
+
 msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "Selbe Typen"
@@ -36207,10 +36211,6 @@ msgstr "Cursorposition verwenden"
 msgctxt "Operator"
 msgid "Add Sound Strip"
 msgstr "Beschränkung hinzufügen"
-
-
-msgid "Ignore Selection"
-msgstr "Auswahl ignorrieren"
 
 
 msgid "Color 09"
@@ -38634,10 +38634,6 @@ msgid "Speed Interpolation 1"
 msgstr "Geschwindigkeitsinterpolation 1"
 
 
-msgid "Sample Count"
-msgstr "Beispielzähler"
-
-
 msgid "Selectable Only"
 msgstr "Nur auswählbares"
 
@@ -38907,6 +38903,38 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
+msgid "Overlays"
+msgstr "Überlagerungen"
+
+
+msgid "Guides"
+msgstr "Hilfslinien"
+
+
+msgid "Motion Tracking"
+msgstr "Bewegungsverfolgung"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Maschenbearbeitungsmodus"
+
+
+msgid "Measurement"
+msgstr "Messung"
+
+
+msgid "Curve Edit Mode"
+msgstr "Kurven-Bearbeitungsmodus"
+
+
+msgid "Transform Orientations"
+msgstr "Transformationsausrichtung"
+
+
+msgid "Drawing Plane"
+msgstr "Malfläche"
+
+
 msgid "Quad View"
 msgstr "Vierfenster-Ansicht"
 
@@ -38953,38 +38981,6 @@ msgstr "Renderdurchgänge"
 
 msgid "Compositor"
 msgstr "Setzer"
-
-
-msgid "Overlays"
-msgstr "Überlagerungen"
-
-
-msgid "Guides"
-msgstr "Hilfslinien"
-
-
-msgid "Motion Tracking"
-msgstr "Bewegungsverfolgung"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Maschenbearbeitungsmodus"
-
-
-msgid "Measurement"
-msgstr "Messung"
-
-
-msgid "Curve Edit Mode"
-msgstr "Kurven-Bearbeitungsmodus"
-
-
-msgid "Transform Orientations"
-msgstr "Transformationsausrichtung"
-
-
-msgid "Drawing Plane"
-msgstr "Malfläche"
 
 
 msgid "Chain Scaling"
@@ -42522,6 +42518,10 @@ msgstr "Indirekte Übertragung"
 
 msgid "Transmission Color"
 msgstr "Farbübertragung"
+
+
+msgid "Sample Count"
+msgstr "Beispielzähler"
 
 
 msgid "Show Active Pixels"
