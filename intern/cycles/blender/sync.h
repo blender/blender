@@ -195,7 +195,7 @@ class BlenderSync {
 
   /* Light */
   void sync_light(BObjectInfo &b_ob_info, Light *light);
-  void sync_background_light(BL::SpaceView3D &b_v3d);
+  void sync_background_light(::View3D *b_v3d);
 
   /* Particles */
   bool sync_dupli_particle(BL::Object &b_ob,
@@ -224,7 +224,7 @@ class BlenderSync {
 
   enum ShaderFlags { SHADER_WITH_LAYER_ATTRS };
 
-  id_map<void *, Shader, ShaderFlags> shader_map;
+  id_map<const void *, Shader, ShaderFlags> shader_map;
   id_map<ObjectKey, Object> object_map;
   id_map<void *, Procedural> procedural_map;
   id_map<GeometryKey, Geometry> geometry_map;

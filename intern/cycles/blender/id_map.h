@@ -86,30 +86,30 @@ template<typename K, typename T, typename Flags = uint> class id_map {
   }
 
   /* Update existing data. */
-  bool update(T *data, const BL::ID &id)
+  bool update(T *data, const ::ID *id)
   {
     return update(data, id, id);
   }
-  bool update(T *data, const BL::ID &id, const BL::ID &parent)
+  bool update(T *data, const ::ID *id, const ::ID *parent)
   {
-    bool recalc = (b_recalc.find(id.ptr.data) != b_recalc.end());
-    if (parent.ptr.data && parent.ptr.data != id.ptr.data) {
-      recalc = recalc || (b_recalc.find(parent.ptr.data) != b_recalc.end());
+    bool recalc = (b_recalc.find(id) != b_recalc.end());
+    if (parent && parent != id) {
+      recalc = recalc || (b_recalc.find(parent) != b_recalc.end());
     }
     used(data);
     return recalc;
   }
 
   /* Combined add and update as needed. */
-  bool add_or_update(T **r_data, const BL::ID &id)
+  bool add_or_update(T **r_data, const ::ID *id)
   {
-    return add_or_update(r_data, id, id, id.ptr.owner_id);
+    return add_or_update(r_data, id, id, id);
   }
-  bool add_or_update(T **r_data, const BL::ID &id, const K &key)
+  bool add_or_update(T **r_data, const ::ID *id, const K &key)
   {
     return add_or_update(r_data, id, id, key);
   }
-  bool add_or_update(T **r_data, const BL::ID &id, const BL::ID &parent, const K &key)
+  bool add_or_update(T **r_data, const ::ID *id, const ::ID *parent, const K &key)
   {
     T *data = find(key);
     bool recalc;
@@ -203,7 +203,7 @@ template<typename K, typename T, typename Flags = uint> class id_map {
   map<K, T *> b_map;
   set<T *> used_set;
   map<T *, uint> flags;
-  set<void *> b_recalc;
+  set<const void *> b_recalc;
   Scene *scene;
 };
 

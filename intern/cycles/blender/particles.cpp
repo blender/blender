@@ -43,7 +43,10 @@ bool BlenderSync::sync_dupli_particle(BL::Object &b_ob,
 
   const bool first_use = !particle_system_map.is_used(key);
   const bool need_update = particle_system_map.add_or_update(
-      &psys, b_ob, b_instance.object(), key);
+      &psys,
+      &b_ob.ptr.data_as<::Object>()->id,
+      &b_instance.object().ptr.data_as<::Object>()->id,
+      key);
 
   /* no update needed? */
   if (!need_update && !object->get_geometry()->is_modified() &&

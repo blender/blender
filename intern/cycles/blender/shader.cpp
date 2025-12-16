@@ -24,6 +24,9 @@
 
 #include "NOD_shader_nodes_inline.hh"
 
+#include "DNA_light_types.h"
+#include "DNA_material_types.h"
+
 CCL_NAMESPACE_BEGIN
 
 using PtrInputMap = unordered_multimap<void *, ShaderInput *>;
@@ -1594,7 +1597,7 @@ void BlenderSync::sync_materials(BL::Depsgraph &b_depsgraph, bool update_all)
     Shader *shader;
 
     /* test if we need to sync */
-    if (shader_map.add_or_update(&shader, b_mat) || update_all ||
+    if (shader_map.add_or_update(&shader, &b_mat.ptr.data_as<::Material>()->id) || update_all ||
         scene_attr_needs_recalc(shader, b_depsgraph))
     {
       unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
@@ -1835,7 +1838,7 @@ void BlenderSync::sync_lights(BL::Depsgraph &b_depsgraph, bool update_all)
     Shader *shader;
 
     /* test if we need to sync */
-    if (shader_map.add_or_update(&shader, b_light) || update_all ||
+    if (shader_map.add_or_update(&shader, &b_light.ptr.data_as<::Light>()->id) || update_all ||
         scene_attr_needs_recalc(shader, b_depsgraph))
     {
       unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();

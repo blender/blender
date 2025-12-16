@@ -250,7 +250,10 @@ Object *BlenderSync::sync_object(BL::ViewLayer &b_view_layer,
   }
 
   /* test if we need to sync */
-  bool object_updated = object_map.add_or_update(&object, b_ob, b_parent, key) ||
+  bool object_updated = object_map.add_or_update(&object,
+                                                 &b_ob.ptr.data_as<::Object>()->id,
+                                                 &b_parent.ptr.data_as<::Object>()->id,
+                                                 key) ||
                         (tfm != object->get_tfm());
 
   /* mesh sync */
@@ -525,7 +528,7 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
 
   if (!cancel && !motion) {
     /* After object for world_use_portal. */
-    sync_background_light(b_v3d);
+    sync_background_light(b_v3d.ptr.data_as<::View3D>());
 
     /* Handle removed data and modified pointers, as this may free memory, delete Nodes in the
      * right order to ensure that dependent data is freed after their users. Objects should be

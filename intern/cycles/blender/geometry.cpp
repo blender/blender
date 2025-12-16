@@ -124,7 +124,7 @@ Geometry *BlenderSync::sync_geometry(BObjectInfo &b_ob_info,
   }
   else {
     /* Test if we need to update existing geometry. */
-    sync = geometry_map.update(geom, b_key_id);
+    sync = geometry_map.update(geom, b_key_id.ptr.data_as<::ID>());
   }
 
   if (!sync) {
