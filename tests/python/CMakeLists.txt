@@ -1499,6 +1499,7 @@ if(WITH_UI_TESTS)
     test_workspace.sanity_check_video_editing
     test_fullscreen.wm_toggle_fullscreen
     test_fullscreen.wm_toggle_stacked_fullscreen_file_browser
+    test_fullscreen.wm_toggle_stacked_fullscreens
   )
   foreach(ui_test ${_ui_tests})
     add_blender_test_ui(
