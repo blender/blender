@@ -2851,6 +2851,7 @@ static void read_undo_tag_all_noundo_ids(FileData *fd)
           ID *id = *cb_data->id_pointer;
 
           BLI_assert(BLO_readfile_id_runtime_tags(*id_owner).used_by_no_undo_id);
+          UNUSED_VARS_NDEBUG(id_owner);
           if (!id || BLO_readfile_id_runtime_tags(*id).used_by_no_undo_id) {
             return IDWALK_RET_NOP;
           }
