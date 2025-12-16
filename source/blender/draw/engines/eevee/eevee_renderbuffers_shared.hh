@@ -19,7 +19,7 @@ namespace blender::eevee {
  * If we can find a way to avoid this we can bump this number up. */
 #define AOV_MAX 128
 
-struct AOVsInfoData {
+struct [[host_shared]] AOVsInfoData {
   /* Pack 4 hashes per uint4, using std140 packing rules.
    * Color AOV hashes are placed before value AOV hashes. */
   uint4 hash[AOV_MAX / 4];
@@ -31,10 +31,9 @@ struct AOVsInfoData {
   /** True if the AOV to be displayed is from the value accumulation buffer. */
   bool32_t display_is_value;
 };
-BLI_STATIC_ASSERT_ALIGN(AOVsInfoData, 16)
 
-struct RenderBuffersInfoData {
-  AOVsInfoData aovs;
+struct [[host_shared]] RenderBuffersInfoData {
+  struct AOVsInfoData aovs;
   /* Color. */
   int color_len;
   int normal_id;
@@ -51,9 +50,9 @@ struct RenderBuffersInfoData {
   int value_len;
   int shadow_id;
   int ambient_occlusion_id;
-  int _pad0, _pad1;
+  int _pad0;
+  int _pad1;
 };
-BLI_STATIC_ASSERT_ALIGN(RenderBuffersInfoData, 16)
 
 #ifndef GPU_SHADER
 }  // namespace blender::eevee

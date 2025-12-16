@@ -20,11 +20,10 @@ namespace blender::eevee {
 /** \name Probe Spheres
  * \{ */
 
-struct ReflectionProbeLowFreqLight {
+struct [[host_shared]] ReflectionProbeLowFreqLight {
   packed_float3 direction;
   float ambient;
 };
-BLI_STATIC_ASSERT_ALIGN(ReflectionProbeLowFreqLight, 16)
 
 enum LightProbeShape : uint32_t {
   SHAPE_ELIPSOID = 0u,
@@ -32,7 +31,7 @@ enum LightProbeShape : uint32_t {
 };
 
 /* Sampling coordinates using UV space. */
-struct SphereProbeUvArea {
+struct [[host_shared]] SphereProbeUvArea {
   /* Offset in UV space to the start of the sampling space of the octahedron map. */
   float2 offset;
   /* Scaling of the squared UV space of the octahedron map. */
@@ -40,10 +39,9 @@ struct SphereProbeUvArea {
   /* Layer of the atlas where the octahedron map is stored. */
   float layer;
 };
-BLI_STATIC_ASSERT_ALIGN(SphereProbeUvArea, 16)
 
 /* Pixel read/write coordinates using pixel space. */
-struct SphereProbePixelArea {
+struct [[host_shared]] SphereProbePixelArea {
   /* Offset in pixel space to the start of the writing space of the octahedron map.
    * Note that the writing space is not the same as the sampling space as we have borders. */
   int2 offset;
@@ -52,57 +50,52 @@ struct SphereProbePixelArea {
   /* Layer of the atlas where the octahedron map is stored. */
   int layer;
 };
-BLI_STATIC_ASSERT_ALIGN(SphereProbePixelArea, 16)
 
 /** Mapping data to locate a reflection probe in texture. */
-struct SphereProbeData {
+struct [[host_shared]] SphereProbeData {
   /** Transform to probe local position with non-uniform scaling. */
   float3x4 world_to_probe_transposed;
 
   packed_float3 location;
   /** Shape of the parallax projection. */
   float parallax_distance;
-  LightProbeShape parallax_shape;
-  LightProbeShape influence_shape;
+  enum LightProbeShape parallax_shape;
+  enum LightProbeShape influence_shape;
   /** Influence factor based on the distance to the parallax shape. */
   float influence_scale;
   float influence_bias;
 
-  SphereProbeUvArea atlas_coord;
+  struct SphereProbeUvArea atlas_coord;
 
   /**
    * Irradiance at the probe location encoded as spherical harmonics.
    * Only contain the average luminance. Used for cube-map normalization.
    */
-  ReflectionProbeLowFreqLight low_freq_light;
+  struct ReflectionProbeLowFreqLight low_freq_light;
 };
-BLI_STATIC_ASSERT_ALIGN(SphereProbeData, 16)
 
 /** Viewport Display Pass. */
-struct SphereProbeDisplayData {
+struct [[host_shared]] SphereProbeDisplayData {
   int probe_index;
   float display_size;
   float _pad0;
   float _pad1;
 };
-BLI_STATIC_ASSERT_ALIGN(SphereProbeDisplayData, 16)
 
 /* Used for sphere probe spherical harmonics extraction. Output one for each thread-group
  * and do a sum afterward. Reduces bandwidth usage. */
-struct SphereProbeHarmonic {
+struct [[host_shared]] SphereProbeHarmonic {
   float4 L0_M0;
   float4 L1_Mn1;
   float4 L1_M0;
   float4 L1_Mp1;
 };
-BLI_STATIC_ASSERT_ALIGN(SphereProbeHarmonic, 16)
 
-struct SphereProbeSunLight {
+struct [[host_shared]] SphereProbeSunLight {
   float4 direction;
   packed_float3 radiance;
   float _pad0;
 };
-BLI_STATIC_ASSERT_ALIGN(SphereProbeSunLight, 16)
 
 /** \} */
 
@@ -110,7 +103,7 @@ BLI_STATIC_ASSERT_ALIGN(SphereProbeSunLight, 16)
 /** \name Planar Volume
  * \{ */
 
-struct PlanarProbeData {
+struct [[host_shared]] PlanarProbeData {
   /** Matrices used to render the planar capture. */
   float4x4 viewmat;
   float4x4 winmat;
@@ -122,17 +115,15 @@ struct PlanarProbeData {
   /** Layer in the planar capture textures used by this probe. */
   int layer_id;
 };
-BLI_STATIC_ASSERT_ALIGN(PlanarProbeData, 16)
 
 /** Viewport Display Pass. */
-struct PlanarProbeDisplayData {
+struct [[host_shared]] PlanarProbeDisplayData {
   float4x4 plane_to_world;
   int probe_index;
   float _pad0;
   float _pad1;
   float _pad2;
 };
-BLI_STATIC_ASSERT_ALIGN(PlanarProbeDisplayData, 16)
 
 /** \} */
 
@@ -140,7 +131,7 @@ BLI_STATIC_ASSERT_ALIGN(PlanarProbeDisplayData, 16)
 /** \name Probe Volume
  * \{ */
 
-struct VolumeProbeData {
+struct [[host_shared]] VolumeProbeData {
   /** World to non-normalized local grid space [0..size-1]. Stored transposed for compactness. */
   float3x4 world_to_grid_transposed;
   /** Number of bricks for this grid. */
@@ -153,7 +144,6 @@ struct VolumeProbeData {
   float facing_bias;
   int _pad1;
 };
-BLI_STATIC_ASSERT_ALIGN(VolumeProbeData, 16)
 
 struct IrradianceBrick {
   /* Offset in pixel to the start of the data inside the atlas texture. */
@@ -182,7 +172,7 @@ static inline IrradianceBrick irradiance_brick_unpack(IrradianceBrickPacked bric
 /** \name Baking structures
  * \{ */
 
-struct SurfelRadiance {
+struct [[host_shared]] SurfelRadiance {
   /* Actually stores radiance and world (sky) visibility. Stored normalized. */
   float4 front;
   float4 back;
@@ -192,9 +182,8 @@ struct SurfelRadiance {
   float _pad0;
   float _pad1;
 };
-BLI_STATIC_ASSERT_ALIGN(SurfelRadiance, 16)
 
-struct Surfel {
+struct [[host_shared]] Surfel {
   /** World position of the surfel. */
   packed_float3 position;
   /** Previous surfel index in the ray link-list. Only valid after sorting. */
@@ -220,13 +209,12 @@ struct Surfel {
   /** Index of this surfel inside the sorted list. Allow access to previous and next surfel id. */
   int index_in_sorted_list;
   /** Surface radiance: Emission + Direct Lighting. */
-  SurfelRadiance radiance_direct;
+  struct SurfelRadiance radiance_direct;
   /** Surface radiance: Indirect Lighting. Double buffered to avoid race conditions. */
-  SurfelRadiance radiance_indirect[2];
+  struct SurfelRadiance radiance_indirect[2];
 };
-BLI_STATIC_ASSERT_ALIGN(Surfel, 16)
 
-struct CaptureInfoData {
+struct [[host_shared]] CaptureInfoData {
   /** Grid size without padding. */
   packed_int3 irradiance_grid_size;
   /** True if the surface shader needs to write the surfel data. */
@@ -273,11 +261,10 @@ struct CaptureInfoData {
   bool32_t capture_emission;
   int _pad0;
   /* World light probe atlas coordinate. */
-  SphereProbeUvArea world_atlas_coord;
+  struct SphereProbeUvArea world_atlas_coord;
 };
-BLI_STATIC_ASSERT_ALIGN(CaptureInfoData, 16)
 
-struct SurfelListInfoData {
+struct [[host_shared]] SurfelListInfoData {
   /** Size of the grid used to project the surfels into linked lists. */
   int2 ray_grid_size;
   /** Maximum number of list. Is equal to `ray_grid_size.x * ray_grid_size.y`. */
@@ -285,7 +272,6 @@ struct SurfelListInfoData {
 
   int list_prefix_sum;
 };
-BLI_STATIC_ASSERT_ALIGN(SurfelListInfoData, 16)
 
 /** \} */
 

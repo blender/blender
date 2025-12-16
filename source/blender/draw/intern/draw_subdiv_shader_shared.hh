@@ -12,7 +12,7 @@
 
 #include "GPU_shader_shared_utils.hh"
 
-struct DRWSubdivUboStorage {
+struct [[host_shared]] DRWSubdivUboStorage {
   /* Offsets in the buffers data where the source and destination data start. */
   int src_offset;
   int dst_offset;
@@ -50,7 +50,6 @@ struct DRWSubdivUboStorage {
   int _pad3;
   int _pad4;
 };
-BLI_STATIC_ASSERT_ALIGN(DRWSubdivUboStorage, 16)
 
 struct SculptData {
   uint face_set_color;

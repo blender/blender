@@ -129,7 +129,7 @@ static inline uint outline_id_pack(uint outline_id, uint object_id)
 /* Due to the encoding clamping the passed in floats, the wire width needs to be scaled down. */
 #define WIRE_WIDTH_COMPRESSION 16.0f
 
-struct OVERLAY_GridData {
+struct [[host_shared]] OVERLAY_GridData {
   /* Per level step size, based on selected units/subdivision. */
   float4 steps[OVERLAY_GRID_STEPS_LEN]; /* float3 array padded to float4 (std140). */
   /* XY/YZ/XZ camera offset of grid. */
@@ -140,9 +140,9 @@ struct OVERLAY_GridData {
   float level;
   /* Per-level line count. */
   uint num_lines;
-  uint _pad0, _pad1;
+  uint _pad0;
+  uint _pad1;
 };
-BLI_STATIC_ASSERT_ALIGN(OVERLAY_GridData, 16)
 
 #ifdef GPU_SHADER
 /* Keep the same values as in `draw_cache_impl_curves.cc` */
@@ -181,7 +181,7 @@ BLI_STATIC_ASSERT(MOTIONPATH_VERT_KEY == (1u << 1), "Ensure value is sync");
 #endif
 
 /* All colors in this struct are converted to display linear RGB color-space. */
-struct ThemeColors {
+struct [[host_shared]] ThemeColors {
   /* UBOs data needs to be 16 byte aligned (size of float4) */
   float4 wire;
   float4 wire_edit;
@@ -289,10 +289,9 @@ struct ThemeColors {
 
   float4 uv_shadow;
 };
-BLI_STATIC_ASSERT_ALIGN(ThemeColors, 16)
 
 /* All values in this struct are premultiplied by U.pixelsize. */
-struct ThemeSizes {
+struct [[host_shared]] ThemeSizes {
   float pixel; /* Equivalent to U.pixelsize. */
 
   float object_center;
@@ -307,13 +306,13 @@ struct ThemeSizes {
 
   float checker;
   float vertex_gpencil;
-  float _pad1, _pad2;
+  float _pad1;
+  float _pad2;
 };
-BLI_STATIC_ASSERT_ALIGN(ThemeSizes, 16)
 
-struct UniformData {
-  ThemeColors colors;
-  ThemeSizes sizes;
+struct [[host_shared]] UniformData {
+  struct ThemeColors colors;
+  struct ThemeSizes sizes;
 
   /** Other global states. */
 
@@ -325,7 +324,6 @@ struct UniformData {
   bool32_t backface_culling;
   float _pad1;
 };
-BLI_STATIC_ASSERT_ALIGN(UniformData, 16)
 
 #ifdef GPU_SHADER
 /* The uniform_buf mostly contains theme properties.
@@ -333,7 +331,7 @@ BLI_STATIC_ASSERT_ALIGN(UniformData, 16)
 #  define theme uniform_buf
 #endif
 
-struct ExtraInstanceData {
+struct [[host_shared]] ExtraInstanceData {
   float4 color_;
   float4x4 object_to_world;
 
@@ -369,14 +367,12 @@ struct ExtraInstanceData {
   };
 #endif
 };
-BLI_STATIC_ASSERT_ALIGN(ExtraInstanceData, 16)
 
-struct VertexData {
+struct [[host_shared]] VertexData {
   float4 pos_;
   /* TODO: change to color_id. Idea expressed in #125894. */
   float4 color_;
 };
-BLI_STATIC_ASSERT_ALIGN(VertexData, 16)
 
 /* Limited by expand_prim_len bit count. */
 #define PARTICLE_SHAPE_CIRCLE_RESOLUTION 7
@@ -387,16 +383,15 @@ enum OVERLAY_ParticleShape : uint32_t {
   PART_SHAPE_CROSS = 3,
 };
 
-struct ParticlePointData {
+struct [[host_shared]] ParticlePointData {
   packed_float3 position;
   /* Can either be velocity or acceleration. */
   float value;
   /* Rotation encoded as quaternion. */
   float4 rotation;
 };
-BLI_STATIC_ASSERT_ALIGN(ParticlePointData, 16)
 
-struct BoneEnvelopeData {
+struct [[host_shared]] BoneEnvelopeData {
   float4 head_sphere;
   float4 tail_sphere;
   /* TODO(pragma37): wire width is never used in the shader. */
@@ -434,9 +429,8 @@ struct BoneEnvelopeData {
       : head_sphere(head_sphere), tail_sphere(tail_sphere), x_axis(x_axis, 0.0f) {};
 #endif
 };
-BLI_STATIC_ASSERT_ALIGN(BoneEnvelopeData, 16)
 
-struct BoneStickData {
+struct [[host_shared]] BoneStickData {
   float4 bone_start;
   float4 bone_end;
   float4 wire_color;
@@ -462,7 +456,6 @@ struct BoneStickData {
         tail_color(tail_color) {};
 #endif
 };
-BLI_STATIC_ASSERT_ALIGN(BoneStickData, 16)
 
 /**
  * We want to know how much of a pixel is covered by a line.

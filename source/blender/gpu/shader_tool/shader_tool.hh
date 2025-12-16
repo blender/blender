@@ -534,6 +534,7 @@ class Preprocessor {
         parser.apply_mutations();
 
         /* Linting phase. Detect valid syntax with invalid usage. */
+        lint_host_shared_structures(parser, report_error);
         lint_unbraced_statements(parser, report_error);
         lint_reserved_tokens(parser, report_error);
         lint_attributes(parser, report_error);
@@ -541,6 +542,8 @@ class Preprocessor {
         if (do_small_type_linting) {
           lint_small_types_in_structs(parser, report_error);
         }
+
+        parser.apply_mutations();
 
         /* Lint and remove SRT accessor templates before lowering template. */
         lower_srt_accessor_templates(parser, report_error);
@@ -1588,7 +1591,8 @@ class Preprocessor {
         processed_functions.emplace(fn_name.str());
         process_symbol(fn_name);
       });
-      scope.foreach_struct([&](Token, Token struct_name, Scope) { process_symbol(struct_name); });
+      scope.foreach_struct(
+          [&](Token, Scope, Token struct_name, Scope) { process_symbol(struct_name); });
 
       /* Pipeline declarations. */
       scope.foreach_match("ww(w", [&](vector<Token> toks) {
@@ -2172,7 +2176,7 @@ class Preprocessor {
       return (type == "frag_color" || type == "frag_depth" || type == "frag_stencil_ref");
     };
 
-    parser().foreach_struct([&](Token struct_tok, Token struct_name, Scope body) {
+    parser().foreach_struct([&](Token struct_tok, Scope, Token struct_name, Scope body) {
       SrtType srt_type = SrtType::undefined;
       bool has_srt_members = false;
 
@@ -2410,7 +2414,7 @@ class Preprocessor {
     using namespace std;
     using namespace shader::parser;
 
-    parser().foreach_struct([&](Token, Token, Scope body) {
+    parser().foreach_struct([&](Token, Scope, Token, Scope body) {
       vector<Token> members_tokens;
       vector<Token> methods_tokens;
 
@@ -2503,6 +2507,7 @@ class Preprocessor {
 
     /* Add `this` parameter and fold static keywords into function name. */
     parser().foreach_struct([&](Token struct_tok,
+                                Scope,
                                 const Token struct_name,
                                 const Scope struct_scope) {
       const Scope attributes = struct_tok.prev().scope();
@@ -2553,7 +2558,7 @@ class Preprocessor {
     parser.apply_mutations();
 
     /* Copy method functions outside of struct scope. */
-    parser().foreach_struct([&](Token, const Token, const Scope struct_scope) {
+    parser().foreach_struct([&](Token, Scope, const Token, const Scope struct_scope) {
       const Token struct_end = struct_scope.end().next();
 
       bool has_methods = false;
@@ -2996,6 +3001,133 @@ class Preprocessor {
     } while (parser.apply_mutations());
   }
 
+  void lint_host_shared_structures(Parser &parser, report_callback report_error)
+  {
+    using namespace std;
+    using namespace shader::parser;
+
+    parser().foreach_struct([&](Token, Scope attributes, Token struct_name, Scope body) {
+      if (attributes.is_invalid()) {
+        return;
+      }
+      parser.erase(attributes.scope());
+      bool is_shared = false;
+      bool unchecked = false;
+      attributes.foreach_attribute([&](Token attr, Scope) {
+        if (attr.str() == "host_shared") {
+          is_shared = true;
+        }
+        else if (attr.str() == "unchecked") {
+          unchecked = true;
+        }
+      });
+      if (!is_shared || unchecked) {
+        return;
+      }
+
+      Token comma = body.find_token(',');
+      if (comma.is_valid()) {
+        report_error(
+            ERROR_TOK(comma),
+            "comma declaration is not supported in shared struct, expand to multiple definition");
+        return;
+      }
+
+      struct Type {
+        size_t size;
+        size_t alignment;
+      };
+      unordered_map<string, Type> sizeof_types = {
+          {"float", {4, 4}},
+          {"float2", {8, 8}},
+          {"float4", {16, 16}},
+          {"float2x4", {16 * 2, 16}},
+          {"float3x4", {16 * 3, 16}},
+          {"float4x4", {16 * 4, 16}},
+          {"bool32_t", {4, 4}},
+          {"int", {4, 4}},
+          {"int2", {8, 8}},
+          {"int4", {16, 16}},
+          {"uint", {4, 4}},
+          {"uint2", {8, 8}},
+          {"uint4", {16, 16}},
+          {"string_t", {4, 4}},
+          {"packed_float3", {12, 16}},
+          {"packed_int3", {12, 16}},
+          {"packed_uint3", {12, 16}},
+      };
+
+      size_t offset = 0;
+      body.foreach_declaration([&](Scope, Token, Token type, Scope, Token, Scope, Token) {
+        string type_str = type.str();
+        if (type_str == "float3") {
+          report_error(ERROR_TOK(type), "use packed_float3 instead of float3 in shared structure");
+        }
+        else if (type_str == "uint3") {
+          report_error(ERROR_TOK(type), "use packed_uint3 instead of uint3 in shared structure");
+        }
+        else if (type_str == "int3") {
+          report_error(ERROR_TOK(type), "use packed_int3 instead of int3 in shared structure");
+        }
+        else if (type_str == "bool") {
+          report_error(ERROR_TOK(type), "bool is not allowed in shared structure, use bool32_t");
+        }
+        else if (type_str == "float4x3") {
+          report_error(ERROR_TOK(type), "float4x3 is not allowed in shared structure");
+        }
+        else if (type_str == "float3x3") {
+          report_error(ERROR_TOK(type), "float3x3 is not allowed in shared structure");
+        }
+        else if (type_str == "float2x3") {
+          report_error(ERROR_TOK(type), "float2x3 is not allowed in shared structure");
+        }
+        else if (type_str == "float4x2") {
+          report_error(ERROR_TOK(type), "float4x2 is not allowed in shared structure");
+        }
+        else if (type_str == "float3x2") {
+          report_error(ERROR_TOK(type), "float3x2 is not allowed in shared structure");
+        }
+        else if (type_str == "float2x2") {
+          report_error(ERROR_TOK(type), "float2x2 is not allowed in shared structure");
+        }
+
+        auto sz = sizeof_types.find(type_str);
+
+        Type type_info{16, 16};
+        if (sz != sizeof_types.end()) {
+          type_info = sz->second;
+        }
+        else if (type.prev() == Enum) {
+          /* Only 4 bytes enums are allowed. */
+          type_info = {4, 4};
+          parser.erase(type.prev());
+        }
+        else if (type.prev() == Struct) {
+          /* Only 4 bytes enums are allowed. */
+          type_info = {16, 16};
+          parser.erase(type.prev());
+        }
+        else {
+          report_error(ERROR_TOK(type),
+                       "Unknown type, add 'enum' or 'struct' keyword before the type name");
+          return;
+        }
+
+        size_t align = type_info.alignment - (offset % type_info.alignment);
+        if (align != type_info.alignment) {
+          string err = "Misaligned member, missing " + to_string(align) + " padding bytes";
+          report_error(ERROR_TOK(type), err.c_str());
+        }
+        offset += type_info.size;
+      });
+      if (offset % 16 != 0) {
+        string err = "Alignment issue, missing " + to_string(16 - (offset % 16)) +
+                     " padding bytes";
+        report_error(ERROR_TOK(struct_name), err.c_str());
+      }
+    });
+  }
+
   void lint_unbraced_statements(Parser &parser, report_callback report_error)
   {
     using namespace std;
@@ -3097,6 +3229,15 @@ class Preprocessor {
             report_error(ERROR_TOK(attr), "This attribute requires at least 1 argument");
             invalid = true;
           }
+        }
+        else if (attr_str == "host_shared" || attr_str == "unchecked") {
+          if (attributes.start().prev().prev() != Struct) {
+            report_error(ERROR_TOK(attr),
+                         "host_shared attributes must be placed after a struct keyword");
+            invalid = true;
+          }
+          /* Placement already checked. */
+          return;
         }
         else if (attr_str == "gpu") {
           Token second_tok = attr.next().next().next();
@@ -3586,7 +3727,7 @@ class Preprocessor {
     using namespace std;
     using namespace shader::parser;
 
-    parser().foreach_struct([&](Token, Token, Scope body) {
+    parser().foreach_struct([&](Token, Scope, Token, Scope body) {
       body.foreach_declaration([&](Scope attributes,
                                    Token,
                                    Token type,

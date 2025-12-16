@@ -18,12 +18,11 @@ enum SelectType : uint32_t {
   SELECT_PICK_NEAREST = 2u,
 };
 
-struct SelectInfoData {
+struct [[host_shared]] SelectInfoData {
   int2 cursor;
-  SelectType mode;
+  enum SelectType mode;
   uint _pad0;
 };
-BLI_STATIC_ASSERT_ALIGN(SelectInfoData, 16)
 
 #ifndef GPU_SHADER
 }  // namespace blender::draw::select

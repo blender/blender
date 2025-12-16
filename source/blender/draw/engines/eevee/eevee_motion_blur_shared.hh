@@ -16,7 +16,7 @@ namespace blender::eevee {
 
 #define MOTION_BLUR_TILE_SIZE 32
 #define MOTION_BLUR_MAX_TILE 512 /* 16384 / MOTION_BLUR_TILE_SIZE */
-struct MotionBlurData {
+struct [[host_shared]] MotionBlurData {
   /** As the name suggests. Used to avoid a division in the sampling. */
   float2 target_size_inv;
   /** Viewport motion scaling factor. Make blur relative to frame time not render time. */
@@ -24,9 +24,10 @@ struct MotionBlurData {
   /** Depth scaling factor. Avoid blurring background behind moving objects. */
   float depth_scale;
 
-  float _pad0, _pad1, _pad2;
+  float _pad0;
+  float _pad1;
+  float _pad2;
 };
-BLI_STATIC_ASSERT_ALIGN(MotionBlurData, 16)
 
 /* For some reasons some GLSL compilers do not like this struct.
  * So we declare it as a uint array instead and do indexing ourselves. */
@@ -39,7 +40,6 @@ struct MotionBlurTileIndirection {
   uint prev[MOTION_BLUR_MAX_TILE][MOTION_BLUR_MAX_TILE];
   uint next[MOTION_BLUR_MAX_TILE][MOTION_BLUR_MAX_TILE];
 };
-BLI_STATIC_ASSERT_ALIGN(MotionBlurTileIndirection, 16)
 #endif
 
 #ifndef GPU_SHADER

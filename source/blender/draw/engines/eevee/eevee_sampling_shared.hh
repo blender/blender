@@ -56,11 +56,10 @@ enum eSamplingDimension : uint32_t {
 #define SAMPLING_DIMENSION_COUNT 32
 
 /* NOTE(@fclem): Needs to be used in #StorageBuffer because of arrays of scalar. */
-struct SamplingData {
+struct [[host_shared, unchecked]] SamplingData {
   /** Array containing random values from Low Discrepancy Sequence in [0..1) range. */
   float dimensions[SAMPLING_DIMENSION_COUNT];
 };
-BLI_STATIC_ASSERT_ALIGN(SamplingData, 16)
 
 /* Returns total sample count in a web pattern of the given size. */
 static inline int sampling_web_sample_count_get(int web_density, int in_ring_count)

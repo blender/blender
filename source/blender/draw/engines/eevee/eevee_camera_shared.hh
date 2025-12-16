@@ -28,7 +28,7 @@ static inline bool is_panoramic(eCameraType type)
   return type > CAMERA_ORTHO;
 }
 
-struct CameraData {
+struct [[host_shared]] CameraData {
   /* View Matrices of the camera, not from any view! */
   float4x4 persmat;
   float4x4 persinv;
@@ -48,7 +48,7 @@ struct CameraData {
   /** Clipping distances. */
   float clip_near;
   float clip_far;
-  eCameraType type;
+  enum eCameraType type;
   /** World space distance between view corners at unit distance from camera. */
   float screen_diagonal_length;
   float _pad0;
@@ -57,12 +57,11 @@ struct CameraData {
 
   bool32_t initialized;
 
-#ifdef __cplusplus
+#ifndef GPU_SHADER
   /* Small constructor to allow detecting new buffers. */
   CameraData() : initialized(false) {};
 #endif
 };
-BLI_STATIC_ASSERT_ALIGN(CameraData, 16)
 
 #ifndef GPU_SHADER
 }  // namespace blender::eevee

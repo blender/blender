@@ -25,7 +25,7 @@ namespace blender::draw::command {
  * A DrawGroup allow to split the command stream into batch-able chunks of commands with
  * the same render state.
  */
-struct DrawGroup {
+struct [[host_shared, unchecked]] DrawGroup {
   /** Index of next #DrawGroup from the same header. */
   uint next;
 
@@ -90,7 +90,7 @@ BLI_STATIC_ASSERT_ALIGN(DrawGroup, 16)
  * converted into #DrawCommand on GPU after visibility and compaction. Multiple
  * #DrawPrototype might get merged into the same final #DrawCommand.
  */
-struct DrawPrototype {
+struct [[host_shared]] DrawPrototype {
   /* Reference to parent DrawGroup to get the gpu::Batch vertex / instance count. */
   uint group_id;
   /* Resource handle associated with this call. Also reference visibility. */
@@ -100,7 +100,6 @@ struct DrawPrototype {
   /* Number of instances. */
   uint instance_len;
 };
-BLI_STATIC_ASSERT_ALIGN(DrawPrototype, 16)
 
 /** \} */
 

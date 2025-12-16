@@ -56,6 +56,30 @@ Scope Token::scope() const
   return Scope::from_position(data, data->token_scope[index]);
 }
 
+Scope Token::attribute_before() const
+{
+  if (is_invalid()) {
+    return Scope::invalid();
+  }
+  Token prev = this->prev();
+  if (prev == ']' && prev.prev().scope().type() != ScopeType::Attributes) {
+    return prev.prev().scope();
+  }
+  return Scope::invalid();
+}
+
+Scope Token::attribute_after() const
+{
+  if (is_invalid()) {
+    return Scope::invalid();
+  }
+  Token next = this->next();
+  if (next == ']' && next.next().scope().type() != ScopeType::Attributes) {
+    return next.next().scope();
+  }
+  return Scope::invalid();
+}
+
 /** If `keep_whitespace` is false, white-spaces are merged with the previous token. */
 void Parser::tokenize(const bool keep_whitespace)
 {

@@ -347,6 +347,11 @@ struct Token {
     return TokenType(data->token_types[index]);
   }
 
+  /* Return the attribute scope before this token if it exists. */
+  Scope attribute_before() const;
+  /* Return the attribute scope after this token if it exists. */
+  Scope attribute_after() const;
+
   bool operator==(TokenType type) const
   {
     return this->type() == type;

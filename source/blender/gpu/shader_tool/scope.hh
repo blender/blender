@@ -372,13 +372,21 @@ struct Scope {
   }
 
   /* Run a callback for all existing struct scopes. */
-  void foreach_struct(std::function<void(Token struct_tok, Token name, Scope body)> callback) const
+  void foreach_struct(
+      std::function<void(Token struct_tok, Scope attributes, Token name, Scope body)> callback)
+      const
   {
     foreach_match("sw{..}", [&](const std::vector<Token> matches) {
-      callback(matches[0], matches[1], matches[2].scope());
+      callback(matches[0], Scope::invalid(), matches[1], matches[2].scope());
     });
     foreach_match("sw<..>{..}", [&](const std::vector<Token> matches) {
-      callback(matches[0], matches[1], matches[6].scope());
+      callback(matches[0], Scope::invalid(), matches[1], matches[6].scope());
+    });
+    foreach_match("s[[..]]w{..}", [&](const std::vector<Token> matches) {
+      callback(matches[0], matches[2].scope(), matches[7], matches[8].scope());
+    });
+    foreach_match("s[[..]]w<..>{..}", [&](const std::vector<Token> matches) {
+      callback(matches[0], matches[2].scope(), matches[7], matches[12].scope());
     });
   }
 

@@ -22,7 +22,7 @@ enum eVelocityStep : uint32_t {
   STEP_CURRENT = 2,
 };
 
-struct VelocityObjectIndex {
+struct [[host_shared]] VelocityObjectIndex {
   /** Offset inside #VelocityObjectBuf for each time-step. Indexed using eVelocityStep. */
   packed_int3 ofs;
   /** Temporary index to copy this to the #VelocityIndexBuf. */
@@ -32,9 +32,8 @@ struct VelocityObjectIndex {
   VelocityObjectIndex() : ofs(-1, -1, -1), resource_id(-1) {};
 #endif
 };
-BLI_STATIC_ASSERT_ALIGN(VelocityObjectIndex, 16)
 
-struct VelocityGeometryIndex {
+struct [[host_shared]] VelocityGeometryIndex {
   /** Offset inside #VelocityGeometryBuf for each time-step. Indexed using eVelocityStep. */
   packed_int3 ofs;
   /** If true, compute deformation motion blur. */
@@ -51,13 +50,11 @@ struct VelocityGeometryIndex {
   VelocityGeometryIndex() : ofs(-1, -1, -1), do_deform(false), len(-1, -1, -1), _pad0(1) {};
 #endif
 };
-BLI_STATIC_ASSERT_ALIGN(VelocityGeometryIndex, 16)
 
-struct VelocityIndex {
-  VelocityObjectIndex obj;
-  VelocityGeometryIndex geo;
+struct [[host_shared]] VelocityIndex {
+  struct VelocityObjectIndex obj;
+  struct VelocityGeometryIndex geo;
 };
-BLI_STATIC_ASSERT_ALIGN(VelocityGeometryIndex, 16)
 
 #ifndef GPU_SHADER
 }  // namespace blender::eevee

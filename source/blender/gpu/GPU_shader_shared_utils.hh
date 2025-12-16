@@ -115,6 +115,15 @@ using blender::float2x4;
 using blender::float3x4;
 using blender::float4x4;
 
+/* Mute the following attributes. Avoid warning about unknown attribute.
+ * These are parsed by our shader translation tool. */
+
+/* To be used on struct. Means the layout is to be used with uniform or storage buffers. */
+#    define host_shared
+/* To be used on struct with host_shared. Bypass layout checks when syntax doesn't permit it (macro
+ * usage, unions etc...). */
+#    define unchecked
+
 #  endif
 
 /* For assert support. */

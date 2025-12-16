@@ -47,7 +47,7 @@ enum gpLightType : uint32_t {
 #  define gpLightType uint
 #endif
 
-struct gpMaterial {
+struct [[host_shared]] gpMaterial {
   float4 stroke_color;
   float4 fill_color;
   float4 fill_mix_color;
@@ -75,9 +75,8 @@ struct gpMaterial {
 #  define _flag packed2.w
 #endif
 };
-BLI_STATIC_ASSERT_ALIGN(gpMaterial, 16)
 
-struct gpLight {
+struct [[host_shared]] gpLight {
 #ifndef GPU_SHADER
   float3 color;
   gpLightType type;
@@ -109,7 +108,6 @@ struct gpLight {
 #  define _position packed4.xyz
 #endif
 };
-BLI_STATIC_ASSERT_ALIGN(gpLight, 16)
 
 #ifndef GPU_SHADER
 #  undef gpMaterialFlag

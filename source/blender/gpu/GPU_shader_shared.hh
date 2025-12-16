@@ -37,7 +37,7 @@ enum GPUKeyframeShapes : uint32_t {
 #define MAX_SOCKET_INSTANCE 32
 
 /* Node Socket shader parameters. Must match the shader layout of "gpu_shader_2D_node_socket". */
-struct NodeSocketShaderParameters {
+struct [[host_shared]] NodeSocketShaderParameters {
   float4 rect;
   float4 color_inner;
   float4 color_outline;
@@ -46,10 +46,9 @@ struct NodeSocketShaderParameters {
   float shape;
   float aspect;
 };
-BLI_STATIC_ASSERT_ALIGN(NodeSocketShaderParameters, 16)
 
 /* Per link data. */
-struct NodeLinkData {
+struct [[host_shared]] NodeLinkData {
   float4 start_color;
   float4 end_color;
   float2 bezier_P0;
@@ -69,18 +68,16 @@ struct NodeLinkData {
   float _pad0;
   float _pad1;
 };
-BLI_STATIC_ASSERT_ALIGN(NodeLinkData, 16)
 
 /* Data common to all links. */
-struct NodeLinkUniformData {
+struct [[host_shared]] NodeLinkUniformData {
   float4 colors[6];
   float aspect;
   float arrow_size;
   float2 _pad;
 };
-BLI_STATIC_ASSERT_ALIGN(NodeLinkUniformData, 16)
 
-struct GPencilStrokeData {
+struct [[host_shared]] GPencilStrokeData {
   float2 viewport;
   float pixsize;
   float objscale;
@@ -92,27 +89,23 @@ struct GPencilStrokeData {
   bool32_t fill_stroke;
   float2 _pad;
 };
-BLI_STATIC_ASSERT_ALIGN(GPencilStrokeData, 16)
 
-struct GPUClipPlanes {
+struct [[host_shared]] GPUClipPlanes {
   float4x4 ClipModelMatrix;
   float4 world[6];
 };
-BLI_STATIC_ASSERT_ALIGN(GPUClipPlanes, 16)
 
-struct SimpleLightingData {
+struct [[host_shared]] SimpleLightingData {
   float4 l_color;
   packed_float3 light;
   float _pad;
 };
-BLI_STATIC_ASSERT_ALIGN(SimpleLightingData, 16)
 
 #define MAX_CALLS 16
 
-struct MultiIconCallData {
+struct [[host_shared]] MultiIconCallData {
   float4 calls_data[MAX_CALLS * 3];
 };
-BLI_STATIC_ASSERT_ALIGN(MultiIconCallData, 16)
 
 #define GPU_SEQ_STRIP_DRAW_DATA_LEN 256
 
@@ -137,21 +130,23 @@ enum GPUSeqFlags : uint32_t {
 };
 
 /* Glyph for text rendering. */
-struct GlyphQuad {
+struct [[host_shared]] GlyphQuad {
   int4 position;
   float4 glyph_color; /* Cannot be name `color` because of metal macros. */
   int2 glyph_size;
   int offset;
   uint flags;
 };
-BLI_STATIC_ASSERT_ALIGN(GlyphQuad, 16)
 
 /* VSE per-strip data for timeline rendering. */
-struct SeqStripDrawData {
+struct [[host_shared]] SeqStripDrawData {
   /* Horizontal strip positions (1.0 is one frame). */
-  float left_handle, right_handle;  /* Left and right strip sides. */
-  float content_start, content_end; /* Start and end of actual content (only relevant for strips
-                                     * that have holdout regions). */
+  /* Left and right strip sides. */
+  float left_handle;
+  float right_handle;
+  /* Start and end of actual content (only relevant for strips  that have holdout regions). */
+  float content_start;
+  float content_end;
   float handle_width;
   /* Vertical strip positions (1.0 is one channel). */
   float bottom;
@@ -162,47 +157,57 @@ struct SeqStripDrawData {
   uint col_background;
   uint col_outline;
   uint col_color_band;
-  uint col_transition_in, col_transition_out;
-  float _pad0, _pad1;
+  uint col_transition_in;
+  uint col_transition_out;
+  float _pad0;
+  float _pad1;
 };
-BLI_STATIC_ASSERT_ALIGN(SeqStripDrawData, 16)
 BLI_STATIC_ASSERT(sizeof(SeqStripDrawData) * GPU_SEQ_STRIP_DRAW_DATA_LEN <= 16384,
                   "SeqStripDrawData UBO must not exceed minspec UBO size (16384)")
 
 /* VSE per-thumbnail data for timeline rendering. */
-struct SeqStripThumbData {
-  float left, right, bottom, top; /* Strip rectangle positions. */
-  float x1, y1, x2, y2;           /* Thumbnail rectangle positions. */
-  float u1, v1, u2, v2;           /* Thumbnail UVs. */
+struct [[host_shared]] SeqStripThumbData {
+  /* Strip rectangle positions. */
+  float left;
+  float right;
+  float bottom;
+  float top;
+  /* Thumbnail rectangle positions. */
+  float x1;
+  float y1;
+  float x2;
+  float y2;
+  /* Thumbnail UVs. */
+  float u1;
+  float v1;
+  float u2;
+  float v2;
   float4 tint_color;
 };
-BLI_STATIC_ASSERT_ALIGN(SeqStripThumbData, 16)
 BLI_STATIC_ASSERT(sizeof(SeqStripThumbData) * GPU_SEQ_STRIP_DRAW_DATA_LEN <= 16384,
                   "SeqStripThumbData UBO must not exceed minspec UBO size (16384)")
 
 /* VSE global data for timeline rendering. */
-struct SeqContextDrawData {
+struct [[host_shared]] SeqContextDrawData {
   float round_radius;
   float pixelsize;
   uint col_back;
   float _pad0;
 };
-BLI_STATIC_ASSERT_ALIGN(SeqContextDrawData, 16)
 
 /* VSE scope point rasterizer data. */
-struct SeqScopeRasterData {
+struct [[host_shared]] SeqScopeRasterData {
   uint col_r;
   uint col_g;
   uint col_b;
   uint col_a;
 };
 
-struct GreasePencilStrokeData {
+struct [[host_shared]] GreasePencilStrokeData {
   packed_float3 position;
   float stroke_thickness;
   float4 stroke_color;
 };
-BLI_STATIC_ASSERT_ALIGN(GreasePencilStrokeData, 16)
 
 enum TestStatus : uint32_t {
   TEST_STATUS_NONE = 0u,
@@ -235,14 +240,13 @@ enum TestType : uint32_t {
 };
 
 /** \note Contains arrays of scalar. To be use only with SSBOs to avoid padding issues. */
-struct TestOutputRawData {
+struct [[host_shared, unchecked]] TestOutputRawData {
   uint data[16];
 };
-BLI_STATIC_ASSERT_ALIGN(TestOutputRawData, 16)
 
-struct TestOutput {
-  TestOutputRawData expect;
-  TestOutputRawData result;
+struct [[host_shared]] TestOutput {
+  struct TestOutputRawData expect;
+  struct TestOutputRawData result;
   /** TestStatus. */
   uint status;
   /** Line error in the GLSL file. */
@@ -251,7 +255,6 @@ struct TestOutput {
   uint type;
   int _pad0;
 };
-BLI_STATIC_ASSERT_ALIGN(TestOutput, 16)
 
 #ifdef GPU_SHADER
 TestOutput test_output(

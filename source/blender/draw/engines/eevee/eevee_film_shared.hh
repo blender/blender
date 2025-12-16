@@ -37,15 +37,14 @@ enum PassCategory : uint32_t {
 };
 ENUM_OPERATORS(PassCategory)
 
-struct FilmSample {
+struct [[host_shared]] FilmSample {
   int2 texel;
   float weight;
   /** Used for accumulation. */
   float weight_sum_inv;
 };
-BLI_STATIC_ASSERT_ALIGN(FilmSample, 16)
 
-struct FilmData {
+struct [[host_shared]] FilmData {
   /** Size of the film in pixels. */
   int2 extent;
   /** Offset to convert from Display space to Film space, in pixels. */
@@ -72,7 +71,8 @@ struct FilmData {
   /** Controlled by user in lookdev mode or by render settings. */
   float background_opacity;
   /** Output counts per type. */
-  int color_len, value_len;
+  int color_len;
+  int value_len;
   /** Index in color_accum_img or value_accum_img of each pass. -1 if pass is not enabled. */
   int mist_id;
   int normal_id;
@@ -94,12 +94,14 @@ struct FilmData {
   /** Id of the render-pass to be displayed. -1 for combined. */
   int display_id;
   /** Storage type of the render-pass to be displayed. */
-  ePassStorageType display_storage_type;
+  enum ePassStorageType display_storage_type;
   /** True if we bypass the accumulation and directly output the accumulation buffer. */
   bool32_t display_only;
   /** Start of AOVs and number of aov. */
-  int aov_color_id, aov_color_len;
-  int aov_value_id, aov_value_len;
+  int aov_color_id;
+  int aov_color_len;
+  int aov_value_id;
+  int aov_value_len;
   /** Start of cryptomatte per layer (-1 if pass is not enabled). */
   int cryptomatte_object_id;
   int cryptomatte_asset_id;
@@ -107,7 +109,9 @@ struct FilmData {
   /** Max number of samples stored per layer (is even number). */
   int cryptomatte_samples_len;
   /** Settings to render mist pass */
-  float mist_scale, mist_bias, mist_exponent;
+  float mist_scale;
+  float mist_bias;
+  float mist_exponent;
   /** Scene exposure used for better noise reduction. */
   float exposure_scale;
   /** Scaling factor for scaled resolution rendering. */
@@ -121,9 +125,8 @@ struct FilmData {
   /** Sum of the weights of all samples in the sample table. */
   float samples_weight_total;
   int _pad2;
-  FilmSample samples[FILM_PRECOMP_SAMPLE_MAX];
+  struct FilmSample samples[FILM_PRECOMP_SAMPLE_MAX];
 };
-BLI_STATIC_ASSERT_ALIGN(FilmData, 16)
 
 static inline float film_filter_weight(float filter_radius, float sample_distance_sqr)
 {

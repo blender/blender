@@ -52,7 +52,7 @@ static inline int2 shadow_cascade_grid_offset(int2 base_offset, int level_relati
 /**
  * Small descriptor used for the tile update phase. Updated by CPU & uploaded to GPU each redraw.
  */
-struct ShadowTileMapData {
+struct [[host_shared]] ShadowTileMapData {
   /** Cached, used for rendering. */
   float4x4 viewmat;
   /** Precomputed matrix, not used for rendering but for tagging. */
@@ -64,13 +64,13 @@ struct ShadowTileMapData {
   /** Shift between previous and current grid_offset. Allows update tagging. */
   int2 grid_shift;
   /** True for punctual lights. */
-  eShadowProjectionType projection_type;
+  enum eShadowProjectionType projection_type;
   /** Multiple of SHADOW_TILEDATA_PER_TILEMAP. Offset inside the tile buffer. */
   int tiles_index;
   /** Index of persistent data in the persistent data buffer. */
   int clip_data_index;
   /** Light type this tilemap is from. */
-  eLightType light_type;
+  enum eLightType light_type;
   /** Entire tilemap (all tiles) needs to be tagged as dirty. */
   bool32_t is_dirty;
   /** Effective minimum resolution after update throttle. */
@@ -87,13 +87,12 @@ struct ShadowTileMapData {
   uint2 shadow_set_membership;
   uint2 _pad3;
 };
-BLI_STATIC_ASSERT_ALIGN(ShadowTileMapData, 16)
 
 /**
  * Lightweight version of ShadowTileMapData that only contains data used for rendering the
  * shadow.
  */
-struct ShadowRenderView {
+struct [[host_shared]] ShadowRenderView {
   /**
    * Is either:
    * - positive radial distance for point lights.
@@ -116,13 +115,12 @@ struct ShadowRenderView {
   uint2 shadow_set_membership;
   uint2 _pad0;
 };
-BLI_STATIC_ASSERT_ALIGN(ShadowRenderView, 16)
 
 /**
  * Per tilemap data persistent on GPU.
  * Kept separately for easier clearing on GPU.
  */
-struct ShadowTileMapClip {
+struct [[host_shared]] ShadowTileMapClip {
   /** Clip distances that were used to render the pages. */
   float clip_near_stored;
   float clip_far_stored;
@@ -131,15 +129,14 @@ struct ShadowTileMapClip {
   int clip_near;
   int clip_far;
   /* Transform the shadow is rendered with. Used to detect updates on GPU. */
-  Transform object_to_world;
+  struct Transform object_to_world;
   /* Integer offset of the center of the 16x16 tiles from the origin of the tile space. */
   int2 grid_offset;
   int _pad0;
   int _pad1;
 };
-BLI_STATIC_ASSERT_ALIGN(ShadowTileMapClip, 16)
 
-struct ShadowPagesInfoData {
+struct [[host_shared]] ShadowPagesInfoData {
   /** Number of free pages in the free page buffer. */
   int page_free_count;
   /** Number of page allocations needed for this cycle. */
@@ -155,9 +152,8 @@ struct ShadowPagesInfoData {
   int _pad1;
   int _pad2;
 };
-BLI_STATIC_ASSERT_ALIGN(ShadowPagesInfoData, 16)
 
-struct ShadowStatistics {
+struct [[host_shared]] ShadowStatistics {
   /** Statistics that are read back to CPU after a few frame (to avoid stall). */
   /**
    * WARNING: Excepting `view_needed_count` it is uncertain if these are accurate.
@@ -175,7 +171,6 @@ struct ShadowStatistics {
   int _pad1;
   int _pad2;
 };
-BLI_STATIC_ASSERT_ALIGN(ShadowStatistics, 16)
 
 /** Decoded tile data structure. */
 struct ShadowTileData {
