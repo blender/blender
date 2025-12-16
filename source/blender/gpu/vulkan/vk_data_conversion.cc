@@ -1135,6 +1135,14 @@ static void convert_buffer(void *dst_memory,
 /** \name API
  * \{ */
 
+bool needs_conversion(eGPUDataFormat host_format,
+                      TextureFormat host_texture_format,
+                      TextureFormat device_format)
+{
+  ConversionType conversion_type = host_to_device(host_format, host_texture_format, device_format);
+  return conversion_type != ConversionType::PASS_THROUGH;
+}
+
 void convert_host_to_device(void *dst_buffer,
                             const void *src_buffer,
                             size_t buffer_size,

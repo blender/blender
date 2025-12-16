@@ -43,6 +43,76 @@ static VkImageAspectFlags to_vk_image_aspect_single_bit(const VkImageAspectFlags
   return format;
 }
 
+static VkImageUsageFlags to_vk_image_usage(const eGPUTextureUsage usage,
+                                           const GPUTextureFormatFlag format_flag,
+                                           bool use_image_host_copy)
+{
+  const VKDevice &device = VKBackend::get().device;
+  const VKExtensions &extensions = device.extensions_get();
+
+  VkImageUsageFlags result = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                             VK_IMAGE_USAGE_SAMPLED_BIT;
+  if (usage & GPU_TEXTURE_USAGE_SHADER_READ) {
+    result |= VK_IMAGE_USAGE_STORAGE_BIT;
+  }
+  if (usage & GPU_TEXTURE_USAGE_SHADER_WRITE) {
+    result |= VK_IMAGE_USAGE_STORAGE_BIT;
+  }
+  if (usage & GPU_TEXTURE_USAGE_ATTACHMENT) {
+    if (format_flag & GPU_FORMAT_COMPRESSED) {
+      /* These formats aren't supported as an attachment. When using GPU_TEXTURE_USAGE_DEFAULT they
+       * are still being evaluated to be attachable. So we need to skip them. */
+    }
+    else {
+      if (format_flag & (GPU_FORMAT_DEPTH | GPU_FORMAT_STENCIL)) {
+        result |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+      }
+      else {
+        result |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        if (extensions.dynamic_rendering_local_read) {
+          result |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+        }
+      }
+    }
+  }
+  if (usage & GPU_TEXTURE_USAGE_HOST_READ) {
+    result |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+  }
+  if (use_image_host_copy) {
+    result |= VK_IMAGE_USAGE_HOST_TRANSFER_BIT_EXT;
+  }
+
+  /* Disable some usages based on the given format flag to support more devices. */
+  if (format_flag & GPU_FORMAT_SRGB) {
+    /* NVIDIA devices don't create SRGB textures when it storage bit is set. */
+    result &= ~VK_IMAGE_USAGE_STORAGE_BIT;
+  }
+  if (format_flag & (GPU_FORMAT_DEPTH | GPU_FORMAT_STENCIL)) {
+    /* NVIDIA devices don't create depth textures when it storage bit is set. */
+    result &= ~VK_IMAGE_USAGE_STORAGE_BIT;
+  }
+
+  return result;
+}
+
+static VkImageCreateFlags to_vk_image_create(const GPUTextureType texture_type,
+                                             const GPUTextureFormatFlag format_flag,
+                                             const eGPUTextureUsage usage)
+{
+  VkImageCreateFlags result = 0;
+
+  if (ELEM(texture_type, GPU_TEXTURE_CUBE, GPU_TEXTURE_CUBE_ARRAY)) {
+    result |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+  }
+
+  /* sRGB textures needs to be mutable as they can be used as non-sRGB frame-buffer attachments. */
+  if (usage & GPU_TEXTURE_USAGE_ATTACHMENT && format_flag & GPU_FORMAT_SRGB) {
+    result |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
+  }
+
+  return result;
+}
+
 VKTexture::~VKTexture()
 {
   if (vk_image_ != VK_NULL_HANDLE && allocation_ != VK_NULL_HANDLE) {
@@ -98,6 +168,8 @@ void VKTexture::copy_to(VKTexture &dst_texture, VkImageAspectFlags vk_image_aspe
 
   VKContext &context = *VKContext::get();
   context.render_graph().add_node(copy_image);
+
+  dst_texture.has_data_ = true;
 }
 
 void VKTexture::copy_to(Texture *tex)
@@ -143,6 +215,8 @@ void VKTexture::clear(eGPUDataFormat format, const void *data)
   VKContext &context = *VKContext::get();
 
   context.render_graph().add_node(clear_color_image);
+
+  has_data_ = true;
 }
 
 void VKTexture::clear_depth_stencil(const GPUFrameBufferBits buffers,
@@ -177,6 +251,8 @@ void VKTexture::clear_depth_stencil(const GPUFrameBufferBits buffers,
 
   VKContext &context = *VKContext::get();
   context.render_graph().add_node(clear_depth_stencil_image);
+
+  has_data_ = true;
 }
 
 void VKTexture::swizzle_set(const char swizzle_mask[4])
@@ -397,6 +473,59 @@ void VKTexture::update_sub(int mip,
     sample_len = device_memory_size / to_bytesize(device_format_);
   }
 
+  VKDevice &device = VKBackend::get().device;
+  const bool needs_data_conversion = needs_conversion(format, format_, device_format_);
+  const bool use_host_image_copy = !has_data_ && data != nullptr && allow_host_image_copy_;
+  if (use_host_image_copy) {
+    Vector<uint8_t> device_compatible_data;
+
+    /* Do conversion on CPU side. Allocating a staging buffer for these cases is less effective as
+     * it has overhead of the render graph, pipeline barriers and layout transitions. */
+    if (needs_data_conversion) {
+      device_compatible_data.resize(device_memory_size);
+      convert_host_to_device(
+          device_compatible_data.data(), data, sample_len, format, format_, device_format_);
+    }
+
+    VkImageAspectFlags vk_image_aspects = to_vk_image_aspect_single_bit(
+        to_vk_image_aspect_flag_bits(device_format_), false);
+    VkHostImageLayoutTransitionInfoEXT image_layout_transition = {
+        VK_STRUCTURE_TYPE_HOST_IMAGE_LAYOUT_TRANSITION_INFO_EXT,
+        nullptr,
+        vk_image_handle(),
+        VK_IMAGE_LAYOUT_UNDEFINED,
+        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+        {vk_image_aspects, 0, VK_REMAINING_MIP_LEVELS, 0, VK_REMAINING_ARRAY_LAYERS},
+    };
+    device.functions.vkTransitionImageLayout(device.vk_handle(), 1, &image_layout_transition);
+    device.resources.update_image_layout(vk_image_handle(),
+                                         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    /* TODO: Add support for VK_HOST_IMAGE_COPY_MEMCPY_EXT flag. It would theoretically allow
+     * faster uploading, but requires sub resource to match our CPU layout. */
+    VkMemoryToImageCopyEXT vk_memory_to_image_copy = {
+        VK_STRUCTURE_TYPE_MEMORY_TO_IMAGE_COPY_EXT,
+        nullptr,
+        device_compatible_data.is_empty() ? data : device_compatible_data.data(),
+        unpack_row_length,
+        0,
+        {vk_image_aspects, uint32_t(mip), uint32_t(start_layer), uint32_t(layers)},
+        {offset.x, offset.y, offset.z},
+        {uint32_t(extent.x), uint32_t(extent.y), uint32_t(extent.z)}};
+
+    VkCopyMemoryToImageInfoEXT vk_copy_memory_to_image = {
+        VK_STRUCTURE_TYPE_COPY_MEMORY_TO_IMAGE_INFO_EXT,
+        nullptr,
+        VkHostImageCopyFlagsEXT(0),
+        vk_image_handle(),
+        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+        1,
+        &vk_memory_to_image_copy};
+    device.functions.vkCopyMemoryToImage(device.vk_handle(), &vk_copy_memory_to_image);
+
+    has_data_ = true;
+    return;
+  }
+
   VKBuffer staging_buffer;
   VkBuffer vk_buffer = VK_NULL_HANDLE;
   if (data) {
@@ -454,6 +583,7 @@ void VKTexture::update_sub(int mip,
   node_data.region.imageSubresource.layerCount = layers;
 
   context.render_graph().add_node(copy_buffer_to_image);
+  has_data_ = true;
 }
 
 void VKTexture::update_sub(int mip,
@@ -523,6 +653,38 @@ bool VKTexture::init_internal()
     device_format_ = TextureFormat::SFLOAT_32_32_32_32;
   }
 
+  /* Identify if we can use VK_EXT_host_image_copy */
+  const VKDevice &device = VKBackend::get().device;
+  const VKExtensions &extensions = device.extensions_get();
+
+  if (extensions.host_image_copy) {
+    VkFormat vk_format = to_vk_format(device_format_);
+    VkFormatProperties3 vk_format_properties3 = {VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_3};
+    VkFormatProperties2 vk_format_properties2 = {VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_2,
+                                                 &vk_format_properties3};
+    vkGetPhysicalDeviceFormatProperties2(
+        device.physical_device_get(), vk_format, &vk_format_properties2);
+    if (bool(vk_format_properties3.optimalTilingFeatures &
+             VK_FORMAT_FEATURE_2_HOST_IMAGE_TRANSFER_BIT_EXT))
+    {
+      VkImageType vk_image_type = to_vk_image_type(type_);
+      VkImageUsageFlags vk_image_usage_flags = to_vk_image_usage(
+          gpu_image_usage_flags_, format_flag_, true);
+      VkImageCreateFlags vk_image_create_flags = to_vk_image_create(
+          type_, format_flag_, usage_get());
+
+      VkImageFormatProperties image_format = {};
+      VkResult result = vkGetPhysicalDeviceImageFormatProperties(device.physical_device_get(),
+                                                                 vk_format,
+                                                                 vk_image_type,
+                                                                 VK_IMAGE_TILING_OPTIMAL,
+                                                                 vk_image_usage_flags,
+                                                                 vk_image_create_flags,
+                                                                 &image_format);
+      allow_host_image_copy_ = result == VK_SUCCESS;
+    }
+  }
+
   if (!allocate()) {
     return false;
   }
@@ -536,6 +698,8 @@ bool VKTexture::init_internal(VertBuf *vbo)
   BLI_assert(source_buffer_ == nullptr);
   device_format_ = format_;
   source_buffer_ = unwrap(vbo);
+  has_data_ = true;
+  allow_host_image_copy_ = false;
   return true;
 }
 
@@ -554,6 +718,8 @@ bool VKTexture::init_internal(gpu::Texture *src,
   mip_max_ = mip_offset;
   layer_offset_ = layer_offset;
   use_stencil_ = use_stencil;
+  has_data_ = true;
+  allow_host_image_copy_ = false;
 
   return true;
 }
@@ -570,72 +736,6 @@ void VKTexture::init_swapchain(VkImage vk_image, TextureFormat format)
 bool VKTexture::is_texture_view() const
 {
   return source_texture_ != nullptr;
-}
-
-static VkImageUsageFlags to_vk_image_usage(const eGPUTextureUsage usage,
-                                           const GPUTextureFormatFlag format_flag)
-{
-  const VKDevice &device = VKBackend::get().device;
-  const bool supports_local_read = device.extensions_get().dynamic_rendering_local_read;
-
-  VkImageUsageFlags result = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-                             VK_IMAGE_USAGE_SAMPLED_BIT;
-  if (usage & GPU_TEXTURE_USAGE_SHADER_READ) {
-    result |= VK_IMAGE_USAGE_STORAGE_BIT;
-  }
-  if (usage & GPU_TEXTURE_USAGE_SHADER_WRITE) {
-    result |= VK_IMAGE_USAGE_STORAGE_BIT;
-  }
-  if (usage & GPU_TEXTURE_USAGE_ATTACHMENT) {
-    if (format_flag & GPU_FORMAT_COMPRESSED) {
-      /* These formats aren't supported as an attachment. When using GPU_TEXTURE_USAGE_DEFAULT they
-       * are still being evaluated to be attachable. So we need to skip them. */
-    }
-    else {
-      if (format_flag & (GPU_FORMAT_DEPTH | GPU_FORMAT_STENCIL)) {
-        result |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-      }
-      else {
-        result |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-        if (supports_local_read) {
-          result |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
-        }
-      }
-    }
-  }
-  if (usage & GPU_TEXTURE_USAGE_HOST_READ) {
-    result |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-  }
-
-  /* Disable some usages based on the given format flag to support more devices. */
-  if (format_flag & GPU_FORMAT_SRGB) {
-    /* NVIDIA devices don't create SRGB textures when it storage bit is set. */
-    result &= ~VK_IMAGE_USAGE_STORAGE_BIT;
-  }
-  if (format_flag & (GPU_FORMAT_DEPTH | GPU_FORMAT_STENCIL)) {
-    /* NVIDIA devices don't create depth textures when it storage bit is set. */
-    result &= ~VK_IMAGE_USAGE_STORAGE_BIT;
-  }
-
-  return result;
-}
-
-static VkImageCreateFlags to_vk_image_create(const GPUTextureType texture_type,
-                                             const GPUTextureFormatFlag format_flag,
-                                             const eGPUTextureUsage usage)
-{
-  VkImageCreateFlags result = 0;
-
-  if (ELEM(texture_type, GPU_TEXTURE_CUBE, GPU_TEXTURE_CUBE_ARRAY)) {
-    result |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
-  }
-
-  /* sRGB textures needs to be mutable as they can be used as non-sRGB frame-buffer attachments. */
-  if (usage & GPU_TEXTURE_USAGE_ATTACHMENT && format_flag & GPU_FORMAT_SRGB) {
-    result |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
-  }
-
-  return result;
 }
 
 static float memory_priority(const eGPUTextureUsage texture_usage)
@@ -679,7 +779,8 @@ bool VKTexture::allocate()
    */
   image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
   image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-  image_info.usage = to_vk_image_usage(gpu_image_usage_flags_, format_flag_);
+  image_info.usage = to_vk_image_usage(
+      gpu_image_usage_flags_, format_flag_, allow_host_image_copy_);
   image_info.samples = VK_SAMPLE_COUNT_1_BIT;
 
   VkResult result;

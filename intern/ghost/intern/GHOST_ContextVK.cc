@@ -710,6 +710,13 @@ struct GHOST_InstanceVK {
       feature_struct_ptr.push_back(&vertex_input_dynamic_state);
     }
 
+    /* VK_EXT_host_image_copy */
+    VkPhysicalDeviceHostImageCopyFeaturesEXT host_image_copy = {
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_IMAGE_COPY_FEATURES_EXT, nullptr, VK_TRUE};
+    if (device.extensions.is_enabled(VK_EXT_HOST_IMAGE_COPY_EXTENSION_NAME)) {
+      feature_struct_ptr.push_back(&host_image_copy);
+    }
+
     /* Link all registered feature structs. */
     for (int i = 1; i < feature_struct_ptr.size(); i++) {
       ((VkBaseInStructure *)(feature_struct_ptr[i - 1]))->pNext =
@@ -1656,6 +1663,9 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
     optional_device_extensions.append(VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
 #endif
     optional_device_extensions.append(VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+    optional_device_extensions.append(VK_KHR_COPY_COMMANDS_2_EXTENSION_NAME);
+    optional_device_extensions.append(VK_KHR_FORMAT_FEATURE_FLAGS_2_EXTENSION_NAME);
+    optional_device_extensions.append(VK_EXT_HOST_IMAGE_COPY_EXTENSION_NAME);
 
     if (!instance_vk.select_physical_device(preferred_device_, required_device_extensions)) {
       return GHOST_kFailure;
