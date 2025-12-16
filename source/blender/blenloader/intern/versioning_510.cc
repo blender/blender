@@ -579,6 +579,16 @@ void blo_do_versions_510(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 16)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->toolsettings) {
+        scene->toolsettings->anim_mirror_object = nullptr;
+        scene->toolsettings->anim_relative_object = nullptr;
+        scene->toolsettings->anim_mirror_bone[0] = '\0';
+      }
+    }
+  }
+
   /* This has no version check and always runs for all versions because there is forward
    * compatibility code at write time that reallocates the storage, so we need to free it
    * regardless of the version. */
