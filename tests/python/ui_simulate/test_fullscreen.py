@@ -36,6 +36,7 @@ def _call_by_name(e, text: str):
 def wm_toggle_fullscreen():
     e, t = _test_vars(window := _test_window())
 
+    # Pre-condition so tests make sense.
     t.assertNotEqual(len(window.screen.areas), 1, "Expected a window with more than one area")
 
     yield from _call_by_name(e, "Toggle Maximize Area")
@@ -49,11 +50,13 @@ def wm_toggle_fullscreen():
 
 # Checks that opening a temporary file browser exits correctly, as well as exiting a temporary file
 # browser on top of a maximized area.
+# See: 0a28bb1422
 def wm_toggle_stacked_fullscreen_file_browser():
     import bpy
 
     e, t = _test_vars(window := _test_window())
 
+    # Pre-condition so tests make sense.
     t.assertNotEqual(len(window.screen.areas), 1, "Expected a window with more than one area")
 
     # Ensure temporary file browsers will be opened in a maximized screen.
@@ -100,11 +103,13 @@ def wm_toggle_stacked_fullscreen_file_browser():
 
 
 # Checks that stacking a temporary file browser on top of a temporary image editor exits correctly.
+# See: ef7fd50f8a, e61588c5a5 (second glitch mentioned there)
 def wm_toggle_stacked_fullscreens():
     import bpy
 
     e, t = _test_vars(window := _test_window())
 
+    # Pre-condition so tests make sense.
     t.assertNotEqual(len(window.screen.areas), 1, "Expected a window with more than one area")
 
     # Ensure temporary file browsers will be opened in a maximized screen.
@@ -136,3 +141,52 @@ def wm_toggle_stacked_fullscreens():
     yield e.esc()
     t.assertNotEqual(len(window.screen.areas), 1)
     t.assertEqual(window.screen.areas[0], initial_area)
+
+    # Similar test now but other way around: Open a temporary image editor from a temporary file
+    # browser. See e61588c5a5 (second glitch mentioned there).
+
+    t.assertNotEqual(window.screen.areas[0].type, 'IMAGE_EDITOR')
+
+    yield e.ctrl.o()
+    t.assertEqual(len(window.screen.areas), 1)
+    t.assertEqual(window.screen.areas[0].type, 'FILE_BROWSER')
+
+    yield e.f11()
+    t.assertEqual(len(window.screen.areas), 1)
+    t.assertEqual(window.screen.areas[0].type, 'IMAGE_EDITOR')
+
+    # Cancel temporary image editor, back to temporary file browser.
+    yield e.esc()
+    t.assertEqual(len(window.screen.areas), 1)
+    t.assertEqual(window.screen.areas[0].type, 'FILE_BROWSER')
+
+    # Cancel temporary file browser too, back to normal screen.
+    yield e.esc()
+    t.assertNotEqual(len(window.screen.areas), 1)
+    t.assertEqual(window.screen.areas[0], initial_area)
+
+
+# See: e61588c5a5 (first glitch mentioned there)
+def wm_toggle_temporary_fullscreen_stacked_on_same_type():
+    import bpy
+
+    e, t = _test_vars(window := _test_window())
+
+    # Pre-condition so tests make sense.
+    t.assertNotEqual(len(window.screen.areas), 1, "Expected a window with more than one area")
+
+    # Ensure temporary file browsers will be opened in a maximized screen.
+    bpy.context.preferences.view.filebrowser_display_type = 'SCREEN'
+    bpy.context.preferences.view.render_display_type = 'SCREEN'
+
+    window.screen.areas[0].type = 'FILE_BROWSER'
+    t.assertNotEqual(len(window.screen.areas), 1)
+
+    yield e.ctrl.o()
+    t.assertEqual(len(window.screen.areas), 1)
+    t.assertEqual(window.screen.areas[0].type, 'FILE_BROWSER')
+
+    # Cancel temporary file browser, check if we're still in a (now normal) file browser.
+    yield e.esc()
+    t.assertNotEqual(len(window.screen.areas), 1)
+    t.assertEqual(window.screen.areas[0].type, 'FILE_BROWSER')
