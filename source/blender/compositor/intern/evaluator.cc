@@ -30,7 +30,7 @@ Evaluator::Evaluator(Context &context) : context_(context) {}
 
 void Evaluator::evaluate()
 {
-  context_.reset();
+  context_.cache_manager().reset();
 
   BLI_SCOPED_DEFER([&]() {
     if (context_.profiler()) {

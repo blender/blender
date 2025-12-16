@@ -41,15 +41,17 @@ ENUM_OPERATORS(OutputTypes)
  * A Context is an abstract class that is implemented by the caller of the evaluator to provide the
  * necessary data and functionalities for the correct operation of the evaluator. This includes
  * providing input data like render passes and the active scene, as well as callbacks to write the
- * outputs of the compositor. Finally, the class have an instance of a static resource manager for
+ * outputs of the compositor. Finally, the class have a reference to a static resource manager for
  * acquiring cached resources efficiently. */
 class Context {
  private:
   /* A static cache manager that can be used to acquire cached resources for the compositor
    * efficiently. */
-  StaticCacheManager cache_manager_;
+  StaticCacheManager &cache_manager_;
 
  public:
+  Context(StaticCacheManager &cache_manager);
+
   /* Get the compositing scene. */
   virtual const Scene &get_scene() const = 0;
 
@@ -137,10 +139,6 @@ class Context {
   /* Returns true if the compositor evaluation is canceled and that the evaluator should stop
    * executing as soon as possible. */
   virtual bool is_canceled() const;
-
-  /* Resets the context's internal structures like the cache manager. This should be called before
-   * every evaluation. */
-  void reset();
 
   /* Get the normalized render percentage of the active scene. */
   float get_render_percentage() const;

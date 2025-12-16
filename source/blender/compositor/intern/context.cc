@@ -18,6 +18,8 @@
 
 namespace blender::compositor {
 
+Context::Context(StaticCacheManager &cache_manager) : cache_manager_(cache_manager) {};
+
 Bounds<int2> Context::get_input_region() const
 {
   return Bounds<int2>(int2(0), this->get_compositing_domain().display_size);
@@ -75,11 +77,6 @@ bool Context::is_canceled() const
     return false;
   }
   return this->get_node_tree().runtime->test_break(get_node_tree().runtime->tbh);
-}
-
-void Context::reset()
-{
-  cache_manager_.reset();
 }
 
 float Context::get_render_percentage() const

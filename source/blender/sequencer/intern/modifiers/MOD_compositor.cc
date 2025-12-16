@@ -51,12 +51,13 @@ class CompositorContext : public compositor::Context {
   const Strip *strip_;
 
  public:
-  CompositorContext(const RenderData &render_data,
+  CompositorContext(compositor::StaticCacheManager &cache_manager,
+                    const RenderData &render_data,
                     const SequencerCompositorModifierData *modifier_data,
                     ImBuf *image_buffer,
                     ImBuf *mask_buffer,
                     const Strip &strip)
-      : compositor::Context(),
+      : compositor::Context(cache_manager),
         render_data_(render_data),
         modifier_data_(modifier_data),
         image_buffer_(image_buffer),
@@ -228,8 +229,15 @@ static void compositor_modifier_apply(ModifierApplyContext &context,
   const bool was_float_linear = ensure_linear_float_buffer(context.image);
   const bool was_byte = context.image->float_buffer.data == nullptr;
 
-  CompositorContext com_context(
-      context.render_data, modifier_data, context.image, linear_mask, context.strip);
+  /* TODO: Should be persistent across evaluations. */
+  compositor::StaticCacheManager cache_manager;
+
+  CompositorContext com_context(cache_manager,
+                                context.render_data,
+                                modifier_data,
+                                context.image,
+                                linear_mask,
+                                context.strip);
   compositor::Evaluator evaluator(com_context);
   evaluator.evaluate();
 
