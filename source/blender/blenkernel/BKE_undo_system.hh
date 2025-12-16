@@ -28,7 +28,7 @@ struct Scene;
 struct Text;
 
 struct UndoRefID {
-  struct ID *ptr;
+  ID *ptr;
   char name[MAX_ID_NAME];
   char library_filepath_abs[FILE_MAX];
 };
@@ -117,7 +117,7 @@ struct UndoType {
    * This is needed when tools operate on data which isn't the primary mode
    * (eg, paint-curve in sculpt mode).
    */
-  bool (*poll)(struct bContext *C);
+  bool (*poll)(bContext *C);
 
   /**
    * None of these callbacks manage list add/removal.
