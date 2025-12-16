@@ -112,7 +112,7 @@ struct UndoType {
   const char *name;
 
   /**
-   * When NULL, we don't consider this undo type for context checks.
+   * When undefined, we don't consider this undo type for context checks.
    * Operators must explicitly set the undo type and handle adding the undo step.
    * This is needed when tools operate on data which isn't the primary mode
    * (eg, paint-curve in sculpt mode).
@@ -154,7 +154,7 @@ struct UndoType {
 enum eUndoTypeFlags {
   /**
    * This undo type `encode` callback needs a valid context, it will fail otherwise.
-   * \note Callback is still supposed to properly deal with a NULL context pointer.
+   * \note Callback is still supposed to properly deal with a null context pointer.
    */
   UNDOTYPE_FLAG_NEED_CONTEXT_FOR_ENCODE = 1 << 0,
 
@@ -215,7 +215,7 @@ UndoStep *BKE_undosys_step_push_init_with_type(UndoStack *ustack,
 UndoStep *BKE_undosys_step_push_init(UndoStack *ustack, bContext *C, const char *name);
 
 /**
- * \param C: Can be NULL from some callers if their encoding function doesn't need it
+ * \param C: Can be nullptr from some callers if their encoding function doesn't need it
  */
 eUndoPushReturn BKE_undosys_step_push_with_type(UndoStack *ustack,
                                                 bContext *C,
@@ -230,7 +230,7 @@ UndoStep *BKE_undosys_step_find_by_type(UndoStack *ustack, const UndoType *ut);
 UndoStep *BKE_undosys_step_find_by_name(UndoStack *ustack, const char *name);
 
 /**
- * Return direction of the undo/redo from `us_reference` (or `ustack->step_active` if NULL), and
+ * Return direction of the undo/redo from `us_reference` (or `ustack->step_active` if nullptr), and
  * `us_target`.
  *
  * \note If `us_reference` and `us_target` are the same, we consider this is an undo.
@@ -250,9 +250,9 @@ eUndoStepDir BKE_undosys_step_calc_direction(const UndoStack *ustack,
  * \note In case `use_skip` is true, the final target will always be **beyond** the given one
  * (if the given one has to be skipped).
  *
- * \param us_reference: If NULL, will be set to current active step in the undo stack. Otherwise,
- * it is assumed to match the current state, and will be used as basis for the undo/redo process
- * (i.e. all steps in-between `us_reference` and `us_target` will be processed).
+ * \param us_reference: If nullptr, will be set to current active step in the undo stack.
+ * Otherwise, it is assumed to match the current state, and will be used as basis for the undo/redo
+ * process (i.e. all steps in-between `us_reference` and `us_target` will be processed).
  */
 bool BKE_undosys_step_load_data_ex(
     UndoStack *ustack, bContext *C, UndoStep *us_target, UndoStep *us_reference, bool use_skip);
