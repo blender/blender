@@ -581,6 +581,12 @@ static bool node_group_separate_selected(
       [](const bNode *node) { return node->is_group_input() || node->is_group_output(); });
 
   for (bNode *node : nodes_to_move) {
+    std::string old_basepath;
+    if (ngroup.adt) {
+      PointerRNA ptr = RNA_pointer_create_discrete(&ntree.id, &RNA_Node, node);
+      old_basepath = *RNA_path_from_ID_to_struct(&ptr);
+    }
+
     bNode *newnode;
     if (make_copy) {
       newnode = bke::node_copy_with_mapping(
@@ -602,9 +608,8 @@ static bool node_group_separate_selected(
      * if the old node-tree has animation data which potentially covers this node. */
     if (ngroup.adt) {
       PointerRNA ptr = RNA_pointer_create_discrete(&ngroup.id, &RNA_Node, newnode);
-      if (const std::optional<std::string> path = RNA_path_from_ID_to_struct(&ptr)) {
-        BLI_addtail(&anim_basepaths, animation_basepath_change_new(*path, *path));
-      }
+      const std::string new_basepath = *RNA_path_from_ID_to_struct(&ptr);
+      BLI_addtail(&anim_basepaths, animation_basepath_change_new(old_basepath, new_basepath));
     }
 
     /* ensure valid parent pointers, detach if parent stays inside the group */
@@ -1145,25 +1150,16 @@ static void node_group_make_insert_selected(const bContext &C,
     }
   }
 
-  /* Move animation data from the parent tree to the group. */
-  if (ntree.adt) {
-    ListBase anim_basepaths = {nullptr, nullptr};
-    for (bNode *node : nodes_to_move) {
-      PointerRNA ptr = RNA_pointer_create_discrete(&ntree.id, &RNA_Node, node);
-      if (const std::optional<std::string> path = RNA_path_from_ID_to_struct(&ptr)) {
-        BLI_addtail(&anim_basepaths, animation_basepath_change_new(*path, *path));
-      }
-    }
-    BKE_animdata_transfer_by_basepath(bmain, &ntree.id, &group.id, &anim_basepaths);
-
-    LISTBASE_FOREACH_MUTABLE (AnimationBasePathChange *, basepath_change, &anim_basepaths) {
-      animation_basepath_change_free(basepath_change);
-    }
-  }
-
   /* Move nodes into the group. */
+  ListBase anim_basepaths = {nullptr, nullptr};
   for (bNode *node : nodes_to_move) {
     const int32_t old_identifier = node->identifier;
+
+    std::string old_basepath;
+    if (ntree.adt) {
+      PointerRNA ptr = RNA_pointer_create_discrete(&ntree.id, &RNA_Node, node);
+      old_basepath = *RNA_path_from_ID_to_struct(&ptr);
+    }
 
     BLI_remlink(&ntree.nodes, node);
     BLI_addtail(&group.nodes, node);
@@ -1171,6 +1167,12 @@ static void node_group_make_insert_selected(const bContext &C,
     bke::node_unique_name(group, *node);
 
     node_identifier_map.add(old_identifier, node->identifier);
+
+    if (ntree.adt) {
+      PointerRNA ptr = RNA_pointer_create_discrete(&ntree.id, &RNA_Node, node);
+      const std::string new_basepath = *RNA_path_from_ID_to_struct(&ptr);
+      BLI_addtail(&anim_basepaths, animation_basepath_change_new(old_basepath, new_basepath));
+    }
 
     BKE_ntree_update_tag_node_removed(&ntree);
     BKE_ntree_update_tag_node_new(&group, node);
@@ -1185,6 +1187,13 @@ static void node_group_make_insert_selected(const bContext &C,
   for (bNode *node : nodes_to_move) {
     node->location[0] -= center[0];
     node->location[1] -= center[1];
+  }
+
+  if (ntree.adt) {
+    BKE_animdata_transfer_by_basepath(bmain, &ntree.id, &group.id, &anim_basepaths);
+    LISTBASE_FOREACH_MUTABLE (AnimationBasePathChange *, basepath_change, &anim_basepaths) {
+      animation_basepath_change_free(basepath_change);
+    }
   }
 
   for (bNodeLink *link : internal_links_to_move) {
