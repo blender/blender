@@ -4644,6 +4644,13 @@ static bool ui_do_but_extra_operator_icon(bContext *C,
     /* Still swallow events on the icon. */
     return true;
   }
+  if (event->type == event->prev_press_type) {
+    /* Release should be close to the press. #151371. */
+    const float icon_size = 0.8f * BLI_rctf_size_y(&but->rect);
+    if (abs(event->prev_press_xy[0] - event->xy[0]) > icon_size) {
+      return true;
+    }
+  }
 
   ED_region_tag_redraw(data->region);
   button_tooltip_timer_reset(C, but);
