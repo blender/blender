@@ -1035,7 +1035,7 @@ void BlenderSync::sync_hair(BObjectInfo &b_ob_info, Hair *hair)
 
       if (b_mesh) {
         sync_particle_hair(&new_hair, b_mesh, b_ob_info, false);
-        free_object_to_mesh(b_ob_info, b_mesh);
+        free_object_to_mesh(b_ob_info, *b_mesh.ptr.data_as<::Mesh>());
       }
     }
   }
@@ -1082,7 +1082,7 @@ void BlenderSync::sync_hair_motion(BObjectInfo &b_ob_info, Hair *hair, const int
     BL::Mesh b_mesh = object_to_mesh(b_ob_info);
     if (b_mesh) {
       sync_particle_hair(hair, b_mesh, b_ob_info, true, motion_step);
-      free_object_to_mesh(b_ob_info, b_mesh);
+      free_object_to_mesh(b_ob_info, *b_mesh.ptr.data_as<::Mesh>());
       return;
     }
   }

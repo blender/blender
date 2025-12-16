@@ -24,6 +24,8 @@
 #include "util/log.h"
 #include "util/math.h"
 
+#include "DNA_modifier_types.h"
+
 #include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
@@ -793,10 +795,11 @@ static void create_subd_mesh(Scene *scene,
                              const float dicing_rate,
                              const int max_subdivisions)
 {
-  BL::Object b_ob = b_ob_info.real_object;
+  const ::Object *b_ob = b_ob_info.real_object.ptr.data_as<::Object>();
 
-  BL::SubsurfModifier subsurf_mod(b_ob.modifiers[b_ob.modifiers.length() - 1]);
-  const bool use_creases = subsurf_mod.use_creases();
+  const auto &subsurf_mod = *reinterpret_cast<const ::SubsurfModifierData *>(b_ob->modifiers.last);
+
+  const bool use_creases = (subsurf_mod.flags & eSubsurfModifierFlag_UseCrease) != 0;
 
   create_mesh(scene, mesh, b_mesh, used_shaders, need_motion, motion_scale, true);
 
@@ -836,22 +839,22 @@ static void create_subd_mesh(Scene *scene,
 
   /* Set subd parameters. */
   Mesh::SubdivisionAdaptiveSpace space = Mesh::SUBDIVISION_ADAPTIVE_SPACE_PIXEL;
-  switch (subsurf_mod.adaptive_space()) {
-    case BL::SubsurfModifier::adaptive_space_OBJECT:
+  switch (subsurf_mod.adaptive_space) {
+    case SUBSURF_ADAPTIVE_SPACE_OBJECT:
       space = Mesh::SUBDIVISION_ADAPTIVE_SPACE_OBJECT;
       break;
-    case BL::SubsurfModifier::adaptive_space_PIXEL:
+    case SUBSURF_ADAPTIVE_SPACE_PIXEL:
       space = Mesh::SUBDIVISION_ADAPTIVE_SPACE_PIXEL;
       break;
   }
   const float subd_dicing_rate = (space == Mesh::SUBDIVISION_ADAPTIVE_SPACE_PIXEL) ?
-                                     max(0.1f, subsurf_mod.adaptive_pixel_size() * dicing_rate) :
-                                     subsurf_mod.adaptive_object_edge_length() * dicing_rate;
+                                     max(0.1f, subsurf_mod.adaptive_pixel_size * dicing_rate) :
+                                     subsurf_mod.adaptive_object_edge_length * dicing_rate;
 
   mesh->set_subd_adaptive_space(space);
   mesh->set_subd_dicing_rate(subd_dicing_rate);
   mesh->set_subd_max_level(max_subdivisions);
-  mesh->set_subd_objecttoworld(get_transform(b_ob.matrix_world()));
+  mesh->set_subd_objecttoworld(get_transform(b_ob->world_to_object()));
 }
 
 /* Sync */
@@ -867,7 +870,7 @@ void BlenderSync::sync_mesh(BObjectInfo &b_ob_info, Mesh *mesh)
 
   if (view_layer.use_surfaces) {
     object_subdivision_to_mesh(b_ob_info.real_object, new_mesh, preview, use_adaptive_subdivision);
-    BL::Mesh b_mesh = object_to_mesh(b_ob_info);
+    const ::Mesh *b_mesh = object_to_mesh(b_ob_info).ptr.data_as<::Mesh>();
 
     if (b_mesh) {
       /* Motion blur attribute is relative to seconds, we need it relative to frames. */
@@ -882,7 +885,7 @@ void BlenderSync::sync_mesh(BObjectInfo &b_ob_info, Mesh *mesh)
         create_subd_mesh(scene,
                          &new_mesh,
                          b_ob_info,
-                         *static_cast<const ::Mesh *>(b_mesh.ptr.data),
+                         *b_mesh,
                          new_mesh.get_used_shaders(),
                          need_motion,
                          motion_scale,
@@ -892,14 +895,14 @@ void BlenderSync::sync_mesh(BObjectInfo &b_ob_info, Mesh *mesh)
       else {
         create_mesh(scene,
                     &new_mesh,
-                    *static_cast<const ::Mesh *>(b_mesh.ptr.data),
+                    *b_mesh,
                     new_mesh.get_used_shaders(),
                     need_motion,
                     motion_scale,
                     false);
       }
 
-      free_object_to_mesh(b_ob_info, b_mesh);
+      free_object_to_mesh(b_ob_info, const_cast<::Mesh &>(*b_mesh));
     }
   }
 
@@ -940,21 +943,20 @@ void BlenderSync::sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, const int
 
   /* Skip objects without deforming modifiers. this is not totally reliable,
    * would need a more extensive check to see which objects are animated. */
-  BL::Mesh b_mesh_rna(PointerRNA_NULL);
+  const ::Mesh *b_mesh = nullptr;
   if (ccl::BKE_object_is_deform_modified(b_ob_info, b_scene, preview)) {
     /* get derived mesh */
-    b_mesh_rna = object_to_mesh(b_ob_info);
+    b_mesh = object_to_mesh(b_ob_info).ptr.data_as<::Mesh>();
   }
 
   const std::string ob_name = b_ob_info.real_object.name();
 
   /* TODO(sergey): Perform preliminary check for number of vertices. */
-  if (b_mesh_rna) {
-    const ::Mesh &b_mesh = *static_cast<const ::Mesh *>(b_mesh_rna.ptr.data);
-    const int b_verts_num = b_mesh.verts_num;
-    const blender::Span<blender::float3> positions = b_mesh.vert_positions();
+  if (b_mesh) {
+    const int b_verts_num = b_mesh->verts_num;
+    const blender::Span<blender::float3> positions = b_mesh->vert_positions();
     if (positions.is_empty()) {
-      free_object_to_mesh(b_ob_info, b_mesh_rna);
+      free_object_to_mesh(b_ob_info, *const_cast<::Mesh *>(b_mesh));
       return;
     }
 
@@ -988,7 +990,7 @@ void BlenderSync::sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, const int
       mP[i] = make_float3(positions[i][0], positions[i][1], positions[i][2]);
     }
     if (mN) {
-      const blender::Span<blender::float3> b_vert_normals = b_mesh.vert_normals();
+      const blender::Span<blender::float3> b_vert_normals = b_mesh->vert_normals();
       for (int i = 0; i < std::min<size_t>(b_verts_num, numverts); i++) {
         mN[i] = make_float3(b_vert_normals[i][0], b_vert_normals[i][1], b_vert_normals[i][2]);
       }
@@ -1037,7 +1039,7 @@ void BlenderSync::sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, const int
       }
     }
 
-    free_object_to_mesh(b_ob_info, b_mesh_rna);
+    free_object_to_mesh(b_ob_info, *const_cast<::Mesh *>(b_mesh));
     return;
   }
 
