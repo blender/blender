@@ -1111,22 +1111,15 @@ int ED_curve_updateAnimPaths(Main *bmain, Curve *cu)
 
   if (adt->action != nullptr) {
     blender::animrig::Action &action = adt->action->wrap();
-    const bool is_action_legacy = action.is_action_legacy();
 
     Vector<FCurve *> fcurves_to_process = blender::animrig::legacy::fcurves_for_assigned_action(
         adt);
 
     Vector<FCurve *> fcurves_to_remove = curve_rename_fcurves(cu, fcurves_to_process);
     for (FCurve *fcurve : fcurves_to_remove) {
-      if (is_action_legacy) {
-        action_groups_remove_channel(adt->action, fcurve);
-        BKE_fcurve_free(fcurve);
-      }
-      else {
-        const bool remove_ok = blender::animrig::action_fcurve_remove(action, *fcurve);
-        BLI_assert(remove_ok);
-        UNUSED_VARS_NDEBUG(remove_ok);
-      }
+      const bool remove_ok = blender::animrig::action_fcurve_remove(action, *fcurve);
+      BLI_assert(remove_ok);
+      UNUSED_VARS_NDEBUG(remove_ok);
     }
 
     BKE_action_groups_reconstruct(adt->action);

@@ -672,16 +672,6 @@ static wmOperatorStatus nlaedit_add_actionclip_exec(bContext *C, wmOperator *op)
     // printf("Add strip - actname = '%s'\n", actname);
     return OPERATOR_CANCELLED;
   }
-  if (act->idroot == 0 && blender::animrig::legacy::action_treat_as_legacy(*act)) {
-    /* hopefully in this case (i.e. library of userless actions),
-     * the user knows what they're doing... */
-    BKE_reportf(op->reports,
-                RPT_WARNING,
-                "Action '%s' does not specify what data-blocks it can be used on "
-                "(try setting the 'ID Root Type' setting from the data-blocks editor "
-                "for this action to avoid future problems)",
-                act->id.name + 2);
-  }
 
   /* add tracks to empty but selected animdata blocks so that strips can be added to those directly
    * without having to manually add tracks first

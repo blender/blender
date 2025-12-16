@@ -304,9 +304,7 @@ static short acf_generic_group_offset(bAnimContext *ac, bAnimListElem *ale)
         case ANIMTYPE_FCURVE:
         case ANIMTYPE_GROUP: {
           const bAction *action = reinterpret_cast<bAction *>(ale->fcurve_owner_id);
-          if (action->wrap().is_action_layered()) {
-            offset += short(0.35f * U.widget_unit);
-          }
+          offset += short(0.35f * U.widget_unit);
           break;
         }
 
@@ -5099,9 +5097,6 @@ static bool achannel_is_part_of_disconnected_slot(const bAnimListElem *ale)
 
       const animrig::Action &action =
           reinterpret_cast<const bAction *>(ale->fcurve_owner_id)->wrap();
-      if (action.is_action_legacy()) {
-        return false;
-      }
 
       const animrig::Slot *slot = action.slot_for_handle(ale->slot_handle);
       if (slot == nullptr) {

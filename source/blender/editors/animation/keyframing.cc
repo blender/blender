@@ -768,36 +768,18 @@ static wmOperatorStatus clear_anim_v3d_exec(bContext *C, wmOperator * /*op*/)
       FCurve *fcu, *fcn;
 
       Action &action = dna_action->wrap();
-      if (action.is_action_layered()) {
-        blender::Vector<FCurve *> fcurves_to_delete;
-        foreach_fcurve_in_action_slot(action, adt->slot_handle, [&](FCurve &fcurve) {
-          if (can_delete_fcurve(&fcurve, ob)) {
-            fcurves_to_delete.append(&fcurve);
-          }
-        });
-        for (FCurve *fcurve : fcurves_to_delete) {
-          action_fcurve_remove(action, *fcurve);
-          DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
-          changed = true;
+      blender::Vector<FCurve *> fcurves_to_delete;
+      foreach_fcurve_in_action_slot(action, adt->slot_handle, [&](FCurve &fcurve) {
+        if (can_delete_fcurve(&fcurve, ob)) {
+          fcurves_to_delete.append(&fcurve);
         }
-        DEG_id_tag_update(&ob->adt->action->id, ID_RECALC_ANIMATION_NO_FLUSH);
-      }
-      else {
-        for (fcu = static_cast<FCurve *>(dna_action->curves.first); fcu; fcu = fcn) {
-          fcn = fcu->next;
-          /* delete F-Curve completely */
-          if (can_delete_fcurve(fcu, ob)) {
-            blender::animrig::animdata_fcurve_delete(adt, fcu);
-            DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
-            changed = true;
-          }
-        }
-      }
-
-      /* Delete the action itself if it is empty. */
-      if (action.is_action_legacy() && blender::animrig::animdata_remove_empty_action(adt)) {
+      });
+      for (FCurve *fcurve : fcurves_to_delete) {
+        action_fcurve_remove(action, *fcurve);
+        DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
         changed = true;
       }
+      DEG_id_tag_update(&ob->adt->action->id, ID_RECALC_ANIMATION_NO_FLUSH);
     }
   }
   CTX_DATA_END;
@@ -1176,35 +1158,20 @@ static wmOperatorStatus delete_key_v3d_without_keying_set(bContext *C, wmOperato
       const float cfra_unmap = BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
 
       Action &action = act->wrap();
-      if (action.is_action_layered()) {
-        blender::Vector<FCurve *> modified_fcurves;
-        foreach_fcurve_in_action_slot(action, adt->slot_handle, [&](FCurve &fcurve) {
-          if (!can_delete_key(&fcurve, ob, op->reports)) {
-            return;
-          }
-          if (blender::animrig::fcurve_delete_keyframe_at_time(&fcurve, cfra_unmap)) {
-            modified_fcurves.append(&fcurve);
-          }
-        });
-
-        success += modified_fcurves.size();
-        for (FCurve *fcurve : modified_fcurves) {
-          if (BKE_fcurve_is_empty(fcurve)) {
-            action_fcurve_remove(action, *fcurve);
-          }
+      blender::Vector<FCurve *> modified_fcurves;
+      foreach_fcurve_in_action_slot(action, adt->slot_handle, [&](FCurve &fcurve) {
+        if (!can_delete_key(&fcurve, ob, op->reports)) {
+          return;
         }
-      }
-      else {
-        FCurve *fcn;
-        for (FCurve *fcu = static_cast<FCurve *>(act->curves.first); fcu; fcu = fcn) {
-          fcn = fcu->next;
-          if (!can_delete_key(fcu, ob, op->reports)) {
-            continue;
-          }
-          /* Delete keyframes on current frame
-           * WARNING: this can delete the next F-Curve, hence the "fcn" copying.
-           */
-          success += delete_keyframe_fcurve_legacy(adt, fcu, cfra_unmap);
+        if (blender::animrig::fcurve_delete_keyframe_at_time(&fcurve, cfra_unmap)) {
+          modified_fcurves.append(&fcurve);
+        }
+      });
+
+      success += modified_fcurves.size();
+      for (FCurve *fcurve : modified_fcurves) {
+        if (BKE_fcurve_is_empty(fcurve)) {
+          action_fcurve_remove(action, *fcurve);
         }
       }
 

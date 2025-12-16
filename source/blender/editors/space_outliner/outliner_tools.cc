@@ -3222,16 +3222,6 @@ static wmOperatorStatus outliner_action_set_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "No valid action to add");
     return OPERATOR_CANCELLED;
   }
-  if (act->idroot == 0 && blender::animrig::legacy::action_treat_as_legacy(*act)) {
-    /* Hopefully in this case (i.e. library of userless actions),
-     * the user knows what they're doing. */
-    BKE_reportf(op->reports,
-                RPT_WARNING,
-                "Action '%s' does not specify what data-blocks it can be used on "
-                "(try setting the 'ID Root Type' setting from the data-blocks editor "
-                "for this action to avoid future problems)",
-                act->id.name + 2);
-  }
 
   /* perform action if valid channel */
   if (datalevel == TSE_ANIM_DATA) {

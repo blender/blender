@@ -570,18 +570,6 @@ static void update_duplicate_action_constraint_settings(
           bezt->vec[2][1] *= -1;
         }
       }
-
-      if (action.is_action_legacy()) {
-        /* Make sure that a action group name for the new bone exists */
-        bActionGroup *agrp = BKE_action_group_find_name(act, dup_bone->name);
-        if (agrp == nullptr) {
-          agrp = action_groups_add_new(act, dup_bone->name);
-        }
-        BLI_assert(agrp != nullptr);
-        action_groups_add_channel(act, agrp, new_curve);
-        continue;
-      }
-
       BLI_assert_msg(cbag, "If there are F-Curves for this slot, there should be a channelbag");
       bActionGroup &agrp = cbag->channel_group_ensure(dup_bone->name);
       cbag->fcurve_append(*new_curve);

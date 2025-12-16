@@ -269,21 +269,12 @@ static void test_constraint(
       con->flag |= CONSTRAINT_DISABLE;
     }
     else {
-      if (animrig::legacy::action_treat_as_legacy(*data->act)) {
-        if (!ELEM(data->act->idroot, ID_OB, 0)) {
-          /* Only object-rooted actions can be used. */
-          data->act = nullptr;
-          con->flag |= CONSTRAINT_DISABLE;
-        }
-      }
-      else {
-        /* The slot was assigned, so assume that it is suitable to animate the
-         * owner (only suitable slots appear in the drop-down). */
-        animrig::Action &action = data->act->wrap();
-        animrig::Slot *slot = action.slot_for_handle(data->action_slot_handle);
-        if (!slot) {
-          con->flag |= CONSTRAINT_DISABLE;
-        }
+      /* The slot was assigned, so assume that it is suitable to animate the
+       * owner (only suitable slots appear in the drop-down). */
+      animrig::Action &action = data->act->wrap();
+      animrig::Slot *slot = action.slot_for_handle(data->action_slot_handle);
+      if (!slot) {
+        con->flag |= CONSTRAINT_DISABLE;
       }
     }
 

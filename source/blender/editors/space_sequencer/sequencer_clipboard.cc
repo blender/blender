@@ -202,21 +202,10 @@ static bool sequencer_write_copy_paste_file(Main *bmain_src,
                 ID_AC, scene_name, nullptr, {PartialWriteContext::IDAddOperations::SET_FAKE_USER}))
             ->wrap();
 
-    /* Assign the `dst_action` as either legacy or layered, depending on what
-     * the source action we're copying from is. */
-    if (animrig::legacy::action_treat_as_legacy(*scene_src->adt->action)) {
-      const bool success = animrig::assign_action(&action_dst, scene_dst->id);
-      if (!success) {
-        return false;
-      }
-    }
-    else {
-      /* If we're copying from a layered action, also ensure a connected slot. */
-      animrig::Slot *slot = animrig::assign_action_ensure_slot_for_keying(action_dst,
-                                                                          scene_dst->id);
-      if (slot == nullptr) {
-        return false;
-      }
+    /* If we're copying from a layered action, also ensure a connected slot. */
+    animrig::Slot *slot = animrig::assign_action_ensure_slot_for_keying(action_dst, scene_dst->id);
+    if (slot == nullptr) {
+      return false;
     }
 
     for (FCurve *fcurve : fcurves_dst) {
@@ -369,14 +358,11 @@ static bool sequencer_paste_animation(Main *bmain_dst, Scene *scene_dst, Scene *
 
   bAction *act_dst = animrig::id_action_ensure(bmain_dst, &scene_dst->id);
 
-  /* For layered actions ensure we have an attached slot. */
-  if (!animrig::legacy::action_treat_as_legacy(*act_dst)) {
-    const animrig::Slot *slot = animrig::assign_action_ensure_slot_for_keying(act_dst->wrap(),
-                                                                              scene_dst->id);
-    BLI_assert(slot != nullptr);
-    if (slot == nullptr) {
-      return false;
-    }
+  const animrig::Slot *slot = animrig::assign_action_ensure_slot_for_keying(act_dst->wrap(),
+                                                                            scene_dst->id);
+  BLI_assert(slot != nullptr);
+  if (slot == nullptr) {
+    return false;
   }
 
   for (FCurve *fcu : animrig::legacy::fcurves_for_assigned_action(scene_src->adt)) {

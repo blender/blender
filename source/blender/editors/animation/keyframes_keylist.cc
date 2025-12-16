@@ -1396,14 +1396,6 @@ void action_to_keylist(AnimData *adt,
 
   blender::animrig::Action &action = dna_action->wrap();
 
-  /* TODO: move this into fcurves_for_action_slot(). */
-  if (action.is_action_legacy()) {
-    LISTBASE_FOREACH (FCurve *, fcu, &action.curves) {
-      fcurve_to_keylist(adt, fcu, keylist, saction_flag, range, true);
-    }
-    return;
-  }
-
   /**
    * Assumption: the animation is bound to adt->slot_handle. This assumption will break when we
    * have things like reference strips, where the strip can reference another slot handle.

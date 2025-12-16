@@ -477,13 +477,8 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
       if ((mpt->pchan) && (avs->path_viewflag & MOTIONPATH_VIEW_KFACT) == 0) {
         Action &action = adt->action->wrap();
         bActionGroup *agrp = nullptr;
-        if (action.is_action_layered()) {
-          Channelbag *cbag = channelbag_for_action_slot(action, adt->slot_handle);
-          agrp = cbag ? cbag->channel_group_find(mpt->pchan->name) : nullptr;
-        }
-        else {
-          agrp = BKE_action_group_find_name(adt->action, mpt->pchan->name);
-        }
+        Channelbag *cbag = channelbag_for_action_slot(action, adt->slot_handle);
+        agrp = cbag ? cbag->channel_group_find(mpt->pchan->name) : nullptr;
 
         if (agrp) {
           fcurves = blender::listbase_to_vector<FCurve>(agrp->channels);
@@ -492,13 +487,8 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
       }
       else {
         Action &action = adt->action->wrap();
-        if (action.is_action_layered()) {
-          fcurves = blender::Vector<FCurve *>(
-              channelbag_for_action_slot(action, adt->slot_handle)->fcurves());
-        }
-        else {
-          fcurves = blender::listbase_to_vector<FCurve>(adt->action->curves);
-        }
+        fcurves = blender::Vector<FCurve *>(
+            channelbag_for_action_slot(action, adt->slot_handle)->fcurves());
         action_to_keylist(adt, adt->action, mpt->keylist, 0, {-FLT_MAX, FLT_MAX});
       }
     }

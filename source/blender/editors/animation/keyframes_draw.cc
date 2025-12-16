@@ -802,7 +802,6 @@ void ED_add_action_layered_channel(ChannelDrawList *channel_list,
                                    int saction_flag)
 {
   BLI_assert(action);
-  BLI_assert(action->wrap().is_action_layered());
 
   const bool locked = (!ID_IS_EDITABLE(action) || ID_IS_OVERRIDE_LIBRARY(action));
   saction_flag &= ~SACTION_SHOW_EXTREMES;
@@ -835,26 +834,6 @@ void ED_add_action_slot_channel(ChannelDrawList *channel_list,
   draw_elem->adt = ale->adt;
   draw_elem->act = &action;
   draw_elem->action_slot = &slot;
-  draw_elem->channel_locked = locked;
-}
-
-void ED_add_action_channel(ChannelDrawList *channel_list,
-                           bAnimListElem *ale,
-                           bAction *act,
-                           float ypos,
-                           float yscale_fac,
-                           int saction_flag)
-{
-  BLI_assert(!act || act->wrap().is_action_legacy());
-
-  const bool locked = (act && (!ID_IS_EDITABLE(act) || ID_IS_OVERRIDE_LIBRARY(act)));
-  saction_flag &= ~SACTION_SHOW_EXTREMES;
-
-  ChannelListElement *draw_elem = channel_list_add_element(
-      channel_list, ChannelType::ACTION_LEGACY, ypos, yscale_fac, eSAction_Flag(saction_flag));
-  draw_elem->animated_id = ale->id;
-  draw_elem->adt = ale->adt;
-  draw_elem->act = act;
   draw_elem->channel_locked = locked;
 }
 

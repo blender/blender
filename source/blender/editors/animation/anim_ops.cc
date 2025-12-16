@@ -1216,76 +1216,6 @@ static void ANIM_OT_scene_range_frame(wmOperatorType *ot)
 /** \name Conversion
  * \{ */
 
-static wmOperatorStatus convert_action_exec(bContext *C, wmOperator * /*op*/)
-{
-  using namespace blender;
-
-  Object *object = CTX_data_active_object(C);
-  AnimData *adt = BKE_animdata_from_id(&object->id);
-  BLI_assert(adt != nullptr);
-  BLI_assert(adt->action != nullptr);
-
-  animrig::Action &legacy_action = adt->action->wrap();
-  Main *bmain = CTX_data_main(C);
-
-  animrig::Action *layered_action = animrig::convert_to_layered_action(*bmain, legacy_action);
-  /* We did already check if the action can be converted. */
-  BLI_assert(layered_action != nullptr);
-  const bool assign_ok = animrig::assign_action(layered_action, object->id);
-  BLI_assert_msg(assign_ok, "Expecting assigning a layered Action to always work");
-  UNUSED_VARS_NDEBUG(assign_ok);
-
-  BLI_assert(layered_action->slots().size() == 1);
-  animrig::Slot *slot = layered_action->slot(0);
-  layered_action->slot_identifier_set(*bmain, *slot, object->id.name);
-
-  const animrig::ActionSlotAssignmentResult result = animrig::assign_action_slot(slot, object->id);
-  BLI_assert(result == animrig::ActionSlotAssignmentResult::OK);
-  UNUSED_VARS_NDEBUG(result);
-
-  ANIM_id_update(bmain, &object->id);
-  DEG_relations_tag_update(bmain);
-  WM_main_add_notifier(NC_ANIMATION | ND_NLA_ACTCHANGE, nullptr);
-
-  return OPERATOR_FINISHED;
-}
-
-static bool convert_action_poll(bContext *C)
-{
-  Object *object = CTX_data_active_object(C);
-  if (!object) {
-    return false;
-  }
-
-  AnimData *adt = BKE_animdata_from_id(&object->id);
-  if (!adt || !adt->action) {
-    return false;
-  }
-
-  /* This will also convert empty actions to layered by just adding an empty slot. */
-  if (!adt->action->wrap().is_action_legacy()) {
-    CTX_wm_operator_poll_msg_set(C, "Action is already layered");
-    return false;
-  }
-
-  return true;
-}
-
-static void ANIM_OT_convert_legacy_action(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Convert Legacy Action";
-  ot->idname = "ANIM_OT_convert_legacy_action";
-  ot->description = "Convert a legacy Action to a layered Action on the active object";
-
-  /* API callbacks. */
-  ot->exec = convert_action_exec;
-  ot->poll = convert_action_poll;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
 static bool merge_actions_selection_poll(bContext *C)
 {
   Object *object = CTX_data_active_object(C);
@@ -1330,9 +1260,6 @@ static wmOperatorStatus merge_actions_selection_exec(bContext *C, wmOperator *op
       }
       if (action == &active_action) {
         /* Object is already animated by the same action, no point in moving. */
-        continue;
-      }
-      if (action->is_action_legacy()) {
         continue;
       }
       if (!BKE_id_is_editable(bmain, &action->id)) {
@@ -1444,7 +1371,6 @@ void ED_operatortypes_anim()
 
   WM_operatortype_append(ANIM_OT_keying_set_active_set);
 
-  WM_operatortype_append(ANIM_OT_convert_legacy_action);
   WM_operatortype_append(ANIM_OT_merge_animation);
 
   WM_operatortype_append(blender::ed::animrig::POSELIB_OT_create_pose_asset);

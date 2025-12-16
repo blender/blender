@@ -396,12 +396,7 @@ static void draw_keyframes(bAnimContext *ac,
                                    action_flag);
         break;
       case ALE_ACT:
-        ED_add_action_channel(draw_list,
-                              ale,
-                              static_cast<bAction *>(ale->key_data),
-                              ycenter,
-                              scale_factor,
-                              action_flag);
+        BLI_assert_unreachable();
         break;
       case ALE_GROUP:
         ED_add_action_group_channel(draw_list,
