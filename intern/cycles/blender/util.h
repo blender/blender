@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "DNA_fluid_types.h"
 #include "RNA_access.hh"
 #include "RNA_blender_cpp.hh"
 
@@ -17,7 +18,10 @@
 #include "util/transform.h"
 #include "util/types.h"
 
+#include "BLI_listbase.h"
+
 #include "DNA_mesh_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_view3d_types.h"
 
@@ -640,21 +644,19 @@ static inline bool object_use_deform_motion(BL::Object &b_parent, BL::Object &b_
   return use_deform_motion;
 }
 
-static inline BL::FluidDomainSettings object_fluid_gas_domain_find(BL::Object &b_ob)
+static inline ::FluidDomainSettings *object_fluid_gas_domain_find(::Object &b_ob)
 {
-  for (BL::Modifier &b_mod : b_ob.modifiers) {
-    if (b_mod.is_a(&RNA_FluidModifier)) {
-      BL::FluidModifier b_mmd(b_mod);
+  LISTBASE_FOREACH (::ModifierData *, b_mod, &b_ob.modifiers) {
+    if (b_mod->type == eModifierType_Fluid) {
+      auto *b_mmd = reinterpret_cast<::FluidModifierData *>(b_mod);
 
-      if (b_mmd.fluid_type() == BL::FluidModifier::fluid_type_DOMAIN &&
-          b_mmd.domain_settings().domain_type() == BL::FluidDomainSettings::domain_type_GAS)
-      {
-        return b_mmd.domain_settings();
+      if (b_mmd->type == MOD_FLUID_TYPE_DOMAIN && b_mmd->domain->type == FLUID_DOMAIN_TYPE_GAS) {
+        return b_mmd->domain;
       }
     }
   }
 
-  return BL::FluidDomainSettings(PointerRNA_NULL);
+  return nullptr;
 }
 
 static inline BL::MeshSequenceCacheModifier object_mesh_cache_find(BL::Object &b_ob,
