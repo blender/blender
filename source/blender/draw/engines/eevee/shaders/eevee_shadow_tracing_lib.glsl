@@ -159,7 +159,7 @@ ShadowRayDirectional shadow_ray_generate_directional(
   float max_tracing_distance = texel_radius * float(SHADOW_PAGE_RES << SHADOW_TILEMAP_LOD);
   /* TODO(fclem): Remove atan here. We only need the cosine of the angle. */
   float max_tracing_angle = atan_fast(max_tracing_distance / dist_to_near_plane);
-  float shadow_angle = min(light_sun_data_get(light).shadow_angle, max_tracing_angle);
+  float shadow_angle = min(light.sun().shadow_angle, max_tracing_angle);
 
   /* Light shape is 1 unit away from the shading point. */
   float3 direction = sample_uniform_cone(random_2d, cos(shadow_angle));
@@ -232,14 +232,14 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light,
   }
 
   float clip_near = intBitsToFloat(light.clip_near);
-  float shape_radius = light_spot_data_get(light).shadow_radius;
+  float shape_radius = light.spot().shadow_radius;
   /* Clamp to a minimum value to avoid `local_ray_up` being degenerate. Could be revisited as the
    * issue might reappear at different zoom level. */
   shape_radius = max(0.00002f, shape_radius);
 
   float3 direction;
   if (is_area_light(light.type)) {
-    random_2d *= light_area_data_get(light).size * light_area_data_get(light).shadow_scale;
+    random_2d *= light.area().size * light.area().shadow_scale;
 
     float3 point_on_light_shape = float3(random_2d, 0.0f);
 
@@ -261,7 +261,7 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light,
 
     direction = point_on_light_shape - lP;
   }
-  float3 shadow_position = light_local_data_get(light).shadow_position;
+  float3 shadow_position = light.local().shadow_position;
   /* Clip the ray to not cross the near plane.
    * Avoid traces that starts on tiles that have not been queried, creating noise. */
   float clip_distance = length(lP - shadow_position) - clip_near;
@@ -345,7 +345,7 @@ float shadow_texel_radius_at_position(LightData light, const bool is_directional
   if (is_directional) {
     float3 lP = transform_direction_transposed(light.object_to_world, P);
     lP -= light_position_get(light);
-    LightSunData sun = light_sun_data_get(light);
+    LightSunData sun = light.sun();
     if (light.type == LIGHT_SUN) {
       /* Simplification of `coverage_get(shadow_directional_level_fractional)`.
        * Do not apply the narrowing since we want the size of the tilemap (not its application
@@ -358,12 +358,12 @@ float shadow_texel_radius_at_position(LightData light, const bool is_directional
       /* Uniform distribution everywhere. No distance scaling.
        * shadow_directional_level_fractional returns the cascade level, but all levels have the
        * same density as the level 0. So the effective density only depends on the `lod_bias`. */
-      scale = exp2(float(light_sun_data_get(light).clipmap_lod_min));
+      scale = exp2(float(sun.clipmap_lod_min));
     }
   }
   else {
     float3 lP = light_world_to_local_point(light, P);
-    lP -= light_local_data_get(light).shadow_position;
+    lP -= light.local().shadow_position;
     /* Simplification of `exp2(shadow_punctual_level_fractional)`. */
     scale = shadow_punctual_pixel_ratio(light,
                                         lP,
@@ -459,7 +459,7 @@ float shadow_eval(LightData light,
     L = light_z_axis(light);
   }
   else {
-    L = light_position_get(light) + light_local_data_get(light).shadow_position - P;
+    L = light_position_get(light) + light.local().shadow_position - P;
     L = normalize_and_get_length(L, distance_to_shadow);
   }
 

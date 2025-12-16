@@ -296,22 +296,16 @@ BLI_STATIC_ASSERT_ALIGN(LayerAttribute, 32)
 /** \name Indirect commands structures.
  * \{ */
 
-struct [[host_shared, unchecked]] DrawCommand {
+struct [[host_shared]] DrawCommand {
   /* TODO(fclem): Rename */
   uint vertex_len;
   uint instance_len;
   uint vertex_first;
-#if defined(GPU_SHADER)
-  uint base_index;
-  /** \note base_index is i_first for non-indexed draw-calls. */
-#  define _instance_first_array base_index
-#else
   union {
-    uint base_index;
+    union_t<uint> base_index;
     /* Use this instead of instance_first_indexed for non indexed draw calls. */
-    uint instance_first_array;
+    union_t<uint> instance_first_array;
   };
-#endif
 
   uint instance_first_indexed;
 

@@ -127,6 +127,166 @@ static void test_preprocess_include()
 }
 GPU_TEST(preprocess_include);
 
+static void test_preprocess_union()
+{
+  using namespace shader;
+  using namespace std;
+  {
+    string input = R"(
+struct [[host_shared]] T {
+  float foo;
+  float bar;
+  float baz;
+  union {
+    union_t<uint> a;
+    union_t<int> b;
+    union_t<float> c;
+  };
+};
+)";
+    string expect =
+        R"(
+#line 6
+struct                 T_union0 {
+  float data0;
+
+};
+#line 2
+struct                 T {
+  float foo;
+  float bar;
+  float baz;
+         T_union0 union0;
+#line 41
+};
+#ifndef GPU_METAL
+uint _a(const T this_);
+void _a_set_(_ref(T ,this_), uint value);
+int _b(const T this_);
+void _b_set_(_ref(T ,this_), int value);
+float _c(const T this_);
+void _c_set_(_ref(T ,this_), float value);
+#endif
+#line 12
+uint _a(const T this_)       {
+  uint val;
+  val = floatBitsToUint(this_.union0.data0);
+  return val;
+}
+#line 18
+void _a_set_(_ref(T ,this_), uint value) {
+  this_.union0.data0 = uintBitsToFloat(value);
+}
+#line 22
+int _b(const T this_)       {
+  int val;
+  val = floatBitsToInt(this_.union0.data0);
+  return val;
+}
+#line 28
+void _b_set_(_ref(T ,this_), int value) {
+  this_.union0.data0 = intBitsToFloat(value);
+}
+#line 32
+float _c(const T this_)       {
+  float val;
+  val = this_.union0.data0;
+  return val;
+}
+#line 38
+void _c_set_(_ref(T ,this_), float value) {
+  this_.union0.data0 = value;
+}
+#line 42
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+struct [[host_shared]] T {
+  float foo;
+  float bar;
+  union {
+    union_t<uint> a;
+  };
+  union {
+    union_t<uint> b;
+  };
+};
+)";
+    string expect =
+        R"(
+#line 5
+struct                 T_union0 {
+  float data0;
+
+};
+#line 8
+struct                 T_union1 {
+  float data0;
+
+};
+#line 2
+struct                 T {
+  float foo;
+  float bar;
+         T_union0 union0;
+#line 8
+         T_union1 union1;
+#line 31
+};
+#ifndef GPU_METAL
+uint _a(const T this_);
+void _a_set_(_ref(T ,this_), uint value);
+uint _b(const T this_);
+void _b_set_(_ref(T ,this_), uint value);
+#endif
+#line 12
+uint _a(const T this_)       {
+  uint val;
+  val = floatBitsToUint(this_.union0.data0);
+  return val;
+}
+#line 18
+void _a_set_(_ref(T ,this_), uint value) {
+  this_.union0.data0 = uintBitsToFloat(value);
+}
+#line 22
+uint _b(const T this_)       {
+  uint val;
+  val = floatBitsToUint(this_.union1.data0);
+  return val;
+}
+#line 28
+void _b_set_(_ref(T ,this_), uint value) {
+  this_.union1.data0 = uintBitsToFloat(value);
+}
+#line 32
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+struct [[host_shared]] T {
+  union {
+    uint a;
+  };
+};
+)";
+    string error;
+    process_test_string(input, error);
+    EXPECT_EQ(error,
+              "All union members must have their type wrapped using the union_t<T> template.");
+  }
+}
+GPU_TEST(preprocess_union);
+
 static void test_preprocess_unroll()
 {
   using namespace shader;
@@ -807,14 +967,14 @@ struct SRT {
 #line 16
 };
 #ifndef GPU_METAL
-void method(_ref(SRT ,this_), int t);
+void _method(_ref(SRT ,this_), int t);
 SRT SRT_new_();
 #endif
 #line 5
 
 #if defined(CREATE_INFO_SRT)
 #line 5
-  void method(_ref(SRT ,this_), int t) {
+  void _method(_ref(SRT ,this_), int t) {
     srt_access(SRT, a);
   }
 #endif
@@ -1253,14 +1413,14 @@ int _pad;};
 
 #ifndef GPU_METAL
 NS_S NS_S_static_method(NS_S s);
-NS_S other_method(_ref(NS_S ,this_), int s);
+NS_S _other_method(_ref(NS_S ,this_), int s);
 #endif
 #line 4
          NS_S NS_S_static_method(NS_S s) {
     return NS_S(0);
   }
-  NS_S other_method(_ref(NS_S ,this_), int s) {
-    some_method(this_);
+  NS_S _other_method(_ref(NS_S ,this_), int s) {
+    _some_method(this_);
     return NS_S(0);
   }
 #line 13
@@ -1589,8 +1749,8 @@ struct S {
 
 #ifndef GPU_METAL
 S S_construct();
-S function(_ref(S ,this_), int i);
-int size(const S this_);
+S _function(_ref(S ,this_), int i);
+int _size(const S this_);
 #endif
 #line 8
          S S_construct()
@@ -1602,14 +1762,14 @@ int size(const S this_);
   }
 
   #line 18
-  S function(_ref(S ,this_), int i)
+  S _function(_ref(S ,this_), int i)
   {
     this_.member = i;
     this_.this_member++;
     return this_;
   }
 
-  int size(const S this_)
+  int _size(const S this_)
   {
     return this_.member;
   }
@@ -1617,15 +1777,15 @@ int size(const S this_);
 void main()
 {
   S s = S_construct();
-  f(f);
-  f(f(0));
-  f(f());
-  t(l.o);
-  t(o(l, 0));
-  t(o(l));
-  o(l[0]);
-  t(l.o[0]);
-  o(l).t[0];
+  _f(f);
+  _f(f(0));
+  _f(f());
+  _t(l.o);
+  _t(_o(l, 0));
+  _t(_o(l));
+  _o(l[0]);
+  _t(l.o[0]);
+  _o(l).t[0];
 }
 )";
     string error;
@@ -1650,13 +1810,13 @@ struct A {
 #line 8
 };
 #ifndef GPU_METAL
-float fn1(_ref(A ,this_));
-float fn2(_ref(A ,this_));
+float _fn1(_ref(A ,this_));
+float _fn2(_ref(A ,this_));
 float A_fn3();
 #endif
 #line 5
-  float fn1(_ref(A ,this_)) { return this_.a; }
-  float fn2(_ref(A ,this_)) { int fn2; return fn1(this_); }
+  float _fn1(_ref(A ,this_)) { return this_.a; }
+  float _fn2(_ref(A ,this_)) { int fn2; return _fn1(this_); }
          float A_fn3() { int a; return a; }
 #line 9
 )";
@@ -1699,9 +1859,7 @@ class S {
 )";
     string error;
     string output = process_test_string(input, error);
-    EXPECT_EQ(error,
-              "Method name matching swizzles and vector component "
-              "accessor are forbidden.");
+    EXPECT_EQ(error, "Method name matching swizzles accessor are forbidden.");
   }
 }
 GPU_TEST(preprocess_struct_methods);

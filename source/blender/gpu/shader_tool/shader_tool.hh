@@ -453,6 +453,8 @@ class Preprocessor {
 
   /* Cannot use `__` because of some compilers complaining about reserved symbols. */
   static constexpr const char *namespace_separator = "_";
+  /* Add a prefix to all member functions so that they are not clashing with local variables. */
+  static constexpr const char *method_call_prefix = "_";
 
   static SourceLanguage language_from_filename(const std::string &filename)
   {
@@ -534,7 +536,6 @@ class Preprocessor {
         parser.apply_mutations();
 
         /* Linting phase. Detect valid syntax with invalid usage. */
-        lint_host_shared_structures(parser, report_error);
         lint_unbraced_statements(parser, report_error);
         lint_reserved_tokens(parser, report_error);
         lint_attributes(parser, report_error);
@@ -543,7 +544,10 @@ class Preprocessor {
           lint_small_types_in_structs(parser, report_error);
         }
 
-        parser.apply_mutations();
+        /* Lower unions and then lint shared structures. */
+        lower_union_accessor_templates(parser, report_error);
+        lower_unions(parser, report_error);
+        lint_host_shared_structures(parser, report_error);
 
         /* Lint and remove SRT accessor templates before lowering template. */
         lower_srt_accessor_templates(parser, report_error);
@@ -2534,6 +2538,9 @@ class Preprocessor {
               const char *suffix = (has_no_args ? "" : ", ");
               const string prefix = (is_resource_table ? "[[resource_table]] " : "");
 
+              /* Add a prefix to all member functions. */
+              parser.insert_before(fn_name, method_call_prefix);
+
               if (is_const && !is_resource_table) {
                 parser.erase(const_tok);
                 parser.insert_after(fn_args.start(),
@@ -2544,12 +2551,12 @@ class Preprocessor {
                                     prefix + struct_name.str() + " &this_" + suffix);
               }
 
-              if (fn_name.str().find_first_not_of("xyzw") == string::npos ||
-                  fn_name.str().find_first_not_of("rgba") == string::npos)
+              if (fn_name.str().length() > 1 &&
+                  (fn_name.str().find_first_not_of("xyzw") == string::npos ||
+                   fn_name.str().find_first_not_of("rgba") == string::npos))
               {
                 report_error(ERROR_TOK(fn_name),
-                             "Method name matching swizzles and vector component "
-                             "accessor are forbidden.");
+                             "Method name matching swizzles accessor are forbidden.");
               }
             }
           });
@@ -2659,9 +2666,9 @@ class Preprocessor {
             break;
           }
           string this_str = parser.substr_range_inclusive(start_of_this, end_of_this);
-          string func_str = func.str();
+          string func_str = method_call_prefix + func.str();
           const bool has_no_arg = par_open.next() == ')';
-          /* `a.fn(b)` -> `fn(a, b)` */
+          /* `a.fn(b)` -> `_fn(a, b)` */
           parser.replace_try(
               start_of_this, par_open, func_str + "(" + this_str + (has_no_arg ? "" : ", "));
         });
@@ -3006,7 +3013,7 @@ class Preprocessor {
     using namespace std;
     using namespace shader::parser;
 
-    parser().foreach_struct([&](Token, Scope attributes, Token struct_name, Scope body) {
+    parser().foreach_struct([&](Token, Scope attributes, Token /*struct_name*/, Scope body) {
       if (attributes.is_invalid()) {
         return;
       }
@@ -3115,17 +3122,18 @@ class Preprocessor {
 
         size_t align = type_info.alignment - (offset % type_info.alignment);
         if (align != type_info.alignment) {
-          string err = "Misaligned member, missing " + to_string(align) + " padding bytes";
-          report_error(ERROR_TOK(type), err.c_str());
+          // string err = "Misaligned member, missing " + to_string(align) + " padding bytes";
+          // report_error(ERROR_TOK(type), err.c_str());
         }
         offset += type_info.size;
       });
       if (offset % 16 != 0) {
-        string err = "Alignment issue, missing " + to_string(16 - (offset % 16)) +
-                     " padding bytes";
-        report_error(ERROR_TOK(struct_name), err.c_str());
+        // string err = "Alignment issue, missing " + to_string(16 - (offset % 16)) +
+        //              " padding bytes";
+        // report_error(ERROR_TOK(struct_name), err.c_str());
       }
     });
+    parser.apply_mutations();
   }
 
   void lint_unbraced_statements(Parser &parser, report_callback report_error)
@@ -3709,6 +3717,402 @@ class Preprocessor {
           "w&w", [&](const vector<Token> toks) { add_mutation(toks[0], toks[2], toks[2]); });
       scope.foreach_match(
           "w&T", [&](const vector<Token> toks) { add_mutation(toks[0], toks[2], toks[2]); });
+    });
+    parser.apply_mutations();
+  }
+
+  void lower_unions(Parser &parser, report_callback report_error)
+  {
+    using namespace std;
+    using namespace shader::parser;
+
+    struct Member {
+      string type, name;
+      size_t offset, size;
+      bool is_enum;
+
+      /* Return true for builtin trivial types (e.g. uint, float3). */
+      bool is_trivial() const
+      {
+        return type.empty();
+      }
+    };
+
+    auto is_struct_size_known = [&](Scope attributes) -> bool {
+      if (attributes.is_invalid()) {
+        return false;
+      }
+      bool is_shared = false;
+      bool unchecked = false;
+      attributes.foreach_attribute([&](Token attr, Scope) {
+        if (attr.str() == "host_shared") {
+          is_shared = true;
+        }
+        else if (attr.str() == "unchecked") {
+          unchecked = true;
+        }
+      });
+      if (!is_shared || unchecked) {
+        return false;
+      }
+      return true;
+    };
+
+    /* Description of each union types. */
+    unordered_map<string, vector<Member>> union_members;
+
+    /* First, lower anonymous unions into separate struct. */
+    parser().foreach_struct([&](Token struct_tok, Scope, Token struct_name, Scope body) {
+      int union_index = 0;
+      body.foreach_match("o{..};", [&](const Tokens &t) {
+        Scope union_body = t[1].scope();
+
+        string union_name = "union" + to_string(union_index);
+        string union_type = struct_name.str() + "_" + union_name;
+
+        /* Parse members of the union for later use. */
+        vector<Member> members;
+        union_body.foreach_declaration(
+            [&](Scope, Token, Token type, Scope, Token name, Scope array, Token) {
+              if (array.is_valid()) {
+                report_error(ERROR_TOK(name), "Arrays are not supported inside unions.");
+              }
+              members.emplace_back(Member{type.str(), name.str(), 0, 0, type.prev() == Enum});
+            });
+
+        if (members.empty()) {
+          report_error(ERROR_TOK(t[0]), "Empty union");
+          return;
+        }
+        union_members.emplace(union_type, members);
+
+        string union_member = "struct " + union_type + " " + union_name + ";";
+        parser.insert_before(t.front(), union_member);
+        parser.erase(t.front(), t.back());
+
+        string type_decl = "struct [[host_shared]] " + union_type + " {\n";
+        /* Temporary storage (use first member, still valid since all members should have the same
+         * size). The real storage can only be set once we know the size of the union, which we can
+         * only know after lowering them as outside types. */
+        type_decl += "  " + members.front().type + " " + members.front().name + ";\n";
+        type_decl += "};\n";
+
+        parser.insert_line_number(struct_tok.str_index_start() - 1, t[0].line_number());
+        parser.insert_before(struct_tok, type_decl);
+        parser.insert_line_number(struct_tok.str_index_start() - 1, struct_tok.line_number());
+
+        union_index++;
+      });
+    });
+    parser.apply_mutations();
+
+    /* Map structure name to structure members. */
+    unordered_map<string, vector<Member>> struct_members = {
+        {"float", {{"", "", 0, 4}}},
+        {"float", {{"", "", 0, 4}}},
+        {"float2", {{"", "", 0, 8}}},
+        {"float4", {{"", "", 0, 16}}},
+        {"bool32_t", {{"", "", 0, 4}}},
+        {"int", {{"", "", 0, 4}}},
+        {"int2", {{"", "", 0, 8}}},
+        {"int4", {{"", "", 0, 16}}},
+        {"uint", {{"", "", 0, 4}}},
+        {"uint2", {{"", "", 0, 8}}},
+        {"uint4", {{"", "", 0, 16}}},
+        {"string_t", {{"", "", 0, 4}}},
+        {"packed_float3", {{"", "", 0, 12}}},
+        {"packed_int3", {{"", "", 0, 12}}},
+        {"packed_uint3", {{"", "", 0, 12}}},
+        {"float2x4", {{"", "[0]", 0, 16}, {"", "[1]", 0, 16}}},
+        {"float3x4", {{"", "[0]", 0, 16}, {"", "[1]", 0, 16}, {"", "[2]", 0, 16}}},
+        {"float4x4",
+         {{"", "[0]", 0, 16}, {"", "[1]", 0, 16}, {"", "[2]", 0, 16}, {"", "[3]", 0, 16}}},
+    };
+
+    auto type_size_get = [&](Token type) -> size_t {
+      auto value = struct_members.find(type.str());
+      if (value == struct_members.end()) {
+        return 0;
+      }
+
+      int total_size = 0;
+      for (Member member : value->second) {
+        total_size += member.size;
+      }
+      return total_size;
+    };
+
+    /* Then populate struct members. */
+    parser().foreach_struct([&](Token, Scope attributes, Token struct_name, Scope body) {
+      if (!is_struct_size_known(attributes)) {
+        return;
+      }
+      vector<Member> members;
+      size_t offset = 0;
+      body.foreach_declaration([&](Scope, Token, Token type, Scope, Token name, Scope, Token) {
+        size_t size = 4;
+        if (type.prev() != Enum) {
+          size = type_size_get(type);
+          if (size != 0) {
+            members.emplace_back(Member{type.str(), name.str(), offset, size});
+          }
+        }
+        else {
+          members.emplace_back(Member{type.str(), name.str(), offset, size, true});
+        }
+        offset += size;
+      });
+
+      struct_members.emplace(struct_name.str(), members);
+    });
+
+    /* Replace placeholder struct with a generic one. */
+    auto replace_placeholder_member = [&](Scope body) {
+      /* Replace placeholder struct with float members. */
+      size_t size = type_size_get(body.start().next());
+      if (size == 0) {
+        report_error(ERROR_TOK(body.start().next()),
+                     "Can't infer size of member. Type must be defined in this file and have "
+                     "the [[host_shared]] attribute.");
+      }
+      for (int i = 0; i < size; i += 16) {
+        size_t member_size = size - i;
+        const char *data_type = "float4";
+        if (member_size == 4) {
+          data_type = "float";
+        }
+        else if (member_size == 8) {
+          data_type = "float2";
+        }
+        else if (member_size == 12) {
+          data_type = "float3";
+        }
+        parser.insert_after(body.start().str_index_last_no_whitespace(),
+                            "\n  " + string(data_type) + " data" + to_string(i / 16) + ";");
+      }
+      parser.erase(body.start().next(), body.end().prev());
+    };
+
+    auto member_from_float =
+        [&](const Member &union_member, const Member &struct_member, const string &access) {
+          /* Account for trivial types. */
+          const string &type = struct_member.is_trivial() ? union_member.type : struct_member.type;
+          bool is_enum = struct_member.is_trivial() ? union_member.is_enum : struct_member.is_enum;
+
+          if (is_enum) {
+            return struct_member.type + "(floatBitsToUint(" + access + "))";
+          }
+          if (type.substr(0, 4) == "uint") {
+            return "floatBitsToUint(" + access + ")";
+          }
+          if (type.substr(0, 3) == "int") {
+            return "floatBitsToInt(" + access + ")";
+          }
+          if (type == "bool") {
+            return "floatBitsToInt(" + access + ") != 0";
+          }
+          return access;
+        };
+
+    auto member_to_float =
+        [&](const Member &union_member, const Member &struct_member, const string &access) {
+          /* Account for trivial types. */
+          const string &type = struct_member.is_trivial() ? union_member.type : struct_member.type;
+          bool is_enum = struct_member.is_trivial() ? union_member.is_enum : struct_member.is_enum;
+
+          if (is_enum) {
+            return "uintBitsToFloat(uint(" + access + "))";
+          }
+          if (type.substr(0, 4) == "uint") {
+            return "uintBitsToFloat(" + access + ")";
+          }
+          if (type.substr(0, 3) == "int") {
+            return "intBitsToFloat(" + access + ")";
+          }
+          if (type == "bool") {
+            return "intBitsToFloat(int(" + access + "))";
+          }
+          return access;
+        };
+
+    auto union_data_access = [&](const Member &struct_member, size_t union_size) {
+      const size_t offset = struct_member.offset;
+      string access = ".data" + to_string(offset / 16);
+
+      if (struct_member.size == 12) {
+        access += ".xyz";
+      }
+      else if (struct_member.size == 8) {
+        access += ((offset % 16) == 0) ? ".xy" : ".zw";
+      }
+      else if (struct_member.size == 4) {
+        switch (offset % 16) {
+          case 0:
+            /* Special case if last member is a scalar. */
+            access += ((union_size - offset) == 4) ? "" : ".x";
+            break;
+          case 4:
+            access += ".y";
+            break;
+          case 8:
+            access += ".z";
+            break;
+          case 12:
+            access += ".w";
+            break;
+        }
+      }
+      return access;
+    };
+
+    auto member_data_access = [&](const Member &struct_member) -> string {
+      return (struct_member.is_trivial()) ? string() : ("." + struct_member.name);
+    };
+
+    auto create_getter = [&](/* Tokens of the union declaration inside the struct. */
+                             const Token &union_type_tok,
+                             const Token &union_var_tok,
+                             /* Union member we are creating the accessor for. */
+                             const Member &union_member,
+                             /* Definition of the type of the accessed member. */
+                             const vector<Member> &struct_members) -> string {
+      const size_t union_size = type_size_get(union_type_tok);
+      if (union_size == 0) {
+        report_error(ERROR_TOK(union_type_tok),
+                     "Can't infer size of member. Type must be defined in this file and have "
+                     "the [[host_shared]] attribute.");
+        return "";
+      }
+      const Member &last_member = struct_members.back();
+      if (last_member.offset + last_member.size != union_size) {
+        report_error(ERROR_TOK(union_type_tok), "union has members of different sizes");
+        return "";
+      }
+
+      string fn_body = "{\n";
+      /* Declare return variable of the same type as the accessed member. */
+      fn_body += "  " + union_member.type + " val;\n";
+      for (const auto &member : struct_members) {
+        string to_var = "val" + member_data_access(member);
+        string access = union_var_tok.str() + union_data_access(member, union_size);
+        fn_body += "  " + to_var + " = " + member_from_float(union_member, member, access) + ";\n";
+      }
+      fn_body += "  return val;\n";
+      fn_body += "}\n";
+
+      return "\n" + union_member.type + " " + union_member.name + "() const " + fn_body;
+    };
+
+    auto create_setter = [&](/* Tokens of the union declaration inside the struct. */
+                             const Token &union_type_tok,
+                             const Token &union_var_tok,
+                             /* Union member we are creating the accessor for. */
+                             const Member &union_member,
+                             /* Definition of the type of the accessed member. */
+                             const vector<Member> &struct_members) -> string {
+      const size_t union_size = type_size_get(union_type_tok);
+      if (union_size == 0) {
+        report_error(ERROR_TOK(union_type_tok),
+                     "Can't infer size of member. Type must be defined in this file and have "
+                     "the [[host_shared]] attribute.");
+        return "";
+      }
+      const Member &last_member = struct_members.back();
+      if (last_member.offset + last_member.size != union_size) {
+        report_error(ERROR_TOK(union_type_tok), "union has members of different sizes");
+        return "";
+      }
+
+      string fn_body = "{\n";
+      for (const auto &member : struct_members) {
+        string to_var = "this->" + union_var_tok.str() + union_data_access(member, union_size);
+        string access = "value" + member_data_access(member);
+        fn_body += "  " + to_var + " = " + member_to_float(union_member, member, access) + ";\n";
+      }
+      fn_body += "}\n";
+
+      return "\nvoid " + union_member.name + "_set_(" + union_member.type + " value) " + fn_body;
+    };
+
+    parser().foreach_struct([&](Token, Scope, Token struct_name, Scope body) {
+      if (union_members.find(struct_name.str()) != union_members.end()) {
+        replace_placeholder_member(body);
+        return;
+      }
+
+      body.foreach_declaration([&](Scope, Token, Token type, Scope, Token name, Scope, Token) {
+        if (union_members.find(type.str()) == union_members.end()) {
+          return;
+        }
+
+        const vector<Member> &members = union_members.find(type.str())->second;
+        for (const auto &member : members) {
+          if (struct_members.find(member.type) == union_members.end()) {
+            report_error(
+                ERROR_TOK(type),
+                "Unknown union member type. Type must be defined in this file and decorated "
+                "with [[host_shared]] attribute.");
+            return;
+          }
+          parser.insert_after(
+              body.end().prev(),
+              create_getter(type, name, member, struct_members.find(member.type)->second));
+          parser.insert_after(
+              body.end().prev(),
+              create_setter(type, name, member, struct_members.find(member.type)->second));
+        }
+      });
+    });
+
+    /* Replace assignment pattern.
+     * Example: `a.b() = c;` >  `a.b_set_(c);`
+     * This pattern is currently only allowed for `union_t`. */
+    parser().foreach_match("w()=", [&](const Tokens &t) {
+      parser.insert_before(t[1], "_set_");
+      parser.erase(t[2], t[3]);
+      parser.insert_after(t[3].scope().end(), ")");
+    });
+
+    parser.apply_mutations();
+  }
+
+  /**
+   * For safety reason, union members need to be declared with the union_t template.
+   * This avoid raw member access which we cannot emulate. Instead this forces the use of the `()`
+   * operator for accessing the members of the enum.
+   *
+   * Need to run before lower_unions.
+   */
+  void lower_union_accessor_templates(Parser &parser, report_callback report_error)
+  {
+    using namespace std;
+    using namespace shader::parser;
+
+    parser().foreach_struct([&](Token, Scope, Token, Scope body) {
+      body.foreach_match("o{..};", [&](const Tokens &t) {
+        t[1].scope().foreach_declaration([&](Scope,
+                                             Token,
+                                             Token type,
+                                             Scope template_scope,
+                                             Token name,
+                                             Scope,
+                                             Token) {
+          if (type.str() != "union_t") {
+            report_error(
+                ERROR_TOK(name),
+                "All union members must have their type wrapped using the union_t<T> template.");
+            parser.erase(type, type.find_next(SemiColon));
+            return;
+          }
+
+          /* Remove the template but not the wrapped type. */
+          parser.erase(type);
+          if (template_scope.is_valid()) {
+            parser.erase(template_scope.start());
+            parser.erase(template_scope.end());
+          }
+        });
+      });
     });
     parser.apply_mutations();
   }

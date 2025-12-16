@@ -114,7 +114,7 @@
 #define partition partition_is_reserved_glsl_keyword_do_not_use
 #define active active_is_reserved_glsl_keyword_do_not_use
 // #define class /* Supported. */
-#define union union_is_reserved_glsl_keyword_do_not_use
+// #define union /* Supported. */
 // #define enum /* Supported. */
 #define typedef typedef_is_reserved_glsl_keyword_do_not_use
 // #define template /* Needed for Stubs. */
@@ -184,6 +184,23 @@ template<typename T> struct srt_t {
   }
 
   operator T &()
+  {
+    return *reinterpret_cast<T *>(this);
+  }
+};
+
+/**
+ * Member hiding type.
+ * Wrapper type for members of unions in host shared structure.
+ * This is needed to force the accessor syntax in the shader code.
+ */
+template<typename T> struct union_t {
+  const T &operator()() const
+  {
+    return *reinterpret_cast<const T *>(this);
+  }
+
+  T &operator()()
   {
     return *reinterpret_cast<T *>(this);
   }

@@ -30,9 +30,9 @@ void main()
       light.color = sunlight_buf[l_idx].color;
       light.object_to_world = sunlight_buf[l_idx].object_to_world;
 
-      LightSunData sun_data = light_sun_data_get(light);
+      LightSunData sun_data = light.sun();
       sun_data.direction = transform_z_axis(sunlight_buf[l_idx].object_to_world);
-      light = light_sun_data_set(light, sun_data);
+      light.sun() = sun_data;
       /* NOTE: Use the radius from UI instead of auto sun size for now. */
     }
     /* NOTE: We know the index because sun lights are packed at the start of the input buffer. */
@@ -41,7 +41,7 @@ void main()
   }
 
   /* Do not select 0 power lights. */
-  if (light_local_data_get(light).influence_radius_max < 1e-8f) {
+  if (light.local().influence_radius_max < 1e-8f) {
     return;
   }
 
@@ -49,7 +49,7 @@ void main()
   switch (light.type) {
     case LIGHT_SPOT_SPHERE:
     case LIGHT_SPOT_DISK: {
-      LightSpotData spot = light_spot_data_get(light);
+      LightSpotData spot = light.spot();
       /* Only for < ~170 degree Cone due to plane extraction precision. */
       if (spot.spot_tan < 10.0f) {
         float3 x_axis = light_x_axis(light);
@@ -71,7 +71,7 @@ void main()
     case LIGHT_OMNI_SPHERE:
     case LIGHT_OMNI_DISK:
       sphere.center = light_position_get(light);
-      sphere.radius = light_local_data_get(light).influence_radius_max;
+      sphere.radius = light.local().influence_radius_max;
       break;
     default:
       break;

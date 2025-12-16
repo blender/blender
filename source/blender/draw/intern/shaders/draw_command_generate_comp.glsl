@@ -23,11 +23,11 @@ void write_draw_call(DrawGroup group, uint group_id)
   /* Back-facing command. */
   uint back_facing_start = group.start * uint(view_len);
   if (indexed_draw) {
-    cmd.base_index = uint(group.base_index);
+    cmd.base_index() = uint(group.base_index);
     cmd.instance_first_indexed = back_facing_start;
   }
   else {
-    cmd._instance_first_array = back_facing_start;
+    cmd.instance_first_array() = back_facing_start;
   }
   cmd.instance_len = group_buf[group_id].back_facing_counter;
   command_buf[group_id * 2 + 0] = cmd;
@@ -38,7 +38,7 @@ void write_draw_call(DrawGroup group, uint group_id)
     cmd.instance_first_indexed = front_facing_start;
   }
   else {
-    cmd._instance_first_array = front_facing_start;
+    cmd.instance_first_array() = front_facing_start;
   }
   cmd.instance_len = group_buf[group_id].front_facing_counter;
   command_buf[group_id * 2 + 1] = cmd;

@@ -39,12 +39,12 @@ void DebugDraw::reset()
     cpu_draw_buf_.current()->command.vertex_len = 0;
     cpu_draw_buf_.current()->command.vertex_first = 0;
     cpu_draw_buf_.current()->command.instance_len = 1;
-    cpu_draw_buf_.current()->command.instance_first_array = 0;
+    cpu_draw_buf_.current()->command.instance_first_array() = 0;
 
     gpu_draw_buf_.current()->command.vertex_len = 0;
     gpu_draw_buf_.current()->command.vertex_first = 0;
     gpu_draw_buf_.current()->command.instance_len = 1;
-    gpu_draw_buf_.current()->command.instance_first_array = 0;
+    gpu_draw_buf_.current()->command.instance_first_array() = 0;
     gpu_draw_buf_.current()->push_update();
 
     cpu_draw_buf_.swap();

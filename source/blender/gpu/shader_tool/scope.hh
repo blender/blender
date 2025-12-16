@@ -397,13 +397,26 @@ struct Scope {
                                               Scope template_scope,
                                               Token name,
                                               Scope array,
-                                              Token decl_end)> cb) const
+                                              Token decl_end)> callback) const
   {
     auto attrs = [](const std::vector<Token> &tokens) {
       Token first = tokens[0].is_valid() ? tokens[0] : tokens[2];
       Scope attributes = first.prev().prev().scope();
       attributes = (attributes.type() == ScopeType::Attributes) ? attributes : Scope::invalid();
       return attributes;
+    };
+
+    auto cb = [&](Scope attributes,
+                  Token const_tok,
+                  Token type,
+                  Scope template_scope,
+                  Token name,
+                  Scope array,
+                  Token decl_end) {
+      if (type.scope() != *this) {
+        return;
+      }
+      callback(attributes, const_tok, type, template_scope, name, array, decl_end);
     };
 
     foreach_match("c?ww;", [&](const std::vector<Token> toks) {

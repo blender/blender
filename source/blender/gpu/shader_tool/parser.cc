@@ -318,6 +318,9 @@ void Parser::tokenize(const bool keep_whitespace)
         else if (word == "inline") {
           c = Inline;
         }
+        else if (word == "union") {
+          c = Union;
+        }
       }
     }
   }

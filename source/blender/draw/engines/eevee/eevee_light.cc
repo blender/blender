@@ -187,12 +187,12 @@ void Light::shape_parameters_set(const ::Light *la,
     float influence_radius_surface = attenuation_radius_get(la, threshold, surface_max_power);
     float influence_radius_volume = attenuation_radius_get(la, threshold, volume_max_power);
 
-    this->local.influence_radius_max = max(influence_radius_surface, influence_radius_volume);
-    this->local.influence_radius_invsqr_surface = safe_rcp(square(influence_radius_surface));
-    this->local.influence_radius_invsqr_volume = safe_rcp(square(influence_radius_volume));
+    this->local().influence_radius_max = max(influence_radius_surface, influence_radius_volume);
+    this->local().influence_radius_invsqr_surface = safe_rcp(square(influence_radius_surface));
+    this->local().influence_radius_invsqr_volume = safe_rcp(square(influence_radius_volume));
     /* TODO(fclem): This is just duplicating a member for local lights. */
-    this->clip_far = float_as_int(this->local.influence_radius_max);
-    this->clip_near = float_as_int(this->local.influence_radius_max / 4000.0f);
+    this->clip_far = float_as_int(this->local().influence_radius_max);
+    this->clip_near = float_as_int(this->local().influence_radius_max / 4000.0f);
   }
 
   float trace_scaling_fac = (use_jitter && (la->mode & LA_SHADOW_JITTER)) ?
@@ -202,60 +202,61 @@ void Light::shape_parameters_set(const ::Light *la,
   if (is_sun_light(this->type)) {
     float sun_half_angle = min_ff(la->sun_angle, DEG2RADF(179.9f)) / 2.0f;
     /* Use non-clamped radius for soft shadows. Avoid having a minimum blur. */
-    this->sun.shadow_angle = sun_half_angle * trace_scaling_fac;
+    this->sun().shadow_angle = sun_half_angle * trace_scaling_fac;
     /* Clamp to a minimum to distinguish between point lights and area light shadow. */
-    this->sun.shadow_angle = (sun_half_angle > 0.0f) ? max_ff(1e-8f, sun.shadow_angle) : 0.0f;
+    this->sun().shadow_angle = (sun_half_angle > 0.0f) ? max_ff(1e-8f, sun().shadow_angle) : 0.0f;
     /* Clamp to minimum value before float imprecision artifacts appear. */
-    this->sun.shape_radius = clamp(tanf(sun_half_angle), 0.001f, 20.0f);
+    this->sun().shape_radius = clamp(tanf(sun_half_angle), 0.001f, 20.0f);
     /* Stable shading direction. */
-    this->sun.direction = z_axis;
+    this->sun().direction = z_axis;
   }
   else if (is_area_light(this->type)) {
     const bool is_irregular = ELEM(la->area_shape, LA_AREA_RECT, LA_AREA_ELLIPSE);
-    this->area.size = float2(la->area_size, is_irregular ? la->area_sizey : la->area_size);
+    this->area().size = float2(la->area_size, is_irregular ? la->area_sizey : la->area_size);
     /* Scale and clamp to minimum value before float imprecision artifacts appear. */
-    this->area.size *= scale.xy() / 2.0f;
-    this->area.shadow_scale = trace_scaling_fac;
-    this->local.shadow_radius = length(this->area.size) * trace_scaling_fac;
+    this->area().size *= scale.xy() / 2.0f;
+    this->area().shadow_scale = trace_scaling_fac;
+    this->local().shadow_radius = length(this->area().size) * trace_scaling_fac;
     /* Set to default position. */
-    this->local.shadow_position = float3(0.0f);
+    this->local().shadow_position = float3(0.0f);
     /* Do not render lights that have no area. */
-    if (this->area.size.x * this->area.size.y < 0.00001f) {
+    if (this->area().size.x * this->area().size.y < 0.00001f) {
       /* Forces light to be culled. */
-      this->local.influence_radius_max = 0.0f;
+      this->local().influence_radius_max = 0.0f;
     }
     /* Clamp to minimum value before float imprecision artifacts appear. */
-    this->area.size = max(float2(0.003f), this->area.size);
+    this->area().size = max(float2(0.003f), this->area().size);
     /* For volume point lighting. */
-    this->local.shape_radius = max(0.001f, length(this->area.size) / 2.0f);
+    this->local().shape_radius = max(0.001f, length(this->area().size) / 2.0f);
   }
   else if (is_point_light(this->type)) {
     /* Spot size & blend */
     if (is_spot_light(this->type)) {
       const float spot_size = cosf(la->spotsize * 0.5f);
       const float spot_blend = (1.0f - spot_size) * la->spotblend;
-      this->spot.spot_size_inv = scale.z / max(scale.xy(), float2(1e-8f));
-      this->spot.spot_mul = 1.0f / max(1e-8f, spot_blend);
-      this->spot.spot_bias = -spot_size * this->spot.spot_mul;
-      this->spot.spot_tan = tanf(min(la->spotsize * 0.5f, float(M_PI_2 - 0.0001f)));
+      this->spot().spot_size_inv = scale.z / max(scale.xy(), float2(1e-8f));
+      this->spot().spot_mul = 1.0f / max(1e-8f, spot_blend);
+      this->spot().spot_bias = -spot_size * this->spot().spot_mul;
+      this->spot().spot_tan = tanf(min(la->spotsize * 0.5f, float(M_PI_2 - 0.0001f)));
     }
     else {
       /* Point light could access it. Make sure to avoid Undefined Behavior.
        * In practice it is only ever used. */
-      this->spot.spot_size_inv = float2(1.0f);
-      this->spot.spot_mul = 0.0f;
-      this->spot.spot_bias = 1.0f;
-      this->spot.spot_tan = 0.0f;
+      this->spot().spot_size_inv = float2(1.0f);
+      this->spot().spot_mul = 0.0f;
+      this->spot().spot_bias = 1.0f;
+      this->spot().spot_tan = 0.0f;
     }
     /* Use unclamped radius for soft shadows. Avoid having a minimum blur. */
-    this->local.shadow_radius = max(0.0f, la->radius) * trace_scaling_fac;
+    this->local().shadow_radius = max(0.0f, la->radius) * trace_scaling_fac;
     /* Clamp to a minimum to distinguish between point lights and area light shadow. */
-    this->local.shadow_radius = (la->radius > 0.0f) ? max_ff(1e-8f, local.shadow_radius) : 0.0f;
+    this->local().shadow_radius = (la->radius > 0.0f) ? max_ff(1e-8f, local().shadow_radius) :
+                                                        0.0f;
     /* Set to default position. */
-    this->local.shadow_position = float3(0.0f);
-    this->local.shape_radius = la->radius;
+    this->local().shadow_position = float3(0.0f);
+    this->local().shape_radius = la->radius;
     /* Clamp to minimum value before float imprecision artifacts appear. */
-    this->local.shape_radius = max(0.001f, this->local.shape_radius);
+    this->local().shape_radius = max(0.001f, this->local().shape_radius);
   }
 }
 
@@ -268,7 +269,7 @@ float Light::shape_radiance_get()
     case LIGHT_RECT:
     case LIGHT_ELLIPSE: {
       /* Rectangle area. */
-      float area = this->area.size.x * this->area.size.y * 4.0f;
+      float area = this->area().size.x * this->area().size.y * 4.0f;
       /* Scale for the lower area of the ellipse compared to the surrounding rectangle. */
       if (this->type == LIGHT_ELLIPSE) {
         area *= M_PI / 4.0f;
@@ -281,13 +282,13 @@ float Light::shape_radiance_get()
     case LIGHT_SPOT_SPHERE:
     case LIGHT_SPOT_DISK: {
       /* Sphere area. */
-      float area = float(4.0f * M_PI) * square(this->local.shape_radius);
+      float area = float(4.0f * M_PI) * square(this->local().shape_radius);
       /* Convert radiant flux to radiance. */
       return 1.0f / (area * float(M_PI));
     }
     case LIGHT_SUN_ORTHO:
     case LIGHT_SUN: {
-      float inv_sin_sq = 1.0f + 1.0f / square(this->sun.shape_radius);
+      float inv_sin_sq = 1.0f + 1.0f / square(this->sun().shape_radius);
       /* Convert irradiance to radiance. */
       return float(M_1_PI) * inv_sin_sq;
     }
@@ -304,7 +305,7 @@ float Light::point_radiance_get()
     case LIGHT_ELLIPSE: {
       /* This corrects for area light most representative point trick.
        * The fit was found by reducing the average error compared to cycles. */
-      float area = this->area.size.x * this->area.size.y * 4.0f;
+      float area = this->area().size.x * this->area().size.y * 4.0f;
       float tmp = M_PI_2 / (M_PI_2 + sqrtf(area));
       /* Lerp between 1.0 and the limit (1 / pi). */
       float mrp_scaling = tmp + (1.0f - tmp) * M_1_PI;
@@ -330,7 +331,7 @@ float Light::point_radiance_get()
 void Light::debug_draw()
 {
   drw_debug_sphere(transform_location(this->object_to_world),
-                   local.influence_radius_max,
+                   local().influence_radius_max,
                    float4(0.8f, 0.3f, 0.0f, 1.0f));
 }
 
