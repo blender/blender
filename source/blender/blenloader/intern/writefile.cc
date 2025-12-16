@@ -1267,6 +1267,8 @@ static void write_id_placeholder(WriteData *wd, ID *id)
 /** Keep it last of `write_*_data` functions. */
 static void write_libraries(WriteData *wd, Main *bmain)
 {
+  const bool is_undo = wd->use_memfile;
+
   /* Gather IDs coming from each library. */
   blender::MultiValueMap<Library *, ID *> linked_ids_by_library;
   {
@@ -1288,22 +1290,30 @@ static void write_libraries(WriteData *wd, Main *bmain)
 
     /* Gather IDs that are somehow directly referenced by data in the current blend file. */
     blender::Vector<ID *> ids_used_from_library;
-    for (ID *id : ids) {
-      if (id->us == 0) {
-        continue;
-      }
-      if (ID_IS_PACKED(id)) {
-        BLI_assert(library.flag & LIBRARY_FLAG_IS_ARCHIVE);
-        ids_used_from_library.append(id);
-        continue;
-      }
-      if (id->tag & ID_TAG_EXTERN) {
-        ids_used_from_library.append(id);
-        continue;
-      }
-      if ((id->tag & ID_TAG_INDIRECT) && (id->flag & ID_FLAG_INDIRECT_WEAK_LINK)) {
-        ids_used_from_library.append(id);
-        continue;
+    if (is_undo) {
+      /* Always write placeholders for all linked IDs in undo case. This allows to properly remove
+       * linked data that should not exist on undo/redo. See also #read_undo_move_libmain_data,
+       * #read_libblock_undo_restore_linked and #read_undo_libraries_cleanup_unused_ids. */
+      ids_used_from_library = ids;
+    }
+    else {
+      for (ID *id : ids) {
+        if (id->us == 0) {
+          continue;
+        }
+        if (ID_IS_PACKED(id)) {
+          BLI_assert(library.flag & LIBRARY_FLAG_IS_ARCHIVE);
+          ids_used_from_library.append(id);
+          continue;
+        }
+        if (id->tag & ID_TAG_EXTERN) {
+          ids_used_from_library.append(id);
+          continue;
+        }
+        if ((id->tag & ID_TAG_INDIRECT) && (id->flag & ID_FLAG_INDIRECT_WEAK_LINK)) {
+          ids_used_from_library.append(id);
+          continue;
+        }
       }
     }
 
@@ -1320,7 +1330,7 @@ static void write_libraries(WriteData *wd, Main *bmain)
        * deleted when no ID uses them anymore? */
       should_write_library = true;
     }
-    else if (wd->use_memfile) {
+    else if (is_undo) {
       /* When writing undo step we always write all existing libraries. That makes reading undo
        * step much easier when dealing with purely indirectly used libraries. */
       should_write_library = true;

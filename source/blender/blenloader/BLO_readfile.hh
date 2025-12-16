@@ -575,6 +575,15 @@ struct ID_Readfile_Data {
      */
     bool needs_linking : 1;
 
+    /**
+     * Memfile undo only: mark IDs used by 'no undo' IDs (e.g. brush dependencies).
+     *
+     * This is currently used to ensure that all linked 'no undo' IDs are preserved and remain
+     * fully valid across undo steps (also used to tag libraries containing such no-undo linked
+     * IDs).
+     */
+    bool used_by_no_undo_id : 1;
+
     /* Specific ID-type reading/versioning related tags. */
 
     /**

@@ -13,7 +13,8 @@
 #include <cstddef> /* for offsetof. */
 #include <cstdlib> /* for atoi. */
 #include <cstring>
-#include <ctime>   /* for gmtime. */
+#include <ctime> /* for gmtime. */
+#include <deque>
 #include <fcntl.h> /* for open flags (O_BINARY, O_RDONLY). */
 #include <queue>
 
@@ -2800,6 +2801,78 @@ static bool read_libblock_is_identical(FileData *fd, BHead *bhead)
   return true;
 }
 
+/* Mark all 'no-undo' IDs in the old Main, these (and their dependencies for linked ones) need to
+ * be unconditionally moved into the new Main. */
+static void read_undo_tag_all_noundo_ids(FileData *fd)
+{
+  Main *old_bmain = fd->old_bmain;
+  BLI_assert(old_bmain != nullptr);
+  BLI_assert(old_bmain->curlib == nullptr);
+  BLI_assert(old_bmain->split_mains);
+
+  /* First find all 'no undo' IDs themselves. */
+  std::deque<ID *> no_undo_ids;
+  for (Main *old_bmain_iter : *old_bmain->split_mains) {
+    MainListsArray lbarray = BKE_main_lists_get(*old_bmain_iter);
+    int i = lbarray.size();
+    while (i--) {
+      if (BLI_listbase_is_empty(lbarray[i])) {
+        continue;
+      }
+
+      ID *id = static_cast<ID *>(lbarray[i]->first);
+      const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
+      if ((id_type->flags & IDTYPE_FLAGS_NO_MEMFILE_UNDO) == 0) {
+        continue;
+      }
+
+      if (old_bmain_iter->curlib) {
+        BLO_readfile_id_runtime_tags_for_write(old_bmain_iter->curlib->id).used_by_no_undo_id =
+            true;
+      }
+      ID *id_iter;
+      FOREACH_MAIN_LISTBASE_ID_BEGIN (lbarray[i], id_iter) {
+        BLO_readfile_id_runtime_tags_for_write(*id_iter).used_by_no_undo_id = true;
+        no_undo_ids.push_back(id_iter);
+      }
+      FOREACH_MAIN_LISTBASE_ID_END;
+    }
+  }
+
+  /* Now find all dependencies of the 'no undo' IDs. */
+  while (!no_undo_ids.empty()) {
+    ID *id_iter = no_undo_ids.front();
+    no_undo_ids.pop_front();
+    BKE_library_foreach_ID_link(
+        nullptr,
+        id_iter,
+        [&no_undo_ids](LibraryIDLinkCallbackData *cb_data) -> int {
+          ID *id_owner = cb_data->owner_id;
+          ID *id = *cb_data->id_pointer;
+
+          BLI_assert(BLO_readfile_id_runtime_tags(*id_owner).used_by_no_undo_id);
+          if (!id || BLO_readfile_id_runtime_tags(*id).used_by_no_undo_id) {
+            return IDWALK_RET_NOP;
+          }
+
+          if (cb_data->cb_flag &
+              (IDWALK_CB_LOOPBACK | IDWALK_CB_EMBEDDED | IDWALK_CB_EMBEDDED_NOT_OWNING))
+          {
+            return IDWALK_RET_NOP;
+          }
+
+          BLO_readfile_id_runtime_tags_for_write(*id).used_by_no_undo_id = true;
+          no_undo_ids.push_back(id);
+          if (ID_IS_LINKED(id)) {
+            BLO_readfile_id_runtime_tags_for_write(id->lib->id).used_by_no_undo_id = true;
+          }
+          return IDWALK_RET_NOP;
+        },
+        nullptr,
+        IDWALK_READONLY);
+  }
+}
+
 /* Re-use the whole 'noundo' local IDs by moving them from old to new main. Linked ones are handled
  * separately together with their libraries.
  *
@@ -2869,11 +2942,25 @@ static void read_undo_move_libmain_data(FileData *fd, Main *libmain, BHead *bhea
     oldnewmap_lib_insert(fd, bhead->old, &curlib->id, GS(curlib->id.name));
   }
 
+  BLI_assert(curlib->runtime->unused_ids_on_undo.is_empty());
   ID *id_iter;
   FOREACH_MAIN_ID_BEGIN (libmain, id_iter) {
     /* There should never be any packed ID in a regular library. */
     BLI_assert(!ID_IS_PACKED(id_iter));
     BKE_main_idmap_insert_id(fd->new_idmap_uid, id_iter);
+    /* Presume that all linked IDs moved from old to new Main are unused. The ones actually still
+     * used in the loaded new Main will be removed from this set when their BHead is processed (see
+     * #read_libblock_undo_restore_linked).
+     *
+     * 'No undo' ID types and their dependencies are never considered unused here, by definition.
+     */
+    const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id_iter);
+    if (id_type->flags & IDTYPE_FLAGS_NO_MEMFILE_UNDO) {
+      id_iter->tag |= ID_TAG_UNDO_OLD_ID_REUSED_NOUNDO;
+    }
+    else if (!BLO_readfile_id_runtime_tags(*id_iter).used_by_no_undo_id) {
+      curlib->runtime->unused_ids_on_undo.add_new(id_iter);
+    }
   }
   FOREACH_MAIN_ID_END;
 }
@@ -2928,6 +3015,85 @@ static bool read_libblock_undo_restore_library(FileData *fd,
   return false;
 }
 
+/* Libraries containing 'never undo' data (e.g. Brushes) must always be kept across undo steps,
+ * even if they did not exist in the loaded undo step. */
+static void read_undo_libraries_preserve_never_undo_libraries(FileData *fd)
+{
+  Main *old_bmain = fd->old_bmain;
+  BLI_assert(old_bmain != nullptr);
+  BLI_assert(old_bmain->curlib == nullptr);
+  BLI_assert(old_bmain->split_mains);
+  /* Cannot iterate directly over `old_main->split_mains`, as this is likely going to remove some
+   * of its items. */
+  blender::Vector<Main *> old_bmain_split_mains = {
+      old_bmain->split_mains->as_span().drop_front(1)};
+  for (Main *lib_bmain : old_bmain_split_mains) {
+    BLI_assert(lib_bmain->curlib);
+    if (BLO_readfile_id_runtime_tags(lib_bmain->curlib->id).used_by_no_undo_id) {
+      read_undo_move_libmain_data(fd, lib_bmain, nullptr);
+    }
+  }
+}
+
+/* Once all ID BHeads have been read, remove the regular linked IDs that have been moved from the
+ * old to the new Main, but are actually not used in the new one. */
+static void read_undo_libraries_cleanup_unused_ids(FileData *fd)
+{
+  /* When writing undo memfile data, all regular linked IDs are written as placeholder (reference),
+   * even if unused.
+   *
+   * This ensures that here, all regular linked IDs in the loaded undo step, that were still
+   * present in the old Main libraries, have been accounted for, see #read_undo_move_libmain_data()
+   * and #read_libblock_undo_restore_linked().
+   *
+   * So the libraries that remain in the old Main are not needed by newly loaded undo step, and can
+   * be discarded with the rest of the old Main data.
+   *
+   * The IDs still listed in the `unused_ids_on_undo` set of libraries that were re-used (moved
+   * from old to new Main) are also not needed in the new Main, and can be moved back into the old
+   * Main (as mere local data, to simplify things).
+   */
+
+  Main *old_bmain = fd->old_bmain;
+  BLI_assert(old_bmain != nullptr);
+  BLI_assert(old_bmain->curlib == nullptr);
+  BLI_assert(old_bmain->split_mains);
+
+  Main *new_bmain = fd->bmain;
+  BLI_assert(new_bmain != nullptr);
+  BLI_assert(new_bmain->curlib == nullptr);
+  BLI_assert(new_bmain->split_mains);
+
+  for (Main *lib_bmain : new_bmain->split_mains->as_span().drop_front(1)) {
+    BLI_assert(lib_bmain->curlib);
+    if (lib_bmain->curlib->flag & LIBRARY_FLAG_IS_ARCHIVE) {
+      /* Archived libraries are handled differently than regular libraries, and can be ignored
+       * here. */
+      continue;
+    }
+    for (ID *unused_id : lib_bmain->curlib->runtime->unused_ids_on_undo) {
+      BLI_assert(ID_IS_LINKED(unused_id) && !ID_IS_PACKED(unused_id));
+
+#ifndef NDEBUG
+      const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(unused_id);
+      BLI_assert((id_type->flags & IDTYPE_FLAGS_NO_MEMFILE_UNDO) == 0);
+#endif
+      CLOG_DEBUG(&LOG_UNDO, "Unused linked ID '%s' will be discarded", unused_id->name);
+
+      const short idcode = GS(unused_id->name);
+      ListBase *new_lb = which_libbase(lib_bmain, idcode);
+      ListBase *old_lb = which_libbase(old_bmain, idcode);
+      BLI_remlink(new_lb, unused_id);
+      unused_id->lib = nullptr;
+      BKE_main_idmap_remove_id(fd->new_idmap_uid, unused_id);
+      BLI_addtail(old_lb, unused_id);
+      /* NOTE: There should be no need to update ID pointers mapping (`fd->libmap`) here, as
+       * these IDs should not be in there in the first place. */
+    }
+    lib_bmain->curlib->runtime->unused_ids_on_undo.clear();
+  }
+}
+
 static ID *library_id_is_yet_read(FileData *fd, Main *mainvar, BHead *bhead);
 
 /* For undo, restore existing linked datablock from the old main.
@@ -2974,6 +3140,8 @@ static bool read_libblock_undo_restore_linked(
   }
 
   oldnewmap_lib_insert(fd, bhead->old, *r_id_old, GS((*r_id_old)->name));
+  /* This old linked ID is still being used. */
+  libmain->curlib->runtime->unused_ids_on_undo.remove(*r_id_old);
 
   /* No need to do anything else for ID_LINK_PLACEHOLDER, it's assumed
    * already present in its lib's main. */
@@ -3964,6 +4132,11 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
   const bool is_undo = (fd->flags & FD_FLAGS_IS_MEMFILE) != 0;
   if (is_undo) {
     CLOG_DEBUG(&LOG_UNDO, "UNDO: read step");
+
+    /* Find all 'no undo' IDs from the old Main. These will be moved (re-used) into the new Main.
+     * Also find all of their dependencies (local ones are ignored currently, but linked ones are
+     * also forced-moved into the new Main, even if they did not exist in the loaded memfile). */
+    read_undo_tag_all_noundo_ids(fd);
   }
 
   /* Prevent any run of layer collections rebuild during readfile process, and the do_versions
@@ -4110,35 +4283,10 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
   }
 
   if (is_undo) {
-    /* Move the remaining Library IDs and their linked data to the new main.
-     *
-     * NOTE: These linked IDs have not been detected as used in newly read main. However, they
-     * could be dependencies from some 'no undo' IDs that were unconditionally moved from the old
-     * to the new main.
-     *
-     * While there could be some more refined check here to detect such cases and only move these
-     * into the new bmain, in practice it is simpler to systematically move all linked data. The
-     * handling of libraries already moves all their linked IDs too, regardless of whether they are
-     * effectively used or not. */
-
-    Main *old_main = fd->old_bmain;
-    BLI_assert(old_main != nullptr);
-    BLI_assert(old_main->curlib == nullptr);
-    BLI_assert(old_main->split_mains);
-    /* Cannot iterate directly over `old_main->split_mains`, as this is likely going to remove some
-     * of its items. */
-    blender::Vector<Main *> old_main_split_mains = {old_main->split_mains->as_span()};
-    for (Main *libmain : old_main_split_mains.as_span().drop_front(1)) {
-      BLI_assert(libmain->curlib);
-      if (libmain->curlib->flag & LIBRARY_FLAG_IS_ARCHIVE) {
-        /* Never move archived libraries and their content, these are 'local' data in undo context,
-         * so all packed linked IDs should have been handled like local ones undo-wise, and if
-         * packed libraries remain unused at this point, then they are indeed fully unused/removed
-         * from the new main. */
-        continue;
-      }
-      read_undo_move_libmain_data(fd, libmain, nullptr);
-    }
+    /* Move remaining libraries containing 'no undo' IDs from old to new Main. */
+    read_undo_libraries_preserve_never_undo_libraries(fd);
+    /* Remove from the new Main regular linked IDs that are unused. */
+    read_undo_libraries_cleanup_unused_ids(fd);
   }
 
   /* Ensure fully valid and unique ID names before calling first stage of versioning. */

@@ -165,6 +165,14 @@ static void library_blend_write_data(BlendWriter *writer, ID *id, const void *id
   Library *library = reinterpret_cast<Library *>(id);
   const bool is_undo = BLO_write_is_undo(writer);
 
+  /* Runtime tags need to be preserved across undo steps. */
+  if (is_undo) {
+    library->undo_runtime_tag = library->runtime->tag;
+  }
+  else {
+    library->undo_runtime_tag = 0;
+  }
+
   /* Clear runtime data. */
   library->runtime = nullptr;
 
@@ -180,10 +188,16 @@ static void library_blend_write_data(BlendWriter *writer, ID *id, const void *id
   }
 }
 
-static void library_blend_read_data(BlendDataReader * /*reader*/, ID *id)
+static void library_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Library *lib = reinterpret_cast<Library *>(id);
+  const bool is_undo = BLO_read_data_is_undo(reader);
+
   lib->runtime = MEM_new<LibraryRuntime>(__func__);
+  if (is_undo) {
+    lib->runtime->tag = lib->undo_runtime_tag;
+    lib->undo_runtime_tag = 0;
+  }
 }
 
 static void library_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *id)

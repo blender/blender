@@ -50,8 +50,6 @@ enum {
   /**
    * Indicates that the given IDType is not handled through memfile (aka global) undo.
    *
-   * \note This currently only affect local data-blocks.
-   *
    * \note Current readfile undo code expects these data-blocks to not be used by any 'regular'
    * data-blocks.
    */
