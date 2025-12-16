@@ -854,7 +854,7 @@ static void create_subd_mesh(Scene *scene,
   mesh->set_subd_adaptive_space(space);
   mesh->set_subd_dicing_rate(subd_dicing_rate);
   mesh->set_subd_max_level(max_subdivisions);
-  mesh->set_subd_objecttoworld(get_transform(b_ob->world_to_object()));
+  mesh->set_subd_objecttoworld(get_transform(b_ob->object_to_world()));
 }
 
 /* Sync */

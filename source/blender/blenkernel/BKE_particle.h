@@ -39,6 +39,7 @@ struct MTFace;
 struct Main;
 struct ModifierData;
 struct Object;
+struct ReportList;
 struct RNG;
 struct Scene;
 
@@ -662,6 +663,28 @@ void reset_particle(struct ParticleSimulationData *sim,
                     float cfra);
 
 float psys_get_current_display_percentage(struct ParticleSystem *psys, bool use_render_params);
+
+void BKE_particle_co_hair(const ParticleSystem *particlesystem,
+                          const Object *object,
+                          int particle_no,
+                          int step,
+                          float n_co[3]);
+
+void BKE_particle_uv_on_emitter(ParticleSystem *particlesystem,
+                                ReportList *reports,
+                                ParticleSystemModifierData *modifier,
+                                ParticleData *particle,
+                                int particle_no,
+                                int uv_no,
+                                float r_uv[2]);
+
+void BKE_particle_mcol_on_emitter(ParticleSystem *particlesystem,
+                                  ReportList *reports,
+                                  ParticleSystemModifierData *modifier,
+                                  ParticleData *particle,
+                                  int particle_no,
+                                  int vcol_no,
+                                  float r_mcol[3]);
 
 /* psys_reset */
 #define PSYS_RESET_ALL 1

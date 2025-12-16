@@ -495,7 +495,8 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
     /* Ensure the object geom supporting the hair is processed before adding
      * the hair processing task to the task pool, calling .to_mesh() on the
      * same object in parallel does not work. */
-    const bool sync_hair = b_instance.show_particles() && object_has_particle_hair(b_ob);
+    const bool sync_hair = b_instance.show_particles() &&
+                           object_has_particle_hair(b_ob.ptr.data_as<::Object>());
 
     /* Object itself. */
     if (b_instance.show_self()) {
