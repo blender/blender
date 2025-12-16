@@ -3809,7 +3809,6 @@ class Preprocessor {
     /* Map structure name to structure members. */
     unordered_map<string, vector<Member>> struct_members = {
         {"float", {{"", "", 0, 4}}},
-        {"float", {{"", "", 0, 4}}},
         {"float2", {{"", "", 0, 8}}},
         {"float4", {{"", "", 0, 16}}},
         {"bool32_t", {{"", "", 0, 4}}},
