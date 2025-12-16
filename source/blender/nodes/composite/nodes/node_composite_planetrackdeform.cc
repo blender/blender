@@ -299,8 +299,8 @@ class PlaneTrackDeformOperation : public NodeOperation {
         float2 x_gradient = (homography_matrix[0].xy() / transformed_coordinates.z) / size.x;
         float2 y_gradient = (homography_matrix[1].xy() / transformed_coordinates.z) / size.y;
 
-        float4 sampled_color = input.sample_ewa_extended(
-            projected_coordinates, x_gradient, y_gradient);
+        float4 sampled_color = float4(input.sample_ewa(
+            projected_coordinates, x_gradient, y_gradient, ExtensionMode::Extend));
         accumulated_color += sampled_color;
       }
 

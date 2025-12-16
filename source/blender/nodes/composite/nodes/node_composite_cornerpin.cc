@@ -232,7 +232,8 @@ class CornerPinOperation : public NodeOperation {
          * output size since sample_ewa assumes derivatives with respect to texel coordinates. */
         float2 x_gradient = (homography_matrix[0].xy() / transformed_coordinates.z) / size.x;
         float2 y_gradient = (homography_matrix[1].xy() / transformed_coordinates.z) / size.y;
-        sampled_color = input.sample_ewa_extended(projected_coordinates, x_gradient, y_gradient);
+        sampled_color = float4(input.sample_ewa(
+            projected_coordinates, x_gradient, y_gradient, ExtensionMode::Extend));
       }
 
       float4 plane_color = plane_mask ? sampled_color * plane_mask->load_pixel<float>(texel) :

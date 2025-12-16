@@ -447,18 +447,16 @@ class Result {
   /* Identical to sample_nearest_extended but with bilinear interpolation. */
   float4 sample_bilinear_extended(const float2 &coordinates) const;
 
-  /* Equivalent to the GLSL textureGrad() function with EWA filtering and extended boundary
-   * condition. Note that extended boundaries only cover areas touched by the ellipses whose
-   * center is inside the image, other areas will be zero. The coordinates are thus expected to
-   * have half-pixels offsets. Only supports ResultType::Color. */
-  float4 sample_ewa_extended(const float2 &coordinates,
-                             const float2 &x_gradient,
-                             const float2 &y_gradient) const;
-
-  /* Identical to sample_ewa_extended but with zero boundary condition. */
-  float4 sample_ewa_zero(const float2 &coordinates,
-                         const float2 &x_gradient,
-                         const float2 &y_gradient) const;
+  /* Samples the result at the given normalized coordinates using EWA filtering of the given
+   * texel-space gradients using the given boundary condition. Note that boundary conditions only
+   * cover areas touched by the ellipses whose center is inside the image, other areas will be
+   * zero. The coordinates are thus expected to have half-pixels offsets. Only supports
+   * ResultType::Color. */
+  template<bool CouldBeSingleValue = false>
+  Color sample_ewa(const float2 &coordinates,
+                   const float2 &x_gradient,
+                   const float2 &y_gradient,
+                   ExtensionMode extension_mode) const;
 
  private:
   /* Allocates the image data for the given size.
@@ -796,75 +794,48 @@ BLI_INLINE_METHOD float4 Result::sample_bilinear_extended(const float2 &coordina
   return pixel_value;
 }
 
-/**
- * Given a Result as the userdata argument, sample it at the given coordinates using extended
- * boundary condition and write the result to the result argument.
- */
-static void sample_ewa_extended_read_callback(void *userdata, int x, int y, float result[4])
+/* Given a Result as the userdata argument, sample it at the given coordinates using extended
+ * boundary condition and write the result to the result argument. */
+static inline void sample_ewa_extended_read_callback(void *userdata, int x, int y, float result[4])
 {
   const Result *input = static_cast<const Result *>(userdata);
   const Color sampled_result = input->load_pixel_extended<Color>(int2(x, y));
   copy_v4_v4(result, sampled_result);
 }
 
-BLI_INLINE_METHOD float4 Result::sample_ewa_extended(const float2 &coordinates,
-                                                     const float2 &x_gradient,
-                                                     const float2 &y_gradient) const
-{
-  BLI_assert(type_ == ResultType::Color);
-
-  float4 pixel_value = float4(0.0f, 0.0f, 0.0f, 1.0f);
-  if (is_single_value_) {
-    this->get_cpp_type().copy_assign(this->cpu_data().data(), pixel_value);
-    return pixel_value;
-  }
-
-  const int2 size = domain_.data_size;
-  BLI_ewa_filter(size.x,
-                 size.y,
-                 false,
-                 true,
-                 coordinates,
-                 x_gradient,
-                 y_gradient,
-                 sample_ewa_extended_read_callback,
-                 const_cast<Result *>(this),
-                 pixel_value);
-  return pixel_value;
-}
-
-/**
- * Given a Result as the userdata argument, sample it at the given coordinates using zero boundary
- * condition and write the result to the result argument.
- */
-static void sample_ewa_zero_read_callback(void *userdata, int x, int y, float result[4])
+/* Same as sample_ewa_extended_read_callback but uses zero boundary conditions. */
+static inline void sample_ewa_zero_read_callback(void *userdata, int x, int y, float result[4])
 {
   const Result *input = static_cast<const Result *>(userdata);
   const Color sampled_result = input->load_pixel_zero<Color>(int2(x, y));
   copy_v4_v4(result, sampled_result);
 }
 
-BLI_INLINE_METHOD float4 Result::sample_ewa_zero(const float2 &coordinates,
-                                                 const float2 &x_gradient,
-                                                 const float2 &y_gradient) const
+template<bool CouldBeSingleValue>
+BLI_INLINE_METHOD Color Result::sample_ewa(const float2 &coordinates,
+                                           const float2 &x_gradient,
+                                           const float2 &y_gradient,
+                                           ExtensionMode extension_mode) const
 {
   BLI_assert(type_ == ResultType::Color);
+  BLI_assert(extension_mode == ExtensionMode::Clip || extension_mode == ExtensionMode::Extend);
 
-  float4 pixel_value = float4(0.0f, 0.0f, 0.0f, 1.0f);
-  if (is_single_value_) {
-    this->get_cpp_type().copy_assign(this->cpu_data().data(), pixel_value);
-    return pixel_value;
+  if constexpr (CouldBeSingleValue) {
+    if (is_single_value_) {
+      return this->get_single_value<Color>();
+    }
   }
 
-  const int2 size = domain_.data_size;
-  BLI_ewa_filter(size.x,
-                 size.y,
+  Color pixel_value = Color(0.0f);
+  BLI_ewa_filter(domain_.data_size.x,
+                 domain_.data_size.y,
                  false,
                  true,
                  coordinates,
                  x_gradient,
                  y_gradient,
-                 sample_ewa_zero_read_callback,
+                 extension_mode == ExtensionMode::Clip ? sample_ewa_zero_read_callback :
+                                                         sample_ewa_extended_read_callback,
                  const_cast<Result *>(this),
                  pixel_value);
   return pixel_value;
