@@ -82,6 +82,25 @@ enum TreeTraversalAction {
   TRAVERSE_SKIP_CHILDS,
 };
 
+/* #TreeElement::flag */
+enum TreeElementFlag {
+  TE_ACTIVE = (1 << 0),
+  /* Closed items display their children as icon within the row. TE_ICONROW is for
+   * these child-items that are visible but only within the row of the closed parent. */
+  TE_ICONROW = (1 << 1),
+  /** Treat the element as if it had children, e.g. draw an icon to un-collapse it, even if it
+   * doesn't. Used where children are lazy-built only if the parent isn't collapsed (see
+   * #AbstractTreeDisplay::is_lazy_built()). */
+  TE_PRETEND_HAS_CHILDREN = (1 << 2),
+  TE_FREE_NAME = (1 << 3),
+  TE_DRAGGING = (1 << 4),
+  TE_CHILD_NOT_IN_COLLECTION = (1 << 6),
+  /* Child elements of the same type in the icon-row are drawn merged as one icon.
+   * This flag is set for an element that is part of these merged child icons. */
+  TE_ICONROW_MERGED = (1 << 7),
+};
+ENUM_OPERATORS(TreeElementFlag);
+
 using TreeTraversalFunc = TreeTraversalAction (*)(TreeElement *te, void *customdata);
 
 struct TreeElement {
@@ -98,7 +117,7 @@ struct TreeElement {
   ListBase subtree;
   int xs, ys;                /* Do selection. */
   TreeStoreElem *store_elem; /* Element in tree store. */
-  short flag;                /* Flag for non-saved stuff. */
+  TreeElementFlag flag;      /* Flag for non-saved stuff. */
   short index;               /* Index for data arrays. */
   short idcode;              /* From TreeStore id. */
   short xend;                /* Width of item display, for select. */
@@ -154,24 +173,6 @@ struct TreeElementIcon {
         ID_WS, \
         ID_MSK, \
         ID_PC))
-
-/* TreeElement->flag */
-enum {
-  TE_ACTIVE = (1 << 0),
-  /* Closed items display their children as icon within the row. TE_ICONROW is for
-   * these child-items that are visible but only within the row of the closed parent. */
-  TE_ICONROW = (1 << 1),
-  /** Treat the element as if it had children, e.g. draw an icon to un-collapse it, even if it
-   * doesn't. Used where children are lazy-built only if the parent isn't collapsed (see
-   * #AbstractTreeDisplay::is_lazy_built()). */
-  TE_PRETEND_HAS_CHILDREN = (1 << 2),
-  TE_FREE_NAME = (1 << 3),
-  TE_DRAGGING = (1 << 4),
-  TE_CHILD_NOT_IN_COLLECTION = (1 << 6),
-  /* Child elements of the same type in the icon-row are drawn merged as one icon.
-   * This flag is set for an element that is part of these merged child icons. */
-  TE_ICONROW_MERGED = (1 << 7),
-};
 
 /* button events */
 #define OL_NAMEBUTTON 1
