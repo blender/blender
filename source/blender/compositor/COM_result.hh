@@ -434,27 +434,18 @@ class Result {
            const ExtensionMode &extend_mode_x,
            const ExtensionMode &extend_mode_y) const;
 
-  /* Equivalent to the GLSL texture() function with nearest interpolation and zero boundary
-   * condition. The coordinates are thus expected to have half-pixels offsets. A float4 is always
-   * returned regardless of the number of channels of the buffer, the remaining channels will be
-   * initialized with the template float4(0, 0, 0, 1). */
-  float4 sample_nearest_zero(const float2 &coordinates) const;
-
-  /* Identical to sample_nearest_zero but with bilinear interpolation. */
-  float4 sample_bilinear_zero(const float2 &coordinates) const;
-
-  /* Identical to sample_nearest_zero but with extended boundary condition. */
+  /* Equivalent to the GLSL texture() function with nearest neighbour interpolation and extended
+   * boundary condition. The coordinates are thus expected to have half-pixels offsets. A float4 is
+   * always returned regardless of the number of channels of the buffer, the remaining channels
+   * will be initialized with the template float4(0, 0, 0, 1). */
   float4 sample_nearest_extended(const float2 &coordinates) const;
+
+  /* Identical to sample_nearest_extended but with bilinear interpolation and zero boundary
+   * condition. */
+  float4 sample_bilinear_zero(const float2 &coordinates) const;
 
   /* Identical to sample_nearest_extended but with bilinear interpolation. */
   float4 sample_bilinear_extended(const float2 &coordinates) const;
-
-  /* Identical to sample_nearest_extended but with cubic interpolation. */
-  float4 sample_cubic_extended(const float2 &coordinates) const;
-
-  float4 sample_nearest_wrap(const float2 &coordinates, bool wrap_x, bool wrap_y) const;
-  float4 sample_bilinear_wrap(const float2 &coordinates, bool wrap_x, bool wrap_y) const;
-  float4 sample_cubic_wrap(const float2 &coordinates, bool wrap_x, bool wrap_y) const;
 
   /* Equivalent to the GLSL textureGrad() function with EWA filtering and extended boundary
    * condition. Note that extended boundaries only cover areas touched by the ellipses whose
@@ -739,109 +730,6 @@ BLI_INLINE_METHOD T Result::sample(const float2 &coordinates,
   }
 }
 
-BLI_INLINE_METHOD float4 Result::sample_nearest_zero(const float2 &coordinates) const
-{
-  float4 pixel_value = float4(0.0f, 0.0f, 0.0f, 1.0f);
-  if (is_single_value_) {
-    this->get_cpp_type().copy_assign(this->cpu_data().data(), pixel_value);
-    return pixel_value;
-  }
-
-  const int2 size = domain_.data_size;
-  const float2 texel_coordinates = coordinates * float2(size);
-
-  const float *buffer = static_cast<const float *>(this->cpu_data().data());
-  math::interpolate_nearest_border_fl(buffer,
-                                      pixel_value,
-                                      size.x,
-                                      size.y,
-                                      this->channels_count(),
-                                      texel_coordinates.x,
-                                      texel_coordinates.y);
-  return pixel_value;
-}
-
-BLI_INLINE_METHOD float4 Result::sample_nearest_wrap(const float2 &coordinates,
-                                                     bool wrap_x,
-                                                     bool wrap_y) const
-{
-  float4 pixel_value = float4(0.0f, 0.0f, 0.0f, 1.0f);
-  if (is_single_value_) {
-    this->get_cpp_type().copy_assign(this->cpu_data().data(), pixel_value);
-    return pixel_value;
-  }
-
-  const int2 size = domain_.data_size;
-  const float2 texel_coordinates = coordinates * float2(size);
-
-  const float *buffer = static_cast<const float *>(this->cpu_data().data());
-  math::interpolate_nearest_wrapmode_fl(
-      buffer,
-      pixel_value,
-      size.x,
-      size.y,
-      this->channels_count(),
-      texel_coordinates.x,
-      texel_coordinates.y,
-      wrap_x ? math::InterpWrapMode::Repeat : math::InterpWrapMode::Border,
-      wrap_y ? math::InterpWrapMode::Repeat : math::InterpWrapMode::Border);
-  return pixel_value;
-}
-
-BLI_INLINE_METHOD float4 Result::sample_bilinear_wrap(const float2 &coordinates,
-                                                      bool wrap_x,
-                                                      bool wrap_y) const
-{
-  float4 pixel_value = float4(0.0f, 0.0f, 0.0f, 1.0f);
-  if (is_single_value_) {
-    this->get_cpp_type().copy_assign(this->cpu_data().data(), pixel_value);
-    return pixel_value;
-  }
-
-  const int2 size = domain_.data_size;
-  const float2 texel_coordinates = coordinates * float2(size) - 0.5f;
-
-  const float *buffer = static_cast<const float *>(this->cpu_data().data());
-  math::interpolate_bilinear_wrapmode_fl(
-      buffer,
-      pixel_value,
-      size.x,
-      size.y,
-      this->channels_count(),
-      texel_coordinates.x,
-      texel_coordinates.y,
-      wrap_x ? math::InterpWrapMode::Repeat : math::InterpWrapMode::Border,
-      wrap_y ? math::InterpWrapMode::Repeat : math::InterpWrapMode::Border);
-  return pixel_value;
-}
-
-BLI_INLINE_METHOD float4 Result::sample_cubic_wrap(const float2 &coordinates,
-                                                   bool wrap_x,
-                                                   bool wrap_y) const
-{
-  float4 pixel_value = float4(0.0f, 0.0f, 0.0f, 1.0f);
-  if (is_single_value_) {
-    this->get_cpp_type().copy_assign(this->cpu_data().data(), pixel_value);
-    return pixel_value;
-  }
-
-  const int2 size = domain_.data_size;
-  const float2 texel_coordinates = coordinates * float2(size) - 0.5f;
-
-  const float *buffer = static_cast<const float *>(this->cpu_data().data());
-  math::interpolate_cubic_bspline_wrapmode_fl(
-      buffer,
-      pixel_value,
-      size.x,
-      size.y,
-      this->channels_count(),
-      texel_coordinates.x,
-      texel_coordinates.y,
-      wrap_x ? math::InterpWrapMode::Repeat : math::InterpWrapMode::Border,
-      wrap_y ? math::InterpWrapMode::Repeat : math::InterpWrapMode::Border);
-  return pixel_value;
-}
-
 BLI_INLINE_METHOD float4 Result::sample_bilinear_zero(const float2 &coordinates) const
 {
   float4 pixel_value = float4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -905,28 +793,6 @@ BLI_INLINE_METHOD float4 Result::sample_bilinear_extended(const float2 &coordina
                                 this->channels_count(),
                                 texel_coordinates.x,
                                 texel_coordinates.y);
-  return pixel_value;
-}
-
-BLI_INLINE_METHOD float4 Result::sample_cubic_extended(const float2 &coordinates) const
-{
-  float4 pixel_value = float4(0.0f, 0.0f, 0.0f, 1.0f);
-  if (is_single_value_) {
-    this->get_cpp_type().copy_assign(this->cpu_data().data(), pixel_value);
-    return pixel_value;
-  }
-
-  const int2 size = domain_.data_size;
-  const float2 texel_coordinates = (coordinates * float2(size)) - 0.5f;
-
-  const float *buffer = static_cast<const float *>(this->cpu_data().data());
-  math::interpolate_cubic_bspline_fl(buffer,
-                                     pixel_value,
-                                     size.x,
-                                     size.y,
-                                     this->channels_count(),
-                                     texel_coordinates.x,
-                                     texel_coordinates.y);
   return pixel_value;
 }
 
