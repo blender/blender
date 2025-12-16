@@ -58,7 +58,7 @@ typedef struct Light {
   float sun_angle;
 
   /* Nodes. */
-  short pr_texture, use_nodes;
+  short pr_texture, use_nodes DNA_DEPRECATED;
 
   /* Eevee */
   float clipsta;

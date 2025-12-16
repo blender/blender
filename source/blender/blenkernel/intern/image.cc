@@ -2859,7 +2859,7 @@ static void image_walk_id_all_users(
     }
     case ID_LA: {
       Light *light = (Light *)id;
-      if (light->nodetree && light->use_nodes && !skip_nested_nodes) {
+      if (light->nodetree && !skip_nested_nodes) {
         image_walk_ntree_all_users(light->nodetree, &light->id, customdata, callback);
       }
       break;

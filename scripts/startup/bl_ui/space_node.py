@@ -69,11 +69,6 @@ class NODE_HT_header(Header):
                     'MESH', 'CURVE', 'SURFACE', 'FONT', 'META', 'GPENCIL', 'VOLUME', 'CURVES', 'POINTCLOUD',
                 }
 
-                if snode_id:
-                    row = layout.row()
-                    if ob_type not in types_that_support_material:
-                        row.prop(snode_id, "use_nodes")
-
                 layout.separator_spacer()
 
                 # disable material slot buttons when pinned, cannot find correct slot within id_from (#36589)

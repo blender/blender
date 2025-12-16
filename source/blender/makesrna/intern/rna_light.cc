@@ -75,16 +75,18 @@ static void rna_Light_draw_update(Main * /*bmain*/, Scene * /*scene*/, PointerRN
   WM_main_add_notifier(NC_LAMP | ND_LIGHTING_DRAW, la);
 }
 
-static void rna_Light_use_nodes_update(bContext *C, PointerRNA *ptr)
+static bool rna_Light_use_nodes_get(PointerRNA * /*ptr*/)
 {
-  Light *la = (Light *)ptr->data;
-  Main *bmain = CTX_data_main(C);
+  /* #use_nodes is deprecated. All lights now use nodes. */
+  return true;
+}
 
-  if (la->use_nodes && la->nodetree == nullptr) {
-    blender::nodes::node_tree_shader_default(C, bmain, &la->id);
-  }
-
-  rna_Light_update(CTX_data_main(C), CTX_data_scene(C), ptr);
+static void rna_Light_use_nodes_set(PointerRNA * /*ptr*/, bool /*new_value*/)
+{
+  /* #use_nodes is deprecated. Setting the property has no effect.
+   * Note: Users will get a warning through the RNA deprecation warning, so no need to log a
+   * warning here. */
+  return;
 }
 
 static void rna_Light_temperature_color_get(PointerRNA *ptr, float *color)
@@ -269,9 +271,13 @@ static void rna_def_light(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_nodes", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "use_nodes", 1);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_ui_text(prop, "Use Nodes", "Use shader nodes to render the light");
-  RNA_def_property_update(prop, 0, "rna_Light_use_nodes_update");
+  RNA_def_property_boolean_funcs(prop, "rna_Light_use_nodes_get", "rna_Light_use_nodes_set");
+  RNA_def_property_deprecated(prop,
+                              "Unused but kept for compatibility reasons. Setting the property "
+                              "has no effect, and getting it always returns True.",
+                              510,
+                              600);
 
   /* common */
   rna_def_animdata_common(srna);
