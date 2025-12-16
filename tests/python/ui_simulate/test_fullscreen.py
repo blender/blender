@@ -101,7 +101,6 @@ def wm_toggle_stacked_fullscreen_file_browser():
     t.assertNotEqual(len(window.screen.areas), 1)
 
 
-
 # Checks that stacking a temporary file browser on top of a temporary image editor exits correctly.
 # See: ef7fd50f8a, e61588c5a5 (second glitch mentioned there)
 def wm_toggle_stacked_fullscreens():
