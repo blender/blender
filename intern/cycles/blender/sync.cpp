@@ -265,7 +265,8 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph,
   }
 
   if (b_v3d) {
-    const BlenderViewportParameters new_viewport_parameters(b_v3d, use_developer_ui);
+    const BlenderViewportParameters new_viewport_parameters(b_v3d.ptr.data_as<::View3D>(),
+                                                            use_developer_ui);
 
     if (viewport_parameters.shader_modified(new_viewport_parameters)) {
       world_recalc = true;
@@ -557,7 +558,8 @@ void BlenderSync::sync_film(BL::ViewLayer &b_view_layer, BL::SpaceView3D &b_v3d)
   Film *film = scene->film;
 
   if (b_v3d) {
-    const BlenderViewportParameters new_viewport_parameters(b_v3d, use_developer_ui);
+    const BlenderViewportParameters new_viewport_parameters(b_v3d.ptr.data_as<::View3D>(),
+                                                            use_developer_ui);
     film->set_display_pass(new_viewport_parameters.display_pass);
     film->set_show_active_pixels(new_viewport_parameters.show_active_pixels);
   }

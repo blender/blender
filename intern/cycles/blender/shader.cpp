@@ -1672,7 +1672,8 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
 
   BL::World b_world = view_layer.world_override ? view_layer.world_override : b_scene.world();
 
-  const BlenderViewportParameters new_viewport_parameters(b_v3d, use_developer_ui);
+  const BlenderViewportParameters new_viewport_parameters(b_v3d.ptr.data_as<::View3D>(),
+                                                          use_developer_ui);
 
   Shader *shader = scene->default_background;
 

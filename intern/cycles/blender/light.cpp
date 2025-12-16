@@ -180,7 +180,7 @@ void BlenderSync::sync_background_light(BL::SpaceView3D &b_v3d)
 
   world_map = b_world.ptr.data;
   world_recalc = false;
-  viewport_parameters = BlenderViewportParameters(b_v3d, use_developer_ui);
+  viewport_parameters = BlenderViewportParameters(b_v3d.ptr.data_as<::View3D>(), use_developer_ui);
 }
 
 CCL_NAMESPACE_END
