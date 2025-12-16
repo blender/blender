@@ -329,11 +329,6 @@ class RenderLayerOperation : public NodeOperation {
       return;
     }
 
-    /* Vector sockets are 3D by default, so we need to overwrite the type if the pass turned out to
-     * be 4D. */
-    if (result.type() == ResultType::Float3 && pass.type() == ResultType::Float4) {
-      result.set_type(pass.type());
-    }
     result.set_precision(pass.precision());
 
     if (this->context().use_gpu()) {
@@ -407,15 +402,31 @@ class RenderLayerOperation : public NodeOperation {
 
     result.allocate_texture(this->context().get_compositing_domain());
 
-    /* Special case for alpha output. */
     if (pass.type() == ResultType::Color && result.type() == ResultType::Float) {
+      /* Special case for alpha output. */
       parallel_for(result.domain().data_size, [&](const int2 texel) {
         result.store_pixel(texel, pass.load_pixel<Color>(texel + lower_bound).a);
       });
     }
-    else {
+    else if (pass.type() == ResultType::Float3 && result.type() == ResultType::Color) {
+      /* Color passes with no alpha could be stored in a Float3 type. */
       parallel_for(result.domain().data_size, [&](const int2 texel) {
-        result.store_pixel_generic_type(texel, pass.load_pixel_generic_type(texel + lower_bound));
+        result.store_pixel(texel,
+                           Color(float4(pass.load_pixel<float3>(texel + lower_bound), 1.0f)));
+      });
+    }
+    else {
+      pass.get_cpp_type().to_static_type_tag<float, float3, float4, Color>([&](auto type_tag) {
+        using T = typename decltype(type_tag)::type;
+        if constexpr (std::is_same_v<T, void>) {
+          /* Unsupported type. */
+          BLI_assert_unreachable();
+        }
+        else {
+          parallel_for(result.domain().data_size, [&](const int2 texel) {
+            result.store_pixel(texel, pass.load_pixel<T>(texel + lower_bound));
+          });
+        }
       });
     }
   }

@@ -131,8 +131,17 @@ class GroupInputOperation : public NodeOperation {
     /* The compositing space might be limited to a subset of the input, so only read that
      * compositing region into an appropriately sized result. */
     const int2 lower_bound = this->context().get_input_region().min;
-    parallel_for(result.domain().data_size, [&](const int2 texel) {
-      result.store_pixel_generic_type(texel, input.load_pixel_generic_type(texel + lower_bound));
+    input.get_cpp_type().to_static_type_tag<float, float3, float4, Color>([&](auto type_tag) {
+      using T = typename decltype(type_tag)::type;
+      if constexpr (std::is_same_v<T, void>) {
+        /* Unsupported type. */
+        BLI_assert_unreachable();
+      }
+      else {
+        parallel_for(result.domain().data_size, [&](const int2 texel) {
+          result.store_pixel(texel, input.load_pixel<T>(texel + lower_bound));
+        });
+      }
     });
   }
 };

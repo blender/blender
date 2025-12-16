@@ -205,9 +205,6 @@ class Result {
   /* Returns the type of the given GPU texture format. */
   static ResultType type(blender::gpu::TextureFormat format);
 
-  /* Returns the float type of the result given the channels count. */
-  static ResultType float_type(const int channels_count);
-
   /* Returns the CPP type corresponding to the given result type. */
   static const CPPType &cpp_type(const ResultType type);
 
@@ -422,21 +419,9 @@ class Result {
   /* Identical to load_pixel but with zero boundary condition. */
   template<typename T, bool CouldBeSingleValue = false> T load_pixel_zero(const int2 &texel) const;
 
-  /* Similar to load_pixel, but can load a result whose type is not known at compile time. If the
-   * number of channels in the result are less than 4, then the rest of the returned float4 will
-   * have its vales initialized as follows: float4(0, 0, 0, 1). This is similar to how the
-   * texelFetch function in GLSL works. */
-  float4 load_pixel_generic_type(const int2 &texel) const;
-
   /* Stores the given pixel value in the pixel at the given texel coordinates. Assumes the result
    * stores a value of the given template type. */
   template<typename T> void store_pixel(const int2 &texel, const T &pixel_value);
-
-  /* Similar to store_pixel, but can write to a result whose types is not known at compile time.
-   * While a float4 is given, only the number of channels of the result will be written, while the
-   * rest of the float4 will be ignored. This is similar to how the imageStore function in GLSL
-   * works. */
-  void store_pixel_generic_type(const int2 &texel, const float4 &pixel_value);
 
   /* Samples the result at the given normalized coordinates with the given interpolation and
    * boundary conditions. The interpolation is ignored for non float types that do not support
@@ -642,28 +627,10 @@ BLI_INLINE_METHOD T Result::load_pixel_zero(const int2 &texel) const
   return this->load_pixel_fallback<T, CouldBeSingleValue>(texel, T(0));
 }
 
-BLI_INLINE_METHOD float4 Result::load_pixel_generic_type(const int2 &texel) const
-{
-  float4 pixel_value = float4(0.0f, 0.0f, 0.0f, 1.0f);
-  if (is_single_value_) {
-    this->get_cpp_type().copy_assign(this->cpu_data().data(), pixel_value);
-  }
-  else {
-    this->get_cpp_type().copy_assign(this->cpu_data()[this->get_pixel_index(texel)], pixel_value);
-  }
-  return pixel_value;
-}
-
 template<typename T>
 BLI_INLINE_METHOD void Result::store_pixel(const int2 &texel, const T &pixel_value)
 {
   this->cpu_data().typed<T>()[this->get_pixel_index(texel)] = pixel_value;
-}
-
-BLI_INLINE_METHOD void Result::store_pixel_generic_type(const int2 &texel,
-                                                        const float4 &pixel_value)
-{
-  this->get_cpp_type().copy_assign(pixel_value, this->cpu_data()[this->get_pixel_index(texel)]);
 }
 
 BLI_INLINE int32_t wrap_coordinates(float u, int32_t size, const ExtensionMode extension_mode)
