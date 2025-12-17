@@ -41,6 +41,7 @@
 #include "BLI_utildefines.h"
 
 #include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
 
 #include "BLO_read_write.hh"
 
@@ -530,160 +531,258 @@ void BKE_animdata_merge_copy(
  * \param basepath: Shorter path fragment to look for
  * \return Whether there is a match
  */
-static bool animpath_matches_basepath(const char path[], const char basepath[])
+static bool animpath_matches_basepath(const StringRef path, const StringRef basepath)
 {
-  /* we need start of path to be basepath */
-  return (path && basepath) && STRPREFIX(path, basepath);
+  return path.startswith(basepath);
 }
 
 static void animpath_update_basepath(FCurve *fcu,
-                                     const char *old_basepath,
-                                     const char *new_basepath)
+                                     const StringRef old_basepath,
+                                     const StringRef new_basepath)
 {
   BLI_assert(animpath_matches_basepath(fcu->rna_path, old_basepath));
-  if (STREQ(old_basepath, new_basepath)) {
+  if (old_basepath == new_basepath) {
     return;
   }
 
-  char *new_path = BLI_sprintfN("%s%s", new_basepath, fcu->rna_path + strlen(old_basepath));
+  std::string new_rna_path = new_basepath + StringRefNull(fcu->rna_path + old_basepath.size());
   MEM_freeN(fcu->rna_path);
-  fcu->rna_path = new_path;
+  fcu->rna_path = BLI_strdup(new_rna_path.c_str());
 }
 
-/* Move F-Curves in src action to dst action, setting up all the necessary groups
- * for this to happen, but only if the F-Curves being moved have the appropriate
- * "base path".
- * - This is used when data moves from one data-block to another, causing the
- *   F-Curves to need to be moved over too
- */
-static void action_move_fcurves_by_basepath(bAction *srcAct,
+/* Copy or move F-Curves in src action to dst action if their base path matches. */
+static bool action_copy_fcurves_by_basepath(const animrig::Action &src_action,
                                             const animrig::slot_handle_t src_slot_handle,
-                                            bAction *dstAct,
+                                            animrig::Action &dst_action,
                                             const animrig::slot_handle_t dst_slot_handle,
-                                            const char *src_basepath,
-                                            const char *dst_basepath)
+                                            const StringRef src_basepath,
+                                            const StringRef dst_basepath)
 {
-  /* sanity checks */
-  if (ELEM(nullptr, srcAct, dstAct, src_basepath, dst_basepath)) {
-    if (G.debug & G_DEBUG) {
-      CLOG_ERROR(&LOG,
-                 "srcAct: %p, dstAct: %p, src_basepath: %p, dst_basepath: %p has insufficient "
-                 "info to work with",
-                 (void *)srcAct,
-                 (void *)dstAct,
-                 (void *)src_basepath,
-                 (void *)dst_basepath);
-    }
-    return;
-  }
+  bool result = false;
+  /* const_cast the src_action here because there is only a non-const fcurve iterator method.
+   * We only use the fcurve as a const ref, there's no risk of modifying the data. */
+  animrig::foreach_fcurve_in_action_slot(
+      const_cast<animrig::Action &>(src_action), src_slot_handle, [&](const FCurve &fcurve) {
+        if (animpath_matches_basepath(fcurve.rna_path, src_basepath)) {
+          std::optional<StringRefNull> group_name;
+          if (fcurve.grp) {
+            group_name = fcurve.grp->name;
+          }
+          FCurve *new_fcurve = BKE_fcurve_copy(&fcurve);
+          animpath_update_basepath(new_fcurve, src_basepath, dst_basepath);
+          action_fcurve_attach(dst_action, dst_slot_handle, *new_fcurve, group_name);
+          result = true;
+        }
+      });
+  return result;
+}
 
-  animrig::Action &source_action = srcAct->wrap();
-  animrig::Action &dest_action = dstAct->wrap();
-
+/* Copy or move F-Curves in src action to dst action if their base path matches. */
+static bool action_move_fcurves_by_basepath(animrig::Action &src_action,
+                                            const animrig::slot_handle_t src_slot_handle,
+                                            animrig::Action &dst_action,
+                                            const animrig::slot_handle_t dst_slot_handle,
+                                            const StringRef src_basepath,
+                                            const StringRef dst_basepath)
+{
+  bool result = false;
   /* Get a list of all F-Curves to move. This is done in a separate step so we
    * don't move the curves while iterating over them at the same time. */
-  Vector<FCurve *> fcurves_to_move;
-  animrig::foreach_fcurve_in_action_slot(source_action, src_slot_handle, [&](FCurve &fcurve) {
+  Vector<FCurve *> fcurves_to_transfer;
+  animrig::foreach_fcurve_in_action_slot(src_action, src_slot_handle, [&](FCurve &fcurve) {
     if (animpath_matches_basepath(fcurve.rna_path, src_basepath)) {
-      fcurves_to_move.append(&fcurve);
+      fcurves_to_transfer.append(&fcurve);
+      result = true;
     }
   });
 
-  /* Move the curves from one Action to the other, and change its path to match the destination. */
-  for (FCurve *fcurve_to_move : fcurves_to_move) {
+  /* Move the curves from one Action to the other and change path to match the destination. */
+  for (FCurve *fcurve_to_move : fcurves_to_transfer) {
     animpath_update_basepath(fcurve_to_move, src_basepath, dst_basepath);
-    animrig::action_fcurve_move(dest_action, dst_slot_handle, source_action, *fcurve_to_move);
+    animrig::action_fcurve_move(dst_action, dst_slot_handle, src_action, *fcurve_to_move);
   }
+  return result;
 }
 
-static void animdata_move_drivers_by_basepath(AnimData *srcAdt,
-                                              AnimData *dstAdt,
-                                              const char *src_basepath,
-                                              const char *dst_basepath)
+static bool animdata_copy_drivers_by_basepath(AnimData &src_adt,
+                                              AnimData &dst_adt,
+                                              const StringRef src_basepath,
+                                              const StringRef dst_basepath)
 {
-  LISTBASE_FOREACH_MUTABLE (FCurve *, fcu, &srcAdt->drivers) {
-    if (animpath_matches_basepath(fcu->rna_path, src_basepath)) {
-      animpath_update_basepath(fcu, src_basepath, dst_basepath);
-      BLI_remlink(&srcAdt->drivers, fcu);
-      BLI_addtail(&dstAdt->drivers, fcu);
+  bool result = false;
+  LISTBASE_FOREACH (const FCurve *, fcurve, &src_adt.drivers) {
+    if (animpath_matches_basepath(fcurve->rna_path, src_basepath)) {
+      FCurve *fcurve_copy = BKE_fcurve_copy(fcurve);
+      animpath_update_basepath(fcurve_copy, src_basepath, dst_basepath);
+      BLI_addtail(&dst_adt.drivers, fcurve_copy);
 
-      /* TODO: add depsgraph flushing calls? */
+      result = true;
     }
   }
+  return result;
 }
 
-void BKE_animdata_transfer_by_basepath(Main *bmain, ID *srcID, ID *dstID, ListBase *basepaths)
+static bool animdata_move_drivers_by_basepath(AnimData &src_adt,
+                                              AnimData &dst_adt,
+                                              const StringRef src_basepath,
+                                              const StringRef dst_basepath)
 {
-  AnimData *srcAdt = nullptr, *dstAdt = nullptr;
+  bool result = false;
+  LISTBASE_FOREACH_MUTABLE (FCurve *, fcurve, &src_adt.drivers) {
+    if (animpath_matches_basepath(fcurve->rna_path, src_basepath)) {
+      BLI_remlink(&src_adt.drivers, fcurve);
+      BLI_addtail(&dst_adt.drivers, fcurve);
+      animpath_update_basepath(fcurve, src_basepath, dst_basepath);
 
-  /* sanity checks */
-  if (ELEM(nullptr, srcID, dstID)) {
-    if (G.debug & G_DEBUG) {
-      CLOG_ERROR(&LOG, "no source or destination ID to separate AnimData with");
+      result = true;
     }
-    return;
+  }
+  return result;
+}
+
+/* Make sure the destination ID has animdata and a valid action.
+ * Note: Returned source animdata pointer is mutable, but should only be modified if the source ID
+ * is mutable too. */
+static std::pair<AnimData *, AnimData *> ensure_animdata_pair(Main &bmain,
+                                                              const ID &src_id,
+                                                              ID &dst_id)
+{
+  AnimData *src_adt = BKE_animdata_from_id(&src_id);
+  if (src_adt == nullptr) {
+    /* Nothing to do. */
+    return {nullptr, nullptr};
   }
 
-  /* get animdata from src, and create for destination (if needed) */
-  srcAdt = BKE_animdata_from_id(srcID);
-  dstAdt = BKE_animdata_ensure_id(dstID);
-
-  if (ELEM(nullptr, srcAdt, dstAdt)) {
+  /* Create destination animdata if needed. */
+  AnimData *dst_adt = BKE_animdata_ensure_id(&dst_id);
+  if (dst_adt == nullptr) {
     if (G.debug & G_DEBUG) {
-      CLOG_ERROR(&LOG, "no AnimData for this pair of ID's");
+      CLOG_ERROR(&LOG, "Failed to create AnimData for '%s'", dst_id.name);
     }
-    return;
+    return {nullptr, nullptr};
   }
+  const OwnedAnimData dst_owned_adt = {dst_id, *dst_adt};
 
-  /* active action */
-  if (srcAdt->action) {
-    const OwnedAnimData dst_owned_adt = {*dstID, *dstAdt};
-    if (dstAdt->action == srcAdt->action) {
+  if (src_adt->action) {
+    if (dst_adt->action == src_adt->action) {
       CLOG_WARN(&LOG,
                 "Source and Destination share animation! "
                 "('%s' and '%s' both use '%s') Making new empty action",
-                srcID->name,
-                dstID->name,
-                srcAdt->action->id.name);
+                src_id.name,
+                dst_id.name,
+                src_adt->action->id.name);
 
-      /* This sets dstAdt->action to nullptr. */
       const bool unassign_ok = animrig::unassign_action(dst_owned_adt);
       BLI_assert_msg(unassign_ok, "Expected Action unassignment to work");
       UNUSED_VARS_NDEBUG(unassign_ok);
+
+      DEG_relations_tag_update(&bmain);
     }
 
-    /* Set up an action if necessary, and name it in a similar way so that it
-     * can be easily found again. */
-    if (!dstAdt->action) {
-      animrig::Action &new_action = animrig::action_add(*bmain, srcAdt->action->id.name + 2);
-      new_action.slot_add_for_id(*dstID);
+    /* Create an empty action for the destination if necessary. */
+    if (!dst_adt->action) {
+      animrig::Action &new_action = animrig::action_add(bmain, src_adt->action->id.name + 2);
+      new_action.slot_add_for_id(dst_id);
 
       const bool assign_ok = animrig::assign_action(&new_action, dst_owned_adt);
       BLI_assert_msg(assign_ok, "Expected Action assignment to work");
       UNUSED_VARS_NDEBUG(assign_ok);
-      BLI_assert(dstAdt->slot_handle != animrig::Slot::unassigned);
-    }
+      BLI_assert(dst_adt->slot_handle != animrig::Slot::unassigned);
 
-    /* loop over base paths, trying to fix for each one... */
-    LISTBASE_FOREACH (const AnimationBasePathChange *, basepath_change, basepaths) {
-      action_move_fcurves_by_basepath(srcAdt->action,
-                                      srcAdt->slot_handle,
-                                      dstAdt->action,
-                                      dstAdt->slot_handle,
-                                      basepath_change->src_basepath,
-                                      basepath_change->dst_basepath);
+      DEG_relations_tag_update(&bmain);
     }
   }
 
-  /* drivers */
-  if (srcAdt->drivers.first) {
-    LISTBASE_FOREACH (const AnimationBasePathChange *, basepath_change, basepaths) {
-      animdata_move_drivers_by_basepath(
-          srcAdt, dstAdt, basepath_change->src_basepath, basepath_change->dst_basepath);
+  return {src_adt, dst_adt};
+}
+
+void BKE_animdata_copy_by_basepath(Main &bmain,
+                                   const ID &src_id,
+                                   ID &dst_id,
+                                   blender::Span<AnimationBasePathChange> basepaths)
+{
+  if (basepaths.is_empty()) {
+    return;
+  }
+
+  auto [src_adt, dst_adt] = ensure_animdata_pair(bmain, src_id, dst_id);
+
+  /* Copy data from tyhe source action. */
+  if (src_adt->action) {
+    BLI_assert(dst_adt->action);
+
+    /* Copy fcurves for each base path. */
+    for (const AnimationBasePathChange &basepath_change : basepaths) {
+      if (action_copy_fcurves_by_basepath(src_adt->action->wrap(),
+                                          src_adt->slot_handle,
+                                          dst_adt->action->wrap(),
+                                          dst_adt->slot_handle,
+                                          basepath_change.src_basepath,
+                                          basepath_change.dst_basepath))
+      {
+        DEG_id_tag_update(&dst_id, ID_RECALC_ANIMATION);
+        DEG_id_tag_update(&dst_adt->action->id, ID_RECALC_SYNC_TO_EVAL);
+      }
     }
   }
-  /* Tag source action because list of fcurves changed. */
-  DEG_id_tag_update(&srcAdt->action->id, ID_RECALC_SYNC_TO_EVAL);
+
+  /* Copy drivers in the animation data. */
+  if (src_adt->drivers.first) {
+    for (const AnimationBasePathChange &basepath_change : basepaths) {
+      if (animdata_copy_drivers_by_basepath(
+              *src_adt, *dst_adt, basepath_change.src_basepath, basepath_change.dst_basepath))
+      {
+        DEG_id_tag_update(&dst_id, ID_RECALC_ANIMATION);
+        DEG_relations_tag_update(&bmain);
+      }
+    }
+  }
+}
+
+void BKE_animdata_move_by_basepath(Main &bmain,
+                                   ID &src_id,
+                                   ID &dst_id,
+                                   blender::Span<AnimationBasePathChange> basepaths)
+{
+  if (basepaths.is_empty()) {
+    return;
+  }
+
+  auto [src_adt, dst_adt] = ensure_animdata_pair(bmain, src_id, dst_id);
+
+  /* Move data from the source action to the destination action. */
+  if (src_adt->action) {
+    BLI_assert(dst_adt->action);
+
+    /* Move fcurves for each base path from the source action to the destination action. */
+    for (const AnimationBasePathChange &basepath_change : basepaths) {
+      if (action_move_fcurves_by_basepath(src_adt->action->wrap(),
+                                          src_adt->slot_handle,
+                                          dst_adt->action->wrap(),
+                                          dst_adt->slot_handle,
+                                          basepath_change.src_basepath,
+                                          basepath_change.dst_basepath))
+      {
+        DEG_id_tag_update(&src_id, ID_RECALC_ANIMATION);
+        DEG_id_tag_update(&src_adt->action->id, ID_RECALC_SYNC_TO_EVAL);
+        DEG_id_tag_update(&dst_id, ID_RECALC_ANIMATION);
+        DEG_id_tag_update(&dst_adt->action->id, ID_RECALC_SYNC_TO_EVAL);
+      }
+    }
+  }
+
+  /* Move drivers from the source animdata to the destination animdata. */
+  if (src_adt->drivers.first) {
+    for (const AnimationBasePathChange &basepath_change : basepaths) {
+      if (animdata_move_drivers_by_basepath(
+              *src_adt, *dst_adt, basepath_change.src_basepath, basepath_change.dst_basepath))
+      {
+        DEG_id_tag_update(&src_id, ID_RECALC_ANIMATION);
+        DEG_id_tag_update(&dst_id, ID_RECALC_ANIMATION);
+        DEG_relations_tag_update(&bmain);
+      }
+    }
+  }
 }
 
 /* Path Validation -------------------------------------------- */

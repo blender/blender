@@ -12,6 +12,8 @@
 #include "BLI_span.hh"
 #include "BLI_sys_types.h" /* for bool */
 
+#include <string>
+
 struct AnimData;
 struct BlendDataReader;
 struct BlendWriter;
@@ -208,24 +210,37 @@ bool BKE_animdata_drivers_remove_for_rna_struct(struct ID &owner_id,
 
 /* -------------------------------------- */
 
-typedef struct AnimationBasePathChange {
-  struct AnimationBasePathChange *next, *prev;
-  const char *src_basepath;
-  const char *dst_basepath;
-} AnimationBasePathChange;
+struct AnimationBasePathChange {
+  std::string src_basepath;
+  std::string dst_basepath;
+};
 
 /**
- * Move animation data from source to destination if its paths are based on `basepaths`.
+ * Copy any animation data under the base paths from the #src_id animation data to the #dst_id
+ * animation data. Animation data in #dst_id is created if necessary. If #dst_id has an assigned
+ * action it may be modified or an empty action is assigned if none exists. F-Curves are copied to
+ * the action assigned to #dst_id and drivers are copied to the animation data.
  *
- * Transfer the animation data from `srcID` to `dstID` where the `srcID` animation data
- * is based off `basepath`, creating new #AnimData and associated data as necessary.
- *
- * \param basepaths: A list of #AnimationBasePathChange.
+ * \param basepaths: List of base path pairs to transfer.
  */
-void BKE_animdata_transfer_by_basepath(struct Main *bmain,
-                                       struct ID *srcID,
-                                       struct ID *dstID,
-                                       struct ListBase *basepaths);
+void BKE_animdata_copy_by_basepath(Main &bmain,
+                                   const ID &src_id,
+                                   ID &dst_id,
+                                   blender::Span<AnimationBasePathChange> basepaths);
+
+/**
+ * Move any animation data under the base paths from the #src_id animation data to the #dst_id
+ * animation data. Animation data in #dst_id is created if necessary. If #dst_id has an assigned
+ * action it may be modified or an empty action is assigned if none exists. F-Curves are removed
+ * from the action assigned to #src_id and added to the action assigned to #dst_id. Drivers are
+ * removed from the animation data in #src_id and moved to animation data in #dst_id.
+ *
+ * \param basepaths: List of base path pairs to transfer.
+ */
+void BKE_animdata_move_by_basepath(Main &bmain,
+                                   ID &src_id,
+                                   ID &dst_id,
+                                   blender::Span<AnimationBasePathChange> basepaths);
 
 /* ------------ NLA Keyframing --------------- */
 
