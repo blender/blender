@@ -4,7 +4,10 @@
 
 #pragma once
 
+#include "BKE_colortools.hh"
+#include "BKE_main.hh"
 #include "DNA_fluid_types.h"
+#include "RE_engine.h"
 #include "RNA_access.hh"
 #include "RNA_blender_cpp.hh"
 
@@ -187,17 +190,20 @@ static inline void curvemapping_minmax(/*const*/ BL::CurveMapping &cumap,
   }
 }
 
-static inline void curvemapping_to_array(BL::CurveMapping &cumap,
+static inline void curvemapping_to_array(const ::CurveMapping &cumap,
                                          array<float> &data,
                                          const int size)
 {
-  cumap.update();
-  BL::CurveMap curve = cumap.curves[0];
+  BKE_curvemapping_changed_all(&const_cast<::CurveMapping &>(cumap));
+  const ::CurveMap &curve = cumap.cm[0];
   const int full_size = size + 1;
   data.resize(full_size);
+  if (!curve.table) {
+    BKE_curvemapping_init(&const_cast<::CurveMapping &>(cumap));
+  }
   for (int i = 0; i < full_size; i++) {
     const float t = float(i) / float(size);
-    data[i] = cumap.evaluate(curve, t);
+    data[i] = BKE_curvemap_evaluateF(&cumap, &curve, t);
   }
 }
 
@@ -293,14 +299,14 @@ static inline bool BKE_object_is_deform_modified(BObjectInfo &self, BL::Scene &s
                                                                                        false;
 }
 
-static inline int render_resolution_x(BL::RenderSettings &b_render)
+static inline int render_resolution_x(const ::RenderData &b_render)
 {
-  return b_render.resolution_x() * b_render.resolution_percentage() / 100;
+  return b_render.xsch * b_render.size / 100;
 }
 
-static inline int render_resolution_y(BL::RenderSettings &b_render)
+static inline int render_resolution_y(const ::RenderData &b_render)
 {
-  return b_render.resolution_y() * b_render.resolution_percentage() / 100;
+  return b_render.ysch * b_render.size / 100;
 }
 
 static inline string image_user_file_path(BL::BlendData &data,
@@ -329,7 +335,7 @@ static inline int image_user_frame_number(BL::ImageUser &iuser, BL::Image &ima, 
   return iuser.frame_current();
 }
 
-static inline bool image_is_builtin(BL::Image &ima, BL::RenderEngine &engine)
+static inline bool image_is_builtin(BL::Image &ima, ::RenderEngine &engine)
 {
   const BL::Image::source_enum image_source = ima.source();
   if (image_source == BL::Image::source_TILED) {
@@ -343,7 +349,7 @@ static inline bool image_is_builtin(BL::Image &ima, BL::RenderEngine &engine)
 
   return ima.packed_file() || image_source == BL::Image::source_GENERATED ||
          image_source == BL::Image::source_MOVIE ||
-         (engine.is_preview() && image_source != BL::Image::source_SEQUENCE);
+         ((engine.flag & RE_ENGINE_PREVIEW) != 0 && image_source != BL::Image::source_SEQUENCE);
 }
 
 static inline void render_add_metadata(BL::RenderResult &b_rr, string name, string value)
@@ -536,17 +542,16 @@ static inline void set_string(PointerRNA &ptr, const char *name, const string &v
 
 /* Relative Paths */
 
-static inline string blender_absolute_path(BL::BlendData &b_data, BL::ID &b_id, const string &path)
+static inline string blender_absolute_path(::Main &b_data, ::ID &b_id, const string &path)
 {
   if (path.size() >= 2 && path[0] == '/' && path[1] == '/') {
     string dirname;
 
-    if (b_id.library()) {
-      BL::ID b_library_id(b_id.library());
-      dirname = blender_absolute_path(b_data, b_library_id, b_id.library().filepath());
+    if (b_id.lib) {
+      dirname = blender_absolute_path(b_data, b_id.lib->id, b_id.lib->filepath);
     }
     else {
-      dirname = b_data.filepath();
+      dirname = b_data.filepath;
     }
 
     return path_join(path_dirname(dirname), path.substr(2));
@@ -595,12 +600,13 @@ static inline void mesh_texture_space(const ::Mesh &b_mesh, float3 &loc, float3 
 }
 
 /* Object motion steps, returns 0 if no motion blur needed. */
-static inline uint object_motion_steps(BL::Object &b_parent,
-                                       BL::Object &b_ob,
+static inline uint object_motion_steps(::Object &b_parent,
+                                       ::Object &b_ob,
                                        const int max_steps = INT_MAX)
 {
   /* Get motion enabled and steps from object itself. */
-  PointerRNA cobject = RNA_pointer_get(&b_ob.ptr, "cycles");
+  PointerRNA object_rna_ptr = RNA_id_pointer_create(&b_ob.id);
+  PointerRNA cobject = RNA_pointer_get(&object_rna_ptr, "cycles");
   bool use_motion = get_boolean(cobject, "use_motion_blur");
   if (!use_motion) {
     return 0;
@@ -610,8 +616,9 @@ static inline uint object_motion_steps(BL::Object &b_parent,
 
   /* Also check parent object, so motion blur and steps can be
    * controlled by dupli-group duplicator for linked groups. */
-  if (b_parent.ptr.data != b_ob.ptr.data) {
-    PointerRNA parent_cobject = RNA_pointer_get(&b_parent.ptr, "cycles");
+  if (&b_parent != &b_ob) {
+    PointerRNA parent_rna_ptr = RNA_id_pointer_create(&b_ob.id);
+    PointerRNA parent_cobject = RNA_pointer_get(&parent_rna_ptr, "cycles");
     use_motion &= get_boolean(parent_cobject, "use_motion_blur");
 
     if (!use_motion) {

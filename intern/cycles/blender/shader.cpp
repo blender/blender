@@ -247,9 +247,10 @@ static void set_default_value(ShaderInput *input,
       break;
     }
     case SocketType::STRING: {
-      node->set(
-          socket,
-          (ustring)blender_absolute_path(b_data, b_id, get_string(b_sock.ptr, "default_value")));
+      node->set(socket,
+                (ustring)blender_absolute_path(*b_data.ptr.data_as<::Main>(),
+                                               *b_id.ptr.data_as<::ID>(),
+                                               get_string(b_sock.ptr, "default_value")));
       break;
     }
     default:
@@ -281,7 +282,7 @@ static bool is_image_animated(BL::Image::source_enum b_image_source, BL::ImageUs
 }
 
 static ShaderNode *add_node(Scene *scene,
-                            BL::RenderEngine &b_engine,
+                            ::RenderEngine &b_engine,
                             BL::BlendData &b_data,
                             BL::Scene &b_scene,
                             ShaderGraph *graph,
@@ -826,7 +827,9 @@ static ShaderNode *add_node(Scene *scene,
       }
       else {
         const string absolute_filepath = blender_absolute_path(
-            b_data, b_ntree, b_script_node.filepath());
+            *b_data.ptr.data_as<::Main>(),
+            b_ntree.ptr.data_as<::bNodeTree>()->id,
+            b_script_node.filepath());
         node = OSLShaderManager::osl_node(graph, scene, absolute_filepath, "");
       }
     }
@@ -884,7 +887,7 @@ static ShaderNode *add_node(Scene *scene,
                                               static_cast<::ImageUser *>(b_image_user.ptr.data),
                                               image_frame,
                                               0,
-                                              b_engine.is_preview()),
+                                              (b_engine.flag & RE_ENGINE_PREVIEW) != 0),
               image->image_params());
         }
         else {
@@ -896,7 +899,7 @@ static ShaderNode *add_node(Scene *scene,
                                                 static_cast<::ImageUser *>(b_image_user.ptr.data),
                                                 image_frame,
                                                 tile_number,
-                                                b_engine.is_preview()));
+                                                (b_engine.flag & RE_ENGINE_PREVIEW) != 0));
           }
 
           image->handle = scene->image_manager->add_image(std::move(loaders),
@@ -939,7 +942,7 @@ static ShaderNode *add_node(Scene *scene,
                                             static_cast<::ImageUser *>(b_image_user.ptr.data),
                                             image_frame,
                                             0,
-                                            b_engine.is_preview()),
+                                            (b_engine.flag & RE_ENGINE_PREVIEW) != 0),
             env->image_params());
       }
       else {
@@ -1058,7 +1061,9 @@ static ShaderNode *add_node(Scene *scene,
     IESLightNode *ies = graph->create_node<IESLightNode>();
     switch (b_ies_node.mode()) {
       case BL::ShaderNodeTexIES::mode_EXTERNAL:
-        ies->set_filename(ustring(blender_absolute_path(b_data, b_ntree, b_ies_node.filepath())));
+        ies->set_filename(ustring(blender_absolute_path(*b_data.ptr.data_as<::Main>(),
+                                                        b_ntree.ptr.data_as<bNodeTree>()->id,
+                                                        b_ies_node.filepath())));
         break;
       case BL::ShaderNodeTexIES::mode_INTERNAL:
         ustring ies_content = ustring(get_text_datablock_content(b_ies_node.ies().ptr));
@@ -1250,7 +1255,7 @@ static ShaderOutput *node_find_output_by_name(BL::Node b_node,
 }
 
 static void add_nodes(Scene *scene,
-                      BL::RenderEngine &b_engine,
+                      ::RenderEngine &b_engine,
                       BL::BlendData &b_data,
                       BL::Scene &b_scene,
                       ShaderGraph *graph,
@@ -1259,7 +1264,7 @@ static void add_nodes(Scene *scene,
                       const ProxyMap &proxy_output_map);
 
 static void add_nodes_inlined(Scene *scene,
-                              BL::RenderEngine &b_engine,
+                              ::RenderEngine &b_engine,
                               BL::BlendData &b_data,
                               BL::Scene &b_scene,
                               ShaderGraph *graph,
@@ -1463,7 +1468,7 @@ static void add_nodes_inlined(Scene *scene,
 }
 
 static void add_nodes(Scene *scene,
-                      BL::RenderEngine &b_engine,
+                      ::RenderEngine &b_engine,
                       BL::BlendData &b_data,
                       BL::Scene &b_scene,
                       ShaderGraph *graph,
@@ -1487,7 +1492,7 @@ static void add_nodes(Scene *scene,
 }
 
 static void add_nodes(Scene *scene,
-                      BL::RenderEngine &b_engine,
+                      ::RenderEngine &b_engine,
                       BL::BlendData &b_data,
                       BL::Scene &b_scene,
                       ShaderGraph *graph,
@@ -1610,7 +1615,7 @@ void BlenderSync::sync_materials(BL::Depsgraph &b_depsgraph, bool update_all)
       if (b_mat.node_tree()) {
         BL::ShaderNodeTree b_ntree(b_mat.node_tree());
 
-        add_nodes(scene, b_engine, b_data, b_scene, graph.get(), b_ntree);
+        add_nodes(scene, *b_engine, b_data, b_scene, graph.get(), b_ntree);
       }
       else {
         DiffuseBsdfNode *diffuse = graph->create_node<DiffuseBsdfNode>();
@@ -1694,7 +1699,7 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph,
     if (new_viewport_parameters.use_scene_world && b_world && b_world.node_tree()) {
       BL::ShaderNodeTree b_ntree(b_world.node_tree());
 
-      add_nodes(scene, b_engine, b_data, b_scene, graph.get(), b_ntree);
+      add_nodes(scene, *b_engine, b_data, b_scene, graph.get(), b_ntree);
 
       /* volume */
       PointerRNA cworld = RNA_pointer_get(&b_world.ptr, "cycles");
@@ -1853,7 +1858,7 @@ void BlenderSync::sync_lights(BL::Depsgraph &b_depsgraph, bool update_all)
 
         BL::ShaderNodeTree b_ntree(b_light.node_tree());
 
-        add_nodes(scene, b_engine, b_data, b_scene, graph.get(), b_ntree);
+        add_nodes(scene, *b_engine, b_data, b_scene, graph.get(), b_ntree);
       }
       else {
         EmissionNode *emission = graph->create_node<EmissionNode>();

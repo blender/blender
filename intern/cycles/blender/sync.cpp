@@ -45,7 +45,7 @@ BlenderSync::BlenderSync(BL::RenderEngine &b_engine,
                          bool preview,
                          bool use_developer_ui,
                          Progress &progress)
-    : b_engine(b_engine),
+    : b_engine(b_engine.ptr.data_as<::RenderEngine>()),
       b_data(b_data),
       b_scene(b_scene),
       b_bake_target(PointerRNA_NULL),
@@ -101,7 +101,8 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph,
 {
   /* Sync recalc flags from blender to cycles. Actual update is done separate,
    * so we can do it later on if doing it immediate is not suitable. */
-  BL::Object b_dicing_camera_object = get_dicing_camera_object(b_v3d, b_rv3d);
+  ::Object *b_dicing_camera_object = get_dicing_camera_object(
+      b_v3d.ptr.data_as<::View3D>(), b_rv3d.ptr.data_as<::RegionView3D>());
   bool dicing_camera_updated = false;
 
   /* Iterate over all IDs in this depsgraph. */
@@ -221,7 +222,7 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph,
     }
     /* Camera */
     else if (b_id.is_a(&RNA_Camera)) {
-      if (b_dicing_camera_object && b_dicing_camera_object.data() == b_id) {
+      if (b_dicing_camera_object && b_dicing_camera_object->data == b_id) {
         dicing_camera_updated = true;
       }
     }
@@ -638,12 +639,21 @@ void BlenderSync::sync_view_layer(BL::ViewLayer &b_view_layer)
   }
 }
 
+static RenderData *engine_render_get(RenderEngine *engine)
+{
+  if (engine->re) {
+    return RE_engine_get_render_data(engine->re);
+  }
+  return nullptr;
+}
+
 /* Images */
 void BlenderSync::sync_images()
 {
   /* Sync is a convention for this API, but currently it frees unused buffers. */
 
-  const bool is_interface_locked = b_engine.render() && b_engine.render().use_lock_interface();
+  const bool is_interface_locked = engine_render_get(b_engine) &&
+                                   engine_render_get(b_engine)->use_lock_interface;
   if (is_interface_locked == false && BlenderSession::headless == false) {
     /* If interface is not locked, it's possible image is needed for
      * the display.
@@ -652,7 +662,7 @@ void BlenderSync::sync_images()
   }
   /* Free buffers used by images which are not needed for render. */
   for (BL::Image &b_image : b_data.images) {
-    const bool is_builtin = image_is_builtin(b_image, b_engine);
+    const bool is_builtin = image_is_builtin(b_image, *b_engine);
     if (is_builtin == false) {
       b_image.buffers_free();
     }
@@ -840,8 +850,10 @@ void BlenderSync::free_data_after_sync(BL::Depsgraph &b_depsgraph)
    * footprint during synchronization process.
    */
 
-  const bool is_interface_locked = b_engine.render() && b_engine.render().use_lock_interface();
-  const bool is_persistent_data = b_engine.render() && b_engine.render().use_persistent_data();
+  const bool is_interface_locked = engine_render_get(b_engine) &&
+                                   engine_render_get(b_engine)->use_lock_interface;
+  const bool is_persistent_data = engine_render_get(b_engine) &&
+                                  engine_render_get(b_engine)->mode & R_PERSISTENT_DATA;
   const bool can_free_caches =
       (BlenderSession::headless || is_interface_locked) &&
       /* Baking re-uses the depsgraph multiple times, clearing crashes

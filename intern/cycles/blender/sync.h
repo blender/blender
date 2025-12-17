@@ -70,14 +70,11 @@ class BlenderSync {
   void sync_integrator(BL::ViewLayer &b_view_layer,
                        bool background,
                        const DeviceInfo &denoise_device_info);
-  void sync_camera(BL::RenderSettings &b_render,
+  void sync_camera(const ::RenderData &b_render,
                    const int width,
                    const int height,
                    const char *viewname);
-  void sync_view(BL::SpaceView3D &b_v3d,
-                 BL::RegionView3D &b_rv3d,
-                 const int width,
-                 const int height);
+  void sync_view(::View3D *b_v3d, ::RegionView3D *b_rv3d, const int width, const int height);
   int get_layer_samples()
   {
     return view_layer.samples;
@@ -99,11 +96,8 @@ class BlenderSync {
                                           BL::Scene &b_scene,
                                           bool background);
   static bool get_session_pause(BL::Scene &b_scene, bool background);
-  static BufferParams get_buffer_params(BL::SpaceView3D &b_v3d,
-                                        BL::RegionView3D &b_rv3d,
-                                        Camera *cam,
-                                        const int width,
-                                        const int height);
+  static BufferParams get_buffer_params(
+      ::View3D *b_v3d, ::RegionView3D *b_rv3d, Camera *cam, const int width, const int height);
 
   static DenoiseParams get_denoise_params(BL::Scene &b_scene,
                                           BL::ViewLayer &b_view_layer,
@@ -187,8 +181,8 @@ class BlenderSync {
                               const int motion_step = 0);
 
   /* Camera */
-  void sync_camera_motion(BL::RenderSettings &b_render,
-                          BL::Object &b_ob,
+  void sync_camera_motion(const ::RenderData &b_render,
+                          ::Object *b_ob,
                           const int width,
                           const int height,
                           const float motion_time);
@@ -225,11 +219,11 @@ class BlenderSync {
   bool object_is_light(BL::Object &b_ob);
   bool object_is_camera(BL::Object &b_ob);
 
-  BL::Object get_camera_object(BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d);
-  BL::Object get_dicing_camera_object(BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d);
+  ::Object *get_camera_object(::View3D *b_v3d, ::RegionView3D *b_rv3d);
+  ::Object *get_dicing_camera_object(::View3D *b_v3d, ::RegionView3D *b_rv3d);
 
   /* variables */
-  BL::RenderEngine b_engine;
+  ::RenderEngine *b_engine;
   BL::BlendData b_data;
   BL::Scene b_scene;
   BL::Object b_bake_target;

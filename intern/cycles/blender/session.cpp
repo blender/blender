@@ -137,15 +137,20 @@ void BlenderSession::create_session()
   sync = make_unique<BlenderSync>(
       b_engine, b_data, b_scene, scene, !background, use_developer_ui, session->progress);
   if (b_v3d) {
-    sync->sync_view(b_v3d, b_rv3d, width, height);
+    sync->sync_view(
+        b_v3d.ptr.data_as<::View3D>(), b_rv3d.ptr.data_as<::RegionView3D>(), width, height);
   }
   else {
-    sync->sync_camera(b_render, width, height, "");
+    sync->sync_camera(*b_render.ptr.data_as<::RenderData>(), width, height, "");
   }
 
   /* set buffer parameters */
   const BufferParams buffer_params = BlenderSync::get_buffer_params(
-      b_v3d, b_rv3d, scene->camera, width, height);
+      b_v3d.ptr.data_as<::View3D>(),
+      b_rv3d.ptr.data_as<::RegionView3D>(),
+      scene->camera,
+      width,
+      height);
   session->reset(session_params, buffer_params);
 
   /* Viewport and preview (as in, material preview) does not do tiled rendering, so can inform
@@ -178,8 +183,8 @@ void BlenderSession::reset_session(BL::BlendData &b_data, BL::Depsgraph &b_depsg
   }
   else {
     this->b_render = b_engine.render();
-    width = render_resolution_x(b_render);
-    height = render_resolution_y(b_render);
+    width = render_resolution_x(*b_render.ptr.data_as<::RenderData>());
+    height = render_resolution_y(*b_render.ptr.data_as<::RenderData>());
   }
 
   const bool is_new_session = (session == nullptr);
@@ -232,12 +237,10 @@ void BlenderSession::reset_session(BL::BlendData &b_data, BL::Depsgraph &b_depsg
     sync->sync_recalc(b_depsgraph, b_screen, b_v3d, b_rv3d);
   }
 
-  sync->sync_camera(b_render, width, height, "");
+  sync->sync_camera(*b_render.ptr.data_as<::RenderData>(), width, height, "");
 
-  BL::SpaceView3D b_null_space_view3d(PointerRNA_NULL);
-  BL::RegionView3D b_null_region_view3d(PointerRNA_NULL);
   const BufferParams buffer_params = BlenderSync::get_buffer_params(
-      b_null_space_view3d, b_null_region_view3d, scene->camera, width, height);
+      nullptr, nullptr, scene->camera, width, height);
   session->reset(session_params, buffer_params);
 
   /* reset time */
@@ -347,8 +350,11 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
   /* get buffer parameters */
   const SessionParams session_params = BlenderSync::get_session_params(
       b_engine, b_userpref, b_scene, background);
-  BufferParams buffer_params = BlenderSync::get_buffer_params(
-      b_v3d, b_rv3d, scene->camera, width, height);
+  BufferParams buffer_params = BlenderSync::get_buffer_params(b_v3d.ptr.data_as<::View3D>(),
+                                                              b_rv3d.ptr.data_as<::RegionView3D>(),
+                                                              scene->camera,
+                                                              width,
+                                                              height);
 
   /* temporary render result to find needed passes and views */
   BL::RenderResult b_rr = b_engine.begin_result(0, 0, 1, 1, b_view_layer.name().c_str(), nullptr);
@@ -393,7 +399,7 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
     }
 
     /* update scene */
-    sync->sync_camera(b_render, width, height, b_rview_name.c_str());
+    sync->sync_camera(*b_render.ptr.data_as<::RenderData>(), width, height, b_rview_name.c_str());
     sync->sync_data(b_render,
                     b_depsgraph,
                     b_screen,
@@ -691,7 +697,7 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
 
   /* Sync scene. */
   sync->set_bake_target(b_object);
-  sync->sync_camera(b_render, width, height, "");
+  sync->sync_camera(*b_render.ptr.data_as<::RenderData>(), width, height, "");
   sync->sync_data(b_render,
                   b_depsgraph,
                   b_screen,
@@ -827,15 +833,20 @@ void BlenderSession::synchronize(BL::Depsgraph &b_depsgraph_)
                   session_params.denoise_device);
 
   if (b_rv3d) {
-    sync->sync_view(b_v3d, b_rv3d, width, height);
+    sync->sync_view(
+        b_v3d.ptr.data_as<::View3D>(), b_rv3d.ptr.data_as<::RegionView3D>(), width, height);
   }
   else {
-    sync->sync_camera(b_render, width, height, "");
+    sync->sync_camera(*b_render.ptr.data_as<::RenderData>(), width, height, "");
   }
 
   /* get buffer parameters */
   const BufferParams buffer_params = BlenderSync::get_buffer_params(
-      b_v3d, b_rv3d, scene->camera, width, height);
+      b_v3d.ptr.data_as<::View3D>(),
+      b_rv3d.ptr.data_as<::RegionView3D>(),
+      scene->camera,
+      width,
+      height);
 
   /* reset if needed */
   if (scene->need_reset()) {
@@ -931,7 +942,8 @@ void BlenderSession::view_draw(const int w, const int h)
     else {
       /* update camera from 3d view */
 
-      sync->sync_view(b_v3d, b_rv3d, width, height);
+      sync->sync_view(
+          b_v3d.ptr.data_as<::View3D>(), b_rv3d.ptr.data_as<::RegionView3D>(), width, height);
 
       if (scene->camera->is_modified()) {
         reset = true;
@@ -945,7 +957,11 @@ void BlenderSession::view_draw(const int w, const int h)
       const SessionParams session_params = BlenderSync::get_session_params(
           b_engine, b_userpref, b_scene, background);
       const BufferParams buffer_params = BlenderSync::get_buffer_params(
-          b_v3d, b_rv3d, scene->camera, width, height);
+          b_v3d.ptr.data_as<::View3D>(),
+          b_rv3d.ptr.data_as<::RegionView3D>(),
+          scene->camera,
+          width,
+          height);
       const bool session_pause = BlenderSync::get_session_pause(b_scene, background);
 
       if (session_pause == false) {
