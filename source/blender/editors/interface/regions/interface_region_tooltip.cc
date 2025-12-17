@@ -1592,6 +1592,17 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
 
 #undef USE_ALIGN_Y_CENTER
 
+  if (BLI_rcti_isect_pt(&rect_i, init_position[0], init_position[1]) &&
+      rect_i.ymin < (win_size[1] / 4))
+  {
+    /* Near bottom and overlapping mouse and highlighted item. */
+    BLI_rcti_translate(&rect_i, 0, h * 3);
+  }
+  else if (init_position[1] < UI_UNIT_Y) {
+    /* At the very bottom. */
+    BLI_rcti_translate(&rect_i, 0, UI_UNIT_Y - init_position[1]);
+  }
+
   /* add padding */
   BLI_rcti_pad(&rect_i, int(round(pad_x * 0.5f)), int(round(pad_y * 0.5f)));
 
