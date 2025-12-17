@@ -221,7 +221,7 @@ static float4 integrate_distortion(const int2 &texel,
     /* Sample the color at the distorted coordinates and accumulate it weighted by the increment
      * value for both the start and end channels. */
     float2 distorted_uv = compute_distorted_uv(uv, distortion_scale, size);
-    float4 color = input.sample_bilinear_zero(distorted_uv / float2(size));
+    float4 color = float4(input.sample_bilinear_zero<Color>(distorted_uv / float2(size)));
     accumulated_color[start] += (1.0f - increment) * color[start];
     accumulated_color[end] += increment * color[end];
     accumulated_color.w += color.w;
@@ -374,9 +374,11 @@ class LensDistortionOperation : public NodeOperation {
       float2 normalized_texel = (float2(texel) + float2(0.5f)) / float2(size);
 
       /* Sample the red and blue channels shifted by the dispersion amount. */
-      const float4 red = input.sample_bilinear_zero(normalized_texel + float2(dispersion, 0.0f));
+      const float4 red = float4(
+          input.sample_bilinear_zero<Color>(normalized_texel + float2(dispersion, 0.0f)));
       const float4 green = float4(input.load_pixel<Color>(texel));
-      const float4 blue = input.sample_bilinear_zero(normalized_texel - float2(dispersion, 0.0f));
+      const float4 blue = float4(
+          input.sample_bilinear_zero<Color>(normalized_texel - float2(dispersion, 0.0f)));
 
       const float alpha = blender::math::dot(float3(red.w, green.w, blue.w), float3(1.0f)) / 3.0f;
 

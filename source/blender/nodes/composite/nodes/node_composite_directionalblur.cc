@@ -165,7 +165,8 @@ class DirectionalBlurOperation : public NodeOperation {
                                            float2(-current_sin, current_cos));
         transformed_coordinates += origin;
 
-        accumulated_color += input.sample_bilinear_zero(transformed_coordinates / float2(size));
+        accumulated_color += float4(
+            input.sample_bilinear_zero<Color>(transformed_coordinates / float2(size)));
 
         current_scale += delta_scale;
         current_translation += delta_translation;

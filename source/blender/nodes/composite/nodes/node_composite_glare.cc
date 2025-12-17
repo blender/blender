@@ -1230,9 +1230,9 @@ class GlareOperation : public NodeOperation {
         /* Load three equally spaced neighbors to the current pixel in the direction of the streak
          * vector. */
         float4 neighbors[3];
-        neighbors[0] = input.sample_bilinear_zero(coordinates + vector);
-        neighbors[1] = input.sample_bilinear_zero(coordinates + vector * 2.0f);
-        neighbors[2] = input.sample_bilinear_zero(coordinates + vector * 3.0f);
+        neighbors[0] = float4(input.sample_bilinear_zero<Color>(coordinates + vector));
+        neighbors[1] = float4(input.sample_bilinear_zero<Color>(coordinates + vector * 2.0f));
+        neighbors[2] = float4(input.sample_bilinear_zero<Color>(coordinates + vector * 3.0f));
 
         /* Attenuate the value of two of the channels for each of the neighbors by multiplying by
          * the color modulator. The particular channels for each neighbor were chosen to be
@@ -1251,7 +1251,7 @@ class GlareOperation : public NodeOperation {
         /* The output is the average between the center color and the weighted sum of the
          * neighbors. Which intuitively mean that highlights will spread in the direction of the
          * streak, which is the desired result. */
-        float4 center_color = input.sample_bilinear_zero(coordinates);
+        float4 center_color = float4(input.sample_bilinear_zero<Color>(coordinates));
         float4 output_color = (center_color + weighted_neighbors_sum) / 2.0f;
         output.store_pixel(texel, Color(output_color));
       });
@@ -1512,7 +1512,8 @@ class GlareOperation : public NodeOperation {
 
           /* Accumulate the scaled ghost after attenuating and color modulating its value. */
           float4 multiplier = attenuator * color_modulator;
-          accumulated_ghost += input.sample_bilinear_zero(scaled_coordinates) * multiplier;
+          accumulated_ghost += float4(input.sample_bilinear_zero<Color>(scaled_coordinates)) *
+                               multiplier;
         }
 
         float4 current_accumulated_ghost = float4(
@@ -1626,9 +1627,11 @@ class GlareOperation : public NodeOperation {
       float big_ghost_attenuator = math::max(
           0.0f, 1.0f - distance_to_center * math::abs(big_ghost_scale));
 
-      float4 small_ghost = small_ghost_result.sample_bilinear_zero(small_ghost_coordinates) *
+      float4 small_ghost = float4(small_ghost_result.sample_bilinear_zero<Color>(
+                               small_ghost_coordinates)) *
                            small_ghost_attenuator;
-      float4 big_ghost = big_ghost_result.sample_bilinear_zero(big_ghost_coordinates) *
+      float4 big_ghost = float4(
+                             big_ghost_result.sample_bilinear_zero<Color>(big_ghost_coordinates)) *
                          big_ghost_attenuator;
 
       combined_ghost.store_pixel(texel, Color(small_ghost + big_ghost));
@@ -2356,7 +2359,7 @@ class GlareOperation : public NodeOperation {
           break;
         }
 
-        float4 sample_color = highlights.sample_bilinear_zero(position);
+        float4 sample_color = float4(highlights.sample_bilinear_zero<Color>(position));
 
         /* Attenuate the contributions of pixels that are further away from the source using a
          * quadratic falloff. */
@@ -2370,7 +2373,7 @@ class GlareOperation : public NodeOperation {
         accumulated_color /= accumulated_weight;
       }
       else {
-        accumulated_color = highlights.sample_bilinear_zero(coordinates);
+        accumulated_color = float4(highlights.sample_bilinear_zero<Color>(coordinates));
       }
       output.store_pixel(texel, Color(accumulated_color));
     });
