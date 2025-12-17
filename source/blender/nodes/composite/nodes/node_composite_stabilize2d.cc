@@ -135,7 +135,7 @@ class Stabilize2DOperation : public NodeOperation {
     return Interpolation::Nearest;
   }
 
-  ExtensionMode get_extension_mode_x()
+  Extension get_extension_mode_x()
   {
     const Result &input = this->get_input("Extension X");
     const MenuValue default_menu_value = MenuValue(CMP_NODE_EXTENSION_MODE_CLIP);
@@ -143,17 +143,17 @@ class Stabilize2DOperation : public NodeOperation {
     const CMPExtensionMode extension_x = static_cast<CMPExtensionMode>(menu_value.value);
     switch (extension_x) {
       case CMP_NODE_EXTENSION_MODE_CLIP:
-        return ExtensionMode::Clip;
+        return Extension::Clip;
       case CMP_NODE_EXTENSION_MODE_REPEAT:
-        return ExtensionMode::Repeat;
+        return Extension::Repeat;
       case CMP_NODE_EXTENSION_MODE_EXTEND:
-        return ExtensionMode::Extend;
+        return Extension::Extend;
     }
 
-    return ExtensionMode::Clip;
+    return Extension::Clip;
   }
 
-  ExtensionMode get_extension_mode_y()
+  Extension get_extension_mode_y()
   {
     const Result &input = this->get_input("Extension Y");
     const MenuValue default_menu_value = MenuValue(CMP_NODE_EXTENSION_MODE_CLIP);
@@ -161,14 +161,14 @@ class Stabilize2DOperation : public NodeOperation {
     const CMPExtensionMode extension_y = static_cast<CMPExtensionMode>(menu_value.value);
     switch (extension_y) {
       case CMP_NODE_EXTENSION_MODE_CLIP:
-        return ExtensionMode::Clip;
+        return Extension::Clip;
       case CMP_NODE_EXTENSION_MODE_REPEAT:
-        return ExtensionMode::Repeat;
+        return Extension::Repeat;
       case CMP_NODE_EXTENSION_MODE_EXTEND:
-        return ExtensionMode::Extend;
+        return Extension::Extend;
     }
 
-    return ExtensionMode::Clip;
+    return Extension::Clip;
   }
 
   bool do_inverse_stabilization()

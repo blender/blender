@@ -33,8 +33,8 @@ static char const *get_pixel_sampler_shader_name(const Interpolation &interpolat
 static Color sample_pixel_gpu(Context &context,
                               const Result &input,
                               const Interpolation &interpolation,
-                              const ExtensionMode &extension_mode_x,
-                              const ExtensionMode &extension_mode_y,
+                              const Extension &extension_mode_x,
+                              const Extension &extension_mode_y,
                               const float2 coordinates)
 {
   gpu::Shader *shader = context.get_shader(get_pixel_sampler_shader_name(interpolation));
@@ -78,8 +78,8 @@ static Color sample_pixel_gpu(Context &context,
 
 static Color sample_pixel_cpu(const Result &input,
                               const Interpolation &interpolation,
-                              const ExtensionMode &extension_mode_x,
-                              const ExtensionMode &extension_mode_y,
+                              const Extension &extension_mode_x,
+                              const Extension &extension_mode_y,
                               const float2 coordinates)
 {
   return input.sample<Color>(coordinates, interpolation, extension_mode_x, extension_mode_y);
@@ -89,8 +89,8 @@ static Color sample_pixel_cpu(const Result &input,
 Color sample_pixel(Context &context,
                    const Result &input,
                    const Interpolation &interpolation,
-                   const ExtensionMode &extension_mode_x,
-                   const ExtensionMode &extension_mode_y,
+                   const Extension &extension_mode_x,
+                   const Extension &extension_mode_y,
                    const float2 coordinates)
 {
   BLI_assert(input.type() == ResultType::Color);
