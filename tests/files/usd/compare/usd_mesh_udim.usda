@@ -1,7 +1,7 @@
 #usda 1.0
 (
     defaultPrim = "root"
-    doc = "Blender (hand modified)"
+    doc = "Blender v4.5.1 LTS (hand modified; used relative path for texture)"
     metersPerUnit = 1
     upAxis = "Z"
 )
@@ -40,7 +40,7 @@ def Xform "root" (
         }
     }
 
-    def "_materials"
+    def Scope "_materials"
     {
         def Material "Material_001"
         {
@@ -64,7 +64,7 @@ def Xform "root" (
             def Shader "Image_Texture"
             {
                 uniform token info:id = "UsdUVTexture"
-                asset inputs:file = @./textures/test_grid_<UDIM>.png@
+                asset inputs:file = @./../textures/test_grid_<UDIM>.png@
                 token inputs:sourceColorSpace = "sRGB"
                 float2 inputs:st.connect = </root/_materials/Material_001/UV_Map.outputs:result>
                 token inputs:wrapS = "repeat"

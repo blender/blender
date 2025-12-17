@@ -1,7 +1,7 @@
 #usda 1.0
 (
     defaultPrim = "root"
-    metersPerUnit = 1
+    metersPerUnit = .01
     upAxis = "Z"
     startFrame = 1
     endFrame = 2

@@ -1,0 +1,535 @@
+==== Curves(new): 12
+- Curve 'bezier_nonperiodic_multiple_constant' splines:4 control-points:14
+  - attr 'curve_type' INT8 CURVE
+    - 2 2 2 2 
+  - attr 'handle_left' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, -0.276)
+    - (-0.276, 0.000, 0.500)
+    - (1.000, 0.000, -0.276)
+    - (1.268, 0.000, 0.649)
+    - (2.115, 0.000, -0.104)
+    - (2.500, 0.000, -0.276)
+    - (2.724, 0.000, 0.500)
+    - (3.500, 0.000, 0.276)
+    - (3.276, 0.000, -0.500)
+    - (4.000, 0.000, -0.276)
+    - (4.245, 0.000, 0.605)
+    - (4.363, 0.000, 0.139)
+    - (4.926, 0.000, 0.180)
+    - (4.776, 0.000, -0.500)
+  - attr 'handle_right' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.276)
+    - (0.276, 0.000, 0.500)
+    - (1.000, 0.000, 0.276)
+    - (2.115, 0.000, 0.104)
+    - (0.885, 0.000, -0.896)
+    - (2.500, 0.000, 0.276)
+    - (3.276, 0.000, 0.500)
+    - (3.500, 0.000, -0.276)
+    - (2.724, 0.000, -0.500)
+    - (4.000, 0.000, 0.276)
+    - (4.680, 0.000, 0.426)
+    - (4.639, 0.000, -0.137)
+    - (5.105, 0.000, -0.255)
+    - (4.224, 0.000, -0.500)
+  - attr 'handle_type_left' INT8 POINT
+    - 3 3 3 3 3 3 3 3 3 3 3 3 3 3 
+  - attr 'handle_type_right' INT8 POINT
+    - 3 3 3 3 3 3 3 3 3 3 3 3 3 3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.000, 0.500)
+    - (1.000, 0.000, 0.000)
+    - (1.500, 0.000, 0.500)
+    - (1.500, 0.000, -0.500)
+    - (2.500, 0.000, 0.000)
+    - (3.000, 0.000, 0.500)
+    - (3.500, 0.000, 0.000)
+    - (3.000, 0.000, -0.500)
+    - (4.000, 0.000, 0.000)
+    - (4.500, 0.000, 0.500)
+    - (4.501, 0.000, 0.001)
+    - (5.000, 0.000, 0.000)
+    - (4.500, 0.000, -0.500)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 
+
+- Curve 'bezier_nonperiodic_multiple_varying' splines:4 control-points:14
+  - attr 'curve_type' INT8 CURVE
+    - 2 2 2 2 
+  - attr 'handle_left' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, -0.276)
+    - (-0.276, 0.000, 0.500)
+    - (1.000, 0.000, -0.276)
+    - (1.268, 0.000, 0.649)
+    - (2.115, 0.000, -0.104)
+    - (2.500, 0.000, -0.276)
+    - (2.724, 0.000, 0.500)
+    - (3.500, 0.000, 0.276)
+    - (3.276, 0.000, -0.500)
+    - (4.000, 0.000, -0.276)
+    - (4.245, 0.000, 0.605)
+    - (4.363, 0.000, 0.139)
+    - (4.926, 0.000, 0.180)
+    - (4.776, 0.000, -0.500)
+  - attr 'handle_right' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.276)
+    - (0.276, 0.000, 0.500)
+    - (1.000, 0.000, 0.276)
+    - (2.115, 0.000, 0.104)
+    - (0.885, 0.000, -0.896)
+    - (2.500, 0.000, 0.276)
+    - (3.276, 0.000, 0.500)
+    - (3.500, 0.000, -0.276)
+    - (2.724, 0.000, -0.500)
+    - (4.000, 0.000, 0.276)
+    - (4.680, 0.000, 0.426)
+    - (4.639, 0.000, -0.137)
+    - (5.105, 0.000, -0.255)
+    - (4.224, 0.000, -0.500)
+  - attr 'handle_type_left' INT8 POINT
+    - 3 3 3 3 3 3 3 3 3 3 3 3 3 3 
+  - attr 'handle_type_right' INT8 POINT
+    - 3 3 3 3 3 3 3 3 3 3 3 3 3 3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.000, 0.500)
+    - (1.000, 0.000, 0.000)
+    - (1.500, 0.000, 0.500)
+    - (1.500, 0.000, -0.500)
+    - (2.500, 0.000, 0.000)
+    - (3.000, 0.000, 0.500)
+    - (3.500, 0.000, 0.000)
+    - (3.000, 0.000, -0.500)
+    - (4.000, 0.000, 0.000)
+    - (4.500, 0.000, 0.500)
+    - (4.501, 0.000, 0.001)
+    - (5.000, 0.000, 0.000)
+    - (4.500, 0.000, -0.500)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.100 0.100 0.175 0.100 0.100 0.175 0.175 0.100 0.100 0.175 0.075 0.175 0.100 
+
+- Curve 'bezier_nonperiodic_multiple_vertex' splines:4 control-points:14
+  - attr 'curve_type' INT8 CURVE
+    - 2 2 2 2 
+  - attr 'handle_left' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, -0.276)
+    - (-0.276, 0.000, 0.500)
+    - (1.000, 0.000, -0.276)
+    - (1.268, 0.000, 0.649)
+    - (2.115, 0.000, -0.104)
+    - (2.500, 0.000, -0.276)
+    - (2.724, 0.000, 0.500)
+    - (3.500, 0.000, 0.276)
+    - (3.276, 0.000, -0.500)
+    - (4.000, 0.000, -0.276)
+    - (4.245, 0.000, 0.605)
+    - (4.363, 0.000, 0.139)
+    - (4.926, 0.000, 0.180)
+    - (4.776, 0.000, -0.500)
+  - attr 'handle_right' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.276)
+    - (0.276, 0.000, 0.500)
+    - (1.000, 0.000, 0.276)
+    - (2.115, 0.000, 0.104)
+    - (0.885, 0.000, -0.896)
+    - (2.500, 0.000, 0.276)
+    - (3.276, 0.000, 0.500)
+    - (3.500, 0.000, -0.276)
+    - (2.724, 0.000, -0.500)
+    - (4.000, 0.000, 0.276)
+    - (4.680, 0.000, 0.426)
+    - (4.639, 0.000, -0.137)
+    - (5.105, 0.000, -0.255)
+    - (4.224, 0.000, -0.500)
+  - attr 'handle_type_left' INT8 POINT
+    - 3 3 3 3 3 3 3 3 3 3 3 3 3 3 
+  - attr 'handle_type_right' INT8 POINT
+    - 3 3 3 3 3 3 3 3 3 3 3 3 3 3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.000, 0.500)
+    - (1.000, 0.000, 0.000)
+    - (1.500, 0.000, 0.500)
+    - (1.500, 0.000, -0.500)
+    - (2.500, 0.000, 0.000)
+    - (3.000, 0.000, 0.500)
+    - (3.500, 0.000, 0.000)
+    - (3.000, 0.000, -0.500)
+    - (4.000, 0.000, 0.000)
+    - (4.500, 0.000, 0.500)
+    - (4.501, 0.000, 0.001)
+    - (5.000, 0.000, 0.000)
+    - (4.500, 0.000, -0.500)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.100 0.100 0.175 0.100 0.100 0.175 0.175 0.100 0.100 0.175 0.075 0.175 0.100 
+
+- Curve 'bezier_nonperiodic_single_constant' splines:1 control-points:2
+  - attr 'curve_type' INT8 CURVE
+    - 2 
+  - attr 'handle_left' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, -0.276)
+    - (-0.276, 0.000, 0.500)
+  - attr 'handle_right' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.276)
+    - (0.276, 0.000, 0.500)
+  - attr 'handle_type_left' INT8 POINT
+    - 3 3 
+  - attr 'handle_type_right' INT8 POINT
+    - 3 3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.000, 0.500)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.100 
+
+- Curve 'bezier_nonperiodic_single_varying' splines:1 control-points:2
+  - attr 'curve_type' INT8 CURVE
+    - 2 
+  - attr 'handle_left' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, -0.276)
+    - (-0.276, 0.000, 0.500)
+  - attr 'handle_right' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.276)
+    - (0.276, 0.000, 0.500)
+  - attr 'handle_type_left' INT8 POINT
+    - 3 3 
+  - attr 'handle_type_right' INT8 POINT
+    - 3 3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.000, 0.500)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.100 
+
+- Curve 'bezier_nonperiodic_single_vertex' splines:1 control-points:2
+  - attr 'curve_type' INT8 CURVE
+    - 2 
+  - attr 'handle_left' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, -0.276)
+    - (-0.276, 0.000, 0.500)
+  - attr 'handle_right' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.276)
+    - (0.276, 0.000, 0.500)
+  - attr 'handle_type_left' INT8 POINT
+    - 3 3 
+  - attr 'handle_type_right' INT8 POINT
+    - 3 3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.000, 0.500)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.100 
+
+- Curve 'bezier_periodic_multiple_constant' splines:4 control-points:14
+  - attr 'curve_type' INT8 CURVE
+    - 2 2 2 2 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 1 1 1 
+  - attr 'handle_left' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, -0.276)
+    - (-0.276, 0.000, 0.500)
+    - (1.000, 0.000, -0.276)
+    - (1.268, 0.000, 0.649)
+    - (2.115, 0.000, -0.104)
+    - (2.500, 0.000, -0.276)
+    - (2.724, 0.000, 0.500)
+    - (3.500, 0.000, 0.276)
+    - (3.276, 0.000, -0.500)
+    - (4.000, 0.000, -0.276)
+    - (4.245, 0.000, 0.605)
+    - (4.363, 0.000, 0.139)
+    - (4.926, 0.000, 0.180)
+    - (4.776, 0.000, -0.500)
+  - attr 'handle_right' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.276)
+    - (1.242, 0.000, 0.500)
+    - (1.000, 0.000, 0.276)
+    - (2.115, 0.000, 0.104)
+    - (1.268, 0.000, -0.649)
+    - (2.500, 0.000, 0.276)
+    - (3.276, 0.000, 0.500)
+    - (3.500, 0.000, -0.276)
+    - (2.724, 0.000, -0.500)
+    - (4.000, 0.000, 0.276)
+    - (4.680, 0.000, 0.426)
+    - (4.639, 0.000, -0.137)
+    - (5.105, 0.000, -0.255)
+    - (4.224, 0.000, -0.500)
+  - attr 'handle_type_left' INT8 POINT
+    - 3 3 3 3 3 3 3 3 3 3 3 3 3 3 
+  - attr 'handle_type_right' INT8 POINT
+    - 3 3 3 3 3 3 3 3 3 3 3 3 3 3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.000, 0.500)
+    - (1.000, 0.000, 0.000)
+    - (1.500, 0.000, 0.500)
+    - (1.500, 0.000, -0.500)
+    - (2.500, 0.000, 0.000)
+    - (3.000, 0.000, 0.500)
+    - (3.500, 0.000, 0.000)
+    - (3.000, 0.000, -0.500)
+    - (4.000, 0.000, 0.000)
+    - (4.500, 0.000, 0.500)
+    - (4.501, 0.000, 0.001)
+    - (5.000, 0.000, 0.000)
+    - (4.500, 0.000, -0.500)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 
+
+- Curve 'bezier_periodic_multiple_varying' splines:4 control-points:14
+  - attr 'curve_type' INT8 CURVE
+    - 2 2 2 2 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 1 1 1 
+  - attr 'handle_left' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, -0.276)
+    - (-0.276, 0.000, 0.500)
+    - (1.000, 0.000, -0.276)
+    - (1.268, 0.000, 0.649)
+    - (2.115, 0.000, -0.104)
+    - (2.500, 0.000, -0.276)
+    - (2.724, 0.000, 0.500)
+    - (3.500, 0.000, 0.276)
+    - (3.276, 0.000, -0.500)
+    - (4.000, 0.000, -0.276)
+    - (4.245, 0.000, 0.605)
+    - (4.363, 0.000, 0.139)
+    - (4.926, 0.000, 0.180)
+    - (4.776, 0.000, -0.500)
+  - attr 'handle_right' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.276)
+    - (1.242, 0.000, 0.500)
+    - (1.000, 0.000, 0.276)
+    - (2.115, 0.000, 0.104)
+    - (1.268, 0.000, -0.649)
+    - (2.500, 0.000, 0.276)
+    - (3.276, 0.000, 0.500)
+    - (3.500, 0.000, -0.276)
+    - (2.724, 0.000, -0.500)
+    - (4.000, 0.000, 0.276)
+    - (4.680, 0.000, 0.426)
+    - (4.639, 0.000, -0.137)
+    - (5.105, 0.000, -0.255)
+    - (4.224, 0.000, -0.500)
+  - attr 'handle_type_left' INT8 POINT
+    - 3 3 3 3 3 3 3 3 3 3 3 3 3 3 
+  - attr 'handle_type_right' INT8 POINT
+    - 3 3 3 3 3 3 3 3 3 3 3 3 3 3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.000, 0.500)
+    - (1.000, 0.000, 0.000)
+    - (1.500, 0.000, 0.500)
+    - (1.500, 0.000, -0.500)
+    - (2.500, 0.000, 0.000)
+    - (3.000, 0.000, 0.500)
+    - (3.500, 0.000, 0.000)
+    - (3.000, 0.000, -0.500)
+    - (4.000, 0.000, 0.000)
+    - (4.500, 0.000, 0.500)
+    - (4.501, 0.000, 0.001)
+    - (5.000, 0.000, 0.000)
+    - (4.500, 0.000, -0.500)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.100 0.100 0.175 0.100 0.100 0.175 0.175 0.100 0.100 0.175 0.075 0.175 0.100 
+
+- Curve 'bezier_periodic_multiple_vertex' splines:4 control-points:14
+  - attr 'curve_type' INT8 CURVE
+    - 2 2 2 2 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 1 1 1 
+  - attr 'handle_left' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, -0.276)
+    - (-0.276, 0.000, 0.500)
+    - (1.000, 0.000, -0.276)
+    - (1.268, 0.000, 0.649)
+    - (2.115, 0.000, -0.104)
+    - (2.500, 0.000, -0.276)
+    - (2.724, 0.000, 0.500)
+    - (3.500, 0.000, 0.276)
+    - (3.276, 0.000, -0.500)
+    - (4.000, 0.000, -0.276)
+    - (4.245, 0.000, 0.605)
+    - (4.363, 0.000, 0.139)
+    - (4.926, 0.000, 0.180)
+    - (4.776, 0.000, -0.500)
+  - attr 'handle_right' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.276)
+    - (1.242, 0.000, 0.500)
+    - (1.000, 0.000, 0.276)
+    - (2.115, 0.000, 0.104)
+    - (1.268, 0.000, -0.649)
+    - (2.500, 0.000, 0.276)
+    - (3.276, 0.000, 0.500)
+    - (3.500, 0.000, -0.276)
+    - (2.724, 0.000, -0.500)
+    - (4.000, 0.000, 0.276)
+    - (4.680, 0.000, 0.426)
+    - (4.639, 0.000, -0.137)
+    - (5.105, 0.000, -0.255)
+    - (4.224, 0.000, -0.500)
+  - attr 'handle_type_left' INT8 POINT
+    - 3 3 3 3 3 3 3 3 3 3 3 3 3 3 
+  - attr 'handle_type_right' INT8 POINT
+    - 3 3 3 3 3 3 3 3 3 3 3 3 3 3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.000, 0.500)
+    - (1.000, 0.000, 0.000)
+    - (1.500, 0.000, 0.500)
+    - (1.500, 0.000, -0.500)
+    - (2.500, 0.000, 0.000)
+    - (3.000, 0.000, 0.500)
+    - (3.500, 0.000, 0.000)
+    - (3.000, 0.000, -0.500)
+    - (4.000, 0.000, 0.000)
+    - (4.500, 0.000, 0.500)
+    - (4.501, 0.000, 0.001)
+    - (5.000, 0.000, 0.000)
+    - (4.500, 0.000, -0.500)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.150 0.100 0.050 0.050 0.100 0.050 0.150 0.050 0.100 0.050 0.150 0.150 0.050 
+
+- Curve 'bezier_periodic_single_constant' splines:1 control-points:2
+  - attr 'curve_type' INT8 CURVE
+    - 2 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'handle_left' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, -0.276)
+    - (-0.276, 0.000, 0.500)
+  - attr 'handle_right' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.276)
+    - (1.242, 0.000, 0.500)
+  - attr 'handle_type_left' INT8 POINT
+    - 3 3 
+  - attr 'handle_type_right' INT8 POINT
+    - 3 3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.000, 0.500)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.100 
+
+- Curve 'bezier_periodic_single_varying' splines:1 control-points:2
+  - attr 'curve_type' INT8 CURVE
+    - 2 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'handle_left' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, -0.276)
+    - (-0.276, 0.000, 0.500)
+  - attr 'handle_right' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.276)
+    - (1.242, 0.000, 0.500)
+  - attr 'handle_type_left' INT8 POINT
+    - 3 3 
+  - attr 'handle_type_right' INT8 POINT
+    - 3 3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.000, 0.500)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.100 
+
+- Curve 'bezier_periodic_single_vertex' splines:1 control-points:2
+  - attr 'curve_type' INT8 CURVE
+    - 2 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'handle_left' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, -0.276)
+    - (-0.276, 0.000, 0.500)
+  - attr 'handle_right' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.276)
+    - (1.242, 0.000, 0.500)
+  - attr 'handle_type_left' INT8 POINT
+    - 3 3 
+  - attr 'handle_type_right' INT8 POINT
+    - 3 3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.000, 0.500)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.100 
+
+==== Objects: 19
+- Obj 'bezier_nonperiodic' EMPTY par:'root'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bezier_nonperiodic_multiple_constant' CURVES data:'bezier_nonperiodic_multiple_constant' par:'multiple'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bezier_nonperiodic_multiple_varying' CURVES data:'bezier_nonperiodic_multiple_varying' par:'multiple'
+  - pos 0.000, 0.000, 1.250
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bezier_nonperiodic_multiple_vertex' CURVES data:'bezier_nonperiodic_multiple_vertex' par:'multiple'
+  - pos 0.000, 0.000, 2.500
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bezier_nonperiodic_single_constant' CURVES data:'bezier_nonperiodic_single_constant' par:'single'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bezier_nonperiodic_single_varying' CURVES data:'bezier_nonperiodic_single_varying' par:'single'
+  - pos 0.000, 0.000, 1.250
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bezier_nonperiodic_single_vertex' CURVES data:'bezier_nonperiodic_single_vertex' par:'single'
+  - pos 0.000, 0.000, 2.500
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bezier_periodic' EMPTY par:'root'
+  - pos 0.000, 0.000, 4.250
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bezier_periodic_multiple_constant' CURVES data:'bezier_periodic_multiple_constant' par:'multiple.001'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bezier_periodic_multiple_varying' CURVES data:'bezier_periodic_multiple_varying' par:'multiple.001'
+  - pos 0.000, 0.000, 1.250
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bezier_periodic_multiple_vertex' CURVES data:'bezier_periodic_multiple_vertex' par:'multiple.001'
+  - pos 0.000, 0.000, 2.500
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bezier_periodic_single_constant' CURVES data:'bezier_periodic_single_constant' par:'single.001'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bezier_periodic_single_varying' CURVES data:'bezier_periodic_single_varying' par:'single.001'
+  - pos 0.000, 0.000, 1.250
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bezier_periodic_single_vertex' CURVES data:'bezier_periodic_single_vertex' par:'single.001'
+  - pos 0.000, 0.000, 2.500
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'multiple' EMPTY par:'bezier_nonperiodic'
+  - pos 2.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'multiple.001' EMPTY par:'bezier_periodic'
+  - pos 2.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'root' EMPTY
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'single' EMPTY par:'bezier_nonperiodic'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'single.001' EMPTY par:'bezier_periodic'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+

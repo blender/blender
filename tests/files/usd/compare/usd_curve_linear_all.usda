@@ -2,7 +2,7 @@
 (
     defaultPrim = "root"
     doc = "Linear BasisCurves"
-    metersPerUnit = .01
+    metersPerUnit = 1
     upAxis = "Z"
 )
 

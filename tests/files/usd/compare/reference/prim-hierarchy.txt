@@ -1,0 +1,98 @@
+==== Meshes: 3
+- Mesh 'Plane' vtx:4 face:1 loop:4 edge:4
+    - 0 1 3 2 
+    - 0/2 0/1 1/3 2/3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, -1.000, 0.000)
+    - (1.000, -1.000, 0.000)
+    - (-1.000, 1.000, 0.000)
+    - (1.000, 1.000, 0.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+
+- Mesh 'Plane_001' vtx:4 face:1 loop:4 edge:4
+    - 0 1 3 2 
+    - 0/2 0/1 1/3 2/3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, -1.000, 0.000)
+    - (1.000, -1.000, 0.000)
+    - (-1.000, 1.000, 0.000)
+    - (1.000, 1.000, 0.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+
+- Mesh 'Plane_002' vtx:4 face:1 loop:4 edge:4
+    - 0 1 3 2 
+    - 0/2 0/1 1/3 2/3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, -1.000, 0.000)
+    - (1.000, -1.000, 0.000)
+    - (-1.000, 1.000, 0.000)
+    - (1.000, 1.000, 0.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+
+==== Objects: 5
+- Obj 'Empty' EMPTY par:'World'
+  - pos 3.000, 0.000, -2.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Plane' MESH data:'Plane' par:'World'
+  - pos 0.000, -2.000, -2.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - 1 modifiers
+    - SUBSURF 'Subdivision' levels:1/2 type:CATMULL_CLARK crease:True
+- Obj 'Plane_001' MESH data:'Plane_001' par:'World'
+  - pos 0.000, 1.500, -2.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - 1 modifiers
+    - SUBSURF 'Subdivision' levels:1/2 type:CATMULL_CLARK crease:True
+- Obj 'Plane_002' MESH data:'Plane_002' par:'Empty'
+  - pos 0.000, 0.000, -2.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - 1 modifiers
+    - SUBSURF 'Subdivision' levels:1/2 type:CATMULL_CLARK crease:True
+- Obj 'World' EMPTY
+  - pos 0.000, 0.000, 2.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+
