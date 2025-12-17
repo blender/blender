@@ -121,3 +121,8 @@ float cos_from_sin(float s)
 {
   return sqrt(max(0.0f, 1.0f - square(s)));
 }
+
+float cos_from_tan(float t)
+{
+  return inversesqrt(1.0f + square(t));
+}

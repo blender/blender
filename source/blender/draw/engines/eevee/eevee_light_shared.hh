@@ -160,7 +160,7 @@ struct [[host_shared]] LightSunData {
 
   /** Angle covered by the light shape for shadow ray casting. */
   float shadow_angle;
-  float _pad5;
+  float shadow_angle_cos;
   float _pad3;
   float _pad4;
 

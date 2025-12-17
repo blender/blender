@@ -157,12 +157,12 @@ ShadowRayDirectional shadow_ray_generate_directional(
   float dist_to_near_plane = -lP.z - clip_near;
   /* Trace in a radius that is covered by low resolution page inflation. */
   float max_tracing_distance = texel_radius * float(SHADOW_PAGE_RES << SHADOW_TILEMAP_LOD);
-  /* TODO(fclem): Remove atan here. We only need the cosine of the angle. */
-  float max_tracing_angle = atan_fast(max_tracing_distance / dist_to_near_plane);
-  float shadow_angle = min(light.sun().shadow_angle, max_tracing_angle);
+  float max_tracing_angle_cos = cos_from_tan(max_tracing_distance / dist_to_near_plane);
+  /* Taking max of cosines to get the minimum of the angles. */
+  float shadow_angle_cos = max(light.sun().shadow_angle_cos, max_tracing_angle_cos);
 
   /* Light shape is 1 unit away from the shading point. */
-  float3 direction = sample_uniform_cone(random_2d, cos(shadow_angle));
+  float3 direction = sample_uniform_cone(random_2d, shadow_angle_cos);
 
   /* It only make sense to trace where there can be occluder. Clamp by distance to near plane. */
   direction *= max(texel_radius, dist_to_near_plane / direction.z);

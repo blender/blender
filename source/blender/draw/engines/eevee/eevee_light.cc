@@ -207,6 +207,8 @@ void Light::shape_parameters_set(const ::Light *la,
     l_sun.shadow_angle = sun_half_angle * trace_scaling_fac;
     /* Clamp to a minimum to distinguish between point lights and area light shadow. */
     l_sun.shadow_angle = (sun_half_angle > 0.0f) ? max_ff(1e-8f, l_sun.shadow_angle) : 0.0f;
+    /* Precompute this cosine on CPU to avoid differences in shadow tracing between platforms. */
+    l_sun.shadow_angle_cos = cosf(l_sun.shadow_angle);
     /* Clamp to minimum value before float imprecision artifacts appear. */
     l_sun.shape_radius = clamp(tanf(sun_half_angle), 0.001f, 20.0f);
     /* Stable shading direction. */
