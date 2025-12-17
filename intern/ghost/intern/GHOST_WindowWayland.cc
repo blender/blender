@@ -1942,6 +1942,11 @@ void GHOST_WindowWayland::clientToScreen(const int32_t inX,
 
 uint16_t GHOST_WindowWayland::getDPIHint()
 {
+  /* Early out if use of DPI scale is disabled. */
+  if (!system_->native_pixel_) {
+    return base_dpi;
+  }
+
   /* No need to lock `server_mutex`
    * (`outputs_changed_update_scale` never changes values in a non-main thread). */
 
@@ -2235,6 +2240,12 @@ void GHOST_WindowWayland::outputs_changed_update_scale_tag()
 
 bool GHOST_WindowWayland::outputs_changed_update_scale()
 {
+  /* NOTE: a current limitation is that a change in monitor scale while using --no-native-pixels
+   * will scale the window content up/down. */
+  if (!system_->native_pixel_) {
+    return false;
+  }
+
 #ifdef USE_EVENT_BACKGROUND_THREAD
   if (system_->main_thread_id != std::this_thread::get_id()) {
     gwl_window_pending_actions_tag(window_, PENDING_OUTPUT_SCALE_UPDATE);

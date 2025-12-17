@@ -1037,7 +1037,7 @@ void GHOST_WindowWin32::updateDPI()
 
 uint16_t GHOST_WindowWin32::getDPIHint()
 {
-  if (user32_) {
+  if (user32_ && system_->native_pixel_) {
     GHOST_WIN32_GetDpiForWindow fpGetDpiForWindow = (GHOST_WIN32_GetDpiForWindow)::GetProcAddress(
         user32_, "GetDpiForWindow");
 
