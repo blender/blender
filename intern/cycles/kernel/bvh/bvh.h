@@ -225,7 +225,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
 #      include "kernel/bvh/shadow_all.h"
 #    endif
 
-ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
+ccl_device_intersect void scene_intersect_shadow_all(KernelGlobals kg,
                                                      IntegratorShadowState state,
                                                      const ccl_private Ray *ray,
                                                      const uint visibility,
@@ -236,15 +236,16 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
   if (!intersection_ray_valid(ray)) {
     *num_recorded_hits = 0;
     *throughput = 1.0f;
-    return false;
+    return;
   }
 
 #    ifdef __EMBREE__
   IF_USING_EMBREE
   {
     if (kernel_data.device_bvh) {
-      return kernel_embree_intersect_shadow_all(
+      kernel_embree_intersect_shadow_all(
           kg, state, ray, visibility, max_transparent_hits, num_recorded_hits, throughput);
+      return;
     }
   }
 #    endif
@@ -255,29 +256,32 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
     if (kernel_data.bvh.have_motion) {
 #      ifdef __HAIR__
       if (kernel_data.bvh.have_curves) {
-        return bvh_intersect_shadow_all_hair_motion(
+        bvh_intersect_shadow_all_hair_motion(
             kg, ray, state, visibility, max_transparent_hits, num_recorded_hits, throughput);
+        return;
       }
 #      endif /* __HAIR__ */
 
-      return bvh_intersect_shadow_all_motion(
+      bvh_intersect_shadow_all_motion(
           kg, ray, state, visibility, max_transparent_hits, num_recorded_hits, throughput);
+      return;
     }
 #    endif /* __OBJECT_MOTION__ */
 
 #    ifdef __HAIR__
     if (kernel_data.bvh.have_curves) {
-      return bvh_intersect_shadow_all_hair(
+      bvh_intersect_shadow_all_hair(
           kg, ray, state, visibility, max_transparent_hits, num_recorded_hits, throughput);
+      return;
     }
 #    endif /* __HAIR__ */
 
-    return bvh_intersect_shadow_all(
+    bvh_intersect_shadow_all(
         kg, ray, state, visibility, max_transparent_hits, num_recorded_hits, throughput);
+    return;
   }
 
   kernel_assert(false);
-  return false;
 }
 #  endif /* __TRANSPARENT_SHADOWS__ */
 

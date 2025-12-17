@@ -60,7 +60,6 @@ struct MetalRTIntersectionShadowAllPayload {
   short max_transparent_hits;
   short num_transparent_hits;
   short num_recorded_hits;
-  bool result;
 };
 
 #ifdef __HAIR__
@@ -477,7 +476,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
 #endif
 
 #ifdef __TRANSPARENT_SHADOWS__
-ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
+ccl_device_intersect void scene_intersect_shadow_all(KernelGlobals kg,
                                                      IntegratorShadowState state,
                                                      const ccl_private Ray *ray,
                                                      const uint visibility,
@@ -501,7 +500,6 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
   payload.num_transparent_hits = 0;
   payload.num_recorded_hits = 0;
   payload.throughput = 1.0f;
-  payload.result = false;
   payload.state = state;
   payload.visibility = visibility;
 
@@ -526,8 +524,6 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
 
   *num_recorded_hits = payload.num_recorded_hits;
   *throughput = payload.throughput;
-
-  return payload.result;
 }
 #endif
 

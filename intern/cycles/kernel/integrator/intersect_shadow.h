@@ -118,8 +118,10 @@ ccl_device bool integrate_intersect_shadow_transparent(KernelGlobals kg,
   const uint max_transparent_hits = integrate_shadow_max_transparent_hits(kg, state);
   uint num_hits = 0;
   float throughput = 1.0f;
-  bool opaque_hit = scene_intersect_shadow_all(
+  scene_intersect_shadow_all(
       kg, state, ray, visibility, max_transparent_hits, &num_hits, &throughput);
+
+  const bool opaque_hit = (throughput == 0.0f);
 
   /* Computed throughput from baked shadow transparency, where we can bypass recording
    * intersections and shader evaluation. */

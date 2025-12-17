@@ -192,7 +192,7 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
 
 #  ifndef __TRANSPARENT_SHADOWS__
   /* No transparent shadows support compiled in, make opaque. */
-  optixSetPayload_5(true);
+  optixSetPayload_1(__float_as_uint(0.0f));
   return optixTerminateRay();
 #  else
   const uint max_transparent_hits = optixGetPayload_3();
@@ -203,7 +203,7 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
   /* If no transparent shadows, all light is blocked and we can stop immediately. */
   const int flags = intersection_get_shader_flags(nullptr, prim, type);
   if (!(flags & SD_HAS_TRANSPARENT_SHADOW)) {
-    optixSetPayload_5(true);
+    optixSetPayload_1(__float_as_uint(0.0f));
     return optixTerminateRay();
   }
 
@@ -211,7 +211,7 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
   num_transparent_hits += !(flags & SD_HAS_ONLY_VOLUME);
   if (num_transparent_hits > max_transparent_hits) {
     /* Max number of hits exceeded. */
-    optixSetPayload_5(true);
+    optixSetPayload_1(__float_as_uint(0.0f));
     return optixTerminateRay();
   }
 
@@ -223,14 +223,12 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
     optixSetPayload_2(uint16_pack_to_uint(num_recorded_hits, num_transparent_hits));
 
     if (throughput < CURVE_SHADOW_TRANSPARENCY_CUTOFF) {
-      optixSetPayload_5(true);
+      optixSetPayload_1(__float_as_uint(0.0f));
       return optixTerminateRay();
     }
-    else {
-      /* Continue tracing. */
-      optixIgnoreIntersection();
-      return;
-    }
+    /* Continue tracing. */
+    optixIgnoreIntersection();
+    return;
   }
 
   /* Record transparent intersection. */
@@ -618,7 +616,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
 #endif
 
 #ifdef __TRANSPARENT_SHADOWS__
-ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
+ccl_device_intersect void scene_intersect_shadow_all(KernelGlobals kg,
                                                      IntegratorShadowState state,
                                                      const ccl_private Ray *ray,
                                                      const uint visibility,
@@ -631,7 +629,7 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
   uint p2 = 0;                     /* Number of hits. */
   uint p3 = max_transparent_hits;
   uint p4 = visibility;
-  uint p5 = false;
+  uint p5 = 0;
   uint p6 = pointer_pack_to_uint_0(ray);
   uint p7 = pointer_pack_to_uint_1(ray);
 
@@ -663,8 +661,6 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
 
   *num_recorded_hits = uint16_unpack_from_uint_0(p2);
   *throughput = __uint_as_float(p1);
-
-  return p5;
 }
 #endif
 

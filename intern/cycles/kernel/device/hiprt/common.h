@@ -428,15 +428,18 @@ ccl_device_inline bool shadow_intersection_filter(const hiprtRay &ray,
   const int primitive_type = kernel_data_fetch(objects, object).primitive_type;
 
 #  ifndef __TRANSPARENT_SHADOWS__
+  *payload->r_throughput = 0.0f;
   return false;
 #  else
   const int flags = intersection_get_shader_flags(kg, prim, primitive_type);
   if (!(flags & SD_HAS_TRANSPARENT_SHADOW)) {
+    *payload->r_throughput = 0.0f;
     return false;
   }
 
   num_transparent_hits += !(flags & SD_HAS_ONLY_VOLUME);
   if (num_transparent_hits > max_transparent_hits) {
+    *payload->r_throughput = 0.0f;
     return false;
   }
 
@@ -529,15 +532,18 @@ ccl_device_inline bool shadow_intersection_filter_curves(const hiprtRay &ray,
   const int primitive_type = segment.type;
 
 #  ifndef __TRANSPARENT_SHADOWS__
+  *payload->r_throughput = 0.0f;
   return false;
 #  else
   const int flags = intersection_get_shader_flags(kg, prim, primitive_type);
   if (!(flags & SD_HAS_TRANSPARENT_SHADOW)) {
+    *payload->r_throughput = 0.0f;
     return false;
   }
 
   num_transparent_hits += !(flags & SD_HAS_ONLY_VOLUME);
   if (num_transparent_hits > max_transparent_hits) {
+    *payload->r_throughput = 0.0f;
     return false;
   }
 
@@ -547,6 +553,7 @@ ccl_device_inline bool shadow_intersection_filter_curves(const hiprtRay &ray,
   payload->num_transparent_hits = num_transparent_hits;
 
   if (throughput < CURVE_SHADOW_TRANSPARENCY_CUTOFF) {
+    *payload->r_throughput = 0.0f;
     return false;
   }
 

@@ -258,7 +258,7 @@ bool metalrt_shadow_all_hit(
 
 #    ifndef __TRANSPARENT_SHADOWS__
   /* No transparent shadows support compiled in, make opaque. */
-  payload.result = true;
+  payload.throughput = 0.0f;
   /* terminate ray */
   return false;
 #    else
@@ -266,7 +266,7 @@ bool metalrt_shadow_all_hit(
   /* If no transparent shadows, all light is blocked and we can stop immediately. */
   const int flags = context.intersection_get_shader_flags(nullptr, prim, type);
   if (!(flags & SD_HAS_TRANSPARENT_SHADOW)) {
-    payload.result = true;
+    payload.throughput = 0.0f;
     /* Terminate ray. */
     return false;
   }
@@ -277,7 +277,7 @@ bool metalrt_shadow_all_hit(
 
   if (num_transparent_hits > max_transparent_hits) {
     /* Max number of hits exceeded. */
-    payload.result = true;
+    payload.throughput = 0.0f;
     return false;
   }
 
@@ -291,7 +291,7 @@ bool metalrt_shadow_all_hit(
 
     if (throughput < CURVE_SHADOW_TRANSPARENCY_CUTOFF) {
       /* Accept result and terminate if throughput is sufficiently low */
-      payload.result = true;
+      payload.throughput = 0.0f;
       return false;
     }
     else {

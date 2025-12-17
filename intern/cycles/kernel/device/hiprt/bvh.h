@@ -155,7 +155,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
 #endif /*__BVH_LOCAL__ */
 
 #ifdef __TRANSPARENT_SHADOWS__
-ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
+ccl_device_intersect void scene_intersect_shadow_all(KernelGlobals kg,
                                                      IntegratorShadowState state,
                                                      const ccl_private Ray *ray,
                                                      const uint visibility,
@@ -167,7 +167,7 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
   *num_recorded_hits = 0;
 
   if (!scene_intersect_valid(ray)) {
-    return false;
+    return;
   }
 
   hiprtRay ray_hip;
@@ -187,7 +187,7 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
   GET_TRAVERSAL_ANY_HIT(table_shadow_intersect, 1, ray->time)
 
   const hiprtHit hit = traversal.getNextHit();
-  return hit.hasHit();
+  (void)hit;
 }
 #endif /* __TRANSPARENT_SHADOWS__ */
 

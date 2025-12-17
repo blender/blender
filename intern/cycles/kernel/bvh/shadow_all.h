@@ -26,7 +26,7 @@ ccl_device
 #else
 ccl_device_inline
 #endif
-    bool
+    void
     BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
                                 const ccl_private Ray *ray,
                                 IntegratorShadowState state,
@@ -230,7 +230,8 @@ ccl_device_inline
               const int flags = intersection_get_shader_flags(kg, isect.prim, isect.type);
               if ((flags & SD_HAS_TRANSPARENT_SHADOW) == 0) {
                 /* If no transparent shadows, all light is blocked and we can stop immediately. */
-                return true;
+                *r_throughput = 0.0f;
+                return;
               }
 
               /* If the intersection is already recoded ignore it completely: don't update
@@ -246,7 +247,8 @@ ccl_device_inline
               /* Only count transparent bounces, volume bounds bounces are counted when shading. */
               num_transparent_hits += !(flags & SD_HAS_ONLY_VOLUME);
               if (num_transparent_hits > max_transparent_hits) {
-                return true;
+                *r_throughput = 0.0f;
+                return;
               }
 
               bool record_intersection = true;
@@ -257,11 +259,10 @@ ccl_device_inline
                     kg, isect.object, isect.prim, isect.type, isect.u);
 
                 if (*r_throughput < CURVE_SHADOW_TRANSPARENCY_CUTOFF) {
-                  return true;
+                  *r_throughput = 0.0f;
+                  return;
                 }
-                else {
-                  record_intersection = false;
-                }
+                record_intersection = false;
               }
 
               if (record_intersection) {
@@ -326,11 +327,9 @@ ccl_device_inline
       --stack_ptr;
     }
   } while (node_addr != ENTRYPOINT_SENTINEL);
-
-  return false;
 }
 
-ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals kg,
+ccl_device_inline void BVH_FUNCTION_NAME(KernelGlobals kg,
                                          const ccl_private Ray *ray,
                                          IntegratorShadowState state,
                                          const uint visibility,
@@ -338,7 +337,7 @@ ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals kg,
                                          ccl_private uint *num_recorded_hits,
                                          ccl_private float *throughput)
 {
-  return BVH_FUNCTION_FULL_NAME(BVH)(
+  BVH_FUNCTION_FULL_NAME(BVH)(
       kg, ray, state, visibility, max_transparent_hits, num_recorded_hits, throughput);
 }
 
