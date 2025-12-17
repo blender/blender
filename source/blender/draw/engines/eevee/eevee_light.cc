@@ -188,12 +188,12 @@ void Light::shape_parameters_set(const ::Light *la,
     float influence_radius_surface = attenuation_radius_get(la, threshold, surface_max_power);
     float influence_radius_volume = attenuation_radius_get(la, threshold, volume_max_power);
 
-    l_local.common.influence_radius_max = max(influence_radius_surface, influence_radius_volume);
-    l_local.common.influence_radius_invsqr_surface = safe_rcp(square(influence_radius_surface));
-    l_local.common.influence_radius_invsqr_volume = safe_rcp(square(influence_radius_volume));
+    l_local.local.influence_radius_max = max(influence_radius_surface, influence_radius_volume);
+    l_local.local.influence_radius_invsqr_surface = safe_rcp(square(influence_radius_surface));
+    l_local.local.influence_radius_invsqr_volume = safe_rcp(square(influence_radius_volume));
     /* TODO(fclem): This is just duplicating a member for local lights. */
-    this->clip_far = float_as_int(l_local.common.influence_radius_max);
-    this->clip_near = float_as_int(l_local.common.influence_radius_max / 4000.0f);
+    this->clip_far = float_as_int(l_local.local.influence_radius_max);
+    this->clip_near = float_as_int(l_local.local.influence_radius_max / 4000.0f);
   }
 
   float trace_scaling_fac = (use_jitter && (la->mode & LA_SHADOW_JITTER)) ?
@@ -219,18 +219,18 @@ void Light::shape_parameters_set(const ::Light *la,
     /* Scale and clamp to minimum value before float imprecision artifacts appear. */
     l_area.size *= scale.xy() / 2.0f;
     l_area.shadow_scale = trace_scaling_fac;
-    l_area.common.shadow_radius = length(l_area.size) * trace_scaling_fac;
+    l_area.local.shadow_radius = length(l_area.size) * trace_scaling_fac;
     /* Set to default position. */
-    l_area.common.shadow_position = float3(0.0f);
+    l_area.local.shadow_position = float3(0.0f);
     /* Do not render lights that have no area. */
     if (l_area.size.x * l_area.size.y < 0.00001f) {
       /* Forces light to be culled. */
-      l_area.common.influence_radius_max = 0.0f;
+      l_area.local.influence_radius_max = 0.0f;
     }
     /* Clamp to minimum value before float imprecision artifacts appear. */
     l_area.size = max(float2(0.003f), l_area.size);
     /* For volume point lighting. */
-    l_area.common.shape_radius = max(0.001f, length(l_area.size) / 2.0f);
+    l_area.local.shape_radius = max(0.001f, length(l_area.size) / 2.0f);
   }
   else if (is_point_light(this->type)) {
     LightSpotData &l_spot = this->spot();
@@ -253,16 +253,16 @@ void Light::shape_parameters_set(const ::Light *la,
       l_spot.spot_tan = 0.0f;
     }
     /* Use unclamped radius for soft shadows. Avoid having a minimum blur. */
-    l_local.common.shadow_radius = max(0.0f, la->radius) * trace_scaling_fac;
+    l_local.local.shadow_radius = max(0.0f, la->radius) * trace_scaling_fac;
     /* Clamp to a minimum to distinguish between point lights and area light shadow. */
-    l_local.common.shadow_radius = (la->radius > 0.0f) ?
-                                       max_ff(1e-8f, local().common.shadow_radius) :
-                                       0.0f;
+    l_local.local.shadow_radius = (la->radius > 0.0f) ?
+                                      max_ff(1e-8f, local().local.shadow_radius) :
+                                      0.0f;
     /* Set to default position. */
-    l_local.common.shadow_position = float3(0.0f);
-    l_local.common.shape_radius = la->radius;
+    l_local.local.shadow_position = float3(0.0f);
+    l_local.local.shape_radius = la->radius;
     /* Clamp to minimum value before float imprecision artifacts appear. */
-    l_local.common.shape_radius = max(0.001f, l_local.common.shape_radius);
+    l_local.local.shape_radius = max(0.001f, l_local.local.shape_radius);
   }
 }
 
@@ -288,7 +288,7 @@ float Light::shape_radiance_get()
     case LIGHT_SPOT_SPHERE:
     case LIGHT_SPOT_DISK: {
       /* Sphere area. */
-      float area = float(4.0f * M_PI) * square(this->local().common.shape_radius);
+      float area = float(4.0f * M_PI) * square(this->local().local.shape_radius);
       /* Convert radiant flux to radiance. */
       return 1.0f / (area * float(M_PI));
     }
@@ -337,7 +337,7 @@ float Light::point_radiance_get()
 void Light::debug_draw()
 {
   drw_debug_sphere(transform_location(this->object_to_world),
-                   this->local().common.influence_radius_max,
+                   this->local().local.influence_radius_max,
                    float4(0.8f, 0.3f, 0.0f, 1.0f));
 }
 

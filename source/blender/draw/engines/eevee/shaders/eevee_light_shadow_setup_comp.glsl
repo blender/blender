@@ -316,13 +316,13 @@ void main()
         position_on_light = float3(point_on_unit_shape * light.area().size, 0.0f);
       }
       else {
-        if (light.local().common.shadow_radius == 0.0f) {
+        if (light.local().local.shadow_radius == 0.0f) {
           /* The shape is a point. There is nothing to jitter.
            * `shape_radius` is clamped to a minimum for precision reasons, so `shadow_radius` is
            * set to 0 only when the light radius is also 0 to detect this case. */
         }
         else {
-          position_on_light = sample_ball(rand) * light.local().common.shape_radius;
+          position_on_light = sample_ball(rand) * light.local().local.shape_radius;
         }
       }
     }
@@ -334,7 +334,7 @@ void main()
     }
 
     LightLocalData local_data = light.local();
-    local_data.common.shadow_position = position_on_light;
+    local_data.local.shadow_position = position_on_light;
     light.local() = local_data;
   }
 

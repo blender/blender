@@ -232,7 +232,7 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light,
   }
 
   float clip_near = intBitsToFloat(light.clip_near);
-  float shape_radius = light.spot().common.shadow_radius;
+  float shape_radius = light.spot().local.shadow_radius;
   /* Clamp to a minimum value to avoid `local_ray_up` being degenerate. Could be revisited as the
    * issue might reappear at different zoom level. */
   shape_radius = max(0.00002f, shape_radius);
@@ -261,7 +261,7 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light,
 
     direction = point_on_light_shape - lP;
   }
-  float3 shadow_position = light.local().common.shadow_position;
+  float3 shadow_position = light.local().local.shadow_position;
   /* Clip the ray to not cross the near plane.
    * Avoid traces that starts on tiles that have not been queried, creating noise. */
   float clip_distance = length(lP - shadow_position) - clip_near;
@@ -363,7 +363,7 @@ float shadow_texel_radius_at_position(LightData light, const bool is_directional
   }
   else {
     float3 lP = light_world_to_local_point(light, P);
-    lP -= light.local().common.shadow_position;
+    lP -= light.local().local.shadow_position;
     /* Simplification of `exp2(shadow_punctual_level_fractional)`. */
     scale = shadow_punctual_pixel_ratio(light,
                                         lP,
@@ -459,7 +459,7 @@ float shadow_eval(LightData light,
     L = light_z_axis(light);
   }
   else {
-    L = light_position_get(light) + light.local().common.shadow_position - P;
+    L = light_position_get(light) + light.local().local.shadow_position - P;
     L = normalize_and_get_length(L, distance_to_shadow);
   }
 

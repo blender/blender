@@ -102,7 +102,7 @@ void shadow_tag_usage_tilemap_punctual(uint l_idx, float3 P, float radius, int l
 
   float3 lP = light_world_to_local_point(light, P);
   float dist_to_light = max(length(lP) - radius, 1e-5f);
-  if (dist_to_light > light.local().common.influence_radius_max) {
+  if (dist_to_light > light.local().local.influence_radius_max) {
     return;
   }
   if (is_spot_light(light.type)) {
@@ -120,7 +120,7 @@ void shadow_tag_usage_tilemap_punctual(uint l_idx, float3 P, float radius, int l
   }
 
   /* Transform to shadow local space. */
-  lP -= light.local().common.shadow_position;
+  lP -= light.local().local.shadow_position;
 
   int lod = shadow_punctual_level(light,
                                   lP,

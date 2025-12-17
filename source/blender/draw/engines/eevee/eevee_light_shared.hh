@@ -100,7 +100,7 @@ struct [[host_shared]] LightLocalCommon {
 /* Untyped local light data. Gets reinterpreted to LightSpotData and LightAreaData.
  * Allow access to local light common data without casting. */
 struct [[host_shared]] LightLocalData {
-  struct LightLocalCommon common;
+  struct LightLocalCommon local;
 
   /** Number of allocated tilemap for this local light. */
   int tilemaps_count; /* Leaked from LightLocalCommon because of alignment. */
@@ -115,7 +115,7 @@ struct [[host_shared]] LightLocalData {
 
 /* Despite the name, is also used for omni light. */
 struct [[host_shared]] LightSpotData {
-  struct LightLocalCommon common;
+  struct LightLocalCommon local;
 
   /** Number of allocated tilemap for this local light. */
   int tilemaps_count; /* Leaked from LightLocalCommon because of alignment. */
@@ -132,7 +132,7 @@ struct [[host_shared]] LightSpotData {
 };
 
 struct [[host_shared]] LightAreaData {
-  struct LightLocalCommon common;
+  struct LightLocalCommon local;
 
   /** Number of allocated tilemap for this local light. */
   int tilemaps_count; /* Leaked from LightLocalCommon because of alignment. */
