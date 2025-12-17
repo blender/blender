@@ -52,14 +52,14 @@
 
 #if defined(GLSL_CPP_STUBS)
 #  define GPU_SHADER_NAMED_INTERFACE_INFO(_interface, _inst_name) \
-    namespace interface::_interface { \
+    namespace iface_ns::_interface { \
     struct {
 #  define GPU_SHADER_NAMED_INTERFACE_END(_inst_name) \
     } \
     _inst_name; \
     }
 
-#  define GPU_SHADER_INTERFACE_INFO(_interface) namespace interface::_interface {
+#  define GPU_SHADER_INTERFACE_INFO(_interface) namespace iface_ns::_interface {
 #  define GPU_SHADER_INTERFACE_END() }
 
 #  define GPU_SHADER_CREATE_INFO(_info) \
@@ -233,11 +233,11 @@
     namespace gl_VertexShader { \
     const type name = {}; \
     }
-#  define VERTEX_OUT(stage_interface) using namespace interface::stage_interface;
+#  define VERTEX_OUT(stage_interface) using namespace iface_ns::stage_interface;
 
 /* TO REMOVE. */
 #  define GEOMETRY_LAYOUT(...)
-#  define GEOMETRY_OUT(stage_interface) using namespace interface::stage_interface;
+#  define GEOMETRY_OUT(stage_interface) using namespace iface_ns::stage_interface;
 
 #  define SUBPASS_IN(slot, type, img_type, name, rog) const type name = {};
 
