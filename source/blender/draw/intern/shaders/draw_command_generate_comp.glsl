@@ -26,43 +26,40 @@ void write_draw_call(DrawGroup group, uint group_id)
   /* Back-facing command. */
   DrawCommand cmd;
   if (indexed_draw) {
-    DrawCommandIndexed cmd_indexed = {
-        .vertex_len = uint(group.vertex_len),
-        .instance_len = back_facing_len,
-        .vertex_first = uint(group.vertex_first),
-        .base_index = uint(group.base_index),
-        .instance_first = back_facing_start,
-    };
+    DrawCommandIndexed cmd_indexed;
+    cmd_indexed.vertex_len = uint(group.vertex_len);
+    cmd_indexed.instance_len = back_facing_len;
+    cmd_indexed.vertex_first = uint(group.vertex_first);
+    cmd_indexed.base_index = uint(group.base_index);
+    cmd_indexed.instance_first = back_facing_start;
+    cmd.indexed() = cmd_indexed;
   }
   else {
-    DrawCommandArray cmd_array = {
-        .vertex_len = uint(group.vertex_len),
-        .instance_len = back_facing_len,
-        .vertex_first = uint(group.vertex_first),
-        .instance_first = back_facing_start,
-    };
+    DrawCommandArray cmd_array;
+    cmd_array.vertex_len = uint(group.vertex_len);
+    cmd_array.instance_len = back_facing_len;
+    cmd_array.vertex_first = uint(group.vertex_first);
+    cmd_array.instance_first = back_facing_start;
     cmd.array() = cmd_array;
   }
   command_buf[group_id * 2 + 0] = cmd;
 
   /* Front-facing command. */
   if (indexed_draw) {
-    DrawCommandIndexed cmd_indexed = {
-        .vertex_len = uint(group.vertex_len),
-        .instance_len = front_facing_len,
-        .vertex_first = uint(group.vertex_first),
-        .base_index = uint(group.base_index),
-        .instance_first = front_facing_start,
-    };
+    DrawCommandIndexed cmd_indexed;
+    cmd_indexed.vertex_len = uint(group.vertex_len);
+    cmd_indexed.instance_len = front_facing_len;
+    cmd_indexed.vertex_first = uint(group.vertex_first);
+    cmd_indexed.base_index = uint(group.base_index);
+    cmd_indexed.instance_first = front_facing_start;
     cmd.indexed() = cmd_indexed;
   }
   else {
-    DrawCommandArray cmd_array = {
-        .vertex_len = uint(group.vertex_len),
-        .instance_len = front_facing_len,
-        .vertex_first = uint(group.vertex_first),
-        .instance_first = front_facing_start,
-    };
+    DrawCommandArray cmd_array;
+    cmd_array.vertex_len = uint(group.vertex_len);
+    cmd_array.instance_len = front_facing_len;
+    cmd_array.vertex_first = uint(group.vertex_first);
+    cmd_array.instance_first = front_facing_start;
     cmd.array() = cmd_array;
   }
   command_buf[group_id * 2 + 1] = cmd;
