@@ -3822,10 +3822,14 @@ class Preprocessor {
         {"packed_float3", {{"", "", 0, 12}}},
         {"packed_int3", {{"", "", 0, 12}}},
         {"packed_uint3", {{"", "", 0, 12}}},
-        {"float2x4", {{"", "[0]", 0, 16}, {"", "[1]", 0, 16}}},
-        {"float3x4", {{"", "[0]", 0, 16}, {"", "[1]", 0, 16}, {"", "[2]", 0, 16}}},
+        {"float2x4", {{"float4", "[0]", 0, 16}, {"float4", "[1]", 16, 16}}},
+        {"float3x4",
+         {{"float4", "[0]", 0, 16}, {"float4", "[1]", 16, 16}, {"float4", "[2]", 32, 16}}},
         {"float4x4",
-         {{"", "[0]", 0, 16}, {"", "[1]", 0, 16}, {"", "[2]", 0, 16}, {"", "[3]", 0, 16}}},
+         {{"float4", "[0]", 0, 16},
+          {"float4", "[1]", 16, 16},
+          {"float4", "[2]", 32, 16},
+          {"float4", "[3]", 48, 16}}},
     };
 
     auto type_size_get = [&](Token type) -> size_t {
@@ -3853,11 +3857,11 @@ class Preprocessor {
         if (type.prev() != Enum) {
           size = type_size_get(type);
           if (size != 0) {
-            members.emplace_back(Member{type.str(), name.str(), offset, size});
+            members.emplace_back(Member{type.str(), "." + name.str(), offset, size});
           }
         }
         else {
-          members.emplace_back(Member{type.str(), name.str(), offset, size, true});
+          members.emplace_back(Member{type.str(), "." + name.str(), offset, size, true});
         }
         offset += size;
       });
@@ -3965,7 +3969,7 @@ class Preprocessor {
     };
 
     auto member_data_access = [&](const Member &struct_member) -> string {
-      return (struct_member.is_trivial()) ? string() : ("." + struct_member.name);
+      return struct_member.is_trivial() ? string() : struct_member.name;
     };
 
     auto create_getter = [&](/* Tokens of the union declaration inside the struct. */
@@ -4033,6 +4037,40 @@ class Preprocessor {
       return "\nvoid " + union_member.name + "_set_(" + union_member.type + " value) " + fn_body;
     };
 
+    auto flatten_members = [&](Token type, vector<Member> &members) {
+      vector<Member> dst;
+      dst.reserve(members.size());
+      bool expanded = false;
+      for (const auto &member : members) {
+        if (member.is_trivial() || member.is_enum) {
+          dst.emplace_back(member);
+          continue;
+        }
+        if (struct_members.find(member.type) == struct_members.end()) {
+          report_error(
+              ERROR_TOK(type),
+              "Unknown type encountered while unwrapping union. Contained types must be defined "
+              "in this file and decorated with [[host_shared]] attribute.");
+          continue;
+        }
+
+        vector<Member> nested_structure = struct_members.find(member.type)->second;
+        for (Member nested_member : nested_structure) {
+          if (nested_member.is_trivial() || nested_member.is_enum) {
+            dst.emplace_back(member);
+          }
+          else {
+            expanded = true;
+            nested_member.name = member.name + nested_member.name;
+            nested_member.offset = member.offset + nested_member.offset;
+            dst.emplace_back(nested_member);
+          }
+        }
+      }
+      members = dst;
+      return expanded;
+    };
+
     parser().foreach_struct([&](Token, Scope, Token struct_name, Scope body) {
       if (union_members.find(struct_name.str()) != union_members.end()) {
         replace_placeholder_member(body);
@@ -4046,19 +4084,20 @@ class Preprocessor {
 
         const vector<Member> &members = union_members.find(type.str())->second;
         for (const auto &member : members) {
-          if (struct_members.find(member.type) == union_members.end()) {
+          if (struct_members.find(member.type) == struct_members.end()) {
             report_error(
                 ERROR_TOK(type),
                 "Unknown union member type. Type must be defined in this file and decorated "
                 "with [[host_shared]] attribute.");
             return;
           }
-          parser.insert_after(
-              body.end().prev(),
-              create_getter(type, name, member, struct_members.find(member.type)->second));
-          parser.insert_after(
-              body.end().prev(),
-              create_setter(type, name, member, struct_members.find(member.type)->second));
+          vector<Member> structure = struct_members.find(member.type)->second;
+          /* Flatten references to other structures, recursively. */
+          while (flatten_members(type, structure)) {
+          }
+
+          parser.insert_after(body.end().prev(), create_getter(type, name, member, structure));
+          parser.insert_after(body.end().prev(), create_setter(type, name, member, structure));
         }
       });
     });

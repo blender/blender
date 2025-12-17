@@ -273,6 +273,115 @@ void _b_set_(_ref(T ,this_), uint value) {
   }
   {
     string input = R"(
+struct [[host_shared]] B {
+  packed_float3 a;
+  float b;
+};
+
+struct [[host_shared]] A {
+  struct B e;
+};
+
+struct [[host_shared]] T {
+  union {
+    union_t<A> a;
+  };
+};
+)";
+    string expect = R"(
+struct                 B {
+  packed_float3 a;
+  float b;
+};
+
+struct                 A {
+         B e;
+};
+#line 12
+struct                 T_union0 {
+  float4 data0;
+
+};
+#line 11
+struct                 T {
+         T_union0 union0;
+#line 27
+};
+#ifndef GPU_METAL
+A _a(const T this_);
+void _a_set_(_ref(T ,this_), A value);
+#endif
+#line 16
+A _a(const T this_)       {
+  A val;
+  val.e.a = this_.union0.data0.xyz;
+  val.e.b = this_.union0.data0.w;
+  return val;
+}
+#line 23
+void _a_set_(_ref(T ,this_), A value) {
+  this_.union0.data0.xyz = value.e.a;
+  this_.union0.data0.w = value.e.b;
+}
+#line 28
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+struct [[host_shared]] T {
+  union {
+    union_t<float4x4> a;
+  };
+};
+)";
+    string expect = R"(
+#line 3
+struct                 T_union0 {
+  float4 data0;
+  float4 data1;
+  float4 data2;
+  float4 data3;
+
+};
+#line 2
+struct                 T {
+         T_union0 union0;
+#line 22
+};
+#ifndef GPU_METAL
+float4x4 _a(const T this_);
+void _a_set_(_ref(T ,this_), float4x4 value);
+#endif
+#line 7
+float4x4 _a(const T this_)       {
+  float4x4 val;
+  val[0] = this_.union0.data0;
+  val[1] = this_.union0.data1;
+  val[2] = this_.union0.data2;
+  val[3] = this_.union0.data3;
+  return val;
+}
+#line 16
+void _a_set_(_ref(T ,this_), float4x4 value) {
+  this_.union0.data0 = value[0];
+  this_.union0.data1 = value[1];
+  this_.union0.data2 = value[2];
+  this_.union0.data3 = value[3];
+}
+#line 23
+
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
 struct [[host_shared]] T {
   union {
     uint a;
