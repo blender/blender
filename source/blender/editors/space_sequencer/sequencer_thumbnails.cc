@@ -49,38 +49,6 @@ struct SeqThumbInfo {
   bool is_muted;
 };
 
-static float thumb_calc_first_timeline_frame(const Strip *strip,
-                                             float left_handle,
-                                             float frame_step,
-                                             const rctf *view_area)
-{
-  int first_drawable_frame = max_iii(left_handle, strip->start, view_area->xmin);
-
-  /* First frame should correspond to handle position. */
-  if (first_drawable_frame == left_handle) {
-    return left_handle;
-  }
-
-  float aligned_frame_offset = int((first_drawable_frame - strip->start) / frame_step) *
-                               frame_step;
-  return strip->start + aligned_frame_offset;
-}
-
-static float thumb_calc_next_timeline_frame(const Strip *strip,
-                                            float left_handle,
-                                            float last_frame,
-                                            float frame_step)
-{
-  float next_frame = last_frame + frame_step;
-
-  /* If handle position was displayed, align next frame with `strip->start`. */
-  if (last_frame == left_handle) {
-    next_frame = strip->start + (int((last_frame - strip->start) / frame_step) + 1) * frame_step;
-  }
-
-  return next_frame;
-}
-
 static void strip_get_thumb_image_dimensions(const Strip *strip,
                                              float pixelx,
                                              float pixely,
@@ -143,8 +111,24 @@ static void get_seq_strip_thumbnails(const View2D *v2d,
     upper_thumb_bound = strip.right_handle;
   }
 
-  float timeline_frame = thumb_calc_first_timeline_frame(
-      strip.strip, strip.left_handle, thumb_width, &v2d->cur);
+  int first_drawable_frame = max_iii(strip.left_handle, strip.strip->start, v2d->cur.xmin);
+  /* Calculate how many thumbnails should we skip over to get to the first visible thumbnail. */
+  float aligned_frame_offset = int((first_drawable_frame - strip.strip->start) / thumb_width) *
+                               thumb_width;
+
+  /* If the first frame should correspond to the left handle position,
+   * we want to make it slide under the other thumbs when moving
+   * the left handle. This is so that we don't shift around the rest of the
+   * thumbnails.
+   */
+  bool draw_next_frame_ontop = first_drawable_frame == strip.left_handle;
+  float timeline_frame;
+  if (draw_next_frame_ontop) {
+    timeline_frame = first_drawable_frame;
+  }
+  else {
+    timeline_frame = strip.strip->start + aligned_frame_offset;
+  }
 
   /* Start going over the strip length. */
   while (timeline_frame < upper_thumb_bound) {
@@ -156,20 +140,13 @@ static void get_seq_strip_thumbnails(const View2D *v2d,
       break;
     }
 
-    /* Set the clipping bound to show the left handle moving over thumbs and not shift thumbs. */
-    float cut_off = 0.0f;
-    if (strip.left_handle > timeline_frame && strip.left_handle < thumb_x_end) {
-      cut_off = strip.left_handle - timeline_frame;
-      clipped = true;
-    }
-
     /* Clip if full thumbnail cannot be displayed. */
     if (thumb_x_end > upper_thumb_bound) {
       thumb_x_end = upper_thumb_bound;
       clipped = true;
     }
 
-    float cropx_min = cut_off * crop_x_multiplier;
+    float cropx_min = crop_x_multiplier;
     float cropx_max = (thumb_x_end - timeline_frame) * crop_x_multiplier;
     if (cropx_max < 1.0f) {
       break;
@@ -194,14 +171,19 @@ static void get_seq_strip_thumbnails(const View2D *v2d,
     thumb.is_muted = is_muted;
     thumb.bottom = strip.bottom;
     thumb.top = strip.top;
-    thumb.x1 = timeline_frame + cut_off;
+    thumb.x1 = timeline_frame;
     thumb.x2 = thumb_x_end;
     thumb.y1 = strip.bottom;
     thumb.y2 = strip.strip_content_top;
     r_thumbs.append(thumb);
 
-    timeline_frame = thumb_calc_next_timeline_frame(
-        strip.strip, strip.left_handle, timeline_frame, thumb_width);
+    if (draw_next_frame_ontop) {
+      timeline_frame = strip.strip->start + aligned_frame_offset + thumb_width;
+      draw_next_frame_ontop = false;
+    }
+    else {
+      timeline_frame += thumb_width;
+    }
   }
 }
 
