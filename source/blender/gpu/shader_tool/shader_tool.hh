@@ -477,7 +477,6 @@ class Preprocessor {
                       std::string str,
                       const std::string &filepath,
                       bool do_parse_function,
-                      bool do_small_type_linting,
                       report_callback report_error,
                       metadata::Source &r_metadata)
   {
@@ -540,9 +539,6 @@ class Preprocessor {
         lint_reserved_tokens(parser, report_error);
         lint_attributes(parser, report_error);
         lint_global_scope_constants(parser, report_error);
-        if (do_small_type_linting) {
-          lint_small_types_in_structs(parser, report_error);
-        }
 
         /* Lower unions and then lint shared structures. */
         lower_union_accessor_templates(parser, report_error);
@@ -634,7 +630,7 @@ class Preprocessor {
   std::string process(const std::string &str, metadata::Source &r_metadata)
   {
     auto no_err_report = [](int, int, std::string, const char *) {};
-    return process(GLSL, str, "", false, false, no_err_report, r_metadata);
+    return process(GLSL, str, "", false, no_err_report, r_metadata);
   }
 
  private:
@@ -3013,7 +3009,7 @@ class Preprocessor {
     using namespace std;
     using namespace shader::parser;
 
-    parser().foreach_struct([&](Token, Scope attributes, Token /*struct_name*/, Scope body) {
+    parser().foreach_struct([&](Token, Scope attributes, Token struct_name, Scope body) {
       if (attributes.is_invalid()) {
         return;
       }
@@ -3067,7 +3063,13 @@ class Preprocessor {
       size_t offset = 0;
       body.foreach_declaration([&](Scope, Token, Token type, Scope, Token, Scope, Token) {
         string type_str = type.str();
-        if (type_str == "float3") {
+
+        if (type_str.find("char") != string::npos || type_str.find("short") != string::npos ||
+            type_str.find("half") != string::npos)
+        {
+          report_error(ERROR_TOK(type), "Small types are forbidden in shader interfaces.");
+        }
+        else if (type_str == "float3") {
           report_error(ERROR_TOK(type), "use packed_float3 instead of float3 in shared structure");
         }
         else if (type_str == "uint3") {
@@ -4870,23 +4872,6 @@ class Preprocessor {
             "Global scope constant expression found. These get allocated per-thread in MSL. "
             "Use Macro's or uniforms instead.");
       }
-    });
-  }
-
-  void lint_small_types_in_structs(Parser &parser, report_callback report_error)
-  {
-    using namespace std;
-    using namespace shader::parser;
-
-    parser().foreach_scope(ScopeType::Struct, [&](const Scope scope) {
-      scope.foreach_match("ww;", [&](const vector<Token> tokens) {
-        string type = tokens[0].str();
-        if (type.find("char") != string::npos || type.find("short") != string::npos ||
-            type.find("half") != string::npos)
-        {
-          report_error(ERROR_TOK(tokens[0]), "Small types are forbidden in shader interfaces.");
-        }
-      });
     });
   }
 

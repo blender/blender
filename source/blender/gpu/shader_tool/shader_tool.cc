@@ -91,7 +91,6 @@ int main(int argc, char **argv)
   const bool is_info = filename.find("infos.hh") != std::string::npos ||
                        buffer.str().find("#pragma create_info") != std::string::npos;
   const bool is_glsl = filename.find(".glsl") != std::string::npos;
-  const bool is_shared = filename.find("shared.h") != std::string::npos;
   const bool is_library = is_glsl &&
                           (filename.find("gpu_shader_material_") != std::string::npos ||
                            filename.find("gpu_shader_common_") != std::string::npos ||
@@ -109,7 +108,7 @@ int main(int argc, char **argv)
 
   blender::gpu::shader::metadata::Source metadata;
   output_file << processor.process(
-      language, buffer.str(), input_file_name, is_library, is_shared, report_error, metadata);
+      language, buffer.str(), input_file_name, is_library, report_error, metadata);
 
   /* TODO(fclem): Don't use regex for that. */
   std::string metadata_function_name = "metadata_" +

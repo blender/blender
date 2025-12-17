@@ -22,7 +22,6 @@ static std::string process_test_string(std::string str,
       str,
       "test.glsl",
       false,
-      true,
       [&](int /*err_line*/, int /*err_char*/, const std::string & /*line*/, const char *err_msg) {
         if (first_error.empty()) {
           first_error = err_msg;
