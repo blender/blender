@@ -304,9 +304,9 @@ namespace blender::compositor {
 #define SMAASampleLevelZeroOffset(tex, coord, offset, size) \
   tex.sample_bilinear_extended(coord + float2(offset) / float2(size))
 #define SMAASample(tex, coord) tex.sample_bilinear_extended(coord)
-#define SMAASamplePoint(tex, coord) tex.sample_nearest_extended(coord)
-#define SMAASamplePointOffset(tex, coord, offset, size) \
-  tex.sample_nearest_extended(coord + float2(offset) / float2(size))
+#define SMAASamplePoint(T, tex, coord) tex.sample_nearest_extended<T>(coord)
+#define SMAASamplePointOffset(T, tex, coord, offset, size) \
+  tex.sample_nearest_extended<T>(coord + float2(offset) / float2(size))
 #define SMAASampleOffset(tex, coord, offset, size) \
   tex.sample_bilinear_extended(coord + float2(offset) / float2(size))
 #define SMAA_FLATTEN
@@ -723,6 +723,7 @@ static void SMAANeighborhoodBlendingVS(float2 texcoord, int2 size, float4 &offse
  * IMPORTANT NOTICE: luma edge detection requires gamma-corrected colors, and
  * thus 'colorTex' should be a non-sRGB texture.
  */
+template<typename T>
 static float2 SMAALumaEdgeDetectionPS(float2 texcoord,
                                       float4 offset[3],
                                       SMAATexture2D(colorTex),
@@ -744,10 +745,10 @@ static float2 SMAALumaEdgeDetectionPS(float2 texcoord,
   /* Calculate lumas: */
   // float4 weights = float4(0.2126, 0.7152, 0.0722, 0.0);
   float4 weights = float4(luminance_coefficients, 0.0f);
-  float L = math::dot(SMAASamplePoint(colorTex, texcoord), weights);
+  float L = math::dot(float4(SMAASamplePoint(T, colorTex, texcoord)), weights);
 
-  float Lleft = math::dot(SMAASamplePoint(colorTex, offset[0].xy()), weights);
-  float Ltop = math::dot(SMAASamplePoint(colorTex, offset[0].zw()), weights);
+  float Lleft = math::dot(float4(SMAASamplePoint(T, colorTex, offset[0].xy())), weights);
+  float Ltop = math::dot(float4(SMAASamplePoint(T, colorTex, offset[0].zw())), weights);
 
   /* We do the usual threshold: */
   float4 delta;
@@ -762,8 +763,8 @@ static float2 SMAALumaEdgeDetectionPS(float2 texcoord,
   }
 
   /* Calculate right and bottom deltas: */
-  float Lright = math::dot(SMAASamplePoint(colorTex, offset[1].xy()), weights);
-  float Lbottom = math::dot(SMAASamplePoint(colorTex, offset[1].zw()), weights);
+  float Lright = math::dot(float4(SMAASamplePoint(T, colorTex, offset[1].xy())), weights);
+  float Lbottom = math::dot(float4(SMAASamplePoint(T, colorTex, offset[1].zw())), weights);
   float2 delta_right_bottom = math::abs(L - float2(Lright, Lbottom));
   delta.z = delta_right_bottom.x;
   delta.w = delta_right_bottom.y;
@@ -772,8 +773,8 @@ static float2 SMAALumaEdgeDetectionPS(float2 texcoord,
   float2 maxDelta = math::max(delta.xy(), delta.zw());
 
   /* Calculate left-left and top-top deltas: */
-  float Lleftleft = math::dot(SMAASamplePoint(colorTex, offset[2].xy()), weights);
-  float Ltoptop = math::dot(SMAASamplePoint(colorTex, offset[2].zw()), weights);
+  float Lleftleft = math::dot(float4(SMAASamplePoint(T, colorTex, offset[2].xy())), weights);
+  float Ltoptop = math::dot(float4(SMAASamplePoint(T, colorTex, offset[2].zw())), weights);
   float2 delta_left_left_top_top = math::abs(float2(Lleft, Ltop) - float2(Lleftleft, Ltoptop));
   delta.z = delta_left_left_top_top.x;
   delta.w = delta_left_left_top_top.y;
@@ -836,7 +837,7 @@ static float2 SMAASearchDiag1(
     coord.x = increment.x;
     coord.y = increment.y;
     coord.z = increment.z;
-    e = SMAASamplePoint(edgesTex, coord.xy()).xy();
+    e = SMAASamplePoint(float2, edgesTex, coord.xy());
     coord.w = math::dot(e, float2(0.5f, 0.5f));
   }
   return coord.zw();
@@ -962,7 +963,7 @@ static float2 SMAACalculateDiagWeights(SMAATexture2D(edgesTex),
       SMAATexturePass2D(edgesTex), texcoord, float2(-1.0f, -1.0f), size, end);
   d.x = negative_diagonal.x;
   d.z = negative_diagonal.y;
-  if (SMAASamplePointOffset(edgesTex, texcoord, int2(1, 0), size).x > 0.0f) {
+  if (SMAASamplePointOffset(float2, edgesTex, texcoord, int2(1, 0), size).x > 0.0f) {
     float2 positive_diagonal = SMAASearchDiag2(
         SMAATexturePass2D(edgesTex), texcoord, float2(1.0f, 1.0f), size, end);
     d.y = positive_diagonal.x;
@@ -1202,7 +1203,7 @@ static float4 SMAABlendingWeightCalculationPS(float2 texcoord,
   /* Just pass zero for SMAA 1x, see @SUBSAMPLE_INDICES. */
   float4 weights = float4(0.0f, 0.0f, 0.0f, 0.0f);
 
-  float2 e = SMAASamplePoint(edgesTex, texcoord).xy();
+  float2 e = SMAASamplePoint(float2, edgesTex, texcoord);
 
   SMAA_BRANCH
   if (e.y > 0.0f) { /* Edge at north. */
@@ -1467,20 +1468,38 @@ static Result detect_edges_cpu(Context &context,
   edges.allocate_texture(input.domain());
 
   const int2 size = input.domain().data_size;
-  parallel_for(size, [&](const int2 texel) {
-    const float2 coordinates = (float2(texel) + float2(0.5f)) / float2(size);
+  if (input.type() == ResultType::Color) {
+    parallel_for(size, [&](const int2 texel) {
+      const float2 coordinates = (float2(texel) + float2(0.5f)) / float2(size);
 
-    float4 offset[3];
-    SMAAEdgeDetectionVS(coordinates, size, offset);
+      float4 offset[3];
+      SMAAEdgeDetectionVS(coordinates, size, offset);
 
-    const float2 edge = SMAALumaEdgeDetectionPS(coordinates,
-                                                offset,
-                                                input,
-                                                threshold,
-                                                luminance_coefficients,
-                                                local_contrast_adaptation_factor);
-    edges.store_pixel(texel, edge);
-  });
+      const float2 edge = SMAALumaEdgeDetectionPS<Color>(coordinates,
+                                                         offset,
+                                                         input,
+                                                         threshold,
+                                                         luminance_coefficients,
+                                                         local_contrast_adaptation_factor);
+      edges.store_pixel(texel, edge);
+    });
+  }
+  else {
+    parallel_for(size, [&](const int2 texel) {
+      const float2 coordinates = (float2(texel) + float2(0.5f)) / float2(size);
+
+      float4 offset[3];
+      SMAAEdgeDetectionVS(coordinates, size, offset);
+
+      const float2 edge = SMAALumaEdgeDetectionPS<float>(coordinates,
+                                                         offset,
+                                                         input,
+                                                         threshold,
+                                                         luminance_coefficients,
+                                                         local_contrast_adaptation_factor);
+      edges.store_pixel(texel, edge);
+    });
+  }
 
   return edges;
 }

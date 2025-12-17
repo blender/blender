@@ -434,17 +434,20 @@ class Result {
            const ExtensionMode &extend_mode_x,
            const ExtensionMode &extend_mode_y) const;
 
-  /* Equivalent to the GLSL texture() function with nearest neighbour interpolation and extended
-   * boundary condition. The coordinates are thus expected to have half-pixels offsets. A float4 is
-   * always returned regardless of the number of channels of the buffer, the remaining channels
-   * will be initialized with the template float4(0, 0, 0, 1). */
-  float4 sample_nearest_extended(const float2 &coordinates) const;
+  /* Samples the result at the given normalized coordinates with nearest interpolation and extended
+   * boundary conditions. Assumes the result stores a value of the given template type. If the
+   * CouldBeSingleValue template argument is true and the result is a single value result, then
+   * that single value is returned for all coordinates. */
+  template<typename T, bool CouldBeSingleValue = false>
+  T sample_nearest_extended(const float2 &coordinates) const;
 
-  /* Identical to sample_nearest_extended but with bilinear interpolation and zero boundary
-   * condition. */
+  /* Equivalent to the GLSL texture() function with bilinear interpolation and zero boundary
+   * condition. The coordinates are thus expected to have half-pixels offsets. A float4 is always
+   * returned regardless of the number of channels of the buffer, the remaining channels will be
+   * initialized with the template float4(0, 0, 0, 1). */
   float4 sample_bilinear_zero(const float2 &coordinates) const;
 
-  /* Identical to sample_nearest_extended but with bilinear interpolation. */
+  /* Identical to sample_bilinear_zero but with bilinear interpolation. */
   float4 sample_bilinear_extended(const float2 &coordinates) const;
 
   /* Samples the result at the given normalized coordinates using EWA filtering of the given
@@ -750,20 +753,29 @@ BLI_INLINE_METHOD float4 Result::sample_bilinear_zero(const float2 &coordinates)
   return pixel_value;
 }
 
-BLI_INLINE_METHOD float4 Result::sample_nearest_extended(const float2 &coordinates) const
+template<typename T, bool CouldBeSingleValue>
+BLI_INLINE_METHOD T Result::sample_nearest_extended(const float2 &coordinates) const
 {
-  float4 pixel_value = float4(0.0f, 0.0f, 0.0f, 1.0f);
-  if (is_single_value_) {
-    this->get_cpp_type().copy_assign(this->cpu_data().data(), pixel_value);
-    return pixel_value;
+  if constexpr (CouldBeSingleValue) {
+    if (is_single_value_) {
+      return this->get_single_value<T>();
+    }
   }
 
   const int2 size = domain_.data_size;
   const float2 texel_coordinates = coordinates * float2(size);
 
   const float *buffer = static_cast<const float *>(this->cpu_data().data());
+  T pixel_value = T(0);
+  float *output = nullptr;
+  if constexpr (std::is_same_v<T, float>) {
+    output = &pixel_value;
+  }
+  else {
+    output = pixel_value;
+  }
   math::interpolate_nearest_fl(buffer,
-                               pixel_value,
+                               output,
                                size.x,
                                size.y,
                                this->channels_count(),
