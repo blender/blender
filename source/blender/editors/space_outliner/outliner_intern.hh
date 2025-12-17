@@ -626,7 +626,10 @@ TreeElement *outliner_find_parent_element(ListBase *lb,
 /**
  * Find tree-store that refers to given ID.
  */
-TreeElement *outliner_find_id(SpaceOutliner *space_outliner, ListBase *lb, const ID *id);
+TreeElement *outliner_find_id(SpaceOutliner *space_outliner,
+                              ListBase *lb,
+                              const ID *id,
+                              TreeElementFlag exclude_flags);
 TreeElement *outliner_find_posechannel(ListBase *lb, const bPoseChannel *pchan);
 TreeElement *outliner_find_editbone(ListBase *lb, const EditBone *ebone);
 TreeElement *outliner_search_back_te(TreeElement *te, short idcode);

@@ -368,7 +368,8 @@ static void parent_drop_set_parents(bContext *C,
   Main *bmain = CTX_data_main(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
 
-  TreeElement *te = outliner_find_id(space_outliner, &space_outliner->tree, &parent->id);
+  TreeElement *te = outliner_find_id(
+      space_outliner, &space_outliner->tree, &parent->id, (TreeElementFlag)0);
   Scene *scene = (Scene *)outliner_search_back(te, ID_SCE);
 
   if (scene == nullptr) {
