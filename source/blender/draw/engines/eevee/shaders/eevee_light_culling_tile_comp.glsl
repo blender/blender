@@ -155,7 +155,7 @@ void main()
     float3 v_right = drw_normal_world_to_view(light_x_axis(light));
     float3 v_up = drw_normal_world_to_view(light_y_axis(light));
     float3 v_back = drw_normal_world_to_view(light_z_axis(light));
-    float radius = light.local().influence_radius_max;
+    float radius = light.local().common.influence_radius_max;
 
     if (light_cull_buf.view_is_flipped) {
       v_right = -v_right;

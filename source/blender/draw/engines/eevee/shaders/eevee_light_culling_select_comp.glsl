@@ -41,7 +41,7 @@ void main()
   }
 
   /* Do not select 0 power lights. */
-  if (light.local().influence_radius_max < 1e-8f) {
+  if (light.local().common.influence_radius_max < 1e-8f) {
     return;
   }
 
@@ -57,9 +57,9 @@ void main()
         float3 z_axis = light_z_axis(light);
         Pyramid pyramid = shape_pyramid_non_oblique(
             light_position_get(light),
-            light_position_get(light) - z_axis * spot.influence_radius_max,
-            x_axis * spot.influence_radius_max * spot.spot_tan / spot.spot_size_inv.x,
-            y_axis * spot.influence_radius_max * spot.spot_tan / spot.spot_size_inv.y);
+            light_position_get(light) - z_axis * spot.common.influence_radius_max,
+            x_axis * spot.common.influence_radius_max * spot.spot_tan / spot.spot_size_inv.x,
+            y_axis * spot.common.influence_radius_max * spot.spot_tan / spot.spot_size_inv.y);
         if (!intersect_view(pyramid)) {
           return;
         }
@@ -71,7 +71,7 @@ void main()
     case LIGHT_OMNI_SPHERE:
     case LIGHT_OMNI_DISK:
       sphere.center = light_position_get(light);
-      sphere.radius = light.local().influence_radius_max;
+      sphere.radius = light.local().common.influence_radius_max;
       break;
     default:
       break;

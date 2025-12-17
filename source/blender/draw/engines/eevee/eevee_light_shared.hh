@@ -83,12 +83,9 @@ static inline bool is_local_light(eLightType type)
   return type >= LIGHT_OMNI_SPHERE;
 }
 
-/* Untyped local light data. Gets reinterpreted to LightSpotData and LightAreaData.
- * Allow access to local light common data without casting. */
-struct [[host_shared]] LightLocalData {
+struct [[host_shared]] LightLocalCommon {
   /** Shift to apply to the light origin to get the shadow projection origin. In light space. */
   packed_float3 shadow_position;
-  float _pad0;
   /** Radius of the light for shadow ray casting. Simple scaling factor for rectangle lights. */
   float shadow_radius;
   /** Radius of the light for shading. Bounding radius for rectangle lights. */
@@ -98,9 +95,16 @@ struct [[host_shared]] LightLocalData {
   /** Influence radius (inverted and squared) adjusted for Surface Volume power. */
   float influence_radius_invsqr_surface;
   float influence_radius_invsqr_volume;
-  /** Number of allocated tilemap for this local light. */
-  int tilemaps_count;
+};
 
+/* Untyped local light data. Gets reinterpreted to LightSpotData and LightAreaData.
+ * Allow access to local light common data without casting. */
+struct [[host_shared]] LightLocalData {
+  struct LightLocalCommon common;
+
+  /** Number of allocated tilemap for this local light. */
+  int tilemaps_count; /* Leaked from LightLocalCommon because of alignment. */
+  float _pad0;
   float _pad1;
   float _pad2;
 
@@ -111,21 +115,11 @@ struct [[host_shared]] LightLocalData {
 
 /* Despite the name, is also used for omni light. */
 struct [[host_shared]] LightSpotData {
-  /** Shift to apply to the light origin to get the shadow projection origin. In light space. */
-  packed_float3 shadow_position;
-  float _pad0;
-  /** Radius of the light for shadow ray casting. Simple scaling factor for rectangle lights. */
-  float shadow_radius;
-  /** Radius of the light for shading. Bounding radius for rectangle lights. */
-  float shape_radius;
-  /** Maximum influence radius. Used for culling. Equal to clip far distance. */
-  float influence_radius_max;
-  /** Influence radius (inverted and squared) adjusted for Surface Volume power. */
-  float influence_radius_invsqr_surface;
-  float influence_radius_invsqr_volume;
-  /** Number of allocated tilemap for this local light. */
-  int tilemaps_count;
+  struct LightLocalCommon common;
 
+  /** Number of allocated tilemap for this local light. */
+  int tilemaps_count; /* Leaked from LightLocalCommon because of alignment. */
+  float _pad0;
   float _pad1;
   /** Scale and bias to spot equation parameter. Used for adjusting the falloff. */
   float spot_mul;
@@ -138,23 +132,13 @@ struct [[host_shared]] LightSpotData {
 };
 
 struct [[host_shared]] LightAreaData {
-  /** Shift to apply to the light origin to get the shadow projection origin. In light space. */
-  packed_float3 shadow_position;
-  float _pad0;
-  /** Radius of the light for shadow ray casting. Simple scaling factor for rectangle lights. */
-  float shadow_radius;
-  /** Radius of the light for shading. Bounding radius for rectangle lights. */
-  float shape_radius;
-  /** Maximum influence radius. Used for culling. Equal to clip far distance. */
-  float influence_radius_max;
-  /** Influence radius (inverted and squared) adjusted for Surface Volume power. */
-  float influence_radius_invsqr_surface;
-  float influence_radius_invsqr_volume;
-  /** Number of allocated tilemap for this local light. */
-  int tilemaps_count;
+  struct LightLocalCommon common;
 
+  /** Number of allocated tilemap for this local light. */
+  int tilemaps_count; /* Leaked from LightLocalCommon because of alignment. */
+  float _pad0;
+  float _pad1;
   float _pad2;
-  float _pad3;
 
   /** Shape size. */
   float2 size;

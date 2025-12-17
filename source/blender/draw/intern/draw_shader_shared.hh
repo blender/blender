@@ -296,22 +296,37 @@ BLI_STATIC_ASSERT_ALIGN(LayerAttribute, 32)
 /** \name Indirect commands structures.
  * \{ */
 
-struct [[host_shared]] DrawCommand {
-  /* TODO(fclem): Rename */
+/* Regular draw commands (no index buffer). */
+struct [[host_shared]] DrawCommandArray {
   uint vertex_len;
   uint instance_len;
   uint vertex_first;
-  union {
-    union_t<uint> base_index;
-    /* Use this instead of instance_first_indexed for non indexed draw calls. */
-    union_t<uint> instance_first_array;
-  };
-
-  uint instance_first_indexed;
+  uint instance_first;
 
   uint _pad0;
   uint _pad1;
   uint _pad2;
+  uint _pad3;
+};
+
+/* Indexed draw commands (with index buffer). */
+struct [[host_shared]] DrawCommandIndexed {
+  uint vertex_len;
+  uint instance_len;
+  uint vertex_first;
+  uint base_index;
+
+  uint instance_first;
+  uint _pad0;
+  uint _pad1;
+  uint _pad2;
+};
+
+struct [[host_shared]] DrawCommand {
+  union {
+    union_t<DrawCommandArray> array;
+    union_t<DrawCommandIndexed> indexed;
+  };
 };
 
 struct [[host_shared]] DispatchCommand {
