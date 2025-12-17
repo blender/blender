@@ -3150,7 +3150,7 @@ class Preprocessor {
             try {
               array_size = std::stol(array[1].str());
             }
-            catch (std::invalid_argument const &ex) {
+            catch (std::invalid_argument const & /*ex*/) {
               report_error(ERROR_TOK(array.front()),
                            "Invalid array size, expecting integer literal");
             }
