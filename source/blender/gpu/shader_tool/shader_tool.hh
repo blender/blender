@@ -48,6 +48,7 @@ static uint64_t hash(const std::string &name)
 }
 
 enum Builtin : uint64_t {
+  ClipDistance = hash("gl_ClipDistance"),
   FragCoord = hash("gl_FragCoord"),
   FragStencilRef = hash("gl_FragStencilRefARB"),
   FrontFacing = hash("gl_FrontFacing"),
@@ -495,9 +496,9 @@ class Preprocessor {
       str = cleanup_whitespace(str, report_error);
     }
     str = threadgroup_variables_parse_and_remove(str, report_error);
-    parse_builtins(str, filename);
     if (language == BLENDER_GLSL || language == CPP) {
       {
+        parse_builtins(str, filename);
         Parser parser(str, report_error);
 
         /* Preprocessor directive parsing & linting. */
@@ -614,11 +615,12 @@ class Preprocessor {
       lower_preprocessor(parser, report_error);
       str = parser.result_get();
     }
-#ifdef __APPLE__ /* Limiting to Apple hardware since GLSL compilers might have issues. */
     if (language == GLSL) {
+      parse_builtins(str, filename, true);
+#ifdef __APPLE__ /* Limiting to Apple hardware since GLSL compilers might have issues. */
       str = matrix_constructor_mutation(str);
-    }
 #endif
+    }
     str = argument_decorator_macro_injection(str);
     str = array_constructor_macro_injection(str);
     str = line_directive_prefix(filename) + str;
@@ -1902,7 +1904,7 @@ class Preprocessor {
     });
   }
 
-  void parse_builtins(const std::string &str, const std::string &filename)
+  void parse_builtins(const std::string &str, const std::string &filename, bool pure_glsl = false)
   {
     const bool skip_drw_debug = filename == "draw_debug_draw_lib.glsl" ||
                                 filename == "draw_debug_infos.hh" ||
@@ -1910,27 +1912,38 @@ class Preprocessor {
                                 filename == "draw_shader_shared.hh";
     using namespace metadata;
     /* TODO: This can trigger false positive caused by disabled #if blocks. */
-    std::string tokens[] = {"gl_FragCoord",
-                            "gl_FragStencilRefARB",
-                            "gl_FrontFacing",
-                            "gl_GlobalInvocationID",
-                            "gpu_InstanceIndex",
-                            "gpu_BaseInstance",
-                            "gl_InstanceID",
-                            "gl_LocalInvocationID",
-                            "gl_LocalInvocationIndex",
-                            "gl_NumWorkGroup",
-                            "gl_PointCoord",
-                            "gl_PointSize",
-                            "gl_PrimitiveID",
-                            "gl_VertexID",
-                            "gl_WorkGroupID",
-                            "gl_WorkGroupSize",
-                            "drw_debug_",
+    std::vector<std::string> tokens = {
+        "gl_FragCoord",
+        "gl_FragStencilRefARB",
+        "gl_FrontFacing",
+        "gl_GlobalInvocationID",
+        "gpu_InstanceIndex",
+        "gpu_BaseInstance",
+        "gl_InstanceID",
+        "gl_LocalInvocationID",
+        "gl_LocalInvocationIndex",
+        "gl_NumWorkGroup",
+        "gl_PointCoord",
+        "gl_PointSize",
+        "gl_PrimitiveID",
+        "gl_VertexID",
+        "gl_WorkGroupID",
+        "gl_WorkGroupSize",
+    };
+
+    if (pure_glsl) {
+      /* Only parsed for Python GLSL sources as false positive of this are costly. */
+      tokens.emplace_back("gl_ClipDistance");
+    }
+    else {
+      /* Assume blender GLSL or BSL. */
+      tokens.emplace_back("drw_debug_");
+      tokens.emplace_back("printf");
 #ifdef WITH_GPU_SHADER_ASSERT
-                            "assert",
+      tokens.emplace_back("assert");
 #endif
-                            "printf"};
+    }
+
     for (auto &token : tokens) {
       if (skip_drw_debug && token == "drw_debug_") {
         continue;

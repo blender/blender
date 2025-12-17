@@ -88,6 +88,8 @@ shader::BuiltinBits convert_builtin_bit(shader::metadata::Builtin builtin)
       return BuiltinBits::WORK_GROUP_ID;
     case Builtin::WorkGroupSize:
       return BuiltinBits::WORK_GROUP_SIZE;
+    case Builtin::ClipDistance:
+      return BuiltinBits::CLIP_DISTANCES;
     case Builtin::drw_debug:
 #ifndef NDEBUG
       return BuiltinBits::USE_DEBUG_DRAW;
