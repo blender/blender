@@ -541,13 +541,9 @@ class Preprocessor {
         lint_attributes(parser, report_error);
         lint_global_scope_constants(parser, report_error);
 
-        /* Lower unions and then lint shared structures. */
-        lower_union_accessor_templates(parser, report_error);
-        lower_unions(parser, report_error);
-        lint_host_shared_structures(parser, report_error);
-
-        /* Lint and remove SRT accessor templates before lowering template. */
+        /* Lint and remove C++ accessor templates before lowering template. */
         lower_srt_accessor_templates(parser, report_error);
+        lower_union_accessor_templates(parser, report_error);
         /* Lower templates. */
         lower_template_dependent_names(parser, report_error);
         lower_templates(parser, report_error);
@@ -555,6 +551,9 @@ class Preprocessor {
         lower_using(parser, report_error);
         lower_namespaces(parser, report_error);
         lower_scope_resolution_operators(parser, report_error);
+        /* Lower unions and then lint shared structures. */
+        lower_unions(parser, report_error);
+        lower_host_shared_structures(parser, report_error);
         /* Lower enums. */
         lower_enums(parser, language == CPP, report_error);
         /* Lower SRT and Interfaces. */
@@ -3017,7 +3016,9 @@ class Preprocessor {
     } while (parser.apply_mutations());
   }
 
-  void lint_host_shared_structures(Parser &parser, report_callback report_error)
+  /* Lint host shared structure for padding and alignment.
+   * Remove the [[host_shared]] attribute. */
+  void lower_host_shared_structures(Parser &parser, report_callback report_error)
   {
     using namespace std;
     using namespace shader::parser;
