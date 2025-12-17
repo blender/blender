@@ -527,8 +527,8 @@ class Preprocessor {
          * Merge tokens that can be combined together,
          * remove the token that are unsupported or that are noop.
          * All these steps should be independent. */
-        merge_attributes_mutation(parser, report_error);
-        merge_static_strings(parser, report_error);
+        lower_attribute_sequences(parser, report_error);
+        lower_strings_sequences(parser, report_error);
         lower_swizzle_methods(parser, report_error);
         lower_classes(parser, report_error);
         lower_noop_keywords(parser, report_error);
@@ -2373,7 +2373,7 @@ class Preprocessor {
     parser.apply_mutations();
   }
 
-  void merge_static_strings(Parser &parser, report_callback /*report_error*/)
+  void lower_strings_sequences(Parser &parser, report_callback /*report_error*/)
   {
     using namespace std;
     using namespace shader::parser;
@@ -3003,7 +3003,7 @@ class Preprocessor {
   /* Merge attribute scopes. They are equivalent in the C++ standard.
    * This allow to simplify parsing later on.
    * `[[a]] [[b]]` > `[[a, b]]` */
-  void merge_attributes_mutation(Parser &parser, report_callback /*report_error*/)
+  void lower_attribute_sequences(Parser &parser, report_callback /*report_error*/)
   {
     using namespace std;
     using namespace shader::parser;
