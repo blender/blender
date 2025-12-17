@@ -765,7 +765,6 @@ static wmOperatorStatus clear_anim_v3d_exec(bContext *C, wmOperator * /*op*/)
     if ((ob->adt) && (ob->adt->action)) {
       AnimData *adt = ob->adt;
       bAction *dna_action = adt->action;
-      FCurve *fcu, *fcn;
 
       Action &action = dna_action->wrap();
       blender::Vector<FCurve *> fcurves_to_delete;

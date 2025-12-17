@@ -303,7 +303,6 @@ static short acf_generic_group_offset(bAnimContext *ac, bAnimListElem *ale)
       switch (ale->type) {
         case ANIMTYPE_FCURVE:
         case ANIMTYPE_GROUP: {
-          const bAction *action = reinterpret_cast<bAction *>(ale->fcurve_owner_id);
           offset += short(0.35f * U.widget_unit);
           break;
         }
