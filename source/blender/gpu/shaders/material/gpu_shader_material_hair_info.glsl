@@ -6,12 +6,12 @@
 
 void node_hair_info(float hair_intercept,
                     float hair_length,
-                    out float is_strand,
-                    out float out_intercept,
-                    out float out_length,
-                    out float thickness,
-                    out float3 normal,
-                    out float random)
+                    float &is_strand,
+                    float &out_intercept,
+                    float &out_length,
+                    float &thickness,
+                    float3 &normal,
+                    float &random)
 {
   is_strand = float(g_data.is_strand);
   out_intercept = hair_intercept;

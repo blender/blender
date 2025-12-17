@@ -108,7 +108,7 @@ float dof_gather_accum_weight(float coc, float bordering_radius, bool first_ring
   return saturate(coc - bordering_radius);
 }
 
-void dof_gather_amend_weight(inout DofGatherData sample_data, float weight)
+void dof_gather_amend_weight(DofGatherData &sample_data, float weight)
 {
   sample_data.color *= weight;
   sample_data.coc *= weight;
@@ -118,7 +118,7 @@ void dof_gather_amend_weight(inout DofGatherData sample_data, float weight)
 
 void dof_gather_accumulate_sample(DofGatherData sample_data,
                                   float weight,
-                                  inout DofGatherData accum_data)
+                                  DofGatherData &accum_data)
 {
   accum_data.color += sample_data.color * weight;
   accum_data.coc += sample_data.coc * weight;
@@ -132,8 +132,8 @@ void dof_gather_accumulate_sample_pair(DofGatherData pair_data[2],
                                        bool first_ring,
                                        const bool do_fast_gather,
                                        const bool is_foreground,
-                                       inout DofGatherData ring_data,
-                                       inout DofGatherData accum_data)
+                                       DofGatherData &ring_data,
+                                       DofGatherData &accum_data)
 {
   if (do_fast_gather) {
     for (int i = 0; i < 2; i++) {
@@ -191,7 +191,7 @@ void dof_gather_accumulate_sample_ring(DofGatherData ring_data,
                                        const bool do_fast_gather,
                                        /* accum_data occludes the ring_data if true. */
                                        const bool reversed_occlusion,
-                                       inout DofGatherData accum_data)
+                                       DofGatherData &accum_data)
 {
   if (do_fast_gather) {
     /* Do nothing as ring_data contains nothing. All samples are already in
@@ -275,7 +275,7 @@ void dof_gather_accumulate_center_sample(DofGatherData center_data,
                                          const bool do_fast_gather,
                                          const bool is_foreground,
                                          const bool is_resolve,
-                                         inout DofGatherData accum_data)
+                                         DofGatherData &accum_data)
 {
   float layer_weight = dof_layer_weight(center_data.coc, is_foreground);
   float sample_weight = dof_sample_weight(center_data.coc);
@@ -337,9 +337,9 @@ int dof_gather_total_sample_count_with_density_change(const int ring_count,
 
 void dof_gather_accumulate_resolve(int total_sample_count,
                                    DofGatherData accum_data,
-                                   out float4 out_col,
-                                   out float out_weight,
-                                   out float2 out_occlusion)
+                                   float4 &out_col,
+                                   float &out_weight,
+                                   float2 &out_occlusion)
 {
   float weight_inv = safe_rcp(accum_data.weight);
   out_col = accum_data.color * weight_inv;
@@ -396,11 +396,8 @@ bool dof_do_density_change(float base_radius, float min_intersectable_radius)
   return need_new_density && larger_than_min_density;
 }
 
-void dof_gather_init(float base_radius,
-                     float2 noise,
-                     out float2 center_co,
-                     out float lod,
-                     out float intersection_multiplier)
+void dof_gather_init(
+    float base_radius, float2 noise, float2 &center_co, float &lod, float &intersection_multiplier)
 {
   /* Jitter center half a ring to reduce undersampling. */
   float2 jitter_ofs = 0.499f * sample_disk(noise);
@@ -430,9 +427,9 @@ void dof_gather_accumulator(sampler2D color_tx,
                             float min_intersectable_radius,
                             const bool do_fast_gather,
                             const bool do_density_change,
-                            out float4 out_color,
-                            out float out_weight,
-                            out float2 out_occlusion)
+                            float4 &out_color,
+                            float &out_weight,
+                            float2 &out_occlusion)
 {
   float2 frag_coord = float2(gl_GlobalInvocationID.xy);
   float2 noise_offset = sampling_rng_2D_get(SAMPLING_LENS_U);
@@ -598,9 +595,9 @@ void dof_slight_focus_gather(sampler2DDepth depth_tx,
                              sampler2D color_tx,
                              sampler2D bkh_lut_tx, /* Renamed because of ugly macro job. */
                              float radius,
-                             out float4 out_color,
-                             out float out_weight,
-                             out float out_center_coc)
+                             float4 &out_color,
+                             float &out_weight,
+                             float &out_center_coc)
 {
   float2 frag_coord = float2(gl_GlobalInvocationID.xy) + 0.5f;
   float2 noise_offset = sampling_rng_2D_get(SAMPLING_LENS_U);

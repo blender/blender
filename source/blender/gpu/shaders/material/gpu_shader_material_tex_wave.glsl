@@ -84,8 +84,8 @@ void node_tex_wave(float3 co,
                    float bands_dir,
                    float rings_dir,
                    float wave_profile,
-                   out float4 color,
-                   out float fac)
+                   float4 &color,
+                   float &fac)
 {
   float f;
   f = calc_wave(co * scale,

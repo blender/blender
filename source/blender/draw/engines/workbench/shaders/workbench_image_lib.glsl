@@ -9,7 +9,7 @@
 SHADER_LIBRARY_CREATE_INFO(workbench_color_texture)
 
 /* TODO(fclem): deduplicate code. */
-bool node_tex_tile_lookup(inout float3 co, sampler1DArray map)
+bool node_tex_tile_lookup(float3 &co, sampler1DArray map)
 {
   float2 tile_pos = floor(co.xy);
 

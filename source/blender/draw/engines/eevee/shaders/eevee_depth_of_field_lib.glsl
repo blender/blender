@@ -229,7 +229,7 @@ CocTile dof_coc_tile_unpack(float3 fg, float3 bg)
       imageLoad(tiles_fg_img_, clamp(texel_, int2(0), imageSize(tiles_fg_img_) - 1)).xyz, \
       imageLoad(tiles_bg_img_, clamp(texel_, int2(0), imageSize(tiles_bg_img_) - 1)).xyz)
 
-void dof_coc_tile_pack(CocTile tile, out float3 out_fg, out float3 out_bg)
+void dof_coc_tile_pack(CocTile tile, float3 &out_fg, float3 &out_bg)
 {
   out_fg.x = -tile.fg_min_coc;
   out_fg.y = -tile.fg_max_coc;

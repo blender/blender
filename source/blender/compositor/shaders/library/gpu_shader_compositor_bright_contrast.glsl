@@ -9,10 +9,7 @@
 
 #define FLT_EPSILON 1.192092896e-07F
 
-void node_composite_bright_contrast(float4 color,
-                                    float brightness,
-                                    float contrast,
-                                    out float4 result)
+void node_composite_bright_contrast(float4 color, float brightness, float contrast, float4 &result)
 {
   float scaled_brightness = brightness / 100.0f;
   float delta = contrast / 200.0f;

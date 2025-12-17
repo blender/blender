@@ -160,7 +160,7 @@ float3x3 ltc_tangent_basis(float3 N, float3 V)
   return float3x3(T1, T2, N);
 }
 
-void ltc_transform_quad(float3 N, float3 V, float3x3 Minv, inout float3 corners[4])
+void ltc_transform_quad(float3 N, float3 V, float3x3 Minv, float3 (&corners)[4])
 {
   /* Construct orthonormal basis around N. */
   float3x3 T = ltc_tangent_basis(N, V);

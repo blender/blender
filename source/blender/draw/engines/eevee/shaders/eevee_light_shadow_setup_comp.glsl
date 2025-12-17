@@ -78,7 +78,7 @@ void orthographic_sync(int tilemap_id,
       1.0f);
 }
 
-void cascade_sync(inout LightData light)
+void cascade_sync(LightData &light)
 {
   int level_min = light.sun().clipmap_lod_min;
   int level_max = light.sun().clipmap_lod_max;
@@ -141,7 +141,7 @@ void cascade_sync(inout LightData light)
   light.sun() = sun_data;
 }
 
-void clipmap_sync(inout LightData light)
+void clipmap_sync(LightData &light)
 {
   float3 ws_camera_position = uniform_buf.camera.viewinv[3].xyz;
   float3 ls_camera_position = transform_direction_transposed(light.object_to_world,

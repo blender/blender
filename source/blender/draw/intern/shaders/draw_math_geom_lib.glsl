@@ -180,7 +180,7 @@ float line_aabb_clipping_dist(float3 line_origin,
 /** \name Other useful functions.
  * \{ */
 
-void make_orthonormal_basis(float3 N, out float3 T, out float3 B)
+void make_orthonormal_basis(float3 N, float3 &T, float3 &B)
 {
   float3 up_vector = abs(N.z) < 0.99999f ? float3(0.0f, 0.0f, 1.0f) : float3(1.0f, 0.0f, 0.0f);
   T = normalize(cross(up_vector, N));

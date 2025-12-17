@@ -26,7 +26,7 @@ float avg_albedo(float3 albedo)
   return saturate(dot(albedo, float3(1.0f / 3.0f)));
 }
 
-void radiance_transfer(inout Surfel surfel, float3 in_radiance, float in_visibility, float3 L)
+void radiance_transfer(Surfel &surfel, float3 in_radiance, float in_visibility, float3 L)
 {
   /* Clamped brightness. */
   float luma = max(1e-8f, reduce_max(in_radiance));
@@ -63,7 +63,7 @@ void radiance_transfer(inout Surfel surfel, float3 in_radiance, float in_visibil
   surfel.radiance_indirect[radiance_dst] = radiance;
 }
 
-void radiance_transfer_surfel(inout Surfel receiver, Surfel sender)
+void radiance_transfer_surfel(Surfel &receiver, Surfel sender)
 {
   float3 L = safe_normalize(sender.position - receiver.position);
   bool front_facing = dot(-L, sender.normal) > 0.0f;
@@ -86,7 +86,7 @@ void radiance_transfer_surfel(inout Surfel receiver, Surfel sender)
   radiance_transfer(receiver, radiance_vis.rgb, radiance_vis.a, L);
 }
 
-void radiance_transfer_world(inout Surfel receiver, float3 L)
+void radiance_transfer_world(Surfel &receiver, float3 L)
 {
   float3 radiance = float3(0.0f);
   float visibility = 0.0f;

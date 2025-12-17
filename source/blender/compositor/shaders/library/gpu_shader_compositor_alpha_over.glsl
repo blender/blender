@@ -87,7 +87,7 @@ void node_composite_alpha_over(float4 background,
                                float factor,
                                float type,
                                float straight_alpha,
-                               out float4 result)
+                               float4 &result)
 {
   result = background;
   switch (int(type)) {

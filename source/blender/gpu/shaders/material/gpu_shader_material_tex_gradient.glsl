@@ -41,7 +41,7 @@ float calc_gradient(float3 p, int gradient_type)
   return 0.0f;
 }
 
-void node_tex_gradient(float3 co, float gradient_type, out float4 color, out float fac)
+void node_tex_gradient(float3 co, float gradient_type, float4 &color, float &fac)
 {
   float f = calc_gradient(co, int(gradient_type));
   f = clamp(f, 0.0f, 1.0f);

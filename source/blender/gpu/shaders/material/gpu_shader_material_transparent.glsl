@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-void node_bsdf_transparent(float4 color, float weight, out Closure result)
+void node_bsdf_transparent(float4 color, float weight, Closure &result)
 {
   color = max(color, float4(0.0f));
 

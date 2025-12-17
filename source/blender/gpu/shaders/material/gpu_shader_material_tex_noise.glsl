@@ -150,8 +150,8 @@ void node_noise_tex_fbm_1d(float3 co,
                            float gain,
                            float distortion,
                            float normalize,
-                           out float value,
-                           out float4 color)
+                           float &value,
+                           float4 &color)
 {
   detail = clamp(detail, 0.0f, 15.0f);
   roughness = max(roughness, 0.0f);
@@ -171,8 +171,8 @@ void node_noise_tex_fbm_2d(float3 co,
                            float gain,
                            float distortion,
                            float normalize,
-                           out float value,
-                           out float4 color)
+                           float &value,
+                           float4 &color)
 {
   detail = clamp(detail, 0.0f, 15.0f);
   roughness = max(roughness, 0.0f);
@@ -192,8 +192,8 @@ void node_noise_tex_fbm_3d(float3 co,
                            float gain,
                            float distortion,
                            float normalize,
-                           out float value,
-                           out float4 color)
+                           float &value,
+                           float4 &color)
 {
   detail = clamp(detail, 0.0f, 15.0f);
   roughness = max(roughness, 0.0f);
@@ -213,8 +213,8 @@ void node_noise_tex_fbm_4d(float3 co,
                            float gain,
                            float distortion,
                            float normalize,
-                           out float value,
-                           out float4 color)
+                           float &value,
+                           float4 &color)
 {
   detail = clamp(detail, 0.0f, 15.0f);
   roughness = max(roughness, 0.0f);
@@ -236,8 +236,8 @@ void node_noise_tex_multi_fractal_1d(float3 co,
                                      float gain,
                                      float distortion,
                                      float normalize,
-                                     out float value,
-                                     out float4 color)
+                                     float &value,
+                                     float4 &color)
 {
   detail = clamp(detail, 0.0f, 15.0f);
   roughness = max(roughness, 0.0f);
@@ -257,8 +257,8 @@ void node_noise_tex_multi_fractal_2d(float3 co,
                                      float gain,
                                      float distortion,
                                      float normalize,
-                                     out float value,
-                                     out float4 color)
+                                     float &value,
+                                     float4 &color)
 {
   detail = clamp(detail, 0.0f, 15.0f);
   roughness = max(roughness, 0.0f);
@@ -278,8 +278,8 @@ void node_noise_tex_multi_fractal_3d(float3 co,
                                      float gain,
                                      float distortion,
                                      float normalize,
-                                     out float value,
-                                     out float4 color)
+                                     float &value,
+                                     float4 &color)
 {
   detail = clamp(detail, 0.0f, 15.0f);
   roughness = max(roughness, 0.0f);
@@ -299,8 +299,8 @@ void node_noise_tex_multi_fractal_4d(float3 co,
                                      float gain,
                                      float distortion,
                                      float normalize,
-                                     out float value,
-                                     out float4 color)
+                                     float &value,
+                                     float4 &color)
 {
   detail = clamp(detail, 0.0f, 15.0f);
   roughness = max(roughness, 0.0f);
@@ -322,8 +322,8 @@ void node_noise_tex_hetero_terrain_1d(float3 co,
                                       float gain,
                                       float distortion,
                                       float normalize,
-                                      out float value,
-                                      out float4 color)
+                                      float &value,
+                                      float4 &color)
 {
   detail = clamp(detail, 0.0f, 15.0f);
   roughness = max(roughness, 0.0f);
@@ -343,8 +343,8 @@ void node_noise_tex_hetero_terrain_2d(float3 co,
                                       float gain,
                                       float distortion,
                                       float normalize,
-                                      out float value,
-                                      out float4 color)
+                                      float &value,
+                                      float4 &color)
 {
   detail = clamp(detail, 0.0f, 15.0f);
   roughness = max(roughness, 0.0f);
@@ -364,8 +364,8 @@ void node_noise_tex_hetero_terrain_3d(float3 co,
                                       float gain,
                                       float distortion,
                                       float normalize,
-                                      out float value,
-                                      out float4 color)
+                                      float &value,
+                                      float4 &color)
 {
   detail = clamp(detail, 0.0f, 15.0f);
   roughness = max(roughness, 0.0f);
@@ -385,8 +385,8 @@ void node_noise_tex_hetero_terrain_4d(float3 co,
                                       float gain,
                                       float distortion,
                                       float normalize,
-                                      out float value,
-                                      out float4 color)
+                                      float &value,
+                                      float4 &color)
 {
   detail = clamp(detail, 0.0f, 15.0f);
   roughness = max(roughness, 0.0f);
@@ -408,8 +408,8 @@ void node_noise_tex_hybrid_multi_fractal_1d(float3 co,
                                             float gain,
                                             float distortion,
                                             float normalize,
-                                            out float value,
-                                            out float4 color)
+                                            float &value,
+                                            float4 &color)
 {
   detail = clamp(detail, 0.0f, 15.0f);
   roughness = max(roughness, 0.0f);
@@ -429,8 +429,8 @@ void node_noise_tex_hybrid_multi_fractal_2d(float3 co,
                                             float gain,
                                             float distortion,
                                             float normalize,
-                                            out float value,
-                                            out float4 color)
+                                            float &value,
+                                            float4 &color)
 {
   detail = clamp(detail, 0.0f, 15.0f);
   roughness = max(roughness, 0.0f);
@@ -450,8 +450,8 @@ void node_noise_tex_hybrid_multi_fractal_3d(float3 co,
                                             float gain,
                                             float distortion,
                                             float normalize,
-                                            out float value,
-                                            out float4 color)
+                                            float &value,
+                                            float4 &color)
 {
   detail = clamp(detail, 0.0f, 15.0f);
   roughness = max(roughness, 0.0f);
@@ -471,8 +471,8 @@ void node_noise_tex_hybrid_multi_fractal_4d(float3 co,
                                             float gain,
                                             float distortion,
                                             float normalize,
-                                            out float value,
-                                            out float4 color)
+                                            float &value,
+                                            float4 &color)
 {
   detail = clamp(detail, 0.0f, 15.0f);
   roughness = max(roughness, 0.0f);
@@ -494,8 +494,8 @@ void node_noise_tex_ridged_multi_fractal_1d(float3 co,
                                             float gain,
                                             float distortion,
                                             float normalize,
-                                            out float value,
-                                            out float4 color)
+                                            float &value,
+                                            float4 &color)
 {
   detail = clamp(detail, 0.0f, 15.0f);
   roughness = max(roughness, 0.0f);
@@ -515,8 +515,8 @@ void node_noise_tex_ridged_multi_fractal_2d(float3 co,
                                             float gain,
                                             float distortion,
                                             float normalize,
-                                            out float value,
-                                            out float4 color)
+                                            float &value,
+                                            float4 &color)
 {
   detail = clamp(detail, 0.0f, 15.0f);
   roughness = max(roughness, 0.0f);
@@ -536,8 +536,8 @@ void node_noise_tex_ridged_multi_fractal_3d(float3 co,
                                             float gain,
                                             float distortion,
                                             float normalize,
-                                            out float value,
-                                            out float4 color)
+                                            float &value,
+                                            float4 &color)
 {
   detail = clamp(detail, 0.0f, 15.0f);
   roughness = max(roughness, 0.0f);
@@ -557,8 +557,8 @@ void node_noise_tex_ridged_multi_fractal_4d(float3 co,
                                             float gain,
                                             float distortion,
                                             float normalize,
-                                            out float value,
-                                            out float4 color)
+                                            float &value,
+                                            float4 &color)
 {
   detail = clamp(detail, 0.0f, 15.0f);
   roughness = max(roughness, 0.0f);

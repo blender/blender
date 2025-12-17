@@ -1886,14 +1886,20 @@ class Preprocessor {
       fn_args.foreach_scope(ScopeType::FunctionArg, [&](Scope arg) {
         /* Note: There is no array support. */
         const Token name = arg.back();
-        const Token type = name.prev();
+        const Token type = name.prev() == '&' ? name.prev().prev() : name.prev();
         std::string qualifier = type.prev().str();
         if (qualifier != "out" && qualifier != "inout" && qualifier != "in") {
-          if (qualifier != "const" && qualifier != "(" && qualifier != ",") {
+          if (name.prev() == '&') {
+            qualifier = "out";
+          }
+          else if (qualifier != "const" && qualifier != "(" && qualifier != ",") {
             report_error(ERROR_TOK(type.prev()),
                          "Unrecognized qualifier, expecting 'const', 'in', 'out' or 'inout'.");
+            qualifier = "in";
           }
-          qualifier = "in";
+          else {
+            qualifier = "in";
+          }
         }
         fn.arguments.emplace_back(ArgumentFormat{metadata::Qualifier(hash(qualifier)),
                                                  metadata::Type(hash(type.str()))});

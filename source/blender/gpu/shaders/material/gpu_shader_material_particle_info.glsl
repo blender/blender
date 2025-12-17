@@ -2,14 +2,14 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-void particle_info(out float index,
-                   out float random,
-                   out float age,
-                   out float life_time,
-                   out float3 location,
-                   out float size,
-                   out float3 velocity,
-                   out float3 angular_velocity)
+void particle_info(float &index,
+                   float &random,
+                   float &age,
+                   float &life_time,
+                   float3 &location,
+                   float &size,
+                   float3 &velocity,
+                   float3 &angular_velocity)
 {
   /* Unsupported for now. */
   index = 0.0f;

@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-void combine_xyz(float x, float y, float z, out float3 vec)
+void combine_xyz(float x, float y, float z, float3 &vec)
 {
   vec = float3(x, y, z);
 }

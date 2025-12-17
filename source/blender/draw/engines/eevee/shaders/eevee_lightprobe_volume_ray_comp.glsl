@@ -21,10 +21,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_lightprobe_volume_ray)
 #include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
-void irradiance_capture(float3 L,
-                        float3 irradiance,
-                        float visibility,
-                        inout SphericalHarmonicL1 sh)
+void irradiance_capture(float3 L, float3 irradiance, float visibility, SphericalHarmonicL1 &sh)
 {
   float3 lL = transform_direction(capture_info_buf.irradiance_grid_world_to_local_rotation, L);
 
@@ -35,7 +32,7 @@ void irradiance_capture(float3 L,
   spherical_harmonics_encode_signal_sample(lL, float4(irradiance, visibility), sh);
 }
 
-void irradiance_capture_surfel(Surfel surfel, float3 P, inout SphericalHarmonicL1 sh)
+void irradiance_capture_surfel(Surfel surfel, float3 P, SphericalHarmonicL1 &sh)
 {
   float3 L = safe_normalize(surfel.position - P);
   bool facing = dot(-L, surfel.normal) > 0.0f;
@@ -56,19 +53,19 @@ void irradiance_capture_surfel(Surfel surfel, float3 P, inout SphericalHarmonicL
   irradiance_capture(L, irradiance_vis.rgb, irradiance_vis.a, sh);
 }
 
-void validity_capture_surfel(Surfel surfel, float3 P, inout float validity)
+void validity_capture_surfel(Surfel surfel, float3 P, float &validity)
 {
   float3 L = safe_normalize(surfel.position - P);
   bool facing = surfel.double_sided || dot(-L, surfel.normal) > 0.0f;
   validity += float(facing);
 }
 
-void validity_capture_world(float3 L, inout float validity)
+void validity_capture_world(float3 L, float &validity)
 {
   validity += 1.0f;
 }
 
-void irradiance_capture_world(float3 L, inout SphericalHarmonicL1 sh)
+void irradiance_capture_world(float3 L, SphericalHarmonicL1 &sh)
 {
   float3 radiance = float3(0.0f);
   float visibility = 0.0f;

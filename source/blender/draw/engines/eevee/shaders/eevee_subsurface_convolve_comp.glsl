@@ -49,7 +49,7 @@ void cache_populate(float2 local_uv)
   cached_depth[texel.y][texel.x] = reverse_z::read(texture(depth_tx, local_uv).r);
 }
 
-bool cache_sample(uint2 texel, out SubSurfaceSample samp)
+bool cache_sample(uint2 texel, SubSurfaceSample &samp)
 {
   uint2 tile_coord = unpackUvec2x16(tiles_coord_buf[gl_WorkGroupID.x]);
   /* This can underflow and allow us to only do one upper bound check. */

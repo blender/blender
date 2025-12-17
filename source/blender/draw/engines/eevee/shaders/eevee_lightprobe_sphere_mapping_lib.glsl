@@ -34,7 +34,7 @@ SphereProbeUvArea reinterpret_as_atlas_coord(int4 packed_coord)
 float3 sphere_probe_texel_to_direction(float2 local_texel,
                                        SphereProbePixelArea texel_area,
                                        SphereProbeUvArea uv_area,
-                                       out float2 sampling_uv)
+                                       float2 &sampling_uv)
 {
   /* UV in sampling area. No half pixel bias to texel as the octahedral map edges area lined up
    * with texel center. Note that we don't use the last row & column of pixel, hence the -2 instead
@@ -74,8 +74,8 @@ void sphere_probe_direction_to_uv(float3 L,
                                   float lod_min,
                                   float lod_max,
                                   SphereProbeUvArea uv_area,
-                                  out float2 altas_uv_min,
-                                  out float2 altas_uv_max)
+                                  float2 &altas_uv_min,
+                                  float2 &altas_uv_max)
 {
   float2 octahedral_uv = octahedral_uv_from_direction(L);
   /* We use a custom per mip level scaling and bias. This avoid some projection artifact and

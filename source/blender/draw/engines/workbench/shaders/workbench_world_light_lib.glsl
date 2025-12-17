@@ -24,13 +24,8 @@ float3 brdf_approx(float3 spec_color, float roughness, float NV)
   return mix(spec_color, float3(1.0f), fresnel);
 }
 
-void prep_specular(float3 L,
-                   float3 I,
-                   float3 N,
-                   float3 R,
-                   out float NL,
-                   out float wrapped_NL,
-                   out float spec_angle)
+void prep_specular(
+    float3 L, float3 I, float3 N, float3 R, float &NL, float &wrapped_NL, float &spec_angle)
 {
   wrapped_NL = dot(L, R);
   float3 half_dir = normalize(L + I);

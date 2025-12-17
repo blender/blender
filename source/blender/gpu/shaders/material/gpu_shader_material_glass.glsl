@@ -13,7 +13,7 @@ void node_bsdf_glass(float4 color,
                      float thin_film_thickness,
                      float thin_film_ior,
                      const float do_multiscatter,
-                     out Closure result)
+                     Closure &result)
 {
   color = max(color, float4(0.0f));
   roughness = saturate(roughness);

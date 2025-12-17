@@ -42,7 +42,7 @@ float3x3 pointcloud_get_facing_matrix(float3 p)
 }
 
 /* Returns world center position and radius. */
-void pointcloud_get_pos_and_radius(out float3 outpos, out float outradius)
+void pointcloud_get_pos_and_radius(float3 &outpos, float &outradius)
 {
   int id = pointcloud_get_point_id();
   float4 pos_rad = texelFetch(ptcloud_pos_rad_tx, id);
@@ -51,7 +51,7 @@ void pointcloud_get_pos_and_radius(out float3 outpos, out float outradius)
 }
 
 /* Return world position and normal. */
-void pointcloud_get_pos_nor_radius(out float3 outpos, out float3 outnor, out float outradius)
+void pointcloud_get_pos_nor_radius(float3 &outpos, float3 &outnor, float &outradius)
 {
   float3 p;
   float radius = 0.0f;
@@ -99,7 +99,7 @@ void pointcloud_get_pos_nor_radius(out float3 outpos, out float3 outnor, out flo
 }
 
 /* Return world position and normal. */
-void pointcloud_get_pos_and_nor(out float3 outpos, out float3 outnor)
+void pointcloud_get_pos_and_nor(float3 &outpos, float3 &outnor)
 {
   float3 nor, pos;
   float radius = 0.0f;

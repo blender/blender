@@ -4,22 +4,22 @@
 
 #include "gpu_shader_material_transform_utils.glsl"
 
-void node_output_material_surface(Closure surface, out Closure out_surface)
+void node_output_material_surface(Closure surface, Closure &out_surface)
 {
   out_surface = surface;
 }
 
-void node_output_material_volume(Closure volume, out Closure out_volume)
+void node_output_material_volume(Closure volume, Closure &out_volume)
 {
   out_volume = volume;
 }
 
-void node_output_material_displacement(float3 displacement, out float3 out_displacement)
+void node_output_material_displacement(float3 displacement, float3 &out_displacement)
 {
   out_displacement = displacement;
 }
 
-void node_output_material_thickness(float thickness, out float out_thickness)
+void node_output_material_thickness(float thickness, float &out_thickness)
 {
   float3 ob_scale;
   ob_scale.x = length(drw_modelmat()[0].xyz);

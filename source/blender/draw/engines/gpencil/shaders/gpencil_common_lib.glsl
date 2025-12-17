@@ -15,11 +15,8 @@
 #define MODE_DIVIDE 5
 #define MODE_HARDLIGHT_SECOND_PASS 999
 
-void blend_mode_output(int blending_mode,
-                       float4 color,
-                       float opacity,
-                       out float4 frag_color,
-                       out float4 frag_revealage)
+void blend_mode_output(
+    int blending_mode, float4 color, float opacity, float4 &frag_color, float4 &frag_revealage)
 {
   switch (blending_mode) {
     case MODE_REGULAR:

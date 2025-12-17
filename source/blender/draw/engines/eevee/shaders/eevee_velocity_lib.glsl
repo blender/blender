@@ -113,7 +113,7 @@ float4 velocity_resolve(sampler2D vector_tx, int2 texel, float depth)
  * Given a triple of position, compute the previous and next motion vectors.
  * Returns a tuple of local space motion deltas.
  */
-void velocity_local_pos_get(float3 lP, int vert_id, out float3 lP_prev, out float3 lP_next)
+void velocity_local_pos_get(float3 lP, int vert_id, float3 &lP_prev, float3 &lP_next)
 {
   VelocityIndex vel = velocity_indirection_buf[drw_resource_id()];
   lP_next = lP_prev = lP;
@@ -133,7 +133,7 @@ void velocity_local_pos_get(float3 lP, int vert_id, out float3 lP_prev, out floa
  * WARNING: The returned motion_next is invalid when rendering the viewport.
  */
 void velocity_vertex(
-    float3 lP_prev, float3 lP, float3 lP_next, out float3 motion_prev, out float3 motion_next)
+    float3 lP_prev, float3 lP, float3 lP_next, float3 &motion_prev, float3 &motion_next)
 {
   VelocityIndex vel = velocity_indirection_buf[drw_resource_id()];
   float4x4 obmat_prev = velocity_obj_prev_buf[vel.obj.ofs[STEP_PREVIOUS]];

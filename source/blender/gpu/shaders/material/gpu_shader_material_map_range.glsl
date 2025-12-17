@@ -30,8 +30,8 @@ void vector_map_range_linear(float value,
                              float3 v_to_max,
                              float3 v_steps,
                              float use_clamp,
-                             out float result,
-                             out float3 v_result)
+                             float &result,
+                             float3 &v_result)
 {
   float3 factor = safe_divide((v_value - v_from_min), (v_from_max - v_from_min));
   v_result = v_to_min + factor * (v_to_max - v_to_min);
@@ -58,8 +58,8 @@ void vector_map_range_stepped(float value,
                               float3 v_to_max,
                               float3 v_steps,
                               float use_clamp,
-                              out float result,
-                              out float3 v_result)
+                              float &result,
+                              float3 &v_result)
 {
   float3 factor = safe_divide((v_value - v_from_min), (v_from_max - v_from_min));
   factor = safe_divide(floor(factor * (v_steps + 1.0f)), v_steps);
@@ -87,8 +87,8 @@ void vector_map_range_smoothstep(float value,
                                  float3 v_to_max,
                                  float3 v_steps,
                                  float use_clamp,
-                                 out float result,
-                                 out float3 v_result)
+                                 float &result,
+                                 float3 &v_result)
 {
   float3 factor = safe_divide((v_value - v_from_min), (v_from_max - v_from_min));
   factor = clamp(factor, 0.0f, 1.0f);
@@ -109,8 +109,8 @@ void vector_map_range_smootherstep(float value,
                                    float3 v_to_max,
                                    float3 v_steps,
                                    float use_clamp,
-                                   out float result,
-                                   out float3 v_result)
+                                   float &result,
+                                   float3 &v_result)
 {
   float3 factor = safe_divide((v_value - v_from_min), (v_from_max - v_from_min));
   factor = clamp(factor, 0.0f, 1.0f);
@@ -131,8 +131,8 @@ void map_range_linear(float value,
                       float3 v_to_max,
                       float3 v_steps,
                       float use_clamp,
-                      out float result,
-                      out float3 v_result)
+                      float &result,
+                      float3 &v_result)
 {
   if (fromMax != fromMin) {
     result = toMin + ((value - fromMin) / (fromMax - fromMin)) * (toMax - toMin);
@@ -155,8 +155,8 @@ void map_range_stepped(float value,
                        float3 v_to_max,
                        float3 v_steps,
                        float use_clamp,
-                       out float result,
-                       out float3 v_result)
+                       float &result,
+                       float3 &v_result)
 {
   if (fromMax != fromMin) {
     float factor = (value - fromMin) / (fromMax - fromMin);
@@ -181,8 +181,8 @@ void map_range_smoothstep(float value,
                           float3 v_to_max,
                           float3 v_steps,
                           float use_clamp,
-                          out float result,
-                          out float3 v_result)
+                          float &result,
+                          float3 &v_result)
 {
   if (fromMax != fromMin) {
     float factor = (fromMin > fromMax) ? 1.0f - smoothstep(fromMax, fromMin, value) :
@@ -207,8 +207,8 @@ void map_range_smootherstep(float value,
                             float3 v_to_max,
                             float3 v_steps,
                             float use_clamp,
-                            out float result,
-                            out float3 v_result)
+                            float &result,
+                            float3 &v_result)
 {
   if (fromMax != fromMin) {
     float factor = (fromMin > fromMax) ? 1.0f - smootherstep(fromMax, fromMin, value) :

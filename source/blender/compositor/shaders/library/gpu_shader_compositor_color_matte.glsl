@@ -9,8 +9,8 @@ void node_composite_color_matte(float4 color,
                                 float hue_threshold,
                                 float saturation_epsilon,
                                 float value_epsilon,
-                                out float4 result,
-                                out float matte)
+                                float4 &result,
+                                float &matte)
 
 {
   float4 color_hsva;

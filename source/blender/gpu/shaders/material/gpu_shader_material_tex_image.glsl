@@ -4,18 +4,18 @@
 
 #include "gpu_shader_bicubic_sampler_lib.glsl"
 
-void point_texco_remap_square(float3 vin, out float3 vout)
+void point_texco_remap_square(float3 vin, float3 &vout)
 {
   vout = vin * 2.0f - 1.0f;
 }
 
-void point_texco_clamp(float3 vin, sampler2D ima, out float3 vout)
+void point_texco_clamp(float3 vin, sampler2D ima, float3 &vout)
 {
   float2 half_texel_size = 0.5f / float2(textureSize(ima, 0).xy);
   vout = clamp(vin, half_texel_size.xyy, 1.0f - half_texel_size.xyy);
 }
 
-void point_map_to_sphere(float3 vin, out float3 vout)
+void point_map_to_sphere(float3 vin, float3 &vout)
 {
   float len = length(vin);
   float v, u;
@@ -36,7 +36,7 @@ void point_map_to_sphere(float3 vin, out float3 vout)
   vout = float3(u, v, 0.0f);
 }
 
-void point_map_to_tube(float3 vin, out float3 vout)
+void point_map_to_tube(float3 vin, float3 &vout)
 {
   float u, v;
   v = (vin.z + 1.0f) * 0.5f;
@@ -51,7 +51,7 @@ void point_map_to_tube(float3 vin, out float3 vout)
   vout = float3(u, v, 0.0f);
 }
 
-void node_tex_image_linear(float3 co, sampler2D ima, out float4 color, out float alpha)
+void node_tex_image_linear(float3 co, sampler2D ima, float4 &color, float &alpha)
 {
 #ifdef GPU_FRAGMENT_SHADER
   float2 dx = gpu_dfdx(co.xy) * texture_lod_bias_get();
@@ -65,14 +65,14 @@ void node_tex_image_linear(float3 co, sampler2D ima, out float4 color, out float
   alpha = color.a;
 }
 
-void node_tex_image_cubic(float3 co, sampler2D ima, out float4 color, out float alpha)
+void node_tex_image_cubic(float3 co, sampler2D ima, float4 &color, float &alpha)
 {
   color = texture_bicubic(ima, co.xy);
   alpha = color.a;
 }
 
 void tex_box_sample_linear(
-    float3 texco, float3 N, sampler2D ima, out float4 color1, out float4 color2, out float4 color3)
+    float3 texco, float3 N, sampler2D ima, float4 &color1, float4 &color2, float4 &color3)
 {
   /* X projection */
   float2 uv = texco.yz;
@@ -95,7 +95,7 @@ void tex_box_sample_linear(
 }
 
 void tex_box_sample_cubic(
-    float3 texco, float3 N, sampler2D ima, out float4 color1, out float4 color2, out float4 color3)
+    float3 texco, float3 N, sampler2D ima, float4 &color1, float4 &color2, float4 &color3)
 {
   float alpha;
   /* X projection */
@@ -123,8 +123,8 @@ void tex_box_blend(float3 N,
                    float4 color2,
                    float4 color3,
                    float blend,
-                   out float4 color,
-                   out float alpha)
+                   float4 &color,
+                   float &alpha)
 {
   /* project from direction vector to barycentric coordinates in triangles */
   N = abs(N);
@@ -169,13 +169,13 @@ void tex_box_blend(float3 N,
   alpha = color.a;
 }
 
-void node_tex_image_empty(float3 co, out float4 color, out float alpha)
+void node_tex_image_empty(float3 co, float4 &color, float &alpha)
 {
   color = float4(0.0f);
   alpha = 0.0f;
 }
 
-bool node_tex_tile_lookup(inout float3 co, sampler2DArray ima, sampler1DArray map)
+bool node_tex_tile_lookup(float3 &co, sampler2DArray ima, sampler1DArray map)
 {
   float2 tile_pos = floor(co.xy);
 
@@ -198,7 +198,7 @@ bool node_tex_tile_lookup(inout float3 co, sampler2DArray ima, sampler1DArray ma
 }
 
 void node_tex_tile_linear(
-    float3 co, sampler2DArray ima, sampler1DArray map, out float4 color, out float alpha)
+    float3 co, sampler2DArray ima, sampler1DArray map, float4 &color, float &alpha)
 {
   if (node_tex_tile_lookup(co, ima, map)) {
     color = texture(ima, co);
@@ -211,7 +211,7 @@ void node_tex_tile_linear(
 }
 
 void node_tex_tile_cubic(
-    float3 co, sampler2DArray ima, sampler1DArray map, out float4 color, out float alpha)
+    float3 co, sampler2DArray ima, sampler1DArray map, float4 &color, float &alpha)
 {
   if (node_tex_tile_lookup(co, ima, map)) {
     float2 tex_size = float2(textureSize(ima, 0).xy);

@@ -65,7 +65,7 @@ void node_tex_sky_preetham(float3 co,
                            float3 xyz_to_r,
                            float3 xyz_to_g,
                            float3 xyz_to_b,
-                           out float4 color)
+                           float4 &color)
 {
   /* convert vector to spherical coordinates */
   float3 spherical = sky_spherical_coordinates(co);
@@ -121,7 +121,7 @@ void node_tex_sky_hosekwilkie(float3 co,
                               float3 xyz_to_r,
                               float3 xyz_to_g,
                               float3 xyz_to_b,
-                              out float4 color)
+                              float4 &color)
 {
   /* convert vector to spherical coordinates */
   float3 spherical = sky_spherical_coordinates(co);
@@ -156,7 +156,7 @@ void node_tex_sky_nishita(float3 co,
                           float3 xyz_to_b,
                           sampler2DArray ima,
                           float layer,
-                          out float4 color)
+                          float4 &color)
 {
   float3 spherical = sky_spherical_coordinates(co);
   float3 xyz;

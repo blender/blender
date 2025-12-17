@@ -5,15 +5,15 @@
 #include "gpu_shader_material_tangent.glsl"
 
 void node_geometry(float3 orco_attr,
-                   out float3 position,
-                   out float3 normal,
-                   out float3 tangent,
-                   out float3 true_normal,
-                   out float3 incoming,
-                   out float3 parametric,
-                   out float backfacing,
-                   out float pointiness,
-                   out float random_per_island)
+                   float3 &position,
+                   float3 &normal,
+                   float3 &tangent,
+                   float3 &true_normal,
+                   float3 &incoming,
+                   float3 &parametric,
+                   float &backfacing,
+                   float &pointiness,
+                   float &random_per_island)
 {
   /* handle perspective/orthographic */
   incoming = coordinate_incoming(g_data.P);

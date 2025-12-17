@@ -45,7 +45,7 @@ void node_composite_color_spill(float4 color,
                                 float limit_strength,
                                 float use_spill_strength,
                                 float4 spill_strength,
-                                out float4 result)
+                                float4 &result)
 {
   const int2 limit_channels = compute_limit_channels(
       int(limit_method), int(spill_channel), int(limit_channel));

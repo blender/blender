@@ -6,7 +6,7 @@
 #include "gpu_shader_math_safe_lib.glsl"
 
 void node_composite_difference_matte(
-    float4 color, float4 key, float tolerance, float falloff, out float4 result, out float matte)
+    float4 color, float4 key, float tolerance, float falloff, float4 &result, float &matte)
 {
   float difference = dot(abs(color - key).rgb, float3(1.0f)) / 3.0f;
 

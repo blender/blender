@@ -27,7 +27,7 @@
 #  error Closure data count and eval count must match
 #endif
 
-void forward_lighting_eval(float thickness, out float3 radiance, out float3 transmittance)
+void forward_lighting_eval(float thickness, float3 &radiance, float3 &transmittance)
 {
   float vPz = dot(drw_view_forward(), g_data.P) - dot(drw_view_forward(), drw_view_position());
   float3 V = drw_world_incident_vector(g_data.P);

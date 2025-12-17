@@ -13,7 +13,7 @@ void node_bsdf_glossy(float4 color,
                       float3 T,
                       float weight,
                       const float do_multiscatter,
-                      out Closure result)
+                      Closure &result)
 {
   color = max(color, float4(0.0f));
   roughness = saturate(roughness);

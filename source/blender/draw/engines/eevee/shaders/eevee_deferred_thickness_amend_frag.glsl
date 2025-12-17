@@ -26,8 +26,8 @@ void thickness_from_shadow_single(uint l_idx,
                                   float3 P,
                                   float3 Ng,
                                   float gbuffer_thickness,
-                                  inout float thickness_accum,
-                                  inout float weight_accum)
+                                  float &thickness_accum,
+                                  float &weight_accum)
 {
   LightData light = light_buf[l_idx];
 

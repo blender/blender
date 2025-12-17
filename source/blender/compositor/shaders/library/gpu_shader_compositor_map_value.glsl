@@ -11,7 +11,7 @@ void node_composite_map_range(float value,
                               float to_min,
                               float to_max,
                               const float should_clamp,
-                              out float result)
+                              float &result)
 {
   if (abs(from_max - from_min) < 1e-6f) {
     result = 0.0f;
@@ -46,7 +46,7 @@ void node_composite_map_value(float value,
                               float min,
                               const float use_max,
                               float max,
-                              out float result)
+                              float &result)
 {
   result = (value + offset) * size;
 

@@ -56,7 +56,7 @@ bool flag_test(int flag, int val)
   return (flag & val) != 0;
 }
 
-void set_flag_from_test(inout uint value, bool test, uint flag)
+void set_flag_from_test(uint &value, bool test, uint flag)
 {
   if (test) {
     value |= flag;
@@ -65,7 +65,7 @@ void set_flag_from_test(inout uint value, bool test, uint flag)
     value &= ~flag;
   }
 }
-void set_flag_from_test(inout int value, bool test, int flag)
+void set_flag_from_test(int &value, bool test, int flag)
 {
   if (test) {
     value |= flag;

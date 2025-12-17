@@ -124,8 +124,7 @@ float film_weight_accumulation(int2 texel_film)
   return uniform_buf.film.samples_weight_total;
 }
 
-void film_sample_accum(
-    FilmSample samp, int pass_id, int layer, sampler2DArray tex, inout float4 accum)
+void film_sample_accum(FilmSample samp, int pass_id, int layer, sampler2DArray tex, float4 &accum)
 {
   if (pass_id < 0 || layer < 0) {
     return;
@@ -133,8 +132,7 @@ void film_sample_accum(
   accum += texelFetch(tex, int3(samp.texel, layer), 0) * samp.weight;
 }
 
-void film_sample_accum(
-    FilmSample samp, int pass_id, int layer, sampler2DArray tex, inout float accum)
+void film_sample_accum(FilmSample samp, int pass_id, int layer, sampler2DArray tex, float &accum)
 {
   if (pass_id < 0 || layer < 0) {
     return;
@@ -142,7 +140,7 @@ void film_sample_accum(
   accum += texelFetch(tex, int3(samp.texel, layer), 0).x * samp.weight;
 }
 
-void film_sample_accum_mist(FilmSample samp, inout float accum)
+void film_sample_accum_mist(FilmSample samp, float &accum)
 {
   if (uniform_buf.film.mist_id == -1) {
     return;
@@ -159,7 +157,7 @@ void film_sample_accum_mist(FilmSample samp, inout float accum)
   accum += mist * samp.weight;
 }
 
-void film_sample_accum_combined(FilmSample samp, inout float4 accum, inout float weight_accum)
+void film_sample_accum_combined(FilmSample samp, float4 &accum, float &weight_accum)
 {
   if (combined_id == -1) {
     return;
@@ -176,7 +174,7 @@ void film_sample_accum_combined(FilmSample samp, inout float4 accum, inout float
 void film_sample_cryptomatte_accum(FilmSample samp,
                                    int layer,
                                    sampler2D tex,
-                                   inout float2 crypto_samples[4])
+                                   float2 (&crypto_samples)[4])
 {
   float hash = texelFetch(tex, samp.texel, 0)[layer];
   /* Find existing entry. */
@@ -196,7 +194,7 @@ void film_sample_cryptomatte_accum(FilmSample samp,
 }
 
 void film_cryptomatte_layer_accum_and_store(
-    FilmSample dst, int2 texel_film, int pass_id, int layer_component, inout float4 out_color)
+    FilmSample dst, int2 texel_film, int pass_id, int layer_component, float4 &out_color)
 {
   if (pass_id == -1) {
     return;
@@ -276,7 +274,7 @@ float2 film_pixel_history_motion_vector(int2 texel_sample)
 /* \a t is inter-pixel position. 0 means perfectly on a pixel center.
  * Returns weights in both dimensions.
  * Multiply each dimension weights to get final pixel weights. */
-void film_get_catmull_rom_weights(float2 t, out float2 weights[4])
+void film_get_catmull_rom_weights(float2 t, float2 (&weights)[4])
 {
   float2 t2 = t * t;
   float2 t3 = t2 * t;
@@ -346,7 +344,7 @@ float4 film_sample_catmull_rom(sampler2D color_tx, float2 input_texel)
 }
 
 /* Return history clipping bounding box in YCoCg color space. */
-void film_combined_neighbor_boundbox(int2 texel, out float4 min_c, out float4 max_c)
+void film_combined_neighbor_boundbox(int2 texel, float4 &min_c, float4 &max_c)
 {
   /* Plus (+) shape offsets. */
   constexpr int2 plus_offsets[5] = int2_array(int2(0, 0), /* Center */
@@ -470,7 +468,7 @@ float film_history_blend_factor(float velocity,
 
 /* Returns resolved final color. */
 void film_store_combined(
-    FilmSample dst, int2 src_texel, float4 color, float color_weight, inout float4 display)
+    FilmSample dst, int2 src_texel, float4 color, float color_weight, float4 &display)
 {
   if (combined_id == -1) {
     return;
@@ -542,7 +540,7 @@ void film_store_combined(
   imageStoreFast(out_combined_img, dst.texel, color);
 }
 
-void film_store_color(FilmSample dst, int pass_id, float4 color, inout float4 display)
+void film_store_color(FilmSample dst, int pass_id, float4 color, float4 &display)
 {
   if (pass_id == -1) {
     return;
@@ -570,7 +568,7 @@ void film_store_color(FilmSample dst, int pass_id, float4 color, inout float4 di
   imageStoreFast(color_accum_img, int3(dst.texel, pass_id), color);
 }
 
-void film_store_value(FilmSample dst, int pass_id, float value, inout float4 display)
+void film_store_value(FilmSample dst, int pass_id, float value, float4 &display)
 {
   if (pass_id == -1) {
     return;
@@ -593,7 +591,7 @@ void film_store_value(FilmSample dst, int pass_id, float value, inout float4 dis
 }
 
 /* Nearest sample variant. Always stores the data. */
-void film_store_data(int2 texel_film, int pass_id, float4 data_sample, inout float4 display)
+void film_store_data(int2 texel_film, int pass_id, float4 data_sample, float4 &display)
 {
   if (pass_id == -1) {
     return;
@@ -605,7 +603,7 @@ void film_store_data(int2 texel_film, int pass_id, float4 data_sample, inout flo
   imageStoreFast(color_accum_img, int3(texel_film, pass_id), data_sample);
 }
 
-void film_store_depth(int2 texel_film, float value, out float out_depth)
+void film_store_depth(int2 texel_film, float value, float &out_depth)
 {
   if (uniform_buf.film.depth_id == -1) {
     return;
@@ -641,7 +639,7 @@ float film_display_depth_amend(int2 texel, float depth)
 /** \} */
 
 /** NOTE: out_depth is scene linear depth from the camera origin. */
-void film_process_data(int2 texel_film, out float4 out_color, out float out_depth)
+void film_process_data(int2 texel_film, float4 &out_color, float &out_depth)
 {
   out_color = float4(0.0f);
   out_depth = 0.0f;

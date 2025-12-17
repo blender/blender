@@ -21,7 +21,7 @@ void node_composite_hue_correct(float4 color,
                                 const float layer,
                                 float3 minimums,
                                 float3 range_dividers,
-                                out float4 result)
+                                float4 &result)
 {
   float4 hsv;
   rgb_to_hsv(color, hsv);

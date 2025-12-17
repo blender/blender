@@ -37,10 +37,7 @@ float3 workbench_hair_random_normal(float3 tangent, float3 binor, float3 nor, fl
   return nor;
 }
 
-void workbench_hair_random_material(float rand,
-                                    inout float3 color,
-                                    inout float roughness,
-                                    inout float metallic)
+void workbench_hair_random_material(float rand, float3 &color, float &roughness, float &metallic)
 {
   /* Center noise around 0. */
   rand -= 0.5f;

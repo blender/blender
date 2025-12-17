@@ -61,7 +61,7 @@ void node_bsdf_principled(float4 base_color,
                           float thin_film_thickness,
                           float thin_film_ior,
                           const float do_multiscatter,
-                          out Closure result)
+                          Closure &result)
 {
   /* Match cycles. */
   metallic = saturate(metallic);

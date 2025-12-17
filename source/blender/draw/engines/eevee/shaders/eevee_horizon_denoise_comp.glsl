@@ -12,7 +12,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_horizon_denoise)
 #include "gpu_shader_math_vector_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
-float3 sample_normal_get(int2 texel, out bool is_processed)
+float3 sample_normal_get(int2 texel, bool &is_processed)
 {
   float4 normal = texelFetch(screen_normal_tx, texel, 0);
   is_processed = (normal.w != 0.0f);

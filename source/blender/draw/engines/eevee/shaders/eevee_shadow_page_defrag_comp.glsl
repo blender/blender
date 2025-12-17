@@ -29,7 +29,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_shadow_page_defrag)
 
 #define max_page uint(SHADOW_MAX_PAGE)
 
-void find_first_valid(inout uint src, uint dst)
+void find_first_valid(uint &src, uint dst)
 {
   for (uint i = src; i < dst; i++) {
     if (pages_cached_buf[i % max_page].x != uint(-1)) {

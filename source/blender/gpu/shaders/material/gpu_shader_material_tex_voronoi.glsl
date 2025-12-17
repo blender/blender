@@ -48,11 +48,11 @@ void node_tex_voronoi_f1_1d(float3 coord,
                             float randomness,
                             float metric,
                             float normalize,
-                            out float outDistance,
-                            out float4 outColor,
-                            out float3 outPosition,
-                            out float outW,
-                            out float outRadius)
+                            float &outDistance,
+                            float4 &outColor,
+                            float3 &outPosition,
+                            float &outW,
+                            float &outRadius)
 {
   VoronoiParams params;
 
@@ -78,11 +78,11 @@ void node_tex_voronoi_smooth_f1_1d(float3 coord,
                                    float randomness,
                                    float metric,
                                    float normalize,
-                                   out float outDistance,
-                                   out float4 outColor,
-                                   out float3 outPosition,
-                                   out float outW,
-                                   out float outRadius)
+                                   float &outDistance,
+                                   float4 &outColor,
+                                   float3 &outPosition,
+                                   float &outW,
+                                   float &outRadius)
 {
   VoronoiParams params;
 
@@ -108,11 +108,11 @@ void node_tex_voronoi_f2_1d(float3 coord,
                             float randomness,
                             float metric,
                             float normalize,
-                            out float outDistance,
-                            out float4 outColor,
-                            out float3 outPosition,
-                            out float outW,
-                            out float outRadius)
+                            float &outDistance,
+                            float4 &outColor,
+                            float3 &outPosition,
+                            float &outW,
+                            float &outRadius)
 {
   VoronoiParams params;
 
@@ -138,11 +138,11 @@ void node_tex_voronoi_distance_to_edge_1d(float3 coord,
                                           float randomness,
                                           float metric,
                                           float normalize,
-                                          out float outDistance,
-                                          out float4 outColor,
-                                          out float3 outPosition,
-                                          out float outW,
-                                          out float outRadius)
+                                          float &outDistance,
+                                          float4 &outColor,
+                                          float3 &outPosition,
+                                          float &outW,
+                                          float &outRadius)
 {
   VoronoiParams params;
 
@@ -165,11 +165,11 @@ void node_tex_voronoi_n_sphere_radius_1d(float3 coord,
                                          float randomness,
                                          float metric,
                                          float normalize,
-                                         out float outDistance,
-                                         out float4 outColor,
-                                         out float3 outPosition,
-                                         out float outW,
-                                         out float outRadius)
+                                         float &outDistance,
+                                         float4 &outColor,
+                                         float3 &outPosition,
+                                         float &outW,
+                                         float &outRadius)
 {
   VoronoiParams params;
 
@@ -193,11 +193,11 @@ void node_tex_voronoi_f1_2d(float3 coord,
                             float randomness,
                             float metric,
                             float normalize,
-                            out float outDistance,
-                            out float4 outColor,
-                            out float3 outPosition,
-                            out float outW,
-                            out float outRadius)
+                            float &outDistance,
+                            float4 &outColor,
+                            float3 &outPosition,
+                            float &outW,
+                            float &outRadius)
 {
   VoronoiParams params;
 
@@ -224,11 +224,11 @@ void node_tex_voronoi_smooth_f1_2d(float3 coord,
                                    float randomness,
                                    float metric,
                                    float normalize,
-                                   out float outDistance,
-                                   out float4 outColor,
-                                   out float3 outPosition,
-                                   out float outW,
-                                   out float outRadius)
+                                   float &outDistance,
+                                   float4 &outColor,
+                                   float3 &outPosition,
+                                   float &outW,
+                                   float &outRadius)
 {
   VoronoiParams params;
 
@@ -255,11 +255,11 @@ void node_tex_voronoi_f2_2d(float3 coord,
                             float randomness,
                             float metric,
                             float normalize,
-                            out float outDistance,
-                            out float4 outColor,
-                            out float3 outPosition,
-                            out float outW,
-                            out float outRadius)
+                            float &outDistance,
+                            float4 &outColor,
+                            float3 &outPosition,
+                            float &outW,
+                            float &outRadius)
 {
   VoronoiParams params;
 
@@ -287,11 +287,11 @@ void node_tex_voronoi_distance_to_edge_2d(float3 coord,
                                           float randomness,
                                           float metric,
                                           float normalize,
-                                          out float outDistance,
-                                          out float4 outColor,
-                                          out float3 outPosition,
-                                          out float outW,
-                                          out float outRadius)
+                                          float &outDistance,
+                                          float4 &outColor,
+                                          float3 &outPosition,
+                                          float &outW,
+                                          float &outRadius)
 {
   VoronoiParams params;
 
@@ -314,11 +314,11 @@ void node_tex_voronoi_n_sphere_radius_2d(float3 coord,
                                          float randomness,
                                          float metric,
                                          float normalize,
-                                         out float outDistance,
-                                         out float4 outColor,
-                                         out float3 outPosition,
-                                         out float outW,
-                                         out float outRadius)
+                                         float &outDistance,
+                                         float4 &outColor,
+                                         float3 &outPosition,
+                                         float &outW,
+                                         float &outRadius)
 {
   VoronoiParams params;
 
@@ -342,11 +342,11 @@ void node_tex_voronoi_f1_3d(float3 coord,
                             float randomness,
                             float metric,
                             float normalize,
-                            out float outDistance,
-                            out float4 outColor,
-                            out float3 outPosition,
-                            out float outW,
-                            out float outRadius)
+                            float &outDistance,
+                            float4 &outColor,
+                            float3 &outPosition,
+                            float &outW,
+                            float &outRadius)
 {
   VoronoiParams params;
 
@@ -373,11 +373,11 @@ void node_tex_voronoi_smooth_f1_3d(float3 coord,
                                    float randomness,
                                    float metric,
                                    float normalize,
-                                   out float outDistance,
-                                   out float4 outColor,
-                                   out float3 outPosition,
-                                   out float outW,
-                                   out float outRadius)
+                                   float &outDistance,
+                                   float4 &outColor,
+                                   float3 &outPosition,
+                                   float &outW,
+                                   float &outRadius)
 {
   VoronoiParams params;
 
@@ -404,11 +404,11 @@ void node_tex_voronoi_f2_3d(float3 coord,
                             float randomness,
                             float metric,
                             float normalize,
-                            out float outDistance,
-                            out float4 outColor,
-                            out float3 outPosition,
-                            out float outW,
-                            out float outRadius)
+                            float &outDistance,
+                            float4 &outColor,
+                            float3 &outPosition,
+                            float &outW,
+                            float &outRadius)
 {
   VoronoiParams params;
 
@@ -436,11 +436,11 @@ void node_tex_voronoi_distance_to_edge_3d(float3 coord,
                                           float randomness,
                                           float metric,
                                           float normalize,
-                                          out float outDistance,
-                                          out float4 outColor,
-                                          out float3 outPosition,
-                                          out float outW,
-                                          out float outRadius)
+                                          float &outDistance,
+                                          float4 &outColor,
+                                          float3 &outPosition,
+                                          float &outW,
+                                          float &outRadius)
 {
   VoronoiParams params;
 
@@ -463,11 +463,11 @@ void node_tex_voronoi_n_sphere_radius_3d(float3 coord,
                                          float randomness,
                                          float metric,
                                          float normalize,
-                                         out float outDistance,
-                                         out float4 outColor,
-                                         out float3 outPosition,
-                                         out float outW,
-                                         out float outRadius)
+                                         float &outDistance,
+                                         float4 &outColor,
+                                         float3 &outPosition,
+                                         float &outW,
+                                         float &outRadius)
 {
   VoronoiParams params;
 
@@ -491,11 +491,11 @@ void node_tex_voronoi_f1_4d(float3 coord,
                             float randomness,
                             float metric,
                             float normalize,
-                            out float outDistance,
-                            out float4 outColor,
-                            out float3 outPosition,
-                            out float outW,
-                            out float outRadius)
+                            float &outDistance,
+                            float4 &outColor,
+                            float3 &outPosition,
+                            float &outW,
+                            float &outRadius)
 {
   VoronoiParams params;
 
@@ -524,11 +524,11 @@ void node_tex_voronoi_smooth_f1_4d(float3 coord,
                                    float randomness,
                                    float metric,
                                    float normalize,
-                                   out float outDistance,
-                                   out float4 outColor,
-                                   out float3 outPosition,
-                                   out float outW,
-                                   out float outRadius)
+                                   float &outDistance,
+                                   float4 &outColor,
+                                   float3 &outPosition,
+                                   float &outW,
+                                   float &outRadius)
 {
   VoronoiParams params;
 
@@ -557,11 +557,11 @@ void node_tex_voronoi_f2_4d(float3 coord,
                             float randomness,
                             float metric,
                             float normalize,
-                            out float outDistance,
-                            out float4 outColor,
-                            out float3 outPosition,
-                            out float outW,
-                            out float outRadius)
+                            float &outDistance,
+                            float4 &outColor,
+                            float3 &outPosition,
+                            float &outW,
+                            float &outRadius)
 {
   VoronoiParams params;
 
@@ -591,11 +591,11 @@ void node_tex_voronoi_distance_to_edge_4d(float3 coord,
                                           float randomness,
                                           float metric,
                                           float normalize,
-                                          out float outDistance,
-                                          out float4 outColor,
-                                          out float3 outPosition,
-                                          out float outW,
-                                          out float outRadius)
+                                          float &outDistance,
+                                          float4 &outColor,
+                                          float3 &outPosition,
+                                          float &outW,
+                                          float &outRadius)
 {
   VoronoiParams params;
 
@@ -619,11 +619,11 @@ void node_tex_voronoi_n_sphere_radius_4d(float3 coord,
                                          float randomness,
                                          float metric,
                                          float normalize,
-                                         out float outDistance,
-                                         out float4 outColor,
-                                         out float3 outPosition,
-                                         out float outW,
-                                         out float outRadius)
+                                         float &outDistance,
+                                         float4 &outColor,
+                                         float3 &outPosition,
+                                         float &outW,
+                                         float &outRadius)
 {
   VoronoiParams params;
 

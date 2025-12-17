@@ -6,7 +6,7 @@
 
 #include "gpu_shader_compat.hh"
 
-void rgb_to_hsv(float4 rgb, out float4 outcol)
+void rgb_to_hsv(float4 rgb, float4 &outcol)
 {
   float cmax, cmin, h, s, v, cdelta;
   float3 c;
@@ -50,7 +50,7 @@ void rgb_to_hsv(float4 rgb, out float4 outcol)
   outcol = float4(h, s, v, rgb.w);
 }
 
-void hsv_to_rgb(float4 hsv, out float4 outcol)
+void hsv_to_rgb(float4 hsv, float4 &outcol)
 {
   float i, f, p, q, t, h, s, v;
   float3 rgb;
@@ -98,7 +98,7 @@ void hsv_to_rgb(float4 hsv, out float4 outcol)
   outcol = float4(rgb, hsv.w);
 }
 
-void rgb_to_hsl(float4 rgb, out float4 outcol)
+void rgb_to_hsl(float4 rgb, float4 &outcol)
 {
   float cmax, cmin, h, s, l;
 
@@ -127,7 +127,7 @@ void rgb_to_hsl(float4 rgb, out float4 outcol)
   outcol = float4(h, s, l, rgb.w);
 }
 
-void hsl_to_rgb(float4 hsl, out float4 outcol)
+void hsl_to_rgb(float4 hsl, float4 &outcol)
 {
   float nr, ng, nb, chroma, h, s, l;
 
@@ -151,7 +151,7 @@ void hsl_to_rgb(float4 hsl, out float4 outcol)
 
 /* ** YCCA to RGBA ** */
 
-void ycca_to_rgba_itu_601(float4 ycca, out float4 color)
+void ycca_to_rgba_itu_601(float4 ycca, float4 &color)
 {
   ycca.xyz *= 255.0f;
   ycca.xyz -= float3(16.0f, 128.0f, 128.0f);
@@ -161,7 +161,7 @@ void ycca_to_rgba_itu_601(float4 ycca, out float4 color)
   color.a = ycca.a;
 }
 
-void ycca_to_rgba_itu_709(float4 ycca, out float4 color)
+void ycca_to_rgba_itu_709(float4 ycca, float4 &color)
 {
   ycca.xyz *= 255.0f;
   ycca.xyz -= float3(16.0f, 128.0f, 128.0f);
@@ -171,7 +171,7 @@ void ycca_to_rgba_itu_709(float4 ycca, out float4 color)
   color.a = ycca.a;
 }
 
-void ycca_to_rgba_jpeg(float4 ycca, out float4 color)
+void ycca_to_rgba_jpeg(float4 ycca, float4 &color)
 {
   ycca.xyz *= 255.0f;
   color.rgb = float3x3(1.0f, 1.0f, 1.0f, 0.0f, -0.34414f, 1.772f, 1.402f, -0.71414f, 0.0f) *
@@ -183,7 +183,7 @@ void ycca_to_rgba_jpeg(float4 ycca, out float4 color)
 
 /* ** RGBA to YCCA ** */
 
-void rgba_to_ycca_itu_601(float4 rgba, out float4 ycca)
+void rgba_to_ycca_itu_601(float4 rgba, float4 &ycca)
 {
   rgba.rgb *= 255.0f;
   ycca.xyz = float3x3(0.257f, -0.148f, 0.439f, 0.504f, -0.291f, -0.368f, 0.098f, 0.439f, -0.071f) *
@@ -193,7 +193,7 @@ void rgba_to_ycca_itu_601(float4 rgba, out float4 ycca)
   ycca.a = rgba.a;
 }
 
-void rgba_to_ycca_itu_709(float4 rgba, out float4 ycca)
+void rgba_to_ycca_itu_709(float4 rgba, float4 &ycca)
 {
   rgba.rgb *= 255.0f;
   ycca.xyz = float3x3(0.183f, -0.101f, 0.439f, 0.614f, -0.338f, -0.399f, 0.062f, 0.439f, -0.040f) *
@@ -203,7 +203,7 @@ void rgba_to_ycca_itu_709(float4 rgba, out float4 ycca)
   ycca.a = rgba.a;
 }
 
-void rgba_to_ycca_jpeg(float4 rgba, out float4 ycca)
+void rgba_to_ycca_jpeg(float4 rgba, float4 &ycca)
 {
   rgba.rgb *= 255.0f;
   ycca.xyz = float3x3(
@@ -216,7 +216,7 @@ void rgba_to_ycca_jpeg(float4 rgba, out float4 ycca)
 
 /* ** YUVA to RGBA ** */
 
-void yuva_to_rgba_itu_709(float4 yuva, out float4 color)
+void yuva_to_rgba_itu_709(float4 yuva, float4 &color)
 {
   color.rgb = float3x3(1.0f, 1.0f, 1.0f, 0.0f, -0.21482f, 2.12798f, 1.28033f, -0.38059f, 0.0f) *
               yuva.xyz;
@@ -225,7 +225,7 @@ void yuva_to_rgba_itu_709(float4 yuva, out float4 color)
 
 /* ** RGBA to YUVA ** */
 
-void rgba_to_yuva_itu_709(float4 rgba, out float4 yuva)
+void rgba_to_yuva_itu_709(float4 rgba, float4 &yuva)
 {
   yuva.xyz =
       float3x3(
@@ -236,17 +236,17 @@ void rgba_to_yuva_itu_709(float4 rgba, out float4 yuva)
 
 /* ** Alpha Handling ** */
 
-void color_alpha_clear(float4 color, out float4 result)
+void color_alpha_clear(float4 color, float4 &result)
 {
   result = float4(color.rgb, 1.0f);
 }
 
-void color_alpha_premultiply(float4 color, out float4 result)
+void color_alpha_premultiply(float4 color, float4 &result)
 {
   result = float4(color.rgb * color.a, color.a);
 }
 
-void color_alpha_unpremultiply(float4 color, out float4 result)
+void color_alpha_unpremultiply(float4 color, float4 &result)
 {
   if (color.a == 0.0f || color.a == 1.0f) {
     result = color;

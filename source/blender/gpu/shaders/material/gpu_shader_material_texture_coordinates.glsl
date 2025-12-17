@@ -4,7 +4,7 @@
 
 #include "gpu_shader_material_transform_utils.glsl"
 
-void node_tex_coord_position(out float3 out_pos)
+void node_tex_coord_position(float3 &out_pos)
 {
   out_pos = g_data.P;
 }
@@ -12,13 +12,13 @@ void node_tex_coord_position(out float3 out_pos)
 void node_tex_coord(float4x4 obmatinv,
                     float3 attr_orco,
                     float4 attr_uv,
-                    out float3 generated,
-                    out float3 normal,
-                    out float3 uv,
-                    out float3 object,
-                    out float3 camera,
-                    out float3 window,
-                    out float3 reflection)
+                    float3 &generated,
+                    float3 &normal,
+                    float3 &uv,
+                    float3 &object,
+                    float3 &camera,
+                    float3 &window,
+                    float3 &reflection)
 {
   generated = attr_orco;
   normal_transform_world_to_object(g_data.N, normal);

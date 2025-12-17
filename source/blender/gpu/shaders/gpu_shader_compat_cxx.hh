@@ -44,9 +44,9 @@
 /* Note: Cannot easily mutate them. Pass every by copy for now. */
 
 /* Pass argument by reference. */
-#define inout
+#define inout DO_NOT_USE
 /* Pass argument by reference but only write to it. Its initial value is undefined. */
-#define out
+#define out DO_NOT_USE
 /* Pass argument by copy (default). */
 #define in DO_NOT_USE
 

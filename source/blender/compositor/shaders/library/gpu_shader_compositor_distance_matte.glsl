@@ -13,8 +13,8 @@ void node_composite_distance_matte(const float4 color,
                                    const float color_space,
                                    const float tolerance,
                                    const float falloff,
-                                   out float4 result,
-                                   out float matte)
+                                   float4 &result,
+                                   float &matte)
 {
   float4 color_vector = color;
   float4 key_vector = key;

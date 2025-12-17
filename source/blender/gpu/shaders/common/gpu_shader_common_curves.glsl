@@ -67,7 +67,7 @@ void curves_combined_rgb(float factor,
                          float4 range_dividers,
                          float4 start_slopes,
                          float4 end_slopes,
-                         out float4 result)
+                         float4 &result)
 {
   float4 balanced = white_balance(color, black_level, white_level);
 
@@ -108,7 +108,7 @@ void curves_combined_rgb_compositor(float4 color,
                                     float4 range_dividers,
                                     float4 start_slopes,
                                     float4 end_slopes,
-                                    out float4 result)
+                                    float4 &result)
 {
   curves_combined_rgb(factor,
                       color,
@@ -133,7 +133,7 @@ void curves_combined_only(float factor,
                           float range_divider,
                           float start_slope,
                           float end_slope,
-                          out float4 result)
+                          float4 &result)
 {
   float4 balanced = white_balance(color, black_level, white_level);
 
@@ -164,7 +164,7 @@ void curves_combined_only_compositor(float4 color,
                                      float range_divider,
                                      float start_slope,
                                      float end_slope,
-                                     out float4 result)
+                                     float4 &result)
 {
   curves_combined_only(factor,
                        color,
@@ -220,7 +220,7 @@ void curves_film_like(float factor,
                       float range_divider,
                       float start_slope,
                       float end_slope,
-                      out float4 result)
+                      float4 &result)
 {
   float4 balanced = white_balance(color, black_level, white_level);
 
@@ -267,7 +267,7 @@ void curves_film_like_compositor(float4 color,
                                  float range_divider,
                                  float start_slope,
                                  float end_slope,
-                                 out float4 result)
+                                 float4 &result)
 {
   curves_film_like(factor,
                    color,
@@ -289,7 +289,7 @@ void curves_vector(float3 vector,
                    float3 range_dividers,
                    float3 start_slopes,
                    float3 end_slopes,
-                   out float3 result)
+                   float3 &result)
 {
   /* Evaluate each component on its curve map.
    * The components are first normalized into the [0, 1] range. */
@@ -311,7 +311,7 @@ void curves_vector_mixed(float factor,
                          float3 range_dividers,
                          float3 start_slopes,
                          float3 end_slopes,
-                         out float3 result)
+                         float3 &result)
 {
   curves_vector(
       vector, curve_map, layer, range_minimums, range_dividers, start_slopes, end_slopes, result);
@@ -325,7 +325,7 @@ void curves_float(float value,
                   float range_divider,
                   float start_slope,
                   float end_slope,
-                  out float result)
+                  float &result)
 {
   /* Evaluate the normalized value on the first curve map. */
   float parameter = (value - range_minimum) * range_divider;
@@ -344,7 +344,7 @@ void curves_float_mixed(float factor,
                         float range_divider,
                         float start_slope,
                         float end_slope,
-                        out float result)
+                        float &result)
 {
   curves_float(
       value, curve_map, layer, range_minimum, range_divider, start_slope, end_slope, result);

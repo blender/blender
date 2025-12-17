@@ -92,7 +92,7 @@ ClosureType closure_type_get(ClosureSubsurface cl)
 /**
  * Returns true if the closure is to be selected based on the input weight.
  */
-bool closure_select_check(float weight, inout float total_weight, inout float r)
+bool closure_select_check(float weight, float &total_weight, float &r)
 {
   if (weight < 1e-5f) {
     return false;
@@ -109,9 +109,7 @@ bool closure_select_check(float weight, inout float total_weight, inout float r)
 /**
  * Assign `candidate` to `destination` based on a random value and the respective weights.
  */
-void closure_select(inout ClosureUndetermined destination,
-                    inout float random,
-                    ClosureUndetermined candidate)
+void closure_select(ClosureUndetermined &destination, float &random, ClosureUndetermined candidate)
 {
   float candidate_color_weight = average(abs(candidate.color));
   if (closure_select_check(candidate.weight * candidate_color_weight, destination.weight, random))

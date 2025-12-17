@@ -40,14 +40,14 @@ template uint4 divide_ceil<uint4>(uint4, uint4);
 /**
  * Component wise, use vector to replace min if it is smaller and max if bigger.
  */
-template<typename VecT> void min_max(VecT vector, inout VecT min_v, inout VecT max_v)
+template<typename VecT> void min_max(VecT vector, VecT &min_v, VecT &max_v)
 {
   min_v = min(vector, min_v);
   max_v = max(vector, max_v);
 }
-template void min_max<float2>(float2, inout float2, inout float2);
-template void min_max<float3>(float3, inout float3, inout float3);
-template void min_max<float4>(float4, inout float4, inout float4);
+template void min_max<float2>(float2, float2 &, float2 &);
+template void min_max<float3>(float3, float3 &, float3 &);
+template void min_max<float4>(float4, float4 &, float4 &);
 
 /**
  * Return the manhattan length of `a`.
@@ -97,7 +97,7 @@ template float distance_squared<float4>(float4, float4);
 /**
  * Return normalized version of the `vector` and its length.
  */
-template<typename VecT> VecT normalize_and_get_length(VecT vector, out float out_length)
+template<typename VecT> VecT normalize_and_get_length(VecT vector, float &out_length)
 {
   out_length = length_squared(vector);
   constexpr float threshold = 1e-35f;
@@ -109,9 +109,9 @@ template<typename VecT> VecT normalize_and_get_length(VecT vector, out float out
   out_length = 0.0f;
   return VecT(0.0f);
 }
-template float2 normalize_and_get_length<float2>(float2, out float);
-template float3 normalize_and_get_length<float3>(float3, out float);
-template float4 normalize_and_get_length<float4>(float4, out float);
+template float2 normalize_and_get_length<float2>(float2, float &);
+template float3 normalize_and_get_length<float3>(float3, float &);
+template float4 normalize_and_get_length<float4>(float4, float &);
 
 /**
  * Per component linear interpolation.

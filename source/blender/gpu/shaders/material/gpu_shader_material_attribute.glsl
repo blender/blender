@@ -4,12 +4,12 @@
 
 #include "gpu_shader_common_math.glsl"
 
-void node_attribute_color(float4 attr, out float4 out_attr)
+void node_attribute_color(float4 attr, float4 &out_attr)
 {
   out_attr = attr_load_color_post(attr);
 }
 
-void node_attribute_temperature(float4 attr, out float4 out_attr)
+void node_attribute_temperature(float4 attr, float4 &out_attr)
 {
   float temperature = attr_load_temperature_post(attr.x);
   out_attr.x = temperature;
@@ -18,17 +18,17 @@ void node_attribute_temperature(float4 attr, out float4 out_attr)
   out_attr.w = 1.0f;
 }
 
-void node_attribute_density(float4 attr, out float out_attr)
+void node_attribute_density(float4 attr, float &out_attr)
 {
   out_attr = attr.x;
 }
 
-void node_attribute_flame(float4 attr, out float out_attr)
+void node_attribute_flame(float4 attr, float &out_attr)
 {
   out_attr = attr.x;
 }
 
-void node_attribute_uniform(float4 attr, const float attr_hash, out float4 out_attr)
+void node_attribute_uniform(float4 attr, const float attr_hash, float4 &out_attr)
 {
   /* Temporary solution to support both old UBO attributes and new SSBO loading.
    * Old UBO load is already done through `attr` and will just be passed through. */
@@ -60,8 +60,7 @@ float4 attr_load_layer(const uint attr_hash)
   return float4(0.0f);
 }
 
-void node_attribute(
-    float4 attr, out float4 outcol, out float3 outvec, out float outf, out float outalpha)
+void node_attribute(float4 attr, float4 &outcol, float3 &outvec, float &outf, float &outalpha)
 {
   outcol = float4(attr.xyz, 1.0f);
   outvec = attr.xyz;

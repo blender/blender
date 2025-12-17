@@ -88,8 +88,8 @@ void node_composite_channel_matte(const float4 color,
                                   const float hsv_limit_channel,
                                   const float yuv_limit_channel,
                                   const float ycc_limit_channel,
-                                  out float4 output_color,
-                                  out float matte)
+                                  float4 &output_color,
+                                  float &matte)
 {
   const float3 channels = compute_channels(color, int(color_space));
   const int matte_channel = get_channel_index(int(color_space),

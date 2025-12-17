@@ -6,7 +6,7 @@
 #include "gpu_shader_utildefines_lib.glsl"
 
 void node_bsdf_refraction(
-    float4 color, float roughness, float ior, float3 N, float weight, out Closure result)
+    float4 color, float roughness, float ior, float3 N, float weight, Closure &result)
 {
   color = max(color, float4(0.0f));
   roughness = saturate(roughness);

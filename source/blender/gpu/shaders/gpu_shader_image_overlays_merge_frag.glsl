@@ -18,7 +18,7 @@ float linearrgb_to_srgb(float c)
   }
 }
 
-void linearrgb_to_srgb(float4 col_from, out float4 col_to)
+void linearrgb_to_srgb(float4 col_from, float4 &col_to)
 {
   col_to.r = linearrgb_to_srgb(col_from.r);
   col_to.g = linearrgb_to_srgb(col_from.g);

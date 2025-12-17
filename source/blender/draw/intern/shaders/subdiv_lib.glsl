@@ -48,7 +48,7 @@ float3 subdiv_position_to_float3(Position position)
   return float3(position.x, position.y, position.z);
 }
 
-void add_newell_cross_v3_v3v3(inout float3 n, float3 v_prev, float3 v_curr)
+void add_newell_cross_v3_v3v3(float3 &n, float3 v_prev, float3 v_curr)
 {
   n[0] += (v_prev[1] - v_curr[1]) * (v_prev[2] + v_curr[2]);
   n[1] += (v_prev[2] - v_curr[2]) * (v_prev[0] + v_curr[0]);

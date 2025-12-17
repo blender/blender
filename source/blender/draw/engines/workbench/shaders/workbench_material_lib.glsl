@@ -11,10 +11,10 @@ SHADER_LIBRARY_CREATE_INFO(workbench_color_texture)
 
 void workbench_material_data_get(int handle,
                                  float3 vertex_color,
-                                 out float3 color,
-                                 out float alpha,
-                                 out float roughness,
-                                 out float metallic)
+                                 float3 &color,
+                                 float &alpha,
+                                 float &roughness,
+                                 float &metallic)
 {
 #ifdef WORKBENCH_COLOR_MATERIAL
   float4 data = materials_data[handle];

@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-void brightness_contrast(float4 col, float brightness, float contrast, out float4 outcol)
+void brightness_contrast(float4 col, float brightness, float contrast, float4 &outcol)
 {
   float a = 1.0f + contrast;
   float b = brightness - contrast * 0.5f;

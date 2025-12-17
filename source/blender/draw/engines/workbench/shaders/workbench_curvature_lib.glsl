@@ -23,7 +23,7 @@ float curvature_soft_clamp(float curvature, float control)
 void curvature_compute(float2 uv,
                        usampler2D object_id_buffer,
                        sampler2D normalBuffer,
-                       out float curvature)
+                       float &curvature)
 {
   curvature = 0.0f;
 

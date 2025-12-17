@@ -33,7 +33,7 @@ uint drw_debug_start_draw(uint v_needed)
   return vertid;
 }
 
-void drw_debug_line(inout uint vertid, float3 v1, float3 v2, uint v_color, uint lifetime)
+void drw_debug_line(uint &vertid, float3 v1, float3 v2, uint v_color, uint lifetime)
 {
   uint out_line_id = vertid / 2u;
   drw_debug_lines_buf[out_line_id + drw_debug_draw_offset] = debug_line_make(floatBitsToUint(v1.x),

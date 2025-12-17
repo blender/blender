@@ -36,7 +36,7 @@ SHADER_LIBRARY_CREATE_INFO(eevee_shadow_page_free)
 #include "eevee_shadow_tilemap_lib.glsl"
 
 /* Remove page ownership from the tile and append it to the cache. */
-void shadow_page_free(inout ShadowTileData tile)
+void shadow_page_free(ShadowTileData &tile)
 {
   assert(tile.is_allocated);
 
@@ -51,7 +51,7 @@ void shadow_page_free(inout ShadowTileData tile)
 }
 
 /* Remove last page from the free heap and give ownership to the tile. */
-void shadow_page_alloc(inout ShadowTileData tile)
+void shadow_page_alloc(ShadowTileData &tile)
 {
   assert(!tile.is_allocated);
 
@@ -69,7 +69,7 @@ void shadow_page_alloc(inout ShadowTileData tile)
 }
 
 /* Remove page ownership from the tile cache and append it to the cache. */
-void shadow_page_cache_append(inout ShadowTileData tile, uint tile_index)
+void shadow_page_cache_append(ShadowTileData &tile, uint tile_index)
 {
   assert(tile.is_allocated);
 
@@ -85,7 +85,7 @@ void shadow_page_cache_append(inout ShadowTileData tile, uint tile_index)
 }
 
 /* Remove page from cache and give ownership to the tile. */
-void shadow_page_cache_remove(inout ShadowTileData tile)
+void shadow_page_cache_remove(ShadowTileData &tile)
 {
   assert(!tile.is_allocated);
   assert(tile.is_cached);

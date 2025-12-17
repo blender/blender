@@ -98,7 +98,7 @@ uint divide_ceil(uint a, uint b)
 /**
  * Component wise, use vector to replace min if it is smaller and max if bigger.
  */
-void min_max(float value, inout float min_v, inout float max_v)
+void min_max(float value, float &min_v, float &max_v)
 {
   min_v = min(value, min_v);
   max_v = max(value, max_v);

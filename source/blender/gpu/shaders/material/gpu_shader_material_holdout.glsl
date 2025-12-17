@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-void node_holdout(float weight, out Closure result)
+void node_holdout(float weight, Closure &result)
 {
   ClosureTransparency transparency_data;
   transparency_data.weight = weight;

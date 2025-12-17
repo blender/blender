@@ -21,7 +21,7 @@ struct ScreenSpaceRay {
   float max_time;
 };
 
-void raytrace_screenspace_ray_finalize(inout ScreenSpaceRay ray, float2 pixel_size)
+void raytrace_screenspace_ray_finalize(ScreenSpaceRay &ray, float2 pixel_size)
 
 {
   /* Constant bias (due to depth buffer precision). Helps with self intersection. */

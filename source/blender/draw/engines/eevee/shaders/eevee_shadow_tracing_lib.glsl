@@ -71,7 +71,7 @@ struct ShadowTracingSample {
  * This reverse tracing allows to approximate the geometry behind occluders while minimizing
  * light-leaks.
  */
-void shadow_map_trace_hit_check(inout ShadowMapTracingState state,
+void shadow_map_trace_hit_check(ShadowMapTracingState &state,
                                 ShadowTracingSample samp,
                                 bool is_last_sample)
 {
@@ -177,8 +177,7 @@ ShadowRayDirectional shadow_ray_generate_directional(
   return ray;
 }
 
-ShadowTracingSample shadow_map_trace_sample(ShadowMapTracingState state,
-                                            inout ShadowRayDirectional ray)
+ShadowTracingSample shadow_map_trace_sample(ShadowMapTracingState state, ShadowRayDirectional &ray)
 {
   /* Ray position is ray local position with origin at light origin. */
   float3 ray_pos = ray.origin + ray.direction * state.ray_time;
@@ -279,8 +278,7 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light,
   return ray;
 }
 
-ShadowTracingSample shadow_map_trace_sample(ShadowMapTracingState state,
-                                            inout ShadowRayPunctual ray)
+ShadowTracingSample shadow_map_trace_sample(ShadowMapTracingState state, ShadowRayPunctual &ray)
 {
   float3 receiver_pos = ray.origin + ray.direction * state.ray_time;
   int face_id = shadow_punctual_face_index_get(receiver_pos);

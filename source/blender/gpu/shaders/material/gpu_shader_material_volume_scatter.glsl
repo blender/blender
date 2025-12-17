@@ -10,7 +10,7 @@ void node_volume_scatter(float4 color,
                          float alpha,
                          float diameter,
                          float weight,
-                         out Closure result)
+                         Closure &result)
 {
   color = max(color, float4(0.0f));
   density = max(density, 0.0f);

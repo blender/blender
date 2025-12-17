@@ -253,7 +253,7 @@ void node_composite_color_balance(const float4 color,
                                   const float output_tint,
                                   const float4x4 scene_to_xyz,
                                   const float4x4 xyz_to_scene,
-                                  out float4 result)
+                                  float4 &result)
 {
   switch (int(type)) {
     case CMP_NODE_COLOR_BALANCE_LGG:
@@ -298,7 +298,7 @@ void node_composite_color_balance_white_point_constant(const float4 color,
                                                        const float output_temperature,
                                                        const float output_tint,
                                                        const float4x4 white_point_matrix,
-                                                       out float4 result)
+                                                       float4 &result)
 {
   const float3 balanced = to_float3x3(white_point_matrix) * color.xyz();
   result = float4(mix(color.xyz(), balanced.xyz(), min(factor, 1.0f)), color.w);
