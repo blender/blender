@@ -58,7 +58,8 @@ BlenderViewportParameters::BlenderViewportParameters(::View3D *b_v3d, bool use_d
 
   display_pass = PASS_COMBINED;
 
-  const string display_pass_identifier = get_enum_identifier(shading_rna_ptr, "render_pass");
+  PointerRNA cycles_shading_ptr = RNA_pointer_get(&shading_rna_ptr, "cycles");
+  const string display_pass_identifier = get_enum_identifier(cycles_shading_ptr, "render_pass");
   if (!display_pass_identifier.empty()) {
     const ustring pass_type_identifier(string_to_lower(display_pass_identifier));
     const NodeEnum *pass_type_enum = Pass::get_type_enum();
@@ -68,7 +69,7 @@ BlenderViewportParameters::BlenderViewportParameters(::View3D *b_v3d, bool use_d
   }
 
   if (use_developer_ui) {
-    show_active_pixels = get_boolean(shading_rna_ptr, "show_active_pixels");
+    show_active_pixels = get_boolean(cycles_shading_ptr, "show_active_pixels");
   }
 }
 
