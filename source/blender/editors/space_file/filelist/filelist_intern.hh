@@ -275,6 +275,10 @@ enum {
 enum FileListTags {
   /** The file list has references to main data (IDs) and needs special care. */
   FILELIST_TAGS_USES_MAIN_DATA = (1 << 0),
+  /**
+   * Apply fuzzy search on results left after applying #FileList.filter_fn.
+   */
+  FILELIST_TAGS_APPLY_FUZZY_SEARCH = (1 << 1),
   /** The file list type is not thread-safe. */
   FILELIST_TAGS_NO_THREADS = (1 << 2),
 };

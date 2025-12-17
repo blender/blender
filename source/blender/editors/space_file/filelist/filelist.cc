@@ -880,21 +880,22 @@ void filelist_settype(FileList *filelist, short type)
       filelist->read_job_fn = filelist_readjob_asset_library;
       filelist->prepare_filter_fn = prepare_filter_asset_library;
       filelist->filter_fn = is_filtered_asset_library;
-      filelist->tags |= FILELIST_TAGS_USES_MAIN_DATA;
+      filelist->tags |= FILELIST_TAGS_USES_MAIN_DATA | FILELIST_TAGS_APPLY_FUZZY_SEARCH;
       break;
     case FILE_MAIN_ASSET:
       filelist->check_dir_fn = filelist_checkdir_return_always_valid;
       filelist->read_job_fn = filelist_readjob_main_assets;
       filelist->prepare_filter_fn = prepare_filter_asset_library;
       filelist->filter_fn = is_filtered_main_assets;
-      filelist->tags |= FILELIST_TAGS_USES_MAIN_DATA | FILELIST_TAGS_NO_THREADS;
+      filelist->tags |= FILELIST_TAGS_USES_MAIN_DATA | FILELIST_TAGS_NO_THREADS |
+                        FILELIST_TAGS_APPLY_FUZZY_SEARCH;
       break;
     case FILE_ASSET_LIBRARY_ALL:
       filelist->check_dir_fn = filelist_checkdir_return_always_valid;
       filelist->read_job_fn = filelist_readjob_all_asset_library;
       filelist->prepare_filter_fn = prepare_filter_asset_library;
       filelist->filter_fn = is_filtered_asset_library;
-      filelist->tags |= FILELIST_TAGS_USES_MAIN_DATA;
+      filelist->tags |= FILELIST_TAGS_USES_MAIN_DATA | FILELIST_TAGS_APPLY_FUZZY_SEARCH;
       break;
     default:
       filelist->check_dir_fn = filelist_checkdir_dir;
