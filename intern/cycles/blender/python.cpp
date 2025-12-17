@@ -26,6 +26,8 @@
 
 #include "GPU_state.hh"
 
+#include "DNA_screen_types.h"
+
 #include "scene/osl.h"
 
 #ifdef WITH_METAL
@@ -213,7 +215,14 @@ static PyObject *create_func(PyObject * /*self*/, PyObject *args)
     const int width = region.width();
     const int height = region.height();
 
-    session = new BlenderSession(engine, preferences, data, v3d, rv3d, width, height);
+    session = new BlenderSession(engine,
+                                 preferences,
+                                 data,
+                                 blender::id_cast<::bScreen &>(*v3dptr.owner_id),
+                                 v3d,
+                                 rv3d,
+                                 width,
+                                 height);
   }
   else {
     /* offline session or preview render */

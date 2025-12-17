@@ -110,7 +110,7 @@ void BlenderSync::sync_light(BObjectInfo &b_ob_info, Light *light)
   light->tag_update(scene);
 }
 
-void BlenderSync::sync_background_light(::View3D *b_v3d)
+void BlenderSync::sync_background_light(::bScreen *b_screen, ::View3D *b_v3d)
 {
   ::World *b_world = view_layer.world_override ? view_layer.world_override.ptr.data_as<::World>() :
                                                  b_scene.world().ptr.data_as<::World>();
@@ -180,7 +180,7 @@ void BlenderSync::sync_background_light(::View3D *b_v3d)
 
   world_map = b_world;
   world_recalc = false;
-  viewport_parameters = BlenderViewportParameters(b_v3d, use_developer_ui);
+  viewport_parameters = BlenderViewportParameters(b_screen, b_v3d, use_developer_ui);
 }
 
 CCL_NAMESPACE_END

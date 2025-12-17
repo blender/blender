@@ -95,6 +95,7 @@ void BlenderSync::set_bake_target(BL::Object &b_object)
 /* Sync */
 
 void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph,
+                              ::bScreen *b_screen,
                               BL::SpaceView3D &b_v3d,
                               BL::RegionView3D &b_rv3d)
 {
@@ -265,8 +266,8 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph,
   }
 
   if (b_v3d) {
-    const BlenderViewportParameters new_viewport_parameters(b_v3d.ptr.data_as<::View3D>(),
-                                                            use_developer_ui);
+    const BlenderViewportParameters new_viewport_parameters(
+        b_screen, b_v3d.ptr.data_as<::View3D>(), use_developer_ui);
 
     if (viewport_parameters.shader_modified(new_viewport_parameters)) {
       world_recalc = true;
@@ -279,6 +280,7 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph,
 
 void BlenderSync::sync_data(BL::RenderSettings &b_render,
                             BL::Depsgraph &b_depsgraph,
+                            ::bScreen *b_screen,
                             BL::SpaceView3D &b_v3d,
                             BL::RegionView3D &b_rv3d,
                             const int width,
@@ -305,8 +307,8 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
 
   sync_view_layer(b_view_layer);
   sync_integrator(b_view_layer, background, denoise_device_info);
-  sync_film(b_view_layer, b_v3d);
-  sync_shaders(b_depsgraph, b_v3d, auto_refresh_update);
+  sync_film(b_view_layer, b_screen, b_v3d);
+  sync_shaders(b_depsgraph, b_screen, b_v3d, auto_refresh_update);
   sync_images();
 
   geometry_synced.clear(); /* use for objects and motion sync */
@@ -314,9 +316,9 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
   if (scene->need_motion() == Scene::MOTION_PASS || scene->need_motion() == Scene::MOTION_NONE ||
       scene->camera->get_motion_position() == MOTION_POSITION_CENTER)
   {
-    sync_objects(b_depsgraph, b_v3d);
+    sync_objects(b_depsgraph, b_screen, b_v3d);
   }
-  sync_motion(b_render, b_depsgraph, b_v3d, b_rv3d, width, height, python_thread_state);
+  sync_motion(b_render, b_depsgraph, b_screen, b_v3d, b_rv3d, width, height, python_thread_state);
 
   geometry_synced.clear();
 
@@ -550,7 +552,9 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer,
 
 /* Film */
 
-void BlenderSync::sync_film(BL::ViewLayer &b_view_layer, BL::SpaceView3D &b_v3d)
+void BlenderSync::sync_film(BL::ViewLayer &b_view_layer,
+                            ::bScreen *b_screen,
+                            BL::SpaceView3D &b_v3d)
 {
   PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
   PointerRNA crl = RNA_pointer_get(&b_view_layer.ptr, "cycles");
@@ -558,8 +562,8 @@ void BlenderSync::sync_film(BL::ViewLayer &b_view_layer, BL::SpaceView3D &b_v3d)
   Film *film = scene->film;
 
   if (b_v3d) {
-    const BlenderViewportParameters new_viewport_parameters(b_v3d.ptr.data_as<::View3D>(),
-                                                            use_developer_ui);
+    const BlenderViewportParameters new_viewport_parameters(
+        b_screen, b_v3d.ptr.data_as<::View3D>(), use_developer_ui);
     film->set_display_pass(new_viewport_parameters.display_pass);
     film->set_show_active_pixels(new_viewport_parameters.show_active_pixels);
   }

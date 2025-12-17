@@ -32,6 +32,7 @@ class BlenderSession {
   BlenderSession(BL::RenderEngine &b_engine,
                  BL::Preferences &b_userpref,
                  BL::BlendData &b_data,
+                 ::bScreen &b_screen,
                  BL::SpaceView3D &b_v3d,
                  BL::RegionView3D &b_rv3d,
                  const int width,
@@ -86,6 +87,7 @@ class BlenderSession {
   /* NOTE: Blender's scene might become invalid after call
    * #free_blender_memory_if_possible(). */
   BL::Scene b_scene;
+  ::bScreen *b_screen;
   BL::SpaceView3D b_v3d;
   BL::RegionView3D b_rv3d;
   string b_rlay_name;

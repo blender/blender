@@ -52,9 +52,13 @@ class BlenderSync {
   void set_bake_target(BL::Object &b_object);
 
   /* sync */
-  void sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d, BL::RegionView3D &b_rv3d);
+  void sync_recalc(BL::Depsgraph &b_depsgraph,
+                   ::bScreen *b_screen,
+                   BL::SpaceView3D &b_v3d,
+                   BL::RegionView3D &b_rv3d);
   void sync_data(BL::RenderSettings &b_render,
                  BL::Depsgraph &b_depsgraph,
+                 ::bScreen *b_screen,
                  BL::SpaceView3D &b_v3d,
                  BL::RegionView3D &b_rv3d,
                  const int width,
@@ -111,22 +115,30 @@ class BlenderSync {
   void sync_lights(BL::Depsgraph &b_depsgraph, bool update_all);
   void sync_materials(BL::Depsgraph &b_depsgraph, bool update_all);
   void sync_objects(BL::Depsgraph &b_depsgraph,
+                    ::bScreen *b_screen,
                     BL::SpaceView3D &b_v3d,
                     const float motion_time = 0.0f);
   void sync_motion(BL::RenderSettings &b_render,
                    BL::Depsgraph &b_depsgraph,
+                   ::bScreen *b_screen,
                    BL::SpaceView3D &b_v3d,
                    BL::RegionView3D &b_rv3d,
                    const int width,
                    const int height,
                    void **python_thread_state);
-  void sync_film(BL::ViewLayer &b_view_layer, BL::SpaceView3D &b_v3d);
+  void sync_film(BL::ViewLayer &b_view_layer, ::bScreen *b_screen, BL::SpaceView3D &b_v3d);
   void sync_view();
 
   /* Shader */
   array<Node *> find_used_shaders(BL::Object &b_ob);
-  void sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d, bool update_all);
-  void sync_shaders(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d, bool update_all);
+  void sync_world(BL::Depsgraph &b_depsgraph,
+                  ::bScreen *b_screen,
+                  BL::SpaceView3D &b_v3d,
+                  bool update_all);
+  void sync_shaders(BL::Depsgraph &b_depsgraph,
+                    ::bScreen *b_screen,
+                    BL::SpaceView3D &b_v3d,
+                    bool update_all);
   void sync_nodes(Shader *shader, BL::ShaderNodeTree &b_ntree);
 
   bool scene_attr_needs_recalc(Shader *shader, BL::Depsgraph &b_depsgraph);
@@ -195,7 +207,7 @@ class BlenderSync {
 
   /* Light */
   void sync_light(BObjectInfo &b_ob_info, Light *light);
-  void sync_background_light(::View3D *b_v3d);
+  void sync_background_light(::bScreen *b_screen, ::View3D *b_v3d);
 
   /* Particles */
   bool sync_dupli_particle(BL::Object &b_ob,

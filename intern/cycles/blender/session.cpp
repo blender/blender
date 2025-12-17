@@ -53,6 +53,7 @@ BlenderSession::BlenderSession(BL::RenderEngine &b_engine,
       b_render(b_engine.render()),
       b_depsgraph(PointerRNA_NULL),
       b_scene(PointerRNA_NULL),
+      b_screen(nullptr),
       b_v3d(PointerRNA_NULL),
       b_rv3d(PointerRNA_NULL),
       width(0),
@@ -72,6 +73,7 @@ BlenderSession::BlenderSession(BL::RenderEngine &b_engine,
 BlenderSession::BlenderSession(BL::RenderEngine &b_engine,
                                BL::Preferences &b_userpref,
                                BL::BlendData &b_data,
+                               ::bScreen &b_screen,
                                BL::SpaceView3D &b_v3d,
                                BL::RegionView3D &b_rv3d,
                                const int width,
@@ -85,6 +87,7 @@ BlenderSession::BlenderSession(BL::RenderEngine &b_engine,
       b_render(b_engine.render()),
       b_depsgraph(PointerRNA_NULL),
       b_scene(PointerRNA_NULL),
+      b_screen(&b_screen),
       b_v3d(b_v3d),
       b_rv3d(b_rv3d),
       width(width),
@@ -226,7 +229,7 @@ void BlenderSession::reset_session(BL::BlendData &b_data, BL::Depsgraph &b_depsg
   }
   else {
     /* Sync recalculations to do just the required updates. */
-    sync->sync_recalc(b_depsgraph, b_v3d, b_rv3d);
+    sync->sync_recalc(b_depsgraph, b_screen, b_v3d, b_rv3d);
   }
 
   sync->sync_camera(b_render, width, height, "");
@@ -393,6 +396,7 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
     sync->sync_camera(b_render, width, height, b_rview_name.c_str());
     sync->sync_data(b_render,
                     b_depsgraph,
+                    b_screen,
                     b_v3d,
                     b_rv3d,
                     width,
@@ -690,6 +694,7 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
   sync->sync_camera(b_render, width, height, "");
   sync->sync_data(b_render,
                   b_depsgraph,
+                  b_screen,
                   b_v3d,
                   b_rv3d,
                   width,
@@ -794,7 +799,7 @@ void BlenderSession::synchronize(BL::Depsgraph &b_depsgraph_)
 
   /* copy recalc flags, outside of mutex so we can decide to do the real
    * synchronization at a later time to not block on running updates */
-  sync->sync_recalc(b_depsgraph_, b_v3d, b_rv3d);
+  sync->sync_recalc(b_depsgraph_, b_screen, b_v3d, b_rv3d);
 
   /* don't do synchronization if on pause */
   if (session_pause) {
@@ -813,6 +818,7 @@ void BlenderSession::synchronize(BL::Depsgraph &b_depsgraph_)
 
   sync->sync_data(b_render,
                   b_depsgraph,
+                  b_screen,
                   b_v3d,
                   b_rv3d,
                   width,

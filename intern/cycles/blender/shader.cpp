@@ -1667,7 +1667,10 @@ void BlenderSync::sync_materials(BL::Depsgraph &b_depsgraph, bool update_all)
 
 /* Sync World */
 
-void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d, bool update_all)
+void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph,
+                             ::bScreen *b_screen,
+                             BL::SpaceView3D &b_v3d,
+                             bool update_all)
 {
   Background *background = scene->background;
   Integrator *integrator = scene->integrator;
@@ -1675,8 +1678,8 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
 
   BL::World b_world = view_layer.world_override ? view_layer.world_override : b_scene.world();
 
-  const BlenderViewportParameters new_viewport_parameters(b_v3d.ptr.data_as<::View3D>(),
-                                                          use_developer_ui);
+  const BlenderViewportParameters new_viewport_parameters(
+      b_screen, b_v3d.ptr.data_as<::View3D>(), use_developer_ui);
 
   Shader *shader = scene->default_background;
 
@@ -1868,11 +1871,14 @@ void BlenderSync::sync_lights(BL::Depsgraph &b_depsgraph, bool update_all)
   }
 }
 
-void BlenderSync::sync_shaders(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d, bool update_all)
+void BlenderSync::sync_shaders(BL::Depsgraph &b_depsgraph,
+                               ::bScreen *b_screen,
+                               BL::SpaceView3D &b_v3d,
+                               bool update_all)
 {
   shader_map.pre_sync();
 
-  sync_world(b_depsgraph, b_v3d, update_all);
+  sync_world(b_depsgraph, b_screen, b_v3d, update_all);
   sync_lights(b_depsgraph, update_all);
   sync_materials(b_depsgraph, update_all);
 }

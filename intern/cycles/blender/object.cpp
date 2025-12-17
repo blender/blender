@@ -442,6 +442,7 @@ bool BlenderSync::sync_object_attributes(BL::DepsgraphObjectInstance &b_instance
 /* Object Loop */
 
 void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
+                               ::bScreen *b_screen,
                                BL::SpaceView3D &b_v3d,
                                const float motion_time)
 {
@@ -474,8 +475,9 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
 
   /* object loop */
   bool cancel = false;
-  const bool show_lights =
-      BlenderViewportParameters(b_v3d.ptr.data_as<::View3D>(), use_developer_ui).use_scene_lights;
+  const bool show_lights = BlenderViewportParameters(
+                               b_screen, b_v3d.ptr.data_as<::View3D>(), use_developer_ui)
+                               .use_scene_lights;
 
   BL::ViewLayer b_view_layer = b_depsgraph.view_layer_eval();
   BL::Depsgraph::object_instances_iterator b_instance_iter;
@@ -528,7 +530,7 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
 
   if (!cancel && !motion) {
     /* After object for world_use_portal. */
-    sync_background_light(b_v3d.ptr.data_as<::View3D>());
+    sync_background_light(b_screen, b_v3d.ptr.data_as<::View3D>());
 
     /* Handle removed data and modified pointers, as this may free memory, delete Nodes in the
      * right order to ensure that dependent data is freed after their users. Objects should be
@@ -546,6 +548,7 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
 
 void BlenderSync::sync_motion(BL::RenderSettings &b_render,
                               BL::Depsgraph &b_depsgraph,
+                              ::bScreen *b_screen,
                               BL::SpaceView3D &b_v3d,
                               BL::RegionView3D &b_rv3d,
                               const int width,
@@ -584,7 +587,7 @@ void BlenderSync::sync_motion(BL::RenderSettings &b_render,
     if (b_cam) {
       sync_camera_motion(b_render, b_cam, width, height, 0.0f);
     }
-    sync_objects(b_depsgraph, b_v3d);
+    sync_objects(b_depsgraph, b_screen, b_v3d);
   }
 
   /* Insert motion times from camera. Motion times from other objects
@@ -631,7 +634,7 @@ void BlenderSync::sync_motion(BL::RenderSettings &b_render,
     sync_camera_motion(b_render, b_cam, width, height, relative_time);
 
     /* sync object */
-    sync_objects(b_depsgraph, b_v3d, relative_time);
+    sync_objects(b_depsgraph, b_screen, b_v3d, relative_time);
   }
 
   geometry_motion_attribute_synced.clear();

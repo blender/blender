@@ -23,7 +23,9 @@ BlenderViewportParameters::BlenderViewportParameters()
 {
 }
 
-BlenderViewportParameters::BlenderViewportParameters(::View3D *b_v3d, bool use_developer_ui)
+BlenderViewportParameters::BlenderViewportParameters(::bScreen *b_screen,
+                                                     ::View3D *b_v3d,
+                                                     bool use_developer_ui)
     : BlenderViewportParameters()
 {
   if (!b_v3d) {
@@ -31,7 +33,7 @@ BlenderViewportParameters::BlenderViewportParameters(::View3D *b_v3d, bool use_d
   }
 
   ::View3DShading shading = b_v3d->shading;
-  PointerRNA v3d_rna_ptr = RNA_pointer_create_discrete(nullptr, &RNA_SpaceView3D, b_v3d);
+  PointerRNA v3d_rna_ptr = RNA_pointer_create_discrete(&b_screen->id, &RNA_SpaceView3D, b_v3d);
   PointerRNA shading_rna_ptr = RNA_pointer_get(&v3d_rna_ptr, "shading");
 
   /* We only copy the shading parameters if we are in look-dev mode.
