@@ -401,7 +401,7 @@ class GlareOperation : public NodeOperation {
         case CMP_NODE_GLARE_QUALITY_MEDIUM: {
           float2 normalized_coordinates = (float2(texel) * 2.0f + float2(1.0f)) /
                                           float2(input_size);
-          color = input.sample_bilinear_extended(normalized_coordinates);
+          color = float4(input.sample_bilinear_extended<Color>(normalized_coordinates));
           break;
         }
 
@@ -413,19 +413,23 @@ class GlareOperation : public NodeOperation {
 
           float2 lower_left_coordinates = (float2(texel) * 4.0f + float2(1.0f)) /
                                           float2(input_size);
-          float4 lower_left_color = input.sample_bilinear_extended(lower_left_coordinates);
+          float4 lower_left_color = float4(
+              input.sample_bilinear_extended<Color>(lower_left_coordinates));
 
           float2 lower_right_coordinates = (float2(texel) * 4.0f + float2(3.0f, 1.0f)) /
                                            float2(input_size);
-          float4 lower_right_color = input.sample_bilinear_extended(lower_right_coordinates);
+          float4 lower_right_color = float4(
+              input.sample_bilinear_extended<Color>(lower_right_coordinates));
 
           float2 upper_left_coordinates = (float2(texel) * 4.0f + float2(1.0f, 3.0f)) /
                                           float2(input_size);
-          float4 upper_left_color = input.sample_bilinear_extended(upper_left_coordinates);
+          float4 upper_left_color = float4(
+              input.sample_bilinear_extended<Color>(upper_left_coordinates));
 
           float2 upper_right_coordinates = (float2(texel) * 4.0f + float2(3.0f)) /
                                            float2(input_size);
-          float4 upper_right_color = input.sample_bilinear_extended(upper_right_coordinates);
+          float4 upper_right_color = float4(
+              input.sample_bilinear_extended<Color>(upper_right_coordinates));
 
           color = (upper_left_color + upper_right_color + lower_left_color + lower_right_color) /
                   4.0f;
@@ -600,7 +604,7 @@ class GlareOperation : public NodeOperation {
     parallel_for(size, [&](const int2 texel) {
       float2 normalized_coordinates = (float2(texel) + float2(0.5f)) / float2(size);
       output.store_pixel(texel,
-                         Color(highlights.sample_bilinear_extended(normalized_coordinates)));
+                         highlights.sample_bilinear_extended<Color>(normalized_coordinates));
     });
   }
 
@@ -1828,23 +1832,23 @@ class GlareOperation : public NodeOperation {
        * In particular, the upsampling strategy is described and illustrated in slide 162 titled
        * "Upsampling - Our Solution". */
       float4 upsampled = float4(0.0f);
-      upsampled += (4.0f / 16.0f) * input.sample_bilinear_extended(coordinates);
-      upsampled += (2.0f / 16.0f) *
-                   input.sample_bilinear_extended(coordinates + pixel_size * float2(-1.0f, 0.0f));
-      upsampled += (2.0f / 16.0f) *
-                   input.sample_bilinear_extended(coordinates + pixel_size * float2(0.0f, 1.0f));
-      upsampled += (2.0f / 16.0f) *
-                   input.sample_bilinear_extended(coordinates + pixel_size * float2(1.0f, 0.0f));
-      upsampled += (2.0f / 16.0f) *
-                   input.sample_bilinear_extended(coordinates + pixel_size * float2(0.0f, -1.0f));
-      upsampled += (1.0f / 16.0f) *
-                   input.sample_bilinear_extended(coordinates + pixel_size * float2(-1.0f, -1.0f));
-      upsampled += (1.0f / 16.0f) *
-                   input.sample_bilinear_extended(coordinates + pixel_size * float2(-1.0f, 1.0f));
-      upsampled += (1.0f / 16.0f) *
-                   input.sample_bilinear_extended(coordinates + pixel_size * float2(1.0f, -1.0f));
-      upsampled += (1.0f / 16.0f) *
-                   input.sample_bilinear_extended(coordinates + pixel_size * float2(1.0f, 1.0f));
+      upsampled += (4.0f / 16.0f) * float4(input.sample_bilinear_extended<Color>(coordinates));
+      upsampled += (2.0f / 16.0f) * float4(input.sample_bilinear_extended<Color>(
+                                        coordinates + pixel_size * float2(-1.0f, 0.0f)));
+      upsampled += (2.0f / 16.0f) * float4(input.sample_bilinear_extended<Color>(
+                                        coordinates + pixel_size * float2(0.0f, 1.0f)));
+      upsampled += (2.0f / 16.0f) * float4(input.sample_bilinear_extended<Color>(
+                                        coordinates + pixel_size * float2(1.0f, 0.0f)));
+      upsampled += (2.0f / 16.0f) * float4(input.sample_bilinear_extended<Color>(
+                                        coordinates + pixel_size * float2(0.0f, -1.0f)));
+      upsampled += (1.0f / 16.0f) * float4(input.sample_bilinear_extended<Color>(
+                                        coordinates + pixel_size * float2(-1.0f, -1.0f)));
+      upsampled += (1.0f / 16.0f) * float4(input.sample_bilinear_extended<Color>(
+                                        coordinates + pixel_size * float2(-1.0f, 1.0f)));
+      upsampled += (1.0f / 16.0f) * float4(input.sample_bilinear_extended<Color>(
+                                        coordinates + pixel_size * float2(1.0f, -1.0f)));
+      upsampled += (1.0f / 16.0f) * float4(input.sample_bilinear_extended<Color>(
+                                        coordinates + pixel_size * float2(1.0f, 1.0f)));
 
       float4 combined = float4(output.load_pixel<Color>(texel)) + upsampled;
       output.store_pixel(texel, Color(float4(combined.xyz(), 1.0f)));
@@ -1952,31 +1956,31 @@ class GlareOperation : public NodeOperation {
        * In particular, the downsampling strategy is described and illustrated in slide 153 titled
        * "Downsampling - Our Solution". This is employed as it significantly improves the stability
        * of the glare as can be seen in the videos in the talk. */
-      float4 center = input.sample_bilinear_extended(coordinates);
-      float4 upper_left_near = input.sample_bilinear_extended(coordinates +
-                                                              pixel_size * float2(-1.0f, 1.0f));
-      float4 upper_right_near = input.sample_bilinear_extended(coordinates +
-                                                               pixel_size * float2(1.0f, 1.0f));
-      float4 lower_left_near = input.sample_bilinear_extended(coordinates +
-                                                              pixel_size * float2(-1.0f, -1.0f));
-      float4 lower_right_near = input.sample_bilinear_extended(coordinates +
-                                                               pixel_size * float2(1.0f, -1.0f));
-      float4 left_far = input.sample_bilinear_extended(coordinates +
-                                                       pixel_size * float2(-2.0f, 0.0f));
-      float4 right_far = input.sample_bilinear_extended(coordinates +
-                                                        pixel_size * float2(2.0f, 0.0f));
-      float4 upper_far = input.sample_bilinear_extended(coordinates +
-                                                        pixel_size * float2(0.0f, 2.0f));
-      float4 lower_far = input.sample_bilinear_extended(coordinates +
-                                                        pixel_size * float2(0.0f, -2.0f));
-      float4 upper_left_far = input.sample_bilinear_extended(coordinates +
-                                                             pixel_size * float2(-2.0f, 2.0f));
-      float4 upper_right_far = input.sample_bilinear_extended(coordinates +
-                                                              pixel_size * float2(2.0f, 2.0f));
-      float4 lower_left_far = input.sample_bilinear_extended(coordinates +
-                                                             pixel_size * float2(-2.0f, -2.0f));
-      float4 lower_right_far = input.sample_bilinear_extended(coordinates +
-                                                              pixel_size * float2(2.0f, -2.0f));
+      float4 center = float4(input.sample_bilinear_extended<Color>(coordinates));
+      float4 upper_left_near = float4(
+          input.sample_bilinear_extended<Color>(coordinates + pixel_size * float2(-1.0f, 1.0f)));
+      float4 upper_right_near = float4(
+          input.sample_bilinear_extended<Color>(coordinates + pixel_size * float2(1.0f, 1.0f)));
+      float4 lower_left_near = float4(
+          input.sample_bilinear_extended<Color>(coordinates + pixel_size * float2(-1.0f, -1.0f)));
+      float4 lower_right_near = float4(
+          input.sample_bilinear_extended<Color>(coordinates + pixel_size * float2(1.0f, -1.0f)));
+      float4 left_far = float4(
+          input.sample_bilinear_extended<Color>(coordinates + pixel_size * float2(-2.0f, 0.0f)));
+      float4 right_far = float4(
+          input.sample_bilinear_extended<Color>(coordinates + pixel_size * float2(2.0f, 0.0f)));
+      float4 upper_far = float4(
+          input.sample_bilinear_extended<Color>(coordinates + pixel_size * float2(0.0f, 2.0f)));
+      float4 lower_far = float4(
+          input.sample_bilinear_extended<Color>(coordinates + pixel_size * float2(0.0f, -2.0f)));
+      float4 upper_left_far = float4(
+          input.sample_bilinear_extended<Color>(coordinates + pixel_size * float2(-2.0f, 2.0f)));
+      float4 upper_right_far = float4(
+          input.sample_bilinear_extended<Color>(coordinates + pixel_size * float2(2.0f, 2.0f)));
+      float4 lower_left_far = float4(
+          input.sample_bilinear_extended<Color>(coordinates + pixel_size * float2(-2.0f, -2.0f)));
+      float4 lower_right_far = float4(
+          input.sample_bilinear_extended<Color>(coordinates + pixel_size * float2(2.0f, -2.0f)));
 
       float4 result;
       if constexpr (!UseKarisAverage) {
@@ -2462,15 +2466,15 @@ class GlareOperation : public NodeOperation {
     if (kernel.type() == ResultType::Float) {
       parallel_for(size, [&](const int2 texel) {
         const float2 normalized_coordinates = (float2(texel) + float2(0.5f)) / float2(size);
-        downsampled_kernel.store_pixel(texel,
-                                       kernel.sample_bilinear_extended(normalized_coordinates).x);
+        downsampled_kernel.store_pixel(
+            texel, kernel.sample_bilinear_extended<float>(normalized_coordinates));
       });
     }
     else {
       parallel_for(size, [&](const int2 texel) {
         const float2 normalized_coordinates = (float2(texel) + float2(0.5f)) / float2(size);
         downsampled_kernel.store_pixel(
-            texel, Color(kernel.sample_bilinear_extended(normalized_coordinates)));
+            texel, kernel.sample_bilinear_extended<Color>(normalized_coordinates));
       });
     }
 
@@ -2592,7 +2596,8 @@ class GlareOperation : public NodeOperation {
 
       float2 normalized_coordinates = (float2(texel) + float2(0.5f)) /
                                       float2(input.domain().data_size);
-      float4 glare_color = glare_result.sample_bilinear_extended(normalized_coordinates);
+      float4 glare_color = float4(
+          glare_result.sample_bilinear_extended<Color>(normalized_coordinates));
 
       /* Adjust saturation of glare. */
       float4 glare_hsva;
@@ -2656,7 +2661,7 @@ class GlareOperation : public NodeOperation {
     const int2 size = output.domain().data_size;
     parallel_for(size, [&](const int2 texel) {
       float2 normalized_coordinates = (float2(texel) + float2(0.5f)) / float2(size);
-      float4 glare_color = glare.sample_bilinear_extended(normalized_coordinates);
+      float4 glare_color = float4(glare.sample_bilinear_extended<Color>(normalized_coordinates));
 
       /* Adjust saturation of glare. */
       float4 glare_hsva;

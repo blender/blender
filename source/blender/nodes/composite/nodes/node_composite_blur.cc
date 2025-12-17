@@ -304,7 +304,7 @@ class BlurOperation : public NodeOperation {
        * contributions. */
       for (int x = 1; x <= radius.x; x++) {
         float weight_coordinates = (x + 0.5f) * coordinates_scale.x;
-        float weight = weights.sample_bilinear_extended(float2(weight_coordinates, 0.0f)).x;
+        float weight = weights.sample_bilinear_extended<float>(float2(weight_coordinates, 0.0f));
         accumulated_color += float4(input.load_pixel_extended<Color>(texel + int2(x, 0))) * weight;
         accumulated_color += float4(input.load_pixel_extended<Color>(texel + int2(-x, 0))) *
                              weight;
@@ -317,7 +317,7 @@ class BlurOperation : public NodeOperation {
        * contributions. */
       for (int y = 1; y <= radius.y; y++) {
         float weight_coordinates = (y + 0.5f) * coordinates_scale.y;
-        float weight = weights.sample_bilinear_extended(float2(0.0f, weight_coordinates)).x;
+        float weight = weights.sample_bilinear_extended<float>(float2(0.0f, weight_coordinates));
         accumulated_color += float4(input.load_pixel_extended<Color>(texel + int2(0, y))) * weight;
         accumulated_color += float4(input.load_pixel_extended<Color>(texel + int2(0, -y))) *
                              weight;
@@ -331,7 +331,7 @@ class BlurOperation : public NodeOperation {
       for (int y = 1; y <= radius.y; y++) {
         for (int x = 1; x <= radius.x; x++) {
           float2 weight_coordinates = (float2(x, y) + float2(0.5f)) * coordinates_scale;
-          float weight = weights.sample_bilinear_extended(weight_coordinates).x;
+          float weight = weights.sample_bilinear_extended<float>(weight_coordinates);
           accumulated_color += float4(input.load_pixel_extended<Color>(texel + int2(x, y))) *
                                weight;
           accumulated_color += float4(input.load_pixel_extended<Color>(texel + int2(-x, y))) *

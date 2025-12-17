@@ -319,12 +319,12 @@ static void gather_sample(const Result &input_image,
                           Accumulator &accum)
 {
   float2 sample_uv = screen_uv - offset / float2(size);
-  float4 sample_vectors = input_velocity.sample_bilinear_extended(sample_uv) *
+  float4 sample_vectors = input_velocity.sample_bilinear_extended<float4>(sample_uv) *
                           float4(float2(shutter_speed), float2(-shutter_speed));
   float2 sample_motion = (next) ? sample_vectors.zw() : sample_vectors.xy();
   float sample_motion_len = math::length(sample_motion);
-  float sample_depth = input_depth.sample_bilinear_extended(sample_uv).x;
-  float4 sample_color = input_image.sample_bilinear_extended(sample_uv);
+  float sample_depth = input_depth.sample_bilinear_extended<float>(sample_uv);
+  float4 sample_color = float4(input_image.sample_bilinear_extended<Color>(sample_uv));
 
   float2 direct_weights = sample_weights(
       center_depth, sample_depth, center_motion_len, sample_motion_len, offset_len);

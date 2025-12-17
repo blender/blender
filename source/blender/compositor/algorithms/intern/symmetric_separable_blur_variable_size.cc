@@ -49,8 +49,8 @@ static void blur_pass(const Result &input,
      * contributions. */
     for (int i = 1; i <= radius; i++) {
       /* Add 0.5 to evaluate at the center of the pixels. */
-      float weight =
-          weights.sample_bilinear_extended(float2((float(i) + 0.5f) / float(radius + 1), 0.0f)).x;
+      float weight = weights.sample_bilinear_extended<float>(
+          float2((float(i) + 0.5f) / float(radius + 1), 0.0f));
       accumulated_color += float4(input.load_pixel_extended<Color>(texel + int2(i, 0))) * weight;
       accumulated_color += float4(input.load_pixel_extended<Color>(texel + int2(-i, 0))) * weight;
       accumulated_weight += weight * 2.0f;

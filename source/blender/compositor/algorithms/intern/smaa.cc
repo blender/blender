@@ -295,20 +295,20 @@ namespace blender::compositor {
  * Blender's Defines */
 
 #define SMAA_CUSTOM_SL
-#define SMAA_AREATEX_SELECT(sample) sample.xy()
-#define SMAA_SEARCHTEX_SELECT(sample) sample.x
+#define SMAA_AREATEX_SELECT(sample) sample
+#define SMAA_SEARCHTEX_SELECT(sample) sample
 #define SMAATexture2D(tex) const Result &tex
 #define SMAATexturePass2D(tex) tex
-#define SMAASampleLevelZero(tex, coord) tex.sample_bilinear_extended(coord)
-#define SMAASampleLevelZeroPoint(tex, coord) tex.sample_bilinear_extended(coord)
-#define SMAASampleLevelZeroOffset(tex, coord, offset, size) \
-  tex.sample_bilinear_extended(coord + float2(offset) / float2(size))
-#define SMAASample(tex, coord) tex.sample_bilinear_extended(coord)
+#define SMAASampleLevelZero(T, tex, coord) tex.sample_bilinear_extended<T>(coord)
+#define SMAASampleLevelZeroPoint(T, tex, coord) tex.sample_bilinear_extended<T>(coord)
+#define SMAASampleLevelZeroOffset(T, tex, coord, offset, size) \
+  tex.sample_bilinear_extended<T>(coord + float2(offset) / float2(size))
+#define SMAASample(T, tex, coord) tex.sample_bilinear_extended<T>(coord)
 #define SMAASamplePoint(T, tex, coord) tex.sample_nearest_extended<T>(coord)
 #define SMAASamplePointOffset(T, tex, coord, offset, size) \
   tex.sample_nearest_extended<T>(coord + float2(offset) / float2(size))
-#define SMAASampleOffset(tex, coord, offset, size) \
-  tex.sample_bilinear_extended(coord + float2(offset) / float2(size))
+#define SMAASampleOffset(T, tex, coord, offset, size) \
+  tex.sample_bilinear_extended<T>(coord + float2(offset) / float2(size))
 #define SMAA_FLATTEN
 #define SMAA_BRANCH
 #define lerp(a, b, t) math::interpolate(a, b, t)
@@ -857,12 +857,12 @@ static float2 SMAASearchDiag2(
 
     /* @SearchDiag2Optimization */
     /* Fetch both edges at once using bilinear filtering: */
-    e = SMAASampleLevelZero(edgesTex, coord.xy()).xy();
+    e = SMAASampleLevelZero(float2, edgesTex, coord.xy()).xy();
     e = SMAADecodeDiagBilinearAccess(e);
 
     /* Non-optimized version: */
-    // e.g = SMAASampleLevelZero(edgesTex, coord.xy).g;
-    // e.r = SMAASampleLevelZeroOffset(edgesTex, coord.xy, int2(1, 0), size).r;
+    // e.g = SMAASampleLevelZero(float2, edgesTex, coord.xy).g;
+    // e.r = SMAASampleLevelZeroOffset(float2, edgesTex, coord.xy, int2(1, 0), size).r;
 
     coord.w = math::dot(e, float2(0.5f, 0.5f));
   }
@@ -888,7 +888,7 @@ static float2 SMAAAreaDiag(SMAATexture2D(areaTex), float2 dist, float2 e, float 
   texcoord.y += SMAA_AREATEX_SUBTEX_SIZE * offset;
 
   /* Do it! */
-  return SMAA_AREATEX_SELECT(SMAASampleLevelZero(areaTex, texcoord));
+  return SMAA_AREATEX_SELECT(SMAASampleLevelZero(float2, areaTex, texcoord));
 }
 
 /**
@@ -928,8 +928,10 @@ static float2 SMAACalculateDiagWeights(SMAATexture2D(edgesTex),
     float4 coords = float4(texcoord, texcoord) +
                     float4(-d.x + 0.25f, d.x, d.y, -d.y - 0.25f) / float4(size, size);
     float4 c;
-    float2 left_edge = SMAASampleLevelZeroOffset(edgesTex, coords.xy(), int2(-1, 0), size).xy();
-    float2 right_edge = SMAASampleLevelZeroOffset(edgesTex, coords.zw(), int2(1, 0), size).xy();
+    float2 left_edge =
+        SMAASampleLevelZeroOffset(float2, edgesTex, coords.xy(), int2(-1, 0), size).xy();
+    float2 right_edge =
+        SMAASampleLevelZeroOffset(float2, edgesTex, coords.zw(), int2(1, 0), size).xy();
     c.x = left_edge.x;
     c.y = left_edge.y;
     c.z = right_edge.x;
@@ -943,10 +945,10 @@ static float2 SMAACalculateDiagWeights(SMAATexture2D(edgesTex),
     /* Non-optimized version: */
     // float4 coords = mad(float4(-d.x, d.x, d.y, -d.y), SMAA_RT_METRICS.xyxy, texcoord.xyxy);
     // float4 c;
-    // c.x = SMAASampleLevelZeroOffset(edgesTex, coords.xy, int2(-1,  0), size).g;
-    // c.y = SMAASampleLevelZeroOffset(edgesTex, coords.xy, int2( 0,  0), size).r;
-    // c.z = SMAASampleLevelZeroOffset(edgesTex, coords.zw, int2( 1,  0), size).g;
-    // c.w = SMAASampleLevelZeroOffset(edgesTex, coords.zw, int2( 1, -1), size).r;
+    // c.x = SMAASampleLevelZeroOffset(float2, edgesTex, coords.xy, int2(-1,  0), size).g;
+    // c.y = SMAASampleLevelZeroOffset(float2, edgesTex, coords.xy, int2( 0,  0), size).r;
+    // c.z = SMAASampleLevelZeroOffset(float2, edgesTex, coords.zw, int2( 1,  0), size).g;
+    // c.w = SMAASampleLevelZeroOffset(float2, edgesTex, coords.zw, int2( 1, -1), size).r;
 
     /* Merge crossing edges at each side into a single value: */
     float2 cc = mad(float2(2.0f, 2.0f), float2(c.x, c.z), float2(c.y, c.w));
@@ -980,9 +982,10 @@ static float2 SMAACalculateDiagWeights(SMAATexture2D(edgesTex),
     /* Fetch the crossing edges: */
     float4 coords = float4(texcoord, texcoord) + float4(-d.x, -d.x, d.y, d.y) / float4(size, size);
     float4 c;
-    c.x = SMAASampleLevelZeroOffset(edgesTex, coords.xy(), int2(-1, 0), size).y;
-    c.y = SMAASampleLevelZeroOffset(edgesTex, coords.xy(), int2(0, -1), size).x;
-    float2 left_edge = SMAASampleLevelZeroOffset(edgesTex, coords.zw(), int2(1, 0), size).xy();
+    c.x = SMAASampleLevelZeroOffset(float2, edgesTex, coords.xy(), int2(-1, 0), size).y;
+    c.y = SMAASampleLevelZeroOffset(float2, edgesTex, coords.xy(), int2(0, -1), size).x;
+    float2 left_edge =
+        SMAASampleLevelZeroOffset(float2, edgesTex, coords.zw(), int2(1, 0), size).xy();
     c.z = left_edge.y;
     c.w = left_edge.x;
     float2 cc = mad(float2(2.0f, 2.0f), float2(c.x, c.z), float2(c.y, c.w));
@@ -1026,7 +1029,7 @@ static float SMAASearchLength(SMAATexture2D(searchTex), float2 e, float offset)
   bias *= 1.0f / SMAA_SEARCHTEX_PACKED_SIZE;
 
   /* Lookup the search texture: */
-  return SMAA_SEARCHTEX_SELECT(SMAASampleLevelZero(searchTex, mad(scale, e, bias)));
+  return SMAA_SEARCHTEX_SELECT(SMAASampleLevelZero(float, searchTex, mad(scale, e, bias)));
 }
 
 /**
@@ -1046,7 +1049,7 @@ static float SMAASearchXLeft(
   while (texcoord.x > end && e.y > 0.8281f && /* Is there some edge not activated? */
          e.x == 0.0f) /* Or is there a crossing edge that breaks the line? */
   {
-    e = SMAASampleLevelZero(edgesTex, texcoord).xy();
+    e = SMAASampleLevelZero(float2, edgesTex, texcoord).xy();
     texcoord = texcoord - float2(2.0f, 0.0f) / float2(size);
   }
 
@@ -1075,7 +1078,7 @@ static float SMAASearchXRight(
   while (texcoord.x < end && e.y > 0.8281f && /* Is there some edge not activated? */
          e.x == 0.0f) /* Or is there a crossing edge that breaks the line? */
   {
-    e = SMAASampleLevelZero(edgesTex, texcoord).xy();
+    e = SMAASampleLevelZero(float2, edgesTex, texcoord).xy();
     texcoord = texcoord + float2(2.0f, 0.0f) / float2(size);
   }
   float offset = mad(
@@ -1090,7 +1093,7 @@ static float SMAASearchYUp(
   while (texcoord.y > end && e.x > 0.8281f && /* Is there some edge not activated? */
          e.y == 0.0f) /* Or is there a crossing edge that breaks the line? */
   {
-    e = SMAASampleLevelZero(edgesTex, texcoord).xy();
+    e = SMAASampleLevelZero(float2, edgesTex, texcoord).xy();
     texcoord = texcoord - float2(0.0f, 2.0f) / float2(size);
   }
   float2 flipped_edge = float2(e.y, e.x);
@@ -1107,7 +1110,7 @@ static float SMAASearchYDown(
   while (texcoord.y < end && e.x > 0.8281f && /* Is there some edge not activated? */
          e.y == 0.0f) /* Or is there a crossing edge that breaks the line? */
   {
-    e = SMAASampleLevelZero(edgesTex, texcoord).xy();
+    e = SMAASampleLevelZero(float2, edgesTex, texcoord).xy();
     texcoord = texcoord + float2(0.0f, 2.0f) / float2(size);
   }
   float2 flipped_edge = float2(e.y, e.x);
@@ -1135,7 +1138,7 @@ static float2 SMAAArea(SMAATexture2D(areaTex), float2 dist, float e1, float e2, 
   texcoord.y = mad(SMAA_AREATEX_SUBTEX_SIZE, offset, texcoord.y);
 
   /* Do it! */
-  return SMAA_AREATEX_SELECT(SMAASampleLevelZero(areaTex, texcoord));
+  return SMAA_AREATEX_SELECT(SMAASampleLevelZero(float2, areaTex, texcoord));
 }
 
 /* ----------------------------------------------------------------------------
@@ -1155,10 +1158,14 @@ static void SMAADetectHorizontalCornerPattern(SMAATexture2D(edgesTex),
   rounding /= leftRight.x + leftRight.y; /* Reduce blending for pixels in the center of a line. */
 
   float2 factor = float2(1.0f, 1.0f);
-  factor.x -= rounding.x * SMAASampleLevelZeroOffset(edgesTex, texcoord.xy(), int2(0, 1), size).x;
-  factor.x -= rounding.y * SMAASampleLevelZeroOffset(edgesTex, texcoord.zw(), int2(1, 1), size).x;
-  factor.y -= rounding.x * SMAASampleLevelZeroOffset(edgesTex, texcoord.xy(), int2(0, -2), size).x;
-  factor.y -= rounding.y * SMAASampleLevelZeroOffset(edgesTex, texcoord.zw(), int2(1, -2), size).x;
+  factor.x -= rounding.x *
+              SMAASampleLevelZeroOffset(float2, edgesTex, texcoord.xy(), int2(0, 1), size).x;
+  factor.x -= rounding.y *
+              SMAASampleLevelZeroOffset(float2, edgesTex, texcoord.zw(), int2(1, 1), size).x;
+  factor.y -= rounding.x *
+              SMAASampleLevelZeroOffset(float2, edgesTex, texcoord.xy(), int2(0, -2), size).x;
+  factor.y -= rounding.y *
+              SMAASampleLevelZeroOffset(float2, edgesTex, texcoord.zw(), int2(1, -2), size).x;
 
   weights *= saturate(factor);
 #endif
@@ -1178,10 +1185,14 @@ static void SMAADetectVerticalCornerPattern(SMAATexture2D(edgesTex),
   rounding /= leftRight.x + leftRight.y;
 
   float2 factor = float2(1.0f, 1.0f);
-  factor.x -= rounding.x * SMAASampleLevelZeroOffset(edgesTex, texcoord.xy(), int2(1, 0), size).y;
-  factor.x -= rounding.y * SMAASampleLevelZeroOffset(edgesTex, texcoord.zw(), int2(1, 1), size).y;
-  factor.y -= rounding.x * SMAASampleLevelZeroOffset(edgesTex, texcoord.xy(), int2(-2, 0), size).y;
-  factor.y -= rounding.y * SMAASampleLevelZeroOffset(edgesTex, texcoord.zw(), int2(-2, 1), size).y;
+  factor.x -= rounding.x *
+              SMAASampleLevelZeroOffset(float2, edgesTex, texcoord.xy(), int2(1, 0), size).y;
+  factor.x -= rounding.y *
+              SMAASampleLevelZeroOffset(float2, edgesTex, texcoord.zw(), int2(1, 1), size).y;
+  factor.y -= rounding.x *
+              SMAASampleLevelZeroOffset(float2, edgesTex, texcoord.xy(), int2(-2, 0), size).y;
+  factor.y -= rounding.y *
+              SMAASampleLevelZeroOffset(float2, edgesTex, texcoord.zw(), int2(-2, 1), size).y;
 
   weights *= saturate(factor);
 #endif
@@ -1242,7 +1253,7 @@ static float4 SMAABlendingWeightCalculationPS(float2 texcoord,
       /* Now fetch the left crossing edges, two at a time using bilinear
        * filtering. Sampling at -0.25 (see @CROSSING_OFFSET) enables to
        * discern what value each edge has: */
-      float e1 = SMAASampleLevelZero(edgesTex, coords.xy()).x;
+      float e1 = SMAASampleLevelZero(float2, edgesTex, coords.xy()).x;
 
       /* Find the distance to the right: */
       coords.z = SMAASearchXRight(SMAATexturePass2D(edgesTex),
@@ -1260,8 +1271,9 @@ static float4 SMAABlendingWeightCalculationPS(float2 texcoord,
       float2 sqrt_d = math::sqrt(d);
 
       /* Fetch the right crossing edges: */
-      float e2 =
-          SMAASampleLevelZeroOffset(edgesTex, float2(coords.z, coords.y), int2(1, 0), size).x;
+      float e2 = SMAASampleLevelZeroOffset(
+                     float2, edgesTex, float2(coords.z, coords.y), int2(1, 0), size)
+                     .x;
 
       /* Ok, we know how this pattern looks like, now it is time for getting the actual area: */
       float2 area = SMAAArea(SMAATexturePass2D(areaTex), sqrt_d, e1, e2, subsampleIndices.y);
@@ -1304,7 +1316,7 @@ static float4 SMAABlendingWeightCalculationPS(float2 texcoord,
     d.x = coords.y;
 
     /* Fetch the top crossing edges: */
-    float e1 = SMAASampleLevelZero(edgesTex, coords.xy()).y;
+    float e1 = SMAASampleLevelZero(float2, edgesTex, coords.xy()).y;
 
     /* Find the distance to the bottom: */
     coords.z = SMAASearchYDown(SMAATexturePass2D(edgesTex),
@@ -1321,7 +1333,9 @@ static float4 SMAABlendingWeightCalculationPS(float2 texcoord,
     float2 sqrt_d = math::sqrt(d);
 
     /* Fetch the bottom crossing edges: */
-    float e2 = SMAASampleLevelZeroOffset(edgesTex, float2(coords.x, coords.z), int2(0, 1), size).y;
+    float e2 = SMAASampleLevelZeroOffset(
+                   float2, edgesTex, float2(coords.x, coords.z), int2(0, 1), size)
+                   .y;
 
     /* Get the area for this direction: */
     float2 area = SMAAArea(SMAATexturePass2D(areaTex), sqrt_d, e1, e2, subsampleIndices.x);
@@ -1348,6 +1362,7 @@ static float4 SMAABlendingWeightCalculationPS(float2 texcoord,
 /* ----------------------------------------------------------------------------
  * Neighborhood Blending Pixel Shader (Third Pass) */
 
+template<typename T>
 static float4 SMAANeighborhoodBlendingPS(float2 texcoord,
                                          float4 offset,
                                          SMAATexture2D(colorTex),
@@ -1359,15 +1374,15 @@ static float4 SMAANeighborhoodBlendingPS(float2 texcoord,
 {
   /* Fetch the blending weights for current pixel: */
   float4 a;
-  a.x = SMAASample(blendTex, offset.xy()).w;  // Right
-  a.y = SMAASample(blendTex, offset.zw()).y;  // Top
-  a.z = SMAASample(blendTex, texcoord).z;     // Left
-  a.w = SMAASample(blendTex, texcoord).x;     // Bottom
+  a.x = SMAASample(float4, blendTex, offset.xy()).w;  // Right
+  a.y = SMAASample(float4, blendTex, offset.zw()).y;  // Top
+  a.z = SMAASample(float4, blendTex, texcoord).z;     // Left
+  a.w = SMAASample(float4, blendTex, texcoord).x;     // Bottom
 
   /* Is there any blending weight with a value greater than 0.0? */
   SMAA_BRANCH
   if (math::dot(a, float4(1.0f, 1.0f, 1.0f, 1.0f)) < 1e-5f) {
-    float4 color = SMAASampleLevelZero(colorTex, texcoord);
+    float4 color = float4(SMAASampleLevelZero(T, colorTex, texcoord));
 
 #if SMAA_REPROJECTION
     float2 velocity = SMAA_DECODE_VELOCITY(SMAASampleLevelZero(velocityTex, texcoord));
@@ -1392,8 +1407,8 @@ static float4 SMAANeighborhoodBlendingPS(float2 texcoord,
   float4 blendingCoord = float4(texcoord, texcoord) + blendingOffset / float4(size, -size);
 
   /* We exploit bilinear filtering to mix current pixel with the chosen neighbor: */
-  float4 color = blendingWeight.x * SMAASampleLevelZero(colorTex, blendingCoord.xy());
-  color += blendingWeight.y * SMAASampleLevelZero(colorTex, blendingCoord.zw());
+  float4 color = blendingWeight.x * float4(SMAASampleLevelZero(T, colorTex, blendingCoord.xy()));
+  color += blendingWeight.y * float4(SMAASampleLevelZero(T, colorTex, blendingCoord.zw()));
 
 #if SMAA_REPROJECTION
   /* Anti-alias velocity for proper reprojection in a later stage: */
@@ -1652,7 +1667,7 @@ static void blend_neighborhood_cpu(const Result &input, const Result &weights, R
         float4 offset;
         SMAANeighborhoodBlendingVS(coordinates, size, offset);
 
-        const float4 result = SMAANeighborhoodBlendingPS(
+        const float4 result = SMAANeighborhoodBlendingPS<T>(
             coordinates, offset, input, weights, size);
         if constexpr (std::is_same_v<T, float>) {
           output.store_pixel(texel, result.x);
