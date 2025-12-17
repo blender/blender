@@ -15,6 +15,9 @@
 
 #include "util/task.h"
 
+#include "BKE_material.hh"
+#include "DNA_material_types.h"
+
 CCL_NAMESPACE_BEGIN
 
 static Geometry::Type determine_geom_type(BObjectInfo &b_ob_info, bool use_particle_hair)
@@ -42,32 +45,32 @@ static Geometry::Type determine_geom_type(BObjectInfo &b_ob_info, bool use_parti
   return Geometry::MESH;
 }
 
-array<Node *> BlenderSync::find_used_shaders(BL::Object &b_ob)
+array<Node *> BlenderSync::find_used_shaders(::Object &b_ob)
 {
   array<Node *> used_shaders;
 
-  if (b_ob.type() == BL::Object::type_LIGHT) {
-    find_shader(b_ob.data(), used_shaders, scene->default_light);
+  if (b_ob.type == OB_LAMP) {
+    find_shader(static_cast<::ID *>(b_ob.data), used_shaders, scene->default_light);
     return used_shaders;
   }
 
-  BL::Material material_override = view_layer.material_override;
-  Shader *default_shader = (b_ob.type() == BL::Object::type_VOLUME) ? scene->default_volume :
-                                                                      scene->default_surface;
+  ::Material *material_override = view_layer.material_override.ptr.data_as<::Material>();
+  Shader *default_shader = (b_ob.type == OB_VOLUME) ? scene->default_volume :
+                                                      scene->default_surface;
 
-  for (BL::MaterialSlot &b_slot : b_ob.material_slots) {
+  for (const int i : blender::IndexRange(BKE_object_material_count_eval(&b_ob))) {
     if (material_override) {
-      find_shader(material_override, used_shaders, default_shader);
+      find_shader(&material_override->id, used_shaders, default_shader);
     }
     else {
-      BL::ID b_material(b_slot.material());
-      find_shader(b_material, used_shaders, default_shader);
+      ::Material *b_material = BKE_object_material_get(&b_ob, i + 1);
+      find_shader(reinterpret_cast<::ID *>(b_material), used_shaders, default_shader);
     }
   }
 
   if (used_shaders.size() == 0) {
     if (material_override) {
-      find_shader(material_override, used_shaders, default_shader);
+      find_shader(&material_override->id, used_shaders, default_shader);
     }
     else {
       used_shaders.push_back_slow(default_shader);
@@ -84,14 +87,14 @@ Geometry *BlenderSync::sync_geometry(BObjectInfo &b_ob_info,
 {
   /* Test if we can instance or if the object is modified. */
   const Geometry::Type geom_type = determine_geom_type(b_ob_info, use_particle_hair);
-  BL::ID const b_key_id = (b_ob_info.is_real_object_data() &&
-                           BKE_object_is_modified(b_ob_info.real_object)) ?
-                              b_ob_info.real_object :
-                              b_ob_info.object_data;
-  const GeometryKey key(b_key_id.ptr.data, geom_type);
+  ::ID *const b_key_id = (b_ob_info.is_real_object_data() &&
+                          BKE_object_is_modified(b_ob_info.real_object)) ?
+                             b_ob_info.real_object.ptr.data_as<::ID>() :
+                             b_ob_info.object_data.ptr.data_as<::ID>();
+  const GeometryKey key(b_key_id, geom_type);
 
   /* Find shader indices. */
-  array<Node *> used_shaders = find_used_shaders(b_ob_info.iter_object);
+  array<Node *> used_shaders = find_used_shaders(*b_ob_info.iter_object.ptr.data_as<::Object>());
 
   /* Ensure we only sync instanced geometry once. */
   Geometry *geom = geometry_map.find(key);
@@ -124,7 +127,7 @@ Geometry *BlenderSync::sync_geometry(BObjectInfo &b_ob_info,
   }
   else {
     /* Test if we need to update existing geometry. */
-    sync = geometry_map.update(geom, b_key_id.ptr.data_as<::ID>());
+    sync = geometry_map.update(geom, b_key_id);
   }
 
   if (!sync) {

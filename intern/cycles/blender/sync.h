@@ -124,7 +124,7 @@ class BlenderSync {
   void sync_view();
 
   /* Shader */
-  array<Node *> find_used_shaders(BL::Object &b_ob);
+  array<Node *> find_used_shaders(::Object &b_ob);
   void sync_world(BL::Depsgraph &b_depsgraph,
                   ::bScreen *b_screen,
                   BL::SpaceView3D &b_v3d,
@@ -212,7 +212,7 @@ class BlenderSync {
   void sync_images();
 
   /* util */
-  void find_shader(const BL::ID &id, array<Node *> &used_shaders, Shader *default_shader);
+  void find_shader(const ::ID *id, array<Node *> &used_shaders, Shader *default_shader);
   bool BKE_object_is_modified(BL::Object &b_ob);
   bool object_is_geometry(BObjectInfo &b_ob_info);
   bool object_can_have_geometry(BL::Object &b_ob);
