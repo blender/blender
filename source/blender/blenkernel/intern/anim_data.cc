@@ -706,6 +706,9 @@ void BKE_animdata_copy_by_basepath(Main &bmain,
   }
 
   auto [src_adt, dst_adt] = ensure_animdata_pair(bmain, src_id, dst_id);
+  if (!src_adt) {
+    return;
+  }
 
   /* Copy data from tyhe source action. */
   if (src_adt->action) {
@@ -749,6 +752,9 @@ void BKE_animdata_move_by_basepath(Main &bmain,
   }
 
   auto [src_adt, dst_adt] = ensure_animdata_pair(bmain, src_id, dst_id);
+  if (!src_adt) {
+    return;
+  }
 
   /* Move data from the source action to the destination action. */
   if (src_adt->action) {
