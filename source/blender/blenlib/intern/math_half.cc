@@ -301,7 +301,7 @@ void blender::math::float_to_half_make_finite_array(const float *src, uint16_t *
     src += 8;
     dst += 8;
   }
-#elif defined(USE_SSE2_FP16)          /* 4-wide loop using SSE2 */
+#elif (defined(USE_SSE2_FP16) && defined(__SSE4_1__)) /* 4-wide loop using SSE2 and SSE4.1 */
   for (; i + 3 < length; i += 4) {
     __m128 src4 = _mm_loadu_ps(src);
     __m128i h4 = F32_to_F16_4x(src4);
@@ -331,7 +331,7 @@ void blender::math::float_to_half_make_finite_array(const float *src, uint16_t *
     src += 4;
     dst += 4;
   }
-#elif defined(USE_HARDWARE_FP16_NEON) /* 4-wide loop using NEON */
+#elif defined(USE_HARDWARE_FP16_NEON)                 /* 4-wide loop using NEON */
   for (; i + 3 < length; i += 4) {
     float32x4_t src4 = vld1q_f32(src);
     float16x4_t h4 = vcvt_f16_f32(src4);
