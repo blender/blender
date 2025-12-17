@@ -19,11 +19,11 @@
 #if defined(__EMBREE__)
 #  include "kernel/device/cpu/bvh.h"
 #  define __BVH2__
-#elif defined(__METALRT__)
+#elif defined(__KERNEL_METALRT__)
 #  include "kernel/device/metal/bvh.h"
 #elif defined(__KERNEL_OPTIX__)
 #  include "kernel/device/optix/bvh.h"
-#elif defined(__HIPRT__)
+#elif defined(__KERNEL_HIPRT__)
 #  include "kernel/device/hiprt/bvh.h"
 #else
 #  define __BVH2__

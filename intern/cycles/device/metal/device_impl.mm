@@ -254,7 +254,7 @@ string MetalDevice::preprocess_source(MetalPipelineType pso_type,
   }
 
   if (use_metalrt) {
-    global_defines += "#define __METALRT__\n";
+    global_defines += "#define __KERNEL_METALRT__\n";
     if (motion_blur) {
       global_defines += "#define __METALRT_MOTION__\n";
     }

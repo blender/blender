@@ -132,7 +132,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 }
 ccl_gpu_kernel_postfix
 
-#if !defined(__HIPRT__)
+#if !defined(__KERNEL_HIPRT__)
 
 /* Intersection kernels need access to the kernel handler for specialization constants to work
  * properly. */
@@ -294,11 +294,11 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 }
 ccl_gpu_kernel_postfix
 
-#if defined(__KERNEL_METAL_APPLE__) && defined(__METALRT__)
+#if defined(__KERNEL_METAL_APPLE__) && defined(__KERNEL_METALRT__)
 constant int __dummy_constant [[function_constant(Kernel_DummyConstant)]];
 #endif
 
-#if !defined(__HIPRT__)
+#if !defined(__KERNEL_HIPRT__)
 
 /* Kernels using intersections need access to the kernel handler for specialization constants to
  * work properly. */
@@ -317,7 +317,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
   if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
     const int state = (path_index_array) ? path_index_array[global_index] : global_index;
 
-#  if defined(__KERNEL_METAL_APPLE__) && defined(__METALRT__)
+#  if defined(__KERNEL_METAL_APPLE__) && defined(__KERNEL_METALRT__)
     KernelGlobals kg = nullptr;
     /* Workaround Ambient Occlusion and Bevel nodes not working with Metal.
      * Dummy offset should not affect result, but somehow fixes bug! */

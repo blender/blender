@@ -15,7 +15,7 @@
 
 /* MetalRT intersection handlers. */
 
-#ifdef __METALRT__
+#ifdef __KERNEL_METALRT__
 
 /* Intersection return types. */
 
@@ -842,4 +842,4 @@ __intersection__point_shadow_all(
   return result;
 }
 
-#endif /* __METALRT__ */
+#endif /* __KERNEL_METALRT__ */

@@ -1293,9 +1293,9 @@ struct ccl_align(16) KernelData {
   /* Device specific BVH. */
 #ifdef __KERNEL_OPTIX__
   OptixTraversableHandle device_bvh;
-#elif defined __METALRT__
+#elif defined __KERNEL_METALRT__
   metalrt_as_type device_bvh;
-#elif defined(__HIPRT__)
+#elif defined(__KERNEL_HIPRT__)
   void *device_bvh;
 #else
 #  ifdef __EMBREE__

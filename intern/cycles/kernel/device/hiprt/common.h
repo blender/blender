@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifdef __HIPRT__
+#ifdef __KERNEL_HIPRT__
 
 struct RayPayload {
   RaySelfPrimitives self;

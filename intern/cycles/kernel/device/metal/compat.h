@@ -20,7 +20,7 @@
 
 using namespace metal;
 
-#ifdef __METALRT__
+#ifdef __KERNEL_METALRT__
 using namespace metal::raytracing;
 #endif
 
@@ -52,7 +52,7 @@ using namespace metal::raytracing;
 #define ccl_constant constant
 #define ccl_gpu_shared threadgroup
 #define ccl_private thread
-#ifdef __METALRT__
+#ifdef __KERNEL_METALRT__
 #  define ccl_ray_data ray_data
 #else
 #  define ccl_ray_data ccl_private
@@ -291,7 +291,7 @@ ccl_device_forceinline uchar4 make_uchar4(const uchar x,
 
 #define __device__
 
-#ifdef __METALRT__
+#ifdef __KERNEL_METALRT__
 
 #  if defined(__METALRT_MOTION__)
 #    define METALRT_TAGS instancing, instance_motion, primitive_motion
@@ -326,7 +326,7 @@ typedef metal::raytracing::intersector<triangle_data, curve_data METALRT_LIMITS>
     metalrt_blas_intersector_type;
 #  endif
 
-#endif /* __METALRT__ */
+#endif /* __KERNEL_METALRT__ */
 
 /* texture bindings and sampler setup */
 
@@ -338,7 +338,7 @@ struct Texture2DParamsMetal {
   texture2d<float, access::sample> tex;
 };
 
-#ifdef __METALRT__
+#ifdef __KERNEL_METALRT__
 struct MetalRTBlasWrapper {
   metalrt_blas_as_type blas;
 };
@@ -350,7 +350,7 @@ struct MetalRTBlasWrapper {
 struct MetalAncillaries {
   device TextureParamsMetal *textures;
 
-#ifdef __METALRT__
+#ifdef __KERNEL_METALRT__
   metalrt_as_type accel_struct;
   constant MetalRTBlasWrapper *blas_accel_structs;
   metalrt_ift_type ift_default;

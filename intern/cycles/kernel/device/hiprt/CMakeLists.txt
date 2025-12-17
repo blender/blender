@@ -65,7 +65,7 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIPRT)
     -D CCL_NAMESPACE_BEGIN=
     -D CCL_NAMESPACE_END=
     -D HIPCC
-    -D __HIPRT__
+    -D __KERNEL_HIPRT__
     -std=c++17
     -mllvm
     -amdgpu-early-inline-all=false
