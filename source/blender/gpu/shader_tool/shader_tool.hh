@@ -3029,16 +3029,12 @@ class Preprocessor {
       }
       parser.erase(attributes.scope());
       bool is_shared = false;
-      bool unchecked = false;
       attributes.foreach_attribute([&](Token attr, Scope) {
         if (attr.str() == "host_shared") {
           is_shared = true;
         }
-        else if (attr.str() == "unchecked") {
-          unchecked = true;
-        }
       });
-      if (!is_shared || unchecked) {
+      if (!is_shared) {
         return;
       }
 
@@ -3075,7 +3071,7 @@ class Preprocessor {
       };
 
       size_t offset = 0;
-      body.foreach_declaration([&](Scope, Token, Token type, Scope, Token, Scope, Token) {
+      body.foreach_declaration([&](Scope, Token, Token type, Scope, Token, Scope array, Token) {
         string type_str = type.str();
 
         if (type_str.find("char") != string::npos || type_str.find("short") != string::npos ||
@@ -3141,7 +3137,25 @@ class Preprocessor {
           string err = "Misaligned member, missing " + to_string(align) + " padding bytes";
           report_error(ERROR_TOK(type), err.c_str());
         }
-        offset += type_info.size;
+
+        size_t array_size = 1;
+        if (array.is_valid()) {
+          if (array.token_count() == 3 && array[1] == Number) {
+            try {
+              array_size = std::stol(array[1].str());
+            }
+            catch (std::invalid_argument const &ex) {
+              report_error(ERROR_TOK(array.front()),
+                           "Invalid array size, expecting integer literal");
+            }
+          }
+          else {
+            /* Can be macro or expression. Assume value is multiple of 4. */
+            array_size = 4;
+          }
+        };
+
+        offset += type_info.size * array_size;
       });
       if (offset % 16 != 0) {
         string err = "Alignment issue, missing " + to_string(16 - (offset % 16)) +
@@ -3254,7 +3268,7 @@ class Preprocessor {
             invalid = true;
           }
         }
-        else if (attr_str == "host_shared" || attr_str == "unchecked") {
+        else if (attr_str == "host_shared") {
           if (attributes.front().prev().prev() != Struct) {
             report_error(ERROR_TOK(attr),
                          "host_shared attributes must be placed after a struct keyword");
@@ -3759,16 +3773,12 @@ class Preprocessor {
         return false;
       }
       bool is_shared = false;
-      bool unchecked = false;
       attributes.foreach_attribute([&](Token attr, Scope) {
         if (attr.str() == "host_shared") {
           is_shared = true;
         }
-        else if (attr.str() == "unchecked") {
-          unchecked = true;
-        }
       });
-      if (!is_shared || unchecked) {
+      if (!is_shared) {
         return false;
       }
       return true;

@@ -56,7 +56,7 @@ enum eSamplingDimension : uint32_t {
 #define SAMPLING_DIMENSION_COUNT 32
 
 /* NOTE(@fclem): Needs to be used in #StorageBuffer because of arrays of scalar. */
-struct [[host_shared, unchecked]] SamplingData {
+struct [[host_shared]] SamplingData {
   /** Array containing random values from Low Discrepancy Sequence in [0..1) range. */
   float dimensions[SAMPLING_DIMENSION_COUNT];
 };

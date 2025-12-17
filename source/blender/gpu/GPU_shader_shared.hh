@@ -240,7 +240,7 @@ enum TestType : uint32_t {
 };
 
 /** \note Contains arrays of scalar. To be use only with SSBOs to avoid padding issues. */
-struct [[host_shared, unchecked]] TestOutputRawData {
+struct [[host_shared]] TestOutputRawData {
   uint data[16];
 };
 
