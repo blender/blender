@@ -143,10 +143,10 @@ void main()
   clear_dispatch_buf.num_groups_z = 0;
 
   /* Reset TBDR command indirect buffer. */
-  DrawCommand cmd;
-  cmd.array().vertex_len = 0u;
-  cmd.array().instance_len = 1u;
-  cmd.array().vertex_first = 0u;
-  cmd.array().instance_first = 0u;
+  DrawCommandArray cmd;
+  cmd.vertex_len = 0u;
+  cmd.instance_len = 1u;
+  cmd.vertex_first = 0u;
+  cmd.instance_first = 0u;
   tile_draw_buf = cmd;
 }
