@@ -732,7 +732,7 @@ class Preprocessor {
   {
     using namespace std;
     using namespace shader::parser;
-    const Token type = arg.start();
+    const Token type = arg.front();
     const Token name = type.next();
     const string name_str = name.str();
     const string type_str = type.str();
@@ -881,14 +881,14 @@ class Preprocessor {
 
     auto process_template_struct = [&](parser::Scope template_scope) {
       /* Parse template declaration. */
-      Token struct_start = template_scope.end().next();
+      Token struct_start = template_scope.back().next();
       if (struct_start != Struct) {
         return;
       }
       Token struct_name = struct_start.next();
       Scope struct_body = struct_name.next().scope();
 
-      Token struct_end = struct_body.end().next();
+      Token struct_end = struct_body.back().next();
       const string struct_decl = parser.substr_range_inclusive(struct_start, struct_end);
 
       vector<string> arg_list;
@@ -902,7 +902,7 @@ class Preprocessor {
       });
 
       /* Remove declaration. */
-      Token template_keyword = template_scope.start().prev();
+      Token template_keyword = template_scope.front().prev();
       parser.erase(template_keyword, struct_end);
 
       /* Replace instantiations. */
@@ -953,7 +953,7 @@ class Preprocessor {
       const string fn_decl = parser.substr_range_inclusive(fn_start, fn_end);
 
       /* Remove declaration. */
-      Token template_keyword = template_scope.start().prev();
+      Token template_keyword = template_scope.front().prev();
       parser.erase(template_keyword, fn_end);
 
       /* Replace instantiations. */
@@ -1040,8 +1040,8 @@ class Preprocessor {
       if (attrs.str_with_whitespace() != "[resource_table]") {
         return;
       }
-      Token type = attrs.scope().end().next();
-      Token struct_keyword = attrs.scope().start().prev();
+      Token type = attrs.scope().back().next();
+      Token struct_keyword = attrs.scope().front().prev();
       if (type != Word || struct_keyword != Struct) {
         return;
       }
@@ -1052,7 +1052,7 @@ class Preprocessor {
 
     parser().foreach_match("w(..)", [&](const std::vector<Token> &tokens) {
       if (tokens[0].str() == "CREATE_INFO_VARIANT") {
-        const string variant_name = tokens[1].scope().start().next().str();
+        const string variant_name = tokens[1].scope().front().next().str();
         metadata.create_infos.emplace_back(variant_name);
 
         const string variant_decl = parser.substr_range_inclusive(tokens.front(), tokens.back());
@@ -1062,7 +1062,7 @@ class Preprocessor {
         return;
       }
       if (tokens[0].str() == "GPU_SHADER_CREATE_INFO") {
-        const string variant_name = tokens[1].scope().start().next().str();
+        const string variant_name = tokens[1].scope().front().next().str();
         metadata.create_infos.emplace_back(variant_name);
 
         const size_t start_end = tokens.back().str_index_last();
@@ -1191,17 +1191,17 @@ class Preprocessor {
         [&](const Scope loop_args, Scope &r_init, Scope &r_condition, Scope &r_iter) {
           r_init = r_condition = r_iter = Scope::invalid();
           loop_args.foreach_scope(ScopeType::LoopArg, [&](const Scope arg) {
-            if (arg.start().prev() == '(' && arg.end().next() == ';') {
+            if (arg.front().prev() == '(' && arg.back().next() == ';') {
               r_init = arg;
             }
-            else if (arg.start().prev() == ';' && arg.end().next() == ';') {
+            else if (arg.front().prev() == ';' && arg.back().next() == ';') {
               r_condition = arg;
             }
-            else if (arg.start().prev() == ';' && arg.end().next() == ')') {
+            else if (arg.front().prev() == ';' && arg.back().next() == ')') {
               r_iter = arg;
             }
             else {
-              report_error(ERROR_TOK(arg.start()), "Invalid loop declaration.");
+              report_error(ERROR_TOK(arg.front()), "Invalid loop declaration.");
             }
           });
         };
@@ -1241,23 +1241,23 @@ class Preprocessor {
         return;
       }
 
-      if (!parser.replace_try(loop_start, body.end(), "", true)) {
+      if (!parser.replace_try(loop_start, body.back(), "", true)) {
         /* This is the case of nested loops. This loop will be processed in another parser pass. */
         return;
       }
 
       string indent_init, indent_cond, indent_iter;
       if (init.is_valid()) {
-        indent_init = string(init.start().char_number() - 1, ' ');
+        indent_init = string(init.front().char_number() - 1, ' ');
       }
       if (cond.is_valid()) {
-        indent_cond = string(cond.start().char_number() - 3, ' ');
+        indent_cond = string(cond.front().char_number() - 3, ' ');
       }
       if (iter.is_valid()) {
-        indent_iter = string(iter.start().char_number(), ' ');
+        indent_iter = string(iter.front().char_number(), ' ');
       }
-      string indent_body = string(body.start().char_number(), ' ');
-      string indent_end = string(body.end().char_number(), ' ');
+      string indent_body = string(body.front().char_number(), ' ');
+      string indent_end = string(body.back().char_number(), ' ');
 
       /* If possible, replaces the index of the loop iteration inside the given string. */
       auto replace_index = [&](const string &str, int loop_index) {
@@ -1273,32 +1273,32 @@ class Preprocessor {
         return str_parser.result_get();
       };
 
-      parser.insert_after(body.end(), "\n");
+      parser.insert_after(body.back(), "\n");
       if (init.is_valid() && !iteration_is_trivial) {
-        parser.insert_line_number(body.end(), init.start().line_number());
-        parser.insert_after(body.end(), indent_init + "{" + init.str_with_whitespace() + ";\n");
+        parser.insert_line_number(body.back(), init.front().line_number());
+        parser.insert_after(body.back(), indent_init + "{" + init.str_with_whitespace() + ";\n");
       }
       else {
-        parser.insert_after(body.end(), "{\n");
+        parser.insert_after(body.back(), "{\n");
       }
       for (int64_t i = 0, value = iter_init; i < iter_count; i++, value += iter_incr) {
         if (cond.is_valid() && !condition_is_trivial) {
-          parser.insert_line_number(body.end(), cond.start().line_number());
-          parser.insert_after(body.end(),
+          parser.insert_line_number(body.back(), cond.front().line_number());
+          parser.insert_after(body.back(),
                               indent_cond + "if(" + cond.str_with_whitespace() + ")\n");
         }
-        parser.insert_after(body.end(), replace_index(body_prefix, value));
-        parser.insert_line_number(body.end(), body.start().line_number());
-        parser.insert_after(body.end(),
+        parser.insert_after(body.back(), replace_index(body_prefix, value));
+        parser.insert_line_number(body.back(), body.front().line_number());
+        parser.insert_after(body.back(),
                             indent_body + replace_index(body.str_with_whitespace(), value) + "\n");
-        parser.insert_after(body.end(), body_suffix);
+        parser.insert_after(body.back(), body_suffix);
         if (iter.is_valid() && !iteration_is_trivial) {
-          parser.insert_line_number(body.end(), iter.start().line_number());
-          parser.insert_after(body.end(), indent_iter + iter.str_with_whitespace() + ";\n");
+          parser.insert_line_number(body.back(), iter.front().line_number());
+          parser.insert_after(body.back(), indent_iter + iter.str_with_whitespace() + ";\n");
         }
       }
-      parser.insert_line_number(body.end(), body.end().line_number());
-      parser.insert_after(body.end(), indent_end + body.end().str_with_whitespace());
+      parser.insert_line_number(body.back(), body.back().line_number());
+      parser.insert_after(body.back(), indent_end + body.back().str_with_whitespace());
     };
 
     do {
@@ -1374,7 +1374,7 @@ class Preprocessor {
         }
 
         int64_t init_value = std::stol(
-            parser.substr_range_inclusive(var_init.next(), var_init.scope().end()));
+            parser.substr_range_inclusive(var_init.next(), var_init.scope().back()));
         int64_t end_value = std::stol(
             parser.substr_range_inclusive(cond_sign.is_valid() ? cond_sign : cond_end, cond_end));
         /* TODO(fclem): Support arbitrary strides (aka, arbitrary iter statement). */
@@ -1383,8 +1383,8 @@ class Preprocessor {
           iter_count += 1;
         }
 
-        bool condition_is_trivial = (cond_end == cond.end());
-        bool iteration_is_trivial = (iter_end == iter.end());
+        bool condition_is_trivial = (cond_end == cond.back());
+        bool iteration_is_trivial = (iter_end == iter.back());
 
         process_loop(tokens[0],
                      iter_count,
@@ -1434,7 +1434,7 @@ class Preprocessor {
         });
 
         if (define_name.is_invalid()) {
-          report_error(ERROR_TOK(loop_args.start()),
+          report_error(ERROR_TOK(loop_args.front()),
                        "Incompatible loop format for [[gpu::unroll_define(max_n)]], expected "
                        "'(int i = 0; i < DEFINE; i++)'");
           return;
@@ -1494,27 +1494,27 @@ class Preprocessor {
       return;
     }
 
-    Token before_body = body.start().prev();
+    Token before_body = body.front().prev();
 
     string test = "SRT_CONSTANT_" + condition[5].str();
-    if (condition[7] != condition.end().prev()) {
-      test += parser.substr_range_inclusive(condition[7], condition.end().prev());
+    if (condition[7] != condition.back().prev()) {
+      test += parser.substr_range_inclusive(condition[7], condition.back().prev());
     }
     string directive = (if_tok.prev() == Else ? "#elif " : "#if ");
 
     parser.insert_directive(before_body, directive + test);
     parser.erase(if_tok, before_body);
 
-    if (body.end().next() == Else) {
-      Token else_tok = body.end().next();
+    if (body.back().next() == Else) {
+      Token else_tok = body.back().next();
       parser.erase(else_tok);
       if (else_tok.next() == If) {
         /* Will be processed later. */
         Token next_if = else_tok.next();
         /* Ensure the rest of the if clauses also have the attribute. */
-        Scope attributes = next_if.next().scope().end().next().scope();
+        Scope attributes = next_if.next().scope().back().next().scope();
         if (attributes.type() != ScopeType::Subscript ||
-            attributes.start().next().scope().str_exclusive() != "static_branch")
+            attributes.front().next().scope().str_exclusive() != "static_branch")
         {
           report_error(ERROR_TOK(next_if),
                        "Expecting next if statement to also be a static branch.");
@@ -1526,7 +1526,7 @@ class Preprocessor {
 
       parser.insert_directive(else_tok, "#else");
     }
-    parser.insert_directive(body.end(), "#endif");
+    parser.insert_directive(body.back(), "#endif");
   };
 
   void lower_static_branch(Parser &parser, report_callback report_error)
@@ -1554,7 +1554,7 @@ class Preprocessor {
         report_error(ERROR_TOK(tokens[0]), "Nested namespaces are unsupported.");
       });
 
-      string prefix = scope.start().prev().full_symbol_name();
+      string prefix = scope.front().prev().full_symbol_name();
 
       auto process_symbol = [&](const Token &symbol) {
         if (symbol.next() == '<') {
@@ -1605,10 +1605,10 @@ class Preprocessor {
         process_symbol(toks[1]);
       });
 
-      Token namespace_tok = scope.start().prev().namespace_start().prev();
+      Token namespace_tok = scope.front().prev().namespace_start().prev();
       if (namespace_tok == Namespace) {
-        parser.erase(namespace_tok, scope.start());
-        parser.erase(scope.end());
+        parser.erase(namespace_tok, scope.front());
+        parser.erase(scope.back());
       }
       else {
         report_error(ERROR_TOK(namespace_tok), "Expected namespace token.");
@@ -1663,7 +1663,7 @@ class Preprocessor {
       if (scope.type() == ScopeType::Namespace) {
         /* Ensure we are bringing symbols from the same namespace.
          * Otherwise we can have different shadowing outcome between shader and C++. */
-        string namespace_name = scope.start().prev().full_symbol_name();
+        string namespace_name = scope.front().prev().full_symbol_name();
         if (namespace_name != namespace_prefix) {
           report_error(
               ERROR_TOK(using_tok),
@@ -1886,7 +1886,7 @@ class Preprocessor {
 
       fn_args.foreach_scope(ScopeType::FunctionArg, [&](Scope arg) {
         /* Note: There is no array support. */
-        const Token name = arg.end();
+        const Token name = arg.back();
         const Token type = name.prev();
         std::string qualifier = type.prev().str();
         if (qualifier != "out" && qualifier != "inout" && qualifier != "in") {
@@ -2286,7 +2286,7 @@ class Preprocessor {
               parser.erase(const_tok);
             }
             else {
-              parser.erase(attributes.start().line_start(), decl_end.line_end());
+              parser.erase(attributes.front().line_start(), decl_end.line_end());
             }
             break;
           case SrtType::vertex_input:
@@ -2327,7 +2327,7 @@ class Preprocessor {
           break;
       }
 
-      Token end_of_srt = body.end().prev();
+      Token end_of_srt = body.back().prev();
 
       if (srt_type == SrtType::resource_table) {
         /* Add static constructor.
@@ -2534,7 +2534,7 @@ class Preprocessor {
       struct_scope.foreach_function(
           [&](bool is_static, Token fn_type, Token fn_name, Scope fn_args, bool is_const, Scope) {
             const Token static_tok = is_static ? fn_type.prev() : Token::invalid();
-            const Token const_tok = is_const ? fn_args.end().next() : Token::invalid();
+            const Token const_tok = is_const ? fn_args.back().next() : Token::invalid();
 
             if (is_static) {
               parser.replace(fn_name, struct_name.str() + namespace_separator + fn_name.str());
@@ -2552,11 +2552,11 @@ class Preprocessor {
 
               if (is_const && !is_resource_table) {
                 parser.erase(const_tok);
-                parser.insert_after(fn_args.start(),
+                parser.insert_after(fn_args.front(),
                                     prefix + "const " + struct_name.str() + " this_" + suffix);
               }
               else {
-                parser.insert_after(fn_args.start(),
+                parser.insert_after(fn_args.front(),
                                     prefix + struct_name.str() + " &this_" + suffix);
               }
 
@@ -2575,7 +2575,7 @@ class Preprocessor {
 
     /* Copy method functions outside of struct scope. */
     parser().foreach_struct([&](Token, Scope, const Token, const Scope struct_scope) {
-      const Token struct_end = struct_scope.end().next();
+      const Token struct_end = struct_scope.back().next();
 
       bool has_methods = false;
       struct_scope.foreach_function(
@@ -2591,7 +2591,7 @@ class Preprocessor {
           [&](bool is_static, Token fn_type, Token, Scope fn_args, bool, Scope) {
             const Token fn_start = is_static ? fn_type.prev() : fn_type;
 
-            string proto_str = parser.substr_range_inclusive(fn_start, fn_args.end());
+            string proto_str = parser.substr_range_inclusive(fn_start, fn_args.back());
             proto_str = Preprocessor::strip_whitespace(proto_str) + ";\n";
             Parser proto(proto_str, report_error);
 
@@ -2606,10 +2606,10 @@ class Preprocessor {
           [&](bool is_static, Token fn_type, Token, Scope, bool, Scope fn_body) {
             const Token fn_start = is_static ? fn_type.prev() : fn_type;
 
-            string fn_str = parser.substr_range_inclusive(fn_start, fn_body.end());
+            string fn_str = parser.substr_range_inclusive(fn_start, fn_body.back());
             fn_str = string(fn_start.char_number(), ' ') + fn_str;
 
-            parser.erase(fn_start, fn_body.end());
+            parser.erase(fn_start, fn_body.back());
             parser.insert_line_number(struct_end, fn_start.line_number());
             parser.insert_after(struct_end, fn_str);
           });
@@ -2650,12 +2650,12 @@ class Preprocessor {
           while (true) {
             if (start_of_this == ')') {
               /* Function call. Take argument scope and function name. No recursion. */
-              start_of_this = start_of_this.scope().start().prev();
+              start_of_this = start_of_this.scope().front().prev();
               break;
             }
             if (start_of_this == ']') {
               /* Array subscript. Take scope and continue. */
-              start_of_this = start_of_this.scope().start().prev();
+              start_of_this = start_of_this.scope().front().prev();
               continue;
             }
             if (start_of_this == Word) {
@@ -2710,7 +2710,7 @@ class Preprocessor {
         };
         scope.foreach_match(".w=w", process_constant);
         scope.foreach_match(".w=0", process_constant);
-        tok = scope.end().next();
+        tok = scope.back().next();
       }
 
       return create_info_decl;
@@ -2753,11 +2753,11 @@ class Preprocessor {
       Scope parameters = tokens[2].scope();
       if (tokens[0].str() == "PipelineGraphic") {
         process_graphic_pipeline(tokens[1], parameters);
-        parser.erase(tokens.front(), parameters.end().next());
+        parser.erase(tokens.front(), parameters.back().next());
       }
       else if (tokens[0].str() == "PipelineCompute") {
         process_compute_pipeline(tokens[1], parameters);
-        parser.erase(tokens.front(), parameters.end().next());
+        parser.erase(tokens.front(), parameters.back().next());
       }
     });
   }
@@ -2823,7 +2823,7 @@ class Preprocessor {
 
       if (!condition.empty()) {
         parser.insert_directive(fn_type.prev(), "#if " + condition);
-        parser.insert_directive(fn_body.end(), "#endif");
+        parser.insert_directive(fn_body.back(), "#endif");
       }
     });
 
@@ -2876,8 +2876,8 @@ class Preprocessor {
     using namespace std;
     using namespace shader::parser;
 
-    string line_start = "#line " + std::to_string(scope.start().next().line_number()) + "\n";
-    string line_end = "#line " + std::to_string(scope.end().line_number()) + "\n";
+    string line_start = "#line " + std::to_string(scope.front().next().line_number()) + "\n";
+    string line_end = "#line " + std::to_string(scope.back().line_number()) + "\n";
 
     string guard_start = "#if " + condition;
     string guard_else;
@@ -2904,8 +2904,8 @@ class Preprocessor {
     }
     string guard_end = "#endif";
 
-    parser.insert_directive(scope.start(), guard_start);
-    parser.insert_directive(scope.end().prev(), guard_else + guard_end);
+    parser.insert_directive(scope.front(), guard_start);
+    parser.insert_directive(scope.back().prev(), guard_else + guard_end);
   };
 
   void lower_enums(Parser &parser, bool is_shared_file, report_callback report_error)
@@ -2968,24 +2968,24 @@ class Preprocessor {
             }
           }
 
-          size_t insert_at = enum_scope.end().line_end();
+          size_t insert_at = enum_scope.back().line_end();
           parser.erase(enum_tok.str_index_start(), insert_at);
           parser.insert_line_number(insert_at + 1, enum_tok.line_number());
           parser.insert_after(insert_at + 1,
                               "#define " + enum_name.str() + " " + enum_type.str() + "\n");
 
           enum_scope.foreach_scope(ScopeType::Assignment, [&](Scope scope) {
-            string name = scope.start().prev().str();
+            string name = scope.front().prev().str();
             string value = scope.str_with_whitespace();
             if (class_tok.is_valid()) {
               name = enum_name.str() + "::" + name;
             }
             string decl = "constant static constexpr " + type_str + " " + name + " " + value +
                           ";\n";
-            parser.insert_line_number(insert_at + 1, scope.start().line_number());
+            parser.insert_line_number(insert_at + 1, scope.front().line_number());
             parser.insert_after(insert_at + 1, decl);
           });
-          parser.insert_line_number(insert_at + 1, enum_scope.end().line_number() + 1);
+          parser.insert_line_number(insert_at + 1, enum_scope.back().line_number() + 1);
         };
 
     parser().foreach_match("MSw:w{", [&](vector<Token> tokens) {
@@ -3162,7 +3162,7 @@ class Preprocessor {
         return;
       }
       if (end_tok.next() == '[' && end_tok.next().next() == '[') {
-        end_tok = end_tok.next().scope().end();
+        end_tok = end_tok.next().scope().back();
       }
       if (end_tok.next() != '{') {
         report_error(ERROR_TOK(end_tok), "Missing curly braces after flow control statement.");
@@ -3254,7 +3254,7 @@ class Preprocessor {
           }
         }
         else if (attr_str == "host_shared" || attr_str == "unchecked") {
-          if (attributes.start().prev().prev() != Struct) {
+          if (attributes.front().prev().prev() != Struct) {
             report_error(ERROR_TOK(attr),
                          "host_shared attributes must be placed after a struct keyword");
             invalid = true;
@@ -3267,7 +3267,7 @@ class Preprocessor {
           string second_part = second_tok.str();
           /* Should eventually drop the gpu prefix. */
           if (second_part == "unroll" || second_part == "unroll_define") {
-            if (attributes.end().next().next() != For) {
+            if (attributes.back().next().next() != For) {
               report_error(ERROR_TOK(second_tok),
                            "unroll attributes must be declared before a 'for' loop keyword");
               invalid = true;
@@ -3282,7 +3282,7 @@ class Preprocessor {
           return;
         }
         else if (attr_str == "static_branch") {
-          if (attributes.start().prev().prev().scope().start().prev() != If) {
+          if (attributes.front().prev().prev().scope().front().prev() != If) {
             report_error(ERROR_TOK(attr),
                          "[[static_branch]] attribute must be declared after a 'if' condition");
             invalid = true;
@@ -3303,7 +3303,7 @@ class Preprocessor {
           return;
         }
 
-        Token prev_tok = attributes.start().prev().prev();
+        Token prev_tok = attributes.front().prev().prev();
         if (prev_tok == '(' || prev_tok == '{' || prev_tok == ';' || prev_tok == ',' ||
             prev_tok == '}' || prev_tok == ')' || prev_tok == '\n' || prev_tok.is_invalid())
         {
@@ -3359,7 +3359,7 @@ class Preprocessor {
     parser().foreach_function([&](bool, Token type, Token, Scope, bool, Scope fn_body) {
       fn_body.foreach_match("rw?{..};", [&](Tokens toks) {
         Scope list = toks[3].scope();
-        if (list.start().next() == '.') {
+        if (list.front().next() == '.') {
           /* `return {1, 2};` > `T tmp = T{1, 2}; return tmp;`
            * This syntax allow to support designated initializer. */
           parser.insert_before(toks[0],
@@ -3405,7 +3405,7 @@ class Preprocessor {
       /* Lint for nested aggregates. */
       Token nested_aggregate_end = t[0].scope().find_token(BracketClose);
       if (nested_aggregate_end != t[3]) {
-        Token nested_aggregate_start = nested_aggregate_end.scope().start();
+        Token nested_aggregate_start = nested_aggregate_end.scope().front();
         if (nested_aggregate_start.prev() != Word) {
           report_error(ERROR_TOK(nested_aggregate_start),
                        "Nested anonymous aggregate is not supported");
@@ -3424,13 +3424,13 @@ class Preprocessor {
           return;
         }
         parser.insert_before(t[0], var.str());
-        Token value_end = t[2].scope().end();
+        Token value_end = t[2].scope().back();
         parser.insert_after(value_end, ";");
         if (value_end.next() == ',') {
           parser.erase(value_end.next());
         }
       });
-      parser.erase(aggrega.end(), aggrega.end().next());
+      parser.erase(aggrega.back(), aggrega.back().next());
 
       /* TODO: Lint for vector/matrix type (unsafe aggregate). */
     });
@@ -3469,7 +3469,7 @@ class Preprocessor {
         /* Lint for nested aggregates. */
         Token nested_aggregate_end = t[1].scope().find_token(BracketClose);
         if (nested_aggregate_end != t[4]) {
-          Token nested_aggregate_start = nested_aggregate_end.scope().start();
+          Token nested_aggregate_start = nested_aggregate_end.scope().front();
           if (nested_aggregate_start.prev() != Word) {
             report_error(ERROR_TOK(nested_aggregate_start),
                          "Nested anonymous aggregate is not supported");
@@ -3526,18 +3526,18 @@ class Preprocessor {
 
       /* Lint nested initializer list. */
       list_scope.foreach_token(BracketOpen, [&](Token tok) {
-        if (tok != list_scope.start()) {
+        if (tok != list_scope.front()) {
           report_error(ERROR_TOK(name_tok), "Nested initializer list is not supported.");
         }
       });
 
       /* Mutation to compatible syntax. */
-      parser.insert_before(list_scope.start(), "ARRAY_T(" + type_tok.str() + ") ARRAY_V(");
-      parser.insert_after(list_scope.end(), ")");
-      parser.erase(list_scope.start());
-      parser.erase(list_scope.end());
-      if (list_scope.end().prev() == ',') {
-        parser.erase(list_scope.end().prev());
+      parser.insert_before(list_scope.front(), "ARRAY_T(" + type_tok.str() + ") ARRAY_V(");
+      parser.insert_after(list_scope.back(), ")");
+      parser.erase(list_scope.front());
+      parser.erase(list_scope.back());
+      if (list_scope.back().prev() == ',') {
+        parser.erase(list_scope.back().prev());
       }
     });
     parser.apply_mutations();
@@ -3575,12 +3575,12 @@ class Preprocessor {
             const char *comma = (args_decl.empty() ? "" : ", ");
             if (equal.is_invalid()) {
               args_decl += comma + arg.str_with_whitespace();
-              args_names += comma + arg.end().str();
+              args_names += comma + arg.back().str();
             }
             else {
               string arg_name = equal.prev().str();
-              string value = parser.substr_range_inclusive(equal.next(), arg.end());
-              string decl = parser.substr_range_inclusive(arg.start(), equal.prev());
+              string value = parser.substr_range_inclusive(equal.next(), arg.back());
+              string decl = parser.substr_range_inclusive(arg.front(), equal.prev());
 
               string fn_call = fn_name.str() + '(' + args_names + comma + value + ");";
               if (has_non_void_return_type) {
@@ -3601,13 +3601,13 @@ class Preprocessor {
               parser.erase(equal.scope());
             }
           });
-          size_t end_of_fn_char = fn_body.end().line_end() + 1;
+          size_t end_of_fn_char = fn_body.back().line_end() + 1;
           /* Have to reverse the declaration order. */
           for (auto it = fn_overloads.rbegin(); it != fn_overloads.rend(); ++it) {
             parser.insert_line_number(end_of_fn_char, fn_type.line_number());
             parser.insert_after(end_of_fn_char, *it);
           }
-          parser.insert_line_number(end_of_fn_char, fn_body.end().line_number() + 1);
+          parser.insert_line_number(end_of_fn_char, fn_body.back().line_number() + 1);
         });
 
     parser.apply_mutations();
@@ -3887,9 +3887,9 @@ class Preprocessor {
     /* Replace placeholder struct with a generic one. */
     auto replace_placeholder_member = [&](Scope body) {
       /* Replace placeholder struct with float members. */
-      size_t size = type_size_get(body.start().next());
+      size_t size = type_size_get(body.front().next());
       if (size == 0) {
-        report_error(ERROR_TOK(body.start().next()),
+        report_error(ERROR_TOK(body.front().next()),
                      "Can't infer size of member. Type must be defined in this file and have "
                      "the [[host_shared]] attribute.");
       }
@@ -3905,10 +3905,10 @@ class Preprocessor {
         else if (member_size == 12) {
           data_type = "float3";
         }
-        parser.insert_after(body.start().str_index_last_no_whitespace(),
+        parser.insert_after(body.front().str_index_last_no_whitespace(),
                             "\n  " + string(data_type) + " data" + to_string(i / 16) + ";");
       }
-      parser.erase(body.start().next(), body.end().prev());
+      parser.erase(body.front().next(), body.back().prev());
     };
 
     auto member_from_float =
@@ -4111,8 +4111,8 @@ class Preprocessor {
           while (flatten_members(type, structure)) {
           }
 
-          parser.insert_after(body.end().prev(), create_getter(type, name, member, structure));
-          parser.insert_after(body.end().prev(), create_setter(type, name, member, structure));
+          parser.insert_after(body.back().prev(), create_getter(type, name, member, structure));
+          parser.insert_after(body.back().prev(), create_setter(type, name, member, structure));
         }
       });
     });
@@ -4123,7 +4123,7 @@ class Preprocessor {
     parser().foreach_match("w()=", [&](const Tokens &t) {
       parser.insert_before(t[1], "_set_");
       parser.erase(t[2], t[3]);
-      parser.insert_after(t[3].scope().end(), ")");
+      parser.insert_after(t[3].scope().back(), ")");
     });
 
     parser.apply_mutations();
@@ -4161,8 +4161,8 @@ class Preprocessor {
           /* Remove the template but not the wrapped type. */
           parser.erase(type);
           if (template_scope.is_valid()) {
-            parser.erase(template_scope.start());
-            parser.erase(template_scope.end());
+            parser.erase(template_scope.front());
+            parser.erase(template_scope.back());
           }
         });
       });
@@ -4215,8 +4215,8 @@ class Preprocessor {
         /* Remove the template but not the wrapped type. */
         parser.erase(type);
         if (template_scope.is_valid()) {
-          parser.erase(template_scope.start());
-          parser.erase(template_scope.end());
+          parser.erase(template_scope.front());
+          parser.erase(template_scope.back());
         }
       });
     });
@@ -4646,7 +4646,7 @@ class Preprocessor {
             else if (srt_attr == "resource_table") {
               if (is_entry_point) {
                 /* Add dummy var at start of function body. */
-                parser.insert_after(fn_body.start().str_index_start(),
+                parser.insert_after(fn_body.front().str_index_start(),
                                     " " + srt_type + " " + srt_var + ";");
                 create_info_decl += "ADDITIONAL_INFO(" + srt_type + ")\n";
               }
@@ -4723,7 +4723,7 @@ class Preprocessor {
       }
 
       if (is_entry_point && args.str() != "()") {
-        parser.erase(args.start().next(), args.end().prev());
+        parser.erase(args.front().next(), args.back().prev());
       }
     });
 
@@ -4743,9 +4743,9 @@ class Preprocessor {
 
         Token decl_start = tokens[0].is_valid() ? tokens[0] : tokens[2];
         /* Take attribute into account. */
-        decl_start = (decl_start.prev() == ']') ? decl_start.prev().scope().start() : decl_start;
+        decl_start = (decl_start.prev() == ']') ? decl_start.prev().scope().front() : decl_start;
         /* Take ending ; into account. */
-        const Token decl_end = assignment.end().next();
+        const Token decl_end = assignment.back().next();
 
         /* Assert definition doesn't contain any side effect. */
         assignment.foreach_token(Increment, [&](const Token token) {
@@ -4767,7 +4767,7 @@ class Preprocessor {
         assignment.foreach_scope(ScopeType::Subscript, [&](const Scope subscript) {
           if (subscript.token_count() != 3) {
             report_error(
-                ERROR_TOK(subscript.start()),
+                ERROR_TOK(subscript.front()),
                 "Array subscript inside reference declaration must be a single variable or "
                 "a constant, not an expression.");
             return;
@@ -4816,7 +4816,7 @@ class Preprocessor {
           }
         });
 
-        string definition = parser.substr_range_inclusive(assignment[1], assignment.end());
+        string definition = parser.substr_range_inclusive(assignment[1], assignment.back());
 
         /* Replace declaration. */
         parser.erase(decl_start, decl_end);

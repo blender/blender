@@ -158,12 +158,12 @@ struct IntermediateForm {
   void replace(Scope scope, const std::string &replacement, bool keep_trailing_whitespaces = false)
   {
     if (keep_trailing_whitespaces) {
-      replace(scope.start().str_index_start(),
-              scope.end().str_index_last_no_whitespace(),
+      replace(scope.front().str_index_start(),
+              scope.back().str_index_last_no_whitespace(),
               replacement);
     }
     else {
-      replace(scope.start(), scope.end(), replacement);
+      replace(scope.front(), scope.back(), replacement);
     }
   }
 
@@ -206,7 +206,7 @@ struct IntermediateForm {
    * line count and keep the remaining indentation spaces. */
   void erase(Scope scope)
   {
-    erase(scope.start(), scope.end());
+    erase(scope.front(), scope.back());
   }
 
   void insert_before(size_t at, const std::string &content)
