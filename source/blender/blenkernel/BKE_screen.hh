@@ -811,6 +811,9 @@ LayoutPanelState *BKE_panel_layout_panel_state_ensure(Panel *panel,
  * inputs
  */
 ARegion *BKE_region_find_in_listbase_by_type(const ListBase *regionbase, const int region_type);
+
+void BKE_area_copy(ScrArea *area_dst, ScrArea *area_src);
+
 /**
  * Find a region of type \a region_type in the currently active space of \a area.
  *
@@ -894,6 +897,11 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
  */
 void BKE_screen_free_data(bScreen *screen);
 void BKE_screen_area_map_free(ScrAreaMap *area_map) ATTR_NONNULL();
+
+/**
+ * bScreen copying. Assumes that #screen_dst is cleared and can be fully overwritten.
+ */
+void BKE_screen_copy_data(bScreen *screen_dst, const bScreen *screen_src);
 
 ScrEdge *BKE_screen_find_edge(const bScreen *screen, ScrVert *v1, ScrVert *v2);
 void BKE_screen_sort_scrvert(ScrVert **v1, ScrVert **v2);

@@ -241,22 +241,14 @@ bool ED_workspace_change(WorkSpace *workspace_new, bContext *C, wmWindowManager 
 WorkSpace *ED_workspace_duplicate(WorkSpace *workspace_old, Main *bmain, wmWindow *win)
 {
   WorkSpaceLayout *layout_active_old = BKE_workspace_active_layout_get(win->workspace_hook);
-  WorkSpace *workspace_new = ED_workspace_add(bmain, workspace_old->id.name + 2);
+  WorkSpace *workspace_new = blender::id_cast<WorkSpace *>(BKE_id_copy(bmain, &workspace_old->id));
 
-  workspace_new->flags = workspace_old->flags;
-  workspace_new->pin_scene = workspace_old->pin_scene;
-  workspace_new->sequencer_scene = workspace_old->sequencer_scene;
-  workspace_new->object_mode = workspace_old->object_mode;
-  workspace_new->order = workspace_old->order;
-  BLI_duplicatelist(&workspace_new->owner_ids, &workspace_old->owner_ids);
-
-  /* TODO(@ideasman42): tools */
-
-  LISTBASE_FOREACH (WorkSpaceLayout *, layout_old, &workspace_old->layouts) {
-    WorkSpaceLayout *layout_new = ED_workspace_layout_duplicate(
-        bmain, workspace_new, layout_old, win);
-
-    if (layout_active_old == layout_old) {
+  /* Try to keep active the layout from the new workspace matching the current active one from
+   * the old worksapce. */
+  WorkSpaceLayout *layout_old = static_cast<WorkSpaceLayout *>(workspace_old->layouts.first);
+  WorkSpaceLayout *layout_new = static_cast<WorkSpaceLayout *>(workspace_new->layouts.first);
+  for (; layout_old && layout_new; layout_old = layout_old->next, layout_new = layout_new->next) {
+    if (layout_old == layout_active_old) {
       win->workspace_hook->temp_layout_store = layout_new;
     }
   }

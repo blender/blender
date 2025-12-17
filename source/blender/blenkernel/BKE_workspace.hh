@@ -59,9 +59,16 @@ void BKE_workspace_instance_hook_free(const Main *bmain, WorkSpaceInstanceHook *
  * Add a new layout to \a workspace for \a screen.
  */
 WorkSpaceLayout *BKE_workspace_layout_add(Main *bmain,
-                                          WorkSpace *workspace,
-                                          bScreen *screen,
-                                          const char *name) ATTR_NONNULL();
+                                          WorkSpace &workspace,
+                                          bScreen &screen,
+                                          const char *name);
+/**
+ * Add a copy of the given \a layout_src to the given \a layout_dst.
+ */
+WorkSpaceLayout *BKE_workspace_layout_add_from_layout(Main *bmain,
+                                                      WorkSpace &workspace_dst,
+                                                      const WorkSpaceLayout &layout_src,
+                                                      const int id_copy_flags);
 void BKE_workspace_layout_remove(Main *bmain, WorkSpace *workspace, WorkSpaceLayout *layout)
     ATTR_NONNULL();
 

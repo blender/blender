@@ -155,7 +155,7 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
     if (workspace == nullptr) {
       continue; /* Not much we can do. */
     }
-    BKE_workspace_layout_add(bmain, workspace, screen, screen->id.name + 2);
+    BKE_workspace_layout_add(bmain, *workspace, *screen, screen->id.name + 2);
   }
 
   bmain->is_locked_for_linking = true;

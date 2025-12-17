@@ -2409,35 +2409,11 @@ void ED_region_toggle_hidden(bContext *C, ARegion *region)
 
 void ED_area_data_copy(ScrArea *area_dst, ScrArea *area_src, const bool do_free)
 {
-  const char spacetype = area_dst->spacetype;
-  const short flag_copy = HEADER_NO_PULLDOWN;
-
-  area_dst->spacetype = area_src->spacetype;
-  area_dst->type = area_src->type;
-
-  area_dst->flag = (area_dst->flag & ~flag_copy) | (area_src->flag & flag_copy);
-
-  /* area */
   if (do_free) {
-    BKE_spacedata_freelist(&area_dst->spacedata);
+    BKE_screen_area_free(area_dst);
   }
-  BKE_spacedata_copylist(&area_dst->spacedata, &area_src->spacedata);
 
-  /* NOTE: SPACE_EMPTY is possible on new screens. */
-
-  /* regions */
-  if (do_free) {
-    SpaceType *st = BKE_spacetype_from_id(spacetype);
-    LISTBASE_FOREACH (ARegion *, region, &area_dst->regionbase) {
-      BKE_area_region_free(st, region);
-    }
-    BLI_freelistN(&area_dst->regionbase);
-  }
-  SpaceType *st = BKE_spacetype_from_id(area_src->spacetype);
-  LISTBASE_FOREACH (ARegion *, region, &area_src->regionbase) {
-    ARegion *newar = BKE_area_region_copy(st, region);
-    BLI_addtail(&area_dst->regionbase, newar);
-  }
+  BKE_area_copy(area_dst, area_src);
 }
 
 void ED_area_data_swap(ScrArea *area_dst, ScrArea *area_src)

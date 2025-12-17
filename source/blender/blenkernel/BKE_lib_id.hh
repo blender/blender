@@ -283,19 +283,26 @@ enum {
   LIB_ID_COPY_ACTIONS = 1 << 24,
   /** EXCEPTION! Deep-copy shape-keys used by copied obdata ID. */
   LIB_ID_COPY_SHAPEKEY = 1 << 26,
+  /**
+   * EXCEPTION! Deep-copy screen used by copied workspace ID.
+   * WARNING: Should always be used, except in `NO_MAIN` cases of copying. */
+  LIB_ID_COPY_SCREEN = 1 << 27,
   /** EXCEPTION! Specific deep-copy of node trees used e.g. for rendering purposes. */
-  LIB_ID_COPY_NODETREE_LOCALIZE = 1 << 27,
+  LIB_ID_COPY_NODETREE_LOCALIZE = 1 << 28,
   /**
    * EXCEPTION! Specific handling of RB objects regarding collections differs depending whether we
    * duplicate scene/collections, or objects.
    */
-  LIB_ID_COPY_RIGID_BODY_NO_COLLECTION_HANDLING = 1 << 28,
+  LIB_ID_COPY_RIGID_BODY_NO_COLLECTION_HANDLING = 1 << 29,
   /* Copy asset metadata. */
-  LIB_ID_COPY_ASSET_METADATA = 1 << 29,
+  LIB_ID_COPY_ASSET_METADATA = 1 << 30,
 
   /* *** Helper 'defines' gathering most common flag sets. *** */
-  /** Shape-keys are not real ID's, more like local data to geometry IDs. */
-  LIB_ID_COPY_DEFAULT = LIB_ID_COPY_SHAPEKEY,
+  /**
+   * Shape-keys are not real ID's, more like local data to geometry IDs. Same for bScreens being
+   * local data of Workspaces.
+   */
+  LIB_ID_COPY_DEFAULT = LIB_ID_COPY_SHAPEKEY | LIB_ID_COPY_SCREEN,
 
   /** Create a local, outside of bmain, data-block to work on. */
   LIB_ID_CREATE_LOCALIZE = LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT |

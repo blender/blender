@@ -15,6 +15,7 @@
 #include "DNA_workspace_types.h"
 
 #include "BKE_context.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_screen.hh"
 #include "BKE_workspace.hh"
@@ -36,35 +37,15 @@ WorkSpaceLayout *ED_workspace_layout_add(Main *bmain,
   WM_window_screen_rect_calc(win, &screen_rect);
   screen = screen_add(bmain, name, &screen_rect);
 
-  return BKE_workspace_layout_add(bmain, workspace, screen, name);
+  return BKE_workspace_layout_add(bmain, *workspace, *screen, name);
 }
 
 WorkSpaceLayout *ED_workspace_layout_duplicate(Main *bmain,
                                                WorkSpace *workspace,
                                                const WorkSpaceLayout *layout_old,
-                                               wmWindow *win)
+                                               wmWindow * /*win*/)
 {
-  bScreen *screen_old = BKE_workspace_layout_screen_get(layout_old);
-  const char *name = BKE_workspace_layout_name_get(layout_old);
-
-  WorkSpaceLayout *layout_new = ED_workspace_layout_add(bmain, workspace, win, name);
-  bScreen *screen_new = BKE_workspace_layout_screen_get(layout_new);
-
-  if (BKE_screen_is_fullscreen_area(screen_old)) {
-    LISTBASE_FOREACH (ScrArea *, area_old, &screen_old->areabase) {
-      if (area_old->full) {
-        ScrArea *area_new = (ScrArea *)screen_new->areabase.first;
-        ED_area_data_copy(area_new, area_old, true);
-        ED_area_tag_redraw(area_new);
-        break;
-      }
-    }
-  }
-  else {
-    screen_data_copy(screen_new, screen_old);
-  }
-
-  return layout_new;
+  return BKE_workspace_layout_add_from_layout(bmain, *workspace, *layout_old, LIB_ID_COPY_DEFAULT);
 }
 
 static bool workspace_layout_delete_doit(WorkSpace *workspace,

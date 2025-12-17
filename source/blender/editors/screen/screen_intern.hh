@@ -138,7 +138,6 @@ void screen_animate_area_highlight(wmWindow *win,
  * Empty screen, with 1 dummy area without space-data. Uses window size.
  */
 bScreen *screen_add(Main *bmain, const char *name, const rcti *rect);
-void screen_data_copy(bScreen *to, bScreen *from);
 /**
  * Prepare a newly created screen for initializing it as active screen.
  */
