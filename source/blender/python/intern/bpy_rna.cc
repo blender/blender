@@ -10318,6 +10318,24 @@ static PyObject *pyrna_register_class(PyObject * /*self*/, PyObject *py_class)
     return nullptr;
   }
 
+  /* Update 'struct name property' of the new type, in case:
+   *  - it already has a `name_property` defined;
+   *  - the current type has a different string property using the same identifier.
+   *
+   * This allows to keep using the default PropertyGroup `name` property (see the call to
+   * #RNA_def_struct_name_property on 'PropertyGroup' StructRNA, in #rna_def_ID_properties), while
+   * allowing to override it by another `name` string property in Python sub-types when required.
+   */
+  PropertyRNA *parent_name_prop = RNA_struct_name_property(srna_new);
+  if (parent_name_prop) {
+    PropertyRNA *name_prop = RNA_struct_type_find_property(
+        srna_new, RNA_property_identifier(parent_name_prop));
+    if (name_prop && name_prop != parent_name_prop && RNA_property_type(name_prop) == PROP_STRING)
+    {
+      RNA_def_struct_name_property(srna_new, name_prop, true);
+    }
+  }
+
   /* Call classed register method.
    * Note that zero falls through, no attribute, no error. */
   switch (PyObject_GetOptionalAttr(py_class, bpy_intern_str_register, &py_cls_meth)) {
