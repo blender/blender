@@ -1115,9 +1115,11 @@ static bool try_find_baked_data(const NodesModifierBake &bake,
         return false;
       }
     }
+
     /* Make sure frames processed in the right order. */
     Vector<SubFrame> frames;
     frames.extend(file_by_frame.keys().begin(), file_by_frame.keys().end());
+    std::sort(frames.begin(), frames.end());
 
     for (const SubFrame &frame : frames) {
       const NodesModifierBakeFile &meta_file = *file_by_frame.lookup(frame);
