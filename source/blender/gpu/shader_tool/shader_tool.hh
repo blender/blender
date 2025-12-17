@@ -3122,15 +3122,15 @@ class Preprocessor {
 
         size_t align = type_info.alignment - (offset % type_info.alignment);
         if (align != type_info.alignment) {
-          // string err = "Misaligned member, missing " + to_string(align) + " padding bytes";
-          // report_error(ERROR_TOK(type), err.c_str());
+          string err = "Misaligned member, missing " + to_string(align) + " padding bytes";
+          report_error(ERROR_TOK(type), err.c_str());
         }
         offset += type_info.size;
       });
       if (offset % 16 != 0) {
-        // string err = "Alignment issue, missing " + to_string(16 - (offset % 16)) +
-        //              " padding bytes";
-        // report_error(ERROR_TOK(struct_name), err.c_str());
+        string err = "Alignment issue, missing " + to_string(16 - (offset % 16)) +
+                     " padding bytes";
+        report_error(ERROR_TOK(struct_name), err.c_str());
       }
     });
     parser.apply_mutations();
