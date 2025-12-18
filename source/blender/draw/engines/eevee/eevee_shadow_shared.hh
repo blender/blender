@@ -28,7 +28,7 @@ namespace blender::eevee {
  * covering twice as much area as the previous one.
  * \{ */
 
-enum eCubeFace : uint32_t {
+enum [[host_shared]] eCubeFace : uint32_t {
   /* Ordering by culling order. If cone aperture is shallow, we cull the later view. */
   Z_NEG = 0u,
   X_POS = 1u,
@@ -38,7 +38,7 @@ enum eCubeFace : uint32_t {
   Z_POS = 5u,
 };
 
-enum eShadowProjectionType : uint32_t {
+enum [[host_shared]] eShadowProjectionType : uint32_t {
   SHADOW_PROJECTION_CUBEFACE = 0u,
   SHADOW_PROJECTION_CLIPMAP = 1u,
   SHADOW_PROJECTION_CASCADE = 2u,
@@ -193,7 +193,7 @@ struct ShadowTileData {
 /** \note Stored packed as a uint. */
 #define ShadowTileDataPacked uint
 
-enum eShadowFlag : uint32_t {
+enum [[host_shared]] eShadowFlag : uint32_t {
   SHADOW_NO_DATA = 0u,
   SHADOW_IS_CACHED = (1u << 27u),
   SHADOW_IS_ALLOCATED = (1u << 28u),

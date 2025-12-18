@@ -12,7 +12,7 @@ namespace blender::draw::select {
 #endif
 
 /* Matches eV3DSelectMode */
-enum SelectType : uint32_t {
+enum [[host_shared]] SelectType : uint32_t {
   SELECT_ALL = 0u,
   SELECT_PICK_ALL = 1u,
   SELECT_PICK_NEAREST = 2u,

@@ -265,6 +265,8 @@ blender::gpu::Shader *GPU_shader_create_from_info_python(const GPUShaderCreateIn
     info.generated_sources.append({"gpu_shader_python_typedef_lib.glsl", {}, "\n"});
   }
 
+  info.builtins_ |= BuiltinBits::NO_BUFFER_TYPE_LINTING;
+
   auto preprocess_source = [&](const std::string &input_src) {
     std::string processed_str;
     processed_str += "\n";

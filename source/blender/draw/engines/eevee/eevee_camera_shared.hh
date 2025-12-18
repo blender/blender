@@ -14,7 +14,7 @@
 namespace blender::eevee {
 #endif
 
-enum eCameraType : uint32_t {
+enum [[host_shared]] eCameraType : uint32_t {
   CAMERA_PERSP = 0u,
   CAMERA_ORTHO = 1u,
   CAMERA_PANO_EQUIRECT = 2u,

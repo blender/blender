@@ -16,7 +16,7 @@ namespace blender::eevee {
 
 #define VELOCITY_INVALID 512.0
 
-enum eVelocityStep : uint32_t {
+enum [[host_shared]] eVelocityStep : uint32_t {
   STEP_PREVIOUS = 0,
   STEP_NEXT = 1,
   STEP_CURRENT = 2,

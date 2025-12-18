@@ -4,19 +4,17 @@
 
 #pragma once
 
-#ifndef GPU_SHADER
-#  include "GPU_shader_shared_utils.hh"
-#endif
+#include "GPU_shader_shared_utils.hh"
 
 #define WORKBENCH_SHADER_SHARED_H
 
-struct SolidLightData {
+struct [[host_shared]] SolidLightData {
   float4 direction;
   float4 specular_color;
   float4 diffuse_color_wrap; /* rgb: diffuse col a: wrapped lighting factor */
 };
 
-struct WorldData {
+struct [[host_shared]] WorldData {
   float2 viewport_size;
   float2 viewport_size_inv;
   float4 object_outline_color;
@@ -26,7 +24,7 @@ struct WorldData {
   float shadow_mul;
   float shadow_add;
   /* - 16 bytes alignment - */
-  SolidLightData lights[4];
+  struct SolidLightData lights[4];
   float4 ambient_color;
 
   int cavity_sample_start;
@@ -52,7 +50,7 @@ struct WorldData {
   float4 background_color;
 };
 
-struct ExtrudedFrustum {
+struct [[host_shared]] ExtrudedFrustum {
   /** \note float3 array padded to float4. */
   float4 corners[16];
   float4 planes[12];
@@ -62,7 +60,7 @@ struct ExtrudedFrustum {
   int _pad1;
 };
 
-struct ShadowPassData {
+struct [[host_shared]] ShadowPassData {
   float4 far_plane;
   packed_float3 light_direction_ws;
   int _padding;

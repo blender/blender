@@ -480,6 +480,7 @@ bool GPUShaderBinder::create_gpu_shader(
   iface.smooth(Type::float2_t, "texCoord_interp");
 
   ShaderCreateInfo info("OCIO_Display");
+  info.builtins(BuiltinBits::NO_BUFFER_TYPE_LINTING);
 
   for (const auto &additional_define : additional_defines) {
     info.define(additional_define[0], additional_define[1]);

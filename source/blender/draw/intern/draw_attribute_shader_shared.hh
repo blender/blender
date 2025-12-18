@@ -9,7 +9,7 @@
 #endif
 
 /* Copy of DNA enum in `DNA_curves_types.h`. */
-enum CurveType : uint32_t {
+enum [[host_shared]] CurveType : uint32_t {
   CURVE_TYPE_CATMULL_ROM = 0u,
   CURVE_TYPE_POLY = 1u,
   CURVE_TYPE_BEZIER = 2u,

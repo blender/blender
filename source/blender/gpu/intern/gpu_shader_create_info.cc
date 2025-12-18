@@ -94,6 +94,17 @@ bool ShaderCreateInfo::is_vulkan_compatible() const
   return true;
 }
 
+std::string ShaderCreateInfo::buffer_typename(StringRefNull type_name) const
+{
+  if (bool(this->builtins_ & BuiltinBits::NO_BUFFER_TYPE_LINTING) || type_name.startswith("int") ||
+      type_name.startswith("uint") || type_name.startswith("float") ||
+      type_name.startswith("packed_"))
+  {
+    return type_name;
+  }
+  return type_name + "_host_shared_";
+}
+
 /** \} */
 
 ShaderCreateInfo::ShaderCreateInfo(const char *name) : name_(name)

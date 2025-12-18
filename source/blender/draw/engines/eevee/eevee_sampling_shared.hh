@@ -14,7 +14,7 @@
 namespace blender::eevee {
 #endif
 
-enum eSamplingDimension : uint32_t {
+enum [[host_shared]] eSamplingDimension : uint32_t {
   SAMPLING_FILTER_U = 0u,
   SAMPLING_FILTER_V = 1u,
   SAMPLING_LENS_U = 2u,

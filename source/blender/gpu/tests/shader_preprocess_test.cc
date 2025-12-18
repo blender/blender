@@ -143,13 +143,19 @@ struct [[host_shared]] T {
     string expect =
         R"(
 #line 3
+
+#define T_union0_host_shared_ T_union0
+#line 3
 struct                 T_union0 {
   float4 data0;
 
 };
 #line 2
+
+#define T_host_shared_ T
+#line 2
 struct                 T {
-         T_union0 union0;
+         T_union0_host_shared_ union0;
 #line 38
 };
 #ifndef GPU_METAL
@@ -213,22 +219,31 @@ struct [[host_shared]] T {
     string expect =
         R"(
 #line 5
+
+#define T_union0_host_shared_ T_union0
+#line 5
 struct                 T_union0 {
   float4 data0;
 
 };
+#line 8
+
+#define T_union1_host_shared_ T_union1
 #line 8
 struct                 T_union1 {
   float4 data0;
 
 };
 #line 2
+
+#define T_host_shared_ T
+#line 2
 struct                 T {
   float2 foo;
   float2 bar;
-         T_union0 union0;
+         T_union0_host_shared_ union0;
 #line 8
-         T_union1 union1;
+         T_union1_host_shared_ union1;
 #line 31
 };
 #ifndef GPU_METAL
@@ -282,22 +297,33 @@ struct [[host_shared]] T {
 };
 )";
     string expect = R"(
+
+#define B_host_shared_ B
+#line 2
 struct                 B {
   packed_float3 a;
   float b;
 };
-
+#line 8
+#define A_host_shared_ A
+#line 7
 struct                 A {
-         B e;
+         B_host_shared_ e;
 };
+#line 12
+
+#define T_union0_host_shared_ T_union0
 #line 12
 struct                 T_union0 {
   float4 data0;
 
 };
 #line 11
+
+#define T_host_shared_ T
+#line 11
 struct                 T {
-         T_union0 union0;
+         T_union0_host_shared_ union0;
 #line 27
 };
 #ifndef GPU_METAL
@@ -333,6 +359,9 @@ struct [[host_shared]] T {
 )";
     string expect = R"(
 #line 3
+
+#define T_union0_host_shared_ T_union0
+#line 3
 struct                 T_union0 {
   float4 data0;
   float4 data1;
@@ -341,8 +370,11 @@ struct                 T_union0 {
 
 };
 #line 2
+
+#define T_host_shared_ T
+#line 2
 struct                 T {
-         T_union0 union0;
+         T_union0_host_shared_ union0;
 #line 22
 };
 #ifndef GPU_METAL

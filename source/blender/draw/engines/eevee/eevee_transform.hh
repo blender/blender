@@ -13,9 +13,11 @@ namespace blender::eevee {
 /**
  * The #Transform class is used to store object transforms in a compact manner (row major).
  */
-struct Transform {
+struct [[host_shared]] Transform {
   /* The transform is stored transposed for compactness. */
-  float4 x, y, z;
+  float4 x;
+  float4 y;
+  float4 z;
 
 #ifndef GPU_SHADER
   Transform() = default;

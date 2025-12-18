@@ -20,7 +20,7 @@ struct TestOutputRawData;
  * required in the common use-case where a float3 and an int/float are paired together for optimal
  * data transfer. */
 
-enum GPUKeyframeShapes : uint32_t {
+enum [[host_shared]] GPUKeyframeShapes : uint32_t {
   GPU_KEYFRAME_SHAPE_DIAMOND = (1u << 0u),
   GPU_KEYFRAME_SHAPE_CIRCLE = (1u << 1u),
   GPU_KEYFRAME_SHAPE_CLIPPED_VERTICAL = (1u << 2u),
@@ -109,7 +109,7 @@ struct [[host_shared]] MultiIconCallData {
 
 #define GPU_SEQ_STRIP_DRAW_DATA_LEN 256
 
-enum GPUSeqFlags : uint32_t {
+enum [[host_shared]] GPUSeqFlags : uint32_t {
   GPU_SEQ_FLAG_BACKGROUND = (1u << 0u),
   GPU_SEQ_FLAG_SINGLE_IMAGE = (1u << 1u),
   GPU_SEQ_FLAG_COLOR_BAND = (1u << 2u),
@@ -209,12 +209,12 @@ struct [[host_shared]] GreasePencilStrokeData {
   float4 stroke_color;
 };
 
-enum TestStatus : uint32_t {
+enum [[host_shared]] TestStatus : uint32_t {
   TEST_STATUS_NONE = 0u,
   TEST_STATUS_PASSED = 1u,
   TEST_STATUS_FAILED = 2u,
 };
-enum TestType : uint32_t {
+enum [[host_shared]] TestType : uint32_t {
   TEST_TYPE_BOOL = 0u,
   TEST_TYPE_UINT = 1u,
   TEST_TYPE_INT = 2u,

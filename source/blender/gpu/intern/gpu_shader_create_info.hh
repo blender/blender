@@ -488,6 +488,10 @@ enum class BuiltinBits {
   /* On metal, tag the shader to use argument buffer to overcome the 16 sampler limit. */
   USE_SAMPLER_ARG_BUFFER = (1 << 20),
 
+  /** If true, will bypass check that all buffer types have been linted by shader tool
+   * (e.g. using [[host_shared]]). This is needed for struct that are not parsed or are
+   * not yet supported by the host_shared check (false negative). */
+  NO_BUFFER_TYPE_LINTING = (1 << 27),
   /* Not a builtin but a flag we use to tag shaders that use the debug features. */
   USE_PRINTF = (1 << 28),
   USE_DEBUG_DRAW = (1 << 29),
@@ -1713,6 +1717,8 @@ struct ShaderCreateInfo {
     }
     return slot;
   }
+
+  std::string buffer_typename(StringRefNull type_name) const;
 
   /** \} */
 

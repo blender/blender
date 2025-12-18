@@ -25,7 +25,7 @@ struct [[host_shared]] ReflectionProbeLowFreqLight {
   float ambient;
 };
 
-enum LightProbeShape : uint32_t {
+enum [[host_shared]] LightProbeShape : uint32_t {
   SHAPE_ELIPSOID = 0u,
   SHAPE_CUBOID = 1u,
 };

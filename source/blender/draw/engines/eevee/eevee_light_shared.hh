@@ -23,7 +23,7 @@ namespace blender::eevee {
  * Index inside the world sun buffer.
  * In the case the world uses the light path node, multiple suns can be extracted from the world.
  */
-enum WorldSunIndex : uint32_t {
+enum [[host_shared]] WorldSunIndex : uint32_t {
   /** When the world node-tree doesn't use the light path node, there is only 1 extracted. */
   WORLD_SUN_COMBINED = 0u,
 
@@ -34,7 +34,7 @@ enum WorldSunIndex : uint32_t {
   WORLD_SUN_MAX = 2u,
 };
 
-enum eLightType : uint32_t {
+enum [[host_shared]] eLightType : uint32_t {
   LIGHT_SUN = 0u,
   LIGHT_SUN_ORTHO = 1u,
   /* Point light. */

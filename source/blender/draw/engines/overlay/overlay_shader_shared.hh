@@ -11,7 +11,7 @@
 #  include "DNA_view3d_types.h"
 #endif
 
-enum OVERLAY_BackgroundType : uint32_t {
+enum [[host_shared]] OVERLAY_BackgroundType : uint32_t {
   BG_SOLID = 0u,
   BG_GRADIENT = 1u,
   BG_CHECKER = 2u,
@@ -20,7 +20,7 @@ enum OVERLAY_BackgroundType : uint32_t {
   BG_MASK = 5u,
 };
 
-enum OVERLAY_UVLineStyle : uint32_t {
+enum [[host_shared]] OVERLAY_UVLineStyle : uint32_t {
   OVERLAY_UV_LINE_STYLE_OUTLINE = 0u,
   OVERLAY_UV_LINE_STYLE_DASH = 1u,
   OVERLAY_UV_LINE_STYLE_BLACK = 2u,
@@ -28,7 +28,7 @@ enum OVERLAY_UVLineStyle : uint32_t {
   OVERLAY_UV_LINE_STYLE_SHADOW = 4u,
 };
 
-enum OVERLAY_GridBits : uint32_t {
+enum [[host_shared]] OVERLAY_GridBits : uint32_t {
   SHOW_GRID = (1u << 0u),
   SHOW_AXES = (1u << 1u),
 
@@ -50,7 +50,7 @@ enum OVERLAY_GridBits : uint32_t {
 ENUM_OPERATORS(OVERLAY_GridBits)
 #endif
 
-enum VertexClass : uint32_t {
+enum [[host_shared]] VertexClass : uint32_t {
   VCLASS_NONE = 0,
 
   VCLASS_LIGHT_AREA_SHAPE = 1 << 0,
@@ -76,7 +76,7 @@ enum VertexClass : uint32_t {
 ENUM_OPERATORS(VertexClass)
 #endif
 
-enum StickBoneFlag : uint32_t {
+enum [[host_shared]] StickBoneFlag : uint32_t {
   COL_WIRE = (1u << 0u),
   COL_HEAD = (1u << 1u),
   COL_TAIL = (1u << 2u),
@@ -377,7 +377,7 @@ struct [[host_shared]] VertexData {
 /* Limited by expand_prim_len bit count. */
 #define PARTICLE_SHAPE_CIRCLE_RESOLUTION 7
 
-enum OVERLAY_ParticleShape : uint32_t {
+enum [[host_shared]] OVERLAY_ParticleShape : uint32_t {
   PART_SHAPE_AXIS = 1,
   PART_SHAPE_CIRCLE = 2,
   PART_SHAPE_CROSS = 3,

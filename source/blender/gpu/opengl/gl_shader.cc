@@ -491,9 +491,11 @@ static std::ostream &print_qualifier(std::ostream &os, const Qualifier &qualifie
 
 static void print_resource(std::ostream &os,
                            const ShaderCreateInfo::Resource &res,
-                           bool auto_resource_location)
+                           const ShaderCreateInfo &info)
 {
-  if (auto_resource_location && res.bind_type == ShaderCreateInfo::Resource::BindType::SAMPLER) {
+  if (info.auto_resource_location_ &&
+      res.bind_type == ShaderCreateInfo::Resource::BindType::SAMPLER)
+  {
     /* Skip explicit binding location for samplers when not needed, since drivers can usually
      * handle more sampler declarations this way (as long as they're not actually used by the
      * shader). See #105661. */
@@ -528,28 +530,28 @@ static void print_resource(std::ostream &os,
       os << res.image.name << ";";
       break;
     case ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
-      os << "uniform _" << res.uniformbuf.name.str_no_array() << " { " << res.uniformbuf.type_name
-         << " " << res.uniformbuf.name << "; };";
+      os << "uniform _" << res.uniformbuf.name.str_no_array() << " { ";
+      os << info.buffer_typename(res.uniformbuf.type_name) << " " << res.uniformbuf.name << "; };";
       break;
     case ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:
       print_qualifier(os, res.storagebuf.qualifiers);
       os << "buffer _";
-      os << res.storagebuf.name.str_no_array() << " { " << res.storagebuf.type_name << " "
-         << res.storagebuf.name << "; };";
+      os << res.storagebuf.name.str_no_array() << " { ";
+      os << info.buffer_typename(res.storagebuf.type_name) << " " << res.storagebuf.name << "; };";
       break;
   }
 }
 
 static void print_resource(std::ostream &os,
                            const ShaderCreateInfo::Resource &res,
-                           bool auto_resource_location,
+                           const ShaderCreateInfo &info,
                            StringRefNull res_frequency,
                            StringRefNull &active_info_name)
 {
   if (assign_if_different(active_info_name, res.info_name)) {
     os << "\n#define CREATE_INFO_RES_" << res_frequency << "_" << res.info_name << " \\\n";
   }
-  print_resource(os, res, auto_resource_location);
+  print_resource(os, res, info);
   os << " \\\n";
 }
 
@@ -611,21 +613,21 @@ std::string GLShader::resources_declare(const ShaderCreateInfo &info) const
   {
     StringRefNull active_info = "";
     for (const ShaderCreateInfo::Resource &res : info.pass_resources_) {
-      print_resource(ss, res, info.auto_resource_location_, "PASS", active_info);
+      print_resource(ss, res, info, "PASS", active_info);
     }
     ss << "\n";
   }
   {
     StringRefNull active_info = "";
     for (const ShaderCreateInfo::Resource &res : info.batch_resources_) {
-      print_resource(ss, res, info.auto_resource_location_, "BATCH", active_info);
+      print_resource(ss, res, info, "BATCH", active_info);
     }
     ss << "\n";
   }
   {
     StringRefNull active_info = "";
     for (const ShaderCreateInfo::Resource &res : info.geometry_resources_) {
-      print_resource(ss, res, info.auto_resource_location_, "GEOMETRY", active_info);
+      print_resource(ss, res, info, "GEOMETRY", active_info);
     }
     ss << "\n";
   }
@@ -844,7 +846,7 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
       res.sampler.type = input.img_type;
       res.sampler.sampler = GPUSamplerState::default_sampler();
       res.sampler.name = image_name;
-      print_resource(ss, res, false);
+      print_resource(ss, res, info);
 
       char swizzle[] = "xyzw";
       swizzle[to_component_count(input.type)] = '\0';
