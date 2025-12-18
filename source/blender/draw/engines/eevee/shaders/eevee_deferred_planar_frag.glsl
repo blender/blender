@@ -132,12 +132,12 @@ void main()
 
   /* Indirect light. */
   SphericalHarmonicL1 sh = lightprobe_volume_sample(P, V, Ng);
-  LightProbeSample samp = lightprobe_load(g_data.P, g_data.Ng, V);
+  LightProbeSample samp = lightprobe_load(P, Ng, V);
 
   radiance_front += spherical_harmonics_evaluate_lambert(Ng, sh);
   radiance_back += spherical_harmonics_evaluate_lambert(-Ng, sh);
-  radiance_reflect += lightprobe_eval(samp, cl_reflect, g_data.P, V, thickness);
-  radiance_refract += lightprobe_eval(samp, cl_refract, g_data.P, V, thickness);
+  radiance_reflect += lightprobe_eval(samp, cl_reflect, P, V, thickness);
+  radiance_refract += lightprobe_eval(samp, cl_refract, P, V, thickness);
 
   out_radiance = float4(0.0f);
   out_radiance.xyz += radiance_reflect * cl_reflect.color;
