@@ -341,7 +341,8 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
 
   /* Create driver to write out render results. */
   ensure_display_driver_if_needed();
-  session->set_output_driver(make_unique<BlenderOutputDriver>(b_engine));
+  session->set_output_driver(
+      make_unique<BlenderOutputDriver>(*b_engine.ptr.data_as<::RenderEngine>()));
 
   session->full_buffer_written_cb = [&](string_view filename) { full_buffer_written(filename); };
 
@@ -692,7 +693,8 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
   scene->bake_manager->set_baking(scene, true);
 
   session->set_display_driver(nullptr);
-  session->set_output_driver(make_unique<BlenderOutputDriver>(b_engine));
+  session->set_output_driver(
+      make_unique<BlenderOutputDriver>(*b_engine.ptr.data_as<::RenderEngine>()));
   session->full_buffer_written_cb = [&](string_view filename) { full_buffer_written(filename); };
 
   /* Sync scene. */
