@@ -1476,6 +1476,7 @@ static void add_nodes(Scene *scene,
       nullptr, (blender::StringRef(ntree->id.name) + " Inlined").c_str(), ntree->idname);
   blender::nodes::InlineShaderNodeTreeParams inline_params;
   inline_params.allow_preserving_repeat_zones = false;
+  inline_params.target_engine_ = SHD_OUTPUT_CYCLES;
   blender::nodes::inline_shader_node_tree(*ntree, *localtree, inline_params);
 
   BL::ShaderNodeTree b_localtree(RNA_id_pointer_create(&localtree->id));

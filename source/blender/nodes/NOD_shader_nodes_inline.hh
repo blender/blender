@@ -6,6 +6,8 @@
 
 #include "BLI_vector.hh"
 
+#include "DNA_node_types.h"
+
 struct bNodeTree;
 struct bNode;
 
@@ -19,6 +21,9 @@ struct InlineShaderNodeTreeParams {
    * Some Repeat Zones may still be unrolled (eg. if they have Closure or Bundle Zone Items).
    */
   bool allow_preserving_repeat_zones = false;
+
+  /* Allow processing only the outputs relevant to specific engines. */
+  NodeShaderOutputTarget target_engine_ = SHD_OUTPUT_ALL;
 
   struct ErrorMessage {
     /* In theory, more contextual information could be added here like the entire context path to

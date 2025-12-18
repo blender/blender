@@ -281,11 +281,25 @@ class ShaderNodesInliner {
     Vector<TreeInContext> trees;
     this->find_trees_potentially_containing_shader_outputs_recursive(nullptr, src_tree_, trees);
 
+    auto get_engine_target = [](const bNode *output_node) {
+      if (ELEM(output_node->idname,
+               "ShaderNodeOutputMaterial",
+               "ShaderNodeOutputLight",
+               "ShaderNodeOutputWorld"))
+      {
+        return NodeShaderOutputTarget(output_node->custom1);
+      }
+      return SHD_OUTPUT_ALL;
+    };
+
     Vector<SocketInContext> output_sockets;
     auto add_output_type = [&](const char *output_type) {
       for (const TreeInContext &tree : trees) {
         const bke::bNodeTreeZones &zones = *tree->zones();
         for (const bNode *node : tree->nodes_by_type(output_type)) {
+          if (!ELEM(get_engine_target(node), SHD_OUTPUT_ALL, params_.target_engine_)) {
+            continue;
+          }
           const bke::bNodeTreeZone *zone = zones.get_zone_by_node(node->identifier);
           if (zone) {
             params_.r_error_messages.append({node, TIP_("Output node must not be in zone")});
@@ -304,8 +318,8 @@ class ShaderNodesInliner {
     switch (tree_type) {
       case ID_MA:
         add_output_type("ShaderNodeOutputMaterial");
-        add_output_type("ShaderNodeOutputAOV");
         add_output_type("ShaderNodeOutputLight");
+        add_output_type("ShaderNodeOutputAOV");
         break;
       case ID_WO:
         add_output_type("ShaderNodeOutputWorld");

@@ -164,6 +164,7 @@ GPUMaterialFromNodeTreeResult GPU_material_from_nodetree(
       nullptr, (blender::StringRef(ntree->id.name) + " Inlined").c_str(), ntree->idname);
   blender::nodes::InlineShaderNodeTreeParams inline_params;
   inline_params.allow_preserving_repeat_zones = true;
+  inline_params.target_engine_ = engine == GPU_MAT_EEVEE ? SHD_OUTPUT_EEVEE : SHD_OUTPUT_ALL;
   blender::nodes::inline_shader_node_tree(*ntree, *localtree, inline_params);
 
   for (blender::nodes::InlineShaderNodeTreeParams::ErrorMessage &error :
