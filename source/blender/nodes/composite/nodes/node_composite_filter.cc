@@ -280,10 +280,8 @@ class FilterOperation : public NodeOperation {
 
   CMPNodeFilterMethod get_type()
   {
-    const Result &input = this->get_input("Type");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_FILTER_SOFT);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    return static_cast<CMPNodeFilterMethod>(menu_value.value);
+    return CMPNodeFilterMethod(
+        this->get_input("Type").get_single_value_default<MenuValue>().value);
   }
 };
 

@@ -92,15 +92,13 @@ class ConvolveOperation : public NodeOperation {
 
   KernelDataType get_kernel_data_type()
   {
-    const Result &input = this->get_input("Kernel Data Type");
-    const MenuValue default_menu_value = MenuValue(KernelDataType::Float);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    return static_cast<KernelDataType>(menu_value.value);
+    return KernelDataType(
+        this->get_input("Kernel Data Type").get_single_value_default<MenuValue>().value);
   }
 
   bool get_normalize_kernel()
   {
-    return this->get_input("Normalize Kernel").get_single_value_default(true);
+    return this->get_input("Normalize Kernel").get_single_value_default<bool>();
   }
 };
 

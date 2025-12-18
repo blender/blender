@@ -406,12 +406,12 @@ class ZCombineOperation : public NodeOperation {
 
   bool use_alpha()
   {
-    return this->get_input("Use Alpha").get_single_value_default(false);
+    return this->get_input("Use Alpha").get_single_value_default<bool>();
   }
 
   bool use_anti_aliasing()
   {
-    return this->get_input("Anti-Alias").get_single_value_default(true);
+    return this->get_input("Anti-Alias").get_single_value_default<bool>();
   }
 };
 

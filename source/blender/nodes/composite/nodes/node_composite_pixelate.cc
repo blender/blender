@@ -107,9 +107,9 @@ class PixelateOperation : public NodeOperation {
     });
   }
 
-  float get_pixel_size()
+  int get_pixel_size()
   {
-    return math::max(1, this->get_input("Size").get_single_value_default(1));
+    return math::max(1, this->get_input("Size").get_single_value_default<int>());
   }
 };
 

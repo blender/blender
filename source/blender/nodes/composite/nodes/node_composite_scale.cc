@@ -231,10 +231,8 @@ class ScaleOperation : public NodeOperation {
 
   Interpolation get_interpolation() const
   {
-    const Result &input = this->get_input("Interpolation");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_INTERPOLATION_BILINEAR);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    const CMPNodeInterpolation interpolation = static_cast<CMPNodeInterpolation>(menu_value.value);
+    const CMPNodeInterpolation interpolation = CMPNodeInterpolation(
+        this->get_input("Interpolation").get_single_value_default<MenuValue>().value);
     switch (interpolation) {
       case CMP_NODE_INTERPOLATION_NEAREST:
         return Interpolation::Nearest;
@@ -250,10 +248,8 @@ class ScaleOperation : public NodeOperation {
 
   Extension get_extension_mode_x() const
   {
-    const Result &input = this->get_input("Extension X");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_EXTENSION_MODE_CLIP);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    const CMPExtensionMode extension_x = static_cast<CMPExtensionMode>(menu_value.value);
+    const CMPExtensionMode extension_x = CMPExtensionMode(
+        this->get_input("Extension X").get_single_value_default<MenuValue>().value);
     switch (extension_x) {
       case CMP_NODE_EXTENSION_MODE_CLIP:
         return Extension::Clip;
@@ -268,10 +264,8 @@ class ScaleOperation : public NodeOperation {
 
   Extension get_extension_mode_y() const
   {
-    const Result &input = this->get_input("Extension Y");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_EXTENSION_MODE_CLIP);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    const CMPExtensionMode extension_y = static_cast<CMPExtensionMode>(menu_value.value);
+    const CMPExtensionMode extension_y = CMPExtensionMode(
+        this->get_input("Extension Y").get_single_value_default<MenuValue>().value);
     switch (extension_y) {
       case CMP_NODE_EXTENSION_MODE_CLIP:
         return Extension::Clip;
@@ -303,16 +297,16 @@ class ScaleOperation : public NodeOperation {
   /* Scale by the input factors. */
   float2 get_scale_relative()
   {
-    return float2(get_input("X").get_single_value_default(1.0f),
-                  get_input("Y").get_single_value_default(1.0f));
+    return float2(get_input("X").get_single_value_default<float>(),
+                  get_input("Y").get_single_value_default<float>());
   }
 
   /* Scale such that the new size matches the input absolute size. */
   float2 get_scale_absolute()
   {
     const float2 input_size = float2(get_input("Image").domain().display_size);
-    const float2 absolute_size = float2(get_input("X").get_single_value_default(1.0f),
-                                        get_input("Y").get_single_value_default(1.0f));
+    const float2 absolute_size = float2(get_input("X").get_single_value_default<float>(),
+                                        get_input("Y").get_single_value_default<float>());
     return absolute_size / input_size;
   }
 
@@ -381,18 +375,13 @@ class ScaleOperation : public NodeOperation {
 
   CMPNodeScaleMethod get_type()
   {
-    const Result &input = this->get_input("Type");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_SCALE_RELATIVE);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    return static_cast<CMPNodeScaleMethod>(menu_value.value);
+    return CMPNodeScaleMethod(this->get_input("Type").get_single_value_default<MenuValue>().value);
   }
 
   CMPNodeScaleRenderSizeMethod get_frame_type()
   {
-    const Result &input = this->get_input("Frame Type");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_SCALE_RENDER_SIZE_STRETCH);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    return static_cast<CMPNodeScaleRenderSizeMethod>(menu_value.value);
+    return CMPNodeScaleRenderSizeMethod(
+        this->get_input("Frame Type").get_single_value_default<MenuValue>().value);
   }
 };
 

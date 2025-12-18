@@ -236,7 +236,7 @@ class ToneMapOperation : public NodeOperation {
 
   float get_key()
   {
-    return math::max(0.0f, this->get_input("Key").get_single_value_default(0.18f));
+    return math::max(0.0f, this->get_input("Key").get_single_value_default<float>());
   }
 
   /* Equation (3) from Reinhard's 2002 paper blends between high luminance scaling for high
@@ -247,12 +247,12 @@ class ToneMapOperation : public NodeOperation {
    * a parameter to the user for more flexibility. */
   float compute_luminance_scale_blend_factor()
   {
-    return math::max(0.0f, this->get_input("Balance").get_single_value_default(1.0f));
+    return math::max(0.0f, this->get_input("Balance").get_single_value_default<float>());
   }
 
   float get_gamma()
   {
-    return math::max(0.0f, this->get_input("Gamma").get_single_value_default(1.0f));
+    return math::max(0.0f, this->get_input("Gamma").get_single_value_default<float>());
   }
 
   /* Tone mapping based on equation (1) and the trilinear interpolation between equations (6) and
@@ -438,32 +438,29 @@ class ToneMapOperation : public NodeOperation {
 
   float get_intensity()
   {
-    return this->get_input("Intensity").get_single_value_default(0.0f);
+    return this->get_input("Intensity").get_single_value_default<float>();
   }
 
   float get_contrast()
   {
-    return math::max(0.0f, this->get_input("Contrast").get_single_value_default(0.0f));
+    return math::max(0.0f, this->get_input("Contrast").get_single_value_default<float>());
   }
 
   float get_chromatic_adaptation()
   {
     return math::clamp(
-        this->get_input("Chromatic Adaptation").get_single_value_default(0.0f), 0.0f, 1.0f);
+        this->get_input("Chromatic Adaptation").get_single_value_default<float>(), 0.0f, 1.0f);
   }
 
   float get_light_adaptation()
   {
     return math::clamp(
-        this->get_input("Light Adaptation").get_single_value_default(0.0f), 0.0f, 1.0f);
+        this->get_input("Light Adaptation").get_single_value_default<float>(), 0.0f, 1.0f);
   }
 
   CMPNodeToneMapType get_type()
   {
-    const Result &input = this->get_input("Type");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_TONE_MAP_PHOTORECEPTOR);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    return static_cast<CMPNodeToneMapType>(menu_value.value);
+    return CMPNodeToneMapType(this->get_input("Type").get_single_value_default<MenuValue>().value);
   }
 };
 

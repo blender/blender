@@ -453,13 +453,13 @@ class LensDistortionOperation : public NodeOperation {
   float get_distortion()
   {
     const Result &input = get_input("Distortion");
-    return clamp_f(input.get_single_value_default(0.0f), MINIMUM_DISTORTION, 1.0f);
+    return clamp_f(input.get_single_value_default<float>(), MINIMUM_DISTORTION, 1.0f);
   }
 
   float get_dispersion()
   {
     const Result &input = get_input("Dispersion");
-    return clamp_f(input.get_single_value_default(0.0f), 0.0f, 1.0f);
+    return clamp_f(input.get_single_value_default<float>(), 0.0f, 1.0f);
   }
 
   /* Get the distortion amount for each channel. The green channel has a distortion amount that
@@ -492,20 +492,18 @@ class LensDistortionOperation : public NodeOperation {
 
   CMPNodeLensDistortionType get_type()
   {
-    const Result &input = this->get_input("Type");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_LENS_DISTORTION_RADIAL);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    return CMPNodeLensDistortionType(menu_value.value);
+    return CMPNodeLensDistortionType(
+        this->get_input("Type").get_single_value_default<MenuValue>().value);
   }
 
   bool get_use_jitter()
   {
-    return this->get_input("Jitter").get_single_value_default(false);
+    return this->get_input("Jitter").get_single_value_default<bool>();
   }
 
   bool get_is_fit()
   {
-    return this->get_input("Fit").get_single_value_default(false);
+    return this->get_input("Fit").get_single_value_default<bool>();
   }
 
   /* Returns true if the operation does nothing and the input can be passed through. */

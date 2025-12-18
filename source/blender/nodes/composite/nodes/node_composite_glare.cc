@@ -542,23 +542,25 @@ class GlareOperation : public NodeOperation {
 
   float get_threshold()
   {
-    return math::max(0.0f, this->get_input("Highlights Threshold").get_single_value_default(1.0f));
+    return math::max(0.0f,
+                     this->get_input("Highlights Threshold").get_single_value_default<float>());
   }
 
   float get_highlights_smoothness()
   {
     return math::max(0.0f,
-                     this->get_input("Highlights Smoothness").get_single_value_default(0.1f));
+                     this->get_input("Highlights Smoothness").get_single_value_default<float>());
   }
 
   bool get_clamp_highlights()
   {
-    return this->get_input("Clamp Highlights").get_single_value_default(false);
+    return this->get_input("Clamp Highlights").get_single_value_default<bool>();
   }
 
   float get_max_highlights()
   {
-    return math::max(0.0f, this->get_input("Maximum Highlights").get_single_value_default(0.0f));
+    return math::max(0.0f,
+                     this->get_input("Maximum Highlights").get_single_value_default<float>());
   }
 
   /* Writes the given input highlights by upsampling it using bilinear interpolation to match the
@@ -1103,7 +1105,7 @@ class GlareOperation : public NodeOperation {
 
   bool get_diagonal_star()
   {
-    return this->get_input("Diagonal Star").get_single_value_default(true);
+    return this->get_input("Diagonal Star").get_single_value_default<bool>();
   }
 
   /* --------------
@@ -1382,12 +1384,12 @@ class GlareOperation : public NodeOperation {
 
   int get_number_of_streaks()
   {
-    return math::clamp(this->get_input("Streaks").get_single_value_default(4), 1, 16);
+    return math::clamp(this->get_input("Streaks").get_single_value_default<int>(), 1, 16);
   }
 
   float get_streaks_angle()
   {
-    return this->get_input("Streaks Angle").get_single_value_default(0.0f);
+    return this->get_input("Streaks Angle").get_single_value_default<float>();
   }
 
   /* ------------
@@ -2411,7 +2413,7 @@ class GlareOperation : public NodeOperation {
 
   float get_jitter_factor()
   {
-    return math::clamp(this->get_input("Jitter").get_single_value_default(0.0f), 0.0f, 1.0f);
+    return math::clamp(this->get_input("Jitter").get_single_value_default<float>(), 0.0f, 1.0f);
   }
 
   /* ----------
@@ -2526,10 +2528,8 @@ class GlareOperation : public NodeOperation {
 
   KernelDataType get_kernel_data_type()
   {
-    const Result &input = this->get_input("Kernel Data Type");
-    const MenuValue default_menu_value = MenuValue(KernelDataType::Float);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    return static_cast<KernelDataType>(menu_value.value);
+    return KernelDataType(
+        this->get_input("Kernel Data Type").get_single_value_default<MenuValue>().value);
   }
 
   /* ----------
@@ -2714,51 +2714,48 @@ class GlareOperation : public NodeOperation {
 
   CMPNodeGlareType get_type()
   {
-    const Result &input = this->get_input("Type");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_GLARE_STREAKS);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    return static_cast<CMPNodeGlareType>(menu_value.value);
+    return CMPNodeGlareType(this->get_input("Type").get_single_value_default<MenuValue>().value);
   }
 
   float get_strength()
   {
-    return math::max(0.0f, this->get_input("Strength").get_single_value_default(1.0f));
+    return math::max(0.0f, this->get_input("Strength").get_single_value_default<float>());
   }
 
   float get_saturation()
   {
-    return math::max(0.0f, this->get_input("Saturation").get_single_value_default(1.0f));
+    return math::max(0.0f, this->get_input("Saturation").get_single_value_default<float>());
   }
 
   float3 get_tint()
   {
-    return float4(this->get_input("Tint").get_single_value_default(Color(1.0f))).xyz();
+    return float4(this->get_input("Tint").get_single_value_default<Color>()).xyz();
   }
 
   float get_size()
   {
-    return math::clamp(this->get_input("Size").get_single_value_default(0.5f), 0.0f, 1.0f);
+    return math::clamp(this->get_input("Size").get_single_value_default<float>(), 0.0f, 1.0f);
   }
 
   int get_number_of_iterations()
   {
-    return math::clamp(this->get_input("Iterations").get_single_value_default(3), 2, 5);
+    return math::clamp(this->get_input("Iterations").get_single_value_default<int>(), 2, 5);
   }
 
   float get_fade()
   {
-    return math::clamp(this->get_input("Fade").get_single_value_default(0.9f), 0.75f, 1.0f);
+    return math::clamp(this->get_input("Fade").get_single_value_default<float>(), 0.75f, 1.0f);
   }
 
   float get_color_modulation()
   {
     return math::clamp(
-        this->get_input("Color Modulation").get_single_value_default(0.25f), 0.0f, 1.0f);
+        this->get_input("Color Modulation").get_single_value_default<float>(), 0.0f, 1.0f);
   }
 
   float2 get_sun_position()
   {
-    return this->get_input("Sun Position").get_single_value_default(float2(0.5f));
+    return this->get_input("Sun Position").get_single_value_default<float2>();
   }
 
   /* As a performance optimization, the operation can compute the glare on a fraction of the input
@@ -2787,10 +2784,8 @@ class GlareOperation : public NodeOperation {
 
   CMPNodeGlareQuality get_quality()
   {
-    const Result &input = this->get_input("Quality");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_GLARE_QUALITY_MEDIUM);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    return static_cast<CMPNodeGlareQuality>(menu_value.value);
+    return CMPNodeGlareQuality(
+        this->get_input("Quality").get_single_value_default<MenuValue>().value);
   }
 };
 

@@ -252,7 +252,7 @@ class KeyingOperation : public NodeOperation {
 
   int get_preprocess_blur_size()
   {
-    return math::max(0, this->get_input("Preprocess Blur Size").get_single_value_default(0));
+    return math::max(0, this->get_input("Preprocess Blur Size").get_single_value_default<int>());
   }
 
   Result extract_input_chroma()
@@ -474,7 +474,8 @@ class KeyingOperation : public NodeOperation {
 
   float get_key_balance()
   {
-    return math::clamp(this->get_input("Key Balance").get_single_value_default(0.5f), 0.0f, 1.0f);
+    return math::clamp(
+        this->get_input("Key Balance").get_single_value_default<float>(), 0.0f, 1.0f);
   }
 
   Result compute_tweaked_matte(Result &input_matte)
@@ -489,8 +490,8 @@ class KeyingOperation : public NodeOperation {
      * the call, and we want to extend its life since it is now returned as the output. */
     Result &output_edges = get_result("Edges");
     if (!output_edges.should_compute() && black_level == 0.0f && white_level == 1.0f &&
-        core_matte.get_single_value_default(1.0f) == 0.0f &&
-        garbage_matte.get_single_value_default(1.0f) == 0.0f)
+        core_matte.get_single_value_default<float>() == 0.0f &&
+        garbage_matte.get_single_value_default<float>() == 0.0f)
     {
       Result output_matte = input_matte;
       input_matte.increment_reference_count();
@@ -625,23 +626,25 @@ class KeyingOperation : public NodeOperation {
 
   int get_edge_search_size()
   {
-    return math::max(0, this->get_input("Edge Search Size").get_single_value_default(3));
+    return math::max(0, this->get_input("Edge Search Size").get_single_value_default<int>());
   }
 
   float get_edge_tolerance()
   {
     return math::clamp(
-        this->get_input("Edge Tolerance").get_single_value_default(0.1f), 0.0f, 1.0f);
+        this->get_input("Edge Tolerance").get_single_value_default<float>(), 0.0f, 1.0f);
   }
 
   float get_black_level()
   {
-    return math::clamp(this->get_input("Black Level").get_single_value_default(0.0f), 0.0f, 1.0f);
+    return math::clamp(
+        this->get_input("Black Level").get_single_value_default<float>(), 0.0f, 1.0f);
   }
 
   float get_white_level()
   {
-    return math::clamp(this->get_input("White Level").get_single_value_default(1.0f), 0.0f, 1.0f);
+    return math::clamp(
+        this->get_input("White Level").get_single_value_default<float>(), 0.0f, 1.0f);
   }
 
   Result compute_blurred_matte(Result &input_matte)
@@ -665,7 +668,7 @@ class KeyingOperation : public NodeOperation {
 
   int get_postprocess_blur_size()
   {
-    return math::max(0, this->get_input("Postprocess Blur Size").get_single_value_default(0));
+    return math::max(0, this->get_input("Postprocess Blur Size").get_single_value_default<int>());
   }
 
   Result compute_morphed_matte(Result &input_matte)
@@ -688,7 +691,7 @@ class KeyingOperation : public NodeOperation {
 
   int get_postprocess_dilate_size()
   {
-    return this->get_input("Postprocess Dilate Size").get_single_value_default(0);
+    return this->get_input("Postprocess Dilate Size").get_single_value_default<int>();
   }
 
   Result compute_feathered_matte(Result &input_matte)
@@ -712,15 +715,12 @@ class KeyingOperation : public NodeOperation {
 
   int get_postprocess_feather_size()
   {
-    return this->get_input("Postprocess Feather Size").get_single_value_default(0);
+    return this->get_input("Postprocess Feather Size").get_single_value_default<int>();
   }
 
   int get_feather_falloff()
   {
-    const Result &input = this->get_input("Feather Falloff");
-    const MenuValue default_menu_value = MenuValue(PROP_SMOOTH);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    return menu_value.value;
+    return this->get_input("Feather Falloff").get_single_value_default<MenuValue>().value;
   }
 
   void compute_image(Result &matte)
@@ -801,13 +801,13 @@ class KeyingOperation : public NodeOperation {
 
   float get_despill_strength()
   {
-    return math::max(0.0f, this->get_input("Despill Strength").get_single_value_default(1.0f));
+    return math::max(0.0f, this->get_input("Despill Strength").get_single_value_default<float>());
   }
 
   float get_despill_balance()
   {
     return math::clamp(
-        this->get_input("Despill Balance").get_single_value_default(0.5f), 0.0f, 1.0f);
+        this->get_input("Despill Balance").get_single_value_default<float>(), 0.0f, 1.0f);
   }
 };
 

@@ -102,7 +102,7 @@ class ConvertToDisplayOperation : public NodeOperation {
 
   bool do_inverse()
   {
-    return this->get_input("Invert").get_single_value_default(false);
+    return this->get_input("Invert").get_single_value_default<bool>();
   }
 
   void execute() override

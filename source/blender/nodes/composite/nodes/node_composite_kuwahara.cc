@@ -803,30 +803,28 @@ class ConvertKuwaharaOperation : public NodeOperation {
 
   int get_high_precision()
   {
-    return this->get_input("High Precision").get_single_value_default(false);
+    return this->get_input("High Precision").get_single_value_default<bool>();
   }
 
   int get_uniformity()
   {
-    return math::max(0, this->get_input("Uniformity").get_single_value_default(4));
+    return math::max(0, this->get_input("Uniformity").get_single_value_default<int>());
   }
 
   float get_sharpness()
   {
-    return math::clamp(this->get_input("Sharpness").get_single_value_default(1.0f), 0.0f, 1.0f);
+    return math::clamp(this->get_input("Sharpness").get_single_value_default<float>(), 0.0f, 1.0f);
   }
 
   float get_eccentricity()
   {
-    return math::clamp(this->get_input("Eccentricity").get_single_value_default(1.0f), 0.0f, 2.0f);
+    return math::clamp(
+        this->get_input("Eccentricity").get_single_value_default<float>(), 0.0f, 2.0f);
   }
 
   CMPNodeKuwahara get_type()
   {
-    const Result &input = this->get_input("Type");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_KUWAHARA_ANISOTROPIC);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    return static_cast<CMPNodeKuwahara>(menu_value.value);
+    return CMPNodeKuwahara(this->get_input("Type").get_single_value_default<MenuValue>().value);
   }
 };
 

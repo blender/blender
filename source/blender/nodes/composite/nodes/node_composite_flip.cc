@@ -105,12 +105,12 @@ class FlipOperation : public NodeOperation {
 
   bool get_flip_x()
   {
-    return this->get_input("Flip X").get_single_value_default(false);
+    return this->get_input("Flip X").get_single_value_default<bool>();
   }
 
   bool get_flip_y()
   {
-    return this->get_input("Flip Y").get_single_value_default(false);
+    return this->get_input("Flip Y").get_single_value_default<bool>();
   }
 };
 

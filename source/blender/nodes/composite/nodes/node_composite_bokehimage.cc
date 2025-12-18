@@ -83,28 +83,29 @@ class BokehImageOperation : public NodeOperation {
 
   int get_flaps()
   {
-    return math::clamp(this->get_input("Flaps").get_single_value_default(5), 3, 24);
+    return math::clamp(this->get_input("Flaps").get_single_value_default<int>(), 3, 24);
   }
 
   float get_angle()
   {
-    return this->get_input("Angle").get_single_value_default(0.0f);
+    return this->get_input("Angle").get_single_value_default<float>();
   }
 
   float get_roundness()
   {
-    return math::clamp(this->get_input("Roundness").get_single_value_default(0.0f), 0.0f, 1.0f);
+    return math::clamp(this->get_input("Roundness").get_single_value_default<float>(), 0.0f, 1.0f);
   }
 
   float get_catadioptric_size()
   {
     return math::clamp(
-        this->get_input("Catadioptric Size").get_single_value_default(0.0f), 0.0f, 1.0f);
+        this->get_input("Catadioptric Size").get_single_value_default<float>(), 0.0f, 1.0f);
   }
 
   float get_color_shift()
   {
-    return math::clamp(this->get_input("Color Shift").get_single_value_default(0.0f), -1.0f, 1.0f);
+    return math::clamp(
+        this->get_input("Color Shift").get_single_value_default<float>(), -1.0f, 1.0f);
   }
 };
 

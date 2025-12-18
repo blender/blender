@@ -387,10 +387,10 @@ class Result {
    * template type. */
   template<typename T> const T &get_single_value() const;
 
-  /* Gets the single value stored in the result, if the result is not a single value, the given
-   * default value is returned. Assumes the result stores a value of the same type as the template
-   * type. */
-  template<typename T> T get_single_value_default(const T &default_value) const;
+  /* Gets the single value stored in the result, if the result is not a single value, the default
+   * identity value of the type is returned. Assumes the result stores a value of the same type as
+   * the template type. */
+  template<typename T> T get_single_value_default() const;
 
   /* Sets the single value of the result to the given value, which also involves setting the single
    * pixel in the image to that value. See the class description for more information. Assumes
@@ -548,13 +548,12 @@ template<typename T> BLI_INLINE_METHOD const T &Result::get_single_value() const
   return std::get<T>(single_value_);
 }
 
-template<typename T>
-BLI_INLINE_METHOD T Result::get_single_value_default(const T &default_value) const
+template<typename T> BLI_INLINE_METHOD T Result::get_single_value_default() const
 {
   if (this->is_single_value()) {
     return this->get_single_value<T>();
   }
-  return default_value;
+  return *static_cast<const T *>(this->get_cpp_type().default_value());
 }
 
 template<typename T> BLI_INLINE_METHOD void Result::set_single_value(const T &value)

@@ -285,12 +285,12 @@ class DoubleEdgeMaskOperation : public NodeOperation {
 
   bool include_all_inner_edges()
   {
-    return !this->get_input("Only Inside Outer").get_single_value_default(false);
+    return !this->get_input("Only Inside Outer").get_single_value_default<bool>();
   }
 
   bool include_edges_of_image()
   {
-    return this->get_input("Image Edges").get_single_value_default(false);
+    return this->get_input("Image Edges").get_single_value_default<bool>();
   }
 };
 

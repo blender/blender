@@ -217,26 +217,23 @@ class BoxMaskOperation : public NodeOperation {
 
   float2 get_location()
   {
-    return this->get_input("Position").get_single_value_default(float2(0.5f));
+    return this->get_input("Position").get_single_value_default<float2>();
   }
 
   float2 get_size()
   {
-    return math::max(float2(0.0f),
-                     this->get_input("Size").get_single_value_default(float2(0.2f, 0.1f)));
+    return math::max(float2(0.0f), this->get_input("Size").get_single_value_default<float2>());
   }
 
   float get_angle()
   {
-    return this->get_input("Rotation").get_single_value_default(0.0f);
+    return this->get_input("Rotation").get_single_value_default<float>();
   }
 
   CMPNodeMaskType get_operation()
   {
-    const Result &input = this->get_input("Operation");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_MASKTYPE_ADD);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    return static_cast<CMPNodeMaskType>(menu_value.value);
+    return CMPNodeMaskType(
+        this->get_input("Operation").get_single_value_default<MenuValue>().value);
   }
 };
 

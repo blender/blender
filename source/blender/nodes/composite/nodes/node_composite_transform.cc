@@ -74,10 +74,10 @@ class TransformOperation : public NodeOperation {
 
   void execute() override
   {
-    const float2 translation = float2(this->get_input("X").get_single_value_default(0.0f),
-                                      this->get_input("Y").get_single_value_default(0.0f));
-    const math::AngleRadian rotation = this->get_input("Angle").get_single_value_default(0.0f);
-    const float2 scale = float2(this->get_input("Scale").get_single_value_default(1.0f));
+    const float2 translation = float2(this->get_input("X").get_single_value_default<float>(),
+                                      this->get_input("Y").get_single_value_default<float>());
+    const math::AngleRadian rotation = this->get_input("Angle").get_single_value_default<float>();
+    const float2 scale = float2(this->get_input("Scale").get_single_value_default<float>());
     const float3x3 transformation = math::from_loc_rot_scale<float3x3>(
         translation, rotation, scale);
 
@@ -92,10 +92,8 @@ class TransformOperation : public NodeOperation {
 
   Interpolation get_interpolation()
   {
-    const Result &input = this->get_input("Interpolation");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_INTERPOLATION_BILINEAR);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    const CMPNodeInterpolation interpolation = static_cast<CMPNodeInterpolation>(menu_value.value);
+    const CMPNodeInterpolation interpolation = CMPNodeInterpolation(
+        this->get_input("Interpolation").get_single_value_default<MenuValue>().value);
     switch (interpolation) {
       case CMP_NODE_INTERPOLATION_NEAREST:
         return Interpolation::Nearest;
@@ -111,10 +109,8 @@ class TransformOperation : public NodeOperation {
 
   Extension get_extension_mode_x()
   {
-    const Result &input = this->get_input("Extension X");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_EXTENSION_MODE_CLIP);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    const CMPExtensionMode extension_x = static_cast<CMPExtensionMode>(menu_value.value);
+    const CMPExtensionMode extension_x = CMPExtensionMode(
+        this->get_input("Extension X").get_single_value_default<MenuValue>().value);
     switch (extension_x) {
       case CMP_NODE_EXTENSION_MODE_CLIP:
         return Extension::Clip;
@@ -129,10 +125,8 @@ class TransformOperation : public NodeOperation {
 
   Extension get_extension_mode_y()
   {
-    const Result &input = this->get_input("Extension Y");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_EXTENSION_MODE_CLIP);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    const CMPExtensionMode extension_y = static_cast<CMPExtensionMode>(menu_value.value);
+    const CMPExtensionMode extension_y = CMPExtensionMode(
+        this->get_input("Extension Y").get_single_value_default<MenuValue>().value);
     switch (extension_y) {
       case CMP_NODE_EXTENSION_MODE_CLIP:
         return Extension::Clip;

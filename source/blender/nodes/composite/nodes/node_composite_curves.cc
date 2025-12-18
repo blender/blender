@@ -80,12 +80,12 @@ class TimeCurveOperation : public NodeOperation {
 
   int get_start_frame()
   {
-    return this->get_input("Start Frame").get_single_value_default(1);
+    return this->get_input("Start Frame").get_single_value_default<int>();
   }
 
   int get_end_frame()
   {
-    return this->get_input("End Frame").get_single_value_default(250);
+    return this->get_input("End Frame").get_single_value_default<int>();
   }
 
   const CurveMapping *get_curve_mapping()

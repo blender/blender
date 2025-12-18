@@ -360,7 +360,7 @@ class BokehBlurOperation : public NodeOperation {
 
   bool get_extend_bounds()
   {
-    return this->get_input("Extend Bounds").get_single_value_default(false);
+    return this->get_input("Extend Bounds").get_single_value_default<bool>();
   }
 };
 

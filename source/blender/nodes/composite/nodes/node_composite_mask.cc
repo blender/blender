@@ -130,8 +130,8 @@ class MaskOperation : public NodeOperation {
 
   int2 get_size()
   {
-    return int2(math::max(1, this->get_input("Size X").get_single_value_default(256)),
-                math::max(1, this->get_input("Size Y").get_single_value_default(256)));
+    return int2(math::max(1, this->get_input("Size X").get_single_value_default<int>()),
+                math::max(1, this->get_input("Size Y").get_single_value_default<int>()));
   }
 
   float get_aspect_ratio()
@@ -151,33 +151,31 @@ class MaskOperation : public NodeOperation {
 
   bool get_use_feather()
   {
-    return this->get_input("Feather").get_single_value_default(true);
+    return this->get_input("Feather").get_single_value_default<bool>();
   }
 
   int get_motion_blur_samples()
   {
     const int samples = math::clamp(
-        this->get_input("Motion Blur Samples").get_single_value_default(16), 1, 64);
+        this->get_input("Motion Blur Samples").get_single_value_default<int>(), 1, 64);
     return this->use_motion_blur() ? samples : 1;
   }
 
   float get_motion_blur_shutter()
   {
     return math::clamp(
-        this->get_input("Motion Blur Shutter").get_single_value_default(0.5f), 0.0f, 1.0f);
+        this->get_input("Motion Blur Shutter").get_single_value_default<float>(), 0.0f, 1.0f);
   }
 
   bool use_motion_blur()
   {
-    return this->get_input("Motion Blur").get_single_value_default(false);
+    return this->get_input("Motion Blur").get_single_value_default<bool>();
   }
 
   CMPNodeMaskFlags get_flags()
   {
-    const Result &input = this->get_input("Size Source");
-    const MenuValue default_menu_value = MenuValue(0);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    return static_cast<CMPNodeMaskFlags>(menu_value.value);
+    return CMPNodeMaskFlags(
+        this->get_input("Size Source").get_single_value_default<MenuValue>().value);
   }
 
   Mask *get_mask()

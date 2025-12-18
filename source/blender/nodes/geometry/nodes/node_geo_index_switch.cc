@@ -413,7 +413,7 @@ class IndexSwitchOperation : public NodeOperation {
   void execute() override
   {
     Result &output = this->get_result("Output");
-    const int index = this->get_input("Index").get_single_value_default(0);
+    const int index = this->get_input("Index").get_single_value_default<int>();
     const NodeIndexSwitch &storage = node_storage(bnode());
 
     if (!IndexRange(storage.items_num).contains(index)) {

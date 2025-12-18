@@ -160,7 +160,7 @@ class KeyingScreenOperation : public NodeOperation {
     return math::interpolate(
         0.15f,
         1.0f,
-        math::clamp(this->get_input("Smoothness").get_single_value_default(0.0f), 0.0f, 1.0f));
+        math::clamp(this->get_input("Smoothness").get_single_value_default<float>(), 0.0f, 1.0f));
   }
 
   MovieClip *get_movie_clip()

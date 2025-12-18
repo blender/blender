@@ -114,13 +114,13 @@ class SplitOperation : public NodeOperation {
   float2 get_position(const Domain &domain)
   {
     const float2 relative_position =
-        this->get_input("Position").get_single_value_default(float2(0.5f, 0.5f));
+        this->get_input("Position").get_single_value_default<float2>();
     return float2(domain.data_size) * relative_position;
   }
 
   math::AngleRadian get_rotation()
   {
-    return this->get_input("Rotation").get_single_value_default(0.0f);
+    return this->get_input("Rotation").get_single_value_default<float>();
   }
 };
 

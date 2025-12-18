@@ -202,7 +202,7 @@ class RelativeToPixelOperation : public NodeOperation {
 
   void execute_float_single()
   {
-    const float input_value = this->get_input("Float Value").get_single_value_default(0.0f);
+    const float input_value = this->get_input("Float Value").get_single_value_default<float>();
     const float2 reference_size = this->compute_reference_size();
 
     const float value_in_pixels = input_value * reference_size.x;
@@ -258,7 +258,7 @@ class RelativeToPixelOperation : public NodeOperation {
 
   void execute_float_per_dimension_single()
   {
-    const float input_value = this->get_input("Float Value").get_single_value_default(0.0f);
+    const float input_value = this->get_input("Float Value").get_single_value_default<float>();
     const float2 reference_size = this->compute_reference_size();
 
     const float2 value_in_pixels = input_value * reference_size;
@@ -314,8 +314,7 @@ class RelativeToPixelOperation : public NodeOperation {
 
   void execute_vector_single()
   {
-    const float2 input_value =
-        this->get_input("Vector Value").get_single_value_default(float2(0.0f));
+    const float2 input_value = this->get_input("Vector Value").get_single_value_default<float2>();
     const float2 reference_size = this->compute_reference_size();
 
     const float2 value_in_pixels = input_value * reference_size;

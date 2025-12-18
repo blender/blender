@@ -46,7 +46,7 @@ class SwitchOperation : public NodeOperation {
 
   bool get_condition()
   {
-    return this->get_input("Switch").get_single_value_default(false);
+    return this->get_input("Switch").get_single_value_default<bool>();
   }
 };
 

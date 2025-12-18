@@ -154,12 +154,12 @@ class BilateralBlurOperation : public NodeOperation {
 
   int get_blur_radius()
   {
-    return math::max(0, this->get_input("Size").get_single_value_default(0));
+    return math::max(0, this->get_input("Size").get_single_value_default<int>());
   }
 
   float get_threshold()
   {
-    return math::max(0.0f, this->get_input("Threshold").get_single_value_default(0.1f));
+    return math::max(0.0f, this->get_input("Threshold").get_single_value_default<float>());
   }
 };
 

@@ -185,13 +185,13 @@ class DespeckleOperation : public NodeOperation {
 
   float get_color_threshold()
   {
-    return math::max(0.0f, this->get_input("Color Threshold").get_single_value_default(0.5f));
+    return math::max(0.0f, this->get_input("Color Threshold").get_single_value_default<float>());
   }
 
   float get_neighbor_threshold()
   {
     return math::clamp(
-        this->get_input("Neighbor Threshold").get_single_value_default(0.5f), 0.0f, 1.0f);
+        this->get_input("Neighbor Threshold").get_single_value_default<float>(), 0.0f, 1.0f);
   }
 };
 

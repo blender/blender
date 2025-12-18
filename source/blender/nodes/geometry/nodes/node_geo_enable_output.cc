@@ -110,7 +110,7 @@ class EnableOutputOperation : public NodeOperation {
 
   void execute() override
   {
-    const bool keep = this->get_input("Enable").get_single_value_default<bool>(true);
+    const bool keep = this->get_input("Enable").get_single_value_default<bool>();
     Result &output = this->get_result("Value");
     if (keep) {
       const Result &input = this->get_input("Value");

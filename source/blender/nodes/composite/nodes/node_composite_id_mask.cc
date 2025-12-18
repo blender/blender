@@ -117,12 +117,12 @@ class IDMaskOperation : public NodeOperation {
 
   int get_index()
   {
-    return math::max(0, this->get_input("Index").get_single_value_default(0));
+    return math::max(0, this->get_input("Index").get_single_value_default<int>());
   }
 
   bool use_anti_aliasing()
   {
-    return this->get_input("Anti-Alias").get_single_value_default(false);
+    return this->get_input("Anti-Alias").get_single_value_default<bool>();
   }
 };
 

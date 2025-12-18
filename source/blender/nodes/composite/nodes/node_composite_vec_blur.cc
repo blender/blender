@@ -657,14 +657,14 @@ class VectorBlurOperation : public NodeOperation {
 
   int get_samples_count()
   {
-    return math::clamp(this->get_input("Samples").get_single_value_default(32), 1, 256);
+    return math::clamp(this->get_input("Samples").get_single_value_default<int>(), 1, 256);
   }
 
   float get_shutter()
   {
     /* Divide by two since the motion blur algorithm expects shutter per motion step and has two
      * motion steps, while the user inputs the entire shutter across all steps. */
-    return math::max(0.0f, this->get_input("Shutter").get_single_value_default(0.5f)) / 2.0f;
+    return math::max(0.0f, this->get_input("Shutter").get_single_value_default<float>()) / 2.0f;
   }
 };
 
