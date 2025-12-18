@@ -713,9 +713,7 @@ static wmOperatorStatus pose_asset_modify_exec(bContext *C, wmOperator *op)
 
   AssetModifyMode mode = AssetModifyMode(RNA_enum_get(op->ptr, "mode"));
   update_pose_action_from_scene(bmain, action->wrap(), *pose_object, mode);
-  if (!G.background) {
-    asset::generate_preview(C, &action->id);
-  }
+
   if (ID_IS_LINKED(action)) {
     /* Not needed for local assets. */
     bke::asset_edit_id_save(*bmain, action->id, *op->reports);
