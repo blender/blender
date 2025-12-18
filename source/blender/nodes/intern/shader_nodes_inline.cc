@@ -13,6 +13,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_stack.hh"
+#include "BLI_string.h"
 
 #include "NOD_menu_value.hh"
 #include "NOD_multi_function.hh"
@@ -282,10 +283,10 @@ class ShaderNodesInliner {
     this->find_trees_potentially_containing_shader_outputs_recursive(nullptr, src_tree_, trees);
 
     auto get_engine_target = [](const bNode *output_node) {
-      if (ELEM(output_node->idname,
-               "ShaderNodeOutputMaterial",
-               "ShaderNodeOutputLight",
-               "ShaderNodeOutputWorld"))
+      if (STR_ELEM(output_node->idname,
+                   "ShaderNodeOutputMaterial",
+                   "ShaderNodeOutputLight",
+                   "ShaderNodeOutputWorld"))
       {
         return NodeShaderOutputTarget(output_node->custom1);
       }
