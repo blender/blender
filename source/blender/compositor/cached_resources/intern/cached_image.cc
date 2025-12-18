@@ -58,7 +58,8 @@ bool operator==(const CachedImageKey &a, const CachedImageKey &b)
  * Cached Image.
  */
 
-/* Get the render layer in the given render result specified by the given image user. */
+/* Get the render layer in the given render result specified by the given image user. Returns
+ * nullptr if not found. */
 static RenderLayer *get_render_layer(const RenderResult *render_result,
                                      const ImageUser &image_user)
 {
@@ -67,12 +68,15 @@ static RenderLayer *get_render_layer(const RenderResult *render_result,
 }
 
 /* Get the index of the pass with the given name in the render layer specified by the given image
- * user in the given render result. */
+ * user in the given render result. Returns -1 if not found. */
 static int get_pass_index(const RenderResult *render_result,
                           const ImageUser &image_user,
                           const char *name)
 {
   const RenderLayer *render_layer = get_render_layer(render_result, image_user);
+  if (!render_layer) {
+    return -1;
+  }
   return BLI_findstringindex(&render_layer->passes, name, offsetof(RenderPass, name));
 }
 
@@ -128,7 +132,8 @@ static int get_view_index(const Context &context,
 /* Get a copy of the image user that is appropriate to retrieve the needed image buffer from the
  * image. This essentially sets the appropriate frame, pass, and view that corresponds to the
  * given context and pass name. If the image is a multi-layer image, then the render_result
- * argument should be set, otherwise, it is ignored. */
+ * argument should be set, otherwise, it is ignored. The image user will have a pass index of -1 if
+ * the pass/later were not found in the image for multi-layer images. */
 static ImageUser compute_image_user_for_pass(const Context &context,
                                              const Image *image,
                                              const RenderResult *render_result,
@@ -295,6 +300,12 @@ CachedImage::CachedImage(Context &context,
 
   ImageUser image_user_for_pass = compute_image_user_for_pass(
       context, image, render_result, image_user, pass_name);
+
+  /* Pass or layer were not found. */
+  if (BKE_image_is_multilayer(image) && image_user_for_pass.pass == -1) {
+    BKE_image_release_renderresult(nullptr, image, render_result);
+    return;
+  }
 
   this->populate_meta_data(render_result, image_user_for_pass);
 

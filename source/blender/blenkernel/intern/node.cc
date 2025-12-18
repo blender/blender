@@ -997,7 +997,7 @@ static void write_legacy_properties(bNodeTree &ntree)
  * calling free_legacy_socket_storage. */
 static void initialize_legacy_socket_storage(bNode &node)
 {
-  if (node.type_legacy == CMP_NODE_R_LAYERS) {
+  if (ELEM(node.type_legacy, CMP_NODE_R_LAYERS, CMP_NODE_IMAGE)) {
     LISTBASE_FOREACH (bNodeSocket *, output, &node.outputs) {
       NodeImageLayer *storage = MEM_callocN<NodeImageLayer>(__func__);
       output->storage = storage;
@@ -1011,10 +1011,11 @@ static void initialize_legacy_socket_storage(bNode &node)
     }
   }
 }
+
 /* See initialize_legacy_socket_storage. */
 static void free_legacy_socket_storage(bNode &node)
 {
-  if (node.type_legacy == CMP_NODE_R_LAYERS) {
+  if (ELEM(node.type_legacy, CMP_NODE_R_LAYERS, CMP_NODE_IMAGE)) {
     LISTBASE_FOREACH (bNodeSocket *, output, &node.outputs) {
       MEM_freeN(output->storage);
       output->storage = nullptr;

@@ -585,7 +585,7 @@ void blo_do_versions_510(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
     if (node_tree->type == NTREE_COMPOSIT) {
       LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-        if (node->type_legacy == CMP_NODE_R_LAYERS) {
+        if (ELEM(node->type_legacy, CMP_NODE_IMAGE, CMP_NODE_R_LAYERS)) {
           LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
             if (socket->storage) {
               MEM_freeN(socket->storage);
