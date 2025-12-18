@@ -137,7 +137,7 @@ void main()
     /* OpenGL/Intel drivers have known issues where it isn't able to compile barriers inside for
      * loops. Unroll is needed as driver might decide to not unroll in shaders with more
      * complexity. */
-    [[gpu::unroll]] for (uint i = 0; i < 10; i++)
+    [[unroll]] for (uint i = 0; i < 10; i++)
     {
       barrier();
       uint stride = group_size >> (i + 1u);
@@ -160,7 +160,7 @@ void main()
     /* OpenGL/Intel drivers have known issues where it isn't able to compile barriers inside for
      * loops. Unroll is needed as driver might decide to not unroll in shaders with more
      * complexity. */
-    [[gpu::unroll]] for (uint i = 0; i < 10; i++)
+    [[unroll]] for (uint i = 0; i < 10; i++)
     {
       barrier();
       uint stride = group_size >> (i + 1u);
@@ -182,7 +182,7 @@ void main()
     /* OpenGL/Intel drivers have known issues where it isn't able to compile barriers inside for
      * loops. Unroll is needed as driver might decide to not unroll in shaders with more
      * complexity. */
-    [[gpu::unroll]] for (uint i = 0; i < 10; i++)
+    [[unroll]] for (uint i = 0; i < 10; i++)
     {
       barrier();
       uint stride = group_size >> (i + 1u);

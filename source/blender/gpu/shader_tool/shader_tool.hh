@@ -1305,14 +1305,14 @@ class Preprocessor {
     };
 
     do {
-      /* [[gpu::unroll]]. */
-      parser().foreach_match("[[w::w]]f(..){..}", [&](const std::vector<Token> tokens) {
-        if (tokens[1].scope().str_with_whitespace() != "[gpu::unroll]") {
+      /* [[unroll]]. */
+      parser().foreach_match("[[w]]f(..){..}", [&](const std::vector<Token> tokens) {
+        if (tokens[1].scope().str_with_whitespace() != "[unroll]") {
           return;
         }
-        const Token for_tok = tokens[8];
-        const Scope loop_args = tokens[9].scope();
-        const Scope loop_body = tokens[13].scope();
+        const Token for_tok = tokens[5];
+        const Scope loop_args = tokens[6].scope();
+        const Scope loop_body = tokens[10].scope();
 
         Scope init, cond, iter;
         parse_for_args(loop_args, init, cond, iter);
@@ -1401,29 +1401,29 @@ class Preprocessor {
                      loop_body);
       });
 
-      /* [[gpu::unroll(n)]]. */
-      parser().foreach_match("[[w::w(0)]]f(..){..}", [&](const std::vector<Token> tokens) {
-        if (tokens[5].str() != "unroll") {
+      /* [[unroll(n)]]. */
+      parser().foreach_match("[[w(0)]]f(..){..}", [&](const std::vector<Token> tokens) {
+        if (tokens[2].str() != "unroll") {
           return;
         }
-        const Scope loop_args = tokens[12].scope();
-        const Scope loop_body = tokens[16].scope();
+        const Scope loop_args = tokens[9].scope();
+        const Scope loop_body = tokens[13].scope();
 
         Scope init, cond, iter;
         parse_for_args(loop_args, init, cond, iter);
 
-        int iter_count = std::stol(tokens[7].str());
+        int iter_count = std::stol(tokens[4].str());
 
         process_loop(tokens[0], iter_count, 0, 0, false, false, init, cond, iter, loop_body);
       });
 
-      /* [[gpu::unroll_define(max_n)]]. */
-      parser().foreach_match("[[w::w(0)]]f(..){..}", [&](const std::vector<Token> tokens) {
-        if (tokens[5].str() != "unroll_define") {
+      /* [[unroll_define(max_n)]]. */
+      parser().foreach_match("[[w(0)]]f(..){..}", [&](const std::vector<Token> tokens) {
+        if (tokens[2].str() != "unroll_define") {
           return;
         }
-        const Scope loop_args = tokens[12].scope();
-        const Scope loop_body = tokens[16].scope();
+        const Scope loop_args = tokens[9].scope();
+        const Scope loop_body = tokens[13].scope();
 
         /* Validate format. */
         Token define_name = Token::invalid();
@@ -1438,7 +1438,7 @@ class Preprocessor {
 
         if (define_name.is_invalid()) {
           report_error(ERROR_TOK(loop_args.front()),
-                       "Incompatible loop format for [[gpu::unroll_define(max_n)]], expected "
+                       "Incompatible loop format for [[unroll_define(max_n)]], expected "
                        "'(int i = 0; i < DEFINE; i++)'");
           return;
         }
@@ -1446,7 +1446,7 @@ class Preprocessor {
         Scope init, cond, iter;
         parse_for_args(loop_args, init, cond, iter);
 
-        int iter_count = std::stol(tokens[7].str());
+        int iter_count = std::stol(tokens[4].str());
 
         string body_prefix = "#if " + define_name.str() + " > " + iter_var.str() + "\n";
 
@@ -1466,9 +1466,9 @@ class Preprocessor {
     } while (parser.apply_mutations());
 
     /* Check for remaining keywords. */
-    parser().foreach_match("[[w::w", [&](const std::vector<Token> tokens) {
-      if (tokens[2].str() == "gpu" && tokens[5].str() == "unroll") {
-        report_error(ERROR_TOK(tokens[0]), "Incompatible loop format for [[gpu::unroll]].");
+    parser().foreach_match("[[w", [&](const std::vector<Token> tokens) {
+      if (tokens[2].str().find("unroll") != string::npos) {
+        report_error(ERROR_TOK(tokens[0]), "Incompatible loop format for [[unroll]].");
       }
     });
   }
@@ -3341,23 +3341,13 @@ class Preprocessor {
           /* Placement already checked. */
           return;
         }
-        else if (attr_str == "gpu") {
-          Token second_tok = attr.next().next().next();
-          string second_part = second_tok.str();
-          /* Should eventually drop the gpu prefix. */
-          if (second_part == "unroll" || second_part == "unroll_define") {
-            if (attributes.back().next().next() != For) {
-              report_error(ERROR_TOK(second_tok),
-                           "unroll attributes must be declared before a 'for' loop keyword");
-              invalid = true;
-            }
-            /* Placement already checked. */
-            return;
+        else if (attr_str == "unroll" || attr_str == "unroll_define") {
+          if (attributes.back().next().next() != For) {
+            report_error(ERROR_TOK(attr),
+                         "unroll attributes must be declared before a 'for' loop keyword");
+            invalid = true;
           }
-
-          report_error(ERROR_TOK(second_tok), "Unrecognized attribute");
-          invalid = true;
-          /* Attribute already invalid, don't check placement. */
+          /* Placement already checked. */
           return;
         }
         else if (attr_str == "static_branch") {
