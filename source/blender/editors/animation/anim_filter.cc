@@ -107,7 +107,7 @@ bAction *ANIM_active_action_from_area(Scene *scene,
                                       const ScrArea *area,
                                       ID **r_action_user)
 {
-  if (area->spacetype != SPACE_ACTION) {
+  if (!area || area->spacetype != SPACE_ACTION) {
     return nullptr;
   }
 
