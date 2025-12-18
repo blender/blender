@@ -106,8 +106,8 @@ class BlenderSync {
 
  private:
   /* sync */
-  void sync_lights(BL::Depsgraph &b_depsgraph, bool update_all);
-  void sync_materials(BL::Depsgraph &b_depsgraph, bool update_all);
+  void sync_lights(::Depsgraph &b_depsgraph, bool update_all);
+  void sync_materials(::Depsgraph &b_depsgraph, bool update_all);
   void sync_objects(BL::Depsgraph &b_depsgraph,
                     ::bScreen *b_screen,
                     BL::SpaceView3D &b_v3d,
@@ -125,20 +125,15 @@ class BlenderSync {
 
   /* Shader */
   array<Node *> find_used_shaders(::Object &b_ob);
-  void sync_world(BL::Depsgraph &b_depsgraph,
-                  ::bScreen *b_screen,
-                  BL::SpaceView3D &b_v3d,
-                  bool update_all);
-  void sync_shaders(BL::Depsgraph &b_depsgraph,
+  void sync_world(::Depsgraph &b_depsgraph, ::bScreen *b_screen, ::View3D *b_v3d, bool update_all);
+  void sync_shaders(::Depsgraph &b_depsgraph,
                     ::bScreen *b_screen,
-                    BL::SpaceView3D &b_v3d,
+                    ::View3D *b_v3d,
                     bool update_all);
-  void sync_nodes(Shader *shader, BL::ShaderNodeTree &b_ntree);
+  void sync_nodes(Shader *shader, ::bNodeTree &b_ntree);
 
-  bool scene_attr_needs_recalc(Shader *shader, BL::Depsgraph &b_depsgraph);
-  void resolve_view_layer_attributes(Shader *shader,
-                                     ShaderGraph *graph,
-                                     BL::Depsgraph &b_depsgraph);
+  bool scene_attr_needs_recalc(Shader *shader, ::Depsgraph &b_depsgraph);
+  void resolve_view_layer_attributes(Shader *shader, ShaderGraph *graph, ::Depsgraph &b_depsgraph);
 
   /* Object */
   Object *sync_object(BL::ViewLayer &b_view_layer,
@@ -256,11 +251,11 @@ class BlenderSync {
   int max_subdivisions;
 
   struct RenderLayerInfo {
-    RenderLayerInfo() : material_override(PointerRNA_NULL), world_override(PointerRNA_NULL) {}
+    RenderLayerInfo() : material_override(PointerRNA_NULL), world_override(nullptr) {}
 
     string name;
     BL::Material material_override;
-    BL::World world_override;
+    ::World *world_override;
     bool use_background_shader = true;
     bool use_surfaces = true;
     bool use_hair = true;

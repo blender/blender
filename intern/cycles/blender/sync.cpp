@@ -309,7 +309,10 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
   sync_view_layer(b_view_layer);
   sync_integrator(b_view_layer, background, denoise_device_info);
   sync_film(b_view_layer, b_screen, b_v3d);
-  sync_shaders(b_depsgraph, b_screen, b_v3d, auto_refresh_update);
+  sync_shaders(*b_depsgraph.ptr.data_as<::Depsgraph>(),
+               b_screen,
+               b_v3d.ptr.data_as<::View3D>(),
+               auto_refresh_update);
   sync_images();
 
   geometry_synced.clear(); /* use for objects and motion sync */
@@ -624,7 +627,7 @@ void BlenderSync::sync_view_layer(BL::ViewLayer &b_view_layer)
   /* Material override. */
   view_layer.material_override = b_view_layer.material_override();
   /* World override. */
-  view_layer.world_override = b_view_layer.world_override();
+  view_layer.world_override = b_view_layer.world_override().ptr.data_as<::World>();
 
   /* Sample override. */
   PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
@@ -661,10 +664,10 @@ void BlenderSync::sync_images()
     return;
   }
   /* Free buffers used by images which are not needed for render. */
-  for (BL::Image &b_image : b_data.images) {
-    const bool is_builtin = image_is_builtin(b_image, *b_engine);
+  LISTBASE_FOREACH (::Image *, b_image, &b_data.ptr.data_as<::Main>()->images) {
+    const bool is_builtin = image_is_builtin(*b_image, *b_engine);
     if (is_builtin == false) {
-      b_image.buffers_free();
+      BKE_image_free_buffers_ex(b_image, true);
     }
     /* TODO(sergey): Free builtin images not used by any shader. */
   }
@@ -953,8 +956,8 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine &b_engine,
   if (background && !b_engine.is_preview()) {
     /* Viewport and preview renders do not require temp directory and do request session
      * parameters more often than the background render.
-     * Optimize RNA-C++ usage and memory allocation a bit by saving string access which we know is
-     * not needed for viewport render. */
+     * Optimize RNA-C++ usage and memory allocation a bit by saving string access which we know
+     * is not needed for viewport render. */
     params.temp_dir = b_engine.temporary_directory();
   }
 
@@ -1013,8 +1016,8 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine &b_engine,
     params.time_limit = (double)get_float(cscene, "time_limit");
   }
   else {
-    /* For the viewport it kind of makes more sense to think in terms of the noise floor, which is
-     * usually higher than acceptable level for the final frame. */
+    /* For the viewport it kind of makes more sense to think in terms of the noise floor, which
+     * is usually higher than acceptable level for the final frame. */
     /* TODO: It might be useful to support time limit in the viewport as well, but needs some
      * extra thoughts and input. */
     params.time_limit = 0.0;

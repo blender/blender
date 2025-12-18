@@ -62,9 +62,9 @@ template<typename K, typename T, typename Flags = uint> class id_map {
     b_recalc.insert(id_ptr);
   }
 
-  bool check_recalc(const BL::ID &id)
+  bool check_recalc(const ::ID *id)
   {
-    return id.ptr.data && b_recalc.find(id.ptr.data) != b_recalc.end();
+    return id && b_recalc.find(id) != b_recalc.end();
   }
 
   bool has_recalc()

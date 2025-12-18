@@ -411,12 +411,10 @@ bool BlenderSync::sync_object_attributes(BL::DepsgraphObjectInstance &b_instance
     const ustring name = req.name;
 
     std::string real_name;
-    const BlenderAttributeType type = blender_attribute_name_split_type(name, &real_name);
+    const int type = blender_attribute_name_split_type(name, &real_name);
 
-    if (type == BL::ShaderNodeAttribute::attribute_type_OBJECT ||
-        type == BL::ShaderNodeAttribute::attribute_type_INSTANCER)
-    {
-      const bool use_instancer = (type == BL::ShaderNodeAttribute::attribute_type_INSTANCER);
+    if (type == SHD_ATTRIBUTE_OBJECT || type == SHD_ATTRIBUTE_INSTANCER) {
+      const bool use_instancer = (type == SHD_ATTRIBUTE_INSTANCER);
       float4 value = lookup_instance_property(b_instance, real_name, use_instancer);
 
       /* Try finding the existing attribute value. */
