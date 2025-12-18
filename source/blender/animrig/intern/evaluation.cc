@@ -22,12 +22,12 @@ namespace blender::animrig {
 using namespace internal;
 
 /**
- * Blend the 'current layer' with the 'last evaluation result', returning the
- * blended result.
+ * Blend the intermediate_result into the final_result based on the layer
+ * weight and mix mode.
  */
-EvaluationResult blend_layer_results(const EvaluationResult &last_result,
-                                     const EvaluationResult &current_result,
-                                     const Layer &current_layer);
+void blend_layer_results(EvaluationResult &final_result,
+                         const EvaluationResult &intermediate_result,
+                         const Layer &current_layer);
 
 /**
  * Apply the result of the animation evaluation to the given data-block.
@@ -44,7 +44,7 @@ EvaluationResult evaluate_action(PointerRNA &animated_id_ptr,
                                  const slot_handle_t slot_handle,
                                  const AnimationEvalContext &anim_eval_context)
 {
-  EvaluationResult last_result;
+  EvaluationResult result;
 
   /* Evaluate each layer in order. */
   for (Layer *layer : action.layers()) {
@@ -59,19 +59,19 @@ EvaluationResult evaluate_action(PointerRNA &animated_id_ptr,
       continue;
     }
 
-    if (!last_result) {
+    if (!result) {
       /* Simple case: no results so far, so just use this layer as-is. There is
        * nothing to blend/combine with, so ignore the influence and combination
        * options. */
-      last_result = std::move(layer_result);
+      result = std::move(layer_result);
       continue;
     }
 
-    /* Complex case: blend this layer's result into the previous layer's result. */
-    last_result = blend_layer_results(last_result, layer_result, *layer);
+    /* Complex case: blend this layer's result into combined result. */
+    blend_layer_results(result, layer_result, *layer);
   }
 
-  return last_result;
+  return result;
 }
 
 void evaluate_and_apply_action(PointerRNA &animated_id_ptr,
@@ -237,27 +237,25 @@ static EvaluationResult evaluate_strip(PointerRNA &animated_id_ptr,
   return {};
 }
 
-EvaluationResult blend_layer_results(const EvaluationResult &last_result,
-                                     const EvaluationResult &current_result,
-                                     const Layer &current_layer)
+void blend_layer_results(EvaluationResult &final_result,
+                         const EvaluationResult &intermediate_result,
+                         const Layer &current_layer)
 {
   /* TODO?: store the layer results sequentially, so that we can step through
    * them in parallel, instead of iterating over one and doing map lookups on
    * the other. */
 
-  EvaluationResult blend = last_result;
-
-  for (auto channel_result : current_result.items()) {
+  for (auto channel_result : intermediate_result.items()) {
     const PropIdentifier &prop_ident = channel_result.key;
-    AnimatedProperty *last_prop = blend.lookup_ptr(prop_ident);
+    AnimatedProperty *last_prop = final_result.lookup_ptr(prop_ident);
     const AnimatedProperty &anim_prop = channel_result.value;
 
     if (!last_prop) {
       /* Nothing to blend with, so just take (influence * value). */
-      blend.store(prop_ident.rna_path,
-                  prop_ident.array_index,
-                  anim_prop.value * current_layer.influence,
-                  anim_prop.prop_rna);
+      final_result.store(prop_ident.rna_path,
+                         prop_ident.array_index,
+                         anim_prop.value * current_layer.influence,
+                         anim_prop.prop_rna);
       continue;
     }
 
@@ -281,8 +279,6 @@ EvaluationResult blend_layer_results(const EvaluationResult &last_result,
         break;
     };
   }
-
-  return blend;
 }
 
 namespace internal {
