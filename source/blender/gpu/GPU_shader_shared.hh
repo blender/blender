@@ -8,10 +8,9 @@
 
 #pragma once
 
-#ifndef USE_GPU_SHADER_CREATE_INFO
+#include "GPU_shader_shared_utils.hh"
 
-#  include "GPU_shader_shared_utils.hh"
-
+#ifndef GPU_SHADER
 struct TestOutputRawData;
 #endif
 

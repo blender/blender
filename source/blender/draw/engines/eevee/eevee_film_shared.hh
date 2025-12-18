@@ -17,14 +17,14 @@ namespace blender::eevee {
 #define FILM_PRECOMP_SAMPLE_MAX 16
 
 enum [[host_shared]] eFilmWeightLayerIndex : uint32_t {
-  FILM_WEIGHT_LAYER_ACCUMULATION = 0u,
-  FILM_WEIGHT_LAYER_DISTANCE = 1u,
+  FILM_WEIGHT_LAYER_ACCUMULATION,
+  FILM_WEIGHT_LAYER_DISTANCE,
 };
 
 enum [[host_shared]] ePassStorageType : uint32_t {
-  PASS_STORAGE_COLOR = 0u,
-  PASS_STORAGE_VALUE = 1u,
-  PASS_STORAGE_CRYPTOMATTE = 2u,
+  PASS_STORAGE_COLOR,
+  PASS_STORAGE_VALUE,
+  PASS_STORAGE_CRYPTOMATTE
 };
 
 enum [[host_shared]] PassCategory : uint32_t {

@@ -26,8 +26,8 @@ struct [[host_shared]] ReflectionProbeLowFreqLight {
 };
 
 enum [[host_shared]] LightProbeShape : uint32_t {
-  SHAPE_ELIPSOID = 0u,
-  SHAPE_CUBOID = 1u,
+  SHAPE_ELIPSOID,
+  SHAPE_CUBOID,
 };
 
 /* Sampling coordinates using UV space. */

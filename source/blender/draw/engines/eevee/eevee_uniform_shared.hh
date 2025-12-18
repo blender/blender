@@ -58,10 +58,10 @@ struct [[host_shared]] ClampData {
 
 /* Emulation of the light path node. */
 enum [[host_shared]] RayPipelineType : uint32_t {
-  RAY_TYPE_CAMERA = 0u,
-  RAY_TYPE_SHADOW = 1u,
-  RAY_TYPE_DIFFUSE = 2u,
-  RAY_TYPE_GLOSSY = 3u,
+  RAY_TYPE_CAMERA,
+  RAY_TYPE_SHADOW,
+  RAY_TYPE_DIFFUSE,
+  RAY_TYPE_GLOSSY,
 };
 
 struct [[host_shared]] PipelineInfoData {

@@ -39,9 +39,9 @@ enum [[host_shared]] eCubeFace : uint32_t {
 };
 
 enum [[host_shared]] eShadowProjectionType : uint32_t {
-  SHADOW_PROJECTION_CUBEFACE = 0u,
-  SHADOW_PROJECTION_CLIPMAP = 1u,
-  SHADOW_PROJECTION_CASCADE = 2u,
+  SHADOW_PROJECTION_CUBEFACE,
+  SHADOW_PROJECTION_CLIPMAP,
+  SHADOW_PROJECTION_CASCADE,
 };
 
 static inline int2 shadow_cascade_grid_offset(int2 base_offset, int level_relative)
