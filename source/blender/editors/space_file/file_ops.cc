@@ -49,7 +49,7 @@
 
 #include "file_intern.hh"
 #include "filelist.hh"
-#include "fsmenu.h"
+#include "fsmenu.hh"
 
 #include <algorithm>
 #include <cctype>

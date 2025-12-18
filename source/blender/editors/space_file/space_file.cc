@@ -47,7 +47,7 @@
 #include "file_indexer.hh"
 #include "file_intern.hh" /* own include */
 #include "filelist.hh"
-#include "fsmenu.h"
+#include "fsmenu.hh"
 
 /* ******************** default callbacks for file space ***************** */
 
@@ -1071,6 +1071,7 @@ void ED_file_read_bookmarks()
   fsmenu_free();
 
   fsmenu_read_system(ED_fsmenu_get(), true);
+  fsmenu_add_common_platform_directories(ED_fsmenu_get());
 
   if (cfgdir.has_value()) {
     char filepath[FILE_MAX];
