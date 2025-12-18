@@ -540,7 +540,7 @@ static void draw_marker(const uiFontStyle *fstyle,
 
   GPU_blend(GPU_BLEND_ALPHA);
 
-  draw_marker_line(line_color, xpos, UI_SCALE_FAC * 28, region_height);
+  draw_marker_line(line_color, xpos, UI_SCALE_FAC * 22, region_height);
 
   int icon_id = marker_get_icon_id(marker, flag);
 
@@ -552,8 +552,10 @@ static void draw_marker(const uiFontStyle *fstyle,
     blender::ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE, marker_color);
   }
 
+  constexpr int marker_y = 10;
+
   blender::ui::icon_draw_ex(xpos - (0.5f * UI_ICON_SIZE) - (0.5f * U.pixelsize),
-                            UI_SCALE_FAC * 18,
+                            UI_SCALE_FAC * marker_y,
                             icon_id,
                             UI_INV_SCALE_FAC,
                             1.0f,
@@ -564,10 +566,11 @@ static void draw_marker(const uiFontStyle *fstyle,
 
   GPU_blend(GPU_BLEND_NONE);
 
-  float name_y = UI_SCALE_FAC * 18;
+  /* Adding an offset because the text is drawn downwards, but the icon is drawn upwards. */
+  float name_y = UI_SCALE_FAC * (marker_y + 5);
   /* Give an offset to the marker that is elevated. */
   if (is_elevated) {
-    name_y += UI_SCALE_FAC * 10;
+    name_y += UI_SCALE_FAC * 6;
   }
   draw_marker_name(text_color, fstyle, marker, xpos, xmax, name_y);
 }
