@@ -32,14 +32,46 @@ void BundleSignature::set_auto_structure_types()
   }
 }
 
+bool Bundle::is_valid_key(const StringRef key)
+{
+  if (key.is_empty()) {
+    return false;
+  }
+  return key.find_first_of(Bundle::forbidden_key_chars) == StringRef::not_found;
+}
+
+bool Bundle::is_valid_path(const StringRef path)
+{
+  return split_path(path).has_value();
+}
+
+std::optional<Vector<StringRef>> Bundle::split_path(const StringRef path)
+{
+  Vector<StringRef> path_elems;
+  StringRef remaining = path;
+  while (!remaining.is_empty()) {
+    const int sep = remaining.find_first_of('/');
+    if (sep == StringRef::not_found) {
+      const StringRef key = remaining;
+      if (!is_valid_key(key)) {
+        return std::nullopt;
+      }
+      path_elems.append(key);
+      break;
+    }
+    const StringRef key = remaining.substr(0, sep);
+    if (!is_valid_key(key)) {
+      return std::nullopt;
+    }
+    path_elems.append(key);
+    remaining = remaining.substr(sep + 1);
+  }
+  return path_elems;
+}
+
 BundlePtr Bundle::create()
 {
   return BundlePtr(MEM_new<Bundle>(__func__));
-}
-
-[[maybe_unused]] static bool is_valid_key(const StringRef key)
-{
-  return key.find('/') == StringRef::not_found;
 }
 
 void Bundle::add_new(const StringRef key, const BundleItemValue &value)
@@ -63,34 +95,31 @@ bool Bundle::add(const StringRef key, const BundleItemValue &value)
   return true;
 }
 
+static BundleItemValue create_nested_bundle_item()
+{
+  static const bke::bNodeSocketType *bundle_socket_type = bke::node_socket_type_find_static(
+      SOCK_BUNDLE);
+  return {
+      BundleItemSocketValue{bundle_socket_type, bke::SocketValueVariant::From(Bundle::create())}};
+}
+
 void Bundle::add_path_override(const StringRef path, const BundleItemValue &value)
 {
-  BLI_assert(!path.is_empty());
-  BLI_assert(!path.endswith("/"));
-  BLI_assert(this->is_mutable());
-  const int sep = path.find_first_of('/');
-  if (sep == StringRef::not_found) {
-    const StringRef key = path;
-    this->remove(key);
-    this->add_new(key, value);
-    return;
+  BLI_assert(is_valid_path(path));
+  const Vector<StringRef> path_elems = *split_path(path);
+  Bundle *current = this;
+  for (const StringRef path_elem : path_elems.as_span().drop_back(1)) {
+    BundleItemValue &item = current->items_.lookup_or_add_cb_as(
+        path_elem, [&]() { return create_nested_bundle_item(); });
+    BundlePtr *child_bundle_ptr = item.as_pointer<BundlePtr>();
+    if (!child_bundle_ptr) {
+      /* Override the items content with a new bundle. */
+      item = create_nested_bundle_item();
+      child_bundle_ptr = item.as_pointer<BundlePtr>();
+    }
+    current = &child_bundle_ptr->ensure_mutable_inplace();
   }
-  const StringRef first_part = path.substr(0, sep);
-  BundlePtr child_bundle = this->lookup<BundlePtr>(first_part).value_or(nullptr);
-  if (!child_bundle) {
-    child_bundle = Bundle::create();
-  }
-  this->remove(first_part);
-  if (!child_bundle->is_mutable()) {
-    child_bundle = child_bundle->copy();
-  }
-  child_bundle->tag_ensured_mutable();
-  const_cast<Bundle &>(*child_bundle).add_path_override(path.substr(sep + 1), value);
-  bke::SocketValueVariant child_bundle_value = bke::SocketValueVariant::From(
-      std::move(child_bundle));
-  this->add(
-      first_part,
-      BundleItemSocketValue{bke::node_socket_type_find_static(SOCK_BUNDLE), child_bundle_value});
+  current->items_.add_overwrite_as(path_elems.last(), value);
 }
 
 bool Bundle::add_path(StringRef path, const BundleItemValue &value)
@@ -131,25 +160,10 @@ const BundleItemValue *Bundle::lookup_path(const Span<StringRef> path) const
   return child_bundle->lookup_path(path.drop_front(1));
 }
 
-static Vector<StringRef> split_path(const StringRef path)
-{
-  Vector<StringRef> path_elems;
-  StringRef remaining = path;
-  while (!remaining.is_empty()) {
-    const int sep = remaining.find_first_of('/');
-    if (sep == StringRef::not_found) {
-      path_elems.append(remaining);
-      break;
-    }
-    path_elems.append(remaining.substr(0, sep));
-    remaining = remaining.substr(sep + 1);
-  }
-  return path_elems;
-}
-
 const BundleItemValue *Bundle::lookup_path(const StringRef path) const
 {
-  const Vector<StringRef> path_elems = split_path(path);
+  BLI_assert(is_valid_path(path));
+  const Vector<StringRef> path_elems = *split_path(path);
   return this->lookup_path(path_elems);
 }
 
@@ -185,8 +199,31 @@ BundlePtr Bundle::copy() const
 bool Bundle::remove(const StringRef key)
 {
   BLI_assert(is_valid_key(key));
-  const int removed_num = items_.remove_if([&key](const auto &item) { return item.key == key; });
-  return removed_num >= 1;
+  return items_.remove_as(key);
+}
+
+bool Bundle::remove_path(const StringRef path)
+{
+  BLI_assert(is_valid_path(path));
+  const Vector<StringRef> path_elems = *split_path(path);
+  return this->remove_path(path_elems);
+}
+
+bool Bundle::remove_path(const Span<StringRef> path)
+{
+  BLI_assert(this->is_mutable());
+  BLI_assert(!path.is_empty());
+  if (!this->contains_path(path)) {
+    return false;
+  }
+  Bundle *current = this;
+  for (const StringRef path_elem : path.drop_back(1)) {
+    BundleItemValue &item = current->items_.lookup_as(path_elem);
+    BundlePtr *child_bundle_ptr = item.as_pointer<BundlePtr>();
+    current = &child_bundle_ptr->ensure_mutable_inplace();
+  }
+  current->items_.remove_contained_as(path.last());
+  return true;
 }
 
 bool Bundle::contains(const StringRef key) const
@@ -196,6 +233,11 @@ bool Bundle::contains(const StringRef key) const
 }
 
 bool Bundle::contains_path(const StringRef path) const
+{
+  return this->lookup_path(path) != nullptr;
+}
+
+bool Bundle::contains_path(const Span<StringRef> path) const
 {
   return this->lookup_path(path) != nullptr;
 }

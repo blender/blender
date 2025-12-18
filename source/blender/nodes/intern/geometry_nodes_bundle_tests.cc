@@ -77,6 +77,25 @@ TEST_F(BundleTest, AddLookupPath)
   EXPECT_EQ(bundle.lookup_path<int>("a/b/d"), 4);
   EXPECT_EQ(bundle.lookup_path<BundlePtr>("a/b/c"), std::nullopt);
   EXPECT_EQ(bundle.lookup_path<BundlePtr>("a/b/x"), std::nullopt);
+  bundle.add_path_override("a/b/c/d", 5);
+  EXPECT_EQ(bundle.lookup_path<int>("a/b/c/d"), 5);
+}
+
+TEST_F(BundleTest, RemovePath)
+{
+  BundlePtr bundle_ptr = Bundle::create();
+  Bundle &bundle = const_cast<Bundle &>(*bundle_ptr);
+  bundle.add_path("a/b/c", 3);
+  bundle.add_path("a/b/d", 4);
+  EXPECT_FALSE(bundle.remove_path("a/b/x"));
+  EXPECT_EQ(bundle.lookup_path<int>("a/b/c"), 3);
+  EXPECT_TRUE(bundle.remove_path("a/b/c"));
+  EXPECT_EQ(bundle.lookup_path<int>("a/b/c"), std::nullopt);
+  EXPECT_TRUE((*bundle.lookup_path<BundlePtr>("a/b"))->size() == 1);
+  bundle.remove_path("a/b");
+  EXPECT_EQ(bundle.lookup_path<BundlePtr>("a/b"), std::nullopt);
+  EXPECT_TRUE((*bundle.lookup_path<BundlePtr>("a"))->is_empty());
+  EXPECT_TRUE(bundle.remove_path("a"));
 }
 
 TEST_F(BundleTest, LookupConversion)

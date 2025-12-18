@@ -140,7 +140,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   for (const int i : IndexRange(storage.items_num)) {
     const NodeSeparateBundleItem &item = storage.items[i];
     const StringRef name = item.name;
-    if (name.is_empty()) {
+    if (!Bundle::is_valid_key(name)) {
       continue;
     }
     const bke::bNodeSocketType *stype = bke::node_socket_type_find_static(item.socket_type);
