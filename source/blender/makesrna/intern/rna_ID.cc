@@ -721,10 +721,10 @@ static ID *rna_ID_copy(ID *id, Main *bmain)
 
   if (newid != nullptr) {
     id_us_min(newid);
+    BKE_main_ensure_invariants(*bmain, *newid);
   }
 
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
-  BKE_main_ensure_invariants(*bmain, *newid);
 
   return newid;
 }
