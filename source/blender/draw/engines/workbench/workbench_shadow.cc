@@ -103,6 +103,11 @@ void ShadowPass::ShadowView::setup(View &view, float3 light_direction, bool forc
   std::array<float3, 8> frustum_corners = this->frustum_corners_get();
   std::array<float4, 6> frustum_planes = this->frustum_planes_get();
 
+  float3 frustum_center = float3(0.0f);
+  for (float3 corner : frustum_corners) {
+    frustum_center += corner / float(frustum_corners.size());
+  }
+
   Vector<float4> faces_result;
   Vector<float3> corners_result;
 
@@ -131,20 +136,12 @@ void ShadowPass::ShadowView::setup(View &view, float3 light_direction, bool forc
       float3 corner_b = frustum_corners[edge_corners[i][1]];
       float3 edge_direction = math::normalize(corner_b - corner_a);
       float3 normal = math::normalize(math::cross(light_direction_, edge_direction));
-
-      float4 extruded_face = float4(UNPACK3(normal), math::dot(normal, corner_a));
-
       /* Ensure the plane faces outwards */
-      bool flipped = false;
-      for (float3 corner : frustum_corners) {
-        if (math::dot(float3(extruded_face), corner) > (extruded_face.w + 0.1)) {
-          BLI_assert(!flipped);
-          UNUSED_VARS_NDEBUG(flipped);
-          flipped = true;
-          extruded_face *= -1;
-        }
+      if (dot(corner_a - frustum_center, normal) < 0.0f) {
+        normal *= -1.0f;
       }
 
+      float4 extruded_face = float4(normal, math::dot(normal, corner_a));
       faces_result.append(extruded_face);
     }
   }
