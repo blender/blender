@@ -490,6 +490,10 @@ typedef enum ePchan_Flag {
    * shape-keys in addition to the armature.
    */
   POSE_TRANSFORM_AROUND_CUSTOM_TX = (1 << 5),
+  /**
+   * Marks the pose bone as selected. Do not set directly, use
+   * blender::animrig::bone_select and blender::animrig::bone_deselect instead.
+   */
   POSE_SELECTED = (1 << 6),
   /**
    * Even though root and tip selection is not used in pose mode, we still have to store that
@@ -499,7 +503,8 @@ typedef enum ePchan_Flag {
   POSE_SELECTED_TIP = (1 << 8),
   /**
    * When setting pose bone selection, all flags have to be set/cleared. However checking of
-   * selection state should only be against `POSE_SELECTED`.
+   * selection state should only be against `POSE_SELECTED`. Do not set directly, use
+   * blender::animrig::bone_select and blender::animrig::bone_deselect instead.
    */
   POSE_SELECTED_ALL = (POSE_SELECTED | POSE_SELECTED_ROOT | POSE_SELECTED_TIP),
 
