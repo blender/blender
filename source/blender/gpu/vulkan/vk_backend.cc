@@ -511,14 +511,14 @@ void VKBackend::detect_workarounds(VKDevice &device)
     extensions.dynamic_rendering_local_read = false;
   }
 
-  /* When using host image copy on Windows/NVIDIA the allocation of textures that only use
-   * GPU_TEXTURE_USAGE_SHADER_READ/WRITE will fail to allocate the memory. This needs some more
+  /* When using host image copy on certain NVIDIA platforms the allocation of textures that only
+   * use GPU_TEXTURE_USAGE_SHADER_READ/WRITE will fail to allocate the memory. This needs some more
    * research as this might just be a missing flag when allocating. Another solution is to not
    * allow host_imag_copy when only these two flags are set as the rest seems to work as expected.
    *
    * See #151826
    */
-  if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_WIN, GPU_DRIVER_OFFICIAL)) {
+  if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
     extensions.host_image_copy = false;
   }
 
