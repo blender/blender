@@ -101,6 +101,11 @@ ResultType socket_data_type_to_result_type(const eNodeSocketDatatype data_type,
 
 ResultType get_node_socket_result_type(const bNodeSocket *socket)
 {
+  /* Gracefully handle undefined sockets, falling back to a float. */
+  if (socket->typeinfo == &bke::NodeSocketTypeUndefined) {
+    return ResultType::Float;
+  }
+
   const eNodeSocketDatatype socket_type = static_cast<eNodeSocketDatatype>(socket->type);
   if (socket_type == SOCK_VECTOR) {
     return socket_data_type_to_result_type(

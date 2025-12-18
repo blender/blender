@@ -20,6 +20,7 @@
 #include "COM_result.hh"
 #include "COM_scheduler.hh"
 #include "COM_shader_operation.hh"
+#include "COM_undefined_node_operation.hh"
 #include "COM_utilities.hh"
 
 namespace blender::compositor {
@@ -79,27 +80,22 @@ bool Evaluator::validate_node_tree()
     return false;
   }
 
-  if (derived_node_tree_->has_undefined_nodes_or_sockets()) {
-    context_.set_info_message("Compositor node tree has undefined nodes or sockets!");
-    return false;
-  }
-
-  for (const bNodeTree *node_tree : derived_node_tree_->used_btrees()) {
-    for (const bNode *node : node_tree->all_nodes()) {
-      const char *disabled_hint = nullptr;
-      if (!node->typeinfo->poll(node->typeinfo, node_tree, &disabled_hint)) {
-        context_.set_info_message("Compositor node tree has unsupported nodes.");
-        return false;
-      }
-    }
-  }
-
   return true;
+}
+
+static NodeOperation *get_node_operation(Context &context, DNode node)
+{
+  const char *disabled_hint = nullptr;
+  if (node->typeinfo->poll(node->typeinfo, &node->owner_tree(), &disabled_hint)) {
+    return node->typeinfo->get_compositor_operation(context, node);
+  }
+
+  return get_undefined_node_operation(context, node);
 }
 
 void Evaluator::evaluate_node(DNode node, CompileState &compile_state)
 {
-  NodeOperation *operation = node->typeinfo->get_compositor_operation(context_, node);
+  NodeOperation *operation = get_node_operation(context_, node);
 
   compile_state.map_node_to_node_operation(node, operation);
 

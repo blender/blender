@@ -43,6 +43,7 @@ set(SRC
   COM_shader_operation.hh
   COM_simple_operation.hh
   COM_static_cache_manager.hh
+  COM_undefined_node_operation.hh
   COM_utilities.hh
 
   intern/COM_compositor.cc
@@ -67,6 +68,7 @@ set(SRC
   intern/shader_operation.cc
   intern/simple_operation.cc
   intern/static_cache_manager.cc
+  intern/undefined_node_operation.cc
   intern/utilities.cc
 
   algorithms/intern/compute_preview.cc
