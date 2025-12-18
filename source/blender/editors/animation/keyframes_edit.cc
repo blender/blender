@@ -1083,21 +1083,10 @@ KeyframeEditFunc ANIM_editkeyframes_mirror(short mode)
 /* Sets the selected bezier handles to type 'auto' */
 static short set_bezier_auto(KeyframeEditData * /*ked*/, BezTriple *bezt)
 {
-  /* If the key is selected, always apply to both handles. */
-  if (bezt->f2 & SELECT) {
+  if (BEZT_ISSEL_ANY(bezt)) {
+    /* Setting one handle to `HD_AUTO` is not a valid state. Both need to be the same. */
     bezt->h1 = bezt->h2 = HD_AUTO;
   }
-  else {
-    if (bezt->f1 & SELECT) {
-      bezt->h1 = HD_AUTO;
-    }
-    if (bezt->f3 & SELECT) {
-      bezt->h2 = HD_AUTO;
-    }
-
-    ENSURE_HANDLES_MATCH(bezt);
-  }
-
   return 0;
 }
 
@@ -1106,21 +1095,10 @@ static short set_bezier_auto(KeyframeEditData * /*ked*/, BezTriple *bezt)
  */
 static short set_bezier_auto_clamped(KeyframeEditData * /*ked*/, BezTriple *bezt)
 {
-  /* If the key is selected, always apply to both handles. */
-  if (bezt->f2 & SELECT) {
+  if (BEZT_ISSEL_ANY(bezt)) {
+    /* Setting one handle to `HD_AUTO_ANIM` is not a valid state. Both need to be the same. */
     bezt->h1 = bezt->h2 = HD_AUTO_ANIM;
   }
-  else {
-    if (bezt->f1 & SELECT) {
-      bezt->h1 = HD_AUTO_ANIM;
-    }
-    if (bezt->f3 & SELECT) {
-      bezt->h2 = HD_AUTO_ANIM;
-    }
-
-    ENSURE_HANDLES_MATCH(bezt);
-  }
-
   return 0;
 }
 
@@ -1134,9 +1112,11 @@ static short set_bezier_vector(KeyframeEditData * /*ked*/, BezTriple *bezt)
   else {
     if (bezt->f1 & SELECT) {
       bezt->h1 = HD_VECT;
+      BKE_fcurve_update_handle_flag_from_opposite(*bezt, HandleSide::LEFT);
     }
     if (bezt->f3 & SELECT) {
       bezt->h2 = HD_VECT;
+      BKE_fcurve_update_handle_flag_from_opposite(*bezt, HandleSide::RIGHT);
     }
   }
 
@@ -1163,19 +1143,10 @@ static short bezier_isfree(KeyframeEditData * /*ked*/, BezTriple *bezt)
 /* Sets selected bezier handles to type 'align' */
 static short set_bezier_align(KeyframeEditData * /*ked*/, BezTriple *bezt)
 {
-  /* If the key is selected, always apply to both handles. */
-  if (bezt->f2 & SELECT) {
+  if (BEZT_ISSEL_ANY(bezt)) {
+    /* Setting one handle to `HD_ALIGN` is not a valid state. Both need to be the same. */
     bezt->h1 = bezt->h2 = HD_ALIGN;
   }
-  else {
-    if (bezt->f1 & SELECT) {
-      bezt->h1 = HD_ALIGN;
-    }
-    if (bezt->f3 & SELECT) {
-      bezt->h2 = HD_ALIGN;
-    }
-  }
-
   return 0;
 }
 
@@ -1189,9 +1160,11 @@ static short set_bezier_free(KeyframeEditData * /*ked*/, BezTriple *bezt)
   else {
     if (bezt->f1 & SELECT) {
       bezt->h1 = HD_FREE;
+      BKE_fcurve_update_handle_flag_from_opposite(*bezt, HandleSide::LEFT);
     }
     if (bezt->f3 & SELECT) {
       bezt->h2 = HD_FREE;
+      BKE_fcurve_update_handle_flag_from_opposite(*bezt, HandleSide::RIGHT);
     }
   }
 

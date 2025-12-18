@@ -301,6 +301,20 @@ static void graphedit_activekey_handles_cb(bContext *C, void *fcu_ptr, void *bez
   graphedit_activekey_update_cb(C, fcu_ptr, bezt_ptr);
 }
 
+static void graphedit_activekey_handle_left_cb(bContext *C, void *fcu_ptr, void *bezt_ptr)
+{
+  BKE_fcurve_update_handle_flag_from_opposite(*static_cast<BezTriple *>(bezt_ptr),
+                                              HandleSide::LEFT);
+  graphedit_activekey_update_cb(C, fcu_ptr, bezt_ptr);
+}
+
+static void graphedit_activekey_handle_right_cb(bContext *C, void *fcu_ptr, void *bezt_ptr)
+{
+  BKE_fcurve_update_handle_flag_from_opposite(*static_cast<BezTriple *>(bezt_ptr),
+                                              HandleSide::RIGHT);
+  graphedit_activekey_update_cb(C, fcu_ptr, bezt_ptr);
+}
+
 /* update callback for editing coordinates of right handle in active keyframe properties
  * NOTE: we cannot just do graphedit_activekey_handles_cb() due to "order of computation"
  *       weirdness (see calchandleNurb_intern() and #39911)
@@ -477,7 +491,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       "Type of left handle");
       button_retval_set(but, B_REDR);
-      button_func_set(but, graphedit_activekey_handles_cb, fcu, bezt);
+      button_func_set(but, graphedit_activekey_handle_left_cb, fcu, bezt);
 
       uiItemL_respect_property_split(&col, IFACE_("Frame"), ICON_NONE);
       but = uiDefButR(block,
@@ -535,7 +549,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       "Type of right handle");
       button_retval_set(but, B_REDR);
-      button_func_set(but, graphedit_activekey_handles_cb, fcu, bezt);
+      button_func_set(but, graphedit_activekey_handle_right_cb, fcu, bezt);
 
       uiItemL_respect_property_split(&col, IFACE_("Frame"), ICON_NONE);
       but = uiDefButR(block,
