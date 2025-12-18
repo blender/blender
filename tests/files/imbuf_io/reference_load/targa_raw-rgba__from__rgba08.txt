@@ -1,1 +1,0 @@
-channels=4 is_float=False colorspace='sRGB' alpha_mode='STRAIGHT'

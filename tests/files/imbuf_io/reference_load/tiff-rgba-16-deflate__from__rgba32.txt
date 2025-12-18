@@ -1,1 +1,0 @@
-channels=4 is_float=True colorspace='sRGB' alpha_mode='PREMUL'

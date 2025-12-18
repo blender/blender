@@ -1,6 +1,0 @@
-Project: QuadriFlow
-URL: https://github.com/hjwdzh/QuadriFlow
-License: SPDX:MIT
-Upstream version: 27a6867
-Local modifications: Apply patches/blender.patch
-Copyright: Copyright (c) 2018 Jingwei Huang, Yichao Zhou, Matthias Niessner, Jonathan Shewchuk and Leonidas Guibas. All rights reserved.

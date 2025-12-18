@@ -1,5 +1,0 @@
-/* Hide PugiXML symbols until MaterialX is upgraded to 1.39+ */
-{
-local:
-  *pugi*;
-};

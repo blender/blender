@@ -1,1 +1,0 @@
-channels=4 is_float=True colorspace='Linear Rec.709' alpha_mode='PREMUL'

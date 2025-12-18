@@ -2030,15 +2030,27 @@ def blen_read_shapes(fbx_tmpl, fbx_data, objects, me, scene):
 
         kb.value = weight
 
-        # Add vgroup if necessary.
+            # Add vgroup if necessary.
         if vgweights is not None:
+            # Check if a vertex group with this name already exists (e.g. from a bone)
+            # If so, we must NOT use it, as that would corrupt the bone weights.
+            # We must create a new unique name for this shape key's vertex group.
+            vg_name = kb.name
+            if objects[0].vertex_groups.get(vg_name):
+                 # Simple uniquification
+                vg_name += "_shape"
+                counter = 1
+                while objects[0].vertex_groups.get(vg_name):
+                    vg_name = f"{kb.name}_shape.{counter:03d}"
+                    counter += 1
+            
             # VertexGroup.add only allows sequences of int indices, but iterating the indices array directly would
             # produce numpy scalars of types such as np.int32. The underlying memoryview of the indices array, however,
             # does produce standard Python ints when iterated, so pass indices.data to add_vgroup_to_objects instead of
             # indices.
             # memoryviews tend to be faster to iterate than numpy arrays anyway, so vgweights.data is passed too.
-            add_vgroup_to_objects(indices.data, vgweights.data, kb.name, objects)
-            kb.vertex_group = kb.name
+            add_vgroup_to_objects(indices.data, vgweights.data, vg_name, objects)
+            kb.vertex_group = vg_name
 
         bc_uuid_to_keyblocks.setdefault(bc_uuid, []).append(kb)
 

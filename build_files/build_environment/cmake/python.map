@@ -1,9 +1,0 @@
-{
-global:
-    Py*;
-    _Py*;
-    _py*;
-local:
-    *;
-};
-
