@@ -37,6 +37,7 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "SEQ_channels.hh"
+#include "SEQ_iterator.hh"
 #include "SEQ_prefetch.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_render.hh"
@@ -424,7 +425,7 @@ static bool seq_prefetch_scene_strip_is_rendered(const Scene *scene,
                                                  int timeline_frame,
                                                  SeqRenderState state)
 {
-  Vector<Strip *> rendered_strips = seq_shown_strips_get(
+  Vector<Strip *> rendered_strips = query_rendered_strips_sorted(
       scene, channels, seqbase, timeline_frame, 0);
 
   /* Iterate over rendered strips. */

@@ -134,12 +134,14 @@ void query_strip_connected_and_effect_chain(const Scene *scene,
                                             VectorSet<Strip *> &r_strips);
 
 /**
- * Query strips that are rendered at \a timeline_frame when \a displayed channel is viewed
+ * Query strips that will be rendered at \a timeline_frame on all channels less than
+ * or equal to \a displayed_channel. This does not recurse into metastrips or sequencer-type scene
+ * strips.
  *
- * \param seqbase: ListBase in which strips are queried
- * \param timeline_frame: viewed frame
- * \param displayed_channel: viewed channel. when set to 0, no channel filter is applied
- * \return set of strips
+ * \note This only returns strips that are directly rendered in the strip stack. Other strips'
+ * content may still be indirectly rendered, such as effect inputs, even though they are not
+ * included in the returned `VectorSet`. See #must_render_strip.
+ * \note Pass \a displayed_channel of 0 to consider all channels.
  */
 VectorSet<Strip *> query_rendered_strips(const Scene *scene,
                                          ListBase *channels,
@@ -147,5 +149,20 @@ VectorSet<Strip *> query_rendered_strips(const Scene *scene,
                                          int timeline_frame,
                                          int displayed_channel);
 
-bool must_render_strip(const VectorSet<Strip *> &strips, Strip *strip);
+/**
+ * Strips are sorted from lowest to highest channel.
+ * \copydoc #query_rendered_strips
+ */
+Vector<Strip *> query_rendered_strips_sorted(
+    const Scene *scene, ListBase *channels, ListBase *seqbase, int timeline_frame, int chanshown);
+
+/**
+ * Check to see whether we cannot skip rendering this strip.
+ * Some strips do not need to be directly rendered since they are already indirectly rendered as
+ * part of other strips' renders (such as effect strip inputs). These should be skipped to avoid
+ * unnecessary re-rendering.
+ *
+ * \note: Take care when changing the logic of this function since order matters.
+ * */
+bool must_render_strip(const VectorSet<Strip *> &strip_stack, Strip *target_strip);
 }  // namespace blender::seq

@@ -172,34 +172,32 @@ static VectorSet<Strip *> query_strips_at_frame(const Scene *scene,
   return strips;
 }
 
-static void collection_filter_channel_up_to_incl(VectorSet<Strip *> &strips, const int channel)
+static void collection_filter_channel_up_to_incl(VectorSet<Strip *> &strip_stack,
+                                                 const int channel)
 {
-  strips.remove_if([&](Strip *strip) { return strip->channel > channel; });
+  strip_stack.remove_if([&](Strip *strip) { return strip->channel > channel; });
 }
 
-/* Check if strip must be rendered. This depends on whole stack in some cases, not only strip
- * itself. Order of applying these conditions is important. */
-bool must_render_strip(const VectorSet<Strip *> &strips, Strip *strip)
+bool must_render_strip(const VectorSet<Strip *> &strip_stack, Strip *target_strip)
 {
   bool strip_have_effect_in_stack = false;
-  for (Strip *strip_iter : strips) {
-    /* Strips is below another strip with replace blending are not rendered. */
-    if (strip_iter->blend_mode == STRIP_BLEND_REPLACE && strip->channel < strip_iter->channel) {
+  for (Strip *strip : strip_stack) {
+    /* Strips below another strip with replace blending are never directly rendered. */
+    if (strip->blend_mode == STRIP_BLEND_REPLACE && target_strip->channel < strip->channel) {
       return false;
     }
-
-    if (strip_iter->is_effect() && relation_is_effect_of_strip(strip_iter, strip)) {
-      /* Strips in same channel or higher than its effect are rendered. */
-      if (strip->channel >= strip_iter->channel) {
+    if (strip->is_effect() && relation_is_effect_of_strip(strip, target_strip)) {
+      /* Strips at the same channel or above their effect are rendered. */
+      if (target_strip->channel >= strip->channel) {
         return true;
       }
-      /* Mark that this strip has effect in stack, that is above the strip. */
+      /* Mark that this strip has an effect in the stack that is above the strip. */
       strip_have_effect_in_stack = true;
     }
   }
 
-  /* All non-generator effects are rendered (with respect to conditions above). */
-  if (strip->is_effect() && effect_get_num_inputs(strip->type) != 0) {
+  /* All effects with inputs are rendered assuming they pass the above checks. */
+  if (target_strip->is_effect() && effect_get_num_inputs(target_strip->type) != 0) {
     return true;
   }
 
@@ -212,15 +210,15 @@ bool must_render_strip(const VectorSet<Strip *> &strips, Strip *strip)
 }
 
 /* Remove strips we don't want to render from VectorSet. */
-static void collection_filter_rendered_strips(VectorSet<Strip *> &strips, ListBase *channels)
+static void collection_filter_rendered_strips(VectorSet<Strip *> &strip_stack, ListBase *channels)
 {
   /* Remove sound strips and muted strips from VectorSet, because these are not rendered.
    * Function #must_render_strip() don't have to check for these strips anymore. */
-  strips.remove_if([&](Strip *strip) {
+  strip_stack.remove_if([&](Strip *strip) {
     return strip->type == STRIP_TYPE_SOUND || render_is_muted(channels, strip);
   });
 
-  strips.remove_if([&](Strip *strip) { return !must_render_strip(strips, strip); });
+  strip_stack.remove_if([&](Strip *strip) { return !must_render_strip(strip_stack, strip); });
 }
 
 VectorSet<Strip *> query_rendered_strips(const Scene *scene,
@@ -235,6 +233,22 @@ VectorSet<Strip *> query_rendered_strips(const Scene *scene,
   }
   collection_filter_rendered_strips(strips, channels);
   return strips;
+}
+
+Vector<Strip *> query_rendered_strips_sorted(const Scene *scene,
+                                             ListBase *channels,
+                                             ListBase *seqbase,
+                                             const int timeline_frame,
+                                             const int chanshown)
+{
+  VectorSet strips = query_rendered_strips(scene, channels, seqbase, timeline_frame, chanshown);
+
+  Vector<Strip *> strips_vec = strips.extract_vector();
+  /* Sort strips by channel. */
+  std::sort(strips_vec.begin(), strips_vec.end(), [](const Strip *a, const Strip *b) {
+    return a->channel < b->channel;
+  });
+  return strips_vec;
 }
 
 VectorSet<Strip *> query_unselected_strips(ListBase *seqbase)

@@ -251,28 +251,6 @@ StripElem *render_give_stripelem(const Scene *scene, const Strip *strip, int tim
   return se;
 }
 
-Vector<Strip *> seq_shown_strips_get(const Scene *scene,
-                                     ListBase *channels,
-                                     ListBase *seqbase,
-                                     const int timeline_frame,
-                                     const int chanshown)
-{
-  VectorSet strips = query_rendered_strips(scene, channels, seqbase, timeline_frame, chanshown);
-  const int strip_count = strips.size();
-
-  if (UNLIKELY(strip_count > MAX_CHANNELS)) {
-    BLI_assert_msg(0, "Too many strips, this shouldn't happen");
-    return {};
-  }
-
-  Vector<Strip *> strips_vec = strips.extract_vector();
-  /* Sort strips by channel. */
-  std::sort(strips_vec.begin(), strips_vec.end(), [](const Strip *a, const Strip *b) {
-    return a->channel < b->channel;
-  });
-  return strips_vec;
-}
-
 StripScreenQuad get_strip_screen_quad(const RenderData *context, const Strip *strip)
 {
   Scene *scene = context->scene;
@@ -1880,7 +1858,7 @@ static ImBuf *seq_render_strip_stack(const RenderData *context,
                                      float timeline_frame,
                                      int chanshown)
 {
-  Vector<Strip *> strips = seq_shown_strips_get(
+  Vector<Strip *> strips = query_rendered_strips_sorted(
       context->scene, channels, seqbasep, timeline_frame, chanshown);
   if (strips.is_empty()) {
     return nullptr;
@@ -2033,7 +2011,7 @@ ImBuf *render_give_ibuf(const RenderData *context, float timeline_frame, int cha
         orig_scene, timeline_frame, context->view_id, chanshown, {context->rectx, context->recty});
   }
 
-  Vector<Strip *> strips = seq_shown_strips_get(
+  Vector<Strip *> strips = query_rendered_strips_sorted(
       scene, channels, seqbasep, timeline_frame, chanshown);
 
   /* Make sure we only keep the `anim` data for strips that are in view. */

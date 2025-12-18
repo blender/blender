@@ -47,8 +47,6 @@ ImBuf *seq_render_give_ibuf_seqbase(const RenderData *context,
                                     ListBase *channels,
                                     ListBase *seqbasep);
 void seq_imbuf_to_sequencer_space(const Scene *scene, ImBuf *ibuf, bool make_float);
-Vector<Strip *> seq_shown_strips_get(
-    const Scene *scene, ListBase *channels, ListBase *seqbase, int timeline_frame, int chanshown);
 ImBuf *seq_render_strip(const RenderData *context,
                         SeqRenderState *state,
                         Strip *strip,
