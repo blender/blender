@@ -216,9 +216,12 @@ static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
   /* For each Pose-Channel which gets affected, get the F-Curves for that channel
    * and set the relevant transform flags. */
   poseAnim_mapping_get(C, &pso->pfLinks);
-
-  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_mode_unique_data(
-      CTX_data_scene(C), CTX_data_view_layer(C), CTX_wm_view3d(C), OB_MODE_POSE);
+  ObjectsInModeParams params = {0};
+  params.object_mode = OB_MODE_POSE;
+  /* Explicitly setting this to false because we *do* want this to work for armature instances. */
+  params.no_dup_data = false;
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_mode_params(
+      CTX_data_scene(C), CTX_data_view_layer(C), CTX_wm_view3d(C), &params);
   pso->ob_data_array.reinitialize(objects.size());
 
   for (const int ob_index : objects.index_range()) {
