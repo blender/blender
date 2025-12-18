@@ -219,6 +219,9 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (use_clamp) {
       index = std::clamp(index, 0, domain_size - 1);
     }
+    const eNodeSocketDatatype socket_type = params.node().output_socket(0).typeinfo->type;
+    SocketValueVariant output_value;
+    void *buffer = output_value.allocate_single(socket_type);
     if (index >= 0 && index < domain_size) {
       const IndexMask mask = IndexRange(index, 1);
       const bke::GeometryFieldContext geometry_context(*component, domain);
@@ -226,14 +229,12 @@ static void node_geo_exec(GeoNodeExecParams params)
       evaluator.add(value_field);
       evaluator.evaluate();
       const GVArray &data = evaluator.get_evaluated(0);
-      BUFFER_FOR_CPP_TYPE_VALUE(cpp_type, buffer);
       data.get_to_uninitialized(index, buffer);
-      params.set_output("Value", fn::make_constant_field(cpp_type, buffer));
-      cpp_type.destruct(buffer);
     }
     else {
-      params.set_output("Value", fn::make_constant_field(cpp_type, cpp_type.default_value()));
+      cpp_type.copy_construct(cpp_type.default_value(), buffer);
     }
+    params.set_output("Value", std::move(output_value));
     return;
   }
 

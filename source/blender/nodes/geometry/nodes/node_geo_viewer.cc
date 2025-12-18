@@ -330,7 +330,7 @@ static void log_viewer_attribute(const bNode &node, geo_eval_log::ViewerNodeLog 
                                        .get_single_ptr();
     GeometrySet &geometry = *geometry_ptr.get<GeometrySet>();
     const bke::SocketValueVariant &value = r_log.items.lookup_key_as(item.identifier).value;
-    if (!(value.is_single() || value.is_context_dependent_field())) {
+    if (!(value.is_single() || value.is_field())) {
       continue;
     }
     const GField field = value.get<GField>();

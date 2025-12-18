@@ -143,6 +143,11 @@ class SocketValueVariant {
   bool is_context_dependent_field() const;
 
   /**
+   * If true, the value is stored as a #GField.
+   */
+  bool is_field() const;
+
+  /**
    * The stored value is a volume grid.
    */
   bool is_volume_grid() const;

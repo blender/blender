@@ -413,6 +413,11 @@ bool SocketValueVariant::is_context_dependent_field() const
   return field.node().depends_on_input();
 }
 
+bool SocketValueVariant::is_field() const
+{
+  return kind_ == Kind::Field;
+}
+
 bool SocketValueVariant::is_volume_grid() const
 {
   return kind_ == Kind::Grid;
