@@ -869,6 +869,7 @@ static void test_eevee_shadow_finalize()
   StorageArrayBuffer<uint, SHADOW_VIEW_MAX> viewport_index_buf = {"viewport_index_buf"};
 
   render_map_buf.clear_to_zero();
+  clear_dispatch_buf.clear_to_zero();
 
   gpu::Shader *sh = GPU_shader_create_from_info_name("eevee_shadow_tilemap_finalize");
   PassSimple pass("Test");
