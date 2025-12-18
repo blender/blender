@@ -73,6 +73,12 @@ if "%BUILD_VS_YEAR%" == "" (
 	)
 )
 
+if "%BUILD_VS_YEAR%"=="2026" (
+	set VS_SLN_EXT=slnx
+) else (
+	set VS_SLN_EXT=sln
+)
+
 if "%BUILD_UPDATE%" == "1" (
 	REM First see if the SVN libs are there and check them out if they are not.
 	call "%BLENDER_DIR%\build_files\windows\check_libraries.cmd"
