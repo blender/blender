@@ -137,6 +137,15 @@ typedef struct bNodeTreeInterfaceSocket {
    * \param new_socket_type: Socket type idname, e.g. "NodeSocketFloat"
    */
   bool set_socket_type(blender::StringRef new_socket_type);
+  /**
+   * Update the \a socket_type based on changes to \a socket_data.
+   * This allows changing details like the subtype without replacing \a socket_data.
+   *
+   * For example, in a vector socket the dimensions are stored in the \a socket_data and after
+   * changes might require switching \a socket_type between "NodeSocketVector",
+   * "NodeSocketVector2D", and "NodeSocketVector4D".
+   */
+  void update_socket_type();
 
   /**
    * Use an existing socket to define an interface socket.
