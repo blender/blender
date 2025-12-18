@@ -50,10 +50,9 @@ static VkImageUsageFlags to_vk_image_usage(const eGPUTextureUsage usage,
   const VKDevice &device = VKBackend::get().device;
   const VKExtensions &extensions = device.extensions_get();
 
-  VkImageUsageFlags result = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-                             VK_IMAGE_USAGE_SAMPLED_BIT;
+  VkImageUsageFlags result = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
   if (usage & GPU_TEXTURE_USAGE_SHADER_READ) {
-    result |= VK_IMAGE_USAGE_STORAGE_BIT;
+    result |= VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
   }
   if (usage & GPU_TEXTURE_USAGE_SHADER_WRITE) {
     result |= VK_IMAGE_USAGE_STORAGE_BIT;
@@ -69,9 +68,8 @@ static VkImageUsageFlags to_vk_image_usage(const eGPUTextureUsage usage,
       }
       else {
         result |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-        if (extensions.dynamic_rendering_local_read) {
-          result |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
-        }
+        result |= extensions.dynamic_rendering_local_read ? VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT :
+                                                            VK_IMAGE_USAGE_SAMPLED_BIT;
       }
     }
   }
