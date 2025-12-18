@@ -5041,7 +5041,7 @@ void ANIM_channel_setting_set(bAnimContext *ac,
 /* --------------------------- */
 
 /** Size of icons. */
-#define ICON_WIDTH (0.85f * U.widget_unit)
+#define ICON_WIDTH (0.8f * U.widget_unit)
 /** Width of sliders. */
 #define SLIDER_WIDTH (4 * U.widget_unit)
 /** Min-width of rename text-boxes. */
@@ -5199,7 +5199,8 @@ void ANIM_channel_draw(
 
   /* calculate appropriate y-coordinates for icon buttons */
   y = (ymaxc - yminc) / 2 + yminc;
-  ymid = y - 0.5f * ICON_WIDTH;
+  ymid = yminc - 1;
+
   /* y-coordinates for text is only 4 down from middle */
   ytext = y - 0.2f * U.widget_unit;
 
@@ -6103,7 +6104,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
   }
 
   /* calculate appropriate y-coordinates for icon buttons */
-  ymid = BLI_rctf_cent_y(rect) - 0.5f * ICON_WIDTH;
+  ymid = rect->ymin - 1;
 
   /* no button backdrop behind icons */
   block_emboss_set(block, blender::ui::EmbossType::None);
