@@ -392,6 +392,7 @@ void Integrator::tag_update(Scene *scene, const uint32_t flag)
 
   if (volume_ray_marching_is_modified()) {
     scene->volume_manager->tag_update_algorithm();
+    scene->geometry_manager->tag_update(scene, GeometryManager::VOLUME_MODIFIED);
   }
 }
 
