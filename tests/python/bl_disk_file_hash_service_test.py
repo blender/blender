@@ -204,13 +204,18 @@ class DiskFileHashServiceTest(unittest.TestCase):
         hash = self.service.get_hash(self.filepath, "sha256")
         self.assertEqual("fake hash", hash)
 
-        # Update the file, this should trigger a re-hashing.
-        self.filepath.touch()
+        # Update the file timestamp, this should trigger a re-hashing.
+        #
+        # Change the modification time to trigger a re-hash. Use a nice large
+        # increment to ensure this is a larger step than the filesystem
+        # timestamp resolution.
+        new_mtime = stat.st_mtime + 3600
+        os.utime(self.filepath, (new_mtime, new_mtime))
         updated_hash = self.service.get_hash(self.filepath, "sha256")
         self.assertEqual("43231d711ce5992cd9090ffa5cbb8779148e291bc1472353cdeebd040bef0b93", updated_hash)
 
         # Change the contents to something of a different length, but keep the
-        # mtime the same. This also should trigger a re-hashing.
+        # mtime the same as in the cache. This also should trigger a re-hashing.
         self.filepath.write_text("New Content 😿")
         os.utime(self.filepath, (stat.st_atime, stat.st_mtime))
         updated_hash = self.service.get_hash(self.filepath, "sha256")
@@ -270,8 +275,11 @@ class DiskFileHashServiceTest(unittest.TestCase):
         self.assertTrue(self.service.file_matches(self.filepath, "sha256", "fake hash", stat.st_size))
         self.assertFalse(self.service.file_matches(self.filepath, "sha256", "fake hash", stat.st_size + 5))
 
-        # Touch the file to trigger a re-hash.
-        self.filepath.touch()
+        # Change the modification time to trigger a re-hash. Use a nice large
+        # increment to ensure this is a larger step than the filesystem
+        # timestamp resolution.
+        new_mtime = stat.st_mtime + 3600
+        os.utime(self.filepath, (new_mtime, new_mtime))
         self.assertTrue(
             self.service.file_matches(
                 self.filepath,
