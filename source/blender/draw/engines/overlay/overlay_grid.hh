@@ -228,10 +228,14 @@ class Grid : Overlay {
       axis_flag_ |= (show_axis_x ? (AXIS_X | SHOW_AXES) : OVERLAY_GridBits(0));
       axis_flag_ |= (show_axis_y ? (AXIS_Y | SHOW_AXES) : OVERLAY_GridBits(0));
       axis_flag_ |= (show_axis_z ? (AXIS_Z | SHOW_AXES) : OVERLAY_GridBits(0));
-      grid_flag_ |= (show_axis_x ? AXIS_X : OVERLAY_GridBits(0));
-      grid_flag_ |= (show_axis_y ? AXIS_Y : OVERLAY_GridBits(0));
-      grid_flag_ |= (show_axis_z ? AXIS_Z : OVERLAY_GridBits(0));
       grid_flag_ |= (show_persp ? (PLANE_XY | SHOW_GRID) : OVERLAY_GridBits(0));
+
+      /* Axes are passed to the grid flag for correct occlusion. */
+      if (grid_flag_) {
+        grid_flag_ |= (show_axis_x ? AXIS_X : OVERLAY_GridBits(0));
+        grid_flag_ |= (show_axis_y ? AXIS_Y : OVERLAY_GridBits(0));
+        grid_flag_ |= (show_axis_z ? AXIS_Z : OVERLAY_GridBits(0));
+      }
     }
     else {
       /* Orthographic; set selected axes and plane bits dependent on the specific view
@@ -306,9 +310,9 @@ class Grid : Overlay {
     }
 
     /* Find the lowest relevant grid level + fractional. */
-    for (int i : IndexRange(SI_GRID_STEPS_LEN - 1)) {
+    for (int i : IndexRange(SI_GRID_STEPS_LEN)) {
       float curr = std::min(grid_ubo_.steps[i].x, grid_ubo_.steps[i].y);
-      float next = (i < OVERLAY_GRID_STEPS_LEN - 1) ?
+      float next = (i < SI_GRID_STEPS_LEN - 1) ?
                        std::min(grid_ubo_.steps[i + 1].x, grid_ubo_.steps[i + 1].y) :
                        curr * 10.0f;
       if (next >= dist || i == OVERLAY_GRID_STEPS_LEN - 1) {

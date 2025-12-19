@@ -110,9 +110,7 @@ void main()
 
   /* Compute the actual level of a line, offset by -1 to force a sub-level in the 3D viewport. */
   int level = int(grid_buf.level) + int(line.level) - (flag_test(grid_flag, GRID_SIMA) ? 0 : 1);
-  if (level < 0 || level >= OVERLAY_GRID_STEPS_LEN) {
-    return; /* Discard line. */
-  }
+  level = clamp(level, 0, OVERLAY_GRID_STEPS_LEN - 1);
 
   /* Compute per-level size, camera offset for lines. Offset is rounded to the nearest
    * level-dependent line position for grid, while axes simply move with the camera. */
