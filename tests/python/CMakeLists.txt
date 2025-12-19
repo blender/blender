@@ -215,6 +215,11 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_http_downloader.py
 )
 
+add_blender_test(
+  script_disk_file_hash_service_test
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_disk_file_hash_service_test.py
+)
+
 # test running operators doesn't segfault under various conditions
 if(WITH_TESTS_EXPERIMENTAL)
   add_blender_test(
