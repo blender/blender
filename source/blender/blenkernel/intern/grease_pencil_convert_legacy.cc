@@ -3073,8 +3073,8 @@ static void legacy_gpencil_object(ConversionData &conversion_data, Object &objec
   const bool do_gpencil_data_conversion = (new_grease_pencil == nullptr);
 
   if (!new_grease_pencil) {
-    new_grease_pencil = static_cast<GreasePencil *>(
-        BKE_id_new_in_lib(&conversion_data.bmain, gpd->id.lib, ID_GP, gpd->id.name + 2));
+    new_grease_pencil = BKE_id_new_in_lib<GreasePencil>(
+        &conversion_data.bmain, gpd->id.lib, gpd->id.name + 2);
     id_us_min(&new_grease_pencil->id);
   }
 
@@ -3134,8 +3134,8 @@ void legacy_main(Main &bmain,
     GreasePencil *new_grease_pencil = conversion_data.legacy_to_greasepencil_data.lookup_default(
         legacy_gpd, nullptr);
     if (!new_grease_pencil) {
-      new_grease_pencil = static_cast<GreasePencil *>(
-          BKE_id_new_in_lib(&bmain, legacy_gpd->id.lib, ID_GP, legacy_gpd->id.name + 2));
+      new_grease_pencil = BKE_id_new_in_lib<GreasePencil>(
+          &bmain, legacy_gpd->id.lib, legacy_gpd->id.name + 2);
       id_us_min(&new_grease_pencil->id);
       legacy_gpencil_to_grease_pencil(conversion_data, *new_grease_pencil, *legacy_gpd);
       conversion_data.legacy_to_greasepencil_data.add(legacy_gpd, new_grease_pencil);

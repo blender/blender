@@ -200,6 +200,14 @@ void *BKE_id_new_in_lib(Main *bmain,
                         std::optional<Library *> owner_library,
                         short type,
                         const char *name);
+
+template<typename T>
+inline T *BKE_id_new_in_lib(Main *bmain, std::optional<Library *> owner_library, const char *name)
+{
+  const ID_Type id_type = T::id_type;
+  return static_cast<T *>(BKE_id_new_in_lib(bmain, owner_library, id_type, name));
+}
+
 /**
  * Generic helper to create a new temporary empty data-block of given type,
  * *outside* of any Main database.

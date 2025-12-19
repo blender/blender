@@ -1952,8 +1952,7 @@ Library *PartialWriteContext::ensure_library(StringRefNull library_absolute_path
   Library *ctx_lib = this->libraries_map_.lookup_default(library_absolute_path, nullptr);
   if (!ctx_lib) {
     const char *library_name = BLI_path_basename(library_absolute_path.c_str());
-    ctx_lib = static_cast<Library *>(
-        BKE_id_new_in_lib(&this->bmain, nullptr, ID_LI, library_name));
+    ctx_lib = BKE_id_new_in_lib<Library>(&this->bmain, nullptr, library_name);
     ctx_lib->id.tag |= ID_TAG_TEMP_MAIN;
     id_us_min(&ctx_lib->id);
     this->libraries_map_.add(library_absolute_path, ctx_lib);

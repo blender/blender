@@ -147,7 +147,7 @@ TEST_F(BMainMergeTest, linked_data)
   Collection *coll_1 = BKE_id_new<Collection>(bmain_src, "Coll_src");
   Library *lib_src_1 = BKE_id_new<Library>(bmain_src, LIB_PATH);
   BKE_library_filepath_set(bmain_src, lib_src_1, LIB_PATH);
-  Object *ob_1 = static_cast<Object *>(BKE_id_new_in_lib(bmain_src, lib_src_1, ID_OB, "Ob_src"));
+  Object *ob_1 = BKE_id_new_in_lib<Object>(bmain_src, lib_src_1, "Ob_src");
   BKE_collection_object_add(bmain_src, coll_1, ob_1);
 
   EXPECT_EQ(1, BLI_listbase_count(&bmain_dst->collections));
@@ -182,10 +182,9 @@ TEST_F(BMainMergeTest, linked_data)
   BKE_library_filepath_set(bmain_src, lib_src_2, LIB_PATH);
   std::cout << lib_src_1->runtime->filepath_abs << "\n";
   std::cout << lib_src_2->runtime->filepath_abs << "\n";
-  Object *ob_2 = static_cast<Object *>(BKE_id_new_in_lib(bmain_src, lib_src_2, ID_OB, "Ob_src_2"));
+  Object *ob_2 = BKE_id_new_in_lib<Object>(bmain_src, lib_src_2, "Ob_src_2");
   BKE_collection_object_add(bmain_src, coll_2, ob_2);
-  Object *ob_2_2 = static_cast<Object *>(
-      BKE_id_new_in_lib(bmain_src, lib_src_2, ID_OB, "Ob_src_2_2"));
+  Object *ob_2_2 = BKE_id_new_in_lib<Object>(bmain_src, lib_src_2, "Ob_src_2_2");
   BKE_collection_object_add(bmain_src, coll_2, ob_2_2);
 
   EXPECT_EQ(1, BLI_listbase_count(&bmain_src->collections));
@@ -219,7 +218,7 @@ TEST_F(BMainMergeTest, linked_data)
   Collection *coll_3 = BKE_id_new<Collection>(bmain_src, "Coll_src_3");
   Library *lib_src_3 = BKE_id_new<Library>(bmain_src, LIB_PATH_RELATIVE);
   BKE_library_filepath_set(bmain_src, lib_src_3, LIB_PATH_RELATIVE);
-  Object *ob_3 = static_cast<Object *>(BKE_id_new_in_lib(bmain_src, lib_src_3, ID_OB, "Ob_src"));
+  Object *ob_3 = BKE_id_new_in_lib<Object>(bmain_src, lib_src_3, "Ob_src");
   BKE_collection_object_add(bmain_src, coll_3, ob_3);
 
   EXPECT_EQ(1, BLI_listbase_count(&bmain_src->collections));
@@ -258,9 +257,8 @@ TEST_F(BMainMergeTest, linked_data)
 
   Library *lib_src_4 = BKE_id_new<Library>(bmain_src, DST_PATH);
   BKE_library_filepath_set(bmain_src, lib_src_4, DST_PATH);
-  Collection *coll_4 = static_cast<Collection *>(
-      BKE_id_new_in_lib(bmain_src, lib_src_4, ID_GR, "Coll_src"));
-  Object *ob_4 = static_cast<Object *>(BKE_id_new_in_lib(bmain_src, lib_src_4, ID_OB, "Ob_src_4"));
+  Collection *coll_4 = BKE_id_new_in_lib<Collection>(bmain_src, lib_src_4, "Coll_src");
+  Object *ob_4 = BKE_id_new_in_lib<Object>(bmain_src, lib_src_4, "Ob_src_4");
   BKE_collection_object_add(bmain_src, coll_4, ob_4);
 
   EXPECT_EQ(1, BLI_listbase_count(&bmain_src->collections));
