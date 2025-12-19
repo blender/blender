@@ -9,6 +9,7 @@
 #include "COM_context.hh"
 #include "COM_node_operation.hh"
 #include "COM_result.hh"
+#include "COM_undefined_node_operation.hh"
 #include "COM_utilities.hh"
 
 namespace blender::compositor {
