@@ -895,7 +895,6 @@ static void update_nested_node_refs_after_moving_nodes_into_group(
   for (const bNestedNodeRef &ref : group.nested_node_refs_span()) {
     used_nested_node_ref_ids.add(ref.id);
   }
-  Map<bNestedNodePath, int32_t> new_id_by_old_path;
   for (bNestedNodeRef &ref : ntree.nested_node_refs_span()) {
     const int32_t new_node_id = node_identifier_map.lookup_default(ref.path.node_id, -1);
     if (new_node_id == -1) {
@@ -912,7 +911,6 @@ static void update_nested_node_refs_after_moving_nodes_into_group(
         break;
       }
     }
-    new_id_by_old_path.add_new(ref.path, new_ref.id);
     new_nested_node_refs.append(new_ref);
     /* Updated the nested node ref in the parent so that it points to the same node that is now
      * inside of a nested group. */
@@ -1180,6 +1178,8 @@ static void node_group_make_insert_selected(const bContext &C,
     bke::node_field_inferencing::update_field_inferencing(group);
   }
 
+  update_nested_node_refs_after_moving_nodes_into_group(ntree, group, *gnode, node_identifier_map);
+
   if (ELEM(group.type, NTREE_GEOMETRY, NTREE_COMPOSIT)) {
     BKE_ntree_update(*bmain, Span<bNodeTree *>{&group});
   }
@@ -1203,8 +1203,6 @@ static void node_group_make_insert_selected(const bContext &C,
     BLI_addtail(&ntree.links, info.link);
     BKE_ntree_update_tag_link_added(&ntree, info.link);
   }
-
-  update_nested_node_refs_after_moving_nodes_into_group(ntree, group, *gnode, node_identifier_map);
 
   BKE_main_ensure_invariants(*bmain);
 }
@@ -1244,6 +1242,7 @@ struct WrapperNodeGroupMapping {
   Map<int, int> new_by_old_panel_identifier;
   Vector<int> exposed_input_indices;
   Vector<int> exposed_output_indices;
+  int inner_node_identifier;
 
   bNodeSocket *get_new_input(const bNodeSocket *old_socket, bNode &new_node) const
   {
@@ -1332,6 +1331,7 @@ static bNodeTree *node_group_make_wrapper(const bContext &C,
   Map<const bNodeSocket *, bNodeSocket *> inner_node_socket_mapping;
   bNode &inner_node = *bke::node_copy_with_mapping(
       dst_group, src_node, 0, std::nullopt, std::nullopt, inner_node_socket_mapping);
+  r_mapping.inner_node_identifier = inner_node.identifier;
 
   /* Position nodes. */
   input_node.location[0] = -300 - input_node.width;
@@ -1464,11 +1464,20 @@ static bNode *node_group_make_from_node_declaration(bContext &C,
     }
   }
 
+  Map<int32_t, int32_t> node_identifier_map;
+  node_identifier_map.add_new(src_node.identifier, mapping.inner_node_identifier);
+
   /* Remove the old node because it has been replaced. Use the name of the removed node for the new
    * group node. This also keeps animation data working. */
   std::string old_node_name = src_node.name;
   bke::node_remove_node(&bmain, ntree, src_node, true, false);
   STRNCPY(gnode->name, old_node_name.c_str());
+
+  /* Clear already created nested node refs to create new stable ones below. */
+  MEM_SAFE_FREE(wrapper_group->nested_node_refs);
+  wrapper_group->nested_node_refs_num = 0;
+  update_nested_node_refs_after_moving_nodes_into_group(
+      ntree, *wrapper_group, *gnode, node_identifier_map);
 
   BKE_ntree_update_tag_node_property(&ntree, gnode);
   BKE_main_ensure_invariants(bmain);
