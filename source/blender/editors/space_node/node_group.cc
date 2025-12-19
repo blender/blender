@@ -1152,6 +1152,13 @@ static void node_group_make_insert_selected(const bContext &C,
     bNodeSocket *output_sock = node_group_output_find_socket(output_node, io_identifier);
     bke::node_add_link(
         group, *info.link->fromnode, *info.link->fromsock, *output_node, *output_sock);
+
+    /* Temporarily remove the link from the tree, because it points to an invalid node. This
+     * prevents invalid pointer access during node updates below. The link is added back to the
+     * tree once the group node sockets have been created and the link fromsock pointer can be
+     * updated (#151786). */
+    BLI_remlink(&ntree.links, info.link);
+    BKE_ntree_update_tag_link_removed(&ntree);
   }
 
   /* Handle new links inside the group. */
@@ -1191,6 +1198,10 @@ static void node_group_make_insert_selected(const bContext &C,
     /* Reconnect the link to the group node instead of the node now inside the group. */
     info.link->fromnode = gnode;
     info.link->fromsock = node_group_find_output_socket(gnode, info.interface_socket->identifier);
+    /* Now that the fromnode/fromsock pointers are valid again we can add the link back to the
+     * tree. */
+    BLI_addtail(&ntree.links, info.link);
+    BKE_ntree_update_tag_link_added(&ntree, info.link);
   }
 
   update_nested_node_refs_after_moving_nodes_into_group(ntree, group, *gnode, node_identifier_map);
