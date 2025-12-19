@@ -187,7 +187,7 @@ static inline void curvemapping_minmax(const ::CurveMapping &cumap,
   *min_x = FLT_MAX;
   *max_x = -FLT_MAX;
   for (int i = 0; i < num_curves; ++i) {
-    const ::CurveMap map(cumap.cm[i]);
+    const ::CurveMap &map(cumap.cm[i]);
     curvemap_minmax_curve(map, min_x, max_x);
   }
 }
