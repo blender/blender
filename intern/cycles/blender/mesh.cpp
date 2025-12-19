@@ -76,10 +76,10 @@ static void attr_create_generic(Scene *scene,
                                 const float motion_scale)
 {
   blender::Span<blender::int3> corner_tris;
-  blender::Span<int> tri_faces;
+  blender::OffsetIndices<int> faces;
   if (!subdivision) {
     corner_tris = b_mesh.corner_tris();
-    tri_faces = b_mesh.corner_tri_faces();
+    faces = b_mesh.faces();
   }
   const blender::bke::AttributeAccessor b_attributes = b_mesh.attributes();
   AttributeSet &attributes = (subdivision) ? mesh->subd_attributes : mesh->attributes;
@@ -205,8 +205,11 @@ static void attr_create_generic(Scene *scene,
               }
             }
             else {
-              for (const int i : corner_tris.index_range()) {
-                data[i] = Converter::convert(src[tri_faces[i]]);
+              for (const int face : faces.index_range()) {
+                const CyclesT value = Converter::convert(src[face]);
+                const blender::IndexRange face_tris = blender::bke::mesh::face_triangles_range(
+                    faces, face);
+                std::fill_n(data + face_tris.start(), face_tris.size(), value);
               }
             }
             break;
@@ -670,9 +673,11 @@ static void create_mesh(Scene *scene,
     }
 
     if (!material_indices.is_empty()) {
-      const blender::Span<int> tri_faces = b_mesh.corner_tri_faces();
-      for (const int i : corner_tris.index_range()) {
-        shader[i] = clamp_material_index(material_indices[tri_faces[i]]);
+      for (const int face : faces.index_range()) {
+        const int material_index = clamp_material_index(material_indices[face]);
+        const blender::IndexRange face_tris = blender::bke::mesh::face_triangles_range(faces,
+                                                                                       face);
+        std::fill_n(shader + face_tris.start(), face_tris.size(), material_index);
       }
     }
     else {
@@ -680,9 +685,11 @@ static void create_mesh(Scene *scene,
     }
 
     if (!sharp_faces.is_empty() && !(use_corner_normals && !corner_normals.is_empty())) {
-      const blender::Span<int> tri_faces = b_mesh.corner_tri_faces();
-      for (const int i : corner_tris.index_range()) {
-        smooth[i] = !sharp_faces[tri_faces[i]];
+      for (const int face : faces.index_range()) {
+        const bool face_smooth = !sharp_faces[face];
+        const blender::IndexRange face_tris = blender::bke::mesh::face_triangles_range(faces,
+                                                                                       face);
+        std::fill_n(smooth + face_tris.start(), face_tris.size(), face_smooth);
       }
     }
     else {
