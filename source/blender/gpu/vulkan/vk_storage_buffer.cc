@@ -84,7 +84,7 @@ void VKStorageBuffer::allocate()
   buffer_.create(size_in_bytes_,
                  buffer_usage_flags,
                  VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
-                 VmaAllocationCreateFlags(0),
+                 VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
                  0.8f);
   if (buffer_.is_allocated()) {
     debug::object_label(buffer_.vk_handle(), name_);
