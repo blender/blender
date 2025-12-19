@@ -6,6 +6,8 @@
 #include "blender/session.h"
 #include "blender/util.h"
 
+#include "BKE_scene.hh"
+
 CCL_NAMESPACE_BEGIN
 
 enum ComputeDevice {
@@ -19,12 +21,12 @@ enum ComputeDevice {
   COMPUTE_DEVICE_NUM
 };
 
-int blender_device_threads(BL::Scene &b_scene)
+int blender_device_threads(::Scene &b_scene)
 {
-  BL::RenderSettings b_r = b_scene.render();
-
-  if (b_r.threads_mode() == BL::RenderSettings::threads_mode_FIXED) {
-    return b_r.threads();
+  ::RenderData &b_r = b_scene.r;
+  int threads_override = BLI_system_num_threads_override_get();
+  if (threads_override > 0 || (b_r.mode & R_FIXED_THREADS) != 0) {
+    return BKE_render_num_threads(&b_r);
   }
 
   return 0;
@@ -78,19 +80,21 @@ static void adjust_device_info(DeviceInfo &device, PointerRNA cpreferences, bool
   }
 }
 
-DeviceInfo blender_device_info(BL::Preferences &b_preferences,
-                               BL::Scene &b_scene,
+DeviceInfo blender_device_info(::UserDef &b_preferences,
+                               ::Scene &b_scene,
                                bool background,
                                bool preview,
                                DeviceInfo &preferences_device)
 {
-  PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+  PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene.id);
+  PointerRNA cscene = RNA_pointer_get(&scene_rna_ptr, "cycles");
 
   /* Find cycles preferences. */
   PointerRNA cpreferences;
-  for (BL::Addon &b_addon : b_preferences.addons) {
-    if (b_addon.module() == "cycles") {
-      cpreferences = b_addon.preferences().ptr;
+  LISTBASE_FOREACH (bAddon *, b_addon, &b_preferences.addons) {
+    if (STREQ(b_addon->module, "cycles")) {
+      PointerRNA addon_rna_ptr = RNA_pointer_create_discrete(nullptr, &RNA_Addon, b_addon);
+      cpreferences = RNA_pointer_get(&addon_rna_ptr, "preferences");
       break;
     }
   }

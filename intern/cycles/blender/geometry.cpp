@@ -54,7 +54,7 @@ array<Node *> BlenderSync::find_used_shaders(::Object &b_ob)
     return used_shaders;
   }
 
-  ::Material *material_override = view_layer.material_override.ptr.data_as<::Material>();
+  ::Material *material_override = view_layer.material_override;
   Shader *default_shader = (b_ob.type == OB_VOLUME) ? scene->default_volume :
                                                       scene->default_surface;
 

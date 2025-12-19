@@ -112,8 +112,7 @@ void BlenderSync::sync_light(BObjectInfo &b_ob_info, Light *light)
 
 void BlenderSync::sync_background_light(::bScreen *b_screen, ::View3D *b_v3d)
 {
-  ::World *b_world = view_layer.world_override ? view_layer.world_override :
-                                                 b_scene.world().ptr.data_as<::World>();
+  ::World *b_world = view_layer.world_override ? view_layer.world_override : b_scene->world;
 
   if (b_world) {
     PointerRNA world_rna_ptr = RNA_id_pointer_create(&b_world->id);

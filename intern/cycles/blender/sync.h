@@ -18,6 +18,7 @@
 #include "util/set.h"
 
 struct DEGObjectIterData;
+struct MeshSequenceCacheModifier;
 
 CCL_NAMESPACE_BEGIN
 
@@ -38,38 +39,38 @@ class TaskPool;
 
 class BlenderSync {
  public:
-  BlenderSync(BL::RenderEngine &b_engine,
-              BL::BlendData &b_data,
-              BL::Scene &b_scene,
+  BlenderSync(::RenderEngine &b_engine,
+              ::Main &b_data,
+              ::Scene &b_scene,
               Scene *scene,
               bool preview,
               bool use_developer_ui,
               Progress &progress);
   ~BlenderSync();
 
-  void reset(BL::BlendData &b_data, BL::Scene &b_scene);
+  void reset(::Main &b_data, ::Scene &b_scene);
 
   void tag_update();
 
-  void set_bake_target(BL::Object &b_object);
+  void set_bake_target(::Object &b_object);
 
   /* sync */
-  void sync_recalc(BL::Depsgraph &b_depsgraph,
+  void sync_recalc(::Depsgraph &b_depsgraph,
                    ::bScreen *b_screen,
-                   BL::SpaceView3D &b_v3d,
-                   BL::RegionView3D &b_rv3d);
-  void sync_data(BL::RenderSettings &b_render,
-                 BL::Depsgraph &b_depsgraph,
+                   ::View3D *b_v3d,
+                   ::RegionView3D *b_rv3d);
+  void sync_data(::RenderData &b_render,
+                 ::Depsgraph &b_depsgraph,
                  ::bScreen *b_screen,
-                 BL::SpaceView3D &b_v3d,
-                 BL::RegionView3D &b_rv3d,
+                 ::View3D *b_v3d,
+                 ::RegionView3D *b_rv3d,
                  const int width,
                  const int height,
                  void **python_thread_state,
                  const DeviceInfo &denoise_device_info);
-  void sync_view_layer(BL::ViewLayer &b_view_layer);
-  void sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLayer &b_view_layer);
-  void sync_integrator(BL::ViewLayer &b_view_layer,
+  void sync_view_layer(::ViewLayer &b_view_layer);
+  void sync_render_passes(::RenderLayer &b_rlay, ::ViewLayer &b_view_layer);
+  void sync_integrator(::ViewLayer &b_view_layer,
                        bool background,
                        const DeviceInfo &denoise_device_info);
   void sync_camera(const ::RenderData &b_render,
@@ -87,22 +88,22 @@ class BlenderSync {
   }
 
   /* Early data free. */
-  void free_data_after_sync(BL::Depsgraph &b_depsgraph);
+  void free_data_after_sync(::Depsgraph &b_depsgraph);
 
   /* get parameters */
-  static SceneParams get_scene_params(BL::Scene &b_scene,
+  static SceneParams get_scene_params(::Scene &b_scene,
                                       const bool background,
                                       const bool use_developer_ui);
-  static SessionParams get_session_params(BL::RenderEngine &b_engine,
-                                          BL::Preferences &b_preferences,
-                                          BL::Scene &b_scene,
+  static SessionParams get_session_params(::RenderEngine &b_engine,
+                                          ::UserDef &b_preferences,
+                                          ::Scene &b_scene,
                                           bool background);
-  static bool get_session_pause(BL::Scene &b_scene, bool background);
+  static bool get_session_pause(::Scene &b_scene, bool background);
   static BufferParams get_buffer_params(
       ::View3D *b_v3d, ::RegionView3D *b_rv3d, Camera *cam, const int width, const int height);
 
-  static DenoiseParams get_denoise_params(BL::Scene &b_scene,
-                                          BL::ViewLayer &b_view_layer,
+  static DenoiseParams get_denoise_params(::Scene &b_scene,
+                                          ::ViewLayer *b_view_layer,
                                           bool background,
                                           const DeviceInfo &denoise_device);
 
@@ -122,7 +123,7 @@ class BlenderSync {
                    const int width,
                    const int height,
                    void **python_thread_state);
-  void sync_film(BL::ViewLayer &b_view_layer, ::bScreen *b_screen, BL::SpaceView3D &b_v3d);
+  void sync_film(::ViewLayer &b_view_layer, ::bScreen *b_screen, ::View3D *b_v3d);
   void sync_view();
 
   /* Shader */
@@ -148,8 +149,8 @@ class BlenderSync {
                       TaskPool *geom_task_pool);
   void sync_object_motion_init(::Object &b_parent, ::Object &b_ob, Object *object);
 
-  void sync_procedural(BL::Object &b_ob,
-                       BL::MeshSequenceCacheModifier &b_mesh_cache,
+  void sync_procedural(::Object &b_ob,
+                       ::MeshSequenceCacheModifier &b_mesh_cache,
                        bool has_subdivision);
 
   bool sync_object_attributes(::Object &b_ob,
@@ -225,9 +226,9 @@ class BlenderSync {
 
   /* variables */
   ::RenderEngine *b_engine;
-  BL::BlendData b_data;
-  BL::Scene b_scene;
-  BL::Object b_bake_target;
+  ::Main *b_data;
+  ::Scene *b_scene;
+  ::Object *b_bake_target;
 
   enum ShaderFlags { SHADER_WITH_LAYER_ATTRS };
 
@@ -257,10 +258,10 @@ class BlenderSync {
   int max_subdivisions;
 
   struct RenderLayerInfo {
-    RenderLayerInfo() : material_override(PointerRNA_NULL), world_override(nullptr) {}
+    RenderLayerInfo() : material_override(nullptr), world_override(nullptr) {}
 
     string name;
-    BL::Material material_override;
+    ::Material *material_override;
     ::World *world_override;
     bool use_background_shader = true;
     bool use_surfaces = true;

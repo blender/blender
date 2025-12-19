@@ -376,16 +376,11 @@ void BlenderSync::sync_volume(BObjectInfo &b_ob_info, Volume *volume)
     if (GS(b_ob_info.object_data->name) == ID_VO) {
       /* Volume object. Create only attributes, bounding mesh will then
        * be automatically generated later. */
-      sync_volume_object(*b_data.ptr.data_as<::Main>(),
-                         *b_scene.ptr.data_as<::Scene>(),
-                         b_ob_info,
-                         scene,
-                         volume);
+      sync_volume_object(*b_data, *b_scene, b_ob_info, scene, volume);
     }
     else {
       /* Smoke domain. */
-      sync_smoke_volume(
-          *b_scene.ptr.data_as<::Scene>(), scene, b_ob_info, volume, b_scene.frame_current());
+      sync_smoke_volume(*b_scene, scene, b_ob_info, volume, b_scene->r.cfra);
     }
   }
 

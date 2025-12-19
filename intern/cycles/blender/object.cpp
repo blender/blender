@@ -43,7 +43,7 @@ bool BlenderSync::BKE_object_is_modified(::Object &b_ob)
     return true;
   }
   const int settings = preview ? eModifierMode_Realtime : eModifierMode_Render;
-  if ((::BKE_object_is_modified(b_scene.ptr.data_as<::Scene>(), &b_ob) & settings) != 0) {
+  if ((::BKE_object_is_modified(b_scene, &b_ob) & settings) != 0) {
     /* modifiers */
     return true;
   }
@@ -478,7 +478,7 @@ void BlenderSync::sync_objects(::Depsgraph &b_depsgraph,
   }
 
   /* initialize culling */
-  BlenderObjectCulling culling(scene, b_scene);
+  BlenderObjectCulling culling(scene, *b_scene);
 
   /* object loop */
   bool cancel = false;
@@ -487,7 +487,7 @@ void BlenderSync::sync_objects(::Depsgraph &b_depsgraph,
 
   ::ViewLayer &b_view_layer = *DEG_get_evaluated_view_layer(&b_depsgraph);
 
-  BKE_view_layer_synced_ensure(b_scene.ptr.data_as<::Scene>(), &b_view_layer);
+  BKE_view_layer_synced_ensure(b_scene, &b_view_layer);
 
   ::DEGObjectIterSettings deg_iter_settings{};
   deg_iter_settings.depsgraph = &b_depsgraph;
@@ -590,8 +590,8 @@ void BlenderSync::sync_motion(::RenderData &b_render,
   /* get camera object here to deal with camera switch */
   ::Object *b_cam = get_camera_object(b_v3d, b_rv3d);
 
-  const int frame_center = b_scene.frame_current();
-  const float subframe_center = b_scene.frame_subframe();
+  const int frame_center = b_scene->r.cfra;
+  const float subframe_center = b_scene->r.subframe;
   float frame_center_delta = 0.0f;
 
   if (scene->need_motion() != Scene::MOTION_PASS &&

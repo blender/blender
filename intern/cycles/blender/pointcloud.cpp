@@ -197,10 +197,9 @@ void BlenderSync::sync_pointcloud(PointCloud *pointcloud, BObjectInfo &b_ob_info
   const ::PointCloud *b_pointcloud = blender::id_cast<::PointCloud *>(b_ob_info.object_data);
   /* Motion blur attribute is relative to seconds, we need it relative to frames. */
   const bool need_motion = object_need_motion_attribute(b_ob_info, scene);
-  const float motion_scale = (need_motion) ?
-                                 scene->motion_shutter_time() /
-                                     (b_scene.render().fps() / b_scene.render().fps_base()) :
-                                 0.0f;
+  const float motion_scale = (need_motion) ? scene->motion_shutter_time() /
+                                                 (b_scene->r.frs_sec / b_scene->r.frs_sec_base) :
+                                             0.0f;
   export_pointcloud(scene, &new_pointcloud, *b_pointcloud, need_motion, motion_scale);
 
   pointcloud->clear_non_sockets();
@@ -231,7 +230,7 @@ void BlenderSync::sync_pointcloud_motion(PointCloud *pointcloud,
   }
 
   /* Export deformed coordinates. */
-  if (ccl::BKE_object_is_deform_modified(b_ob_info, *b_scene.ptr.data_as<::Scene>(), preview)) {
+  if (ccl::BKE_object_is_deform_modified(b_ob_info, *b_scene, preview)) {
     /* PointCloud object. */
     const ::PointCloud *b_pointcloud = blender::id_cast<::PointCloud *>(b_ob_info.object_data);
     export_pointcloud_motion(pointcloud, *b_pointcloud, motion_step);

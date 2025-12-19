@@ -920,7 +920,7 @@ void BlenderSync::sync_mesh(BObjectInfo &b_ob_info, Mesh *mesh)
       const bool need_motion = object_need_motion_attribute(b_ob_info, scene);
       const float motion_scale = (need_motion) ?
                                      scene->motion_shutter_time() /
-                                         (b_scene.render().fps() / b_scene.render().fps_base()) :
+                                         (b_scene->r.frs_sec / b_scene->r.frs_sec_base) :
                                      0.0f;
 
       /* Sync mesh itself. */
@@ -987,7 +987,7 @@ void BlenderSync::sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, const int
   /* Skip objects without deforming modifiers. this is not totally reliable,
    * would need a more extensive check to see which objects are animated. */
   const ::Mesh *b_mesh = nullptr;
-  if (ccl::BKE_object_is_deform_modified(b_ob_info, *b_scene.ptr.data_as<::Scene>(), preview)) {
+  if (ccl::BKE_object_is_deform_modified(b_ob_info, *b_scene, preview)) {
     /* get derived mesh */
     b_mesh = object_to_mesh(b_ob_info);
   }

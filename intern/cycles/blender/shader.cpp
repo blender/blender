@@ -1554,12 +1554,7 @@ void BlenderSync::sync_materials(::Depsgraph &b_depsgraph, bool update_all)
 
       /* create nodes */
       if (b_mat.nodetree) {
-        add_nodes(scene,
-                  *b_engine,
-                  *b_data.ptr.data_as<::Main>(),
-                  *b_scene.ptr.data_as<::Scene>(),
-                  graph.get(),
-                  *b_mat.nodetree);
+        add_nodes(scene, *b_engine, *b_data, *b_scene, graph.get(), *b_mat.nodetree);
       }
       else {
         DiffuseBsdfNode *diffuse = graph->create_node<DiffuseBsdfNode>();
@@ -1626,10 +1621,10 @@ void BlenderSync::sync_world(::Depsgraph &b_depsgraph,
 {
   Background *background = scene->background;
   Integrator *integrator = scene->integrator;
-  PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+  PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene->id);
+  PointerRNA cscene = RNA_pointer_get(&scene_rna_ptr, "cycles");
 
-  ::World *b_world = view_layer.world_override ? view_layer.world_override :
-                                                 b_scene.ptr.data_as<::Scene>()->world;
+  ::World *b_world = view_layer.world_override ? view_layer.world_override : b_scene->world;
 
   const BlenderViewportParameters new_viewport_parameters(b_screen, b_v3d, use_developer_ui);
 
@@ -1643,12 +1638,7 @@ void BlenderSync::sync_world(::Depsgraph &b_depsgraph,
 
     /* create nodes */
     if (new_viewport_parameters.use_scene_world && b_world && b_world->nodetree) {
-      add_nodes(scene,
-                *b_engine,
-                *b_data.ptr.data_as<::Main>(),
-                *b_scene.ptr.data_as<::Scene>(),
-                graph.get(),
-                *b_world->nodetree);
+      add_nodes(scene, *b_engine, *b_data, *b_scene, graph.get(), *b_world->nodetree);
 
       /* volume */
       PointerRNA world_rna_ptr = RNA_id_pointer_create(&b_world->id);
@@ -1762,7 +1752,7 @@ void BlenderSync::sync_world(::Depsgraph &b_depsgraph,
     integrator->set_ao_distance(10.0f);
   }
 
-  background->set_transparent(b_scene.render().film_transparent());
+  background->set_transparent((b_scene->r.alphamode & R_ALPHAPREMUL) != 0);
 
   if (background->get_transparent()) {
     background->set_transparent_glass(get_boolean(cscene, "film_transparent_glass"));
@@ -1810,12 +1800,7 @@ void BlenderSync::sync_lights(::Depsgraph &b_depsgraph, bool update_all)
       if (b_light.nodetree) {
         shader->name = BKE_id_name(b_light.id);
 
-        add_nodes(scene,
-                  *b_engine,
-                  *b_data.ptr.data_as<::Main>(),
-                  *b_scene.ptr.data_as<::Scene>(),
-                  graph.get(),
-                  *b_light.nodetree);
+        add_nodes(scene, *b_engine, *b_data, *b_scene, graph.get(), *b_light.nodetree);
       }
       else {
         EmissionNode *emission = graph->create_node<EmissionNode>();

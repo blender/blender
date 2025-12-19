@@ -684,7 +684,7 @@ void BlenderSync::sync_camera(const RenderData &b_render,
   const ::CurveMapping &b_shutter_curve = b_render.mblur_shutter_curve;
   curvemapping_to_array(b_shutter_curve, bcam.shutter_curve, RAMP_TABLE_SIZE);
 
-  PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene.ptr.data_as<::Scene>()->id);
+  PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene->id);
   PointerRNA cscene = RNA_pointer_get(&scene_rna_ptr, "cycles");
   bcam.rolling_shutter_type = (Camera::RollingShutterType)get_enum(
       cscene,
@@ -706,7 +706,7 @@ void BlenderSync::sync_camera(const RenderData &b_render,
 
   if (b_ob) {
     blender::float4x4 b_ob_matrix;
-    blender_camera_from_object(&bcam, *b_engine, *b_ob, *b_data.ptr.data_as<::Main>());
+    blender_camera_from_object(&bcam, *b_engine, *b_ob, *b_data);
     RE_engine_get_camera_model_matrix(
         b_engine, b_ob, bcam.use_spherical_stereo, b_ob_matrix.base_ptr());
     bcam.matrix = get_transform(b_ob_matrix);
@@ -724,7 +724,7 @@ void BlenderSync::sync_camera(const RenderData &b_render,
   b_ob = RNA_pointer_get(&cscene, "dicing_camera").data_as<::Object>();
   if (b_ob) {
     blender::float4x4 b_ob_matrix;
-    blender_camera_from_object(&bcam, *b_engine, *b_ob, *b_data.ptr.data_as<::Main>());
+    blender_camera_from_object(&bcam, *b_engine, *b_ob, *b_data);
     RE_engine_get_camera_model_matrix(
         b_engine, b_ob, bcam.use_spherical_stereo, b_ob_matrix.base_ptr());
     bcam.matrix = get_transform(b_ob_matrix);
@@ -760,12 +760,12 @@ static ::Object *camera_override_get(::RenderEngine *engine)
     return b_v3d->camera;
   }
 
-  return b_scene.ptr.data_as<::Scene>()->camera;
+  return b_scene->camera;
 }
 
 ::Object *BlenderSync::get_dicing_camera_object(::View3D *b_v3d, ::RegionView3D *b_rv3d)
 {
-  PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene.ptr.data_as<::Scene>()->id);
+  PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene->id);
   PointerRNA cscene = RNA_pointer_get(&scene_rna_ptr, "cycles");
   ::Object *b_ob = RNA_pointer_get(&cscene, "dicing_camera").data_as<::Object>();
   if (b_ob) {
@@ -812,7 +812,7 @@ void BlenderSync::sync_camera_motion(const ::RenderData &b_render,
     bcam.pixelaspect.x = b_render.xasp;
     bcam.pixelaspect.y = b_render.yasp;
 
-    blender_camera_from_object(&bcam, *b_engine, *b_ob, *b_data.ptr.data_as<::Main>());
+    blender_camera_from_object(&bcam, *b_engine, *b_ob, *b_data);
 
     BoundBox2D viewplane;
     float aspectratio;
@@ -1096,26 +1096,12 @@ void BlenderSync::sync_view(::View3D *b_v3d,
                             const int width,
                             const int height)
 {
-  const ::RenderData &b_render_settings = b_scene.ptr.data_as<::Scene>()->r;
+  const ::RenderData &b_render_settings = b_scene->r;
   BlenderCamera bcam(b_render_settings);
-  blender_camera_from_view(&bcam,
-                           *b_engine,
-                           *b_scene.ptr.data_as<::Scene>(),
-                           *b_data.ptr.data_as<::Main>(),
-                           b_v3d,
-                           b_rv3d,
-                           width,
-                           height);
-  blender_camera_border(&bcam,
-                        *b_engine,
-                        b_render_settings,
-                        *b_scene.ptr.data_as<::Scene>(),
-                        *b_data.ptr.data_as<::Main>(),
-                        b_v3d,
-                        b_rv3d,
-                        width,
-                        height);
-  PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene.ptr.data_as<::Scene>()->id);
+  blender_camera_from_view(&bcam, *b_engine, *b_scene, *b_data, b_v3d, b_rv3d, width, height);
+  blender_camera_border(
+      &bcam, *b_engine, b_render_settings, *b_scene, *b_data, b_v3d, b_rv3d, width, height);
+  PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene->id);
   PointerRNA cscene = RNA_pointer_get(&scene_rna_ptr, "cycles");
   blender_camera_sync(scene->camera, scene, &bcam, width, height, "", &cscene);
 
@@ -1123,7 +1109,7 @@ void BlenderSync::sync_view(::View3D *b_v3d,
   ::Object *b_ob = RNA_pointer_get(&cscene, "dicing_camera").data_as<::Object>();
   if (b_ob) {
     blender::float4x4 b_ob_matrix;
-    blender_camera_from_object(&bcam, *b_engine, *b_ob, *b_data.ptr.data_as<::Main>());
+    blender_camera_from_object(&bcam, *b_engine, *b_ob, *b_data);
     RE_engine_get_camera_model_matrix(
         b_engine, b_ob, bcam.use_spherical_stereo, b_ob_matrix.base_ptr());
     bcam.matrix = get_transform(b_ob_matrix);

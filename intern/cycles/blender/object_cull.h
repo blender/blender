@@ -13,7 +13,7 @@ class Scene;
 
 class BlenderObjectCulling {
  public:
-  BlenderObjectCulling(Scene *scene, BL::Scene &b_scene);
+  BlenderObjectCulling(Scene *scene, ::Scene &b_scene);
 
   void init_object(Scene *scene, ::Object &b_ob);
   bool test(Scene *scene, ::Object &b_ob, Transform &tfm);

@@ -1002,10 +1002,9 @@ void BlenderSync::sync_hair(Hair *hair, BObjectInfo &b_ob_info, bool motion, con
 {
   /* Motion blur attribute is relative to seconds, we need it relative to frames. */
   const bool need_motion = object_need_motion_attribute(b_ob_info, scene);
-  const float motion_scale = (need_motion) ?
-                                 scene->motion_shutter_time() /
-                                     (b_scene.render().fps() / b_scene.render().fps_base()) :
-                                 0.0f;
+  const float motion_scale = (need_motion) ? scene->motion_shutter_time() /
+                                                 (b_scene->r.frs_sec / b_scene->r.frs_sec_base) :
+                                             0.0f;
 
   /* Convert Blender hair to Cycles curves. */
   const blender::bke::CurvesGeometry &b_curves(
@@ -1083,7 +1082,7 @@ void BlenderSync::sync_hair_motion(BObjectInfo &b_ob_info, Hair *hair, const int
   }
 
   /* Export deformed coordinates. */
-  if (ccl::BKE_object_is_deform_modified(b_ob_info, *b_scene.ptr.data_as<::Scene>(), preview)) {
+  if (ccl::BKE_object_is_deform_modified(b_ob_info, *b_scene, preview)) {
     if (GS(b_ob_info.object_data->name) == ID_CV) {
       /* Hair object. */
       sync_hair(hair, b_ob_info, true, motion_step);

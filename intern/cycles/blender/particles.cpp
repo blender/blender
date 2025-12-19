@@ -11,6 +11,8 @@
 
 #include "DNA_particle_types.h"
 
+#include "BKE_scene.hh"
+
 #include "DEG_depsgraph_query.hh"
 
 CCL_NAMESPACE_BEGIN
@@ -67,7 +69,7 @@ bool BlenderSync::sync_dupli_particle(::Object &b_parent,
   Particle pa;
 
   pa.index = persistent_id[0];
-  pa.age = b_scene.frame_current_final() - b_pa.time;
+  pa.age = BKE_scene_frame_to_ctime(b_scene, b_scene->r.cfra) - b_pa.time;
   pa.lifetime = b_pa.lifetime;
   pa.location = make_float3(b_pa.state.co[0], b_pa.state.co[1], b_pa.state.co[2]);
   pa.rotation = make_float4(

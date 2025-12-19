@@ -848,11 +848,10 @@ static inline bool object_need_motion_attribute(BObjectInfo &b_ob_info, Scene *s
   return true;
 }
 
-static inline bool region_view3d_navigating_or_transforming(const BL::RegionView3D &b_rv3d)
+static inline bool region_view3d_navigating_or_transforming(const ::RegionView3D *b_rv3d)
 {
-  ::RegionView3D *rv3d = static_cast<::RegionView3D *>(b_rv3d.ptr.data);
-  return rv3d && ((rv3d->rflag & (RV3D_NAVIGATING | RV3D_PAINTING)) ||
-                  (G.moving & (G_TRANSFORM_OBJ | G_TRANSFORM_EDIT)));
+  return b_rv3d && ((b_rv3d->rflag & (RV3D_NAVIGATING | RV3D_PAINTING)) ||
+                    (G.moving & (G_TRANSFORM_OBJ | G_TRANSFORM_EDIT)));
 }
 
 class EdgeMap {

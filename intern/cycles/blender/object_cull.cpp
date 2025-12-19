@@ -13,7 +13,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-BlenderObjectCulling::BlenderObjectCulling(Scene *scene, BL::Scene &b_scene)
+BlenderObjectCulling::BlenderObjectCulling(Scene *scene, ::Scene &b_scene)
     : use_scene_camera_cull_(false),
       use_camera_cull_(false),
       camera_cull_margin_(0.0f),
@@ -21,15 +21,16 @@ BlenderObjectCulling::BlenderObjectCulling(Scene *scene, BL::Scene &b_scene)
       use_distance_cull_(false),
       distance_cull_margin_(0.0f)
 {
-  if (b_scene.render().use_simplify()) {
-    PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+  if ((b_scene.r.mode & R_SIMPLIFY) != 0) {
+    PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene.id);
+    PointerRNA cscene = RNA_pointer_get(&scene_rna_ptr, "cycles");
 
     const bool cam_supported = (scene->camera->get_camera_type() == CAMERA_PERSPECTIVE) ||
                                (scene->camera->get_camera_type() == CAMERA_ORTHOGRAPHIC);
 
-    use_scene_camera_cull_ = cam_supported && !b_scene.render().use_multiview() &&
+    use_scene_camera_cull_ = cam_supported && ((b_scene.r.scemode & R_MULTIVIEW) == 0) &&
                              get_boolean(cscene, "use_camera_cull");
-    use_scene_distance_cull_ = cam_supported && !b_scene.render().use_multiview() &&
+    use_scene_distance_cull_ = cam_supported && ((b_scene.r.scemode & R_MULTIVIEW) == 0) &&
                                get_boolean(cscene, "use_distance_cull");
 
     camera_cull_margin_ = get_float(cscene, "camera_cull_margin");

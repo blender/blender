@@ -552,16 +552,21 @@ static PyObject *denoise_func(PyObject * /*self*/, PyObject *args, PyObject *key
   BL::Scene b_scene(sceneptr);
 
   DeviceInfo preferences_device;
-  const DeviceInfo pathtrace_device = blender_device_info(
-      b_preferences, b_scene, true, true, preferences_device);
+  const DeviceInfo pathtrace_device = blender_device_info(*b_preferences.ptr.data_as<::UserDef>(),
+                                                          *b_scene.ptr.data_as<::Scene>(),
+                                                          true,
+                                                          true,
+                                                          preferences_device);
 
   /* Get denoising parameters from view layer. */
   const PointerRNA viewlayerptr = RNA_pointer_create_discrete(
       (ID *)PyLong_AsVoidPtr(pyscene), &RNA_ViewLayer, PyLong_AsVoidPtr(pyviewlayer));
   BL::ViewLayer b_view_layer(viewlayerptr);
 
-  DenoiseParams params = BlenderSync::get_denoise_params(
-      b_scene, b_view_layer, true, preferences_device);
+  DenoiseParams params = BlenderSync::get_denoise_params(*b_scene.ptr.data_as<::Scene>(),
+                                                         b_view_layer.ptr.data_as<::ViewLayer>(),
+                                                         true,
+                                                         preferences_device);
   params.use = true;
 
   /* Parse file paths list. */

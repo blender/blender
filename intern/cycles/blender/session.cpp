@@ -112,10 +112,14 @@ BlenderSession::~BlenderSession()
 void BlenderSession::create_session()
 {
   const SessionParams session_params = BlenderSync::get_session_params(
-      b_engine, b_userpref, b_scene, background);
+      *b_engine.ptr.data_as<::RenderEngine>(),
+      *b_userpref.ptr.data_as<::UserDef>(),
+      *b_scene.ptr.data_as<::Scene>(),
+      background);
   const SceneParams scene_params = BlenderSync::get_scene_params(
-      b_scene, background, use_developer_ui);
-  const bool session_pause = BlenderSync::get_session_pause(b_scene, background);
+      *b_scene.ptr.data_as<::Scene>(), background, use_developer_ui);
+  const bool session_pause = BlenderSync::get_session_pause(*b_scene.ptr.data_as<::Scene>(),
+                                                            background);
 
   /* reset status/progress */
   last_status = "";
@@ -134,8 +138,13 @@ void BlenderSession::create_session()
   scene->name = b_scene.name();
 
   /* create sync */
-  sync = make_unique<BlenderSync>(
-      b_engine, b_data, b_scene, scene, !background, use_developer_ui, session->progress);
+  sync = make_unique<BlenderSync>(*b_engine.ptr.data_as<::RenderEngine>(),
+                                  *b_data.ptr.data_as<::Main>(),
+                                  *b_scene.ptr.data_as<::Scene>(),
+                                  scene,
+                                  !background,
+                                  use_developer_ui,
+                                  session->progress);
   if (b_v3d) {
     sync->sync_view(
         b_v3d.ptr.data_as<::View3D>(), b_rv3d.ptr.data_as<::RegionView3D>(), width, height);
@@ -170,7 +179,7 @@ void BlenderSession::reset_session(BL::BlendData &b_data, BL::Depsgraph &b_depsg
   this->b_depsgraph = b_depsgraph;
   this->b_scene = b_depsgraph.scene_eval();
   if (sync) {
-    sync->reset(this->b_data, this->b_scene);
+    sync->reset(*this->b_data.ptr.data_as<::Main>(), *this->b_scene.ptr.data_as<::Scene>());
   }
 
   if (preview_osl) {
@@ -203,9 +212,12 @@ void BlenderSession::reset_session(BL::BlendData &b_data, BL::Depsgraph &b_depsg
   }
 
   const SessionParams session_params = BlenderSync::get_session_params(
-      b_engine, b_userpref, b_scene, background);
+      *b_engine.ptr.data_as<::RenderEngine>(),
+      *b_userpref.ptr.data_as<::UserDef>(),
+      *b_scene.ptr.data_as<::Scene>(),
+      background);
   const SceneParams scene_params = BlenderSync::get_scene_params(
-      b_scene, background, use_developer_ui);
+      *b_scene.ptr.data_as<::Scene>(), background, use_developer_ui);
 
   if (scene->params.modified(scene_params) || session->params.modified(session_params) ||
       !this->b_render.use_persistent_data())
@@ -229,12 +241,20 @@ void BlenderSession::reset_session(BL::BlendData &b_data, BL::Depsgraph &b_depsg
 
   if (is_new_session) {
     /* Sync object should be re-created for new scene. */
-    sync = make_unique<BlenderSync>(
-        b_engine, b_data, b_scene, scene, !background, use_developer_ui, session->progress);
+    sync = make_unique<BlenderSync>(*b_engine.ptr.data_as<::RenderEngine>(),
+                                    *b_data.ptr.data_as<::Main>(),
+                                    *b_scene.ptr.data_as<::Scene>(),
+                                    scene,
+                                    !background,
+                                    use_developer_ui,
+                                    session->progress);
   }
   else {
     /* Sync recalculations to do just the required updates. */
-    sync->sync_recalc(b_depsgraph, b_screen, b_v3d, b_rv3d);
+    sync->sync_recalc(*b_depsgraph.ptr.data_as<::Depsgraph>(),
+                      b_screen,
+                      b_v3d.ptr.data_as<::View3D>(),
+                      b_rv3d.ptr.data_as<::RegionView3D>());
   }
 
   sync->sync_camera(*b_render.ptr.data_as<::RenderData>(), width, height, "");
@@ -350,7 +370,10 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
 
   /* get buffer parameters */
   const SessionParams session_params = BlenderSync::get_session_params(
-      b_engine, b_userpref, b_scene, background);
+      *b_engine.ptr.data_as<::RenderEngine>(),
+      *b_userpref.ptr.data_as<::UserDef>(),
+      *b_scene.ptr.data_as<::Scene>(),
+      background);
   BufferParams buffer_params = BlenderSync::get_buffer_params(b_v3d.ptr.data_as<::View3D>(),
                                                               b_rv3d.ptr.data_as<::RegionView3D>(),
                                                               scene->camera,
@@ -372,7 +395,8 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
   }
 
   /* Compute render passes and film settings. */
-  sync->sync_render_passes(b_rlay, b_view_layer);
+  sync->sync_render_passes(*b_rlay.ptr.data_as<::RenderLayer>(),
+                           *b_view_layer.ptr.data_as<::ViewLayer>());
 
   BL::RenderResult::views_iterator b_view_iter;
 
@@ -401,11 +425,11 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
 
     /* update scene */
     sync->sync_camera(*b_render.ptr.data_as<::RenderData>(), width, height, b_rview_name.c_str());
-    sync->sync_data(b_render,
-                    b_depsgraph,
+    sync->sync_data(*b_render.ptr.data_as<::RenderData>(),
+                    *b_depsgraph.ptr.data_as<::Depsgraph>(),
                     b_screen,
-                    b_v3d,
-                    b_rv3d,
+                    b_v3d.ptr.data_as<::View3D>(),
+                    b_rv3d.ptr.data_as<::RegionView3D>(),
                     width,
                     height,
                     &python_thread_state,
@@ -416,7 +440,7 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
      */
     const bool can_free_cache = (view_index == num_views - 1);
     if (can_free_cache) {
-      sync->free_data_after_sync(b_depsgraph);
+      sync->free_data_after_sync(*b_depsgraph.ptr.data_as<::Depsgraph>());
     }
 
     builtin_images_load();
@@ -687,7 +711,10 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
 
   /* Get session parameters. */
   const SessionParams session_params = BlenderSync::get_session_params(
-      b_engine, b_userpref, b_scene, background);
+      *b_engine.ptr.data_as<::RenderEngine>(),
+      *b_userpref.ptr.data_as<::UserDef>(),
+      *b_scene.ptr.data_as<::Scene>(),
+      background);
 
   /* Initialize bake manager, before we load the baking kernels. */
   scene->bake_manager->set_baking(scene, true);
@@ -698,13 +725,13 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
   session->full_buffer_written_cb = [&](string_view filename) { full_buffer_written(filename); };
 
   /* Sync scene. */
-  sync->set_bake_target(b_object);
+  sync->set_bake_target(*b_object.ptr.data_as<::Object>());
   sync->sync_camera(*b_render.ptr.data_as<::RenderData>(), width, height, "");
-  sync->sync_data(b_render,
-                  b_depsgraph,
+  sync->sync_data(*b_render.ptr.data_as<::RenderData>(),
+                  *b_depsgraph.ptr.data_as<::Depsgraph>(),
                   b_screen,
-                  b_v3d,
-                  b_rv3d,
+                  b_v3d.ptr.data_as<::View3D>(),
+                  b_rv3d.ptr.data_as<::RegionView3D>(),
                   width,
                   height,
                   &python_thread_state,
@@ -788,10 +815,14 @@ void BlenderSession::synchronize(BL::Depsgraph &b_depsgraph_)
 
   /* on session/scene parameter changes, we recreate session entirely */
   const SessionParams session_params = BlenderSync::get_session_params(
-      b_engine, b_userpref, b_scene, background);
+      *b_engine.ptr.data_as<::RenderEngine>(),
+      *b_userpref.ptr.data_as<::UserDef>(),
+      *b_scene.ptr.data_as<::Scene>(),
+      background);
   const SceneParams scene_params = BlenderSync::get_scene_params(
-      b_scene, background, use_developer_ui);
-  const bool session_pause = BlenderSync::get_session_pause(b_scene, background);
+      *b_scene.ptr.data_as<::Scene>(), background, use_developer_ui);
+  const bool session_pause = BlenderSync::get_session_pause(*b_scene.ptr.data_as<::Scene>(),
+                                                            background);
 
   if (session->params.modified(session_params) || scene->params.modified(scene_params)) {
     free_session();
@@ -807,7 +838,10 @@ void BlenderSession::synchronize(BL::Depsgraph &b_depsgraph_)
 
   /* copy recalc flags, outside of mutex so we can decide to do the real
    * synchronization at a later time to not block on running updates */
-  sync->sync_recalc(b_depsgraph_, b_screen, b_v3d, b_rv3d);
+  sync->sync_recalc(*b_depsgraph_.ptr.data_as<::Depsgraph>(),
+                    b_screen,
+                    b_v3d.ptr.data_as<::View3D>(),
+                    b_rv3d.ptr.data_as<::RegionView3D>());
 
   /* don't do synchronization if on pause */
   if (session_pause) {
@@ -824,11 +858,11 @@ void BlenderSession::synchronize(BL::Depsgraph &b_depsgraph_)
   /* data and camera synchronize */
   b_depsgraph = b_depsgraph_;
 
-  sync->sync_data(b_render,
-                  b_depsgraph,
+  sync->sync_data(*b_render.ptr.data_as<::RenderData>(),
+                  *b_depsgraph.ptr.data_as<::Depsgraph>(),
                   b_screen,
-                  b_v3d,
-                  b_rv3d,
+                  b_v3d.ptr.data_as<::View3D>(),
+                  b_rv3d.ptr.data_as<::RegionView3D>(),
                   width,
                   height,
                   &python_thread_state,
@@ -911,7 +945,7 @@ void BlenderSession::draw(BL::SpaceImageEditor &space_image)
 void BlenderSession::view_draw(const int w, const int h)
 {
   /* pause in redraw in case update is not being called due to final render */
-  session->set_pause(BlenderSync::get_session_pause(b_scene, background));
+  session->set_pause(BlenderSync::get_session_pause(*b_scene.ptr.data_as<::Scene>(), background));
 
   /* before drawing, we verify camera and viewport size changes, because
    * we do not get update callbacks for those, we must detect them here */
@@ -957,14 +991,18 @@ void BlenderSession::view_draw(const int w, const int h)
     /* reset if requested */
     if (reset) {
       const SessionParams session_params = BlenderSync::get_session_params(
-          b_engine, b_userpref, b_scene, background);
+          *b_engine.ptr.data_as<::RenderEngine>(),
+          *b_userpref.ptr.data_as<::UserDef>(),
+          *b_scene.ptr.data_as<::Scene>(),
+          background);
       const BufferParams buffer_params = BlenderSync::get_buffer_params(
           b_v3d.ptr.data_as<::View3D>(),
           b_rv3d.ptr.data_as<::RegionView3D>(),
           scene->camera,
           width,
           height);
-      const bool session_pause = BlenderSync::get_session_pause(b_scene, background);
+      const bool session_pause = BlenderSync::get_session_pause(*b_scene.ptr.data_as<::Scene>(),
+                                                                background);
 
       if (session_pause == false) {
         session->reset(session_params, buffer_params);
