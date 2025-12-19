@@ -80,8 +80,8 @@ static bool rna_AssetMetaData_editable_from_owner_id(const ID *owner_id,
 
   if (r_info) {
     *r_info = N_(
-        "Asset metadata from external asset libraries cannot be edited, only assets stored in the "
-        "current file can");
+        "Asset metadata from external libraries cannot be edited. Only assets stored in the "
+        "current file can be edited.");
   }
   return false;
 }
