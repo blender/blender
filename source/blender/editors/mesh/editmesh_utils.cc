@@ -2082,3 +2082,21 @@ void EDBM_project_snap_verts(
 }
 
 /** \} */
+
+bool EDBM_smooth_vert(BMEditMesh *em, wmOperator *op)
+{
+  return EDBM_op_callf(em,
+                       op,
+                       "smooth_vert verts=%hv factor=%f mirror_clip_x=%b mirror_clip_y=%b "
+                       "mirror_clip_z=%b "
+                       "clip_dist=%f use_axis_x=%b use_axis_y=%b use_axis_z=%b",
+                       BM_ELEM_TAG,
+                       1.0,
+                       false,
+                       false,
+                       false,
+                       0.1,
+                       true,
+                       true,
+                       true);
+}

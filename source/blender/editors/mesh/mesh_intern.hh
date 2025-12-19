@@ -94,11 +94,6 @@ BMElem *EDBM_elem_from_index_any_multi(const Scene *scene,
                                        uint elem_index,
                                        Object **r_obedit);
 
-/**
- * Extrudes individual edges.
- */
-bool edbm_extrude_edges_indiv(BMEditMesh *em, wmOperator *op, char hflag, bool use_normal_flip);
-
 /* *** `editmesh_add.cc` *** */
 
 void MESH_OT_primitive_plane_add(wmOperatorType *ot);
@@ -297,12 +292,6 @@ void MESH_OT_average_normals(wmOperatorType *ot);
 void MESH_OT_smooth_normals(wmOperatorType *ot);
 void MESH_OT_mod_weighted_strength(wmOperatorType *ot);
 void MESH_OT_flip_quad_tessellation(wmOperatorType *ot);
-
-/* *** editmesh_mask_extract.cc *** */
-
-void SCULPT_OT_paint_mask_extract(wmOperatorType *ot);
-void SCULPT_OT_face_set_extract(wmOperatorType *ot);
-void SCULPT_OT_paint_mask_slice(wmOperatorType *ot);
 
 /** Called in `transform_ops.cc`, on each regeneration of key-maps. */
 wmKeyMap *point_normals_modal_keymap(wmKeyConfig *keyconf);

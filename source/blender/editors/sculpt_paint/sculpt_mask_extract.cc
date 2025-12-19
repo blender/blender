@@ -33,6 +33,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include "ED_mesh.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
 #include "ED_sculpt.hh"
@@ -42,7 +43,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "mesh_intern.hh" /* own include */
+namespace blender::ed::sculpt_paint {
 
 static bool geometry_extract_poll(bContext *C)
 {
@@ -124,7 +125,7 @@ static wmOperatorStatus geometry_extract_apply(bContext *C,
     BM_ITER_MESH (ed, &iter, bm, BM_EDGES_OF_MESH) {
       BM_elem_flag_set(ed, BM_ELEM_TAG, BM_edge_is_boundary(ed));
     }
-    edbm_extrude_edges_indiv(em, op, BM_ELEM_TAG, false);
+    EDBM_extrude_edges_indiv(em, op, BM_ELEM_TAG, false);
 
     for (int repeat = 0; repeat < params->num_smooth_iterations; repeat++) {
       BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
@@ -132,21 +133,7 @@ static wmOperatorStatus geometry_extract_apply(bContext *C,
         BM_elem_flag_set(v, BM_ELEM_TAG, !BM_vert_is_boundary(v));
       }
       for (int i = 0; i < 3; i++) {
-        if (!EDBM_op_callf(em,
-                           op,
-                           "smooth_vert verts=%hv factor=%f mirror_clip_x=%b mirror_clip_y=%b "
-                           "mirror_clip_z=%b "
-                           "clip_dist=%f use_axis_x=%b use_axis_y=%b use_axis_z=%b",
-                           BM_ELEM_TAG,
-                           1.0,
-                           false,
-                           false,
-                           false,
-                           0.1,
-                           true,
-                           true,
-                           true))
-        {
+        if (!EDBM_smooth_vert(em, op)) {
           continue;
         }
       }
@@ -156,21 +143,7 @@ static wmOperatorStatus geometry_extract_apply(bContext *C,
         BM_elem_flag_set(v, BM_ELEM_TAG, BM_vert_is_boundary(v));
       }
       for (int i = 0; i < 1; i++) {
-        if (!EDBM_op_callf(em,
-                           op,
-                           "smooth_vert verts=%hv factor=%f mirror_clip_x=%b mirror_clip_y=%b "
-                           "mirror_clip_z=%b "
-                           "clip_dist=%f use_axis_x=%b use_axis_y=%b use_axis_z=%b",
-                           BM_ELEM_TAG,
-                           0.5,
-                           false,
-                           false,
-                           false,
-                           0.1,
-                           true,
-                           true,
-                           true))
-        {
+        if (!EDBM_smooth_vert(em, op)) {
           continue;
         }
       }
@@ -585,3 +558,4 @@ void SCULPT_OT_paint_mask_slice(wmOperatorType *ot)
                          "Create a new object from the sliced mask");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
+}  // namespace blender::ed::sculpt_paint

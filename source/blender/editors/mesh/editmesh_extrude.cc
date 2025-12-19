@@ -132,7 +132,7 @@ static bool edbm_extrude_discrete_faces(BMEditMesh *em, wmOperator *op, const ch
   return true;
 }
 
-bool edbm_extrude_edges_indiv(BMEditMesh *em,
+bool EDBM_extrude_edges_indiv(BMEditMesh *em,
                               wmOperator *op,
                               const char hflag,
                               const bool use_normal_flip)
@@ -412,7 +412,7 @@ static bool edbm_extrude_mesh(Object *obedit, BMEditMesh *em, wmOperator *op)
       changed = edbm_extrude_verts_indiv(em, op, BM_ELEM_SELECT);
       break;
     case EDGE_ONLY:
-      changed = edbm_extrude_edges_indiv(em, op, BM_ELEM_SELECT, use_normal_flip);
+      changed = EDBM_extrude_edges_indiv(em, op, BM_ELEM_SELECT, use_normal_flip);
       break;
   }
 
@@ -595,7 +595,7 @@ static wmOperatorStatus edbm_extrude_edges_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    edbm_extrude_edges_indiv(em, op, BM_ELEM_SELECT, use_normal_flip);
+    EDBM_extrude_edges_indiv(em, op, BM_ELEM_SELECT, use_normal_flip);
 
     EDBMUpdate_Params params{};
     params.calc_looptris = true;

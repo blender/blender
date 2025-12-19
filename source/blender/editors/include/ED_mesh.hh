@@ -430,6 +430,12 @@ void EDBM_preselect_elem_update_preview(
 void EDBM_preselect_action_set(EditMesh_PreSelElem *psel, eEditMesh_PreSelPreviewAction action);
 eEditMesh_PreSelPreviewAction EDBM_preselect_action_get(EditMesh_PreSelElem *psel);
 
+/**
+ * Extrudes individual edges.
+ */
+bool EDBM_extrude_edges_indiv(BMEditMesh *em, wmOperator *op, char hflag, bool use_normal_flip);
+bool EDBM_smooth_vert(BMEditMesh *em, wmOperator *op);
+
 /* `mesh_ops.cc` */
 
 void ED_operatortypes_mesh();
