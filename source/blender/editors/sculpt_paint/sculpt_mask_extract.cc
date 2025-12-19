@@ -43,6 +43,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "sculpt_intern.hh"
+
 namespace blender::ed::sculpt_paint {
 
 static bool geometry_extract_poll(bContext *C)
