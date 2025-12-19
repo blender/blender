@@ -1944,6 +1944,8 @@ void BKE_color_managed_view_settings_init(ColorManagedViewSettings *view_setting
   view_settings->flag = 0;
   view_settings->gamma = 1.0f;
   view_settings->exposure = 0.0f;
+  view_settings->temperature = 6500.0f;
+  view_settings->tint = 10.0f;
   view_settings->curve_mapping = nullptr;
 
   IMB_colormanagement_validate_settings(display_settings, view_settings);
