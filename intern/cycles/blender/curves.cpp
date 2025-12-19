@@ -552,8 +552,8 @@ bool BlenderSync::object_has_particle_hair(::Object *b_ob)
   /* Test if the object has a particle modifier with hair. */
   LISTBASE_FOREACH (::ModifierData *, b_mod, &b_ob->modifiers) {
     if ((b_mod->type == eModifierType_ParticleSystem) &&
-        (preview ? ((b_mod->mode & eModifierMode_Render) != 0) :
-                   ((b_mod->mode & eModifierMode_Realtime) != 0)))
+        (preview ? ((b_mod->mode & eModifierMode_Realtime) != 0) :
+                   ((b_mod->mode & eModifierMode_Render) != 0)))
     {
       auto *psmd = reinterpret_cast<::ParticleSystemModifierData *>(b_mod);
       ::ParticleSystem *b_psys = psmd->psys;
