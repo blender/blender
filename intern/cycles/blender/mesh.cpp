@@ -33,7 +33,42 @@
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 
+#include "GEO_mesh_split_edges.hh"
+
 CCL_NAMESPACE_BEGIN
+
+void mesh_split_edges_for_corner_normals(::Mesh &mesh)
+{
+  using namespace blender;
+  const OffsetIndices polys = mesh.faces();
+  const Span<int> corner_edges = mesh.corner_edges();
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArray<bool> mesh_sharp_edges = *attributes.lookup_or_default<bool>(
+      "sharp_edge", bke::AttrDomain::Edge, false);
+  const VArraySpan<bool> sharp_faces = *attributes.lookup<bool>("sharp_face",
+                                                                bke::AttrDomain::Face);
+
+  Array<bool> sharp_edges(mesh.edges_num);
+  mesh_sharp_edges.materialize(sharp_edges);
+
+  threading::parallel_for(polys.index_range(), 1024, [&](const IndexRange range) {
+    for (const int face_i : range) {
+      if (!sharp_faces.is_empty() && sharp_faces[face_i]) {
+        for (const int edge : corner_edges.slice(polys[face_i])) {
+          sharp_edges[edge] = true;
+        }
+      }
+    }
+  });
+
+  IndexMaskMemory memory;
+  const IndexMask split_mask = IndexMask::from_bools(sharp_edges, memory);
+  if (split_mask.is_empty()) {
+    return;
+  }
+
+  geometry::split_edges(mesh, split_mask, {});
+}
 
 static void attr_create_motion_from_velocity(Mesh *mesh,
                                              const blender::Span<blender::float3> b_attr,
@@ -802,7 +837,7 @@ static void create_subd_mesh(Scene *scene,
                              const float dicing_rate,
                              const int max_subdivisions)
 {
-  const ::Object *b_ob = b_ob_info.real_object.ptr.data_as<::Object>();
+  const ::Object *b_ob = b_ob_info.real_object;
 
   const auto &subsurf_mod = *reinterpret_cast<const ::SubsurfModifierData *>(b_ob->modifiers.last);
 
@@ -876,8 +911,9 @@ void BlenderSync::sync_mesh(BObjectInfo &b_ob_info, Mesh *mesh)
   new_mesh.set_used_shaders(used_shaders);
 
   if (view_layer.use_surfaces) {
-    object_subdivision_to_mesh(b_ob_info.real_object, new_mesh, preview, use_adaptive_subdivision);
-    const ::Mesh *b_mesh = object_to_mesh(b_ob_info).ptr.data_as<::Mesh>();
+    object_subdivision_to_mesh(
+        *b_ob_info.real_object, new_mesh, preview, use_adaptive_subdivision);
+    const ::Mesh *b_mesh = object_to_mesh(b_ob_info);
 
     if (b_mesh) {
       /* Motion blur attribute is relative to seconds, we need it relative to frames. */
@@ -951,12 +987,12 @@ void BlenderSync::sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, const int
   /* Skip objects without deforming modifiers. this is not totally reliable,
    * would need a more extensive check to see which objects are animated. */
   const ::Mesh *b_mesh = nullptr;
-  if (ccl::BKE_object_is_deform_modified(b_ob_info, b_scene, preview)) {
+  if (ccl::BKE_object_is_deform_modified(b_ob_info, *b_scene.ptr.data_as<::Scene>(), preview)) {
     /* get derived mesh */
-    b_mesh = object_to_mesh(b_ob_info).ptr.data_as<::Mesh>();
+    b_mesh = object_to_mesh(b_ob_info);
   }
 
-  const std::string ob_name = b_ob_info.real_object.name();
+  const std::string ob_name = BKE_id_name(b_ob_info.real_object->id);
 
   /* TODO(sergey): Perform preliminary check for number of vertices. */
   if (b_mesh) {

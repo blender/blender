@@ -194,7 +194,7 @@ void BlenderSync::sync_pointcloud(PointCloud *pointcloud, BObjectInfo &b_ob_info
   new_pointcloud.set_used_shaders(used_shaders);
 
   /* TODO: add option to filter out points in the view layer. */
-  const ::PointCloud *b_pointcloud = b_ob_info.object_data.ptr.data_as<::PointCloud>();
+  const ::PointCloud *b_pointcloud = blender::id_cast<::PointCloud *>(b_ob_info.object_data);
   /* Motion blur attribute is relative to seconds, we need it relative to frames. */
   const bool need_motion = object_need_motion_attribute(b_ob_info, scene);
   const float motion_scale = (need_motion) ?
@@ -231,9 +231,9 @@ void BlenderSync::sync_pointcloud_motion(PointCloud *pointcloud,
   }
 
   /* Export deformed coordinates. */
-  if (ccl::BKE_object_is_deform_modified(b_ob_info, b_scene, preview)) {
+  if (ccl::BKE_object_is_deform_modified(b_ob_info, *b_scene.ptr.data_as<::Scene>(), preview)) {
     /* PointCloud object. */
-    const ::PointCloud *b_pointcloud = b_ob_info.object_data.ptr.data_as<::PointCloud>();
+    const ::PointCloud *b_pointcloud = blender::id_cast<::PointCloud *>(b_ob_info.object_data);
     export_pointcloud_motion(pointcloud, *b_pointcloud, motion_step);
   }
   else {

@@ -36,35 +36,32 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_types.hh"
 #include "BKE_mesh_wrapper.hh"
+#include "BKE_object.hh"
 
 CCL_NAMESPACE_BEGIN
 
-static inline BL::ID object_get_data(const BL::Object &b_ob, const bool use_adaptive_subdivision)
+static inline ::ID *object_get_data(const ::Object &b_ob, const bool use_adaptive_subdivision)
 {
-  ::Object *object = reinterpret_cast<::Object *>(b_ob.ptr.data);
-
-  if (!use_adaptive_subdivision && object->type == OB_MESH) {
-    ::Mesh *mesh = static_cast<::Mesh *>(object->data);
-    mesh = BKE_mesh_wrapper_ensure_subdivision(mesh);
-    return BL::ID(RNA_id_pointer_create(&mesh->id));
+  if (!use_adaptive_subdivision && b_ob.type == OB_MESH) {
+    return &BKE_mesh_wrapper_ensure_subdivision(static_cast<::Mesh *>(b_ob.data))->id;
   }
 
-  return BL::ID(RNA_id_pointer_create(reinterpret_cast<ID *>(object->data)));
+  return reinterpret_cast<ID *>(b_ob.data);
 }
 
 struct BObjectInfo {
   /* Object directly provided by the depsgraph iterator. This object is only valid during one
    * iteration and must not be accessed afterwards. Transforms and visibility should be checked on
    * this object. */
-  BL::Object iter_object;
+  ::Object *iter_object;
 
   /* This object remains alive even after the object iterator is done. It corresponds to one
    * original object. It is the object that owns the object data below. */
-  BL::Object real_object;
+  ::Object *real_object;
 
   /* The object-data referenced by the iter object. This is still valid after the depsgraph
    * iterator is done. It might have a different type compared to object_get_data(real_object). */
-  BL::ID object_data;
+  ::ID *object_data;
 
   /* Object will use adaptive subdivision. */
   bool use_adaptive_subdivision;
@@ -73,17 +70,15 @@ struct BObjectInfo {
    * geometry instance that does not have a 1-to-1 relationship with an object. */
   bool is_real_object_data() const
   {
-    return object_get_data(const_cast<BL::Object &>(real_object), use_adaptive_subdivision) ==
-           object_data;
+    return object_get_data(*real_object, use_adaptive_subdivision) == object_data;
   }
 };
 
-static inline BL::Mesh object_copy_mesh_data(const BObjectInfo &b_ob_info)
+static inline ::Mesh *object_copy_mesh_data(const BObjectInfo &b_ob_info)
 {
-  ::Object *object = static_cast<::Object *>(b_ob_info.real_object.ptr.data);
   ::Mesh *mesh = BKE_mesh_new_from_object(
-      nullptr, object, false, false, !b_ob_info.use_adaptive_subdivision);
-  return BL::Mesh(RNA_id_pointer_create(&mesh->id));
+      nullptr, b_ob_info.real_object, false, false, !b_ob_info.use_adaptive_subdivision);
+  return mesh;
 }
 
 int blender_attribute_name_split_type(ustring name, string *r_real_name);
@@ -91,23 +86,25 @@ int blender_attribute_name_split_type(ustring name, string *r_real_name);
 void python_thread_state_save(void **python_thread_state);
 void python_thread_state_restore(void **python_thread_state);
 
-static bool mesh_use_corner_normals(const BObjectInfo &b_ob_info, BL::Mesh &mesh)
+static bool mesh_use_corner_normals(const BObjectInfo &b_ob_info, ::Mesh *mesh)
 {
   return mesh && !b_ob_info.use_adaptive_subdivision &&
-         (static_cast<const ::Mesh *>(mesh.ptr.data)->normals_domain(true) ==
-          blender::bke::MeshNormalDomain::Corner);
+         (mesh->normals_domain(true) == blender::bke::MeshNormalDomain::Corner);
 }
 
-static inline BL::Mesh object_to_mesh(BObjectInfo &b_ob_info)
+void mesh_split_edges_for_corner_normals(::Mesh &mesh);
+
+static inline ::Mesh *object_to_mesh(BObjectInfo &b_ob_info)
 {
-  BL::Mesh mesh = (b_ob_info.object_data.is_a(&RNA_Mesh)) ? BL::Mesh(b_ob_info.object_data) :
-                                                            BL::Mesh(PointerRNA_NULL);
+  ::Mesh *mesh = (GS(b_ob_info.object_data->name) == ID_ME) ?
+                     blender::id_cast<::Mesh *>(b_ob_info.object_data) :
+                     nullptr;
 
   bool use_corner_normals = false;
 
   if (b_ob_info.is_real_object_data()) {
     if (mesh) {
-      if (mesh.is_editmode()) {
+      if (mesh->runtime->edit_mesh) {
         /* Flush edit-mesh to mesh, including all data layers. */
         mesh = object_copy_mesh_data(b_ob_info);
         use_corner_normals = mesh_use_corner_normals(b_ob_info, mesh);
@@ -130,11 +127,11 @@ static inline BL::Mesh object_to_mesh(BObjectInfo &b_ob_info)
 
   if (mesh) {
     if (use_corner_normals) {
-      mesh.split_faces();
+      mesh_split_edges_for_corner_normals(*mesh);
     }
 
     if (b_ob_info.use_adaptive_subdivision) {
-      mesh.calc_loop_triangles();
+      mesh->corner_tris();
     }
   }
 
@@ -147,8 +144,8 @@ static inline void free_object_to_mesh(BObjectInfo &b_ob_info, ::Mesh &mesh)
     return;
   }
   /* Free mesh if we didn't just use the existing one. */
-  BL::Object object = b_ob_info.real_object;
-  if (object_get_data(object, b_ob_info.use_adaptive_subdivision).ptr.data != &mesh) {
+  ::Object *object = b_ob_info.real_object;
+  if (object_get_data(*object, b_ob_info.use_adaptive_subdivision) != &mesh.id) {
     BKE_id_free(nullptr, &mesh.id);
   }
 }
@@ -299,12 +296,7 @@ static inline void curvemapping_color_to_array(const ::CurveMapping &cumap,
   }
 }
 
-static inline bool BKE_object_is_modified(BL::Object &self, BL::Scene &scene, bool preview)
-{
-  return self.is_modified(scene, (preview) ? (1 << 0) : (1 << 1)) ? true : false;
-}
-
-static inline bool BKE_object_is_deform_modified(BObjectInfo &self, BL::Scene &scene, bool preview)
+static inline bool BKE_object_is_deform_modified(BObjectInfo &self, ::Scene &scene, bool preview)
 {
   if (!self.is_real_object_data()) {
     /* Comes from geometry nodes, can't use heuristic to guess if it's animated. */
@@ -312,8 +304,8 @@ static inline bool BKE_object_is_deform_modified(BObjectInfo &self, BL::Scene &s
   }
 
   /* Use heuristic to quickly check if object is potentially animated. */
-  return self.real_object.is_deform_modified(scene, (preview) ? (1 << 0) : (1 << 1)) ? true :
-                                                                                       false;
+  const int settings = preview ? eModifierMode_Realtime : eModifierMode_Render;
+  return (::BKE_object_is_deform_modified(&scene, self.real_object) & settings) != 0;
 }
 
 static inline int render_resolution_x(const ::RenderData &b_render)
@@ -648,17 +640,19 @@ static inline uint object_motion_steps(::Object &b_parent,
 }
 
 /* object uses deformation motion blur */
-static inline bool object_use_deform_motion(BL::Object &b_parent, BL::Object &b_ob)
+static inline bool object_use_deform_motion(::Object &b_parent, ::Object &b_ob)
 {
-  PointerRNA cobject = RNA_pointer_get(&b_ob.ptr, "cycles");
+  PointerRNA b_ob_rna_ptr = RNA_id_pointer_create(&b_ob.id);
+  PointerRNA cobject = RNA_pointer_get(&b_ob_rna_ptr, "cycles");
   bool use_deform_motion = get_boolean(cobject, "use_deform_motion");
   /* If motion blur is enabled for the object we also check
    * whether it's enabled for the parent object as well.
    *
    * This way we can control motion blur from the dupli-group
    * duplicator much easier. */
-  if (use_deform_motion && b_parent.ptr.data != b_ob.ptr.data) {
-    PointerRNA parent_cobject = RNA_pointer_get(&b_parent.ptr, "cycles");
+  if (use_deform_motion && &b_parent != &b_ob) {
+    PointerRNA b_parent_rna_ptr = RNA_id_pointer_create(&b_parent.id);
+    PointerRNA parent_cobject = RNA_pointer_get(&b_parent_rna_ptr, "cycles");
     use_deform_motion &= get_boolean(parent_cobject, "use_deform_motion");
   }
   return use_deform_motion;
@@ -708,24 +702,27 @@ static inline BL::MeshSequenceCacheModifier object_mesh_cache_find(BL::Object &b
   return BL::MeshSequenceCacheModifier(PointerRNA_NULL);
 }
 
-static BL::SubsurfModifier object_subdivision_modifier(BL::Object &b_ob, const bool preview)
+static ::SubsurfModifierData *object_subdivision_modifier(::Object &b_ob, const bool preview)
 {
-  if (!b_ob.modifiers.empty()) {
-    BL::Modifier mod = b_ob.modifiers[b_ob.modifiers.length() - 1];
-    const bool enabled = preview ? mod.show_viewport() : mod.show_render();
-
-    if (enabled && mod.type() == BL::Modifier::type_SUBSURF) {
-      BL::SubsurfModifier subsurf(mod);
-      if (subsurf.use_adaptive_subdivision()) {
-        return subsurf;
-      }
-    }
+  ModifierData *md = static_cast<ModifierData *>(b_ob.modifiers.last);
+  if (!md) {
+    return nullptr;
   }
-
-  return PointerRNA_NULL;
+  if (md->type != eModifierType_Subsurf) {
+    return nullptr;
+  }
+  const ModifierMode enabled_mode = preview ? eModifierMode_Render : eModifierMode_Realtime;
+  if ((md->mode & enabled_mode) == 0) {
+    return nullptr;
+  }
+  SubsurfModifierData *subsurf = reinterpret_cast<SubsurfModifierData *>(md);
+  if ((subsurf->flags & eSubsurfModifierFlag_UseAdaptiveSubdivision) == 0) {
+    return nullptr;
+  }
+  return subsurf;
 }
 
-static inline Mesh::SubdivisionType object_subdivision_type(BL::Object &b_ob,
+static inline Mesh::SubdivisionType object_subdivision_type(::Object &b_ob,
                                                             const bool preview,
                                                             const bool use_adaptive_subdivision)
 {
@@ -733,10 +730,10 @@ static inline Mesh::SubdivisionType object_subdivision_type(BL::Object &b_ob,
     return Mesh::SUBDIVISION_NONE;
   }
 
-  BL::SubsurfModifier subsurf = object_subdivision_modifier(b_ob, preview);
+  ::SubsurfModifierData *subsurf = object_subdivision_modifier(b_ob, preview);
 
   if (subsurf) {
-    if (subsurf.subdivision_type() == BL::SubsurfModifier::subdivision_type_CATMULL_CLARK) {
+    if (subsurf->subdivType == SUBSURF_TYPE_CATMULL_CLARK) {
       return Mesh::SUBDIVISION_CATMULL_CLARK;
     }
     return Mesh::SUBDIVISION_LINEAR;
@@ -745,7 +742,7 @@ static inline Mesh::SubdivisionType object_subdivision_type(BL::Object &b_ob,
   return Mesh::SUBDIVISION_NONE;
 }
 
-static inline void object_subdivision_to_mesh(BL::Object &b_ob,
+static inline void object_subdivision_to_mesh(::Object &b_ob,
                                               Mesh &mesh,
                                               const bool preview,
                                               const bool use_adaptive_subdivision)
@@ -755,61 +752,63 @@ static inline void object_subdivision_to_mesh(BL::Object &b_ob,
     return;
   }
 
-  BL::SubsurfModifier subsurf = object_subdivision_modifier(b_ob, preview);
+  ::SubsurfModifierData *subsurf = object_subdivision_modifier(b_ob, preview);
 
   if (!subsurf) {
     mesh.set_subdivision_type(Mesh::SUBDIVISION_NONE);
     return;
   }
 
-  if (subsurf.subdivision_type() != BL::SubsurfModifier::subdivision_type_CATMULL_CLARK) {
+  if (subsurf->subdivType != SUBSURF_TYPE_CATMULL_CLARK) {
     mesh.set_subdivision_type(Mesh::SUBDIVISION_LINEAR);
     return;
   }
 
   mesh.set_subdivision_type(Mesh::SUBDIVISION_CATMULL_CLARK);
 
-  switch (subsurf.boundary_smooth()) {
-    case BL::SubsurfModifier::boundary_smooth_PRESERVE_CORNERS:
+  switch (subsurf->boundary_smooth) {
+    case SUBSURF_BOUNDARY_SMOOTH_PRESERVE_CORNERS:
       mesh.set_subdivision_boundary_interpolation(Mesh::SUBDIVISION_BOUNDARY_EDGE_AND_CORNER);
       break;
-    case BL::SubsurfModifier::boundary_smooth_ALL:
+    case SUBSURF_BOUNDARY_SMOOTH_ALL:
       mesh.set_subdivision_boundary_interpolation(Mesh::SUBDIVISION_BOUNDARY_EDGE_ONLY);
       break;
   }
 
-  switch (subsurf.uv_smooth()) {
-    case BL::SubsurfModifier::uv_smooth_NONE:
+  switch (subsurf->uv_smooth) {
+    case SUBSURF_UV_SMOOTH_NONE:
       mesh.set_subdivision_fvar_interpolation(Mesh::SUBDIVISION_FVAR_LINEAR_ALL);
       break;
-    case BL::SubsurfModifier::uv_smooth_PRESERVE_CORNERS:
+    case SUBSURF_UV_SMOOTH_PRESERVE_CORNERS:
       mesh.set_subdivision_fvar_interpolation(Mesh::SUBDIVISION_FVAR_LINEAR_CORNERS_ONLY);
       break;
-    case BL::SubsurfModifier::uv_smooth_PRESERVE_CORNERS_AND_JUNCTIONS:
+    case SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_AND_JUNCTIONS:
       mesh.set_subdivision_fvar_interpolation(Mesh::SUBDIVISION_FVAR_LINEAR_CORNERS_PLUS1);
       break;
-    case BL::SubsurfModifier::uv_smooth_PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE:
+    case SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE:
       mesh.set_subdivision_fvar_interpolation(Mesh::SUBDIVISION_FVAR_LINEAR_CORNERS_PLUS2);
       break;
-    case BL::SubsurfModifier::uv_smooth_PRESERVE_BOUNDARIES:
+    case SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES:
       mesh.set_subdivision_fvar_interpolation(Mesh::SUBDIVISION_FVAR_LINEAR_BOUNDARIES);
       break;
-    case BL::SubsurfModifier::uv_smooth_SMOOTH_ALL:
+    case SUBSURF_UV_SMOOTH_ALL:
       mesh.set_subdivision_fvar_interpolation(Mesh::SUBDIVISION_FVAR_LINEAR_NONE);
       break;
   }
 }
 
-static inline uint object_ray_visibility(BL::Object &b_ob)
+static inline uint object_ray_visibility(::Object &b_ob)
 {
   uint flag = 0;
 
-  flag |= b_ob.visible_camera() ? PATH_RAY_CAMERA : PathRayFlag(0);
-  flag |= b_ob.visible_diffuse() ? PATH_RAY_DIFFUSE : PathRayFlag(0);
-  flag |= b_ob.visible_glossy() ? PATH_RAY_GLOSSY : PathRayFlag(0);
-  flag |= b_ob.visible_transmission() ? PATH_RAY_TRANSMIT : PathRayFlag(0);
-  flag |= b_ob.visible_shadow() ? PATH_RAY_SHADOW : PathRayFlag(0);
-  flag |= b_ob.visible_volume_scatter() ? PATH_RAY_VOLUME_SCATTER : PathRayFlag(0);
+  flag |= ((b_ob.visibility_flag & OB_HIDE_CAMERA) == 0) ? PATH_RAY_CAMERA : PathRayFlag(0);
+  flag |= ((b_ob.visibility_flag & OB_HIDE_DIFFUSE) == 0) ? PATH_RAY_DIFFUSE : PathRayFlag(0);
+  flag |= ((b_ob.visibility_flag & OB_HIDE_GLOSSY) == 0) ? PATH_RAY_GLOSSY : PathRayFlag(0);
+  flag |= ((b_ob.visibility_flag & OB_HIDE_TRANSMISSION) == 0) ? PATH_RAY_TRANSMIT :
+                                                                 PathRayFlag(0);
+  flag |= ((b_ob.visibility_flag & OB_HIDE_SHADOW) == 0) ? PATH_RAY_SHADOW : PathRayFlag(0);
+  flag |= ((b_ob.visibility_flag & OB_HIDE_VOLUME_SCATTER) == 0) ? PATH_RAY_VOLUME_SCATTER :
+                                                                   PathRayFlag(0);
 
   return flag;
 }
@@ -836,7 +835,8 @@ static inline bool object_need_motion_attribute(BObjectInfo &b_ob_info, Scene *s
      * - Motion attribute expects non-zero time steps.
      *
      * Avoid adding motion attributes if the motion blur will enforce 0 motion steps. */
-    PointerRNA cobject = RNA_pointer_get(&b_ob_info.real_object.ptr, "cycles");
+    PointerRNA b_ob_rna_ptr = RNA_id_pointer_create(&b_ob_info.real_object->id);
+    PointerRNA cobject = RNA_pointer_get(&b_ob_rna_ptr, "cycles");
     const bool use_motion = get_boolean(cobject, "use_motion_blur");
     if (!use_motion) {
       return false;

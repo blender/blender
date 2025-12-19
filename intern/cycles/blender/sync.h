@@ -17,6 +17,8 @@
 #include "util/map.h"
 #include "util/set.h"
 
+struct DEGObjectIterData;
+
 CCL_NAMESPACE_BEGIN
 
 class Background;
@@ -108,15 +110,15 @@ class BlenderSync {
   /* sync */
   void sync_lights(::Depsgraph &b_depsgraph, bool update_all);
   void sync_materials(::Depsgraph &b_depsgraph, bool update_all);
-  void sync_objects(BL::Depsgraph &b_depsgraph,
+  void sync_objects(::Depsgraph &b_depsgraph,
                     ::bScreen *b_screen,
-                    BL::SpaceView3D &b_v3d,
+                    ::View3D *b_v3d,
                     const float motion_time = 0.0f);
-  void sync_motion(BL::RenderSettings &b_render,
-                   BL::Depsgraph &b_depsgraph,
+  void sync_motion(::RenderData &b_render,
+                   ::Depsgraph &b_depsgraph,
                    ::bScreen *b_screen,
-                   BL::SpaceView3D &b_v3d,
-                   BL::RegionView3D &b_rv3d,
+                   ::View3D *b_v3d,
+                   ::RegionView3D *b_rv3d,
                    const int width,
                    const int height,
                    void **python_thread_state);
@@ -136,20 +138,23 @@ class BlenderSync {
   void resolve_view_layer_attributes(Shader *shader, ShaderGraph *graph, ::Depsgraph &b_depsgraph);
 
   /* Object */
-  Object *sync_object(BL::ViewLayer &b_view_layer,
-                      BL::DepsgraphObjectInstance &b_instance,
+  Object *sync_object(::ViewLayer &b_view_layer,
+                      ::Object &b_ob,
+                      ::DEGObjectIterData &b_deg_iter_data,
                       const float motion_time,
                       bool use_particle_hair,
                       bool show_lights,
                       BlenderObjectCulling &culling,
                       TaskPool *geom_task_pool);
-  void sync_object_motion_init(BL::Object &b_parent, BL::Object &b_ob, Object *object);
+  void sync_object_motion_init(::Object &b_parent, ::Object &b_ob, Object *object);
 
   void sync_procedural(BL::Object &b_ob,
                        BL::MeshSequenceCacheModifier &b_mesh_cache,
                        bool has_subdivision);
 
-  bool sync_object_attributes(BL::DepsgraphObjectInstance &b_instance, Object *object);
+  bool sync_object_attributes(::Object &b_ob,
+                              ::DEGObjectIterData &b_deg_iter_data,
+                              Object *object);
 
   /* Volume */
   void sync_volume(BObjectInfo &b_ob_info, Volume *volume);
@@ -199,8 +204,9 @@ class BlenderSync {
   void sync_background_light(::bScreen *b_screen, ::View3D *b_v3d);
 
   /* Particles */
-  bool sync_dupli_particle(BL::Object &b_ob,
-                           BL::DepsgraphObjectInstance &b_instance,
+  bool sync_dupli_particle(::Object &b_parent,
+                           ::DEGObjectIterData &b_deg_iter_data,
+                           ::Object &b_ob,
                            Object *object);
 
   /* Images. */
@@ -208,11 +214,11 @@ class BlenderSync {
 
   /* util */
   void find_shader(const ::ID *id, array<Node *> &used_shaders, Shader *default_shader);
-  bool BKE_object_is_modified(BL::Object &b_ob);
+  bool BKE_object_is_modified(::Object &b_ob);
   bool object_is_geometry(BObjectInfo &b_ob_info);
-  bool object_can_have_geometry(BL::Object &b_ob);
-  bool object_is_light(BL::Object &b_ob);
-  bool object_is_camera(BL::Object &b_ob);
+  bool object_can_have_geometry(::Object &b_ob);
+  bool object_is_light(::Object &b_ob);
+  bool object_is_camera(::Object &b_ob);
 
   ::Object *get_camera_object(::View3D *b_v3d, ::RegionView3D *b_rv3d);
   ::Object *get_dicing_camera_object(::View3D *b_v3d, ::RegionView3D *b_rv3d);
@@ -234,7 +240,7 @@ class BlenderSync {
   set<Geometry *> geometry_motion_synced;
   set<Geometry *> geometry_motion_attribute_synced;
   /** Remember which geometries come from which objects to be able to sync them after changes. */
-  map<void *, set<BL::ID>> instance_geometries_by_object;
+  map<void *, set<::ID *>> instance_geometries_by_object;
   set<float> motion_times;
   void *world_map;
   bool world_recalc;

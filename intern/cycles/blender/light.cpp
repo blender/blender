@@ -15,7 +15,7 @@ CCL_NAMESPACE_BEGIN
 
 void BlenderSync::sync_light(BObjectInfo &b_ob_info, Light *light)
 {
-  ::Light &b_light = *static_cast<::Light *>(b_ob_info.object_data.ptr.data);
+  ::Light &b_light = *blender::id_cast<::Light *>(b_ob_info.object_data);
 
   light->name = b_light.id.name + 2;
 

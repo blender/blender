@@ -6,6 +6,8 @@
 
 #include "scene/camera.h"
 
+#include "BLI_bounds.hh"
+
 #include "blender/object_cull.h"
 #include "blender/util.h"
 
@@ -39,13 +41,14 @@ BlenderObjectCulling::BlenderObjectCulling(Scene *scene, BL::Scene &b_scene)
   }
 }
 
-void BlenderObjectCulling::init_object(Scene *scene, BL::Object &b_ob)
+void BlenderObjectCulling::init_object(Scene *scene, ::Object &b_ob)
 {
   if (!use_scene_camera_cull_ && !use_scene_distance_cull_) {
     return;
   }
 
-  PointerRNA cobject = RNA_pointer_get(&b_ob.ptr, "cycles");
+  PointerRNA b_ob_rna_ptr = RNA_id_pointer_create(&b_ob.id);
+  PointerRNA cobject = RNA_pointer_get(&b_ob_rna_ptr, "cycles");
 
   use_camera_cull_ = use_scene_camera_cull_ && get_boolean(cobject, "use_camera_cull");
   use_distance_cull_ = use_scene_distance_cull_ && get_boolean(cobject, "use_distance_cull");
@@ -56,7 +59,7 @@ void BlenderObjectCulling::init_object(Scene *scene, BL::Object &b_ob)
   }
 }
 
-bool BlenderObjectCulling::test(Scene *scene, BL::Object &b_ob, Transform &tfm)
+bool BlenderObjectCulling::test(Scene *scene, ::Object &b_ob, Transform &tfm)
 {
   if (!use_camera_cull_ && !use_distance_cull_) {
     return false;
@@ -64,9 +67,17 @@ bool BlenderObjectCulling::test(Scene *scene, BL::Object &b_ob, Transform &tfm)
 
   /* Compute world space bounding box corners. */
   float3 bb[8];
-  BL::Array<float, 24> boundbox = b_ob.bound_box();
+  std::array<blender::float3, 8> boundbox;
+  if (const std::optional<blender::Bounds<blender::float3>> bounds =
+          BKE_object_boundbox_eval_cached_get(&b_ob))
+  {
+    boundbox = blender::bounds::corners(*bounds);
+  }
+  else {
+    boundbox.fill(blender::float3(0));
+  }
   for (int i = 0; i < 8; ++i) {
-    const float3 p = make_float3(boundbox[3 * i + 0], boundbox[3 * i + 1], boundbox[3 * i + 2]);
+    const float3 p = make_float3(boundbox[i].x, boundbox[i].y, boundbox[i].z);
     bb[i] = transform_point(&tfm, p);
   }
 

@@ -129,8 +129,8 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph,
     /* Object */
     else if (b_id.is_a(&RNA_Object)) {
       BL::Object b_ob(b_id);
-      const bool can_have_geometry = object_can_have_geometry(b_ob);
-      const bool is_light = !can_have_geometry && object_is_light(b_ob);
+      const bool can_have_geometry = object_can_have_geometry(*b_ob.ptr.data_as<::Object>());
+      const bool is_light = !can_have_geometry && object_is_light(*b_ob.ptr.data_as<::Object>());
 
       if (b_ob.is_instancer() && b_update.is_updated_shading()) {
         /* Needed for object color updates on instancer, among other things. */
@@ -147,23 +147,24 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph,
             object_map.set_recalc(b_ob);
           }
 
-          const bool use_adaptive_subdiv = object_subdivision_type(
-                                               b_ob, preview, use_adaptive_subdivision) !=
+          const bool use_adaptive_subdiv = object_subdivision_type(*b_ob.ptr.data_as<::Object>(),
+                                                                   preview,
+                                                                   use_adaptive_subdivision) !=
                                            Mesh::SUBDIVISION_NONE;
 
           /* Need to recompute geometry if the geometry changed, or the transform changed
            * and using adaptive subdivision. */
           if (updated_geometry || (updated_transform && use_adaptive_subdiv)) {
-            BL::ID const key = BKE_object_is_modified(b_ob) ?
-                                   b_ob :
-                                   object_get_data(b_ob, use_adaptive_subdiv);
+            ::ID *key = BKE_object_is_modified(*b_ob.ptr.data_as<::Object>()) ?
+                            &b_ob.ptr.data_as<::Object>()->id :
+                            object_get_data(*b_ob.ptr.data_as<::Object>(), use_adaptive_subdiv);
             geometry_map.set_recalc(key);
 
             /* Sync all contained geometry instances as well when the object changed.. */
-            const map<void *, set<BL::ID>>::const_iterator instance_geometries =
+            const map<void *, set<::ID *>>::const_iterator instance_geometries =
                 instance_geometries_by_object.find(b_ob.ptr.data);
             if (instance_geometries != instance_geometries_by_object.end()) {
-              for (BL::ID const &geometry : instance_geometries->second) {
+              for (::ID *geometry : instance_geometries->second) {
                 geometry_map.set_recalc(geometry);
               }
             }
@@ -190,7 +191,7 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph,
           }
         }
       }
-      else if (object_is_camera(b_ob)) {
+      else if (object_is_camera(*b_ob.ptr.data_as<::Object>())) {
         shader_map.set_recalc(b_ob);
       }
 
@@ -320,9 +321,16 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
   if (scene->need_motion() == Scene::MOTION_PASS || scene->need_motion() == Scene::MOTION_NONE ||
       scene->camera->get_motion_position() == MOTION_POSITION_CENTER)
   {
-    sync_objects(b_depsgraph, b_screen, b_v3d);
+    sync_objects(*b_depsgraph.ptr.data_as<::Depsgraph>(), b_screen, b_v3d.ptr.data_as<::View3D>());
   }
-  sync_motion(b_render, b_depsgraph, b_screen, b_v3d, b_rv3d, width, height, python_thread_state);
+  sync_motion(*b_render.ptr.data_as<::RenderData>(),
+              *b_depsgraph.ptr.data_as<::Depsgraph>(),
+              b_screen,
+              b_v3d.ptr.data_as<::View3D>(),
+              b_rv3d.ptr.data_as<::RegionView3D>(),
+              width,
+              height,
+              python_thread_state);
 
   geometry_synced.clear();
 

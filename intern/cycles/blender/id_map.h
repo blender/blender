@@ -220,7 +220,10 @@ struct ObjectKey {
   void *ob;
   bool use_particle_hair;
 
-  ObjectKey(void *parent_, int id_[OBJECT_PERSISTENT_ID_SIZE], void *ob_, bool use_particle_hair_)
+  ObjectKey(void *parent_,
+            const int id_[OBJECT_PERSISTENT_ID_SIZE],
+            void *ob_,
+            bool use_particle_hair_)
       : parent(parent_), ob(ob_), use_particle_hair(use_particle_hair_)
   {
     if (id_) {
@@ -286,7 +289,7 @@ struct ParticleSystemKey {
   void *ob;
   int id[OBJECT_PERSISTENT_ID_SIZE];
 
-  ParticleSystemKey(void *ob_, int id_[OBJECT_PERSISTENT_ID_SIZE]) : ob(ob_)
+  ParticleSystemKey(void *ob_, const int id_[OBJECT_PERSISTENT_ID_SIZE]) : ob(ob_)
   {
     if (id_) {
       memcpy(id, id_, sizeof(id));
