@@ -5063,12 +5063,6 @@ static wmOperatorStatus edbm_fill_grid_exec(bContext *C, wmOperator *op)
       params.is_destructive = true;
       EDBM_update(static_cast<Mesh *>(obedit->data), &params);
     }
-    else {
-      /* NOTE: Even if there were no mesh changes, #EDBM_op_finish() changed the BMesh pointer
-       * inside of edit mesh, so need to tell evaluated objects to sync new BMesh pointer to their
-       * edit mesh structures. */
-      DEG_id_tag_update(&obedit->id, 0);
-    }
   }
 
   return OPERATOR_FINISHED;
