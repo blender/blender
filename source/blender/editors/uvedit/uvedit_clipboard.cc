@@ -353,7 +353,7 @@ static wmOperatorStatus uv_paste_exec(bContext *C, wmOperator *op)
     if (changed) {
       changed_multi = true;
 
-      DEG_id_tag_update(static_cast<ID *>(ob->data), 0);
+      DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_GEOMETRY);
       WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
     }
   }
