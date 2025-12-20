@@ -413,7 +413,7 @@ static void text_update_edited(bContext *C, Object *obedit, const eEditFontMode 
   /* Run update first since it can move the cursor. */
   if (mode == FO_EDIT) {
     /* Re-tessellate. */
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), 0);
+    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_GEOMETRY);
   }
   else {
     /* Depsgraph runs above, but since we're not tagging for update, call directly. */
@@ -998,7 +998,7 @@ static wmOperatorStatus set_style(bContext *C, const int style, const bool clear
     }
   }
 
-  DEG_id_tag_update(static_cast<ID *>(obedit->data), 0);
+  DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
   return OPERATOR_FINISHED;
@@ -2188,7 +2188,7 @@ static wmOperatorStatus textbox_add_exec(bContext *C, wmOperator * /*op*/)
     cu->totbox++;
   }
 
-  DEG_id_tag_update(static_cast<ID *>(obedit->data), 0);
+  DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_GEOMETRY_ALL_MODES);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
   return OPERATOR_FINISHED;
 }
@@ -2231,7 +2231,7 @@ static wmOperatorStatus textbox_remove_exec(bContext *C, wmOperator *op)
     }
   }
 
-  DEG_id_tag_update(static_cast<ID *>(obedit->data), 0);
+  DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_GEOMETRY_ALL_MODES);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
   return OPERATOR_FINISHED;
