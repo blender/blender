@@ -34,19 +34,40 @@
 
 #include "BLI_function_ref.hh"
 #include "BLI_implicit_sharing.hh"
+#include "BLI_map.hh"
 #include "BLI_memory_utils.hh"
 
 namespace blender {
 class ImplicitSharingInfo;
 }
-struct BlendDataReader;
 struct BlendFileReadReport;
 struct BlendLibReader;
-struct BlendWriter;
 struct ID;
 struct ListBase;
 struct Main;
+struct WriteData;
+struct FileData;
 enum eReportType : uint16_t;
+
+struct BlendWriter {
+  WriteData *wd = nullptr;
+};
+
+struct BlendDataReader {
+  /** Pointer to private #FileData in readfile.cc. */
+  FileData *fd = nullptr;
+
+  /**
+   * The key is the old address id referencing shared data that's written to a file, typically an
+   * array. The corresponding value is the shared data at run-time.
+   */
+  blender::Map<uint64_t, blender::ImplicitSharingInfoAndData> shared_data_by_stored_address;
+};
+
+struct BlendLibReader {
+  FileData *fd;
+  Main *main;
+};
 
 /* -------------------------------------------------------------------- */
 /** \name Blend Write API

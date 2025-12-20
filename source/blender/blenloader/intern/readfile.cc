@@ -576,21 +576,6 @@ void blo_readfile_invalidate(FileData *fd, Main *bmain, const char *message)
 /** \name File Parsing
  * \{ */
 
-struct BlendDataReader {
-  FileData *fd;
-
-  /**
-   * The key is the old address id referencing shared data that's written to a file, typically an
-   * array. The corresponding value is the shared data at run-time.
-   */
-  blender::Map<uint64_t, blender::ImplicitSharingInfoAndData> shared_data_by_stored_address;
-};
-
-struct BlendLibReader {
-  FileData *fd;
-  Main *main;
-};
-
 static BHeadN *get_bhead(FileData *fd)
 {
   BHeadN *new_bhead = nullptr;
