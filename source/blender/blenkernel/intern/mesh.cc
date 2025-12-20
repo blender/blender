@@ -914,12 +914,6 @@ void mesh_apply_spatial_organization(Mesh &mesh)
   }
   corner_verts.copy_from(new_corner_verts);
 
-  MutableSpan<int> face_offsets = mesh.face_offsets_for_write();
-  Vector<int> face_sizes(new_face_order.size());
-  gather_group_sizes(old_faces, new_face_order, face_sizes);
-  face_offsets.take_front(face_sizes.size()).copy_from(face_sizes);
-  offset_indices::accumulate_counts_to_offsets(face_offsets);
-
   MutableAttributeAccessor attributes_for_write = mesh.attributes_for_write();
   attributes_for_write.foreach_attribute([&](const bke::AttributeIter &iter) {
     if (iter.domain == bke::AttrDomain::Face) {
@@ -956,6 +950,12 @@ void mesh_apply_spatial_organization(Mesh &mesh)
       attribute.finish();
     }
   });
+
+  Vector<int> face_sizes(new_face_order.size());
+  gather_group_sizes(old_faces, new_face_order, face_sizes);
+  MutableSpan<int> face_offsets = mesh.face_offsets_for_write();
+  face_offsets.take_front(face_sizes.size()).copy_from(face_sizes);
+  offset_indices::accumulate_counts_to_offsets(face_offsets);
 
   for (NonContiguousGroup &local_group : local_groups) {
     for (int &vert_idx : local_group.unique_verts) {
