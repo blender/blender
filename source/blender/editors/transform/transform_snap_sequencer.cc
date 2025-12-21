@@ -44,6 +44,7 @@
 namespace blender::ed::transform {
 
 struct TransSeqSnapData {
+  /* The second `float` is only considered for preview snapping and ignored in timeline snaps. */
   Vector<float2> source_snap_points;
   Vector<float2> target_snap_points;
 
@@ -298,6 +299,12 @@ static void points_build_targets_timeline(const Scene *scene,
   if (snap_mode & SEQ_SNAP_TO_FRAME_RANGE) {
     snap_data->target_snap_points.append(float2(PSFRA));
     snap_data->target_snap_points.append(float2(PEFRA + 1));
+    /* Also snap to metastrip display range if we are in a metastrip. */
+    MetaStack *ms = seq::meta_stack_active_get(seq::editing_get(scene));
+    if (ms != nullptr) {
+      snap_data->target_snap_points.append(float2(ms->disp_range[0]));
+      snap_data->target_snap_points.append(float2(ms->disp_range[1]));
+    }
   }
 
   for (Strip *strip : strip_targets) {
