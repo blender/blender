@@ -24,10 +24,11 @@ CCL_NAMESPACE_BEGIN
  * BlenderDisplayShader.
  */
 
-unique_ptr<BlenderDisplayShader> BlenderDisplayShader::create(BL::RenderEngine &b_engine,
-                                                              BL::Scene &b_scene)
+unique_ptr<BlenderDisplayShader> BlenderDisplayShader::create(::RenderEngine &b_engine,
+                                                              ::Scene &b_scene)
 {
-  if (b_engine.support_display_space_shader(b_scene)) {
+  /* See #engine_support_display_space_shader in rna_render.cc. */
+  if (true) {
     return make_unique<BlenderDisplaySpaceShader>(b_engine, b_scene);
   }
 
@@ -140,22 +141,22 @@ void BlenderFallbackDisplayShader::destroy_shader()
  * BlenderDisplaySpaceShader.
  */
 
-BlenderDisplaySpaceShader::BlenderDisplaySpaceShader(BL::RenderEngine &b_engine,
-                                                     BL::Scene &b_scene)
+BlenderDisplaySpaceShader::BlenderDisplaySpaceShader(::RenderEngine &b_engine, ::Scene &b_scene)
     : b_engine_(b_engine), b_scene_(b_scene)
 {
-  DCHECK(b_engine_.support_display_space_shader(b_scene_));
 }
 
 blender::gpu::Shader *BlenderDisplaySpaceShader::bind(int /*width*/, int /*height*/)
 {
-  b_engine_.bind_display_space_shader(b_scene_);
+  blender::gpu::Shader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE);
+  GPU_shader_bind(shader);
+  /** \note "image" binding slot is 0. */
   return GPU_shader_get_bound();
 }
 
 void BlenderDisplaySpaceShader::unbind()
 {
-  b_engine_.unbind_display_space_shader();
+  GPU_shader_unbind();
 }
 
 blender::gpu::Shader *BlenderDisplaySpaceShader::get_shader_program()
@@ -447,8 +448,8 @@ struct BlenderDisplayDriver::Tiles {
   } finished_tiles;
 };
 
-BlenderDisplayDriver::BlenderDisplayDriver(BL::RenderEngine &b_engine,
-                                           BL::Scene &b_scene,
+BlenderDisplayDriver::BlenderDisplayDriver(::RenderEngine &b_engine,
+                                           ::Scene &b_scene,
                                            const bool background)
     : b_engine_(b_engine),
       background_(background),
@@ -882,7 +883,7 @@ void BlenderDisplayDriver::draw(const Params &params)
 
 void BlenderDisplayDriver::gpu_context_create()
 {
-  if (!RE_engine_gpu_context_create(reinterpret_cast<RenderEngine *>(b_engine_.ptr.data))) {
+  if (!RE_engine_gpu_context_create(&b_engine_)) {
     LOG_ERROR << "Error creating GPU context.";
     return;
   }
@@ -896,27 +897,27 @@ void BlenderDisplayDriver::gpu_context_create()
 
 bool BlenderDisplayDriver::gpu_context_enable()
 {
-  return RE_engine_gpu_context_enable(reinterpret_cast<RenderEngine *>(b_engine_.ptr.data));
+  return RE_engine_gpu_context_enable(&b_engine_);
 }
 
 void BlenderDisplayDriver::gpu_context_disable()
 {
-  RE_engine_gpu_context_disable(reinterpret_cast<RenderEngine *>(b_engine_.ptr.data));
+  RE_engine_gpu_context_disable(&b_engine_);
 }
 
 void BlenderDisplayDriver::gpu_context_destroy()
 {
-  RE_engine_gpu_context_destroy(reinterpret_cast<RenderEngine *>(b_engine_.ptr.data));
+  RE_engine_gpu_context_destroy(&b_engine_);
 }
 
 void BlenderDisplayDriver::gpu_context_lock()
 {
-  RE_engine_gpu_context_lock(reinterpret_cast<RenderEngine *>(b_engine_.ptr.data));
+  RE_engine_gpu_context_lock(&b_engine_);
 }
 
 void BlenderDisplayDriver::gpu_context_unlock()
 {
-  RE_engine_gpu_context_unlock(reinterpret_cast<RenderEngine *>(b_engine_.ptr.data));
+  RE_engine_gpu_context_unlock(&b_engine_);
 }
 
 bool BlenderDisplayDriver::gpu_resources_create()

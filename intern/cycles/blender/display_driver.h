@@ -27,7 +27,7 @@ class BlenderDisplayShader {
   static constexpr const char *tex_coord_attribute_name = "texCoord";
 
   /* Create shader implementation suitable for the given render engine and scene configuration. */
-  static unique_ptr<BlenderDisplayShader> create(BL::RenderEngine &b_engine, BL::Scene &b_scene);
+  static unique_ptr<BlenderDisplayShader> create(::RenderEngine &b_engine, ::Scene &b_scene);
 
   BlenderDisplayShader() = default;
   virtual ~BlenderDisplayShader() = default;
@@ -76,7 +76,7 @@ class BlenderFallbackDisplayShader : public BlenderDisplayShader {
 
 class BlenderDisplaySpaceShader : public BlenderDisplayShader {
  public:
-  BlenderDisplaySpaceShader(BL::RenderEngine &b_engine, BL::Scene &b_scene);
+  BlenderDisplaySpaceShader(::RenderEngine &b_engine, ::Scene &b_scene);
 
   blender::gpu::Shader *bind(const int width, const int height) override;
   void unbind() override;
@@ -84,8 +84,8 @@ class BlenderDisplaySpaceShader : public BlenderDisplayShader {
  protected:
   blender::gpu::Shader *get_shader_program() override;
 
-  BL::RenderEngine b_engine_;
-  BL::Scene &b_scene_;
+  ::RenderEngine &b_engine_;
+  ::Scene &b_scene_;
 
   /* Cached values of various OpenGL resources. */
   blender::gpu::Shader *shader_program_ = nullptr;
@@ -94,7 +94,7 @@ class BlenderDisplaySpaceShader : public BlenderDisplayShader {
 /* Display driver implementation which is specific for Blender viewport integration. */
 class BlenderDisplayDriver : public DisplayDriver {
  public:
-  BlenderDisplayDriver(BL::RenderEngine &b_engine, BL::Scene &b_scene, const bool background);
+  BlenderDisplayDriver(::RenderEngine &b_engine, ::Scene &b_scene, const bool background);
   ~BlenderDisplayDriver() override;
 
   void graphics_interop_activate() override;
@@ -136,7 +136,7 @@ class BlenderDisplayDriver : public DisplayDriver {
   /* Destroy all GPU resources which are being used by this object. */
   void gpu_resources_destroy();
 
-  BL::RenderEngine b_engine_;
+  ::RenderEngine &b_engine_;
   bool background_;
 
   /* Content of the display is to be filled with zeroes. */
