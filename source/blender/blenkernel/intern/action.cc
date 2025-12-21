@@ -2114,7 +2114,7 @@ void BKE_pose_blend_write(BlendWriter *writer, bPose *pose)
   if (pose->ikparam) {
     const char *structname = BKE_pose_ikparam_get_name(pose);
     if (structname) {
-      BLO_write_struct_by_name(writer, structname, pose->ikparam);
+      writer->write_struct_by_name(structname, pose->ikparam);
     }
   }
 

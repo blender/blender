@@ -65,7 +65,7 @@ static void sound_equalizermodifier_write(BlendWriter *writer, const StripModifi
   const SoundEqualizerModifierData *semd = reinterpret_cast<const SoundEqualizerModifierData *>(
       smd);
   LISTBASE_FOREACH (EQCurveMappingData *, eqcmd, &semd->graphics) {
-    BLO_write_struct_by_name(writer, "EQCurveMappingData", eqcmd);
+    writer->write_struct_by_name("EQCurveMappingData", eqcmd);
     BKE_curvemapping_blend_write(writer, &eqcmd->curve_mapping);
   }
 }

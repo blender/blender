@@ -6731,7 +6731,7 @@ void BKE_constraint_blend_write(BlendWriter *writer, ListBase *conlist)
     /* Write the specific data */
     if (cti && con->data) {
       /* firstly, just write the plain con->data struct */
-      BLO_write_struct_by_name(writer, cti->struct_name, con->data);
+      writer->write_struct_by_name(cti->struct_name, con->data);
 
       /* do any constraint specific stuff */
       switch (con->type) {

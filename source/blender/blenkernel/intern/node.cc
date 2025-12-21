@@ -1177,7 +1177,7 @@ static void node_blend_write_storage(BlendWriter *writer, bNodeTree *ntree, bNod
 
   const bNodeType *ntype = node->typeinfo;
   if (!ntype->storagename.empty()) {
-    BLO_write_struct_by_name(writer, ntype->storagename.c_str(), node->storage);
+    writer->write_struct_by_name(ntype->storagename.c_str(), node->storage);
   }
   if (ntype->blend_write_storage_content) {
     ntype->blend_write_storage_content(*ntree, *node, *writer);

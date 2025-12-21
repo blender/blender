@@ -268,7 +268,7 @@ void BKE_shaderfx_blend_write(BlendWriter *writer, ListBase *fxbase)
       return;
     }
 
-    BLO_write_struct_by_name(writer, fxi->struct_name, fx);
+    writer->write_struct_by_name(fxi->struct_name, fx);
   }
 }
 

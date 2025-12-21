@@ -606,7 +606,7 @@ void modifier_blend_write(BlendWriter *writer, ListBase *modbase)
     const StripModifierTypeInfo *smti = modifier_type_info_get(smd->type);
 
     if (smti) {
-      BLO_write_struct_by_name(writer, smti->struct_name, smd);
+      writer->write_struct_by_name(smti->struct_name, smd);
       if (smti->blend_write) {
         smti->blend_write(writer, smd);
       }

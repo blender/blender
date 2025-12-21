@@ -1130,7 +1130,7 @@ void BKE_modifier_blend_write(BlendWriter *writer, const ID *id_owner, ListBase 
       continue;
     }
 
-    BLO_write_struct_by_name(writer, mti->struct_name, md);
+    writer->write_struct_by_name(mti->struct_name, md);
 
     if (md->type == eModifierType_Cloth) {
       ClothModifierData *clmd = (ClothModifierData *)md;
