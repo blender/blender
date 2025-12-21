@@ -2169,7 +2169,7 @@ void BlendWriter::write_struct_array_by_name(const char *struct_name,
     CLOG_ERROR(&LOG, "Can't find SDNA code <%s>", struct_name);
     return;
   }
-  BLO_write_struct_array_by_id(this, struct_id, array_size, data);
+  this->write_struct_array_by_id(struct_id, array_size, data);
 }
 
 void BlendWriter::write_struct_by_id(const int struct_id, const void *data)
@@ -2192,12 +2192,11 @@ void BlendWriter::write_struct_at_address_by_id_with_filecode(const int filecode
   writestruct_at_address_nr(this->wd, filecode, struct_id, 1, address, data);
 }
 
-void BLO_write_struct_array_by_id(BlendWriter *writer,
-                                  const int struct_id,
-                                  const int64_t array_size,
-                                  const void *data_ptr)
+void BlendWriter::write_struct_array_by_id(const int struct_id,
+                                           const int64_t array_size,
+                                           const void *data)
 {
-  writestruct_nr(writer->wd, BLO_CODE_DATA, struct_id, array_size, data_ptr);
+  writestruct_nr(this->wd, BLO_CODE_DATA, struct_id, array_size, data);
 }
 
 void BLO_write_struct_array_at_address_by_id(BlendWriter *writer,
