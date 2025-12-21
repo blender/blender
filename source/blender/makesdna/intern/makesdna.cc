@@ -650,6 +650,7 @@ static int preprocess_include(char *maindata, const int maindata_len)
   int newlen = 0;
   bool skip_until_closing_brace = false;
   int square_bracket_level = 0;
+  int angle_bracket_level = 0;
   for (char *cp = temp; cp < temp + maindata_len; cp++) {
     if (cp[0] == '[') {
       square_bracket_level++;
@@ -696,6 +697,20 @@ static int preprocess_include(char *maindata, const int maindata_len)
       else {
         const int skip_offset = end_ptr - cp + strlen(cpp_block_end);
         cp += skip_offset;
+      }
+    }
+    /* Assume that type names ending with `T<` are templated types of legacy types. This is used to
+     * treat `ListBaseT<Type>` as `ListBase` in SDNA. */
+    else if (cp[0] == 'T' && cp[1] == '<') {
+      angle_bracket_level = 1;
+      cp++;
+    }
+    else if (angle_bracket_level >= 1) {
+      if (cp[0] == '<') {
+        angle_bracket_level++;
+      }
+      else if (cp[0] == '>') {
+        angle_bracket_level--;
       }
     }
     else {

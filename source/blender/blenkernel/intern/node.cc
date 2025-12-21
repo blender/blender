@@ -176,12 +176,12 @@ static void ntree_copy_data(Main * /*bmain*/,
 
   /* copy links */
   BLI_listbase_clear(&ntree_dst->links);
-  LISTBASE_FOREACH (const bNodeLink *, src_link, &ntree_src->links) {
-    bNodeLink *dst_link = static_cast<bNodeLink *>(MEM_dupallocN(src_link));
-    dst_link->fromnode = dst_runtime.nodes_by_id.lookup_key_as(src_link->fromnode->identifier);
-    dst_link->fromsock = socket_map.lookup(src_link->fromsock);
-    dst_link->tonode = dst_runtime.nodes_by_id.lookup_key_as(src_link->tonode->identifier);
-    dst_link->tosock = socket_map.lookup(src_link->tosock);
+  for (const bNodeLink &src_link : ntree_src->links) {
+    bNodeLink *dst_link = static_cast<bNodeLink *>(MEM_dupallocN(&src_link));
+    dst_link->fromnode = dst_runtime.nodes_by_id.lookup_key_as(src_link.fromnode->identifier);
+    dst_link->fromsock = socket_map.lookup(src_link.fromsock);
+    dst_link->tonode = dst_runtime.nodes_by_id.lookup_key_as(src_link.tonode->identifier);
+    dst_link->tosock = socket_map.lookup(src_link.tosock);
     BLI_assert(dst_link->tosock);
     dst_link->tosock->link = dst_link;
     BLI_addtail(&ntree_dst->links, dst_link);
@@ -399,11 +399,11 @@ void node_node_foreach_id(bNode *node, LibraryForeachIDData *data)
       IDP_foreach_property(node->system_properties, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
         BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
       }));
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, library_foreach_node_socket(sock, data));
+  for (bNodeSocket &sock : node->inputs) {
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, library_foreach_node_socket(&sock, data));
   }
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, library_foreach_node_socket(sock, data));
+  for (bNodeSocket &sock : node->outputs) {
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, library_foreach_node_socket(&sock, data));
   }
 
   /* Note that this ID pointer is only a cache, it may be outdated. */
@@ -1249,11 +1249,11 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
       forward_compat::initialize_legacy_socket_storage(*node);
     }
 
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-      write_node_socket(writer, sock);
+    for (bNodeSocket &sock : node->inputs) {
+      write_node_socket(writer, &sock);
     }
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-      write_node_socket(writer, sock);
+    for (bNodeSocket &sock : node->outputs) {
+      write_node_socket(writer, &sock);
     }
     BLO_write_struct_array(
         writer, bNodePanelState, node->num_panel_states, node->panel_states_array);
@@ -1270,8 +1270,8 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
     }
   }
 
-  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-    BLO_write_struct(writer, bNodeLink, link);
+  for (const bNodeLink &link : ntree->links) {
+    BLO_write_struct(writer, bNodeLink, &link);
   }
 
   ntree->tree_interface.write(writer);

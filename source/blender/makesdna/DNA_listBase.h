@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include "BLI_listbase_iterator.hh"
+
 /** Generic - all structs which are put into linked lists begin with this. */
 struct Link {
   struct Link *next, *prev;
@@ -32,5 +34,37 @@ struct LinkData {
 struct ListBase {
   void *first, *last;
 };
+
+#ifdef __cplusplus
+
+/**
+ * This is a thin wrapper around #ListBase to make it type-safe. It's designed to be used in DNA
+ * structs. It is written as untyped #ListBase in .blend files for compatibility.
+ */
+template<typename T> struct ListBaseT : public ListBase {
+  ListBaseTIterator<const T> begin() const
+  {
+    return ListBaseTIterator<const T>{static_cast<const T *>(this->first)};
+  }
+
+  ListBaseTIterator<const T> end() const
+  {
+    /* Don't use `this->last` because this iterator has to point to one-past-the-end. */
+    return ListBaseTIterator<const T>{nullptr};
+  }
+
+  ListBaseTIterator<T> begin()
+  {
+    return ListBaseTIterator<T>{static_cast<T *>(this->first)};
+  }
+
+  ListBaseTIterator<T> end()
+  {
+    /* Don't use `this->last` because this iterator has to point to one-past-the-end. */
+    return ListBaseTIterator<T>{nullptr};
+  }
+};
+
+#endif
 
 /* 8 byte alignment! */

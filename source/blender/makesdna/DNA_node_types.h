@@ -1568,7 +1568,7 @@ struct bNode {
   struct bNode *next = nullptr, *prev = nullptr;
 
   /* Input and output #bNodeSocket. */
-  ListBase inputs, outputs;
+  ListBaseT<bNodeSocket> inputs, outputs;
 
   /** The node's name for unique identification and string lookup. */
   char name[/*MAX_NAME*/ 64] = "";
@@ -1856,7 +1856,8 @@ struct bNodeTree {
   /** Node tree stores its own offset for consistent editor view. */
   float view_center[2] = {};
 
-  ListBase nodes, links;
+  ListBaseT<bNode> nodes;
+  ListBaseT<bNodeLink> links;
 
   int type = 0;
 
@@ -1890,8 +1891,8 @@ struct bNodeTree {
    * Warning! Don't make links to these sockets, input/output nodes are used for that.
    * These sockets are used only for generating external interfaces.
    */
-  DNA_DEPRECATED ListBase inputs_legacy;
-  DNA_DEPRECATED ListBase outputs_legacy;
+  DNA_DEPRECATED ListBaseT<bNodeSocket> inputs_legacy;
+  DNA_DEPRECATED ListBaseT<bNodeSocket> outputs_legacy;
 
   bNodeTreeInterface tree_interface;
 

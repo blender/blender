@@ -283,6 +283,7 @@ set(SRC
   BLI_linklist_lockfree.h
   BLI_linklist_stack.h
   BLI_listbase.h
+  BLI_listbase_iterator.hh
   BLI_listbase_wrapper.hh
   BLI_map.hh
   BLI_map_slots.hh
