@@ -353,9 +353,9 @@ static inline bool image_is_builtin(::Image &ima, ::RenderEngine &engine)
          ((engine.flag & RE_ENGINE_PREVIEW) != 0 && image_source != IMA_SRC_SEQUENCE);
 }
 
-static inline void render_add_metadata(BL::RenderResult &b_rr, string name, string value)
+static inline void render_add_metadata(::RenderResult &b_rr, string name, string value)
 {
-  b_rr.stamp_data_add_field(name.c_str(), value.c_str());
+  BKE_render_result_stamp_data(&b_rr, name.c_str(), value.c_str());
 }
 
 /* Utilities */

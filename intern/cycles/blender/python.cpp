@@ -215,18 +215,21 @@ static PyObject *create_func(PyObject * /*self*/, PyObject *args)
     const int width = region.width();
     const int height = region.height();
 
-    session = new BlenderSession(engine,
-                                 preferences,
-                                 data,
-                                 blender::id_cast<::bScreen &>(*v3dptr.owner_id),
-                                 v3d,
-                                 rv3d,
+    session = new BlenderSession(*engine.ptr.data_as<::RenderEngine>(),
+                                 *preferences.ptr.data_as<::UserDef>(),
+                                 *data.ptr.data_as<::Main>(),
+                                 blender::id_cast<::bScreen *>(v3dptr.owner_id),
+                                 v3d.ptr.data_as<::View3D>(),
+                                 rv3d.ptr.data_as<::RegionView3D>(),
                                  width,
                                  height);
   }
   else {
     /* offline session or preview render */
-    session = new BlenderSession(engine, preferences, data, preview_osl);
+    session = new BlenderSession(*engine.ptr.data_as<::RenderEngine>(),
+                                 *preferences.ptr.data_as<::UserDef>(),
+                                 *data.ptr.data_as<::Main>(),
+                                 preview_osl);
   }
 
   return PyLong_FromVoidPtr(session);
@@ -257,7 +260,7 @@ static PyObject *render_func(PyObject * /*self*/, PyObject *args)
   /* Allow Blender to execute other Python scripts. */
   python_thread_state_save(&session->python_thread_state);
 
-  session->render(b_depsgraph);
+  session->render(*b_depsgraph.ptr.data_as<::Depsgraph>());
 
   python_thread_state_restore(&session->python_thread_state);
 
@@ -303,7 +306,8 @@ static PyObject *draw_func(PyObject * /*self*/, PyObject *args)
       b_screen, &RNA_SpaceImageEditor, pylong_as_voidptr_typesafe(py_space_image));
   BL::SpaceImageEditor b_space_image(b_space_image_ptr);
 
-  session->draw(b_space_image);
+  session->draw(blender::id_cast<::bScreen &>(*b_screen),
+                *b_space_image.ptr.data_as<::SpaceImage>());
 
   Py_RETURN_NONE;
 }
@@ -343,7 +347,12 @@ static PyObject *bake_func(PyObject * /*self*/, PyObject *args)
 
   python_thread_state_save(&session->python_thread_state);
 
-  session->bake(b_depsgraph, b_object, pass_type, pass_filter, width, height);
+  session->bake(*b_depsgraph.ptr.data_as<::Depsgraph>(),
+                *b_object.ptr.data_as<::Object>(),
+                pass_type,
+                pass_filter,
+                width,
+                height);
 
   python_thread_state_restore(&session->python_thread_state);
 
@@ -395,7 +404,7 @@ static PyObject *reset_func(PyObject * /*self*/, PyObject *args)
 
   python_thread_state_save(&session->python_thread_state);
 
-  session->reset_session(b_data, b_depsgraph);
+  session->reset_session(*b_data.ptr.data_as<::Main>(), *b_depsgraph.ptr.data_as<::Depsgraph>());
 
   python_thread_state_restore(&session->python_thread_state);
 
@@ -419,7 +428,7 @@ static PyObject *sync_func(PyObject * /*self*/, PyObject *args)
 
   python_thread_state_save(&session->python_thread_state);
 
-  session->synchronize(b_depsgraph);
+  session->synchronize(*b_depsgraph.ptr.data_as<::Depsgraph>());
 
   python_thread_state_restore(&session->python_thread_state);
 
