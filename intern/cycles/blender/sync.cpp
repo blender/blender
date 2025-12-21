@@ -6,6 +6,7 @@
 #include "BKE_scene.hh"
 #include "DEG_depsgraph_query.hh"
 #include "DNA_world_types.h"
+#include "RNA_prototypes.hh"
 #include "RNA_types.hh"
 
 #include "scene/background.h"

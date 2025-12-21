@@ -12,8 +12,6 @@
 #include "util/map.h"
 #include "util/set.h"
 
-#include "RNA_blender_cpp.hh"
-
 CCL_NAMESPACE_BEGIN
 
 /* ID Map
@@ -37,11 +35,6 @@ template<typename K, typename T, typename Flags = uint> class id_map {
     scene->delete_nodes(nodes);
   }
 
-  T *find(const BL::ID &id)
-  {
-    return find(id.ptr.owner_id);
-  }
-
   T *find(const K &key)
   {
     if (b_map.find(key) != b_map.end()) {
@@ -50,11 +43,6 @@ template<typename K, typename T, typename Flags = uint> class id_map {
     }
 
     return nullptr;
-  }
-
-  void set_recalc(const BL::ID &id)
-  {
-    b_recalc.insert(id.ptr.data);
   }
 
   void set_recalc(void *id_ptr)

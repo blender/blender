@@ -11,7 +11,6 @@
 #include "DNA_text_types.h"
 #include "RE_engine.h"
 #include "RNA_access.hh"
-#include "RNA_blender_cpp.hh"
 
 #include "scene/mesh.h"
 #include "scene/scene.h"
@@ -360,26 +359,6 @@ static inline void render_add_metadata(::RenderResult &b_rr, string name, string
 
 /* Utilities */
 
-static inline Transform get_transform(const BL::Array<float, 16> &array)
-{
-  /* Convert from Blender column major to Cycles row major, assume it's an affine transform that
-   * does not need the last row. */
-  return make_transform(array[0],
-                        array[4],
-                        array[8],
-                        array[12],
-
-                        array[1],
-                        array[5],
-                        array[9],
-                        array[13],
-
-                        array[2],
-                        array[6],
-                        array[10],
-                        array[14]);
-}
-
 static inline Transform get_transform(const blender::float4x4 &matrix)
 {
   /* Convert from Blender column major to Cycles row major, assume it's an affine transform that
@@ -399,41 +378,6 @@ static inline Transform get_transform(const blender::float4x4 &matrix)
                         ptr[6],
                         ptr[10],
                         ptr[14]);
-}
-
-static inline float2 get_float2(const BL::Array<float, 2> &array)
-{
-  return make_float2(array[0], array[1]);
-}
-
-static inline float3 get_float3(const BL::Array<float, 2> &array)
-{
-  return make_float3(array[0], array[1], 0.0f);
-}
-
-static inline float3 get_float3(const BL::Array<float, 3> &array)
-{
-  return make_float3(array[0], array[1], array[2]);
-}
-
-static inline float3 get_float3(const BL::Array<float, 4> &array)
-{
-  return make_float3(array[0], array[1], array[2]);
-}
-
-static inline float4 get_float4(const BL::Array<float, 4> &array)
-{
-  return make_float4(array[0], array[1], array[2], array[3]);
-}
-
-static inline int3 get_int3(const BL::Array<int, 3> &array)
-{
-  return make_int3(array[0], array[1], array[2]);
-}
-
-static inline int4 get_int4(const BL::Array<int, 4> &array)
-{
-  return make_int4(array[0], array[1], array[2], array[3]);
 }
 
 static inline float3 get_float3(PointerRNA &ptr, const char *name)
@@ -671,35 +615,6 @@ static inline ::FluidDomainSettings *object_fluid_gas_domain_find(::Object &b_ob
   }
 
   return nullptr;
-}
-
-static inline BL::MeshSequenceCacheModifier object_mesh_cache_find(BL::Object &b_ob,
-                                                                   bool *has_subdivision_modifier)
-{
-  for (int i = b_ob.modifiers.length() - 1; i >= 0; --i) {
-    BL::Modifier b_mod = b_ob.modifiers[i];
-
-    if (b_mod.type() == BL::Modifier::type_MESH_SEQUENCE_CACHE) {
-      BL::MeshSequenceCacheModifier mesh_cache = BL::MeshSequenceCacheModifier(b_mod);
-      return mesh_cache;
-    }
-
-    /* Skip possible particles system modifiers as they do not modify the geometry. */
-    if (b_mod.type() == BL::Modifier::type_PARTICLE_SYSTEM) {
-      continue;
-    }
-
-    if (b_mod.type() == BL::Modifier::type_SUBSURF) {
-      if (has_subdivision_modifier) {
-        *has_subdivision_modifier = true;
-      }
-      continue;
-    }
-
-    break;
-  }
-
-  return BL::MeshSequenceCacheModifier(PointerRNA_NULL);
 }
 
 static ::SubsurfModifierData *object_subdivision_modifier(::Object &b_ob, const bool preview)

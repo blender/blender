@@ -7,6 +7,7 @@
 #include "blender/util.h"
 
 #include "BKE_scene.hh"
+#include "RNA_prototypes.hh"
 
 CCL_NAMESPACE_BEGIN
 

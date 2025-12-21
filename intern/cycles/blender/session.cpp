@@ -7,6 +7,8 @@
 #include "DEG_depsgraph_query.hh"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "RNA_prototypes.hh"
+
 #include "device/device.h"
 
 #include "scene/background.h"

@@ -10,6 +10,8 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
+#include "RNA_prototypes.hh"
+
 CCL_NAMESPACE_BEGIN
 
 BlenderViewportParameters::BlenderViewportParameters()

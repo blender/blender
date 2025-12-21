@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "RNA_blender_cpp.hh"
 #include "RNA_types.hh"
 
 #include "blender/id_map.h"

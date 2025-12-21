@@ -19,6 +19,8 @@
 #include "DNA_cachefile_types.h"
 #include "DNA_volume_types.h"
 
+#include "RNA_prototypes.hh"
+
 CCL_NAMESPACE_BEGIN
 
 /* TODO: verify this is not loading unnecessary attributes. */

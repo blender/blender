@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "RNA_blender_cpp.hh"
-
 #include "device/device.h"
 
 #include "scene/scene.h"
@@ -13,6 +11,18 @@
 
 #include "util/unique_ptr.h"
 #include "util/vector.h"
+
+struct bScreen;
+struct Depsgraph;
+struct Main;
+struct Object;
+struct RegionView3D;
+struct RenderData;
+struct RenderEngine;
+struct Scene;
+struct SpaceImage;
+struct UserDef;
+struct View3D;
 
 CCL_NAMESPACE_BEGIN
 

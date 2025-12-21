@@ -35,12 +35,6 @@ void BlenderSync::sync_light(BObjectInfo &b_ob_info, Light *light)
       light->set_is_sphere(!(b_light.mode & LA_USE_SOFT_FALLOFF));
       break;
     }
-    /* Hemi were removed from 2.8 */
-    // case BL::Light::type_HEMI: {
-    //  light->type = LIGHT_DISTANT;
-    //  light->size = 0.0f;
-    //  break;
-    // }
     case LA_SUN: {
       light->set_angle(b_light.sun_angle);
       light->set_light_type(LIGHT_DISTANT);

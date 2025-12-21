@@ -6,14 +6,14 @@
 
 #include <atomic>
 
-#include "RNA_blender_cpp.hh"
-
 #include "session/display_driver.h"
 
 #include "util/unique_ptr.h"
 
 struct GPUContext;
 struct GPUFence;
+struct RenderEngine;
+struct Scene;
 namespace blender::gpu {
 class Shader;
 }  // namespace blender::gpu

@@ -6,8 +6,6 @@
 
 #include "DNA_image_types.h"
 
-#include "RNA_blender_cpp.hh"
-
 #include "scene/image.h"
 #include "scene/image_vdb.h"
 

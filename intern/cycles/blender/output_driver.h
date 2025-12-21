@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include "RNA_blender_cpp.hh"
-
 #include "session/output_driver.h"
+
+struct RenderEngine;
 
 CCL_NAMESPACE_BEGIN
 
