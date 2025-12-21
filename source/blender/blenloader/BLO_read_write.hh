@@ -59,6 +59,7 @@ struct BlendWriter {
                                                    int struct_id,
                                                    const void *address,
                                                    const void *data);
+  void write_struct_array_by_name(const char *struct_name, int64_t array_size, const void *data);
 };
 
 struct BlendDataReader {
@@ -141,10 +142,6 @@ int BLO_get_struct_id_by_name(const BlendWriter *writer, const char *struct_name
 /**
  * Write struct array.
  */
-void BLO_write_struct_array_by_name(BlendWriter *writer,
-                                    const char *struct_name,
-                                    int64_t array_size,
-                                    const void *data_ptr);
 void BLO_write_struct_array_by_id(BlendWriter *writer,
                                   int struct_id,
                                   int64_t array_size,
@@ -337,7 +334,7 @@ void *BLO_read_struct_array_with_size(BlendDataReader *reader,
  * Similar to #BLO_read_struct_array_with_size, but can use a (DNA) type name instead of the type
  * itself to find the expected data size.
  *
- * Somewhat mirrors #BLO_write_struct_array_by_name.
+ * Somewhat mirrors #BlendWriter::write_struct_array_by_name.
  */
 void *BLO_read_struct_by_name_array(BlendDataReader *reader,
                                     const char *struct_name,

@@ -4966,7 +4966,7 @@ static void blend_write_layer_data(BlendWriter *writer,
       get_type_file_write_info(eCustomDataType(layer.type), &structname, &structnum);
       if (structnum > 0) {
         int datasize = structnum * count;
-        BLO_write_struct_array_by_name(writer, structname, datasize, layer.data);
+        writer->write_struct_array_by_name(structname, datasize, layer.data);
       }
       else if (!BLO_write_is_undo(writer)) { /* Do not warn on undo. */
         printf("%s error: layer '%s':%d - can't be written to file\n",

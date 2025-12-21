@@ -2157,20 +2157,19 @@ void BLO_write_raw(BlendWriter *writer, const size_t size_in_bytes, const void *
 
 void BlendWriter::write_struct_by_name(const char *struct_name, const void *data)
 {
-  BLO_write_struct_array_by_name(this, struct_name, 1, data);
+  this->write_struct_array_by_name(struct_name, 1, data);
 }
 
-void BLO_write_struct_array_by_name(BlendWriter *writer,
-                                    const char *struct_name,
-                                    const int64_t array_size,
-                                    const void *data_ptr)
+void BlendWriter::write_struct_array_by_name(const char *struct_name,
+                                             const int64_t array_size,
+                                             const void *data)
 {
-  int struct_id = BLO_get_struct_id_by_name(writer, struct_name);
+  int struct_id = BLO_get_struct_id_by_name(this, struct_name);
   if (UNLIKELY(struct_id == -1)) {
     CLOG_ERROR(&LOG, "Can't find SDNA code <%s>", struct_name);
     return;
   }
-  BLO_write_struct_array_by_id(writer, struct_id, array_size, data_ptr);
+  BLO_write_struct_array_by_id(this, struct_id, array_size, data);
 }
 
 void BlendWriter::write_struct_by_id(const int struct_id, const void *data)
