@@ -67,6 +67,16 @@ struct BlendWriter {
                                            const void *data);
   void write_struct_list_by_name(const char *struct_name, ListBase *list);
   void write_struct_list_by_id(int struct_id, const ListBase *list);
+
+  template<typename T> void write_struct(const T *data)
+  {
+    this->write_struct_by_id(blender::dna::sdna_struct_id_get<T>(), data);
+  }
+
+  template<typename T> void write_struct_cast(const void *data)
+  {
+    this->write_struct_by_id(blender::dna::sdna_struct_id_get<T>(), data);
+  }
 };
 
 struct BlendDataReader {
@@ -124,12 +134,6 @@ struct BlendLibReader {
  * Mapping between names and ids.
  */
 int BLO_get_struct_id_by_name(const BlendWriter *writer, const char *struct_name);
-
-/**
- * Write single struct.
- */
-#define BLO_write_struct(writer, struct_name, data_ptr) \
-  (writer)->write_struct_by_id(blender::dna::sdna_struct_id_get<struct_name>(), data_ptr)
 
 /**
  * Write single struct at address.
@@ -277,7 +281,7 @@ bool BLO_write_is_undo(BlendWriter *writer);
  * Examples of matching calls:
  *
  * \code{.c}
- * BLO_write_struct(writer, ClothSimSettings, clmd->sim_parms);
+ * writer->write_struct(clmd->sim_parms);
  * BLO_read_struct(reader, ClothSimSettings, &clmd->sim_parms);
  *
  * BLO_write_struct_list(writer, TimeMarker, &action->markers);

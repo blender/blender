@@ -1745,10 +1745,10 @@ static void node_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 static void node_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   SpaceNode *snode = (SpaceNode *)sl;
-  BLO_write_struct(writer, SpaceNode, snode);
+  writer->write_struct_cast<SpaceNode>(snode);
 
   LISTBASE_FOREACH (bNodeTreePath *, path, &snode->treepath) {
-    BLO_write_struct(writer, bNodeTreePath, path);
+    writer->write_struct(path);
   }
 }
 

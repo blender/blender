@@ -103,7 +103,7 @@ static void cache_file_blend_write(BlendWriter *writer, ID *id, const void *id_a
 
   /* write layers */
   LISTBASE_FOREACH (CacheFileLayer *, layer, &cache_file->layers) {
-    BLO_write_struct(writer, CacheFileLayer, layer);
+    writer->write_struct(layer);
   }
 }
 

@@ -859,7 +859,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 {
   const auto *lmd = reinterpret_cast<const GreasePencilLineartModifierData *>(md);
 
-  BLO_write_struct(writer, GreasePencilLineartModifierData, lmd);
+  writer->write_struct(lmd);
 }
 
 static void blend_read(BlendDataReader * /*reader*/, ModifierData *md)

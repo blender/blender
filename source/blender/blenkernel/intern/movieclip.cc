@@ -168,7 +168,7 @@ static void write_movieTracks(BlendWriter *writer, ListBase *tracks)
 
   track = static_cast<MovieTrackingTrack *>(tracks->first);
   while (track) {
-    BLO_write_struct(writer, MovieTrackingTrack, track);
+    writer->write_struct(track);
 
     if (track->markers) {
       BLO_write_struct_array(writer, MovieTrackingMarker, track->markersnr, track->markers);
@@ -181,7 +181,7 @@ static void write_movieTracks(BlendWriter *writer, ListBase *tracks)
 static void write_moviePlaneTracks(BlendWriter *writer, ListBase *plane_tracks_base)
 {
   LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, plane_tracks_base) {
-    BLO_write_struct(writer, MovieTrackingPlaneTrack, plane_track);
+    writer->write_struct(plane_track);
 
     BLO_write_pointer_array(writer, plane_track->point_tracksnr, plane_track->point_tracks);
     BLO_write_struct_array(
@@ -213,7 +213,7 @@ static void movieclip_blend_write(BlendWriter *writer, ID *id, const void *id_ad
   BKE_id_blend_write(writer, &clip->id);
 
   LISTBASE_FOREACH (MovieTrackingObject *, object, &tracking->objects) {
-    BLO_write_struct(writer, MovieTrackingObject, object);
+    writer->write_struct(object);
     write_movieTracks(writer, &object->tracks);
     write_moviePlaneTracks(writer, &object->plane_tracks);
     write_movieReconstruction(writer, &object->reconstruction);

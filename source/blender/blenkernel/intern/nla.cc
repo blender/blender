@@ -2724,7 +2724,7 @@ void BKE_nla_blend_write(BlendWriter *writer, ListBase *tracks)
   /* write all the tracks */
   LISTBASE_FOREACH (NlaTrack *, nlt, tracks) {
     /* write the track first */
-    BLO_write_struct(writer, NlaTrack, nlt);
+    writer->write_struct(nlt);
 
     /* write the track's strips */
     blend_write_nla_strips(writer, &nlt->strips);

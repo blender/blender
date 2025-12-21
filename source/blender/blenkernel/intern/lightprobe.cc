@@ -171,7 +171,7 @@ static void lightprobe_grid_cache_frame_blend_read(BlendDataReader *reader,
 void BKE_lightprobe_cache_blend_write(BlendWriter *writer, LightProbeObjectCache *cache)
 {
   if (cache->grid_static_cache != nullptr) {
-    BLO_write_struct(writer, LightProbeGridCacheFrame, cache->grid_static_cache);
+    writer->write_struct(cache->grid_static_cache);
     lightprobe_grid_cache_frame_blend_write(writer, cache->grid_static_cache);
   }
 }

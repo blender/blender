@@ -114,7 +114,7 @@ static void metaball_blend_write(BlendWriter *writer, ID *id, const void *id_add
   BLO_write_pointer_array(writer, mb->totcol, mb->mat);
 
   LISTBASE_FOREACH (MetaElem *, ml, &mb->elems) {
-    BLO_write_struct(writer, MetaElem, ml);
+    writer->write_struct(ml);
   }
 }
 

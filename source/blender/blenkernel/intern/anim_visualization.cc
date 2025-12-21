@@ -218,7 +218,7 @@ void animviz_motionpath_blend_write(BlendWriter *writer, bMotionPath *mpath)
   }
 
   /* firstly, just write the motionpath struct */
-  BLO_write_struct(writer, bMotionPath, mpath);
+  writer->write_struct(mpath);
 
   /* now write the array of data */
   BLO_write_struct_array(writer, bMotionPathVert, mpath->length, mpath->points);

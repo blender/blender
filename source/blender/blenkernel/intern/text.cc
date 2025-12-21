@@ -183,7 +183,7 @@ static void text_blend_write(BlendWriter *writer, ID *id, const void *id_address
   if (!(text->flags & TXT_ISEXT)) {
     /* Now write the text data, in two steps for optimization in the read-function. */
     LISTBASE_FOREACH (TextLine *, tmp, &text->lines) {
-      BLO_write_struct(writer, TextLine, tmp);
+      writer->write_struct(tmp);
     }
 
     LISTBASE_FOREACH (TextLine *, tmp, &text->lines) {

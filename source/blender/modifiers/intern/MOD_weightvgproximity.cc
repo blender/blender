@@ -694,7 +694,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 {
   const WeightVGProximityModifierData *wmd = (const WeightVGProximityModifierData *)md;
 
-  BLO_write_struct(writer, WeightVGProximityModifierData, wmd);
+  writer->write_struct(wmd);
 
   if (wmd->cmap_curve) {
     BKE_curvemapping_blend_write(writer, wmd->cmap_curve);

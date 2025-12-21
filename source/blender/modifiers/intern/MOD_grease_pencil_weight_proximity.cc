@@ -93,7 +93,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
   const GreasePencilWeightProximityModifierData *mmd =
       reinterpret_cast<const GreasePencilWeightProximityModifierData *>(md);
 
-  BLO_write_struct(writer, GreasePencilWeightProximityModifierData, mmd);
+  writer->write_struct(mmd);
   modifier::greasepencil::write_influence_data(writer, &mmd->influence);
 }
 

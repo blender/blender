@@ -62,7 +62,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
   const GreasePencilNoiseModifierData *mmd =
       reinterpret_cast<const GreasePencilNoiseModifierData *>(md);
 
-  BLO_write_struct(writer, GreasePencilNoiseModifierData, mmd);
+  writer->write_struct(mmd);
   modifier::greasepencil::write_influence_data(writer, &mmd->influence);
 }
 

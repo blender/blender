@@ -282,7 +282,7 @@ static void undo_history_menu_register()
 
 static void topbar_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
-  BLO_write_struct(writer, SpaceTopBar, sl);
+  writer->write_struct_cast<SpaceTopBar>(sl);
 }
 
 void ED_spacetype_topbar()

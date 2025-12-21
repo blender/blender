@@ -222,35 +222,35 @@ static void particle_settings_foreach_id(ID *id, LibraryForeachIDData *data)
 
 static void write_boid_state(BlendWriter *writer, BoidState *state)
 {
-  BLO_write_struct(writer, BoidState, state);
+  writer->write_struct(state);
 
   LISTBASE_FOREACH (BoidRule *, rule, &state->rules) {
     switch (rule->type) {
       case eBoidRuleType_Goal:
       case eBoidRuleType_Avoid:
-        BLO_write_struct(writer, BoidRuleGoalAvoid, rule);
+        writer->write_struct_cast<BoidRuleGoalAvoid>(rule);
         break;
       case eBoidRuleType_AvoidCollision:
-        BLO_write_struct(writer, BoidRuleAvoidCollision, rule);
+        writer->write_struct_cast<BoidRuleAvoidCollision>(rule);
         break;
       case eBoidRuleType_FollowLeader:
-        BLO_write_struct(writer, BoidRuleFollowLeader, rule);
+        writer->write_struct_cast<BoidRuleFollowLeader>(rule);
         break;
       case eBoidRuleType_AverageSpeed:
-        BLO_write_struct(writer, BoidRuleAverageSpeed, rule);
+        writer->write_struct_cast<BoidRuleAverageSpeed>(rule);
         break;
       case eBoidRuleType_Fight:
-        BLO_write_struct(writer, BoidRuleFight, rule);
+        writer->write_struct_cast<BoidRuleFight>(rule);
         break;
       default:
-        BLO_write_struct(writer, BoidRule, rule);
+        writer->write_struct(rule);
         break;
     }
   }
 #if 0
   BoidCondition *cond = state->conditions.first;
   for (; cond; cond = cond->next) {
-    BLO_write_struct(writer, BoidCondition, cond);
+    writer->write_struct(cond);
   }
 #endif
 }
@@ -263,9 +263,9 @@ static void particle_settings_blend_write(BlendWriter *writer, ID *id, const voi
   BLO_write_id_struct(writer, ParticleSettings, id_address, &part->id);
   BKE_id_blend_write(writer, &part->id);
 
-  BLO_write_struct(writer, PartDeflect, part->pd);
-  BLO_write_struct(writer, PartDeflect, part->pd2);
-  BLO_write_struct(writer, EffectorWeights, part->effector_weights);
+  writer->write_struct(part->pd);
+  writer->write_struct(part->pd2);
+  writer->write_struct(part->effector_weights);
 
   if (part->clumpcurve) {
     BKE_curvemapping_blend_write(writer, part->clumpcurve);
@@ -291,23 +291,23 @@ static void particle_settings_blend_write(BlendWriter *writer, ID *id, const voi
         FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
       }
     }
-    BLO_write_struct(writer, ParticleDupliWeight, dw);
+    writer->write_struct(dw);
   }
 
   if (part->boids && part->phystype == PART_PHYS_BOIDS) {
-    BLO_write_struct(writer, BoidSettings, part->boids);
+    writer->write_struct(part->boids);
 
     LISTBASE_FOREACH (BoidState *, state, &part->boids->states) {
       write_boid_state(writer, state);
     }
   }
   if (part->fluid && part->phystype == PART_PHYS_FLUID) {
-    BLO_write_struct(writer, SPHFluidSettings, part->fluid);
+    writer->write_struct(part->fluid);
   }
 
   for (int a = 0; a < MAX_MTEX; a++) {
     if (part->mtex[a]) {
-      BLO_write_struct(writer, MTex, part->mtex[a]);
+      writer->write_struct(part->mtex[a]);
     }
   }
 }
@@ -5555,7 +5555,7 @@ void BKE_particle_batch_cache_free(ParticleSystem *psys)
 void BKE_particle_system_blend_write(BlendWriter *writer, ListBase *particles)
 {
   LISTBASE_FOREACH (ParticleSystem *, psys, particles) {
-    BLO_write_struct(writer, ParticleSystem, psys);
+    writer->write_struct(psys);
 
     if (psys->particles) {
       BLO_write_struct_array(writer, ParticleData, psys->totpart, psys->particles);
@@ -5580,7 +5580,7 @@ void BKE_particle_system_blend_write(BlendWriter *writer, ListBase *particles)
       }
     }
     LISTBASE_FOREACH (ParticleTarget *, pt, &psys->targets) {
-      BLO_write_struct(writer, ParticleTarget, pt);
+      writer->write_struct(pt);
     }
 
     if (psys->child) {
@@ -5588,9 +5588,9 @@ void BKE_particle_system_blend_write(BlendWriter *writer, ListBase *particles)
     }
 
     if (psys->clmd) {
-      BLO_write_struct(writer, ClothModifierData, psys->clmd);
-      BLO_write_struct(writer, ClothSimSettings, psys->clmd->sim_parms);
-      BLO_write_struct(writer, ClothCollSettings, psys->clmd->coll_parms);
+      writer->write_struct(psys->clmd);
+      writer->write_struct(psys->clmd->sim_parms);
+      writer->write_struct(psys->clmd->coll_parms);
     }
 
     BKE_ptcache_blend_write(writer, &psys->ptcaches);

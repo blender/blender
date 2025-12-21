@@ -83,7 +83,7 @@ CurveProfile *BKE_curveprofile_copy(const CurveProfile *profile)
 
 void BKE_curveprofile_blend_write(BlendWriter *writer, const CurveProfile *profile)
 {
-  BLO_write_struct(writer, CurveProfile, profile);
+  writer->write_struct(profile);
   BLO_write_struct_array(writer, CurveProfilePoint, profile->path_len, profile->path);
 }
 

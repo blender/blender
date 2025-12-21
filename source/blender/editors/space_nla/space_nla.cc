@@ -648,9 +648,9 @@ static void nla_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   SpaceNla *snla = reinterpret_cast<SpaceNla *>(sl);
 
-  BLO_write_struct(writer, SpaceNla, snla);
+  writer->write_struct_cast<SpaceNla>(snla);
   if (snla->ads) {
-    BLO_write_struct(writer, bDopeSheet, snla->ads);
+    writer->write_struct(snla->ads);
   }
 }
 

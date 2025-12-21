@@ -1218,7 +1218,7 @@ static void clip_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *
 
 static void clip_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
-  BLO_write_struct(writer, SpaceClip, sl);
+  writer->write_struct_cast<SpaceClip>(sl);
 }
 
 /** \} */

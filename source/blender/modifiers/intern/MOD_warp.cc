@@ -441,7 +441,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 {
   const WarpModifierData *wmd = (const WarpModifierData *)md;
 
-  BLO_write_struct(writer, WarpModifierData, wmd);
+  writer->write_struct(wmd);
 
   if (wmd->curfalloff) {
     BKE_curvemapping_blend_write(writer, wmd->curfalloff);

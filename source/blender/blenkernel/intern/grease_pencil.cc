@@ -4423,7 +4423,7 @@ static void write_drawing_array(GreasePencil &grease_pencil,
       case GP_DRAWING_REFERENCE: {
         GreasePencilDrawingReference *drawing_reference =
             reinterpret_cast<GreasePencilDrawingReference *>(drawing_base);
-        BLO_write_struct(writer, GreasePencilDrawingReference, drawing_reference);
+        writer->write_struct(drawing_reference);
         break;
       }
     }
@@ -4515,7 +4515,7 @@ static void read_layer_tree(GreasePencil &grease_pencil, BlendDataReader *reader
 
 static void write_layer(BlendWriter *writer, GreasePencilLayer *node)
 {
-  BLO_write_struct(writer, GreasePencilLayer, node);
+  writer->write_struct(node);
   BLO_write_string(writer, node->base.name);
   BLO_write_string(writer, node->parsubstr);
   BLO_write_string(writer, node->viewlayername);
@@ -4532,7 +4532,7 @@ static void write_layer(BlendWriter *writer, GreasePencilLayer *node)
 
 static void write_layer_tree_group(BlendWriter *writer, GreasePencilLayerTreeGroup *node)
 {
-  BLO_write_struct(writer, GreasePencilLayerTreeGroup, node);
+  writer->write_struct(node);
   BLO_write_string(writer, node->base.name);
   LISTBASE_FOREACH (GreasePencilLayerTreeNode *, child, &node->children) {
     switch (child->type) {

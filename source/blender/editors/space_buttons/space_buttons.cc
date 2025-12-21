@@ -1065,7 +1065,7 @@ static void buttons_space_blend_read_after_liblink(BlendLibReader * /*reader*/,
 
 static void buttons_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
-  BLO_write_struct(writer, SpaceProperties, sl);
+  writer->write_struct_cast<SpaceProperties>(sl);
 }
 
 /** \} */

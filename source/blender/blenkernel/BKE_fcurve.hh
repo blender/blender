@@ -675,7 +675,7 @@ void BKE_fmodifiers_blend_read_data(BlendDataReader *reader, ListBase *fmodifier
 
 /**
  * Write the FCurve's data to the writer.
- * If this is used to write an FCurve, be sure to call `BLO_write_struct(writer, FCurve, fcurve);`
+ * If this is used to write an FCurve, be sure to call `writer->write_struct(fcurve);`
  * before calling this function.
  */
 void BKE_fcurve_blend_write_data(BlendWriter *writer, FCurve *fcu);

@@ -151,7 +151,7 @@ static void texture_blend_write(BlendWriter *writer, ID *id, const void *id_addr
 
   /* direct data */
   if (tex->coba) {
-    BLO_write_struct(writer, ColorBand, tex->coba);
+    writer->write_struct(tex->coba);
   }
 
   /* nodetree is integral part of texture, no libdata */

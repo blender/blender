@@ -171,7 +171,7 @@ static void greasepencil_blend_write(BlendWriter *writer, ID *id, const void *id
         BKE_defvert_blend_write(writer, gps->totpoints, gps->dvert);
         if (gps->editcurve != nullptr) {
           bGPDcurve *gpc = gps->editcurve;
-          BLO_write_struct(writer, bGPDcurve, gpc);
+          writer->write_struct(gpc);
           BLO_write_struct_array(
               writer, bGPDcurve_point, gpc->tot_curve_points, gpc->curve_points);
         }

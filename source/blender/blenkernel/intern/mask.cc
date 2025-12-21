@@ -103,7 +103,7 @@ static void mask_blend_write(BlendWriter *writer, ID *id, const void *id_address
   BKE_id_blend_write(writer, &mask->id);
 
   LISTBASE_FOREACH (MaskLayer *, masklay, &mask->masklayers) {
-    BLO_write_struct(writer, MaskLayer, masklay);
+    writer->write_struct(masklay);
 
     LISTBASE_FOREACH (MaskSpline *, spline, &masklay->splines) {
       int i;
@@ -111,7 +111,7 @@ static void mask_blend_write(BlendWriter *writer, ID *id, const void *id_address
       MaskSplinePoint *points_deform = spline->points_deform;
       spline->points_deform = nullptr;
 
-      BLO_write_struct(writer, MaskSpline, spline);
+      writer->write_struct(spline);
       BLO_write_struct_array(writer, MaskSplinePoint, spline->tot_point, spline->points);
 
       spline->points_deform = points_deform;
@@ -126,7 +126,7 @@ static void mask_blend_write(BlendWriter *writer, ID *id, const void *id_address
     }
 
     LISTBASE_FOREACH (MaskLayerShape *, masklay_shape, &masklay->splines_shapes) {
-      BLO_write_struct(writer, MaskLayerShape, masklay_shape);
+      writer->write_struct(masklay_shape);
       BLO_write_float_array(writer,
                             masklay_shape->tot_vert * (sizeof(MaskLayerShapeElem) / sizeof(float)),
                             masklay_shape->data);

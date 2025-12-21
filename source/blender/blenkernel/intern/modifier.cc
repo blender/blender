@@ -1135,16 +1135,16 @@ void BKE_modifier_blend_write(BlendWriter *writer, const ID *id_owner, ListBase 
     if (md->type == eModifierType_Cloth) {
       ClothModifierData *clmd = (ClothModifierData *)md;
 
-      BLO_write_struct(writer, ClothSimSettings, clmd->sim_parms);
-      BLO_write_struct(writer, ClothCollSettings, clmd->coll_parms);
-      BLO_write_struct(writer, EffectorWeights, clmd->sim_parms->effector_weights);
+      writer->write_struct(clmd->sim_parms);
+      writer->write_struct(clmd->coll_parms);
+      writer->write_struct(clmd->sim_parms->effector_weights);
       BKE_ptcache_blend_write(writer, &clmd->ptcaches);
     }
     else if (md->type == eModifierType_Fluid) {
       FluidModifierData *fmd = (FluidModifierData *)md;
 
       if (fmd->type & MOD_FLUID_TYPE_DOMAIN) {
-        BLO_write_struct(writer, FluidDomainSettings, fmd->domain);
+        writer->write_struct(fmd->domain);
 
         if (fmd->domain) {
           BKE_ptcache_blend_write(writer, &(fmd->domain->ptcaches[0]));
@@ -1157,21 +1157,21 @@ void BKE_modifier_blend_write(BlendWriter *writer, const ID *id_owner, ListBase 
           BKE_ptcache_blend_write(writer, &(fmd->domain->ptcaches[1]));
 
           if (fmd->domain->coba) {
-            BLO_write_struct(writer, ColorBand, fmd->domain->coba);
+            writer->write_struct(fmd->domain->coba);
           }
 
           /* cleanup the fake pointcache */
           BKE_ptcache_free_list(&fmd->domain->ptcaches[1]);
           fmd->domain->point_cache[1] = nullptr;
 
-          BLO_write_struct(writer, EffectorWeights, fmd->domain->effector_weights);
+          writer->write_struct(fmd->domain->effector_weights);
         }
       }
       else if (fmd->type & MOD_FLUID_TYPE_FLOW) {
-        BLO_write_struct(writer, FluidFlowSettings, fmd->flow);
+        writer->write_struct(fmd->flow);
       }
       else if (fmd->type & MOD_FLUID_TYPE_EFFEC) {
-        BLO_write_struct(writer, FluidEffectorSettings, fmd->effector);
+        writer->write_struct(fmd->effector);
       }
     }
     else if (md->type == eModifierType_Fluidsim) {
@@ -1181,23 +1181,23 @@ void BKE_modifier_blend_write(BlendWriter *writer, const ID *id_owner, ListBase 
       DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
 
       if (pmd->canvas) {
-        BLO_write_struct(writer, DynamicPaintCanvasSettings, pmd->canvas);
+        writer->write_struct(pmd->canvas);
 
         /* write surfaces */
         LISTBASE_FOREACH (DynamicPaintSurface *, surface, &pmd->canvas->surfaces) {
-          BLO_write_struct(writer, DynamicPaintSurface, surface);
+          writer->write_struct(surface);
         }
         /* write caches and effector weights */
         LISTBASE_FOREACH (DynamicPaintSurface *, surface, &pmd->canvas->surfaces) {
           BKE_ptcache_blend_write(writer, &(surface->ptcaches));
 
-          BLO_write_struct(writer, EffectorWeights, surface->effector_weights);
+          writer->write_struct(surface->effector_weights);
         }
       }
       if (pmd->brush) {
-        BLO_write_struct(writer, DynamicPaintBrushSettings, pmd->brush);
-        BLO_write_struct(writer, ColorBand, pmd->brush->paint_ramp);
-        BLO_write_struct(writer, ColorBand, pmd->brush->vel_ramp);
+        writer->write_struct(pmd->brush);
+        writer->write_struct(pmd->brush->paint_ramp);
+        writer->write_struct(pmd->brush->vel_ramp);
       }
     }
     else if (md->type == eModifierType_Collision) {

@@ -309,7 +309,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 {
   const auto *smd = reinterpret_cast<const GreasePencilShrinkwrapModifierData *>(md);
 
-  BLO_write_struct(writer, GreasePencilShrinkwrapModifierData, smd);
+  writer->write_struct(smd);
   modifier::greasepencil::write_influence_data(writer, &smd->influence);
 }
 

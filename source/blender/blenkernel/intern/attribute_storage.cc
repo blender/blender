@@ -636,7 +636,7 @@ void AttributeStorage::blend_write(BlendWriter &writer,
         ::AttributeSingle *single_dna = static_cast<::AttributeSingle *>(attr_dna.data);
         write_shared_array(
             writer, AttrType(attr_dna.data_type), single_dna->data, 1, single_dna->sharing_info);
-        BLO_write_struct(&writer, AttributeSingle, single_dna);
+        writer.write_struct(single_dna);
         break;
       }
       case AttrStorageType::Array: {
@@ -646,7 +646,7 @@ void AttributeStorage::blend_write(BlendWriter &writer,
                            array_dna->data,
                            array_dna->size,
                            array_dna->sharing_info);
-        BLO_write_struct(&writer, AttributeArray, array_dna);
+        writer.write_struct(array_dna);
         break;
       }
     }

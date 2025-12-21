@@ -222,7 +222,7 @@ static void material_blend_write(BlendWriter *writer, ID *id, const void *id_add
 
   /* grease pencil settings */
   if (ma->gp_style) {
-    BLO_write_struct(writer, MaterialGPencilStyle, ma->gp_style);
+    writer->write_struct(ma->gp_style);
   }
 }
 

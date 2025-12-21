@@ -641,7 +641,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 {
   const auto *tmd = reinterpret_cast<const GreasePencilTimeModifierData *>(md);
 
-  BLO_write_struct(writer, GreasePencilTimeModifierData, tmd);
+  writer->write_struct(tmd);
   modifier::greasepencil::write_influence_data(writer, &tmd->influence);
 
   BLO_write_struct_array(

@@ -2406,7 +2406,7 @@ void BKE_layer_eval_view_layer_indexed(Depsgraph *depsgraph, Scene *scene, int v
 static void write_layer_collections(BlendWriter *writer, ListBase *lb)
 {
   LISTBASE_FOREACH (LayerCollection *, lc, lb) {
-    BLO_write_struct(writer, LayerCollection, lc);
+    writer->write_struct(lc);
 
     write_layer_collections(writer, &lc->layer_collections);
   }
@@ -2415,7 +2415,7 @@ static void write_layer_collections(BlendWriter *writer, ListBase *lb)
 void BKE_view_layer_blend_write(BlendWriter *writer, const Scene *scene, ViewLayer *view_layer)
 {
   BKE_view_layer_synced_ensure(scene, view_layer);
-  BLO_write_struct(writer, ViewLayer, view_layer);
+  writer->write_struct(view_layer);
   BLO_write_struct_list(writer, Base, BKE_view_layer_object_bases_get(view_layer));
 
   if (view_layer->id_properties) {
@@ -2426,17 +2426,17 @@ void BKE_view_layer_blend_write(BlendWriter *writer, const Scene *scene, ViewLay
   }
 
   LISTBASE_FOREACH (FreestyleModuleConfig *, fmc, &view_layer->freestyle_config.modules) {
-    BLO_write_struct(writer, FreestyleModuleConfig, fmc);
+    writer->write_struct(fmc);
   }
 
   LISTBASE_FOREACH (FreestyleLineSet *, fls, &view_layer->freestyle_config.linesets) {
-    BLO_write_struct(writer, FreestyleLineSet, fls);
+    writer->write_struct(fls);
   }
   LISTBASE_FOREACH (ViewLayerAOV *, aov, &view_layer->aovs) {
-    BLO_write_struct(writer, ViewLayerAOV, aov);
+    writer->write_struct(aov);
   }
   LISTBASE_FOREACH (ViewLayerLightgroup *, lightgroup, &view_layer->lightgroups) {
-    BLO_write_struct(writer, ViewLayerLightgroup, lightgroup);
+    writer->write_struct(lightgroup);
   }
   write_layer_collections(writer, &view_layer->layer_collections);
 }

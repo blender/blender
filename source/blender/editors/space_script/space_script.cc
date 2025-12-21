@@ -167,7 +167,7 @@ static void script_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   SpaceScript *scr = (SpaceScript *)sl;
   scr->but_refs = nullptr;
-  BLO_write_struct(writer, SpaceScript, sl);
+  writer->write_struct_cast<SpaceScript>(sl);
 }
 
 void ED_spacetype_script()

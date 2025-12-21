@@ -308,18 +308,18 @@ static void action_foreach_id(ID *id, LibraryForeachIDData *data)
 
 static void write_channelbag(BlendWriter *writer, animrig::Channelbag &channelbag)
 {
-  BLO_write_struct(writer, ActionChannelbag, &channelbag);
+  writer->write_struct_cast<ActionChannelbag>(&channelbag);
 
   Span<bActionGroup *> groups = channelbag.channel_groups();
   BLO_write_pointer_array(writer, groups.size(), groups.data());
   for (const bActionGroup *group : groups) {
-    BLO_write_struct(writer, bActionGroup, group);
+    writer->write_struct(group);
   }
 
   Span<FCurve *> fcurves = channelbag.fcurves();
   BLO_write_pointer_array(writer, fcurves.size(), fcurves.data());
   for (FCurve *fcurve : fcurves) {
-    BLO_write_struct(writer, FCurve, fcurve);
+    writer->write_struct(fcurve);
     BKE_fcurve_blend_write_data(writer, fcurve);
   }
 }
@@ -327,7 +327,7 @@ static void write_channelbag(BlendWriter *writer, animrig::Channelbag &channelba
 static void write_strip_keyframe_data(BlendWriter *writer,
                                       animrig::StripKeyframeData &strip_keyframe_data)
 {
-  BLO_write_struct(writer, ActionStripKeyframeData, &strip_keyframe_data);
+  writer->write_struct_cast<ActionStripKeyframeData>(&strip_keyframe_data);
 
   auto channelbags = strip_keyframe_data.channelbags();
   BLO_write_pointer_array(writer, channelbags.size(), channelbags.data());
@@ -353,7 +353,7 @@ static void write_strips(BlendWriter *writer, Span<animrig::Strip *> strips)
   BLO_write_pointer_array(writer, strips.size(), strips.data());
 
   for (animrig::Strip *strip : strips) {
-    BLO_write_struct(writer, ActionStrip, strip);
+    writer->write_struct_cast<ActionStrip>(strip);
   }
 }
 
@@ -362,7 +362,7 @@ static void write_layers(BlendWriter *writer, Span<animrig::Layer *> layers)
   BLO_write_pointer_array(writer, layers.size(), layers.data());
 
   for (animrig::Layer *layer : layers) {
-    BLO_write_struct(writer, ActionLayer, layer);
+    writer->write_struct_cast<ActionLayer>(layer);
     write_strips(writer, layer->strips());
   }
 }
@@ -557,7 +557,7 @@ static void action_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   /* Write legacy F-Curves & Groups. */
   BKE_fcurve_blend_write_listbase(writer, &action.curves);
   LISTBASE_FOREACH (bActionGroup *, grp, &action.groups) {
-    BLO_write_struct(writer, bActionGroup, grp);
+    writer->write_struct(grp);
   }
 
   BKE_time_markers_blend_write(writer, action.markers);
@@ -2102,12 +2102,12 @@ void BKE_pose_blend_write(BlendWriter *writer, bPose *pose)
 
     animviz_motionpath_blend_write(writer, chan->mpath);
 
-    BLO_write_struct(writer, bPoseChannel, chan);
+    writer->write_struct(chan);
   }
 
   /* Write groups */
   LISTBASE_FOREACH (bActionGroup *, grp, &pose->agroups) {
-    BLO_write_struct(writer, bActionGroup, grp);
+    writer->write_struct(grp);
   }
 
   /* write IK param */
@@ -2119,7 +2119,7 @@ void BKE_pose_blend_write(BlendWriter *writer, bPose *pose)
   }
 
   /* Write this pose */
-  BLO_write_struct(writer, bPose, pose);
+  writer->write_struct(pose);
 }
 
 void BKE_pose_blend_read_data(BlendDataReader *reader, ID *id_owner, bPose *pose)

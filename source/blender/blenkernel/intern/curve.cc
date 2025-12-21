@@ -179,7 +179,7 @@ static void curve_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   else {
     /* is also the order of reading */
     LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
-      BLO_write_struct(writer, Nurb, nu);
+      writer->write_struct(nu);
     }
     LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
       if (nu->type == CU_BEZIER) {

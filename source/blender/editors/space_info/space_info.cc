@@ -247,7 +247,7 @@ static void info_header_region_message_subscribe(const wmRegionMessageSubscribeP
 
 static void info_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
-  BLO_write_struct(writer, SpaceInfo, sl);
+  writer->write_struct_cast<SpaceInfo>(sl);
 }
 
 void ED_spacetype_info()

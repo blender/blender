@@ -511,7 +511,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 {
   const HookModifierData *hmd = (const HookModifierData *)md;
 
-  BLO_write_struct(writer, HookModifierData, hmd);
+  writer->write_struct(hmd);
 
   if (hmd->curfalloff) {
     BKE_curvemapping_blend_write(writer, hmd->curfalloff);

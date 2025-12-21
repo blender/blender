@@ -194,7 +194,7 @@ PreviewImage *BKE_asset_metadata_preview_get_from_id(const AssetMetaData * /*ass
 
 void BKE_asset_metadata_write(BlendWriter *writer, AssetMetaData *asset_data)
 {
-  BLO_write_struct(writer, AssetMetaData, asset_data);
+  writer->write_struct(asset_data);
 
   if (asset_data->properties) {
     IDP_BlendWrite(writer, asset_data->properties);
@@ -206,7 +206,7 @@ void BKE_asset_metadata_write(BlendWriter *writer, AssetMetaData *asset_data)
   BLO_write_string(writer, asset_data->license);
 
   LISTBASE_FOREACH (AssetTag *, tag, &asset_data->tags) {
-    BLO_write_struct(writer, AssetTag, tag);
+    writer->write_struct(tag);
   }
 }
 

@@ -641,27 +641,27 @@ static void object_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   BKE_constraint_blend_write(writer, &ob->constraints);
   animviz_motionpath_blend_write(writer, ob->mpath);
 
-  BLO_write_struct(writer, PartDeflect, ob->pd);
+  writer->write_struct(ob->pd);
   if (ob->soft) {
     /* Set deprecated pointers to prevent crashes of older Blenders */
     ob->soft->pointcache = ob->soft->shared->pointcache;
     ob->soft->ptcaches = ob->soft->shared->ptcaches;
-    BLO_write_struct(writer, SoftBody, ob->soft);
-    BLO_write_struct(writer, SoftBody_Shared, ob->soft->shared);
+    writer->write_struct(ob->soft);
+    writer->write_struct(ob->soft->shared);
     BKE_ptcache_blend_write(writer, &(ob->soft->shared->ptcaches));
-    BLO_write_struct(writer, EffectorWeights, ob->soft->effector_weights);
+    writer->write_struct(ob->soft->effector_weights);
   }
 
   if (ob->rigidbody_object) {
     /* TODO: if any extra data is added to handle duplis, will need separate function then */
-    BLO_write_struct(writer, RigidBodyOb, ob->rigidbody_object);
+    writer->write_struct(ob->rigidbody_object);
   }
   if (ob->rigidbody_constraint) {
-    BLO_write_struct(writer, RigidBodyCon, ob->rigidbody_constraint);
+    writer->write_struct(ob->rigidbody_constraint);
   }
 
   if (ob->type == OB_EMPTY && ob->empty_drawtype == OB_EMPTY_IMAGE) {
-    BLO_write_struct(writer, ImageUser, ob->iuser);
+    writer->write_struct(ob->iuser);
   }
 
   BKE_particle_system_blend_write(writer, &ob->particlesystem);
@@ -673,14 +673,14 @@ static void object_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   BKE_previewimg_blend_write(writer, ob->preview);
 
   if (ob->lightgroup) {
-    BLO_write_struct(writer, LightgroupMembership, ob->lightgroup);
+    writer->write_struct(ob->lightgroup);
   }
   if (ob->light_linking) {
-    BLO_write_struct(writer, LightLinking, ob->light_linking);
+    writer->write_struct(ob->light_linking);
   }
 
   if (ob->lightprobe_cache) {
-    BLO_write_struct(writer, LightProbeObjectCache, ob->lightprobe_cache);
+    writer->write_struct(ob->lightprobe_cache);
     BKE_lightprobe_cache_blend_write(writer, ob->lightprobe_cache);
   }
 }

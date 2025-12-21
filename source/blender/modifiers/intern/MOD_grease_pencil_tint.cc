@@ -472,10 +472,10 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 {
   const auto *tmd = reinterpret_cast<const GreasePencilTintModifierData *>(md);
 
-  BLO_write_struct(writer, GreasePencilTintModifierData, tmd);
+  writer->write_struct(tmd);
   modifier::greasepencil::write_influence_data(writer, &tmd->influence);
   if (tmd->color_ramp) {
-    BLO_write_struct(writer, ColorBand, tmd->color_ramp);
+    writer->write_struct(tmd->color_ramp);
   }
 }
 

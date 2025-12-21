@@ -1311,11 +1311,11 @@ static void write_ui_data(const IDProperty *prop, BlendWriter *writer)
     case IDP_UI_DATA_TYPE_STRING: {
       IDPropertyUIDataString *ui_data_string = (IDPropertyUIDataString *)ui_data;
       BLO_write_string(writer, ui_data_string->default_value);
-      BLO_write_struct(writer, IDPropertyUIDataString, ui_data);
+      writer->write_struct_cast<IDPropertyUIDataString>(ui_data);
       break;
     }
     case IDP_UI_DATA_TYPE_ID: {
-      BLO_write_struct(writer, IDPropertyUIDataID, ui_data);
+      writer->write_struct_cast<IDPropertyUIDataID>(ui_data);
       break;
     }
     case IDP_UI_DATA_TYPE_INT: {
@@ -1332,7 +1332,7 @@ static void write_ui_data(const IDProperty *prop, BlendWriter *writer)
         BLO_write_string(writer, item.name);
         BLO_write_string(writer, item.description);
       }
-      BLO_write_struct(writer, IDPropertyUIDataInt, ui_data);
+      writer->write_struct_cast<IDPropertyUIDataInt>(ui_data);
       break;
     }
     case IDP_UI_DATA_TYPE_BOOLEAN: {
@@ -1342,7 +1342,7 @@ static void write_ui_data(const IDProperty *prop, BlendWriter *writer)
                              uint(ui_data_bool->default_array_len),
                              (const int8_t *)ui_data_bool->default_array);
       }
-      BLO_write_struct(writer, IDPropertyUIDataBool, ui_data);
+      writer->write_struct_cast<IDPropertyUIDataBool>(ui_data);
       break;
     }
     case IDP_UI_DATA_TYPE_FLOAT: {
@@ -1351,7 +1351,7 @@ static void write_ui_data(const IDProperty *prop, BlendWriter *writer)
         BLO_write_double_array(
             writer, uint(ui_data_float->default_array_len), ui_data_float->default_array);
       }
-      BLO_write_struct(writer, IDPropertyUIDataFloat, ui_data);
+      writer->write_struct_cast<IDPropertyUIDataFloat>(ui_data);
       break;
     }
     case IDP_UI_DATA_TYPE_UNSUPPORTED: {
@@ -1455,7 +1455,7 @@ void IDP_WriteProperty_OnlyData(const IDProperty *prop, BlendWriter *writer)
 
 void IDP_BlendWrite(BlendWriter *writer, const IDProperty *prop)
 {
-  BLO_write_struct(writer, IDProperty, prop);
+  writer->write_struct(prop);
   IDP_WriteProperty_OnlyData(prop, writer);
 }
 

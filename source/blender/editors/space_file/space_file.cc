@@ -940,12 +940,12 @@ static void file_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   SpaceFile *sfile = (SpaceFile *)sl;
 
-  BLO_write_struct(writer, SpaceFile, sl);
+  writer->write_struct_cast<SpaceFile>(sl);
   if (sfile->params) {
-    BLO_write_struct(writer, FileSelectParams, sfile->params);
+    writer->write_struct(sfile->params);
   }
   if (sfile->asset_params) {
-    BLO_write_struct(writer, FileAssetSelectParams, sfile->asset_params);
+    writer->write_struct(sfile->asset_params);
   }
 }
 

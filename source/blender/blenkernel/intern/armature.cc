@@ -291,7 +291,7 @@ static void write_bone(BlendWriter *writer, Bone *bone)
   /* Write this bone, except for its runtime data. */
   const Bone_Runtime runtime_backup = bone->runtime;
   bone->runtime = Bone_Runtime{};
-  BLO_write_struct(writer, Bone, bone);
+  writer->write_struct(bone);
   bone->runtime = runtime_backup;
 
   /* Write ID Properties -- and copy this comment EXACTLY for easy finding
@@ -312,7 +312,7 @@ static void write_bone(BlendWriter *writer, Bone *bone)
 static void write_bone_collection(BlendWriter *writer, BoneCollection *bcoll)
 {
   /* Write this bone collection. */
-  BLO_write_struct(writer, BoneCollection, bcoll);
+  writer->write_struct(bcoll);
 
   /* Write ID Properties -- and copy this comment EXACTLY for easy finding
    * of library blocks that implement this. */

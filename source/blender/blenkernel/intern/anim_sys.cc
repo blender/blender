@@ -303,12 +303,12 @@ void BKE_keyingsets_blend_write(BlendWriter *writer, ListBase *list)
 {
   LISTBASE_FOREACH (KeyingSet *, ks, list) {
     /* KeyingSet */
-    BLO_write_struct(writer, KeyingSet, ks);
+    writer->write_struct(ks);
 
     /* Paths */
     LISTBASE_FOREACH (KS_Path *, ksp, &ks->paths) {
       /* Path */
-      BLO_write_struct(writer, KS_Path, ksp);
+      writer->write_struct(ksp);
 
       if (ksp->rna_path) {
         BLO_write_string(writer, ksp->rna_path);
@@ -4276,7 +4276,7 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph, ID *id, int driver_index, FCu
 void BKE_time_markers_blend_write(BlendWriter *writer, ListBase /* TimeMarker */ &markers)
 {
   LISTBASE_FOREACH (TimeMarker *, marker, &markers) {
-    BLO_write_struct(writer, TimeMarker, marker);
+    writer->write_struct(marker);
 
     if (marker->prop != nullptr) {
       IDP_BlendWrite(writer, marker->prop);

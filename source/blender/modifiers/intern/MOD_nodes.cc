@@ -2038,7 +2038,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 {
   const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(md);
 
-  BLO_write_struct(writer, NodesModifierData, nmd);
+  writer->write_struct(nmd);
 
   BLO_write_string(writer, nmd->bake_directory);
 
@@ -2073,7 +2073,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
       BLO_write_string(writer, item.lib_name);
     }
     if (bake.packed) {
-      BLO_write_struct(writer, NodesModifierPackedBake, bake.packed);
+      writer->write_struct(bake.packed);
       BLO_write_struct_array(
           writer, NodesModifierBakeFile, bake.packed->meta_files_num, bake.packed->meta_files);
       BLO_write_struct_array(

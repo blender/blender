@@ -112,7 +112,7 @@ AssetWeakReference AssetWeakReference::make_reference(const asset_system::AssetL
 
 void BKE_asset_weak_reference_write(BlendWriter *writer, const AssetWeakReference *weak_ref)
 {
-  BLO_write_struct(writer, AssetWeakReference, weak_ref);
+  writer->write_struct(weak_ref);
   BLO_write_string(writer, weak_ref->asset_library_identifier);
   BLO_write_string(writer, weak_ref->relative_asset_identifier);
 }
@@ -151,7 +151,7 @@ void BKE_asset_catalog_path_list_blend_write(BlendWriter *writer,
                                              const ListBase &catalog_path_list)
 {
   LISTBASE_FOREACH (const AssetCatalogPathLink *, catalog_path, &catalog_path_list) {
-    BLO_write_struct(writer, AssetCatalogPathLink, catalog_path);
+    writer->write_struct(catalog_path);
     BLO_write_string(writer, catalog_path->path);
   }
 }

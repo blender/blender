@@ -1586,10 +1586,10 @@ static void view3d_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 static void view3d_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   View3D *v3d = (View3D *)sl;
-  BLO_write_struct(writer, View3D, v3d);
+  writer->write_struct(v3d);
 
   if (v3d->localvd) {
-    BLO_write_struct(writer, View3D, v3d->localvd);
+    writer->write_struct(v3d->localvd);
   }
 
   BKE_screen_view3d_shading_blend_write(writer, &v3d->shading);

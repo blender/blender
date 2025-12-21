@@ -1256,13 +1256,13 @@ static void write_region(BlendWriter *writer, ARegion *region, int spacetype)
       case SPACE_VIEW3D:
         if (region->regiontype == RGN_TYPE_WINDOW) {
           RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-          BLO_write_struct(writer, RegionView3D, rv3d);
+          writer->write_struct(rv3d);
 
           if (rv3d->localvd) {
-            BLO_write_struct(writer, RegionView3D, rv3d->localvd);
+            writer->write_struct(rv3d->localvd);
           }
           if (rv3d->clipbb) {
-            BLO_write_struct(writer, BoundBox, rv3d->clipbb);
+            writer->write_struct(rv3d->clipbb);
           }
         }
         else {
@@ -1277,7 +1277,7 @@ static void write_region(BlendWriter *writer, ARegion *region, int spacetype)
 
 static void write_uilist(BlendWriter *writer, uiList *ui_list)
 {
-  BLO_write_struct(writer, uiList, ui_list);
+  writer->write_struct(ui_list);
 
   if (ui_list->properties) {
     IDP_BlendWrite(writer, ui_list->properties);
@@ -1306,7 +1306,7 @@ static void write_area(BlendWriter *writer, ScrArea *area)
     write_panel_list(writer, &region->panels);
 
     LISTBASE_FOREACH (PanelCategoryStack *, pc_act, &region->panels_category_active) {
-      BLO_write_struct(writer, PanelCategoryStack, pc_act);
+      writer->write_struct(pc_act);
     }
 
     LISTBASE_FOREACH (uiList *, ui_list, &region->ui_lists) {
@@ -1314,11 +1314,11 @@ static void write_area(BlendWriter *writer, ScrArea *area)
     }
 
     LISTBASE_FOREACH (uiPreview *, ui_preview, &region->ui_previews) {
-      BLO_write_struct(writer, uiPreview, ui_preview);
+      writer->write_struct(ui_preview);
     }
 
     LISTBASE_FOREACH (uiViewStateLink *, view_state, &region->view_states) {
-      BLO_write_struct(writer, uiViewStateLink, view_state);
+      writer->write_struct(view_state);
     }
   }
 
@@ -1341,9 +1341,9 @@ void BKE_screen_area_map_blend_write(BlendWriter *writer, ScrAreaMap *area_map)
   LISTBASE_FOREACH (ScrArea *, area, &area_map->areabase) {
     area->butspacetype = area->spacetype; /* Just for compatibility, will be reset below. */
 
-    BLO_write_struct(writer, ScrArea, area);
+    writer->write_struct(area);
 
-    BLO_write_struct(writer, ScrGlobalAreaData, area->global);
+    writer->write_struct(area->global);
 
     write_area(writer, area);
 

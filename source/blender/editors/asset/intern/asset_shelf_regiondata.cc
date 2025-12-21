@@ -72,9 +72,9 @@ void regiondata_free(RegionAssetShelf *shelf_regiondata)
 
 void regiondata_blend_write(BlendWriter *writer, const RegionAssetShelf *shelf_regiondata)
 {
-  BLO_write_struct(writer, RegionAssetShelf, shelf_regiondata);
+  writer->write_struct(shelf_regiondata);
   LISTBASE_FOREACH (const AssetShelf *, shelf, &shelf_regiondata->shelves) {
-    BLO_write_struct(writer, AssetShelf, shelf);
+    writer->write_struct(shelf);
     settings_blend_write(writer, shelf->settings);
   }
 }

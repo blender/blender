@@ -1594,7 +1594,7 @@ void BKE_defvert_weight_to_rgb(float r_rgb[3], const float weight)
 void BKE_defbase_blend_write(BlendWriter *writer, const ListBase *defbase)
 {
   LISTBASE_FOREACH (bDeformGroup *, defgroup, defbase) {
-    BLO_write_struct(writer, bDeformGroup, defgroup);
+    writer->write_struct(defgroup);
   }
 }
 

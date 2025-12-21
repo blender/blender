@@ -164,7 +164,7 @@ static void world_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   BKE_previewimg_blend_write(writer, wrld->preview);
 
   if (wrld->lightgroup) {
-    BLO_write_struct(writer, LightgroupMembership, wrld->lightgroup);
+    writer->write_struct(wrld->lightgroup);
   }
 }
 

@@ -1120,7 +1120,7 @@ static void sequencer_space_blend_read_data(BlendDataReader * /*reader*/, SpaceL
 
 static void sequencer_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
-  BLO_write_struct(writer, SpaceSeq, sl);
+  writer->write_struct_cast<SpaceSeq>(sl);
 }
 
 void ED_spacetype_sequencer()

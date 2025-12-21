@@ -1214,7 +1214,7 @@ static void image_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink 
 
 static void image_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
-  BLO_write_struct(writer, SpaceImage, sl);
+  writer->write_struct_cast<SpaceImage>(sl);
 }
 
 /**************************** spacetype *****************************/

@@ -2632,7 +2632,7 @@ void BKE_id_blend_write(BlendWriter *writer, ID *id)
   }
 
   if (id->library_weak_reference != nullptr) {
-    BLO_write_struct(writer, LibraryWeakReference, id->library_weak_reference);
+    writer->write_struct(id->library_weak_reference);
   }
 
   /* ID_WM's id->properties are considered runtime only, and never written in .blend file. */
@@ -2648,7 +2648,7 @@ void BKE_id_blend_write(BlendWriter *writer, ID *id)
   BKE_animdata_blend_write(writer, id);
 
   if (id->override_library) {
-    BLO_write_struct(writer, IDOverrideLibrary, id->override_library);
+    writer->write_struct(id->override_library);
 
     BLO_write_struct_list(writer, IDOverrideLibraryProperty, &id->override_library->properties);
     LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &id->override_library->properties) {

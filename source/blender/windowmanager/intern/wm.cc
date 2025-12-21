@@ -125,9 +125,9 @@ static void window_manager_blend_write(BlendWriter *writer, ID *id, const void *
     /* Update deprecated screen member (for so loading in 2.7x uses the correct screen). */
     win->screen = BKE_workspace_active_screen_get(win->workspace_hook);
 
-    BLO_write_struct(writer, wmWindow, win);
-    BLO_write_struct(writer, WorkSpaceInstanceHook, win->workspace_hook);
-    BLO_write_struct(writer, Stereo3dFormat, win->stereo3d_format);
+    writer->write_struct(win);
+    writer->write_struct(win->workspace_hook);
+    writer->write_struct(win->stereo3d_format);
 
     BKE_screen_area_map_blend_write(writer, &win->global_areas);
 

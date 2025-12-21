@@ -594,7 +594,7 @@ static void write_space_outliner(BlendWriter *writer, const SpaceOutliner *space
                                   nullptr;
 
     if (data) {
-      BLO_write_struct(writer, SpaceOutliner, space_outliner);
+      writer->write_struct_cast<SpaceOutliner>(space_outliner);
 
       /* To store #TreeStore (instead of the mempool), two unique memory addresses are needed,
        * which can be used to identify the data on read:
@@ -633,7 +633,7 @@ static void write_space_outliner(BlendWriter *writer, const SpaceOutliner *space
     }
   }
   else {
-    BLO_write_struct(writer, SpaceOutliner, space_outliner);
+    writer->write_struct_cast<SpaceOutliner>(space_outliner);
   }
 }
 

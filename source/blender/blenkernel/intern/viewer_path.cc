@@ -76,43 +76,43 @@ void BKE_viewer_path_blend_write(BlendWriter *writer, const ViewerPath *viewer_p
     switch (ViewerPathElemType(elem->type)) {
       case VIEWER_PATH_ELEM_TYPE_ID: {
         const auto *typed_elem = reinterpret_cast<IDViewerPathElem *>(elem);
-        BLO_write_struct(writer, IDViewerPathElem, typed_elem);
+        writer->write_struct(typed_elem);
         break;
       }
       case VIEWER_PATH_ELEM_TYPE_MODIFIER: {
         const auto *typed_elem = reinterpret_cast<ModifierViewerPathElem *>(elem);
-        BLO_write_struct(writer, ModifierViewerPathElem, typed_elem);
+        writer->write_struct(typed_elem);
         break;
       }
       case VIEWER_PATH_ELEM_TYPE_GROUP_NODE: {
         const auto *typed_elem = reinterpret_cast<GroupNodeViewerPathElem *>(elem);
-        BLO_write_struct(writer, GroupNodeViewerPathElem, typed_elem);
+        writer->write_struct(typed_elem);
         break;
       }
       case VIEWER_PATH_ELEM_TYPE_SIMULATION_ZONE: {
         const auto *typed_elem = reinterpret_cast<SimulationZoneViewerPathElem *>(elem);
-        BLO_write_struct(writer, SimulationZoneViewerPathElem, typed_elem);
+        writer->write_struct(typed_elem);
         break;
       }
       case VIEWER_PATH_ELEM_TYPE_VIEWER_NODE: {
         const auto *typed_elem = reinterpret_cast<ViewerNodeViewerPathElem *>(elem);
-        BLO_write_struct(writer, ViewerNodeViewerPathElem, typed_elem);
+        writer->write_struct(typed_elem);
         break;
       }
       case VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE: {
         const auto *typed_elem = reinterpret_cast<RepeatZoneViewerPathElem *>(elem);
-        BLO_write_struct(writer, RepeatZoneViewerPathElem, typed_elem);
+        writer->write_struct(typed_elem);
         break;
       }
       case VIEWER_PATH_ELEM_TYPE_FOREACH_GEOMETRY_ELEMENT_ZONE: {
         const auto *typed_elem = reinterpret_cast<ForeachGeometryElementZoneViewerPathElem *>(
             elem);
-        BLO_write_struct(writer, ForeachGeometryElementZoneViewerPathElem, typed_elem);
+        writer->write_struct(typed_elem);
         break;
       }
       case VIEWER_PATH_ELEM_TYPE_EVALUATE_CLOSURE: {
         const auto *typed_elem = reinterpret_cast<EvaluateClosureNodeViewerPathElem *>(elem);
-        BLO_write_struct(writer, EvaluateClosureNodeViewerPathElem, typed_elem);
+        writer->write_struct(typed_elem);
         break;
       }
     }
