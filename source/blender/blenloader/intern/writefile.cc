@@ -2212,14 +2212,14 @@ void BLO_write_struct_list_by_id(BlendWriter *writer, const int struct_id, const
   writelist_nr(writer->wd, BLO_CODE_DATA, struct_id, list);
 }
 
-void BLO_write_struct_list_by_name(BlendWriter *writer, const char *struct_name, ListBase *list)
+void BlendWriter::write_struct_list_by_name(const char *struct_name, ListBase *list)
 {
-  int struct_id = BLO_get_struct_id_by_name(writer, struct_name);
+  int struct_id = BLO_get_struct_id_by_name(this, struct_name);
   if (UNLIKELY(struct_id == -1)) {
     CLOG_ERROR(&LOG, "Can't find SDNA code <%s>", struct_name);
     return;
   }
-  BLO_write_struct_list_by_id(writer, struct_id, list);
+  BLO_write_struct_list_by_id(this, struct_id, list);
 }
 
 void blo_write_id_struct(BlendWriter *writer,
