@@ -93,9 +93,9 @@ template<typename T>
     /* To avoid mask slice/lookup. */
     return min_max(values);
   }
-  const Bounds<T> init{values.first(), values.first()};
+  const Bounds<T> init{mask.first(), mask.first()};
   return threading::parallel_reduce(
-      mask.index_range(),
+      mask.index_range().drop_front(1),
       1024,
       init,
       [&](const IndexRange range, const Bounds<T> &init) {
