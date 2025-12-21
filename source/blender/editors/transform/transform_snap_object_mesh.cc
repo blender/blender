@@ -587,7 +587,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
           cb_snap_tri_faces_midpoint,
           &nearest2d);
     }
-    if (nearest.index != -1) {
+    if (last_index != nearest.index) {
       last_index = nearest.index;
       elem = SCE_SNAP_TO_FACE_MIDPOINT;
     }
