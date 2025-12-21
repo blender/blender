@@ -44,7 +44,7 @@ class SequencerCrossfadeSounds(Operator):
         scene = context.sequencer_scene
         strip1 = None
         strip2 = None
-        for strip in scene.sequence_editor.strips_all:
+        for strip in scene.sequence_editor.strips:
             if strip.select and strip.type == 'SOUND':
                 if strip1 is None:
                     strip1 = strip
@@ -133,7 +133,7 @@ class SequencerDeinterlaceSelectedMovies(Operator):
 
     def execute(self, context):
         scene = context.sequencer_scene
-        for strip in scene.sequence_editor.strips_all:
+        for strip in scene.sequence_editor.strips:
             if strip.select and strip.type == 'MOVIE':
                 strip.use_deinterlace = True
 
@@ -168,7 +168,7 @@ class SequencerFadesClear(Operator):
         fcurve_map = {
             curve.data_path: curve
             for curve in fcurves
-            if curve.data_path.startswith("sequence_editor.strips_all")
+            if curve.data_path.startswith("sequence_editor.strips")
         }
         for strip in context.selected_strips:
             for animated_property in _animated_properties_get(strip):
