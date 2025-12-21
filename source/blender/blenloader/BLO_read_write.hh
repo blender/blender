@@ -61,6 +61,10 @@ struct BlendWriter {
                                                    const void *data);
   void write_struct_array_by_name(const char *struct_name, int64_t array_size, const void *data);
   void write_struct_array_by_id(int struct_id, int64_t array_size, const void *data);
+  void write_struct_array_at_address_by_id(int struct_id,
+                                           int64_t array_size,
+                                           const void *address,
+                                           const void *data);
 };
 
 struct BlendDataReader {
@@ -150,14 +154,9 @@ int BLO_get_struct_id_by_name(const BlendWriter *writer, const char *struct_name
 /**
  * Write struct array at address.
  */
-void BLO_write_struct_array_at_address_by_id(BlendWriter *writer,
-                                             int struct_id,
-                                             int64_t array_size,
-                                             const void *address,
-                                             const void *data_ptr);
 #define BLO_write_struct_array_at_address(writer, struct_name, array_size, address, data_ptr) \
-  BLO_write_struct_array_at_address_by_id( \
-      writer, blender::dna::sdna_struct_id_get<struct_name>(), array_size, address, data_ptr)
+  (writer)->write_struct_array_at_address_by_id( \
+      blender::dna::sdna_struct_id_get<struct_name>(), array_size, address, data_ptr)
 
 /**
  * Write struct list.
