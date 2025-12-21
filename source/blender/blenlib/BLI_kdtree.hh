@@ -358,25 +358,26 @@ inline int kdtree_find_nearest_cb(
   stack = stack_default;
   stack_len_capacity = int(ARRAY_SIZE(stack_default));
 
-#define NODE_TEST_NEAREST(node) \
-  { \
-    const float dist_sq = detail::len_squared_vnvn<DimsNum>((node)->co, co); \
-    if (dist_sq < min_dist) { \
-      const int result = filter_cb(user_data, (node)->index, (node)->co, dist_sq); \
-      if (result == 1) { \
-        min_dist = dist_sq; \
-        min_node = node; \
-      } \
-      else if (result == 0) { \
-        /* pass */ \
-      } \
-      else { \
-        BLI_assert(result == -1); \
-        goto finally; \
-      } \
-    } \
-  } \
-  ((void)0)
+  const auto node_test_nearest = [&](const KDTreeNode<DimsNum> *node) -> bool {
+    const float dist_sq = detail::len_squared_vnvn<DimsNum>((node)->co, co);
+    if (dist_sq >= min_dist) {
+      return false;
+    }
+    const int result = filter_cb(user_data, (node)->index, (node)->co, dist_sq);
+    if (result == 1) {
+      min_dist = dist_sq;
+      min_node = node;
+      return false;
+    }
+
+    if (result == 0) {
+      /* pass */
+      return false;
+    }
+
+    BLI_assert(result == -1);
+    return true;
+  };
 
   stack[cur++] = tree->root;
 
@@ -389,7 +390,9 @@ inline int kdtree_find_nearest_cb(
       cur_dist = -cur_dist * cur_dist;
 
       if (-cur_dist < min_dist) {
-        NODE_TEST_NEAREST(node);
+        if (node_test_nearest(node)) {
+          break;
+        }
 
         if (node->left != KD_NODE_UNSET) {
           stack[cur++] = node->left;
@@ -403,7 +406,9 @@ inline int kdtree_find_nearest_cb(
       cur_dist = cur_dist * cur_dist;
 
       if (cur_dist < min_dist) {
-        NODE_TEST_NEAREST(node);
+        if (node_test_nearest(node)) {
+          break;
+        }
 
         if (node->right != KD_NODE_UNSET) {
           stack[cur++] = node->right;
@@ -418,9 +423,6 @@ inline int kdtree_find_nearest_cb(
     }
   }
 
-#undef NODE_TEST_NEAREST
-
-finally:
   if (stack != stack_default) {
     MEM_freeN(stack);
   }
