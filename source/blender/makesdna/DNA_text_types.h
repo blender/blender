@@ -67,7 +67,7 @@ struct Text {
   int flags = 0;
   char _pad0[4] = {};
 
-  ListBase lines = {nullptr, nullptr};
+  ListBaseT<TextLine> lines = {nullptr, nullptr};
   TextLine *curl = nullptr, *sell = nullptr;
   int curc = 0, selc = 0;
 

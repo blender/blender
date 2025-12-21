@@ -416,7 +416,7 @@ void ViewOpsData::end_navigation(bContext *C)
 struct ViewOpsData_Utility : ViewOpsData {
   /* To track only the navigation #wmKeyMapItem items and allow changes to them, an internal
    * #wmKeyMap is created with their copy. */
-  ListBase keymap_items;
+  ListBaseT<wmKeyMapItem> keymap_items;
 
   /* Used by #ED_view3d_navigation_do. */
   bool is_modal_event = false;

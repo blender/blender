@@ -192,7 +192,7 @@ struct EditNurb {
   DNA_DEFINE_CXX_METHODS(EditNurb)
 
   /* base of nurbs' list (old Curve->editnurb) */
-  ListBase nurbs = {nullptr, nullptr};
+  ListBaseT<Nurb> nurbs = {nullptr, nullptr};
 
   /* index data for shape keys */
   CVKeyIndexMap *keyindex = nullptr;
@@ -219,7 +219,7 @@ struct Curve {
   struct AnimData *adt = nullptr;
 
   /** Actual data, called splines in rna. */
-  ListBase nurb = {nullptr, nullptr};
+  ListBaseT<Nurb> nurb = {nullptr, nullptr};
 
   /** Edited data, not in file, use pointer so we can check for it. */
   EditNurb *editnurb = nullptr;

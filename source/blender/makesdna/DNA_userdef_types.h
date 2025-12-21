@@ -574,8 +574,7 @@ struct bUserMenu {
   char space_type = 0;
   char _pad0[7] = {};
   char context[64] = "";
-  /* bUserMenuItem */
-  ListBase items = {nullptr, nullptr};
+  ListBaseT<struct bUserMenuItem> items = {nullptr, nullptr};
 };
 
 /** May be part of #bUserMenu or other list. */
@@ -836,7 +835,7 @@ struct bUserAssetShelfSettings {
   /** Identifier that matches the #AssetShelfType.idname of the shelf these settings apply to. */
   char shelf_idname[/*MAX_NAME*/ 64] = "";
 
-  ListBase enabled_catalog_paths = {nullptr, nullptr}; /* #AssetCatalogPathLink */
+  ListBaseT<AssetCatalogPathLink> enabled_catalog_paths = {nullptr, nullptr};
 };
 
 /**
@@ -969,14 +968,13 @@ struct UserDef {
    * A list of themes (#bTheme), the first is only used currently.
    * But there may be multiple themes in the list.
    */
-  ListBase themes = {nullptr, nullptr};
-  ListBase uifonts = {nullptr, nullptr};
-  ListBase uistyles = {nullptr, nullptr};
-  ListBase user_keymaps = {nullptr, nullptr};
-  /** #wmKeyConfigPref. */
-  ListBase user_keyconfig_prefs = {nullptr, nullptr};
-  ListBase addons = {nullptr, nullptr};
-  ListBase autoexec_paths = {nullptr, nullptr};
+  ListBaseT<bTheme> themes = {nullptr, nullptr};
+  ListBaseT<uiFont> uifonts = {nullptr, nullptr};
+  ListBaseT<uiStyle> uistyles = {nullptr, nullptr};
+  ListBaseT<struct wmKeyMap> user_keymaps = {nullptr, nullptr};
+  ListBaseT<struct wmKeyConfigPref> user_keyconfig_prefs = {nullptr, nullptr};
+  ListBaseT<bAddon> addons = {nullptr, nullptr};
+  ListBaseT<bPathCompare> autoexec_paths = {nullptr, nullptr};
   /**
    * Optional user locations for Python scripts.
    *
@@ -992,14 +990,11 @@ struct UserDef {
    * launch with a new version of Blender. In this case setting the script path on top of
    * factory settings will work without problems.
    */
-  ListBase script_directories = {nullptr, nullptr}; /* #bUserScriptDirectory */
-  /** #bUserMenu. */
-  ListBase user_menus = {nullptr, nullptr};
-  /** #bUserAssetLibrary */
-  ListBase asset_libraries = {nullptr, nullptr};
-  /** #bUserExtensionRepo */
-  ListBase extension_repos = {nullptr, nullptr};
-  ListBase asset_shelves_settings = {nullptr, nullptr}; /* #bUserAssetShelfSettings */
+  ListBaseT<bUserScriptDirectory> script_directories = {nullptr, nullptr};
+  ListBaseT<bUserMenu> user_menus = {nullptr, nullptr};
+  ListBaseT<bUserAssetLibrary> asset_libraries = {nullptr, nullptr};
+  ListBaseT<bUserExtensionRepo> extension_repos = {nullptr, nullptr};
+  ListBaseT<bUserAssetShelfSettings> asset_shelves_settings = {nullptr, nullptr};
 
   char keyconfigstr[64] = "Blender";
 

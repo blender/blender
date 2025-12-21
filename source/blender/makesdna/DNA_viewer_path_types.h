@@ -88,6 +88,5 @@ struct EvaluateClosureNodeViewerPathElem {
 };
 
 struct ViewerPath {
-  /** List of #ViewerPathElem. */
-  ListBase path = {nullptr, nullptr};
+  ListBaseT<ViewerPathElem> path = {nullptr, nullptr};
 };

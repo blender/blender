@@ -192,7 +192,7 @@ struct Mesh {
    * List of vertex group (#bDeformGroup) names and flags only. Actual weights are stored in dvert.
    * \note This pointer is for convenient access to the #CD_MDEFORMVERT layer in #vert_data.
    */
-  ListBase vertex_group_names = {nullptr, nullptr};
+  ListBaseT<struct bDeformGroup> vertex_group_names = {nullptr, nullptr};
   /** The active index in the #vertex_group_names list. */
   int vertex_group_active_index = 0;
 

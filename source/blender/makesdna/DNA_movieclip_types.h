@@ -107,7 +107,7 @@ struct MovieClip_RuntimeGPUTexture {
 };
 
 struct MovieClip_Runtime {
-  ListBase gputextures = {nullptr, nullptr};
+  ListBaseT<MovieClip_RuntimeGPUTexture> gputextures = {nullptr, nullptr};
   /* The Depsgraph::update_count when this ID was last updated. Covers any IDRecalcFlag. */
   uint64_t last_update = 0;
 };

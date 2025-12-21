@@ -121,7 +121,7 @@ struct BoidData {
 
 struct BoidState {
   struct BoidState *next = nullptr, *prev = nullptr;
-  ListBase rules = {nullptr, nullptr};
+  ListBaseT<BoidRule> rules = {nullptr, nullptr};
   ListBase conditions = {nullptr, nullptr};
   ListBase actions = {nullptr, nullptr};
   char name[32] = "";
@@ -156,5 +156,5 @@ struct BoidSettings {
   float land_personal_space = 0;
   float land_stick_force = 0;
 
-  ListBase states = {nullptr, nullptr};
+  ListBaseT<BoidState> states = {nullptr, nullptr};
 };

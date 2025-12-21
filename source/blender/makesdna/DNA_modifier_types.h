@@ -945,7 +945,9 @@ struct ClothModifierData {
    */
   /** Definition is in DNA_object_force_types.h. */
   struct PointCache *point_cache = nullptr;
-  struct ListBase ptcaches = {nullptr, nullptr};
+  struct ListBaseT<PointCache> ptcaches = {
+    nullptr, nullptr
+  };
 
   /** XXX: nasty hack, remove once hair can be separated from cloth modifier data. */
   struct ClothHairData *hairdata = nullptr;

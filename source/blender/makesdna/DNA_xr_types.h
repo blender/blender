@@ -140,7 +140,7 @@ struct XrActionMapBinding {
   /** OpenXR interaction profile path. */
   char profile[256] = "";
   /** OpenXR component paths. */
-  ListBase component_paths = {nullptr, nullptr}; /* XrComponentPath */
+  ListBaseT<XrComponentPath> component_paths = {nullptr, nullptr};
 
   /** Input threshold/region. */
   float float_threshold = 0;
@@ -169,7 +169,7 @@ struct XrActionMapItem {
   char _pad[7] = {};
 
   /** OpenXR user paths. */
-  ListBase user_paths = {nullptr, nullptr}; /* XrUserPath */
+  ListBaseT<XrUserPath> user_paths = {nullptr, nullptr};
 
   /** Operator to be called on XR events. */
   char op[/*OP_MAX_TYPENAME*/ 64] = "";
@@ -193,7 +193,7 @@ struct XrActionMapItem {
 
   short selbinding = 0;
   char _pad3[2] = {};
-  ListBase bindings = {nullptr, nullptr}; /* XrActionMapBinding */
+  ListBaseT<XrActionMapBinding> bindings = {nullptr, nullptr};
 };
 
 /* -------------------------------------------------------------------- */
@@ -204,7 +204,7 @@ struct XrActionMap {
   /** Unique name. */
   char name[/*MAX_NAME*/ 64] = "";
 
-  ListBase items = {nullptr, nullptr}; /* XrActionMapItem */
+  ListBaseT<XrActionMapItem> items = {nullptr, nullptr};
   short selitem = 0;
   char _pad[6] = {};
 };

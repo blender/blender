@@ -1122,7 +1122,7 @@ static void layer_collection_sync(ViewLayer *view_layer,
    */
 
   /* Temporary storage for all valid (new or reused) children layers. */
-  ListBase new_lb_layer = {nullptr, nullptr};
+  ListBaseT<LayerCollection> new_lb_layer = {nullptr, nullptr};
 
   BLI_assert(layer_resync->is_used);
 
@@ -1313,7 +1313,7 @@ void BKE_layer_collection_doversion_2_80(const Scene *scene, ViewLayer *view_lay
      * instead all the children of the master collection have their layer collections in the
      * viewlayer's list. This is not a valid situation, add a layer for the master collection and
      * add all existing first-level layers as children of that new master layer. */
-    ListBase layer_collections = view_layer->layer_collections;
+    ListBaseT<LayerCollection> layer_collections = view_layer->layer_collections;
     BLI_listbase_clear(&view_layer->layer_collections);
     LayerCollection *master_layer_collection = layer_collection_add(&view_layer->layer_collections,
                                                                     scene->master_collection);
@@ -1380,7 +1380,7 @@ bool BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
   view_layer->flag &= ~VIEW_LAYER_HAS_EXPORT_COLLECTIONS;
 
   /* Generate new layer connections and object bases when collections changed. */
-  ListBase new_object_bases{};
+  ListBaseT<Base> new_object_bases{};
   const short parent_exclude = 0, parent_restrict = 0, parent_layer_restrict = 0;
   layer_collection_sync(view_layer,
                         master_layer_resync,

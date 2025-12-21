@@ -249,7 +249,7 @@ struct Camera {
   struct CameraDOFSettings dof;
 
   /* CameraBGImage reference images */
-  ListBase bg_images = {nullptr, nullptr};
+  ListBaseT<CameraBGImage> bg_images = {nullptr, nullptr};
 
   /* Stereo settings */
   struct CameraStereoSettings stereo;

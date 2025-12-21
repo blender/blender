@@ -153,7 +153,7 @@ struct DynamicPaintSurface {
 
   /* cache */
   struct PointCache *pointcache = nullptr;
-  ListBase ptcaches = {nullptr, nullptr};
+  ListBaseT<PointCache> ptcaches = {nullptr, nullptr};
   int current_frame = 0;
 
   /* surface */
@@ -198,7 +198,7 @@ struct DynamicPaintCanvasSettings {
   /** For fast RNA access. */
   struct DynamicPaintModifierData *pmd = nullptr;
 
-  ListBase surfaces = {nullptr, nullptr};
+  ListBaseT<DynamicPaintSurface> surfaces = {nullptr, nullptr};
   short active_sur = 0, flags = 0;
   char _pad[4] = {};
 

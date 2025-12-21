@@ -85,7 +85,8 @@ void BKE_asset_weak_reference_write(BlendWriter *writer, const AssetWeakReferenc
 void BKE_asset_weak_reference_read(BlendDataReader *reader, AssetWeakReference *weak_ref);
 
 void BKE_asset_catalog_path_list_free(ListBase &catalog_path_list);
-ListBase BKE_asset_catalog_path_list_duplicate(const ListBase &catalog_path_list);
+ListBaseT<AssetCatalogPathLink> BKE_asset_catalog_path_list_duplicate(
+    const ListBaseT<AssetCatalogPathLink> &catalog_path_list);
 void BKE_asset_catalog_path_list_blend_write(BlendWriter *writer,
                                              const ListBase &catalog_path_list);
 void BKE_asset_catalog_path_list_blend_read_data(BlendDataReader *reader,

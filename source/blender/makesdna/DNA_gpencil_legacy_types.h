@@ -362,7 +362,7 @@ struct bGPDpalette {
   struct bGPDpalette *next = nullptr, *prev = nullptr;
 
   /** Pointer to individual colors. */
-  ListBase colors = {nullptr, nullptr};
+  ListBaseT<struct PaletteColor> colors = {nullptr, nullptr};
   /** Palette name. Must be unique. */
   char info[64] = "";
 
@@ -534,7 +534,7 @@ struct bGPDframe {
   struct bGPDframe *next = nullptr, *prev = nullptr;
 
   /** List of the simplified 'strokes' that make up the frame's data. */
-  ListBase strokes = {nullptr, nullptr};
+  ListBaseT<bGPDstroke> strokes = {nullptr, nullptr};
 
   /** Frame number of this frame. */
   int framenum = 0;
@@ -578,7 +578,7 @@ struct bGPDlayer {
   struct bGPDlayer *next = nullptr, *prev = nullptr;
 
   /** List of annotations to display for frames (bGPDframe list). */
-  ListBase frames = {nullptr, nullptr};
+  ListBaseT<bGPDframe> frames = {nullptr, nullptr};
   /** Active frame (should be the frame that is currently being displayed). */
   bGPDframe *actframe = nullptr;
 
@@ -643,7 +643,7 @@ struct bGPDlayer {
   char _pad1[4] = {};
 
   /** Mask list (bGPDlayer_Mask). */
-  ListBase mask_layers = {nullptr, nullptr};
+  ListBaseT<bGPDlayer_Mask> mask_layers = {nullptr, nullptr};
   /** Current Mask index (noted base 1). */
   int act_mask = 0;
   char _pad2[4] = {};
@@ -726,7 +726,7 @@ struct bGPdata {
 
   /* Grease-Pencil data */
   /** bGPDlayer. */
-  ListBase layers = {nullptr, nullptr};
+  ListBaseT<bGPDlayer> layers = {nullptr, nullptr};
   /** Settings for this data-block. */
   int flag = 0;
   /** Default resolution for generated curves using curve editing method. */
@@ -738,10 +738,10 @@ struct bGPdata {
 
   /* Palettes */
   /** List of bGPDpalette's   - Deprecated (2.78 - 2.79 only). */
-  ListBase palettes = {nullptr, nullptr};
+  ListBaseT<bGPDpalette> palettes = {nullptr, nullptr};
 
   /** List of bDeformGroup names and flag only. */
-  ListBase vertex_group_names = {nullptr, nullptr};
+  ListBaseT<bDeformGroup> vertex_group_names = {nullptr, nullptr};
 
   /* 3D Viewport/Appearance Settings */
   /** Factor to define pixel size conversion. */

@@ -677,8 +677,8 @@ struct FreestyleLineStyle {
   /* nodes */
   struct bNodeTree *nodetree = nullptr;
 
-  ListBase color_modifiers = {nullptr, nullptr};
-  ListBase alpha_modifiers = {nullptr, nullptr};
-  ListBase thickness_modifiers = {nullptr, nullptr};
-  ListBase geometry_modifiers = {nullptr, nullptr};
+  ListBaseT<LineStyleModifier> color_modifiers = {nullptr, nullptr};
+  ListBaseT<LineStyleModifier> alpha_modifiers = {nullptr, nullptr};
+  ListBaseT<LineStyleModifier> thickness_modifiers = {nullptr, nullptr};
+  ListBaseT<LineStyleModifier> geometry_modifiers = {nullptr, nullptr};
 };

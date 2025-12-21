@@ -493,8 +493,8 @@ struct MovieTrackingObject {
   float scale = 0;
 
   /** Lists of point and plane tracks use to tracking this object. */
-  ListBase tracks = {nullptr, nullptr};
-  ListBase plane_tracks = {nullptr, nullptr};
+  ListBaseT<MovieTrackingTrack> tracks = {nullptr, nullptr};
+  ListBaseT<MovieTrackingPlaneTrack> plane_tracks = {nullptr, nullptr};
 
   /** Active point and plane tracks. */
   MovieTrackingTrack *active_track = nullptr;
@@ -554,10 +554,10 @@ struct MovieTrackingDopesheet {
   /* ** runtime stuff ** */
 
   /* summary */
-  ListBase coverage_segments = {nullptr, nullptr};
+  ListBaseT<MovieTrackingDopesheetCoverageSegment> coverage_segments = {nullptr, nullptr};
 
   /* detailed */
-  ListBase channels = {nullptr, nullptr};
+  ListBaseT<MovieTrackingDopesheetChannel> channels = {nullptr, nullptr};
   int tot_channel = 0;
 
   char _pad[4] = {};
@@ -570,8 +570,8 @@ struct MovieTracking {
   MovieTrackingCamera camera;
   /** Lists of point and plane tracks used for camera object.
    * NOTE: Only left for the versioning purposes. */
-  ListBase tracks_legacy = {nullptr, nullptr};
-  ListBase plane_tracks_legacy = {nullptr, nullptr};
+  ListBaseT<MovieTrackingTrack> tracks_legacy = {nullptr, nullptr};
+  ListBaseT<MovieTrackingPlaneTrack> plane_tracks_legacy = {nullptr, nullptr};
 
   /** Reconstruction data for camera object.
    * NOTE: Only left for the versioning purposes. */
@@ -585,7 +585,7 @@ struct MovieTracking {
   MovieTrackingTrack *act_track_legacy = nullptr;
   MovieTrackingPlaneTrack *act_plane_track_legacy = nullptr;
 
-  ListBase objects = {nullptr, nullptr};
+  ListBaseT<MovieTrackingObject> objects = {nullptr, nullptr};
   /** Index of active object and total number of objects. */
   int objectnr = 0, tot_object = 0;
 

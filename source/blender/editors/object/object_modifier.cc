@@ -2786,7 +2786,7 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
   ANIM_armature_bonecoll_show_all(arm);
   arm_ob->dtx |= OB_DRAW_IN_FRONT;
   arm->drawtype = ARM_DRAW_TYPE_STICK;
-  arm->edbo = MEM_callocN<ListBase>("edbo armature");
+  arm->edbo = MEM_callocN<ListBaseT<EditBone>>("edbo armature");
 
   MVertSkin *mvert_skin = static_cast<MVertSkin *>(
       CustomData_get_layer_for_write(&mesh->vert_data, CD_MVERT_SKIN, mesh->verts_num));

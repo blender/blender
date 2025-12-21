@@ -487,15 +487,16 @@ struct Object {
   /** Motion path cache for this object. */
   bMotionPath *mpath = nullptr;
 
-  ListBase effect = {nullptr, nullptr};  /* XXX deprecated... keep for readfile */
-  ListBase defbase = {nullptr, nullptr}; /* Only for versioning, moved to object data. */
-  ListBase fmaps = {nullptr, nullptr};   /* For versioning, moved to generic attributes. */
+  ListBaseT<struct Effect> effect = {nullptr, nullptr}; /* XXX deprecated... keep for readfile */
+  ListBaseT<bDeformGroup> defbase = {nullptr,
+                                     nullptr}; /* Only for versioning, moved to object data. */
+  ListBase fmaps = {nullptr, nullptr};         /* For versioning, moved to generic attributes. */
   /** List of ModifierData structures. */
-  ListBase modifiers = {nullptr, nullptr};
+  ListBaseT<struct ModifierData> modifiers = {nullptr, nullptr};
   /** List of GpencilModifierData structures. */
-  ListBase greasepencil_modifiers = {nullptr, nullptr};
+  ListBaseT<struct GpencilModifierData> greasepencil_modifiers = {nullptr, nullptr};
   /** List of viewport effects. Actually only used by grease pencil. */
-  ListBase shader_fx = {nullptr, nullptr};
+  ListBaseT<struct ShaderFxData> shader_fx = {nullptr, nullptr};
 
   /** Local object mode. */
   int mode = 0;
@@ -600,10 +601,10 @@ struct Object {
   char _pad3[1] = {};
 
   /** Object constraints. */
-  ListBase constraints = {nullptr, nullptr};
-  ListBase hooks = {nullptr, nullptr};
+  ListBaseT<bConstraint> constraints = {nullptr, nullptr};
+  ListBaseT<struct ObHook> hooks = {nullptr, nullptr};
   /** Particle systems. */
-  ListBase particlesystem = {nullptr, nullptr};
+  ListBaseT<struct ParticleSystem> particlesystem = {nullptr, nullptr};
 
   /** Particle deflector/attractor/collision data. */
   struct PartDeflect *pd = nullptr;
@@ -616,7 +617,7 @@ struct Object {
   struct FluidsimSettings *fluidsimSettings DNA_DEPRECATED =
       nullptr; /* XXX deprecated... replaced by mantaflow, keep for readfile */
 
-  ListBase pc_ids = {nullptr, nullptr};
+  ListBaseT<LinkData> pc_ids = {nullptr, nullptr};
 
   /** Settings for Bullet rigid body. */
   struct RigidBodyOb *rigidbody_object = nullptr;

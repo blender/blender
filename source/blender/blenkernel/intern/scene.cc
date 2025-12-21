@@ -1858,7 +1858,7 @@ Scene *BKE_scene_duplicate(Main *bmain,
   /* TODO: this should/could most likely be replaced by call to more generic code at some point...
    * But for now, let's keep it well isolated here. */
   if (type == SCE_COPY_EMPTY) {
-    ListBase rv;
+    ListBaseT<SceneRenderView> rv;
 
     sce_copy = BKE_scene_add(bmain, sce->id.name + 2);
 

@@ -1298,7 +1298,7 @@ void ED_curve_editnurb_load(Main *bmain, Object *obedit)
 
   if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
     Curve *cu = static_cast<Curve *>(obedit->data);
-    ListBase newnurb = {nullptr, nullptr}, oldnurb = cu->nurb;
+    ListBaseT<Nurb> newnurb = {nullptr, nullptr}, oldnurb = cu->nurb;
 
     remap_hooks_and_vertex_parents(bmain, obedit);
 

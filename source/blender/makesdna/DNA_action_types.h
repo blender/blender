@@ -738,7 +738,7 @@ struct bPoseChannel {
   IDProperty *system_properties = nullptr;
 
   /** Constraints that act on this PoseChannel. */
-  ListBase constraints = {nullptr, nullptr};
+  ListBaseT<struct bConstraint> constraints = {nullptr, nullptr};
   char name[/*MAXBONENAME*/ 64] = "";
 
   /** Dynamic, for detecting transform changes (ePchan_Flag). */
@@ -768,9 +768,9 @@ struct bPoseChannel {
   struct bPoseChannel *child = nullptr;
 
   /** "IK trees" - only while evaluating pose. */
-  ListBase iktree = {nullptr, nullptr};
+  ListBaseT<struct PoseTree> iktree = {nullptr, nullptr};
   /** Spline-IK "trees" - only while evaluating pose. */
-  ListBase siktree = {nullptr, nullptr};
+  ListBaseT<struct tSplineIK_Tree> siktree = {nullptr, nullptr};
 
   /** Motion path cache for this bone. */
   bMotionPath *mpath = nullptr;
@@ -892,7 +892,7 @@ struct bPoseChannel {
  */
 struct bPose {
   /** List of pose channels, PoseBones in RNA. */
-  ListBase chanbase = {nullptr, nullptr};
+  ListBaseT<bPoseChannel> chanbase = {nullptr, nullptr};
   /** Use a hash-table for quicker string lookups. */
   struct GHash *chanhash = nullptr;
 
@@ -912,7 +912,7 @@ struct bPose {
   float cyclic_offset[3] = {};
 
   /** List of bActionGroups. */
-  ListBase agroups = {nullptr, nullptr};
+  ListBaseT<struct bActionGroup> agroups = {nullptr, nullptr};
 
   /** Index of active group (starts from 1). */
   int active_group = 0;
@@ -983,7 +983,7 @@ struct bActionGroup {
    * NOTE: this must not be touched by standard listbase functions
    * which would clear links to other channels.
    */
-  ListBase channels = {nullptr, nullptr};
+  ListBaseT<FCurve> channels = {nullptr, nullptr};
 
   /**
    * Span of channels in this group for layered actions.
@@ -1076,12 +1076,12 @@ struct bAction {
    */
 
   /** Legacy F-Curves (FCurve), introduced in Blender 2.5. */
-  ListBase curves = {nullptr, nullptr};
+  ListBaseT<FCurve> curves = {nullptr, nullptr};
   /** Legacy Groups of function-curves (bActionGroup), introduced in Blender 2.5. */
-  ListBase groups = {nullptr, nullptr};
+  ListBaseT<bActionGroup> groups = {nullptr, nullptr};
 
   /** Markers local to the Action (used to provide Pose-Libraries). */
-  ListBase markers = {nullptr, nullptr};
+  ListBaseT<struct TimeMarker> markers = {nullptr, nullptr};
 
   /** Settings for this action. \see eAction_Flags */
   int flag = 0;
@@ -1152,7 +1152,7 @@ struct SpaceAction {
 
   struct SpaceLink *next = nullptr, *prev = nullptr;
   /** Storage of regions for inactive spaces. */
-  ListBase regionbase = {nullptr, nullptr};
+  ListBaseT<struct ARegion> regionbase = {nullptr, nullptr};
   char spacetype = 0;
   char link_flag = 0;
   char _pad0[6] = {};

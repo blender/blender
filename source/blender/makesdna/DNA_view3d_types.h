@@ -695,7 +695,7 @@ struct View3D {
 
   struct SpaceLink *next = nullptr, *prev = nullptr;
   /** Storage of regions for inactive spaces. */
-  ListBase regionbase = {nullptr, nullptr};
+  ListBaseT<ARegion> regionbase = {nullptr, nullptr};
   char spacetype = SPACE_VIEW3D;
   char link_flag = 0;
   char _pad0[6] = {};

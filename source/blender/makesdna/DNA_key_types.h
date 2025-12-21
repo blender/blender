@@ -127,7 +127,7 @@ struct Key {
   char _pad[4] = {};
 
   /** A list of KeyBlock's. */
-  ListBase block = {nullptr, nullptr};
+  ListBaseT<KeyBlock> block = {nullptr, nullptr};
 
   ID *from = nullptr;
 

@@ -132,9 +132,10 @@ void BKE_asset_catalog_path_list_free(ListBase &catalog_path_list)
   BLI_assert(BLI_listbase_is_empty(&catalog_path_list));
 }
 
-ListBase BKE_asset_catalog_path_list_duplicate(const ListBase &catalog_path_list)
+ListBaseT<AssetCatalogPathLink> BKE_asset_catalog_path_list_duplicate(
+    const ListBaseT<AssetCatalogPathLink> &catalog_path_list)
 {
-  ListBase duplicated_list = {nullptr};
+  ListBaseT<AssetCatalogPathLink> duplicated_list = {nullptr};
 
   LISTBASE_FOREACH (AssetCatalogPathLink *, catalog_path, &catalog_path_list) {
     AssetCatalogPathLink *copied_path = MEM_new_for_free<AssetCatalogPathLink>(__func__);

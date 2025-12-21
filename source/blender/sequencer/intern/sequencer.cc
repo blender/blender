@@ -1206,7 +1206,7 @@ void eval_strips(Depsgraph *depsgraph, Scene *scene, ListBase *seqbase)
 
 }  // namespace blender::seq
 
-ListBase *Editing::current_strips()
+ListBaseT<Strip> *Editing::current_strips()
 {
   if (this->current_meta_strip) {
     return &this->current_meta_strip->seqbase;
@@ -1214,16 +1214,16 @@ ListBase *Editing::current_strips()
   return &this->seqbase;
 }
 
-ListBase *Editing::current_strips() const
+ListBaseT<Strip> *Editing::current_strips() const
 {
   if (this->current_meta_strip) {
     return &this->current_meta_strip->seqbase;
   }
   /* NOTE: Const correctness is non-existent with ListBase anyway. */
-  return &const_cast<ListBase &>(this->seqbase);
+  return &const_cast<ListBaseT<Strip> &>(this->seqbase);
 }
 
-ListBase *Editing::current_channels()
+ListBaseT<SeqTimelineChannel> *Editing::current_channels()
 {
   if (this->current_meta_strip) {
     return &this->current_meta_strip->channels;
@@ -1231,13 +1231,13 @@ ListBase *Editing::current_channels()
   return &this->channels;
 }
 
-ListBase *Editing::current_channels() const
+ListBaseT<SeqTimelineChannel> *Editing::current_channels() const
 {
   if (this->current_meta_strip) {
     return &this->current_meta_strip->channels;
   }
   /* NOTE: Const correctness is non-existent with ListBase anyway. */
-  return &const_cast<ListBase &>(this->channels);
+  return &const_cast<ListBaseT<SeqTimelineChannel> &>(this->channels);
 }
 
 bool Strip::is_effect() const

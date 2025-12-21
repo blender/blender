@@ -198,7 +198,7 @@ struct LayerCollection {
   char _pad[4] = {};
 
   /** Synced with collection->children. */
-  ListBase layer_collections = {nullptr, nullptr};
+  ListBaseT<LayerCollection> layer_collections = {nullptr, nullptr};
 
   unsigned short local_collections_bits = 0;
   short _pad2[3] = {};
@@ -241,8 +241,7 @@ struct ViewLayer {
   char name[/*MAX_NAME*/ 64] = "";
   short flag = VIEW_LAYER_RENDER | VIEW_LAYER_FREESTYLE;
   char _pad[6] = {};
-  /** ObjectBase. */
-  ListBase object_bases = {nullptr, nullptr};
+  ListBaseT<Base> object_bases = {nullptr, nullptr};
   /** Default allocated now. */
   struct SceneStats *stats = nullptr;
   struct Base *basact = nullptr;
@@ -250,7 +249,7 @@ struct ViewLayer {
   /** A view layer has one top level layer collection, because a scene has only one top level
    * collection. The layer_collections list always contains a single element. ListBase is
    * convenient when applying functions to all layer collections recursively. */
-  ListBase layer_collections = {nullptr, nullptr};
+  ListBaseT<LayerCollection> layer_collections = {nullptr, nullptr};
   LayerCollection *active_collection = nullptr;
 
   /* Old SceneRenderLayer data. */
@@ -274,12 +273,10 @@ struct ViewLayer {
   struct FreestyleConfig freestyle_config;
   struct ViewLayerEEVEE eevee;
 
-  /** List containing #ViewLayerAOV. */
-  ListBase aovs = {nullptr, nullptr};
+  ListBaseT<ViewLayerAOV> aovs = {nullptr, nullptr};
   ViewLayerAOV *active_aov = nullptr;
 
-  /** List containing #ViewLayerLightgroup. */
-  ListBase lightgroups = {nullptr, nullptr};
+  ListBaseT<ViewLayerLightgroup> lightgroups = {nullptr, nullptr};
   ViewLayerLightgroup *active_lightgroup = nullptr;
 
   /* Runtime data */

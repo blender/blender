@@ -464,7 +464,7 @@ struct Palette {
   ID id;
 
   /** Pointer to individual colors. */
-  ListBase colors = {nullptr, nullptr};
+  ListBaseT<PaletteColor> colors = {nullptr, nullptr};
 
   int active_color = 0;
   char _pad[4] = {};

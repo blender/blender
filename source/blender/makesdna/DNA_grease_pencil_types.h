@@ -351,10 +351,7 @@ struct GreasePencilLayer {
    * Opacity of the layer.
    */
   float opacity = 0;
-  /**
-   * List of `GreasePencilLayerMask`.
-   */
-  ListBase masks = {nullptr, nullptr};
+  ListBaseT<GreasePencilLayerMask> masks = {nullptr, nullptr};
   int active_mask_index = 0;
   char _pad2[4] = {};
   /**
@@ -387,10 +384,7 @@ struct GreasePencilLayer {
 
 struct GreasePencilLayerTreeGroup {
   GreasePencilLayerTreeNode base;
-  /**
-   * List of `GreasePencilLayerTreeNode`.
-   */
-  ListBase children = {nullptr, nullptr};
+  ListBaseT<GreasePencilLayerTreeNode> children = {nullptr, nullptr};
   /**
    * Icon color tag.
    */
@@ -498,7 +492,7 @@ struct GreasePencil {
    */
   uint32_t flag = GREASE_PENCIL_ANIM_CHANNEL_EXPANDED;
 
-  ListBase vertex_group_names = {nullptr, nullptr};
+  ListBaseT<bDeformGroup> vertex_group_names = {nullptr, nullptr};
   int vertex_group_active_index = 0;
   char _pad4[4] = {};
 

@@ -772,7 +772,9 @@ struct FluidDomainSettings {
    * but keeping the array for now for reading old files.
    */
   struct PointCache *point_cache[2] = {nullptr, nullptr}; /* Use #BKE_ptcache_add. */
-  struct ListBase ptcaches[2] = {{nullptr}};
+  struct ListBaseT<PointCache> ptcaches[2] = {
+    {nullptr, nullptr}, {nullptr, nullptr},
+  };
   int cache_comp = SM_CACHE_LIGHT;
   int cache_high_comp = SM_CACHE_LIGHT;
   char cache_file_format = 0;

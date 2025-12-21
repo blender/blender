@@ -412,7 +412,7 @@ struct Material {
   struct TexPaintSlot *texpaintslot = nullptr;
 
   /** Runtime cache for GLSL materials. */
-  ListBase gpumaterial = {nullptr, nullptr};
+  ListBaseT<LinkData> gpumaterial = {nullptr, nullptr};
 
   /** Grease pencil color. */
   struct MaterialGPencilStyle *gp_style = nullptr;

@@ -157,14 +157,14 @@ struct Collection {
   ID *owner_id = nullptr;
 
   /** CollectionObject. */
-  ListBase gobject = {nullptr, nullptr};
+  ListBaseT<CollectionObject> gobject = {nullptr, nullptr};
   /** CollectionChild. */
-  ListBase children = {nullptr, nullptr};
+  ListBaseT<CollectionChild> children = {nullptr, nullptr};
 
   char _pad0[4] = {};
 
   int active_exporter_index = 0;
-  ListBase exporters = {nullptr, nullptr};
+  ListBaseT<CollectionExport> exporters = {nullptr, nullptr};
 
   struct PreviewImage *preview = nullptr;
 

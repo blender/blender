@@ -1252,7 +1252,7 @@ void BKE_pose_copy_data_ex(bPose **dst,
                            const bool copy_constraints)
 {
   bPose *outPose;
-  ListBase listb;
+  ListBaseT<bConstraint> listb;
 
   if (!src) {
     *dst = nullptr;

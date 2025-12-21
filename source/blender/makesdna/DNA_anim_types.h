@@ -278,7 +278,7 @@ struct DriverVar {
  */
 struct ChannelDriver {
   /** Targets for this driver (i.e. list of DriverVar). */
-  ListBase variables = {nullptr, nullptr};
+  ListBaseT<DriverVar> variables = {nullptr, nullptr};
 
   /* python expression to execute (may call functions defined in an accessory file)
    * which relates the target 'variables' in some way to yield a single usable value
@@ -333,7 +333,7 @@ struct FCurve {
   ChannelDriver *driver = nullptr;
   /* evaluation settings */
   /** FCurve Modifiers. */
-  ListBase modifiers = {nullptr, nullptr};
+  ListBaseT<FModifier> modifiers = {nullptr, nullptr};
 
   /* motion data */
   /** User-editable keyframes (array). */
@@ -409,7 +409,7 @@ struct NlaStrip {
   struct NlaStrip *next = nullptr, *prev = nullptr;
 
   /** 'Child' strips (used for 'meta' strips). */
-  ListBase strips = {nullptr, nullptr};
+  ListBaseT<NlaStrip> strips = {nullptr, nullptr};
   /**
    * Action that is referenced by this strip (strip is 'user' of the action).
    *
@@ -440,9 +440,9 @@ struct NlaStrip {
   char _pad0[2] = {};
 
   /** F-Curves for controlling this strip's influence and timing */ /* TODO: move out? */
-  ListBase fcurves = {nullptr, nullptr};
+  ListBaseT<FCurve> fcurves = {nullptr, nullptr};
   /** F-Curve modifiers to be applied to the entire strip's referenced F-Curves. */
-  ListBase modifiers = {nullptr, nullptr};
+  ListBaseT<FModifier> modifiers = {nullptr, nullptr};
 
   /** User-Visible Identifier for Strip. */
   char name[/*MAX_NAME*/ 64] = "";
@@ -507,7 +507,7 @@ struct NlaTrack {
   struct NlaTrack *next = nullptr, *prev = nullptr;
 
   /** BActionStrips in this track. */
-  ListBase strips = {nullptr, nullptr};
+  ListBaseT<NlaStrip> strips = {nullptr, nullptr};
 
   /** Settings for this track. */
   int flag = 0;
@@ -575,7 +575,7 @@ struct KeyingSet {
   struct KeyingSet *next = nullptr, *prev = nullptr;
 
   /** (KS_Path) paths to keyframe to. */
-  ListBase paths = {nullptr, nullptr};
+  ListBaseT<KS_Path> paths = {nullptr, nullptr};
 
   /** Unique name (for search, etc.). */
   char idname[/*MAX_NAME*/ 64] = "";
@@ -685,7 +685,7 @@ struct AnimData {
   uint8_t _pad1[2] = {};
 
   /* nla-tracks */
-  ListBase nla_tracks = {nullptr, nullptr};
+  ListBaseT<NlaTrack> nla_tracks = {nullptr, nullptr};
   /**
    * Active NLA-track
    * (only set/used during tweaking, so no need to worry about dangling pointers).
@@ -701,10 +701,10 @@ struct AnimData {
    * separate from those for animation data
    */
   /** Standard user-created Drivers/Expressions (used as part of a rig). */
-  ListBase drivers = {nullptr, nullptr};
+  ListBaseT<FCurve> drivers = {nullptr, nullptr};
   /** Temp storage (AnimOverride) of values for settings that are animated
    * (but the value hasn't been keyframed). */
-  ListBase overrides = {nullptr, nullptr};
+  ListBaseT<AnimOverride> overrides = {nullptr, nullptr};
 
   /** Runtime data, for depsgraph evaluation. */
   FCurve **driver_array = nullptr;

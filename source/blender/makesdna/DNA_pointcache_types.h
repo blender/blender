@@ -96,7 +96,7 @@ struct PTCacheMem {
   /** BPHYS_TOT_DATA. */
   void *data[8] = {};
 
-  ListBase extradata = {nullptr, nullptr};
+  ListBaseT<PTCacheExtra> extradata = {nullptr, nullptr};
 };
 
 struct PointCache {
@@ -156,7 +156,7 @@ struct PointCache {
   int cached_frames_len = 0;
   char _pad1[4] = {};
 
-  ListBase mem_cache = {nullptr, nullptr};
+  ListBaseT<PTCacheMem> mem_cache = {nullptr, nullptr};
 
   struct PTCacheEdit *edit = nullptr;
   /** Free callback. */

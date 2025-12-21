@@ -122,7 +122,7 @@ struct wmWindowManager {
 
   ID id;
 
-  ListBase windows = {nullptr, nullptr};
+  ListBaseT<wmWindow> windows = {nullptr, nullptr};
 
   /** Set on file read. */
   uint8_t init_flag = 0;
@@ -270,7 +270,7 @@ struct wmWindow {
   struct Stereo3dFormat *stereo3d_format = nullptr;
 
   /** Custom drawing callbacks. */
-  ListBase drawcalls = {nullptr, nullptr};
+  ListBaseT<struct WindowDrawCB> drawcalls = {nullptr, nullptr};
 
   WindowRuntimeHandle *runtime = nullptr;
 };
@@ -424,8 +424,8 @@ enum {
 struct wmKeyMap {
   struct wmKeyMap *next = nullptr, *prev = nullptr;
 
-  ListBase items = {nullptr, nullptr};
-  ListBase diff_items = {nullptr, nullptr};
+  ListBaseT<wmKeyMapItem> items = {nullptr, nullptr};
+  ListBaseT<wmKeyMapDiffItem> diff_items = {nullptr, nullptr};
 
   /** Global editor keymaps, or for more per space/region. */
   char idname[64] = "";
@@ -478,7 +478,7 @@ struct wmKeyConfig {
   /** ID-name of configuration this is derives from, "" if none. */
   char basename[64] = "";
 
-  ListBase keymaps = {nullptr, nullptr};
+  ListBaseT<wmKeyMap> keymaps = {nullptr, nullptr};
   int actkeymap = 0;
   short flag = 0;
   char _pad0[2] = {};
@@ -511,7 +511,7 @@ struct wmOperator {
   struct ReportList *reports = nullptr;
 
   /** List of operators, can be a tree. */
-  ListBase macro = {nullptr, nullptr};
+  ListBaseT<wmOperator> macro = {nullptr, nullptr};
   /** Current running macro, not saved. */
   struct wmOperator *opm = nullptr;
   /** Runtime for drawing. */

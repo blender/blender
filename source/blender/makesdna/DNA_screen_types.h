@@ -110,13 +110,13 @@ struct bScreen {
   /* TODO: Should become ScrAreaMap now.
    * NOTE: KEEP ORDER IN SYNC WITH #ScrAreaMap! (see AREAMAP_FROM_SCREEN macro above). */
   /** Screens have vertices/edges to define areas. */
-  ListBase vertbase = {nullptr, nullptr};
-  ListBase edgebase = {nullptr, nullptr};
-  ListBase areabase = {nullptr, nullptr};
+  ListBaseT<struct ScrVert> vertbase = {nullptr, nullptr};
+  ListBaseT<struct ScrEdge> edgebase = {nullptr, nullptr};
+  ListBaseT<struct ScrArea> areabase = {nullptr, nullptr};
   /* End variables that must be in sync with #ScrAreaMap. */
 
   /** Screen level regions (menus), runtime only. */
-  ListBase regionbase = {nullptr, nullptr};
+  ListBaseT<ARegion> regionbase = {nullptr, nullptr};
 
   DNA_DEPRECATED struct Scene *scene = nullptr;
 
@@ -184,12 +184,10 @@ struct ScrEdge {
 struct ScrAreaMap {
   /* ** NOTE: KEEP ORDER IN SYNC WITH LISTBASES IN bScreen! ** */
 
-  /** ScrVert - screens have vertices/edges to define areas. */
-  ListBase vertbase = {nullptr, nullptr};
-  /** ScrEdge. */
-  ListBase edgebase = {nullptr, nullptr};
-  /** ScrArea. */
-  ListBase areabase = {nullptr, nullptr};
+  /** Screens have vertices/edges to define areas. */
+  ListBaseT<ScrVert> vertbase = {nullptr, nullptr};
+  ListBaseT<ScrEdge> edgebase = {nullptr, nullptr};
+  ListBaseT<ScrArea> areabase = {nullptr, nullptr};
 };
 
 enum LayoutPanelStateFlag {
@@ -278,14 +276,14 @@ struct Panel {
   /** Runtime for panel manipulation. */
   void *activedata = nullptr;
   /** Sub panels. */
-  ListBase children = {nullptr, nullptr};
+  ListBaseT<Panel> children = {nullptr, nullptr};
 
   /**
-   * List of #LayoutPanelState. This stores the open-close-state of layout-panels created with
+   *  This stores the open-close-state of layout-panels created with
    * `layout.panel(...)` in Python. For more information on layout-panels, see
    * `blender::ui::Layout::panel_prop`.
    */
-  ListBase layout_panel_states = {nullptr, nullptr};
+  ListBaseT<LayoutPanelState> layout_panel_states = {nullptr, nullptr};
   /**
    * This is increased whenever a layout panel state is used by the UI. This is used to allow for
    * some garbage collection of panel states when #layout_panel_states becomes large. It works by
@@ -632,23 +630,19 @@ struct ScrArea {
   float quadview_ratio[2] = {};
 
   /**
-   * #SpaceLink.
    * A list of space links (editors) that were open in this area before. When
    * changing the editor type, we try to reuse old editor data from this list.
    * The first item is the active/visible one.
    */
-  ListBase spacedata = {nullptr, nullptr};
+  ListBaseT<SpaceLink> spacedata = {nullptr, nullptr};
   /**
-   * #ARegion.
    * \note This region list is the one from the active/visible editor (first item in
    * spacedata list). Use SpaceLink.regionbase if it's inactive (but only then)!
    */
-  ListBase regionbase = {nullptr, nullptr};
-  /** #wmEventHandler. */
-  ListBase handlers = {nullptr, nullptr};
+  ListBaseT<ARegion> regionbase = {nullptr, nullptr};
+  ListBaseT<struct wmEventHandler> handlers = {nullptr, nullptr};
 
-  /** #AZone. */
-  ListBase actionzones = {nullptr, nullptr};
+  ListBaseT<struct AZone> actionzones = {nullptr, nullptr};
 
   ScrArea_Runtime runtime;
 };
@@ -812,19 +806,16 @@ struct ARegion {
 
   char _pad[2] = {};
 
-  /** Panel. */
-  ListBase panels = {nullptr, nullptr};
+  ListBaseT<Panel> panels = {nullptr, nullptr};
   /** Stack of panel categories. */
-  ListBase panels_category_active = {nullptr, nullptr};
-  /** #uiList. */
-  ListBase ui_lists = {nullptr, nullptr};
-  /** #uiPreview. */
-  ListBase ui_previews = {nullptr, nullptr};
+  ListBaseT<PanelCategoryStack> panels_category_active = {nullptr, nullptr};
+  ListBaseT<uiList> ui_lists = {nullptr, nullptr};
+  ListBaseT<uiPreview> ui_previews = {nullptr, nullptr};
   /**
    * Permanent state storage of #ui::AbstractView instances, so hiding regions with views or
    * loading files remembers the view state.
    */
-  ListBase view_states = {nullptr, nullptr}; /* #uiViewStateLink */
+  ListBaseT<uiViewStateLink> view_states = {nullptr, nullptr};
 
   /** XXX 2.50, need spacedata equivalent? */
   void *regiondata = nullptr;
@@ -852,7 +843,7 @@ ENUM_OPERATORS(AssetShelf_InstanceFlag);
 struct AssetShelfSettings {
   AssetLibraryReference asset_library_reference;
 
-  ListBase enabled_catalog_paths = {nullptr, nullptr}; /* #AssetCatalogPathLink */
+  ListBaseT<AssetCatalogPathLink> enabled_catalog_paths = {nullptr, nullptr};
   /** If not set (null or empty string), all assets will be displayed ("All" catalog behavior). */
   const char *active_catalog_path = nullptr;
 
@@ -901,7 +892,7 @@ struct AssetShelf {
  */
 struct RegionAssetShelf {
   /** Owning list of previously activated asset shelves. */
-  ListBase shelves = {nullptr, nullptr};
+  ListBaseT<AssetShelf> shelves = {nullptr, nullptr};
   /**
    * The currently active shelf, if any. Updated on redraw, so that context changes are reflected.
    * Note that this may still be set even though the shelf isn't available anymore

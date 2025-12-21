@@ -92,9 +92,9 @@ struct MetaBall {
   ID id;
   struct AnimData *adt = nullptr;
 
-  ListBase elems = {nullptr, nullptr};
+  ListBaseT<MetaElem> elems = {nullptr, nullptr};
   /** Not saved in files, note we use pointer for editmode check. */
-  ListBase *editelems = nullptr;
+  ListBaseT<MetaElem> *editelems = nullptr;
 
   /* material of the mother ball will define the material used of all others */
   struct Material **mat = nullptr;

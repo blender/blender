@@ -516,7 +516,7 @@ void BKE_mesh_to_curve(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Obj
     return;
   }
 
-  ListBase nurblist = {nullptr, nullptr};
+  ListBaseT<Nurb> nurblist = {nullptr, nullptr};
 
   BKE_mesh_to_curve_nurblist(mesh_eval, &nurblist, 0);
   BKE_mesh_to_curve_nurblist(mesh_eval, &nurblist, 1);

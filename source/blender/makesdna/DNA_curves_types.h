@@ -155,7 +155,7 @@ struct CurvesGeometry {
   /**
    * List of vertex group (#bDeformGroup) names and flags only.
    */
-  ListBase vertex_group_names = {nullptr, nullptr};
+  ListBaseT<struct bDeformGroup> vertex_group_names = {nullptr, nullptr};
   /** The active index in the #vertex_group_names list. */
   int vertex_group_active_index = 0;
 

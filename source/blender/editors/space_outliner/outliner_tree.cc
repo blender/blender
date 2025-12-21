@@ -1194,7 +1194,8 @@ void outliner_build_tree(Main *mainvar,
   BLI_assert(space_outliner->runtime->tree_display != nullptr);
 
   TreeSourceData source_data{*mainvar, *workspace, *scene, *view_layer};
-  space_outliner->tree = space_outliner->runtime->tree_display->build_tree(source_data);
+  space_outliner->tree = ListBaseT<TreeElement>{
+      space_outliner->runtime->tree_display->build_tree(source_data)};
 
   if ((space_outliner->flag & SO_SKIP_SORT_ALPHA) == 0) {
     outliner_sort(&space_outliner->tree);

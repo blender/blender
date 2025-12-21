@@ -920,7 +920,7 @@ struct RenderData {
 
   /* Information on different layers to be rendered. */
   /** Converted to Scene->view_layers. */
-  ListBase layers = {nullptr, nullptr};
+  ListBaseT<SceneRenderLayer> layers = {nullptr, nullptr};
   /** Converted to Scene->active_layer. */
   DNA_DEPRECATED short actlay = 0;
   char _pad1[2] = {};
@@ -1027,8 +1027,7 @@ struct RenderData {
   short _pad4 = {};
 
   /* MultiView. */
-  /** SceneRenderView. */
-  ListBase views = {nullptr, nullptr};
+  ListBaseT<SceneRenderView> views = {nullptr, nullptr};
   short actview = 0;
   short views_format = 0;
 
@@ -1164,7 +1163,7 @@ struct ToolSystemBrushBindings {
    * draw rectangles, circles, lines, etc.) all use a "DRAW" brush, which will then be shared
    * among them.
    */
-  ListBase active_brush_per_brush_type = {nullptr, nullptr}; /* #NamedBrushAssetReference */
+  ListBaseT<NamedBrushAssetReference> active_brush_per_brush_type = {nullptr, nullptr};
 };
 
 /** #Paint::flags */
@@ -2740,7 +2739,7 @@ struct Scene {
 
   struct Scene *set = nullptr;
 
-  ListBase base = {nullptr, nullptr};
+  ListBaseT<Base> base = {nullptr, nullptr};
   /** Active base. */
   DNA_DEPRECATED struct Base *basact = nullptr;
 
@@ -2774,8 +2773,8 @@ struct Scene {
   struct RenderData r;
   struct AudioData audio;
 
-  ListBase markers = {nullptr, nullptr};
-  ListBase transform_spaces = {nullptr, nullptr};
+  ListBaseT<TimeMarker> markers = {nullptr, nullptr};
+  ListBaseT<struct TransformOrientation> transform_spaces = {nullptr, nullptr};
 
   /** First is the [scene, translate, rotate, scale]. */
   TransformOrientationSlot orientation_slots[4];
@@ -2794,7 +2793,7 @@ struct Scene {
    */
   int active_keyingset = 0;
   /** KeyingSets for this scene. */
-  ListBase keyingsets = {nullptr, nullptr};
+  ListBaseT<struct KeyingSet> keyingsets = {nullptr, nullptr};
 
   /* Units. */
   struct UnitSettings unit;
@@ -2828,7 +2827,7 @@ struct Scene {
   struct PreviewImage *preview = nullptr;
 
   /** ViewLayer, defined in DNA_layer_types.h */
-  ListBase view_layers = {nullptr, nullptr};
+  ListBaseT<ViewLayer> view_layers = {nullptr, nullptr};
   /** Not an actual data-block, but memory owned by scene. */
   struct Collection *master_collection = nullptr;
 

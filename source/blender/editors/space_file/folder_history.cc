@@ -119,9 +119,9 @@ void folderlist_free(ListBase *folderlist)
   }
 }
 
-static ListBase folderlist_duplicate(ListBase *folderlist)
+static ListBaseT<FolderList> folderlist_duplicate(ListBaseT<FolderList> *folderlist)
 {
-  ListBase folderlistn = {nullptr};
+  ListBaseT<FolderList> folderlistn = {nullptr};
 
   BLI_duplicatelist(&folderlistn, folderlist);
 
@@ -182,9 +182,9 @@ void folder_history_list_free(SpaceFile *sfile)
   }
 }
 
-ListBase folder_history_list_duplicate(ListBase *listbase)
+ListBaseT<FileFolderHistory> folder_history_list_duplicate(ListBaseT<FileFolderHistory> *listbase)
 {
-  ListBase histories = {nullptr};
+  ListBaseT<FileFolderHistory> histories = {nullptr};
 
   LISTBASE_FOREACH (FileFolderHistory *, history, listbase) {
     FileFolderHistory *history_new = static_cast<FileFolderHistory *>(MEM_dupallocN(history));

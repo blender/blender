@@ -837,7 +837,7 @@ static Drawing legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gp
   }
 
   /* Find used vertex groups in this drawing. */
-  ListBase stroke_vertex_group_names;
+  ListBaseT<bDeformGroup> stroke_vertex_group_names;
   Array<int> stroke_def_nr_map;
   const int num_vertex_groups = BLI_listbase_count(&vertex_group_names);
   find_used_vertex_groups(

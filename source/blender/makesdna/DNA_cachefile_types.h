@@ -78,9 +78,9 @@ struct CacheFile {
   struct AnimData *adt = nullptr;
 
   /** Paths of the objects inside of the archive referenced by this CacheFile. */
-  ListBase object_paths = {nullptr, nullptr};
+  ListBaseT<CacheObjectPath> object_paths = {nullptr, nullptr};
 
-  ListBase layers = {nullptr, nullptr};
+  ListBaseT<CacheFileLayer> layers = {nullptr, nullptr};
 
   char filepath[/*FILE_MAX*/ 1024] = "";
 

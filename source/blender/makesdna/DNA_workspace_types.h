@@ -155,19 +155,15 @@ struct WorkSpace {
 
   ID id;
 
-  /** WorkSpaceLayout. */
-  ListBase layouts = {nullptr, nullptr};
+  ListBaseT<WorkSpaceLayout> layouts = {nullptr, nullptr};
   /* Store for each hook (so for each window) which layout has
    * been activated the last time this workspace was visible. */
-  /** WorkSpaceDataRelation. */
-  ListBase hook_layout_relations = {nullptr, nullptr};
+  ListBaseT<struct WorkSpaceDataRelation> hook_layout_relations = {nullptr, nullptr};
 
   /* Feature tagging (use for addons) */
-  /** #wmOwnerID. */
-  ListBase owner_ids = {nullptr, nullptr};
+  ListBaseT<wmOwnerID> owner_ids = {nullptr, nullptr};
 
-  /** List of #bToolRef */
-  ListBase tools = {nullptr, nullptr};
+  ListBaseT<bToolRef> tools = {nullptr, nullptr};
 
   /** Optional, scene to switch to when enabling this workspace (NULL to disable). Cleared on
    * link/append. */

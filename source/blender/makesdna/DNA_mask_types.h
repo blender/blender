@@ -113,8 +113,8 @@ struct Mask {
 
   ID id;
   struct AnimData *adt = nullptr;
-  /** Mask layers (#MaskLayer). */
-  ListBase masklayers = {nullptr, nullptr};
+  /** Mask layers. */
+  ListBaseT<struct MaskLayer> masklayers = {nullptr, nullptr};
   /** Index of active mask layer (-1 == None). */
   int masklay_act = 0;
   /** Total number of mask layers. */
@@ -229,8 +229,8 @@ struct MaskLayer {
   char name[/*MAX_NAME*/ 64] = "";
 
   /** List of splines which defines this mask layer. */
-  ListBase splines = {nullptr, nullptr};
-  ListBase splines_shapes = {nullptr, nullptr};
+  ListBaseT<MaskSpline> splines = {nullptr, nullptr};
+  ListBaseT<MaskLayerShape> splines_shapes = {nullptr, nullptr};
 
   /** Active spline. */
   struct MaskSpline *act_spline = nullptr;

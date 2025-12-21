@@ -140,7 +140,7 @@ struct IDPropertyUIDataID {
 
 struct IDPropertyData {
   void *pointer = nullptr;
-  ListBase group = {nullptr, nullptr};
+  ListBaseT<struct IDProperty> group = {nullptr, nullptr};
   /**
    * Allows constant time lookup by name of the children in this group. This may be null if the
    * group is empty. The order may not be exactly the same as in #group.
@@ -273,10 +273,10 @@ struct IDOverrideLibraryProperty {
   char *rna_path = nullptr;
 
   /**
-   * List of overriding operations (IDOverrideLibraryPropertyOperation) applied to this property.
+   * List of overriding operations applied to this property.
    * Recreated as part of the diffing, so do not store any of these elsewhere.
    */
-  ListBase operations = {nullptr, nullptr};
+  ListBaseT<IDOverrideLibraryPropertyOperation> operations = {nullptr, nullptr};
 
   /**
    * Runtime, tags are common to both IDOverrideLibraryProperty and
@@ -332,8 +332,7 @@ enum {
 struct IDOverrideLibrary {
   /** Reference linked ID which this one overrides. */
   struct ID *reference = nullptr;
-  /** List of IDOverrideLibraryProperty structs. */
-  ListBase properties = {nullptr, nullptr};
+  ListBaseT<IDOverrideLibraryProperty> properties = {nullptr, nullptr};
 
   /**
    * Override hierarchy root ID. Usually the actual root of the hierarchy, but not always

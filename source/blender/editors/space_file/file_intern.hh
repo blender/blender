@@ -224,7 +224,7 @@ bool folderlist_clear_next(SpaceFile *sfile);
 
 void folder_history_list_ensure_for_active_browse_mode(SpaceFile *sfile);
 void folder_history_list_free(SpaceFile *sfile);
-ListBase folder_history_list_duplicate(ListBase *listbase);
+ListBaseT<FileFolderHistory> folder_history_list_duplicate(ListBaseT<FileFolderHistory> *listbase);
 
 /* `file_panels.cc` */
 

@@ -286,8 +286,7 @@ struct BoneColor {
 };
 
 struct Bone_Runtime {
-  /* #BoneCollectionReference */
-  ListBase collections = {nullptr, nullptr};
+  ListBaseT<struct BoneCollectionReference> collections = {nullptr, nullptr};
 };
 
 struct Bone {
@@ -303,7 +302,7 @@ struct Bone {
   /** Parent (IK parent if appropriate flag is set). */
   struct Bone *parent = nullptr;
   /** Children. */
-  ListBase childbase = {nullptr, nullptr};
+  ListBaseT<Bone> childbase = {nullptr, nullptr};
   /** Name of the bone - must be unique within the armature. */
   char name[/*MAXBONENAME*/ 64] = "";
 
@@ -413,14 +412,14 @@ struct bArmature {
   ID id;
   struct AnimData *adt = nullptr;
 
-  ListBase bonebase = {nullptr, nullptr};
+  ListBaseT<Bone> bonebase = {nullptr, nullptr};
 
   /** Use a hash-table for quicker lookups of bones by name. */
   struct GHash *bonehash = nullptr;
   void *_pad1 = nullptr;
 
   /** #EditBone list (use an allocated pointer so the state can be checked). */
-  ListBase *edbo = nullptr;
+  ListBaseT<struct EditBone> *edbo = nullptr;
 
   /* active bones should work like active object where possible
    * - active and selection are unrelated
@@ -449,7 +448,7 @@ struct bArmature {
    * everything other than file reading/writing.
    * TODO: remove this in Blender 5.0, and instead write the contents of
    * collection_array to blend files directly. */
-  ListBase collections_legacy = {nullptr, nullptr}; /* BoneCollection. */
+  ListBaseT<BoneCollection> collections_legacy = {nullptr, nullptr};
 
   struct BoneCollection **collection_array =
       nullptr; /* Array of `collection_array_num` BoneCollections. */
@@ -510,8 +509,7 @@ struct BoneCollection {
 
   char name[/*MAX_NAME*/ 64] = "";
 
-  /** BoneCollectionMember. */
-  ListBase bones = {nullptr, nullptr};
+  ListBaseT<struct BoneCollectionMember> bones = {nullptr, nullptr};
 
   /** eBoneCollection_Flag. */
   uint8_t flags = 0;

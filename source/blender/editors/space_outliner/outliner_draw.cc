@@ -417,7 +417,9 @@ static void outliner_collection_set_flag_recursive(Scene *scene,
   }
 
   /* Keep going recursively. */
-  ListBase *lb = (layer_collection ? &layer_collection->layer_collections : &collection->children);
+  ListBase *lb = (layer_collection ?
+                      static_cast<ListBase *>(&layer_collection->layer_collections) :
+                      &collection->children);
   LISTBASE_FOREACH (Link *, link, lb) {
     LayerCollection *layer_collection_iter = layer_collection ? (LayerCollection *)link : nullptr;
     Collection *collection_iter = layer_collection ?
@@ -490,7 +492,9 @@ static bool outliner_collection_is_isolated(Scene *scene,
   }
 
   /* Keep going recursively. */
-  ListBase *lb = (layer_collection ? &layer_collection->layer_collections : &collection->children);
+  ListBase *lb = (layer_collection ?
+                      static_cast<ListBase *>(&layer_collection->layer_collections) :
+                      &collection->children);
   LISTBASE_FOREACH (Link *, link, lb) {
     LayerCollection *layer_collection_iter = layer_collection ? (LayerCollection *)link : nullptr;
     Collection *collection_iter = layer_collection ?
