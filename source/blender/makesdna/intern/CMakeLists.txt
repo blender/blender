@@ -159,7 +159,7 @@ set_source_files_properties(
   PROPERTIES GENERATED TRUE
 )
 
-blender_add_lib(bf_dna_defaults "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+blender_add_lib(bf_dna_defaults "${SRC}" "${INC}" "${INC_SYS}" "${LIB};bf_dna")
 
 
 # -----------------------------------------------------------------------------
