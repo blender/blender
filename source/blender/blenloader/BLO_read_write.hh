@@ -66,6 +66,7 @@ struct BlendWriter {
                                            const void *address,
                                            const void *data);
   void write_struct_list_by_name(const char *struct_name, ListBase *list);
+  void write_struct_list_by_id(int struct_id, const ListBase *list);
 };
 
 struct BlendDataReader {
@@ -162,9 +163,8 @@ int BLO_get_struct_id_by_name(const BlendWriter *writer, const char *struct_name
 /**
  * Write struct list.
  */
-void BLO_write_struct_list_by_id(BlendWriter *writer, int struct_id, const ListBase *list);
 #define BLO_write_struct_list(writer, struct_name, list_ptr) \
-  BLO_write_struct_list_by_id(writer, blender::dna::sdna_struct_id_get<struct_name>(), list_ptr)
+  (writer)->write_struct_list_by_id(blender::dna::sdna_struct_id_get<struct_name>(), list_ptr)
 
 /**
  * Write id struct.

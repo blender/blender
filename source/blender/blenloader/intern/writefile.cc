@@ -2207,9 +2207,9 @@ void BlendWriter::write_struct_array_at_address_by_id(const int struct_id,
   writestruct_at_address_nr(this->wd, BLO_CODE_DATA, struct_id, array_size, address, data);
 }
 
-void BLO_write_struct_list_by_id(BlendWriter *writer, const int struct_id, const ListBase *list)
+void BlendWriter::write_struct_list_by_id(const int struct_id, const ListBase *list)
 {
-  writelist_nr(writer->wd, BLO_CODE_DATA, struct_id, list);
+  writelist_nr(this->wd, BLO_CODE_DATA, struct_id, list);
 }
 
 void BlendWriter::write_struct_list_by_name(const char *struct_name, ListBase *list)
@@ -2219,7 +2219,7 @@ void BlendWriter::write_struct_list_by_name(const char *struct_name, ListBase *l
     CLOG_ERROR(&LOG, "Can't find SDNA code <%s>", struct_name);
     return;
   }
-  BLO_write_struct_list_by_id(this, struct_id, list);
+  this->write_struct_list_by_id(struct_id, list);
 }
 
 void blo_write_id_struct(BlendWriter *writer,
