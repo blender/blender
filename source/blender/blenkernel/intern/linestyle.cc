@@ -215,7 +215,7 @@ static void write_linestyle_color_modifiers(BlendWriter *writer, ListBase *modif
       default:
         struct_nr = sdna_struct_id_get<LineStyleModifier>(); /* this should not happen */
     }
-    BLO_write_struct_by_id(writer, struct_nr, m);
+    writer->write_struct_by_id(struct_nr, m);
   }
   LISTBASE_FOREACH (LineStyleModifier *, m, modifiers) {
     switch (m->type) {
@@ -282,7 +282,7 @@ static void write_linestyle_alpha_modifiers(BlendWriter *writer, ListBase *modif
       default:
         struct_nr = sdna_struct_id_get<LineStyleModifier>(); /* this should not happen */
     }
-    BLO_write_struct_by_id(writer, struct_nr, m);
+    writer->write_struct_by_id(struct_nr, m);
   }
   LISTBASE_FOREACH (LineStyleModifier *, m, modifiers) {
     switch (m->type) {
@@ -351,7 +351,7 @@ static void write_linestyle_thickness_modifiers(BlendWriter *writer, ListBase *m
       default:
         struct_nr = sdna_struct_id_get<LineStyleModifier>(); /* this should not happen */
     }
-    BLO_write_struct_by_id(writer, struct_nr, m);
+    writer->write_struct_by_id(struct_nr, m);
   }
   LISTBASE_FOREACH (LineStyleModifier *, m, modifiers) {
     switch (m->type) {
@@ -433,7 +433,7 @@ static void write_linestyle_geometry_modifiers(BlendWriter *writer, ListBase *mo
       default:
         struct_nr = sdna_struct_id_get<LineStyleModifier>(); /* this should not happen */
     }
-    BLO_write_struct_by_id(writer, struct_nr, m);
+    writer->write_struct_by_id(struct_nr, m);
   }
 }
 

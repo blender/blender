@@ -53,6 +53,7 @@ struct BlendWriter {
   WriteData *wd = nullptr;
 
   void write_struct_by_name(const char *struct_name, const void *data);
+  void write_struct_by_id(int struct_id, const void *data);
 };
 
 struct BlendDataReader {
@@ -114,9 +115,8 @@ int BLO_get_struct_id_by_name(const BlendWriter *writer, const char *struct_name
 /**
  * Write single struct.
  */
-void BLO_write_struct_by_id(BlendWriter *writer, int struct_id, const void *data_ptr);
 #define BLO_write_struct(writer, struct_name, data_ptr) \
-  BLO_write_struct_by_id(writer, blender::dna::sdna_struct_id_get<struct_name>(), data_ptr)
+  (writer)->write_struct_by_id(blender::dna::sdna_struct_id_get<struct_name>(), data_ptr)
 
 /**
  * Write single struct at address.
