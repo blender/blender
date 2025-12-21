@@ -345,6 +345,10 @@ static void um_arraystore_cd_expand(const BArrayCustomData *bcd,
                                     const size_t data_len)
 {
   using namespace blender;
+  if (bcd == nullptr) {
+    return;
+  }
+
   MutableSpan all_layers(cdata->layers, cdata->totlayer);
   for (const auto &item : bcd->non_trivial_arrays.items()) {
     const eCustomDataType type = item.key;
@@ -406,6 +410,10 @@ static void um_arraystore_cd_expand(const BArrayCustomData *bcd,
 static void um_arraystore_cd_free(BArrayCustomData *bcd, const int bs_index)
 {
   using namespace blender;
+  if (bcd == nullptr) {
+    return;
+  }
+
   for (Array<ImplicitSharingInfoAndData> &states : bcd->non_trivial_arrays.values()) {
     for (ImplicitSharingInfoAndData &state : states) {
       state.sharing_info->remove_user_and_delete_if_last();
