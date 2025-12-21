@@ -58,10 +58,11 @@ PyObject *pyunicode_from_string(const char *str)
 /* Synchronize debug flags from a given Blender scene.
  * Return truth when device list needs invalidation.
  */
-void debug_flags_sync_from_scene(BL::Scene b_scene)
+void debug_flags_sync_from_scene(::Scene &b_scene)
 {
   DebugFlagsRef flags = DebugFlags();
-  PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+  PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene.id);
+  PointerRNA cscene = RNA_pointer_get(&scene_rna_ptr, "cycles");
   /* Synchronize CPU flags. */
   flags.cpu.avx2 = get_boolean(cscene, "debug_use_cpu_avx2");
   flags.cpu.sse42 = get_boolean(cscene, "debug_use_cpu_sse42");
@@ -184,52 +185,33 @@ static PyObject *create_func(PyObject * /*self*/, PyObject *args)
   /* RNA */
   ID *bScreen = (ID *)PyLong_AsVoidPtr(pyscreen);
 
-  const PointerRNA engineptr = RNA_pointer_create_discrete(
-      nullptr, &RNA_RenderEngine, PyLong_AsVoidPtr(pyengine));
-  BL::RenderEngine engine(engineptr);
-
-  const PointerRNA preferencesptr = RNA_pointer_create_discrete(
-      nullptr, &RNA_Preferences, PyLong_AsVoidPtr(pypreferences));
-  BL::Preferences preferences(preferencesptr);
-
-  const PointerRNA dataptr = RNA_main_pointer_create((Main *)PyLong_AsVoidPtr(pydata));
-  BL::BlendData data(dataptr);
-
-  const PointerRNA regionptr = RNA_pointer_create_discrete(
-      bScreen, &RNA_Region, pylong_as_voidptr_typesafe(pyregion));
-  BL::Region region(regionptr);
-
-  const PointerRNA v3dptr = RNA_pointer_create_discrete(
-      bScreen, &RNA_SpaceView3D, pylong_as_voidptr_typesafe(pyv3d));
-  BL::SpaceView3D v3d(v3dptr);
-
-  const PointerRNA rv3dptr = RNA_pointer_create_discrete(
-      bScreen, &RNA_RegionView3D, pylong_as_voidptr_typesafe(pyrv3d));
-  BL::RegionView3D rv3d(rv3dptr);
+  ::RenderEngine *engine = static_cast<::RenderEngine *>(PyLong_AsVoidPtr(pyengine));
+  ::UserDef *preferences = static_cast<::UserDef *>(PyLong_AsVoidPtr(pypreferences));
+  ::Main *data = static_cast<::Main *>(PyLong_AsVoidPtr(pydata));
+  ::View3D *v3d = static_cast<::View3D *>(pylong_as_voidptr_typesafe(pyv3d));
+  ::ARegion *region = static_cast<::ARegion *>(pylong_as_voidptr_typesafe(pyregion));
 
   /* create session */
   BlenderSession *session;
 
-  if (rv3d) {
+  if (region) {
+    ::RegionView3D *rv3d = static_cast<::RegionView3D *>(region->regiondata);
     /* interactive viewport session */
-    const int width = region.width();
-    const int height = region.height();
+    const int width = region->winx;
+    const int height = region->winy;
 
-    session = new BlenderSession(*engine.ptr.data_as<::RenderEngine>(),
-                                 *preferences.ptr.data_as<::UserDef>(),
-                                 *data.ptr.data_as<::Main>(),
-                                 blender::id_cast<::bScreen *>(v3dptr.owner_id),
-                                 v3d.ptr.data_as<::View3D>(),
-                                 rv3d.ptr.data_as<::RegionView3D>(),
+    session = new BlenderSession(*engine,
+                                 *preferences,
+                                 *data,
+                                 blender::id_cast<::bScreen *>(bScreen),
+                                 v3d,
+                                 rv3d,
                                  width,
                                  height);
   }
   else {
     /* offline session or preview render */
-    session = new BlenderSession(*engine.ptr.data_as<::RenderEngine>(),
-                                 *preferences.ptr.data_as<::UserDef>(),
-                                 *data.ptr.data_as<::Main>(),
-                                 preview_osl);
+    session = new BlenderSession(*engine, *preferences, *data, preview_osl);
   }
 
   return PyLong_FromVoidPtr(session);
@@ -252,15 +234,12 @@ static PyObject *render_func(PyObject * /*self*/, PyObject *args)
   }
 
   BlenderSession *session = (BlenderSession *)PyLong_AsVoidPtr(pysession);
-
-  const PointerRNA depsgraphptr = RNA_pointer_create_discrete(
-      nullptr, &RNA_Depsgraph, (ID *)PyLong_AsVoidPtr(pydepsgraph));
-  BL::Depsgraph b_depsgraph(depsgraphptr);
+  ::Depsgraph *b_depsgraph = static_cast<::Depsgraph *>(PyLong_AsVoidPtr(pydepsgraph));
 
   /* Allow Blender to execute other Python scripts. */
   python_thread_state_save(&session->python_thread_state);
 
-  session->render(*b_depsgraph.ptr.data_as<::Depsgraph>());
+  session->render(*b_depsgraph);
 
   python_thread_state_restore(&session->python_thread_state);
 
@@ -302,12 +281,10 @@ static PyObject *draw_func(PyObject * /*self*/, PyObject *args)
 
   ID *b_screen = (ID *)PyLong_AsVoidPtr(py_screen);
 
-  const PointerRNA b_space_image_ptr = RNA_pointer_create_discrete(
-      b_screen, &RNA_SpaceImageEditor, pylong_as_voidptr_typesafe(py_space_image));
-  BL::SpaceImageEditor b_space_image(b_space_image_ptr);
+  ::SpaceImage *b_space_image = static_cast<::SpaceImage *>(
+      pylong_as_voidptr_typesafe(py_space_image));
 
-  session->draw(blender::id_cast<::bScreen &>(*b_screen),
-                *b_space_image.ptr.data_as<::SpaceImage>());
+  session->draw(blender::id_cast<::bScreen &>(*b_screen), *b_space_image);
 
   Py_RETURN_NONE;
 }
@@ -338,21 +315,12 @@ static PyObject *bake_func(PyObject * /*self*/, PyObject *args)
 
   BlenderSession *session = (BlenderSession *)PyLong_AsVoidPtr(pysession);
 
-  const PointerRNA depsgraphptr = RNA_pointer_create_discrete(
-      nullptr, &RNA_Depsgraph, PyLong_AsVoidPtr(pydepsgraph));
-  BL::Depsgraph b_depsgraph(depsgraphptr);
-
-  const PointerRNA objectptr = RNA_id_pointer_create((ID *)PyLong_AsVoidPtr(pyobject));
-  BL::Object b_object(objectptr);
+  ::Depsgraph *b_depsgraph = static_cast<::Depsgraph *>(PyLong_AsVoidPtr(pydepsgraph));
+  ::Object *b_object = static_cast<::Object *>(PyLong_AsVoidPtr(pyobject));
 
   python_thread_state_save(&session->python_thread_state);
 
-  session->bake(*b_depsgraph.ptr.data_as<::Depsgraph>(),
-                *b_object.ptr.data_as<::Object>(),
-                pass_type,
-                pass_filter,
-                width,
-                height);
+  session->bake(*b_depsgraph, *b_object, pass_type, pass_filter, width, height);
 
   python_thread_state_restore(&session->python_thread_state);
 
@@ -395,16 +363,12 @@ static PyObject *reset_func(PyObject * /*self*/, PyObject *args)
 
   BlenderSession *session = (BlenderSession *)PyLong_AsVoidPtr(pysession);
 
-  const PointerRNA dataptr = RNA_main_pointer_create((Main *)PyLong_AsVoidPtr(pydata));
-  BL::BlendData b_data(dataptr);
-
-  const PointerRNA depsgraphptr = RNA_pointer_create_discrete(
-      nullptr, &RNA_Depsgraph, PyLong_AsVoidPtr(pydepsgraph));
-  BL::Depsgraph b_depsgraph(depsgraphptr);
+  ::Main *b_data = static_cast<::Main *>(PyLong_AsVoidPtr(pydata));
+  ::Depsgraph *b_depsgraph = static_cast<::Depsgraph *>(PyLong_AsVoidPtr(pydepsgraph));
 
   python_thread_state_save(&session->python_thread_state);
 
-  session->reset_session(*b_data.ptr.data_as<::Main>(), *b_depsgraph.ptr.data_as<::Depsgraph>());
+  session->reset_session(*b_data, *b_depsgraph);
 
   python_thread_state_restore(&session->python_thread_state);
 
@@ -422,13 +386,11 @@ static PyObject *sync_func(PyObject * /*self*/, PyObject *args)
 
   BlenderSession *session = (BlenderSession *)PyLong_AsVoidPtr(pysession);
 
-  const PointerRNA depsgraphptr = RNA_pointer_create_discrete(
-      nullptr, &RNA_Depsgraph, PyLong_AsVoidPtr(pydepsgraph));
-  BL::Depsgraph b_depsgraph(depsgraphptr);
+  ::Depsgraph *b_depsgraph = static_cast<::Depsgraph *>(PyLong_AsVoidPtr(pydepsgraph));
 
   python_thread_state_save(&session->python_thread_state);
 
-  session->synchronize(*b_depsgraph.ptr.data_as<::Depsgraph>());
+  session->synchronize(*b_depsgraph);
 
   python_thread_state_restore(&session->python_thread_state);
 
@@ -553,29 +515,18 @@ static PyObject *denoise_func(PyObject * /*self*/, PyObject *args, PyObject *key
   }
 
   /* Get device specification from preferences and scene. */
-  const PointerRNA preferencesptr = RNA_pointer_create_discrete(
-      nullptr, &RNA_Preferences, PyLong_AsVoidPtr(pypreferences));
-  BL::Preferences b_preferences(preferencesptr);
-
-  const PointerRNA sceneptr = RNA_id_pointer_create((ID *)PyLong_AsVoidPtr(pyscene));
-  BL::Scene b_scene(sceneptr);
+  ::UserDef *b_preferences = static_cast<::UserDef *>(PyLong_AsVoidPtr(pypreferences));
+  ::Scene *b_scene = static_cast<::Scene *>(PyLong_AsVoidPtr(pyscene));
 
   DeviceInfo preferences_device;
-  const DeviceInfo pathtrace_device = blender_device_info(*b_preferences.ptr.data_as<::UserDef>(),
-                                                          *b_scene.ptr.data_as<::Scene>(),
-                                                          true,
-                                                          true,
-                                                          preferences_device);
+  const DeviceInfo pathtrace_device = blender_device_info(
+      *b_preferences, *b_scene, true, true, preferences_device);
 
   /* Get denoising parameters from view layer. */
-  const PointerRNA viewlayerptr = RNA_pointer_create_discrete(
-      (ID *)PyLong_AsVoidPtr(pyscene), &RNA_ViewLayer, PyLong_AsVoidPtr(pyviewlayer));
-  BL::ViewLayer b_view_layer(viewlayerptr);
+  ::ViewLayer *b_view_layer = static_cast<::ViewLayer *>(PyLong_AsVoidPtr(pyviewlayer));
 
-  DenoiseParams params = BlenderSync::get_denoise_params(*b_scene.ptr.data_as<::Scene>(),
-                                                         b_view_layer.ptr.data_as<::ViewLayer>(),
-                                                         true,
-                                                         preferences_device);
+  DenoiseParams params = BlenderSync::get_denoise_params(
+      *b_scene, b_view_layer, true, preferences_device);
   params.use = true;
 
   /* Parse file paths list. */
@@ -666,10 +617,9 @@ static PyObject *debug_flags_update_func(PyObject * /*self*/, PyObject *args)
     return nullptr;
   }
 
-  const PointerRNA sceneptr = RNA_id_pointer_create((ID *)PyLong_AsVoidPtr(pyscene));
-  const BL::Scene b_scene(sceneptr);
+  ::Scene *b_scene = static_cast<::Scene *>(PyLong_AsVoidPtr(pyscene));
 
-  debug_flags_sync_from_scene(b_scene);
+  debug_flags_sync_from_scene(*b_scene);
 
   debug_flags_set = true;
 
