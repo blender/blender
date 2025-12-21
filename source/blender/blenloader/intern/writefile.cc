@@ -2178,13 +2178,11 @@ void BlendWriter::write_struct_by_id(const int struct_id, const void *data)
   writestruct_nr(this->wd, BLO_CODE_DATA, struct_id, 1, data);
 }
 
-void BLO_write_struct_at_address_by_id(BlendWriter *writer,
-                                       const int struct_id,
-                                       const void *address,
-                                       const void *data_ptr)
+void BlendWriter::write_struct_at_address_by_id(const int struct_id,
+                                                const void *address,
+                                                const void *data)
 {
-  BLO_write_struct_at_address_by_id_with_filecode(
-      writer, BLO_CODE_DATA, struct_id, address, data_ptr);
+  BLO_write_struct_at_address_by_id_with_filecode(this, BLO_CODE_DATA, struct_id, address, data);
 }
 
 void BLO_write_struct_at_address_by_id_with_filecode(BlendWriter *writer,
