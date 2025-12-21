@@ -91,51 +91,50 @@ class BlenderSmokeLoader : public VDBImageLoader {
     }
 
 #ifdef WITH_FLUID
-    int length;
     voxels.resize(width * height * depth * channels);
 
     if (attribute == ATTR_STD_VOLUME_DENSITY) {
-      FluidDomainSettings_density_grid_get_length(&domain_rna_ptr, &length);
-      if (length == voxels.size()) {
-        FluidDomainSettings_density_grid_get(&domain_rna_ptr, voxels.data());
+      PropertyRNA *prop = RNA_struct_find_property(&domain_rna_ptr, "density_grid");
+      if (RNA_property_array_length(&domain_rna_ptr, prop) == voxels.size()) {
+        RNA_property_float_get_array(&domain_rna_ptr, prop, voxels.data());
         return true;
       }
     }
     else if (attribute == ATTR_STD_VOLUME_FLAME) {
+      PropertyRNA *prop = RNA_struct_find_property(&domain_rna_ptr, "flame_grid");
       /* this is in range 0..1, and interpreted by the OpenGL smoke viewer
        * as 1500..3000 K with the first part faded to zero density */
-      FluidDomainSettings_flame_grid_get_length(&domain_rna_ptr, &length);
-      if (length == voxels.size()) {
-        FluidDomainSettings_flame_grid_get(&domain_rna_ptr, voxels.data());
+      if (RNA_property_array_length(&domain_rna_ptr, prop) == voxels.size()) {
+        RNA_property_float_get_array(&domain_rna_ptr, prop, voxels.data());
         return true;
       }
     }
     else if (attribute == ATTR_STD_VOLUME_COLOR) {
+      PropertyRNA *prop = RNA_struct_find_property(&domain_rna_ptr, "color_grid");
       /* the RGB is "premultiplied" by density for better interpolation results */
-      FluidDomainSettings_color_grid_get_length(&domain_rna_ptr, &length);
-      if (length == voxels.size()) {
-        FluidDomainSettings_color_grid_get(&domain_rna_ptr, voxels.data());
+      if (RNA_property_array_length(&domain_rna_ptr, prop) == voxels.size()) {
+        RNA_property_float_get_array(&domain_rna_ptr, prop, voxels.data());
         return true;
       }
     }
     else if (attribute == ATTR_STD_VOLUME_VELOCITY) {
-      FluidDomainSettings_velocity_grid_get_length(&domain_rna_ptr, &length);
-      if (length == voxels.size()) {
-        FluidDomainSettings_velocity_grid_get(&domain_rna_ptr, voxels.data());
+      PropertyRNA *prop = RNA_struct_find_property(&domain_rna_ptr, "velocity_grid");
+      if (RNA_property_array_length(&domain_rna_ptr, prop) == voxels.size()) {
+        RNA_property_float_get_array(&domain_rna_ptr, prop, voxels.data());
         return true;
       }
     }
     else if (attribute == ATTR_STD_VOLUME_HEAT) {
-      FluidDomainSettings_heat_grid_get_length(&domain_rna_ptr, &length);
-      if (length == voxels.size()) {
-        FluidDomainSettings_heat_grid_get(&domain_rna_ptr, voxels.data());
+      PropertyRNA *prop = RNA_struct_find_property(&domain_rna_ptr, "heat_grid");
+      if (RNA_property_array_length(&domain_rna_ptr, prop) == voxels.size()) {
+        RNA_property_float_get_array(&domain_rna_ptr, prop, voxels.data());
         return true;
       }
     }
     else if (attribute == ATTR_STD_VOLUME_TEMPERATURE) {
-      FluidDomainSettings_temperature_grid_get_length(&domain_rna_ptr, &length);
-      if (length == voxels.size()) {
-        FluidDomainSettings_temperature_grid_get(&domain_rna_ptr, voxels.data());
+      PropertyRNA *prop = RNA_struct_find_property(&domain_rna_ptr, "temperature_grid");
+      if (RNA_property_array_length(&domain_rna_ptr, prop) == voxels.size()) {
+        RNA_property_float_get_array(&domain_rna_ptr, prop, voxels.data());
         return true;
       }
     }
