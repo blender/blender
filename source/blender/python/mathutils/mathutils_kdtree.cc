@@ -172,7 +172,7 @@ struct PyKDTree_NearestData {
   bool is_error;
 };
 
-static int py_find_nearest_cb(void *user_data, int index, const float co[3], float dist_sq)
+static int py_find_nearest_cb(void *user_data, int index, const blender::float3 &co, float dist_sq)
 {
   UNUSED_VARS(co, dist_sq);
 

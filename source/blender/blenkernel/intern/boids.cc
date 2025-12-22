@@ -19,6 +19,7 @@
 #include "BLI_math_base_safe.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_rand.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
@@ -36,8 +37,8 @@
 
 #include "RNA_enum_types.hh"
 
-static float len_squared_v3v3_with_normal_bias(const float co_search[3],
-                                               const float co_test[3],
+static float len_squared_v3v3_with_normal_bias(const blender::float3 &co_search,
+                                               const blender::float3 &co_test,
                                                const void *user_data)
 {
   const float *normal = static_cast<const float *>(user_data);

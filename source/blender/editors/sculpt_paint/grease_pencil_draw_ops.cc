@@ -954,11 +954,11 @@ static void grease_pencil_fill_extension_lines_from_circles(
     const float radius = view_radii[kd_index];
 
     bool found = false;
-    kdtree_range_search_cb_cpp<2>(
+    kdtree_range_search_cb_cpp<float2>(
         kdtree,
         center,
         radius,
-        [&](const int other_point_i, const float * /*co*/, float /*dist_sq*/) {
+        [&](const int other_point_i, const float2 & /*co*/, float /*dist_sq*/) {
           if (other_point_i == kd_index) {
             return true;
           }

@@ -714,7 +714,7 @@ static int *bmesh_find_doubles_by_distance_impl(BMesh *bm,
     return i_best;
   };
 
-  found_duplicates = blender::kdtree_calc_duplicates_cb_cpp<3>(
+  found_duplicates = blender::kdtree_calc_duplicates_cb_cpp<blender::float3>(
                          tree, dist, duplicates, has_self_index, deduplicate_target_calc_fn) != 0;
 
   blender::kdtree_3d_free(tree);

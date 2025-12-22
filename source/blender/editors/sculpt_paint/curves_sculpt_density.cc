@@ -222,11 +222,11 @@ struct DensityAddOperationExecutor {
         continue;
       }
       const float3 &root_pos_cu = new_positions_cu[new_i];
-      kdtree_range_search_cb_cpp<3>(
+      kdtree_range_search_cb_cpp<float3>(
           new_roots_kdtree,
           root_pos_cu,
           brush_settings_->minimum_distance,
-          [&](const int other_new_i, const float * /*co*/, float /*dist_sq*/) {
+          [&](const int other_new_i, const float3 & /*co*/, float /*dist_sq*/) {
             if (other_new_i == -1) {
               new_curve_skipped[new_i] = true;
               return false;
@@ -677,11 +677,11 @@ struct DensitySubtractOperationExecutor {
         if (dist_to_brush_sq_re > brush_radius_sq_re) {
           continue;
         }
-        kdtree_range_search_cb_cpp<3>(
+        kdtree_range_search_cb_cpp<float3>(
             root_points_kdtree_,
             orig_pos_cu,
             minimum_distance_,
-            [&](const int other_curve_i, const float * /*co*/, float /*dist_sq*/) {
+            [&](const int other_curve_i, const float3 & /*co*/, float /*dist_sq*/) {
               if (other_curve_i == curve_i) {
                 return true;
               }
@@ -764,11 +764,11 @@ struct DensitySubtractOperationExecutor {
           continue;
         }
 
-        kdtree_range_search_cb_cpp<3>(
+        kdtree_range_search_cb_cpp<float3>(
             root_points_kdtree_,
             pos_cu,
             minimum_distance_,
-            [&](const int other_curve_i, const float * /*co*/, float /*dist_sq*/) {
+            [&](const int other_curve_i, const float3 & /*co*/, float /*dist_sq*/) {
               if (other_curve_i == curve_i) {
                 return true;
               }

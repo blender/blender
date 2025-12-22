@@ -14,9 +14,10 @@
 
 #ifdef __cplusplus
 namespace blender {
-template<int DimsNum> struct KDTree;
+template<typename CoordT> struct KDTree;
+template<typename T, int Size> struct VecBase;
 }  // namespace blender
-using KDTree3d = blender::KDTree<3>;
+using KDTree3d = blender::KDTree<blender::VecBase<float, 3>>;
 #else
 struct KDTree3d;
 #endif

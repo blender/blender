@@ -191,7 +191,7 @@ BLI_NOINLINE static void update_elimination_mask_for_close_points(
         kdtree,
         positions[i],
         minimum_distance,
-        [](void *user_data, int index, const float * /*co*/, float /*dist_sq*/) {
+        [](void *user_data, int index, const float3 & /*co*/, float /*dist_sq*/) {
           CallbackData &callback_data = *static_cast<CallbackData *>(user_data);
           if (index != callback_data.index) {
             callback_data.elimination_mask[index] = true;

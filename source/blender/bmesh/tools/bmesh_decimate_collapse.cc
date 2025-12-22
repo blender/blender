@@ -369,7 +369,7 @@ struct KD_Symmetry_Data {
 
 static bool bm_edge_symmetry_check_cb(void *user_data,
                                       int index,
-                                      const float /*co*/[3],
+                                      const blender::float3 & /*co*/,
                                       float /*dist_sq*/)
 {
   KD_Symmetry_Data *sym_data = static_cast<KD_Symmetry_Data *>(user_data);
