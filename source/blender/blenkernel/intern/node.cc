@@ -998,15 +998,15 @@ static void write_legacy_properties(bNodeTree &ntree)
 static void initialize_legacy_socket_storage(bNode &node)
 {
   if (ELEM(node.type_legacy, CMP_NODE_R_LAYERS, CMP_NODE_IMAGE)) {
-    LISTBASE_FOREACH (bNodeSocket *, output, &node.outputs) {
+    for (bNodeSocket &output : node.outputs) {
       NodeImageLayer *storage = MEM_new_for_free<NodeImageLayer>(__func__);
-      output->storage = storage;
+      output.storage = storage;
       /* Alpha is derived from the combined pass. */
-      if (STREQ(output->identifier, "Alpha")) {
+      if (STREQ(output.identifier, "Alpha")) {
         STRNCPY_UTF8(storage->pass_name, RE_PASSNAME_COMBINED);
       }
       else {
-        STRNCPY_UTF8(storage->pass_name, output->identifier);
+        STRNCPY_UTF8(storage->pass_name, output.identifier);
       }
     }
   }
@@ -1016,9 +1016,9 @@ static void initialize_legacy_socket_storage(bNode &node)
 static void free_legacy_socket_storage(bNode &node)
 {
   if (ELEM(node.type_legacy, CMP_NODE_R_LAYERS, CMP_NODE_IMAGE)) {
-    LISTBASE_FOREACH (bNodeSocket *, output, &node.outputs) {
-      MEM_freeN(output->storage);
-      output->storage = nullptr;
+    for (bNodeSocket &output : node.outputs) {
+      MEM_freeN(output.storage);
+      output.storage = nullptr;
     }
   }
 }
@@ -1211,8 +1211,8 @@ static void node_blend_write_storage(BlendWriter *writer, bNodeTree *ntree, bNod
   else if (ELEM(node->type_legacy, CMP_NODE_CRYPTOMATTE, CMP_NODE_CRYPTOMATTE_LEGACY)) {
     NodeCryptomatte *nc = static_cast<NodeCryptomatte *>(node->storage);
     BLO_write_string(writer, nc->matte_id);
-    LISTBASE_FOREACH (CryptomatteEntry *, entry, &nc->entries) {
-      writer->write_struct(entry);
+    for (CryptomatteEntry &entry : nc->entries) {
+      writer->write_struct(&entry);
     }
   }
 }
@@ -1264,8 +1264,8 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
 
     if (ELEM(node->type_legacy, CMP_NODE_IMAGE, CMP_NODE_R_LAYERS)) {
       /* Write extra socket info. */
-      LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-        writer->write_struct_cast<NodeImageLayer>(sock->storage);
+      for (bNodeSocket &sock : node->outputs) {
+        writer->write_struct_cast<NodeImageLayer>(sock.storage);
       }
     }
   }
@@ -2000,14 +2000,14 @@ void node_tree_blend_read_data(BlendDataReader *reader, ID *owner_id, bNodeTree 
   BLI_assert(ntree->all_nodes().size() == BLI_listbase_count(&ntree->nodes));
 
   /* and we connect the rest */
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    BLO_read_struct(reader, bNode, &node->parent);
+  for (bNode &node : ntree->nodes) {
+    BLO_read_struct(reader, bNode, &node.parent);
 
-    LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &node->inputs) {
-      direct_link_node_socket(reader, node, sock);
+    LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &node.inputs) {
+      direct_link_node_socket(reader, &node, sock);
     }
-    LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &node->outputs) {
-      direct_link_node_socket(reader, node, sock);
+    LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &node.outputs) {
+      direct_link_node_socket(reader, &node, sock);
     }
   }
 
@@ -2023,16 +2023,16 @@ void node_tree_blend_read_data(BlendDataReader *reader, ID *owner_id, bNodeTree 
 
   ntree->tree_interface.read_data(reader);
 
-  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-    BLO_read_struct(reader, bNode, &link->fromnode);
-    BLO_read_struct(reader, bNode, &link->tonode);
-    BLO_read_struct(reader, bNodeSocket, &link->fromsock);
-    BLO_read_struct(reader, bNodeSocket, &link->tosock);
+  for (bNodeLink &link : ntree->links) {
+    BLO_read_struct(reader, bNode, &link.fromnode);
+    BLO_read_struct(reader, bNode, &link.tonode);
+    BLO_read_struct(reader, bNodeSocket, &link.fromsock);
+    BLO_read_struct(reader, bNodeSocket, &link.tosock);
   }
 
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    remove_unsupported_sockets(&node->inputs, &ntree->links);
-    remove_unsupported_sockets(&node->outputs, &ntree->links);
+  for (bNode &node : ntree->nodes) {
+    remove_unsupported_sockets(&node.inputs, &ntree->links);
+    remove_unsupported_sockets(&node.outputs, &ntree->links);
   }
   remove_unsupported_sockets(&ntree->inputs_legacy, nullptr);
   remove_unsupported_sockets(&ntree->outputs_legacy, nullptr);
@@ -2070,11 +2070,11 @@ static void ntree_blend_read_after_liblink(BlendLibReader *reader, ID *id)
   /* For nodes with static socket layout, add/remove sockets as needed
    * to match the static layout. */
   if (!BLO_read_lib_is_undo(reader)) {
-    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    for (bNode &node : ntree->nodes) {
       /* Don't update node groups here because they may depend on other node groups which are not
        * fully versioned yet and don't have `typeinfo` pointers set. */
-      if (!node->is_group()) {
-        node_verify_sockets(ntree, node, false);
+      if (!node.is_group()) {
+        node_verify_sockets(ntree, &node, false);
       }
     }
   }
@@ -2369,14 +2369,14 @@ static void update_typeinfo(Main *bmain,
       }
 
       /* initialize node sockets */
-      LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-        if (socktype && sock->idname == socktype->idname) {
-          node_socket_set_typeinfo(ntree, sock, unregister ? nullptr : socktype);
+      for (bNodeSocket &sock : node->inputs) {
+        if (socktype && sock.idname == socktype->idname) {
+          node_socket_set_typeinfo(ntree, &sock, unregister ? nullptr : socktype);
         }
       }
-      LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-        if (socktype && sock->idname == socktype->idname) {
-          node_socket_set_typeinfo(ntree, sock, unregister ? nullptr : socktype);
+      for (bNodeSocket &sock : node->outputs) {
+        if (socktype && sock.idname == socktype->idname) {
+          node_socket_set_typeinfo(ntree, &sock, unregister ? nullptr : socktype);
         }
       }
     }
@@ -2391,11 +2391,11 @@ void node_tree_set_type(bNodeTree &ntree)
   for (bNode *node : ntree.all_nodes()) {
     /* Set socket typeinfo first because node initialization may rely on socket typeinfo for
      * generating declarations. */
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-      node_socket_set_typeinfo(&ntree, sock, node_socket_type_find(sock->idname));
+    for (bNodeSocket &sock : node->inputs) {
+      node_socket_set_typeinfo(&ntree, &sock, node_socket_type_find(sock.idname));
     }
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-      node_socket_set_typeinfo(&ntree, sock, node_socket_type_find(sock->idname));
+    for (bNodeSocket &sock : node->outputs) {
+      node_socket_set_typeinfo(&ntree, &sock, node_socket_type_find(sock.idname));
     }
 
     node_set_typeinfo(nullptr, &ntree, node, node_type_find(node->idname));
@@ -2676,10 +2676,10 @@ bNodeSocket *node_find_socket(bNode &node,
                               const eNodeSocketInOut in_out,
                               const StringRef identifier)
 {
-  const ListBase *sockets = (in_out == SOCK_IN) ? &node.inputs : &node.outputs;
-  LISTBASE_FOREACH (bNodeSocket *, sock, sockets) {
-    if (sock->identifier == identifier) {
-      return sock;
+  ListBaseT<bNodeSocket> *sockets = (in_out == SOCK_IN) ? &node.inputs : &node.outputs;
+  for (bNodeSocket &sock : *sockets) {
+    if (sock.identifier == identifier) {
+      return &sock;
     }
   }
   return nullptr;
@@ -2697,10 +2697,10 @@ bNodeSocket *node_find_enabled_socket(bNode &node,
                                       const eNodeSocketInOut in_out,
                                       const StringRef name)
 {
-  ListBase *sockets = (in_out == SOCK_IN) ? &node.inputs : &node.outputs;
-  LISTBASE_FOREACH (bNodeSocket *, socket, sockets) {
-    if (socket->is_available() && socket->name == name) {
-      return socket;
+  ListBaseT<bNodeSocket> *sockets = (in_out == SOCK_IN) ? &node.inputs : &node.outputs;
+  for (bNodeSocket &socket : *sockets) {
+    if (socket.is_available() && socket.name == name) {
+      return &socket;
     }
   }
   return nullptr;
@@ -2719,7 +2719,7 @@ bNodeSocket *node_find_enabled_output_socket(bNode &node, const StringRef name)
 static bNodeSocket *make_socket(bNodeTree *ntree,
                                 bNode * /*node*/,
                                 const int in_out,
-                                ListBase *lb,
+                                ListBaseT<bNodeSocket> *lb,
                                 const StringRefNull idname,
                                 const StringRefNull identifier,
                                 const StringRefNull name)
@@ -2737,8 +2737,8 @@ static bNodeSocket *make_socket(bNodeTree *ntree,
   /* Make the identifier unique. */
   BLI_uniquename_cb(
       [&](const StringRef check_name) {
-        LISTBASE_FOREACH (bNodeSocket *, sock, lb) {
-          if (sock->identifier == check_name) {
+        for (const bNodeSocket &sock : *lb) {
+          if (sock.identifier == check_name) {
             return true;
           }
         }
@@ -3010,7 +3010,7 @@ bNodeSocket *node_add_socket(bNodeTree &ntree,
   BLI_assert(!(in_out == SOCK_IN && node.is_group_input()));
   BLI_assert(!(in_out == SOCK_OUT && node.is_group_output()));
 
-  ListBase *lb = (in_out == SOCK_IN ? &node.inputs : &node.outputs);
+  ListBaseT<bNodeSocket> *lb = (in_out == SOCK_IN ? &node.inputs : &node.outputs);
   bNodeSocket *sock = make_socket(&ntree, &node, in_out, lb, idname, identifier, name);
 
   BLI_remlink(lb, sock); /* does nothing for new socket */
@@ -3521,9 +3521,10 @@ const bNode &node_find_node(const bNodeTree &ntree, const bNodeSocket &socket)
 bNode *node_find_node_try(bNodeTree &ntree, bNodeSocket &socket)
 {
   for (bNode *node : ntree.all_nodes()) {
-    const ListBase *sockets = (socket.in_out == SOCK_IN) ? &node->inputs : &node->outputs;
-    LISTBASE_FOREACH (const bNodeSocket *, socket_iter, sockets) {
-      if (socket_iter == &socket) {
+    const ListBaseT<bNodeSocket> *sockets = (socket.in_out == SOCK_IN) ? &node->inputs :
+                                                                         &node->outputs;
+    for (const bNodeSocket &socket_iter : *sockets) {
+      if (&socket_iter == &socket) {
         return node;
       }
     }
@@ -3571,29 +3572,29 @@ void node_chain_iterator(const bNodeTree *ntree,
                          void *userdata,
                          const bool reversed)
 {
-  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-    if ((link->flag & NODE_LINK_VALID) == 0) {
+  for (const bNodeLink &link : ntree->links) {
+    if ((link.flag & NODE_LINK_VALID) == 0) {
       /* Skip links marked as cyclic. */
       continue;
     }
     /* Is the link part of the chain meaning node_start == fromnode
      * (or tonode for reversed case)? */
     if (!reversed) {
-      if (link->fromnode != node_start) {
+      if (link.fromnode != node_start) {
         continue;
       }
     }
     else {
-      if (link->tonode != node_start) {
+      if (link.tonode != node_start) {
         continue;
       }
     }
 
-    if (!callback(link->fromnode, link->tonode, userdata, reversed)) {
+    if (!callback(link.fromnode, link.tonode, userdata, reversed)) {
       return;
     }
     node_chain_iterator(
-        ntree, reversed ? link->fromnode : link->tonode, callback, userdata, reversed);
+        ntree, reversed ? link.fromnode : link.tonode, callback, userdata, reversed);
   }
 }
 
@@ -3610,8 +3611,8 @@ static void iter_backwards_ex(const bNodeTree *ntree,
   while (!stack.is_empty() || !zone_stack.is_empty()) {
     bNode *node = !stack.is_empty() ? stack.pop() : zone_stack.pop();
 
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-      bNodeLink *link = sock->link;
+    for (bNodeSocket &sock : node->inputs) {
+      bNodeLink *link = sock.link;
       if (link == nullptr) {
         continue;
       }
@@ -3661,8 +3662,8 @@ void node_chain_iterator_backwards(const bNodeTree *ntree,
   const char recursion_mask = (1 << recursion_lvl);
 
   /* Reset flag. */
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    node->runtime->iter_flag &= ~recursion_mask;
+  for (const bNode &node : ntree->nodes) {
+    node.runtime->iter_flag &= ~recursion_mask;
   }
 
   iter_backwards_ex(ntree, node_start, callback, userdata, recursion_mask);
@@ -3813,19 +3814,19 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
   }
 
   BLI_listbase_clear(&node_dst->inputs);
-  LISTBASE_FOREACH (const bNodeSocket *, src_socket, &node_src.inputs) {
-    bNodeSocket *dst_socket = static_cast<bNodeSocket *>(MEM_dupallocN(src_socket));
-    node_socket_copy(dst_socket, src_socket, flag);
+  for (const bNodeSocket &src_socket : node_src.inputs) {
+    bNodeSocket *dst_socket = static_cast<bNodeSocket *>(MEM_dupallocN(&src_socket));
+    node_socket_copy(dst_socket, &src_socket, flag);
     BLI_addtail(&node_dst->inputs, dst_socket);
-    socket_map.add_new(src_socket, dst_socket);
+    socket_map.add_new(&src_socket, dst_socket);
   }
 
   BLI_listbase_clear(&node_dst->outputs);
-  LISTBASE_FOREACH (const bNodeSocket *, src_socket, &node_src.outputs) {
-    bNodeSocket *dst_socket = static_cast<bNodeSocket *>(MEM_dupallocN(src_socket));
-    node_socket_copy(dst_socket, src_socket, flag);
+  for (const bNodeSocket &src_socket : node_src.outputs) {
+    bNodeSocket *dst_socket = static_cast<bNodeSocket *>(MEM_dupallocN(&src_socket));
+    node_socket_copy(dst_socket, &src_socket, flag);
     BLI_addtail(&node_dst->outputs, dst_socket);
-    socket_map.add_new(src_socket, dst_socket);
+    socket_map.add_new(&src_socket, dst_socket);
   }
 
   if (node_src.prop) {
@@ -4041,8 +4042,8 @@ void node_socket_move_default_value(Main & /*bmain*/,
 static int node_count_links(const bNodeTree *ntree, const bNodeSocket *socket)
 {
   int count = 0;
-  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-    if (ELEM(socket, link->fromsock, link->tosock)) {
+  for (const bNodeLink &link : ntree->links) {
+    if (ELEM(socket, link.fromsock, link.tosock)) {
       count++;
     }
   }
@@ -4137,13 +4138,13 @@ static void adjust_multi_input_indices_after_removed_link(bNodeTree *ntree,
                                                           const bNodeSocket *sock,
                                                           const int deleted_index)
 {
-  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
+  for (bNodeLink &link : ntree->links) {
     /* We only need to adjust those with a greater index, because the others will have the same
      * index. */
-    if (link->tosock != sock || link->multi_input_sort_id <= deleted_index) {
+    if (link.tosock != sock || link.multi_input_sort_id <= deleted_index) {
       continue;
     }
-    link->multi_input_sort_id -= 1;
+    link.multi_input_sort_id -= 1;
   }
 }
 
@@ -4278,9 +4279,9 @@ void node_position_relative(bNode &from_node,
 
 void node_position_propagate(bNode &node)
 {
-  LISTBASE_FOREACH (bNodeSocket *, socket, &node.inputs) {
-    if (socket->link != nullptr) {
-      bNodeLink *link = socket->link;
+  for (bNodeSocket &socket : node.inputs) {
+    if (socket.link != nullptr) {
+      bNodeLink *link = socket.link;
       node_position_relative(*link->fromnode, *link->tonode, link->fromsock, *link->tosock);
       node_position_propagate(*link->fromnode);
     }
@@ -4497,7 +4498,7 @@ void node_preview_merge_tree(bNodeTree *to_ntree, bNodeTree *from_ntree, bool re
 void node_unlink_node(bNodeTree &ntree, bNode &node)
 {
   LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree.links) {
-    ListBase *lb = nullptr;
+    ListBaseT<bNodeSocket> *lb = nullptr;
     if (link->fromnode == &node) {
       lb = &node.outputs;
     }
@@ -4511,8 +4512,8 @@ void node_unlink_node(bNodeTree &ntree, bNode &node)
         adjust_multi_input_indices_after_removed_link(
             &ntree, link->tosock, link->multi_input_sort_id);
       }
-      LISTBASE_FOREACH (const bNodeSocket *, sock, lb) {
-        if (link->fromsock == sock || link->tosock == sock) {
+      for (const bNodeSocket &sock : *lb) {
+        if (link->fromsock == &sock || link->tosock == &sock) {
           node_remove_link(&ntree, *link);
           break;
         }
@@ -4645,11 +4646,11 @@ void node_remove_node(
       id_us_min(node.id);
     }
 
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node.inputs) {
-      socket_id_user_decrement(sock);
+    for (bNodeSocket &sock : node.inputs) {
+      socket_id_user_decrement(&sock);
     }
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node.outputs) {
-      socket_id_user_decrement(sock);
+    for (bNodeSocket &sock : node.outputs) {
+      socket_id_user_decrement(&sock);
     }
   }
 
@@ -4685,9 +4686,9 @@ static void free_localized_node_groups(bNodeTree *ntree)
     return;
   }
 
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    bNodeTree *ngroup = reinterpret_cast<bNodeTree *>(node->id);
-    if (node->is_group() && ngroup != nullptr) {
+  for (bNode &node : ntree->nodes) {
+    bNodeTree *ngroup = reinterpret_cast<bNodeTree *>(node.id);
+    if (node.is_group() && ngroup != nullptr) {
       node_tree_free_tree(*ngroup);
       MEM_freeN(ngroup);
     }
@@ -4713,67 +4714,67 @@ void node_tree_set_output(bNodeTree &ntree)
   const bool is_compositor = ntree.type == NTREE_COMPOSIT;
   const bool is_geometry = ntree.type == NTREE_GEOMETRY;
   /* find the active outputs, might become tree type dependent handler */
-  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
-    if (node->typeinfo->nclass == NODE_CLASS_OUTPUT) {
+  for (bNode &node : ntree.nodes) {
+    if (node.typeinfo->nclass == NODE_CLASS_OUTPUT) {
       /* we need a check for which output node should be tagged like this, below an exception */
-      if (node->is_type("CompositorNodeOutputFile")) {
+      if (node.is_type("CompositorNodeOutputFile")) {
         continue;
       }
-      const bool node_is_output = node->is_type("CompositorNodeViewer") ||
-                                  node->is_type("GeometryNodeViewer");
+      const bool node_is_output = node.is_type("CompositorNodeViewer") ||
+                                  node.is_type("GeometryNodeViewer");
 
       int output = 0;
       /* there is more types having output class, each one is checked */
 
-      LISTBASE_FOREACH (bNode *, tnode, &ntree.nodes) {
-        if (tnode->typeinfo->nclass != NODE_CLASS_OUTPUT) {
+      for (bNode &tnode : ntree.nodes) {
+        if (tnode.typeinfo->nclass != NODE_CLASS_OUTPUT) {
           continue;
         }
 
         /* same type, exception for viewer */
-        const bool tnode_is_output = tnode->is_type("CompositorNodeViewer") ||
-                                     tnode->is_type("GeometryNodeViewer");
+        const bool tnode_is_output = tnode.is_type("CompositorNodeViewer") ||
+                                     tnode.is_type("GeometryNodeViewer");
         const bool viewer_case = (is_compositor || is_geometry) && tnode_is_output &&
                                  node_is_output;
-        const bool has_same_shortcut = viewer_case && node != tnode &&
-                                       tnode->custom1 == node->custom1 &&
-                                       tnode->custom1 != NODE_VIEWER_SHORTCUT_NONE;
+        const bool has_same_shortcut = viewer_case && &node != &tnode &&
+                                       tnode.custom1 == node.custom1 &&
+                                       tnode.custom1 != NODE_VIEWER_SHORTCUT_NONE;
 
-        if (tnode->type_legacy == node->type_legacy || viewer_case) {
-          if (tnode->flag & NODE_DO_OUTPUT) {
+        if (tnode.type_legacy == node.type_legacy || viewer_case) {
+          if (tnode.flag & NODE_DO_OUTPUT) {
             output++;
             if (output > 1) {
-              tnode->flag &= ~NODE_DO_OUTPUT;
+              tnode.flag &= ~NODE_DO_OUTPUT;
             }
           }
         }
         if (has_same_shortcut) {
-          tnode->custom1 = NODE_VIEWER_SHORTCUT_NONE;
+          tnode.custom1 = NODE_VIEWER_SHORTCUT_NONE;
         }
       }
 
       /* Only geometry nodes is allowed to have no active output in the node tree. */
       if (output == 0 && !is_geometry) {
-        node->flag |= NODE_DO_OUTPUT;
+        node.flag |= NODE_DO_OUTPUT;
       }
     }
 
     /* group node outputs use this flag too */
-    if (node->is_group_output()) {
+    if (node.is_group_output()) {
       int output = 0;
-      LISTBASE_FOREACH (bNode *, tnode, &ntree.nodes) {
-        if (!tnode->is_group_output()) {
+      for (bNode &tnode : ntree.nodes) {
+        if (!tnode.is_group_output()) {
           continue;
         }
-        if (tnode->flag & NODE_DO_OUTPUT) {
+        if (tnode.flag & NODE_DO_OUTPUT) {
           output++;
           if (output > 1) {
-            tnode->flag &= ~NODE_DO_OUTPUT;
+            tnode.flag &= ~NODE_DO_OUTPUT;
           }
         }
       }
       if (output == 0) {
-        node->flag |= NODE_DO_OUTPUT;
+        node.flag |= NODE_DO_OUTPUT;
       }
     }
   }
@@ -4843,10 +4844,10 @@ bNodeTree *node_tree_localize(bNodeTree *ntree, std::optional<ID *> new_owner_id
 
   ltree->id.tag |= ID_TAG_LOCALIZED;
 
-  LISTBASE_FOREACH (bNode *, node, &ltree->nodes) {
-    bNodeTree *group = reinterpret_cast<bNodeTree *>(node->id);
-    if (node->is_group() && group != nullptr) {
-      node->id = reinterpret_cast<ID *>(node_tree_localize(group, nullptr));
+  for (bNode &node : ltree->nodes) {
+    bNodeTree *group = reinterpret_cast<bNodeTree *>(node.id);
+    if (node.is_group() && group != nullptr) {
+      node.id = reinterpret_cast<ID *>(node_tree_localize(group, nullptr));
     }
   }
 
@@ -4916,8 +4917,8 @@ bool node_tree_contains_tree(const bNodeTree &tree_to_search_in,
 int node_count_socket_links(const bNodeTree &ntree, const bNodeSocket &sock)
 {
   int tot = 0;
-  LISTBASE_FOREACH (const bNodeLink *, link, &ntree.links) {
-    if (link->fromsock == &sock || link->tosock == &sock) {
+  for (const bNodeLink &link : ntree.links) {
+    if (link.fromsock == &sock || link.tosock == &sock) {
       tot++;
     }
   }
@@ -4945,13 +4946,13 @@ bool node_set_selected(bNode &node, const bool select)
     return changed;
   }
   /* Deselect sockets too. */
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node.inputs) {
-    changed |= (sock->flag & NODE_SELECT) != 0;
-    sock->flag &= ~NODE_SELECT;
+  for (bNodeSocket &sock : node.inputs) {
+    changed |= (sock.flag & NODE_SELECT) != 0;
+    sock.flag &= ~NODE_SELECT;
   }
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node.outputs) {
-    changed |= (sock->flag & NODE_SELECT) != 0;
-    sock->flag &= ~NODE_SELECT;
+  for (bNodeSocket &sock : node.outputs) {
+    changed |= (sock.flag & NODE_SELECT) != 0;
+    sock.flag &= ~NODE_SELECT;
   }
   return changed;
 }
@@ -5018,10 +5019,10 @@ static void update_socket_declarations(ListBase *sockets,
   }
 }
 
-static void reset_socket_declarations(ListBase *sockets)
+static void reset_socket_declarations(ListBaseT<bNodeSocket> *sockets)
 {
-  LISTBASE_FOREACH (bNodeSocket *, socket, sockets) {
-    socket->runtime->declaration = nullptr;
+  for (bNodeSocket &socket : *sockets) {
+    socket.runtime->declaration = nullptr;
   }
 }
 
