@@ -872,7 +872,7 @@ struct MinDistanceEditData {
   float initial_minimum_distance;
 
   /** The operator uses a new cursor, but the existing cursors should be restored afterwards. */
-  ListBase orig_paintcursors;
+  ListBaseT<wmPaintCursor> orig_paintcursors;
   void *cursor;
 
   /** Store the viewport region in case the operator was called from the header. */

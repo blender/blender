@@ -2590,7 +2590,7 @@ struct RadialControl {
   bool snap = false;
   Dial *dial = nullptr;
   blender::gpu::Texture *texture = nullptr;
-  ListBase orig_paintcursors = {};
+  ListBaseT<wmPaintCursor> orig_paintcursors = {};
   bool use_secondary_tex = false;
   void *cursor = nullptr;
   NumInput num_input = {};

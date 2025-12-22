@@ -14,6 +14,10 @@ struct wmKeyConfig;
 struct wmEvent;
 struct wmWindow;
 struct wmIMEData;
+struct wmGesture;
+struct wmJob;
+struct wmDrag;
+struct wmPaintCursor;
 
 #include "BKE_report.hh"
 
@@ -58,7 +62,7 @@ struct WindowManagerRuntime {
    * With the exception of clearing notifiers for data which has been removed,
    * see: #NOTE_CATEGORY_TAG_CLEARED.
    */
-  ListBase notifier_queue = {nullptr, nullptr};
+  ListBaseT<wmNotifier> notifier_queue = {nullptr, nullptr};
   /**
    * For duplicate detection.
    * \note keep in sync with `notifier_queue` adding/removing elements must also update this set.
@@ -69,25 +73,25 @@ struct WindowManagerRuntime {
   const wmNotifier *notifier_current = nullptr;
 
   /** Operator registry. */
-  ListBase operators = {nullptr, nullptr};
+  ListBaseT<wmOperator> operators = {nullptr, nullptr};
 
   /** Extra overlay cursors to draw, like circles. */
-  ListBase paintcursors = {nullptr, nullptr};
+  ListBaseT<wmPaintCursor> paintcursors = {nullptr, nullptr};
 
   /**
    * Known key configurations.
    * This includes all the #wmKeyConfig members (`defaultconf`, `addonconf`, etc).
    */
-  ListBase keyconfigs = {nullptr, nullptr};
+  ListBaseT<wmKeyConfig> keyconfigs = {nullptr, nullptr};
 
   /** Active timers. */
-  ListBase timers = {nullptr, nullptr};
+  ListBaseT<wmTimer> timers = {nullptr, nullptr};
 
   /** Threaded jobs manager. */
-  ListBase jobs = {nullptr, nullptr};
+  ListBaseT<wmJob> jobs = {nullptr, nullptr};
 
   /** Active dragged items. */
-  ListBase drags = {nullptr, nullptr};
+  ListBaseT<wmDrag> drags = {nullptr, nullptr};
 
   /** Default configuration. */
   wmKeyConfig *defaultconf = nullptr;
@@ -109,7 +113,7 @@ struct WindowManagerRuntime {
 
 struct WindowRuntime {
   /** All events #wmEvent (ghost level events were handled). */
-  ListBase event_queue = {nullptr, nullptr};
+  ListBaseT<wmEvent> event_queue = {nullptr, nullptr};
 
   /**
    * Input Method Editor data - complex character input (especially for Asian character input)
@@ -125,13 +129,13 @@ struct WindowRuntime {
   void *gpuctx = nullptr;
 
   /** Window+screen handlers, handled last. */
-  ListBase handlers = {nullptr, nullptr};
+  ListBaseT<wmEventHandler> handlers = {nullptr, nullptr};
 
   /** Priority handlers, handled first. */
-  ListBase modalhandlers = {nullptr, nullptr};
+  ListBaseT<wmEventHandler> modalhandlers = {nullptr, nullptr};
 
   /** Gesture stuff. */
-  ListBase gesture = {nullptr, nullptr};
+  ListBaseT<wmGesture> gesture = {nullptr, nullptr};
 
   /**
    * Keep the last handled event in `event_queue` here (owned and must be freed).
