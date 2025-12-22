@@ -790,8 +790,8 @@ static FT_UInt blf_glyph_index_from_charcode(FontBLF **font, const uint charcode
     return glyph_index;
   }
 
-  /* Fonts managed by the cache can fallback. Unless specifically forbidden. */
-  if (!((*font)->flags & BLF_CACHED) || ((*font)->flags & BLF_NO_FALLBACK)) {
+  /* Fallback disabled. */
+  if ((*font)->flags & BLF_NO_FALLBACK) {
     return 0;
   }
 
