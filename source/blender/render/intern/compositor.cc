@@ -509,7 +509,7 @@ class Compositor {
       }
     }
 
-    cache_manager_.reset();
+    cache_manager_.free();
 
     /* See comment above on context enabling. */
     if (last_evaluation_used_gpu_) {
@@ -549,7 +549,15 @@ class Compositor {
     {
       compositor::Evaluator evaluator(context);
       evaluator.evaluate();
-      context.cache_manager().reset();
+
+      /* Reset the cache, but only if the evaluation did not get canceled, because in that case, we
+       * wouldn't want to invalidate the cache because not all operations that use cached resources
+       * got the chance to mark their used resources as still in use. So we wait until a full
+       * evaluation happen before we decide that some resources are no longer needed. */
+      if (!context.is_canceled()) {
+        context.cache_manager().reset();
+      }
+
       last_evaluation_used_gpu_ = context.use_gpu();
       last_evaluation_precision_ = context.get_precision();
     }

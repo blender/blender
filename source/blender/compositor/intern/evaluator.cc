@@ -243,7 +243,6 @@ void Evaluator::map_pixel_operation_inputs_to_their_results(PixelOperation *oper
 
 void Evaluator::cancel_evaluation()
 {
-  context_.cache_manager().skip_next_reset();
   for (const std::unique_ptr<Operation> &operation : operations_stream_) {
     operation->free_results();
   }
