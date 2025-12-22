@@ -1091,8 +1091,10 @@ PointerRNA rna_uiTemplatePopupConfirm(Layout *layout,
   else {
     std::optional<StringRefNull> text_str = rna_translate_ui_text(
         text, text_ctxt, nullptr, nullptr, translate);
-    std::optional<StringRefNull> cancel_text_str;
-    if (cancel_text && cancel_text[0]) {
+    std::optional<StringRefNull> cancel_text_str = cancel_text ? std::make_optional<StringRefNull>(
+                                                                     cancel_text) :
+                                                                 std::nullopt;
+    if (cancel_text_str && !cancel_text_str->is_empty()) {
       cancel_text_str = rna_translate_ui_text(cancel_text, text_ctxt, nullptr, nullptr, translate);
     }
 
