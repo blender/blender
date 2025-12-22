@@ -9,7 +9,7 @@ import pprint
 import sys
 import tempfile
 import unittest
-from pxr import Gf, Sdf, Usd, UsdGeom, UsdMtlx, UsdShade, UsdSkel, UsdUI, UsdUtils, UsdVol
+from pxr import Gf, Sdf, Usd, UsdGeom, UsdLux, UsdMtlx, UsdShade, UsdSkel, UsdUI, UsdUtils, UsdVol
 
 import bpy
 
@@ -486,6 +486,40 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(shader_attr.GetOutput("result").GetTypeName().type.typeName, "GfVec3f")
         self.assertEqual(shader_attr1.GetOutput("result").GetTypeName().type.typeName, "float")
         self.assertEqual(shader_attr2.GetOutput("result").GetTypeName().type.typeName, "GfVec3f")
+
+    def test_export_material_world(self):
+        """Validate world material (dome light) export."""
+
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_world.blend"))
+
+        # Export each World separately
+        bpy.context.scene.world = bpy.data.worlds["WorldDefault"]
+        export_default = self.tempdir / "usd_materials_world-default.usda"
+        self.export_and_validate(filepath=str(export_default), convert_world_material=True, evaluation_mode="RENDER")
+
+        bpy.context.scene.world = bpy.data.worlds["WorldSimple"]
+        export_simple = self.tempdir / "usd_materials_world-simple.usda"
+        self.export_and_validate(filepath=str(export_simple), convert_world_material=True, evaluation_mode="RENDER")
+
+        bpy.context.scene.world = bpy.data.worlds["WorldMapping"]
+        export_mapping = self.tempdir / "usd_materials_world-mapping.usda"
+        self.export_and_validate(filepath=str(export_mapping), convert_world_material=True, evaluation_mode="RENDER")
+
+        # Validate relevant information
+        stage = Usd.Stage.Open(str(export_default))
+        dome_prim = UsdLux.DomeLight(stage.GetPrimAtPath("/root/env_light"))
+        self.assertEqual(round(dome_prim.GetIntensityAttr().Get(), 4), 0.2)
+        self.assertEqual(dome_prim.GetTextureFileAttr().Get().authoredPath, "./textures/color_0C0C0C.exr")
+
+        stage = Usd.Stage.Open(str(export_simple))
+        dome_prim = UsdLux.DomeLight(stage.GetPrimAtPath("/root/env_light"))
+        self.assertEqual(self.round_vector(dome_prim.GetRotateXYZOp().Get()), [90, 0, 90])
+        self.assertEqual(dome_prim.GetTextureFileAttr().Get().authoredPath, "./textures/test_single.png")
+
+        stage = Usd.Stage.Open(str(export_mapping))
+        dome_prim = UsdLux.DomeLight(stage.GetPrimAtPath("/root/env_light"))
+        self.assertEqual(self.round_vector(dome_prim.GetRotateXYZOp().Get()), [67.754, -1.033, 61.9707])
+        self.assertEqual(dome_prim.GetTextureFileAttr().Get().authoredPath, "./textures/test_single.png")
 
     def test_export_metaballs(self):
         """Validate correct export of Metaball objects. These are written out as Meshes."""

@@ -431,6 +431,11 @@ static bool node_search(bNode *fromnode, bNode * /*tonode*/, void *userdata, boo
     NodeTexImage *tex = static_cast<NodeTexImage *>(fromnode->storage);
     res.image = reinterpret_cast<Image *>(fromnode->id);
     res.iuser = &tex->iuser;
+
+    /* Always adjust for rotational differences between Blender and USD. */
+    res.transform =
+        pxr::GfMatrix4d().SetRotate(pxr::GfRotation(pxr::GfVec3d(1.0, 0.0, 0.0), 90.0)) *
+        pxr::GfMatrix4d().SetRotate(pxr::GfRotation(pxr::GfVec3d(0.0, 0.0, 1.0), 90.0));
   }
   else if (!res.image && !res.mult_found && fromnode->type_legacy == SH_NODE_VECTOR_MATH) {
     if (fromnode->custom1 == NODE_VECTOR_MATH_MULTIPLY) {
@@ -452,10 +457,9 @@ static bool node_search(bNode *fromnode, bNode * /*tonode*/, void *userdata, boo
           socket->default_value);
       /* Convert radians to degrees. */
       pxr::GfVec3f rot(rot_value->value);
-      mul_v3_fl(rot.data(), 180.0f / M_PI);
-      res.transform =
-          pxr::GfMatrix4d().SetRotate(pxr::GfRotation(pxr::GfVec3d(1.0, 0.0, 0.0), 90.0)) *
-          pxr::GfMatrix4d().SetRotate(pxr::GfRotation(pxr::GfVec3d(0.0, 0.0, 1.0), 90.0)) *
+      rot *= 180.0f / M_PI;
+
+      res.transform *=
           pxr::GfMatrix4d().SetRotate(pxr::GfRotation(pxr::GfVec3d(0.0, 0.0, 1.0), -rot[2])) *
           pxr::GfMatrix4d().SetRotate(pxr::GfRotation(pxr::GfVec3d(0.0, 1.0, 0.0), -rot[1])) *
           pxr::GfMatrix4d().SetRotate(pxr::GfRotation(pxr::GfVec3d(1.0, 0.0, 0.0), -rot[0]));
