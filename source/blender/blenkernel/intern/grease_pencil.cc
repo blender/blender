@@ -1933,14 +1933,15 @@ void LayerGroup::tag_nodes_cache_dirty() const
 
 void LayerGroup::prepare_for_dna_write()
 {
-  LISTBASE_FOREACH (TreeNode *, child, &children) {
-    switch (child->type) {
+  LISTBASE_FOREACH (GreasePencilLayerTreeNode *, child_, &children) {
+    TreeNode &child = child_->wrap();
+    switch (child.type) {
       case GP_LAYER_TREE_LEAF: {
-        child->as_layer().prepare_for_dna_write();
+        child.as_layer().prepare_for_dna_write();
         break;
       }
       case GP_LAYER_TREE_GROUP: {
-        child->as_group().prepare_for_dna_write();
+        child.as_group().prepare_for_dna_write();
         break;
       }
     }
@@ -1949,14 +1950,15 @@ void LayerGroup::prepare_for_dna_write()
 
 void LayerGroup::update_from_dna_read()
 {
-  LISTBASE_FOREACH (TreeNode *, child, &children) {
-    switch (child->type) {
+  LISTBASE_FOREACH (GreasePencilLayerTreeNode *, child_, &children) {
+    TreeNode &child = child_->wrap();
+    switch (child.type) {
       case GP_LAYER_TREE_LEAF: {
-        child->as_layer().update_from_dna_read();
+        child.as_layer().update_from_dna_read();
         break;
       }
       case GP_LAYER_TREE_GROUP: {
-        child->as_group().update_from_dna_read();
+        child.as_group().update_from_dna_read();
         break;
       }
     }

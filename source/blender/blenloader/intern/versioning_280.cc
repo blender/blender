@@ -889,8 +889,11 @@ static void do_version_curvemapping_walker(Main *bmain, void (*callback)(CurveMa
         }
       }
     }
-    /* Grease pencil modifiers */
-    LISTBASE_FOREACH (ModifierData *, md, &ob->greasepencil_modifiers) {
+    /* Grease pencil modifiers.
+     * No LISTBASE_FOREACH because the type does not match current DNA. */
+    for (ModifierData *md = static_cast<ModifierData *>(ob->greasepencil_modifiers.first); md;
+         md = md->next)
+    {
       if (md->type == eGpencilModifierType_Thick) {
         ThickGpencilModifierData *gpmd = (ThickGpencilModifierData *)md;
 

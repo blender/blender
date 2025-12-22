@@ -15,6 +15,8 @@
 
 #include "DNA_listBase.h"
 
+#include <type_traits>
+
 /**
  * Returns the position of \a vlink within \a listbase, numbering from 0, or -1 if not found.
  */
@@ -324,6 +326,19 @@ BLI_INLINE bool BLI_listbase_equal(const ListBase *a, const ListBase *b)
 LinkData *BLI_genericNodeN(void *data);
 
 /**
+ * Assert to ensure foreach macros are used for the appropriate type.
+ */
+template<typename LinkType, typename ListType>
+inline void assert_listbase_foreach_type(ListType &x)
+{
+  using ListCompareType = std::decay_t<decltype(x)>;
+  using LinkCompareType = std::decay_t<std::remove_pointer_t<LinkType>>;
+  static_assert(std::is_same_v<ListCompareType, ListBase> ||
+                    std::is_same_v<ListCompareType, ListBaseT<LinkCompareType>>,
+                "ListBase type does not match type in listbase foreach macro");
+}
+
+/**
  * Does a full loop on the list, with any value acting as first
  * (handy for cycling items)
  *
@@ -338,10 +353,12 @@ LinkData *BLI_genericNodeN(void *data);
  * \endcode
  */
 #define LISTBASE_CIRCULAR_FORWARD_BEGIN(type, lb, lb_iter, lb_init) \
+  assert_listbase_foreach_type<type>(*(lb)); \
   if ((lb)->first && (lb_init || (lb_init = (type)(lb)->first))) { \
     lb_iter = (type)(lb_init); \
     do {
 #define LISTBASE_CIRCULAR_FORWARD_END(type, lb, lb_iter, lb_init) \
+  assert_listbase_foreach_type<type>(*(lb)); \
   } \
   while ((lb_iter = (lb_iter)->next ? (type)(lb_iter)->next : (type)(lb)->first), \
          (lb_iter != lb_init)) \
@@ -350,10 +367,12 @@ LinkData *BLI_genericNodeN(void *data);
   ((void)0)
 
 #define LISTBASE_CIRCULAR_BACKWARD_BEGIN(type, lb, lb_iter, lb_init) \
+  assert_listbase_foreach_type<type>(*(lb)); \
   if ((lb)->last && (lb_init || (lb_init = (type)(lb)->last))) { \
     lb_iter = lb_init; \
     do {
 #define LISTBASE_CIRCULAR_BACKWARD_END(type, lb, lb_iter, lb_init) \
+  assert_listbase_foreach_type<type>(*(lb)); \
   } \
   while ((lb_iter = (lb_iter)->prev ? (lb_iter)->prev : (type)(lb)->last), (lb_iter != lb_init)) \
     ; \
@@ -361,6 +380,7 @@ LinkData *BLI_genericNodeN(void *data);
   ((void)0)
 
 #define LISTBASE_FOREACH(type, var, list) \
+  assert_listbase_foreach_type<type>(*(list)); \
   for (type var = (type)((list)->first); var != nullptr; var = (type)(((Link *)(var))->next))
 
 /**
@@ -369,16 +389,19 @@ LinkData *BLI_genericNodeN(void *data);
  * incrementation.
  */
 #define LISTBASE_FOREACH_INDEX(type, var, list, index_var) \
+  assert_listbase_foreach_type<type>(*(list)); \
   for (type var = (((void)(index_var = 0)), (type)((list)->first)); var != nullptr; \
        var = (type)(((Link *)(var))->next), index_var++)
 
 #define LISTBASE_FOREACH_BACKWARD(type, var, list) \
+  assert_listbase_foreach_type<type>(*(list)); \
   for (type var = (type)((list)->last); var != nullptr; var = (type)(((Link *)(var))->prev))
 
 /**
  * A version of #LISTBASE_FOREACH that supports removing the item we're looping over.
  */
 #define LISTBASE_FOREACH_MUTABLE(type, var, list) \
+  assert_listbase_foreach_type<type>(*(list)); \
   for (type var = (type)((list)->first), *var##_iter_next; \
        ((var != nullptr) ? ((void)(var##_iter_next = (type)(((Link *)(var))->next)), 1) : 0); \
        var = var##_iter_next)
@@ -387,6 +410,7 @@ LinkData *BLI_genericNodeN(void *data);
  * A version of #LISTBASE_FOREACH_BACKWARD that supports removing the item we're looping over.
  */
 #define LISTBASE_FOREACH_BACKWARD_MUTABLE(type, var, list) \
+  assert_listbase_foreach_type<type>(*(list)); \
   for (type var = (type)((list)->last), *var##_iter_prev; \
        ((var != nullptr) ? ((void)(var##_iter_prev = (type)(((Link *)(var))->prev)), 1) : 0); \
        var = var##_iter_prev)
