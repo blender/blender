@@ -103,12 +103,6 @@ class Evaluator {
   void evaluate();
 
  private:
-  /* Check if the compositor node tree is valid by checking if it has things like cyclic links and
-   * undefined nodes or sockets. If the node tree is valid, true is returned. Otherwise, false is
-   * returned, and an appropriate error message is set by calling the context's set_info_message
-   * method. */
-  bool validate_node_tree();
-
   /* Compile the given node into a node operation, map each input to the result of the output
    * linked to it, update the compile state, add the newly created operation to the operations
    * stream, and evaluate the operation. */

@@ -38,18 +38,7 @@ void Evaluator::evaluate()
   });
 
   derived_node_tree_ = std::make_unique<DerivedNodeTree>(context_.get_node_tree());
-
-  if (!this->validate_node_tree()) {
-    return;
-  }
-
-  if (context_.is_canceled()) {
-    this->cancel_evaluation();
-    return;
-  }
-
   const Schedule schedule = compute_schedule(context_, *derived_node_tree_);
-
   CompileState compile_state(context_, schedule);
 
   for (const DNode &node : schedule) {
@@ -69,16 +58,6 @@ void Evaluator::evaluate()
       this->evaluate_node(node, compile_state);
     }
   }
-}
-
-bool Evaluator::validate_node_tree()
-{
-  if (derived_node_tree_->has_link_cycles()) {
-    context_.set_info_message("Compositor node tree has cyclic links!");
-    return false;
-  }
-
-  return true;
 }
 
 static NodeOperation *get_node_operation(Context &context, DNode node)

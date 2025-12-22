@@ -316,6 +316,12 @@ Schedule compute_schedule(const Context &context, const DerivedNodeTree &tree)
 {
   Schedule schedule;
 
+  /* Validate node tree. */
+  if (tree.has_link_cycles()) {
+    context.set_info_message("Compositor node tree has cyclic links.");
+    return schedule;
+  }
+
   /* A stack of nodes used to traverse the node tree starting from the output nodes. */
   Stack<DNode> node_stack;
 
