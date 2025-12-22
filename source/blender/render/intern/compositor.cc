@@ -549,6 +549,7 @@ class Compositor {
     {
       compositor::Evaluator evaluator(context);
       evaluator.evaluate();
+      context.cache_manager().reset();
       last_evaluation_used_gpu_ = context.use_gpu();
       last_evaluation_precision_ = context.get_precision();
     }

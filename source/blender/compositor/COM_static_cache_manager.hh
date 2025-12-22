@@ -35,17 +35,16 @@ namespace blender::compositor {
  * be not needed when it was not used in the previous evaluation. This is done through the
  * following mechanism:
  *
- * - Before every evaluation, do the following:
+ * - After every evaluation, do the following:
  *     1. All resources whose CachedResource::needed flag is false are deleted.
  *     2. The CachedResource::needed flag of all remaining resources is set to false.
  * - During evaluation, when retrieving any cached resource, set its CachedResource::needed flag to
  *   true.
  *
- * In effect, any resource that was used in the previous evaluation but was not used in the current
- * evaluation will be deleted before the next evaluation. This mechanism is implemented in the
- * reset() method of the class, which should be called before every evaluation. The reset for the
- * next evaluation can be skipped by calling the skip_next_reset() method, see its description for
- * more information. */
+ * In effect, any resource that was not used in the previous evaluation will be deleted. This
+ * mechanism is implemented in the reset() method of the class, which should be called after every
+ * evaluation. The reset for the next evaluation can be skipped by calling the skip_next_reset()
+ * method, see its description for more information. */
 class StaticCacheManager {
  public:
   SymmetricBlurWeightsContainer symmetric_blur_weights;

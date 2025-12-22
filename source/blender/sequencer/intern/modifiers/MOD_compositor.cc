@@ -240,6 +240,7 @@ static void compositor_modifier_apply(ModifierApplyContext &context,
                                 context.strip);
   compositor::Evaluator evaluator(com_context);
   evaluator.evaluate();
+  com_context.cache_manager().reset();
 
   context.result_translation += com_context.get_result_translation();
 

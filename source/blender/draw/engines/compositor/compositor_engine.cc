@@ -296,6 +296,7 @@ class Instance : public DrawEngine {
     {
       compositor::Evaluator evaluator(context);
       evaluator.evaluate();
+      context.cache_manager().reset();
     }
 
 #if defined(__APPLE__)
