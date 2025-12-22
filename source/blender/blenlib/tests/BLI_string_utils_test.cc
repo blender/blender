@@ -74,7 +74,7 @@ TEST(BLI_string_utils, BLI_uniquename_cb)
   }
 
   {
-    const auto unique_check = [&](const blender::StringRef name) -> bool {
+    const auto unique_check = [&](const StringRef name) -> bool {
       return current_names.contains(name);
     };
 

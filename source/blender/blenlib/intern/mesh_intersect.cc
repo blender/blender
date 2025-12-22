@@ -580,7 +580,7 @@ void IMesh::populate_vert(int max_verts)
    * TODO: when all debugged, set fix_order = false. */
   const bool fix_order = true;
   if (fix_order) {
-    blender::parallel_sort(vert_.begin(), vert_.end(), [](const Vert *a, const Vert *b) {
+    parallel_sort(vert_.begin(), vert_.end(), [](const Vert *a, const Vert *b) {
       if (a->orig != NO_INDEX && b->orig != NO_INDEX) {
         return a->orig < b->orig;
       }
@@ -1715,7 +1715,7 @@ static void do_cdt(CDT_data &cd)
     }
   }
   cdt_in.epsilon = 0; /* TODO: needs attention for non-exact T. */
-  cd.cdt_out = blender::meshintersect::delaunay_2d_calc(cdt_in, CDT_INSIDE);
+  cd.cdt_out = delaunay_2d_calc(cdt_in, CDT_INSIDE);
   constexpr int make_edge_map_threshold = 15;
   if (cd.cdt_out.edge.size() >= make_edge_map_threshold) {
     populate_cdt_edge_map(cd.verts_to_edge, cd.cdt_out);
@@ -2639,7 +2639,7 @@ static CDT_data calc_cluster_subdivided(const CoplanarClusterInfo &clinfo,
   return cd_data;
 }
 
-static IMesh union_tri_subdivides(const blender::Array<IMesh> &tri_subdivided)
+static IMesh union_tri_subdivides(const Array<IMesh> &tri_subdivided)
 {
   int tot_tri = 0;
   for (const IMesh &m : tri_subdivided) {

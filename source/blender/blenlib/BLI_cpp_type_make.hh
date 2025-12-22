@@ -116,7 +116,7 @@ template<typename T> void copy_construct_cb(const void *src, void *dst)
   BLI_assert(src != dst || std::is_trivially_copy_constructible_v<T>);
   BLI_assert(pointer_can_point_to_instance<T>(src));
   BLI_assert(pointer_can_point_to_instance<T>(dst));
-  blender::uninitialized_copy_n(static_cast<const T *>(src), 1, static_cast<T *>(dst));
+  uninitialized_copy_n(static_cast<const T *>(src), 1, static_cast<T *>(dst));
 }
 template<typename T>
 void copy_construct_indices_cb(const void *src, void *dst, const IndexMask &mask)
@@ -150,7 +150,7 @@ template<typename T> void move_assign_cb(void *src, void *dst)
 {
   BLI_assert(pointer_can_point_to_instance<T>(src));
   BLI_assert(pointer_can_point_to_instance<T>(dst));
-  blender::initialized_move_n(static_cast<T *>(src), 1, static_cast<T *>(dst));
+  initialized_move_n(static_cast<T *>(src), 1, static_cast<T *>(dst));
 }
 template<typename T> void move_assign_indices_cb(void *src, void *dst, const IndexMask &mask)
 {
@@ -173,7 +173,7 @@ template<typename T> void move_construct_cb(void *src, void *dst)
   BLI_assert(pointer_can_point_to_instance<T>(src));
   BLI_assert(pointer_can_point_to_instance<T>(dst));
 
-  blender::uninitialized_move_n(static_cast<T *>(src), 1, static_cast<T *>(dst));
+  uninitialized_move_n(static_cast<T *>(src), 1, static_cast<T *>(dst));
 }
 template<typename T> void move_construct_indices_cb(void *src, void *dst, const IndexMask &mask)
 {

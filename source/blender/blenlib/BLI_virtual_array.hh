@@ -562,7 +562,7 @@ template<typename T> class VArrayCommon {
    * Other virtual array implementations are typically stored as #std::shared_ptr. That works even
    * when the implementation itself is not copyable and makes copying #VArrayCommon cheaper.
    */
-  using Storage = Any<blender::detail::VArrayAnyExtraInfo<T>, 24, 8>;
+  using Storage = Any<detail::VArrayAnyExtraInfo<T>, 24, 8>;
 
   /**
    * Pointer to the currently contained virtual array implementation. This is allowed to be null.

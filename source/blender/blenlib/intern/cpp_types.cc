@@ -87,15 +87,15 @@ void register_cpp_types()
   BLI_CPP_TYPE_REGISTER(bool);
 
   BLI_CPP_TYPE_REGISTER(float);
-  BLI_CPP_TYPE_REGISTER(blender::float2);
-  BLI_CPP_TYPE_REGISTER(blender::float3);
-  BLI_CPP_TYPE_REGISTER(blender::float4x4);
+  BLI_CPP_TYPE_REGISTER(float2);
+  BLI_CPP_TYPE_REGISTER(float3);
+  BLI_CPP_TYPE_REGISTER(float4x4);
 
   BLI_CPP_TYPE_REGISTER(int8_t);
   BLI_CPP_TYPE_REGISTER(int16_t);
   BLI_CPP_TYPE_REGISTER(int32_t);
-  BLI_CPP_TYPE_REGISTER(blender::int2);
-  BLI_CPP_TYPE_REGISTER(blender::int3);
+  BLI_CPP_TYPE_REGISTER(int2);
+  BLI_CPP_TYPE_REGISTER(int3);
   BLI_CPP_TYPE_REGISTER(int64_t);
 
   BLI_CPP_TYPE_REGISTER(uint8_t);
@@ -103,8 +103,8 @@ void register_cpp_types()
   BLI_CPP_TYPE_REGISTER(uint32_t);
   BLI_CPP_TYPE_REGISTER(uint64_t);
 
-  BLI_CPP_TYPE_REGISTER(blender::ColorGeometry4f);
-  BLI_CPP_TYPE_REGISTER(blender::ColorGeometry4b);
+  BLI_CPP_TYPE_REGISTER(ColorGeometry4f);
+  BLI_CPP_TYPE_REGISTER(ColorGeometry4b);
 
   BLI_CPP_TYPE_REGISTER(math::Quaternion);
 

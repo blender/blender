@@ -199,7 +199,7 @@ TEST(set, AddMultipleNew)
 TEST(set, Iterator)
 {
   Set<int> set = {1, 3, 2, 5, 4};
-  blender::Vector<int> vec;
+  Vector<int> vec;
   for (int value : set) {
     vec.append(value);
   }
@@ -750,7 +750,7 @@ BLI_NOINLINE void benchmark_random_ints(StringRef name, int amount, int factor)
  */
 template<typename Key> class StdUnorderedSetWrapper {
  private:
-  using SetType = std::unordered_set<Key, blender::DefaultHash<Key>>;
+  using SetType = std::unordered_set<Key, DefaultHash<Key>>;
   SetType set_;
 
  public:

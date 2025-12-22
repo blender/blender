@@ -37,7 +37,7 @@ TEST(linear_allocator, AllocationAlignment)
 TEST(linear_allocator, PackedAllocation)
 {
   LinearAllocator<> allocator;
-  blender::AlignedBuffer<256, 32> buffer;
+  AlignedBuffer<256, 32> buffer;
   allocator.provide_buffer(buffer);
 
   uintptr_t ptr1 = uintptr_t(allocator.allocate(10, 4)); /*  0 - 10 */
@@ -59,7 +59,7 @@ TEST(linear_allocator, PackedAllocation)
 TEST(linear_allocator, CopyString)
 {
   LinearAllocator<> allocator;
-  blender::AlignedBuffer<256, 1> buffer;
+  AlignedBuffer<256, 1> buffer;
   allocator.provide_buffer(buffer);
 
   StringRefNull ref1 = allocator.copy_string("Hello");

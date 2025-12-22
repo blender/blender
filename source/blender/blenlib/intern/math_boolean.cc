@@ -2466,12 +2466,12 @@ static int sgn(double x)
 
 int orient2d(const double2 &a, const double2 &b, const double2 &c)
 {
-  return sgn(blender::robust_pred::orient2d(a, b, c));
+  return sgn(robust_pred::orient2d(a, b, c));
 }
 
 int orient2d_fast(const double2 &a, const double2 &b, const double2 &c)
 {
-  return sgn(blender::robust_pred::orient2dfast(a, b, c));
+  return sgn(robust_pred::orient2dfast(a, b, c));
 }
 
 int incircle(const double2 &a, const double2 &b, const double2 &c, const double2 &d)

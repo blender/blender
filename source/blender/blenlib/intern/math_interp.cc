@@ -480,10 +480,10 @@ BLI_INLINE uchar4 bilinear_byte_impl(const uchar *buffer, int width, int height,
     row4 = (x2 > width - 1 || y2 > height - 1) ? empty : buffer + (int64_t(width) * y2 + x2) * 4;
   }
   else {
-    x1 = blender::math::clamp(x1, 0, width - 1);
-    x2 = blender::math::clamp(x2, 0, width - 1);
-    y1 = blender::math::clamp(y1, 0, height - 1);
-    y2 = blender::math::clamp(y2, 0, height - 1);
+    x1 = clamp(x1, 0, width - 1);
+    x2 = clamp(x2, 0, width - 1);
+    y1 = clamp(y1, 0, height - 1);
+    y2 = clamp(y2, 0, height - 1);
     row1 = buffer + (int64_t(width) * y1 + x1) * 4;
     row2 = buffer + (int64_t(width) * y2 + x1) * 4;
     row3 = buffer + (int64_t(width) * y1 + x2) * 4;

@@ -191,7 +191,7 @@ TEST(map, ValueIterator)
   map.add(1, 2.0f);
   map.add(7, -2.0f);
 
-  blender::Set<float> values;
+  Set<float> values;
 
   int iterations = 0;
   for (float value : map.values()) {
@@ -212,7 +212,7 @@ TEST(map, KeyIterator)
   map.add(2, 4.0f);
   map.add(1, 3.0f);
 
-  blender::Set<int> keys;
+  Set<int> keys;
 
   int iterations = 0;
   for (int key : map.keys()) {
@@ -233,8 +233,8 @@ TEST(map, ItemIterator)
   map.add(2, 9.0f);
   map.add(1, 0.0f);
 
-  blender::Set<int> keys;
-  blender::Set<float> values;
+  Set<int> keys;
+  Set<float> values;
 
   int iterations = 0;
   const Map<int, float> &const_map = map;
@@ -859,7 +859,7 @@ BLI_NOINLINE void benchmark_random_ints(StringRef name, int amount, int factor)
  */
 template<typename Key, typename Value> class StdUnorderedMapWrapper {
  private:
-  using MapType = std::unordered_map<Key, Value, blender::DefaultHash<Key>>;
+  using MapType = std::unordered_map<Key, Value, DefaultHash<Key>>;
   MapType map_;
 
  public:
@@ -923,16 +923,14 @@ template<typename Key, typename Value> class StdUnorderedMapWrapper {
 TEST(map, Benchmark)
 {
   for (int i = 0; i < 3; i++) {
-    benchmark_random_ints<blender::Map<int, int>>("blender::Map          ", 1000000, 1);
-    benchmark_random_ints<blender::StdUnorderedMapWrapper<int, int>>(
-        "std::unordered_map", 1000000, 1);
+    benchmark_random_ints<Map<int, int>>("blender::Map          ", 1000000, 1);
+    benchmark_random_ints<StdUnorderedMapWrapper<int, int>>("std::unordered_map", 1000000, 1);
   }
   std::cout << "\n";
   for (int i = 0; i < 3; i++) {
     uint32_t factor = (3 << 10);
-    benchmark_random_ints<blender::Map<int, int>>("blender::Map          ", 1000000, factor);
-    benchmark_random_ints<blender::StdUnorderedMapWrapper<int, int>>(
-        "std::unordered_map", 1000000, factor);
+    benchmark_random_ints<Map<int, int>>("blender::Map          ", 1000000, factor);
+    benchmark_random_ints<StdUnorderedMapWrapper<int, int>>("std::unordered_map", 1000000, factor);
   }
 }
 

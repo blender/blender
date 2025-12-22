@@ -181,7 +181,7 @@ TEST_F(FileOpsTest, dir_create_recursive)
 
 TEST(fileops, fstream_open_string_filename)
 {
-  const std::string test_files_dir = blender::tests::flags_test_asset_dir();
+  const std::string test_files_dir = flags_test_asset_dir();
   if (test_files_dir.empty()) {
     FAIL();
   }
@@ -196,7 +196,7 @@ TEST(fileops, fstream_open_string_filename)
 
 TEST(fileops, fstream_open_charptr_filename)
 {
-  const std::string test_files_dir = blender::tests::flags_test_asset_dir();
+  const std::string test_files_dir = flags_test_asset_dir();
   if (test_files_dir.empty()) {
     FAIL();
   }
