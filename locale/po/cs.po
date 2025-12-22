@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-16 11:27+0000\n"
+"POT-Creation-Date: 2025-12-22 09:32+0000\n"
 "PO-Revision-Date: 2025-12-01 09:17+0000\n"
 "Last-Translator: Matt Mitacek <mattmitacek@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -13838,18 +13838,6 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
-msgid "Mirror"
-msgstr "Zrcadlit"
-
-
-msgid "Snap"
-msgstr "Přichytit"
-
-
-msgid "UV Mapping"
-msgstr "UV mapování"
-
-
 msgid "Local View"
 msgstr "Lokální pohled"
 
@@ -13874,12 +13862,12 @@ msgid "Metaball"
 msgstr "Meta objekt"
 
 
-msgid "Layout"
-msgstr "Rozložení"
-
-
 msgid "Light"
 msgstr "Světlo"
+
+
+msgid "Layout"
+msgstr "Rozložení"
 
 
 msgid "Relations"
@@ -13890,28 +13878,12 @@ msgid "Rigid Body"
 msgstr "Tuhé Těleso"
 
 
-msgid "Keying"
-msgstr "Klíčovací sestava"
-
-
 msgid "Apply"
 msgstr "Použít"
 
 
-msgid "Tracking"
-msgstr "Sledování"
-
-
 msgid "Track"
 msgstr "Sledování"
-
-
-msgid "Utilities"
-msgstr "Nástroje"
-
-
-msgid "Math"
-msgstr "Matematika"
 
 
 msgid "Quick Effects"
@@ -13926,12 +13898,28 @@ msgid "Clean Up"
 msgstr "Vyčistit"
 
 
+msgid "Keying"
+msgstr "Klíčovací sestava"
+
+
 msgid "Make Single User"
 msgstr "Přivlastnit"
 
 
+msgid "Tracking"
+msgstr "Sledování"
+
+
+msgid "Utilities"
+msgstr "Nástroje"
+
+
 msgid "Hooks"
 msgstr "Háky"
+
+
+msgid "Math"
+msgstr "Matematika"
 
 
 msgid "Clear Transform"
@@ -13962,12 +13950,12 @@ msgid "Special Characters"
 msgstr "Speciální Znaky"
 
 
-msgid "Instances"
-msgstr "Instance"
-
-
 msgid "Bone Roll"
 msgstr "Kost"
+
+
+msgid "Instances"
+msgstr "Instance"
 
 
 msgid "Import"
@@ -13978,8 +13966,20 @@ msgid "Pivot Point"
 msgstr "Bod pro pivot"
 
 
+msgid "Snap"
+msgstr "Přichytit"
+
+
 msgid "Proportional Editing Falloff"
 msgstr "Způsob útlumu"
+
+
+msgid "Mirror"
+msgstr "Zrcadlit"
+
+
+msgid "UV Mapping"
+msgstr "UV mapování"
 
 
 msgid "Basic"
@@ -30481,32 +30481,16 @@ msgid "Restrict"
 msgstr "Omezit"
 
 
-msgid "Overlays"
-msgstr "Překrytí"
-
-
-msgid "Guides"
-msgstr "Vodítka"
-
-
-msgid "Motion Tracking"
-msgstr "Sledování Pohybu"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Editační Režim Sítě"
-
-
-msgid "Measurement"
-msgstr "Měření"
-
-
 msgid "Curve Edit Mode"
 msgstr "Editační Režim Křivky"
 
 
 msgid "Transform Orientations"
 msgstr "Orientace transformací"
+
+
+msgid "Guides"
+msgstr "Vodítka"
 
 
 msgid "Stereoscopy"
@@ -30535,6 +30519,22 @@ msgstr "Nastavení SSAO"
 
 msgid "Cavity"
 msgstr "Dutina"
+
+
+msgid "Overlays"
+msgstr "Překrytí"
+
+
+msgid "Motion Tracking"
+msgstr "Sledování Pohybu"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Editační Režim Sítě"
+
+
+msgid "Measurement"
+msgstr "Měření"
 
 
 msgid "Chain Scaling"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-16 11:27+0000\n"
+"POT-Creation-Date: 2025-12-22 09:32+0000\n"
 "PO-Revision-Date: 2025-07-23 15:32+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -7244,10 +7244,6 @@ msgid "ID Type"
 msgstr "ID-tyyppi"
 
 
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
-
-
 msgid "Select More/Less"
 msgstr "Valitse enemmän/vähemmän"
 
@@ -7284,20 +7280,20 @@ msgid "Track"
 msgstr "Raide"
 
 
-msgid "Utilities"
-msgstr "Työkalut"
-
-
-msgid "Math"
-msgstr "Matematiikka"
-
-
 msgid "Show/Hide"
 msgstr "Näytä/Piilota"
 
 
+msgid "Utilities"
+msgstr "Työkalut"
+
+
 msgid "Hooks"
 msgstr "Koukut"
+
+
+msgid "Math"
+msgstr "Matematiikka"
 
 
 msgid "Random Mask"
@@ -7330,6 +7326,10 @@ msgstr "Tuo"
 
 msgid "UV"
 msgstr "UV"
+
+
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
 
 
 msgid "Basic"
@@ -13644,6 +13644,10 @@ msgid "AOV"
 msgstr "AOV"
 
 
+msgid "Mesh has no UV data"
+msgstr "Muodolla ei ole UV-dataa"
+
+
 msgid "Invalid Input Error"
 msgstr "Virheellinen syöte -virhe"
 
@@ -14677,10 +14681,6 @@ msgid "OneDrive"
 msgstr "OneDrive"
 
 
-msgid "Movies"
-msgstr "Elokuvat"
-
-
 msgid "Cursor X"
 msgstr "X-kursori"
 
@@ -15182,10 +15182,6 @@ msgstr "Muotoavainta ei löydy"
 
 msgid "Could not remove ShapeKey"
 msgstr "Muotoavainta ei kyetty poistamaan"
-
-
-msgid "Mesh has no UV data"
-msgstr "Muodolla ei ole UV-dataa"
 
 
 msgid "Scripting"

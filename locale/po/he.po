@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-16 11:27+0000\n"
-"PO-Revision-Date: 2025-12-14 15:58+0000\n"
+"POT-Creation-Date: 2025-12-22 09:32+0000\n"
+"PO-Revision-Date: 2025-12-21 01:12+0000\n"
 "Last-Translator: golden dragon <trmhtk2@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
 "Language: he\n"
@@ -179,6 +179,10 @@ msgid "Collection of animation layers"
 msgstr "היצמינא תובכש לש ףסוא"
 
 
+msgid "Collection of timeline markers"
+msgstr "ןמז-ריצ ינומיס לש ףסוא"
+
+
 msgctxt "ID"
 msgid "Collection"
 msgstr "ףסוא"
@@ -311,7 +315,7 @@ msgstr "הלועפ תועוצר"
 
 
 msgid "Collection of animation strips"
-msgstr "היצמינא תועוצר ףסוא"
+msgstr "היצמינא תועוצר לש ףסוא"
 
 
 msgid "Add-on"
@@ -367,7 +371,7 @@ msgstr "שמתשמה לש םיפסות"
 
 
 msgid "Collection of add-ons"
-msgstr "םיפסות ףסוא"
+msgstr "םיפסות לש ףסוא"
 
 
 msgid "Animation Data"
@@ -510,6 +514,14 @@ msgid "Default"
 msgstr "לדחמ תרירב"
 
 
+msgid "Spaces"
+msgstr "םיבחרמ"
+
+
+msgid "Spaces contained in this area, the first being the active space (NOTE: Useful for example to restore a previously used 3D view space in a certain area to get the old view orientation)"
+msgstr "(הנשיה הגצהה תיווז תא גישהל ידכ םיוסמ רוזאב תידממ-תלת הגוצת בחרמ רוזחשל ,המגודל ,ישומיש :הרעה) ליעפה בחרמה אוה ןושארה ,הז רוזאב םילכומה םיבחרמ"
+
+
 msgid "Empty"
 msgstr "קיר"
 
@@ -540,6 +552,14 @@ msgstr "םירושק םינותנ-יקולבו ליעפה טקייבואה לש 
 
 msgid "Width"
 msgstr "בחור"
+
+
+msgid "Area Spaces"
+msgstr "רוזא יבחרמ"
+
+
+msgid "Collection of spaces"
+msgstr "םיבחרמ לש ףסוא"
 
 
 msgid "Active Bone"
@@ -984,6 +1004,10 @@ msgid "Path"
 msgstr "ביתנ"
 
 
+msgid "Movie clip displayed and edited in this space"
+msgstr "הז בחרמב ךרענו גצומה ואדיווה פילק"
+
+
 msgctxt "Camera"
 msgid "Depth"
 msgstr "קמוע"
@@ -991,6 +1015,10 @@ msgstr "קמוע"
 
 msgid "Image"
 msgstr "הנומת"
+
+
+msgid "Image displayed and edited in this space"
+msgstr "הז בחרמב תכרענו תגצומה הנומתה"
 
 
 msgid "Rotation"
@@ -1063,6 +1091,18 @@ msgstr "םיקיקלח דמשה"
 
 msgid "Kill collided particles"
 msgstr "םישגנתמ םיקיקלח דמשה"
+
+
+msgid "Input color space settings"
+msgstr "טלק יעבצ בחרמ תורדגה"
+
+
+msgid "Input Color Space"
+msgstr "טלק יעבצ בחרמ"
+
+
+msgid "Color space in the image file, to convert to and from when saving and loading the image"
+msgstr "הנומת תניעטו תרימשב וילאו ונממ הרמהל ,הנומתה ץבוקב םיעבצ בחרמ"
 
 
 msgid "Gamma"
@@ -1935,10 +1975,6 @@ msgid "Grease Pencil Color"
 msgstr "Grease Pencil יאבצ"
 
 
-msgid "Mirror"
-msgstr "הארמ"
-
-
 msgid "Layout"
 msgstr "הסירפ"
 
@@ -1953,6 +1989,10 @@ msgstr "רמה"
 
 msgid "Face Data"
 msgstr "האפ ינותנ"
+
+
+msgid "Mirror"
+msgstr "הארמ"
 
 
 msgid "Proxy"
@@ -2639,6 +2679,22 @@ msgid "Language Name"
 msgstr "הפשה םש"
 
 
+msgid "Space Preferences"
+msgstr "בחרמ תופדעה"
+
+
+msgid "Properties Space"
+msgstr "םינייפאמ בחרמ"
+
+
+msgid "Properties space data"
+msgstr "םינייפאמ בחרמ ינותנ"
+
+
+msgid "Active Tool and Workspace settings"
+msgstr "הדובע בחרמ תורדגהו ליעפ ילכ"
+
+
 msgctxt "Sequence"
 msgid "Image"
 msgstr "הנומת"
@@ -2928,10 +2984,6 @@ msgstr "ץבוק ביתנ"
 
 msgid "File name"
 msgstr "ץבוק םש"
-
-
-msgid "Movies"
-msgstr "םיטרס"
 
 
 msgid "Select Layer"

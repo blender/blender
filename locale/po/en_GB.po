@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-16 11:27+0000\n"
+"POT-Creation-Date: 2025-12-22 09:32+0000\n"
 "PO-Revision-Date: 2025-12-11 18:12+0000\n"
 "Last-Translator: Jackson Zheng <business.jackson.zheng@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -34918,18 +34918,6 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
-msgid "Mirror"
-msgstr "Mirror"
-
-
-msgid "Snap"
-msgstr "Snap"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapping"
-
-
 msgid "Local View"
 msgstr "Local View"
 
@@ -34982,16 +34970,16 @@ msgid "Metaball"
 msgstr "Metaball"
 
 
-msgid "Layout"
-msgstr "Layout"
-
-
 msgid "Light"
 msgstr "Light"
 
 
 msgid "Light Probe"
 msgstr "Light Probe"
+
+
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Add Image"
@@ -35002,44 +34990,24 @@ msgid "Relations"
 msgstr "Relations"
 
 
-msgid "Adjust"
-msgstr "Adjust"
-
-
 msgid "Rigid Body"
 msgstr "Rigid Body"
-
-
-msgid "Keying"
-msgstr "Keying"
 
 
 msgid "Apply"
 msgstr "Apply"
 
 
-msgid "Tracking"
-msgstr "Tracking"
-
-
 msgid "Track"
 msgstr "Track"
 
 
-msgid "Utilities"
-msgstr "Utilities"
-
-
-msgid "Math"
-msgstr "Maths"
+msgid "Adjust"
+msgstr "Adjust"
 
 
 msgid "Quick Effects"
 msgstr "Quick Effects"
-
-
-msgid "Creative"
-msgstr "Creative"
 
 
 msgid "Show/Hide"
@@ -35050,12 +35018,20 @@ msgid "Clean Up"
 msgstr "Clean Up"
 
 
+msgid "Keying"
+msgstr "Keying"
+
+
 msgid "Asset"
 msgstr "Asset"
 
 
 msgid "Make Single User"
 msgstr "Make Single User"
+
+
+msgid "Tracking"
+msgstr "Tracking"
 
 
 msgid "Convert"
@@ -35066,8 +35042,20 @@ msgid "Link/Transfer Data"
 msgstr "Link/Transfer Data"
 
 
+msgid "Utilities"
+msgstr "Utilities"
+
+
 msgid "Hooks"
 msgstr "Hooks"
+
+
+msgid "Math"
+msgstr "Maths"
+
+
+msgid "Creative"
+msgstr "Creative"
 
 
 msgid "Vertex Group Locks"
@@ -35076,10 +35064,6 @@ msgstr "Vertex Group Locks"
 
 msgid "Trim/Add"
 msgstr "Trim/Add"
-
-
-msgid "Render Preview"
-msgstr "Render Preview"
 
 
 msgid "Sculpt Set Pivot"
@@ -35100,6 +35084,10 @@ msgstr "Clear Transform"
 
 msgid "In-Betweens"
 msgstr "In-Betweens"
+
+
+msgid "Render Preview"
+msgstr "Render Preview"
 
 
 msgid "Propagate"
@@ -35150,8 +35138,16 @@ msgid "Read"
 msgstr "Read"
 
 
+msgid "Special Characters"
+msgstr "Special Characters"
+
+
 msgid "Sample"
 msgstr "Sample"
+
+
+msgid "Kerning"
+msgstr "Kerning"
 
 
 msgid "Write"
@@ -35162,12 +35158,8 @@ msgid "Primitives"
 msgstr "Primitives"
 
 
-msgid "Special Characters"
-msgstr "Special Characters"
-
-
-msgid "Kerning"
-msgstr "Kerning"
+msgid "Bone Roll"
+msgstr "Bone Roll"
 
 
 msgid "Gizmo"
@@ -35178,32 +35170,24 @@ msgid "Instances"
 msgstr "Instances"
 
 
-msgid "Bone Roll"
-msgstr "Bone Roll"
-
-
 msgid "Import"
 msgstr "Import"
-
-
-msgid "Deprecated"
-msgstr "Deprecated"
-
-
-msgid "List"
-msgstr "List"
 
 
 msgid "Pivot Point"
 msgstr "Pivot Point"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Snap"
+msgstr "Snap"
 
 
 msgid "Proportional Editing Falloff"
 msgstr "Proportional Editing Falloff"
+
+
+msgid "Deprecated"
+msgstr "Deprecated"
 
 
 msgid "Mask Edit"
@@ -35216,6 +35200,22 @@ msgstr "Automasking"
 
 msgid "Face Sets Edit"
 msgstr "Face Sets Edit"
+
+
+msgid "List"
+msgstr "List"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Mirror"
+msgstr "Mirror"
+
+
+msgid "UV Mapping"
+msgstr "UV Mapping"
 
 
 msgid "Keyframe Insert Pie"
@@ -56918,15 +56918,6 @@ msgstr "Only Unused"
 
 msgid "Only unused (Fake User only) actions get considered"
 msgstr "Only unused (Fake User only) actions get considered"
-
-
-msgctxt "Operator"
-msgid "Convert Legacy Action"
-msgstr "Convert Legacy Action"
-
-
-msgid "Convert a legacy Action to a layered Action on the active object"
-msgstr "Convert a legacy Action to a layered Action on the active object"
 
 
 msgctxt "Operator"
@@ -91574,30 +91565,6 @@ msgid "Panel containing UI elements"
 msgstr "Panel containing UI elements"
 
 
-msgid "Overlays"
-msgstr "Overlays"
-
-
-msgid "Guides"
-msgstr "Guides"
-
-
-msgid "Viewer Node"
-msgstr "Viewer Node"
-
-
-msgid "Motion Tracking"
-msgstr "Motion Tracking"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Mesh Edit Mode"
-
-
-msgid "Measurement"
-msgstr "Measurement"
-
-
 msgid "Curve Edit Mode"
 msgstr "Curve Edit Mode"
 
@@ -91616,6 +91583,10 @@ msgstr "Stroke Placement"
 
 msgid "Drawing Plane"
 msgstr "Drawing Plane"
+
+
+msgid "Guides"
+msgstr "Guides"
 
 
 msgid "Grease Pencil Options"
@@ -91716,6 +91687,26 @@ msgstr "Render Pass"
 
 msgid "Compositor"
 msgstr "Compositor"
+
+
+msgid "Overlays"
+msgstr "Overlays"
+
+
+msgid "Viewer Node"
+msgstr "Viewer Node"
+
+
+msgid "Motion Tracking"
+msgstr "Motion Tracking"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Mesh Edit Mode"
+
+
+msgid "Measurement"
+msgstr "Measurement"
 
 
 msgid "Import Settings"
@@ -96950,14 +96941,6 @@ msgid "Chinese (Traditional) - 繁體中文"
 msgstr "Chinese (Traditional) - 繁體中文"
 
 
-msgid "Croatian - Hrvatski"
-msgstr "Croatian - Hrvatski"
-
-
-msgid "Locale code: hr_HR. Translation progress: 0%"
-msgstr "Locale code: hr_HR. Translation progress: 0%"
-
-
 msgid "Czech - Čeština"
 msgstr "Czech - Čeština"
 
@@ -97038,14 +97021,6 @@ msgid "Locale code: el_GR. Translation progress: 1%"
 msgstr "Locale code: el_GR. Translation progress: 1%"
 
 
-msgid "Hausa - Hausa"
-msgstr "Hausa - Hausa"
-
-
-msgid "Locale code: ha. Translation progress: 0%"
-msgstr "Locale code: ha. Translation progress: 0%"
-
-
 msgid "Hebrew - תירִבְעִ"
 msgstr "Hebrew - תירִבְעִ"
 
@@ -97082,24 +97057,12 @@ msgid "Italian - Italiano"
 msgstr "Italian - Italiano"
 
 
-msgid "Locale code: it_IT. Translation progress: 45%"
-msgstr "Locale code: it_IT. Translation progress: 45%"
-
-
 msgid "Japanese - 日本語"
 msgstr "Japanese - 日本語"
 
 
 msgid "Locale code: ja_JP. Translation progress: 99%"
 msgstr "Locale code: ja_JP. Translation progress: 99%"
-
-
-msgid "Khmer - ខ្មែរ"
-msgstr "Khmer - ខ្មែរ"
-
-
-msgid "Locale code: km. Translation progress: 0%"
-msgstr "Locale code: km. Translation progress: 0%"
 
 
 msgid "Korean - 한국어"
@@ -97132,14 +97095,6 @@ msgstr "Malayalam - മലയാളം"
 
 msgid "Locale code: ml. Translation progress: 0%"
 msgstr "Locale code: ml. Translation progress: 0%"
-
-
-msgid "Nepali - नेपाली"
-msgstr "Nepali - नेपाली"
-
-
-msgid "Locale code: ne_NP. Translation progress: 0%"
-msgstr "Locale code: ne_NP. Translation progress: 0%"
 
 
 msgid "Norwegian (Bokmål) - Norsk bokmål"
@@ -97242,10 +97197,6 @@ msgid "Swedish - Svenska"
 msgstr "Swedish - Svenska"
 
 
-msgid "Locale code: sv_SE. Translation progress: 22%"
-msgstr "Locale code: sv_SE. Translation progress: 22%"
-
-
 msgid "Tamil - தமிழ்"
 msgstr "Tamil - தமிழ்"
 
@@ -97288,10 +97239,6 @@ msgstr "Locale code: ur. Translation progress: 87%"
 
 msgid "Vietnamese - Tiếng Việt"
 msgstr "Vietnamese - Tiếng Việt"
-
-
-msgid "Locale code: vi_VN. Translation progress: 95%"
-msgstr "Locale code: vi_VN. Translation progress: 95%"
 
 
 msgid "Reference Sphere Size"
@@ -131041,6 +130988,18 @@ msgid "particles"
 msgstr "particles"
 
 
+msgid "Object was not yet evaluated"
+msgstr "Object was not yet evaluated"
+
+
+msgid "Mesh has no UV data"
+msgstr "Mesh has no UV data"
+
+
+msgid "Mesh has no VCol data"
+msgstr "Mesh has no VCol data"
+
+
 msgid "Unsaved"
 msgstr "Unsaved"
 
@@ -131822,14 +131781,6 @@ msgid "Compositor node tree has cyclic links!"
 msgstr "Compositor node tree has cyclic links!"
 
 
-msgid "Compositor node tree has undefined nodes or sockets!"
-msgstr "Compositor node tree has undefined nodes or sockets!"
-
-
-msgid "Compositor node tree has unsupported nodes."
-msgstr "Compositor node tree has unsupported nodes."
-
-
 msgid "Error: Too many AOVs"
 msgstr "Error: Too many AOVs"
 
@@ -132090,10 +132041,6 @@ msgid "No active action to operate on"
 msgstr "No active action to operate on"
 
 
-msgid "Active action is not layered"
-msgstr "Active action is not layered"
-
-
 msgid "No active object"
 msgstr "No active object"
 
@@ -132189,10 +132136,6 @@ msgstr "Failed to merge any animation. Note that NLA strips cannot be merged"
 
 msgid "Expected an animation area to be active"
 msgstr "Expected an animation area to be active"
-
-
-msgid "Action is already layered"
-msgstr "Action is already layered"
 
 
 msgid "Active object has no action"
@@ -135152,18 +135095,6 @@ msgid "Loop cut does not work well on deformed edit mesh display"
 msgstr "Loop cut does not work well on deformed edit mesh display"
 
 
-msgid "Create Mesh From Paint Mask"
-msgstr "Create Mesh From Paint Mask"
-
-
-msgid "Extract"
-msgstr "Extract"
-
-
-msgid "The geometry cannot be extracted with dyntopo activated"
-msgstr "The geometry cannot be extracted with dyntopo activated"
-
-
 msgid "Path selection requires two matching elements to be selected"
 msgstr "Path selection requires two matching elements to be selected"
 
@@ -138063,6 +137994,18 @@ msgid "Texture mapping not set to 3D, results may be unpredictable"
 msgstr "Texture mapping not set to 3D, results may be unpredictable"
 
 
+msgid "Create Mesh From Paint Mask"
+msgstr "Create Mesh From Paint Mask"
+
+
+msgid "Extract"
+msgstr "Extract"
+
+
+msgid "The geometry cannot be extracted with dyntopo activated"
+msgstr "The geometry cannot be extracted with dyntopo activated"
+
+
 msgid "non-triangle face"
 msgstr "non-triangle face"
 
@@ -138686,10 +138629,6 @@ msgstr "Videos"
 
 msgid "OneDrive"
 msgstr "OneDrive"
-
-
-msgid "Movies"
-msgstr "Movies"
 
 
 msgid "Cursor X"
@@ -139357,10 +139296,6 @@ msgstr "Cannot swap selected strips because they will overlap each other in thei
 
 msgid "Cannot swap selected strips as they will not be able to fit in their new places"
 msgstr "Cannot swap selected strips as they will not be able to fit in their new places"
-
-
-msgid "Action '%s' does not specify what data-blocks it can be used on (try setting the 'ID Root Type' setting from the data-blocks editor for this action to avoid future problems)"
-msgstr "Action '%s' does not specify what data-blocks it can be used on (try setting the 'ID Root Type' setting from the data-blocks editor for this action to avoid future problems)"
 
 
 msgid "Could not add action '%s' as it cannot be used relative to ID-blocks of type '%s'"
@@ -144261,18 +144196,6 @@ msgstr "Invalid target!"
 
 msgid "uv_on_emitter() requires a modifier from an evaluated object"
 msgstr "uv_on_emitter() requires a modifier from an evaluated object"
-
-
-msgid "Mesh has no UV data"
-msgstr "Mesh has no UV data"
-
-
-msgid "Object was not yet evaluated"
-msgstr "Object was not yet evaluated"
-
-
-msgid "Mesh has no VCol data"
-msgstr "Mesh has no VCol data"
 
 
 msgid "Cannot edit bone groups for library overrides"

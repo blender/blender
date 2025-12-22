@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-16 11:27+0000\n"
-"PO-Revision-Date: 2025-12-14 10:50+0000\n"
+"POT-Creation-Date: 2025-12-22 09:32+0000\n"
+"PO-Revision-Date: 2025-12-17 15:12+0000\n"
 "Last-Translator: Martin Hansen <mh306602@gmail.com>\n"
 "Language-Team: Norwegian Bokmål <https://translate.blender.org/projects/blender-ui/ui/nb_NO/>\n"
 "Language: nb\n"
@@ -981,7 +981,7 @@ msgstr "Handlingsekstrapolering"
 
 
 msgid "Action to take for gaps past the Active Action's range (when evaluating with NLA)"
-msgstr "Handling som skal iverksettes for hull utenfor gjeldende handlings område (ved evaluering med NLA)"
+msgstr "Handling som skal iverksettes for hull utenfor gjeldende handlings rekkevidde (ved evaluering med NLA)"
 
 
 msgid "Nothing"
@@ -1165,19 +1165,19 @@ msgstr "Antall bilder å vise før gjeldende bilde (kun for «Rundt bilde» løk
 
 
 msgid "End Frame"
-msgstr "Slutt bilde"
+msgstr "Sluttbilde"
 
 
 msgid "End frame of range of paths to display/calculate (not for 'Around Frame' Onion-skinning method)"
-msgstr "Slutt bilde for et område med stier som skal vises/beregnes (ikke for «Rundt bilde» løk kuttings metode)"
+msgstr "Sluttbilde for en rekkevidde med stier som skal vises/beregnes (ikke for «Rundt bilde» løk kuttings metode)"
 
 
 msgid "Start Frame"
-msgstr "Start bilde"
+msgstr "Startbilde"
 
 
 msgid "Starting frame of range of paths to display/calculate (not for 'Around Frame' Onion-skinning method)"
-msgstr "Start bilde for et område med stier som skal vises/beregnes (ikke for «Rundt bilde» løk kuttings metode)"
+msgstr "Startbilde for en rekkevidde med stier som skal vises/beregnes (ikke for «Rundt bilde» løk kuttings metode)"
 
 
 msgid "Frame Step"
@@ -1197,11 +1197,11 @@ msgstr "Er det noen beinstier, som trenger oppdatering (skrivebeskyttet)"
 
 
 msgid "Paths Range"
-msgstr "Sti område"
+msgstr "Rekkevidde for sti"
 
 
 msgid "Type of range to calculate for Motion Paths"
-msgstr "Type område som skal beregnes for bevegelses stier"
+msgstr "Type rekkevidde som skal beregnes for bevegelses stier"
 
 
 msgid "All Keys"
@@ -1221,19 +1221,19 @@ msgstr "Fra det første valgte nøkkelbilde til det siste"
 
 
 msgid "Scene Frame Range"
-msgstr "Område for scenebilde"
+msgstr "Rekkevidde for scenebilde"
 
 
 msgid "The entire Scene / Preview range"
-msgstr "Hele scenen / forhåndsvisning av området"
+msgstr "Hele scenen / forhåndsvisning av rekkevidden"
 
 
 msgid "Manual Range"
-msgstr "Manuell område"
+msgstr "Manuell rekkevidde"
 
 
 msgid "Manually determined frame range"
-msgstr "Manuelt bestemt bildeområde"
+msgstr "Manuelt bestemt bilderekkevidde"
 
 
 msgid "Show Frame Numbers"
@@ -1273,7 +1273,7 @@ msgstr "Type sti"
 
 
 msgid "Type of range to show for Motion Paths"
-msgstr "Type område å vise for bevegelses stiene"
+msgstr "Type rekkevidde å vise for bevegelses stiene"
 
 
 msgid "Around Frame"
@@ -1285,11 +1285,11 @@ msgstr "Vis stier av poseringer innen et fast antall bilder rundt det gjeldende 
 
 
 msgid "In Range"
-msgstr "I området"
+msgstr "I rekkevidde"
 
 
 msgid "Display Paths of poses within specified range"
-msgstr "Vis stier av poseringer innen et spesifikt område"
+msgstr "Vis stier av poseringer innen en spesifikk rekkevidde"
 
 
 msgid "Bake to active Camera"
@@ -1373,7 +1373,7 @@ msgstr "Bilder etter"
 
 
 msgid "Maximum number of frames to show after current frame"
-msgstr "Maks antall bilder å vise etter gjeldende bilde"
+msgstr "Maks. antall bilder å vise etter gjeldende bilde"
 
 
 msgid "Before Color"
@@ -1389,7 +1389,7 @@ msgstr "Bilder før"
 
 
 msgid "Maximum number of frames to show before current frame"
-msgstr "Maks antall bilder å vise før gjeldende bilde"
+msgstr "Maks. antall bilder å vise før gjeldende bilde"
 
 
 msgid "Custom Onion Skin Colors"
@@ -2885,11 +2885,11 @@ msgstr "Utvid kantpiksler utover"
 
 
 msgid "Max Ray Distance"
-msgstr "Maks stråle distanse"
+msgstr "Maks. stråle avstand"
 
 
 msgid "The maximum ray distance for matching points between the active and selected objects. If zero, there is no limit."
-msgstr "Den maksimale stråle distansen for samsvarende punkt mellom den gjeldende og valgte objektet. Hvis null, er det ingen grense."
+msgstr "Den maksimale stråle avstanden for samsvarende punkt mellom den gjeldende og valgte objektet. Hvis null, er det ingen grense."
 
 
 msgid "Normal Space"
@@ -3249,7 +3249,7 @@ msgstr "Håndtak 1 valgt"
 
 
 msgid "Handle 1 selection status"
-msgstr "Status for for valg av håndtak 1"
+msgstr "Status for valg av håndtak 1"
 
 
 msgid "Handle 2 selected"
@@ -3257,7 +3257,7 @@ msgstr "Håndtak 2 valgt"
 
 
 msgid "Handle 2 selection status"
-msgstr "Status for for valg av håndtak 2"
+msgstr "Status for valg av håndtak 2"
 
 
 msgid "Tilt"
@@ -4113,6 +4113,358 @@ msgid "Go to assigned object or loudest assigned signal source"
 msgstr "Gå til tildelt objekt eller den høyeste tildelte signalkilden"
 
 
+msgid "Avoid"
+msgstr "Unngå"
+
+
+msgid "Get away from assigned object or loudest assigned signal source"
+msgstr "Gå vekk fra valgte objekt eller den høyeste tildelte signalkilden"
+
+
+msgid "Avoid Collision"
+msgstr "Unngå kollisjon"
+
+
+msgid "Maneuver to avoid collisions with other boids and deflector objects in near future"
+msgstr "Manøvrere for å unngå kollisjon med andre boid-er og deflektor-objekt i nær fremtid"
+
+
+msgid "Separate"
+msgstr "Separer"
+
+
+msgid "Keep from going through other boids"
+msgstr "Unngå å gå gjennom andre boid-er"
+
+
+msgid "Flock"
+msgstr "Flokke"
+
+
+msgid "Move to center of neighbors and match their velocity"
+msgstr "Flytt til midten av naboene og samsvar deres hastighet"
+
+
+msgid "Follow Leader"
+msgstr "Følg lederen"
+
+
+msgid "Follow a boid or assigned object"
+msgstr "Følg en boid eller tildelt objekt"
+
+
+msgid "Average Speed"
+msgstr "Gjennomsnittlig hastighet"
+
+
+msgid "Maintain speed, flight level or wander"
+msgstr "Oppretthold hastighet, flygenivå eller vandring"
+
+
+msgid "Fight"
+msgstr "Slåss"
+
+
+msgid "Go to closest enemy and attack when in range"
+msgstr "Gå til nærmeste fiende og angrip når du er i rekkevidde"
+
+
+msgid "In Air"
+msgstr "I lufta"
+
+
+msgid "Use rule when boid is flying"
+msgstr "Bruk regel når boid flyr"
+
+
+msgid "On Land"
+msgstr "På land"
+
+
+msgid "Use rule when boid is on land"
+msgstr "Bruk regel når boid er på land"
+
+
+msgid "Level"
+msgstr "Jevn"
+
+
+msgid "How much velocity's z-component is kept constant"
+msgstr "Hvor mye hastighetens z-komponent holdes konstant"
+
+
+msgid "Speed"
+msgstr "Hastighet"
+
+
+msgid "Percentage of maximum speed"
+msgstr "Prosent av maksimal hastighet"
+
+
+msgid "Wander"
+msgstr "Vandre"
+
+
+msgid "How fast velocity's direction is randomized"
+msgstr "Hvor raskt hastighetens retning tilfeldiggjøres"
+
+
+msgid "Fear Factor"
+msgstr "Fryktfaktor"
+
+
+msgid "Avoid object if danger from it is above this threshold"
+msgstr "Unngå objektet hvis faren fra det er over denne terskelen"
+
+
+msgid "Object to avoid"
+msgstr "Objekt å unngå"
+
+
+msgid "Predict"
+msgstr "Forutsi"
+
+
+msgid "Predict target movement"
+msgstr "Forutsi målbevegelse"
+
+
+msgid "Look Ahead"
+msgstr "Se fremover"
+
+
+msgid "Time to look ahead in seconds"
+msgstr "Fremtidig tid å se på i sekunder"
+
+
+msgid "Boids"
+msgstr "Boid-er"
+
+
+msgid "Avoid collision with other boids"
+msgstr "Unngå kollisjon med andre boid-er"
+
+
+msgid "Deflectors"
+msgstr "Deflektorer"
+
+
+msgid "Avoid collision with deflector objects"
+msgstr "Unngå kollisjon med deflektor-objekter"
+
+
+msgid "Fight Distance"
+msgstr "Avstand til slåssing"
+
+
+msgid "Attack boids at max this distance"
+msgstr "Angrip boid-er på maks. denne avstanden"
+
+
+msgid "Flee Distance"
+msgstr "Avstand til flykt"
+
+
+msgid "Flee to this distance"
+msgstr "Flykt til denne avstanden"
+
+
+msgid "Distance"
+msgstr "Avstand"
+
+
+msgid "Distance behind leader to follow"
+msgstr "Avstand bak lederen å følge"
+
+
+msgid "Follow this object instead of a boid"
+msgstr "Følg dette objektet i stedet for en boid"
+
+
+msgid "Queue Size"
+msgstr "Størrelse på kø"
+
+
+msgid "How many boids in a line"
+msgstr "Hvor mange boid-er i en linje"
+
+
+msgid "Line"
+msgstr "Linje"
+
+
+msgid "Follow leader in a line"
+msgstr "Følg lederen i en linje"
+
+
+msgid "Goal object"
+msgstr "Målobjekt"
+
+
+msgid "Boid Settings"
+msgstr "Boid-innstillinger"
+
+
+msgid "Settings for boid physics"
+msgstr "Innstillinger for boid-fysikk"
+
+
+msgid "Accuracy"
+msgstr "Nøyaktighet"
+
+
+msgid "Accuracy of attack"
+msgstr "Nøyaktighet for angrep"
+
+
+msgid "Active Boid Rule"
+msgstr "Gjeldende boid-regel"
+
+
+msgid "Active Boid State Index"
+msgstr "Gjeldende boid tilstandindeks"
+
+
+msgid "Aggression"
+msgstr "Aggresjon"
+
+
+msgid "Boid will fight this times stronger enemy"
+msgstr "Boid vil angripe mot denne tidens sterkere fiende"
+
+
+msgid "Max Air Acceleration"
+msgstr "Maks. luft-akselerasjon"
+
+
+msgid "Maximum acceleration in air (relative to maximum speed)"
+msgstr "Maksimal akselerasjon i lufta (relativt til maks. hastighet)"
+
+
+msgid "Max Air Angular Velocity"
+msgstr "Maks. luftvinkel-hastighet"
+
+
+msgid "Maximum angular velocity in air (relative to 180 degrees)"
+msgstr "Maksimal vinkelhastighet i lufta (relativt til 180 grader)"
+
+
+msgid "Air Personal Space"
+msgstr "Personlig luftrom"
+
+
+msgid "Radius of boids personal space in air (% of particle size)"
+msgstr "Radius for personlig luftrom for boid-er i lufta (prosent av partikkelstørrelse)"
+
+
+msgid "Max Air Speed"
+msgstr "Maks. lufthastighet"
+
+
+msgid "Maximum speed in air"
+msgstr "Maksimal hastighet i lufta"
+
+
+msgid "Min Air Speed"
+msgstr "Minste lufthastighet"
+
+
+msgid "Minimum speed in air (relative to maximum speed)"
+msgstr "Minste hastighet i lufta (relativt til maks. hastighet)"
+
+
+msgid "Banking"
+msgstr "Krenging"
+
+
+msgid "Amount of rotation around velocity vector on turns"
+msgstr "Mengde rotasjon rundt hastighetsvektor ved svinger"
+
+
+msgid "Health"
+msgstr "Helse"
+
+
+msgid "Initial boid health when born"
+msgstr "Boid-helse ved fødsel"
+
+
+msgid "Boid height relative to particle size"
+msgstr "Boid-høyde relativt til partikkelstørrelse"
+
+
+msgid "Max Land Acceleration"
+msgstr "Maks. land-akselerasjon"
+
+
+msgid "Maximum acceleration on land (relative to maximum speed)"
+msgstr "Maksimal akselerasjon på land (relativt til maks. hastighet)"
+
+
+msgid "Max Land Angular Velocity"
+msgstr "Maks. landvinkel-hastighet"
+
+
+msgid "Maximum angular velocity on land (relative to 180 degrees)"
+msgstr "Maksimal vinkelhastighet på land (relativt til 180 grader)"
+
+
+msgid "Jump Speed"
+msgstr "Hoppehastighet"
+
+
+msgid "Maximum speed for jumping"
+msgstr "Maksimal hastighet for hopping"
+
+
+msgid "Land Personal Space"
+msgstr "Personlig landområde"
+
+
+msgid "Radius of boids personal space on land (% of particle size)"
+msgstr "Radius for personlig landområde for boid-er på land (prosent av partikkelstørrelse)"
+
+
+msgid "Landing Smoothness"
+msgstr "Landingens jevnhet"
+
+
+msgid "How smoothly the boids land"
+msgstr "Hvor jevnt boid-ene lander"
+
+
+msgid "Max Land Speed"
+msgstr "Maks. landhastighet"
+
+
+msgid "Maximum speed on land"
+msgstr "Maksimal hastighet på land"
+
+
+msgid "Land Stick Force"
+msgstr "Landets gravitasjonskraft"
+
+
+msgid "How strong a force must be to start effecting a boid on land"
+msgstr "Hvor sterk en kraft må være for å påvirke en boid på land"
+
+
+msgid "Pitch"
+msgstr "Vinkel"
+
+
+msgid "Amount of rotation around side vector"
+msgstr "Mengde rotasjon rundt sidevektor"
+
+
+msgid "Range"
+msgstr "Rekkevidde"
+
+
+msgid "Maximum distance from which a boid can attack"
+msgstr "Maksimal rekkevidde som en boid kan angripe fra"
+
+
 msgid "Left"
 msgstr "Venstre"
 
@@ -4291,6 +4643,386 @@ msgid "Language used for translation"
 msgstr "Språk brukt for oversettelse"
 
 
+msgid "Automatically choose the system-defined language if available, or fall-back to English (US)"
+msgstr "Velg operativsystemets språk automatisk hvis tilgjengelig, eller bruk Engelsk (USA) som reserve"
+
+
+msgid "Abkhaz - Аԥсуа бызшәа"
+msgstr "Abkhasisk – Аԥсуа бызшәа"
+
+
+msgid "Locale code: ab. Translation progress: 0%"
+msgstr "Lokalkode: ab. Status på oversettelse: 0 %"
+
+
+msgid "Arabic - ﺔﻴﺑﺮﻌﻟﺍ"
+msgstr "Arabisk – ﺔﻴﺑﺮﻌﻟﺍ"
+
+
+msgid "Locale code: ar_EG. Translation progress: 24%"
+msgstr "Lokalkode: ar_EG. Status på oversettelse: 24 %"
+
+
+msgid "Basque - Euskara"
+msgstr "Baskisk – Euskara"
+
+
+msgid "Locale code: eu_EU. Translation progress: 1%"
+msgstr "Lokalkode: eu_EU. Status på oversettelse: 1 %"
+
+
+msgid "Belarusian - беларуску"
+msgstr "Belarusisk – беларуску"
+
+
+msgid "Locale code: be. Translation progress: 0%"
+msgstr "Lokalkode: be. Status på oversettelse: 0 %"
+
+
+msgid "Bulgarian - Български"
+msgstr "Bulgarsk – Български"
+
+
+msgid "Locale code: bg_BG. Translation progress: 2%"
+msgstr "Lokalkode: bg_BG. Status på oversettelse: 2 %"
+
+
+msgid "Catalan - Català"
+msgstr "Katalansk – Català"
+
+
+msgid "Locale code: ca_AD. Translation progress: 100%"
+msgstr "Lokalkode: ca_AD. Status på oversettelse: 100 %"
+
+
+msgid "Chinese (Simplified) - 简体中文"
+msgstr "Kinesisk (forenklet) – 简体中文"
+
+
+msgid "Locale code: zh_HANS. Translation progress: 100%"
+msgstr "Lokalkode: zh_HANS. Status på oversettelse: 100 %"
+
+
+msgid "Chinese (Traditional) - 繁體中文"
+msgstr "Kinesisk (tradisjonell) – 繁體中文"
+
+
+msgid "Locale code: zh_HANT. Translation progress: 51%"
+msgstr "Lokalkode: zh_HANT. Status på oversettelse: 51 %"
+
+
+msgid "Czech - Čeština"
+msgstr "Tsjekkisk – Čeština"
+
+
+msgid "Locale code: cs_CZ. Translation progress: 27%"
+msgstr "Lokalkode: cs_CZ. Status på oversettelse: 27 %"
+
+
+msgid "Danish - Dansk"
+msgstr "Dansk – Dansk"
+
+
+msgid "Locale code: da. Translation progress: 3%"
+msgstr "Lokalkode: da. Status på oversettelse: 3 %"
+
+
+msgid "Dutch - Nederlands"
+msgstr "Nederlandsk – Nederlands"
+
+
+msgid "Locale code: nl_NL. Translation progress: 5%"
+msgstr "Lokalkode: nl_NL. Status på oversettelse: 5 %"
+
+
+msgid "English (UK)"
+msgstr "Engelsk (Storbritannia) – English (UK)"
+
+
+msgid "Locale code: en_GB. Translation progress: 100%"
+msgstr "Lokalkode: en_GB. Status på oversettelse: 100 %"
+
+
+msgid "English (US)"
+msgstr "Engelsk (USA) – English (US)"
+
+
+msgid "Locale code: en_US. Translation progress: 100%"
+msgstr "Lokalkode: en_US. Status på oversettelse: 100 %"
+
+
+msgid "Esperanto - Esperanto"
+msgstr "Esperanto – Esperanto"
+
+
+msgid "Locale code: eo. Translation progress: 0%"
+msgstr "Lokalkode: eo. Status på oversettelse: 0 %"
+
+
+msgid "Finnish - Suomi"
+msgstr "Finsk – Suomi"
+
+
+msgid "Locale code: fi_FI. Translation progress: 11%"
+msgstr "Lokalkode: fi_FI. Status på oversettelse: 11 %"
+
+
+msgid "French - Français"
+msgstr "Fransk – Français"
+
+
+msgid "Locale code: fr_FR. Translation progress: 99%"
+msgstr "Lokalkode: fr_FR. Status på oversettelse: 99 %"
+
+
+msgid "Georgian - ქართული"
+msgstr "Georgisk – ქართული"
+
+
+msgid "Locale code: ka. Translation progress: 100%"
+msgstr "Lokalkode: ka. Status på oversettelse: 100 %"
+
+
+msgid "German - Deutsch"
+msgstr "Tysk – Deutsch"
+
+
+msgid "Locale code: de_DE. Translation progress: 37%"
+msgstr "Lokalkode: de_DE. Status på oversettelse: 37 %"
+
+
+msgid "Greek - Ελληνικά"
+msgstr "Gresk – Ελληνικά"
+
+
+msgid "Locale code: el_GR. Translation progress: 1%"
+msgstr "Lokalkode: el_GR. Status på oversettelse: 1 %"
+
+
+msgid "Hebrew - תירִבְעִ"
+msgstr "Hebraisk – תירִבְעִ"
+
+
+msgid "Locale code: he_IL. Translation progress: 2%"
+msgstr "Lokalkode: he_IL. Status på oversettelse: 2 %"
+
+
+msgid "Hindi - हिन्दी"
+msgstr "Hindi – हिन्दी"
+
+
+msgid "Locale code: hi_IN. Translation progress: 4%"
+msgstr "Lokalkode: hi_IN. Status på oversettelse: 4 %"
+
+
+msgid "Hungarian - Magyar"
+msgstr "Ungarsk – Magyar"
+
+
+msgid "Locale code: hu_HU. Translation progress: 11%"
+msgstr "Lokalkode: hu_HU. Status på oversettelse: 11 %"
+
+
+msgid "Indonesian - Bahasa indonesia"
+msgstr "Indonesisk – Bahasa indonesia"
+
+
+msgid "Locale code: id_ID. Translation progress: 21%"
+msgstr "Lokalkode: id_ID. Status på oversettelse: 21 %"
+
+
+msgid "Italian - Italiano"
+msgstr "Italiensk – Italiano"
+
+
+msgid "Japanese - 日本語"
+msgstr "Japansk – 日本語"
+
+
+msgid "Locale code: ja_JP. Translation progress: 99%"
+msgstr "Lokalkode: ja_JP. Status på oversettelse: 99 %"
+
+
+msgid "Korean - 한국어"
+msgstr "Koreansk – 한국어"
+
+
+msgid "Locale code: ko_KR. Translation progress: 50%"
+msgstr "Lokalkode: ko_KR. Status på oversettelse: 50 %"
+
+
+msgid "Kyrgyz - Кыргыз тили"
+msgstr "Kirgisisk – Кыргыз тили"
+
+
+msgid "Locale code: ky_KG. Translation progress: 2%"
+msgstr "Lokalkode: ky_KG. Status på oversettelse: 2 %"
+
+
+msgid "Lithuanian - Lietuviškai"
+msgstr "Litauisk – Lietuviškai"
+
+
+msgid "Locale code: lt. Translation progress: 3%"
+msgstr "Lokalkode: lt. Status på oversettelse: 3 %"
+
+
+msgid "Malayalam - മലയാളം"
+msgstr "Malayalam – മലയാളം"
+
+
+msgid "Locale code: ml. Translation progress: 0%"
+msgstr "Lokalkode: ml. Status på oversettelse: 0 %"
+
+
+msgid "Norwegian (Bokmål) - Norsk bokmål"
+msgstr "Norsk (bokmål) – Norwegian Bokmål"
+
+
+msgid "Persian - ﯽﺳﺭﺎﻓ"
+msgstr "Persisk – ﯽﺳﺭﺎﻓ"
+
+
+msgid "Locale code: fa_IR. Translation progress: 3%"
+msgstr "Lokalkode: fa_IR. Status på oversettelse: 3 %"
+
+
+msgid "Polish - Polski"
+msgstr "Polsk – Polski"
+
+
+msgid "Locale code: pl_PL. Translation progress: 18%"
+msgstr "Lokalkode: pl_PL. Status på oversettelse: 18 %"
+
+
+msgid "Portuguese (Brazil) - Português brasileiro"
+msgstr "Portugisisk (Brasil) – Português brasileiro"
+
+
+msgid "Locale code: pt_BR. Translation progress: 43%"
+msgstr "Lokalkode: pt_BR. Status på oversettelse: 43 %"
+
+
+msgid "Portuguese (Portugal) - Português europeu"
+msgstr "Portugisisk (Portugal) – Português europeu"
+
+
+msgid "Locale code: pt_PT. Translation progress: 73%"
+msgstr "Lokalkode: pt_PT. Status på oversettelse: 73 %"
+
+
+msgid "Romanian - Român"
+msgstr "Rumensk – Român"
+
+
+msgid "Locale code: ro_RO. Translation progress: 2%"
+msgstr "Lokalkode: ro_RO. Status på oversettelse: 2 %"
+
+
+msgid "Russian - Русский"
+msgstr "Russisk – Русский"
+
+
+msgid "Locale code: ru_RU. Translation progress: 100%"
+msgstr "Lokalkode: ru_RU. Status på oversettelse: 100 %"
+
+
+msgid "Serbian (Cyrillic) - Српски"
+msgstr "Serbisk (kyrillisk) – Српски"
+
+
+msgid "Locale code: sr_RS. Translation progress: 16%"
+msgstr "Lokalkode: sr_RS. Status på oversettelse: 16 %"
+
+
+msgid "Serbian (Latin) - Srpski latinica"
+msgstr "Serbisk (latinsk) – Srpski latinica"
+
+
+msgid "Locale code: sr_RS@latin. Translation progress: 16%"
+msgstr "Lokalkode: sr_RS@latin. Status på oversettelse: 16 %"
+
+
+msgid "Slovak - Slovenčina"
+msgstr "Slovakisk – Slovenčina"
+
+
+msgid "Locale code: sk_SK. Translation progress: 100%"
+msgstr "Lokalkode: sk_SK. Status på oversettelse: 100 %"
+
+
+msgid "Slovenian - Slovenščina"
+msgstr "Slovensk – Slovenščina"
+
+
+msgid "Locale code: sl. Translation progress: 50%"
+msgstr "Lokalkode: sl. Status på oversettelse: 50 %"
+
+
+msgid "Spanish - Español"
+msgstr "Spansk – Español"
+
+
+msgid "Locale code: es. Translation progress: 100%"
+msgstr "Lokalkode: es. Status på oversettelse: 100 %"
+
+
+msgid "Swahili - Kiswahili"
+msgstr "Swahili – Kiswahili"
+
+
+msgid "Locale code: sw. Translation progress: 73%"
+msgstr "Lokalkode: sw. Status på oversettelse: 73 %"
+
+
+msgid "Swedish - Svenska"
+msgstr "Svensk – Svenska"
+
+
+msgid "Tamil - தமிழ்"
+msgstr "Tamil – தமிழ்"
+
+
+msgid "Locale code: ta. Translation progress: 94%"
+msgstr "Lokalkode: ta. Status på oversettelse: 94 %"
+
+
+msgid "Thai - ภาษาไทย"
+msgstr "Thai – ภาษาไทย"
+
+
+msgid "Locale code: th_TH. Translation progress: 3%"
+msgstr "Lokalkode: th_TH. Status på oversettelse: 3 %"
+
+
+msgid "Turkish - Türkçe"
+msgstr "Tyrkisk – Türkçe"
+
+
+msgid "Locale code: tr_TR. Translation progress: 79%"
+msgstr "Lokalkode: tr_TR. Status på oversettelse: 79 %"
+
+
+msgid "Ukrainian - Українська"
+msgstr "Ukrainsk – Українська"
+
+
+msgid "Locale code: uk_UA. Translation progress: 57%"
+msgstr "Lokalkode: uk_UA. Status på oversettelse: 57 %"
+
+
+msgid "Urdu - وُدرُا"
+msgstr "Urdu – وُدرُا"
+
+
+msgid "Locale code: ur. Translation progress: 87%"
+msgstr "Lokalkode: ur. Status på oversettelse: 87 %"
+
+
+msgid "Vietnamese - Tiếng Việt"
+msgstr "Vietnamesisk – Tiếng Việt"
+
+
 msgid "Lock Interface"
 msgstr "Lås grensesnitt"
 
@@ -4385,8 +5117,18 @@ msgstr "Vis animasjon"
 
 
 msgctxt "Operator"
+msgid "Preferences..."
+msgstr "Innstillinger …"
+
+
+msgctxt "Operator"
 msgid "Render Image"
 msgstr "Gjengi bilde"
+
+
+msgctxt "Preferences"
+msgid "Translate"
+msgstr "Oversett"
 
 
 msgid "Blender Version"

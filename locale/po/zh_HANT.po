@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-16 11:27+0000\n"
-"PO-Revision-Date: 2025-12-10 16:12+0000\n"
-"Last-Translator: Kisaragi Hiu <mail@kisaragi-hiu.com>\n"
+"POT-Creation-Date: 2025-12-22 09:32+0000\n"
+"PO-Revision-Date: 2025-12-22 05:18+0000\n"
+"Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
 "Language: zh_HANT\n"
 "MIME-Version: 1.0\n"
@@ -4051,6 +4051,10 @@ msgid "Index"
 msgstr "索引"
 
 
+msgid "Is Editable"
+msgstr "可編輯的"
+
+
 msgid "Solo"
 msgstr "獨演"
 
@@ -4061,6 +4065,10 @@ msgstr "可見"
 
 msgid "Color Set ID"
 msgstr "色彩集 ID"
+
+
+msgid "UI Title"
+msgstr "UI 標題"
 
 
 msgid "Armature Bone Collections"
@@ -4167,6 +4175,14 @@ msgid "Has Pinch Factor"
 msgstr "有捏擠係數"
 
 
+msgid "Has Plane Depth"
+msgstr "有平面深度"
+
+
+msgid "Has Plane Height"
+msgstr "有平面高度"
+
+
 msgid "Has Plane Offset"
 msgstr "有平面偏移"
 
@@ -4261,6 +4277,10 @@ msgstr "插補長度"
 
 msgid "Use length of the curves in close proximity"
 msgstr "使用接近的曲線長度"
+
+
+msgid "Interpolate Radius"
+msgstr "插補半徑"
 
 
 msgid "Interpolate Shape"
@@ -5000,6 +5020,10 @@ msgstr "背景影像的集盒"
 
 msgid "Depth of Field"
 msgstr "場域的深度"
+
+
+msgid "Depth of Field settings"
+msgstr "景深設定"
 
 
 msgid "Blades"
@@ -8630,6 +8654,10 @@ msgid "Include visualization of particle related animation data"
 msgstr "具現化粒子相關動畫資料"
 
 
+msgid "Display Point Cloud"
+msgstr "顯示點雲"
+
+
 msgid "Display Scene"
 msgstr "顯示場景"
 
@@ -10224,8 +10252,16 @@ msgid "Max Rate"
 msgstr "最大比率"
 
 
+msgid "Rate control: max rate (kbit/s)"
+msgstr "比率控制：最大比率 (kbit/s)"
+
+
 msgid "Min Rate"
 msgstr "最小比率"
+
+
+msgid "Rate control: min rate (kbit/s)"
+msgstr "比率控制：最小比率 (kbit/s)"
 
 
 msgid "Mux Rate"
@@ -23930,18 +23966,6 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Mirror"
-msgstr "鏡像"
-
-
-msgid "Snap"
-msgstr "吸附"
-
-
-msgid "UV Mapping"
-msgstr "UV 映射處理"
-
-
 msgid "Local View"
 msgstr "區域檢視"
 
@@ -23982,16 +24006,16 @@ msgid "Metaball"
 msgstr "變幻球"
 
 
-msgid "Layout"
-msgstr "配置"
-
-
 msgid "Light"
 msgstr "燈光"
 
 
 msgid "Light Probe"
 msgstr "燈光採樣器"
+
+
+msgid "Layout"
+msgstr "配置"
 
 
 msgid "Add Image"
@@ -24002,36 +24026,20 @@ msgid "Relations"
 msgstr "關係"
 
 
-msgid "Adjust"
-msgstr "調整"
-
-
 msgid "Rigid Body"
 msgstr "剛體"
-
-
-msgid "Keying"
-msgstr "鍵處理"
 
 
 msgid "Apply"
 msgstr "套用"
 
 
-msgid "Tracking"
-msgstr "跟蹤"
-
-
 msgid "Track"
 msgstr "追蹤"
 
 
-msgid "Utilities"
-msgstr "效用"
-
-
-msgid "Math"
-msgstr "數學公式"
+msgid "Adjust"
+msgstr "調整"
 
 
 msgid "Quick Effects"
@@ -24046,12 +24054,20 @@ msgid "Clean Up"
 msgstr "清理"
 
 
+msgid "Keying"
+msgstr "鍵處理"
+
+
 msgid "Asset"
 msgstr "素材"
 
 
 msgid "Make Single User"
 msgstr "製作單一使用者"
+
+
+msgid "Tracking"
+msgstr "跟蹤"
 
 
 msgid "Convert"
@@ -24062,12 +24078,16 @@ msgid "Link/Transfer Data"
 msgstr "連結/傳輸資料"
 
 
+msgid "Utilities"
+msgstr "效用"
+
+
 msgid "Hooks"
 msgstr "鉤"
 
 
-msgid "Render Preview"
-msgstr "算繪預覽"
+msgid "Math"
+msgstr "數學公式"
 
 
 msgid "Face Sets Init"
@@ -24084,6 +24104,10 @@ msgstr "清除變換"
 
 msgid "In-Betweens"
 msgstr "內部之間"
+
+
+msgid "Render Preview"
+msgstr "算繪預覽"
 
 
 msgid "Propagate"
@@ -24126,8 +24150,16 @@ msgid "Read"
 msgstr "讀取"
 
 
+msgid "Special Characters"
+msgstr "特殊字元"
+
+
 msgid "Sample"
 msgstr "取樣"
+
+
+msgid "Kerning"
+msgstr "字間微調"
 
 
 msgid "Write"
@@ -24138,20 +24170,12 @@ msgid "Primitives"
 msgstr "原形"
 
 
-msgid "Special Characters"
-msgstr "特殊字元"
-
-
-msgid "Kerning"
-msgstr "字間微調"
+msgid "Bone Roll"
+msgstr "骨骼滾動"
 
 
 msgid "Instances"
 msgstr "實例化"
-
-
-msgid "Bone Roll"
-msgstr "骨骼滾動"
 
 
 msgid "Import"
@@ -24162,8 +24186,8 @@ msgid "Pivot Point"
 msgstr "樞紐點"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Snap"
+msgstr "吸附"
 
 
 msgid "Proportional Editing Falloff"
@@ -24180,6 +24204,18 @@ msgstr "自動遮罩"
 
 msgid "Face Sets Edit"
 msgstr "面集編輯"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Mirror"
+msgstr "鏡像"
+
+
+msgid "UV Mapping"
+msgstr "UV 映射處理"
 
 
 msgid "Basic"
@@ -52857,30 +52893,6 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
-msgid "Overlays"
-msgstr "疊層"
-
-
-msgid "Guides"
-msgstr "引導"
-
-
-msgid "Viewer Node"
-msgstr "檢視器節點"
-
-
-msgid "Motion Tracking"
-msgstr "運動跟蹤"
-
-
-msgid "Mesh Edit Mode"
-msgstr "網格編輯模式"
-
-
-msgid "Measurement"
-msgstr "測量"
-
-
 msgid "Curve Edit Mode"
 msgstr "曲線編輯模式"
 
@@ -52899,6 +52911,10 @@ msgstr "筆觸放置"
 
 msgid "Drawing Plane"
 msgstr "描繪平面"
+
+
+msgid "Guides"
+msgstr "引導"
 
 
 msgid "Grease Pencil Options"
@@ -52971,6 +52987,26 @@ msgstr "算繪通遞"
 
 msgid "Compositor"
 msgstr "合成器"
+
+
+msgid "Overlays"
+msgstr "疊層"
+
+
+msgid "Viewer Node"
+msgstr "檢視器節點"
+
+
+msgid "Motion Tracking"
+msgstr "運動跟蹤"
+
+
+msgid "Mesh Edit Mode"
+msgstr "網格編輯模式"
+
+
+msgid "Measurement"
+msgstr "測量"
 
 
 msgid "Import Settings"
@@ -56532,10 +56568,6 @@ msgid "Chinese (Traditional) - 繁體中文"
 msgstr "繁體中文"
 
 
-msgid "Croatian - Hrvatski"
-msgstr "克羅地亞語 - Hrvatski"
-
-
 msgid "Czech - Čeština"
 msgstr "捷克語 - Čeština"
 
@@ -56572,10 +56604,6 @@ msgid "Greek - Ελληνικά"
 msgstr "希臘語 - Ελληνικά"
 
 
-msgid "Hausa - Hausa"
-msgstr "豪薩語 - Hausa"
-
-
 msgid "Hebrew - תירִבְעִ"
 msgstr "希伯來語 - תירִבְעִ"
 
@@ -56600,16 +56628,8 @@ msgid "Japanese - 日本語"
 msgstr "日語 - 日本語"
 
 
-msgid "Khmer - ខ្មែរ"
-msgstr "高棉語 - ខ្មែរ"
-
-
 msgid "Korean - 한국어"
 msgstr "韓語 - 한국어"
-
-
-msgid "Nepali - नेपाली"
-msgstr "尼泊爾語 - नेपाली"
 
 
 msgid "Persian - ﯽﺳﺭﺎﻓ"
@@ -69588,6 +69608,11 @@ msgid "Selection"
 msgstr "選取項"
 
 
+msgctxt "Operator"
+msgid "Smart UV Project..."
+msgstr "智慧 UV 投影..."
+
+
 msgid "Island"
 msgstr "島塊"
 
@@ -70466,6 +70491,11 @@ msgstr "偏好設定..."
 
 
 msgctxt "Operator"
+msgid "Save Screenshot..."
+msgstr "儲存螢幕擷圖..."
+
+
+msgctxt "Operator"
 msgid "Reorder to Front"
 msgstr "移到最前面"
 
@@ -70536,6 +70566,11 @@ msgstr "STL (.stl)"
 msgctxt "Operator"
 msgid "Render Image"
 msgstr "算繪影像"
+
+
+msgctxt "Operator"
+msgid "Save Screenshot (Editor)..."
+msgstr "儲存螢幕擷圖（編輯器）..."
 
 
 msgctxt "Operator"
@@ -71216,6 +71251,11 @@ msgstr "喇叭"
 
 
 msgctxt "Operator"
+msgid "Mesh Plane..."
+msgstr "網格平面..."
+
+
+msgctxt "Operator"
 msgid "Bake Action..."
 msgstr "烘焙動作..."
 
@@ -71666,6 +71706,11 @@ msgstr "骨骼"
 
 
 msgctxt "Operator"
+msgid "Reproject Strokes..."
+msgstr "重投影筆觸..."
+
+
+msgctxt "Operator"
 msgid "Arrange"
 msgstr "排列"
 
@@ -71786,6 +71831,11 @@ msgstr "骨架"
 msgctxt "Operator"
 msgid "Collection Instance"
 msgstr "集盒實例"
+
+
+msgctxt "Operator"
+msgid "Background..."
+msgstr "背景..."
 
 
 msgctxt "Operator"
@@ -72801,6 +72851,14 @@ msgid "particles"
 msgstr "粒子"
 
 
+msgid "Mesh has no UV data"
+msgstr "網格沒有 UV 資料"
+
+
+msgid "Mesh has no VCol data"
+msgstr "網格沒有 VCol 資料"
+
+
 msgid "Unsaved"
 msgstr "未儲存"
 
@@ -73202,6 +73260,10 @@ msgid "<no path>"
 msgstr "<無路徑>"
 
 
+msgid "Delete selected markers?"
+msgstr "刪除所選標記？"
+
+
 msgid "Rename Selected Time Marker"
 msgstr "重新命名所選時間標記"
 
@@ -73322,6 +73384,10 @@ msgstr "無法從內建的鍵處理集中移除屬性"
 
 msgid "Property added to Keying Set: '%s'"
 msgstr "屬性已新增至鍵處理集：「%s」"
+
+
+msgid "Delete selected bones?"
+msgstr "刪除所選骨骼？"
 
 
 msgid "No region view3d available"
@@ -73733,6 +73799,16 @@ msgstr "只有鍵盤快捷鍵可以這樣修改，其他則請利用使用者偏
 
 
 msgctxt "Operator"
+msgid "Change Shortcut..."
+msgstr "更改快捷鍵..."
+
+
+msgctxt "Operator"
+msgid "Assign Shortcut..."
+msgstr "指派快捷鍵..."
+
+
+msgctxt "Operator"
 msgid "Replace Keyframes"
 msgstr "替換鍵幀"
 
@@ -73783,8 +73859,18 @@ msgstr "刪除驅動器"
 
 
 msgctxt "Operator"
+msgid "Edit Driver..."
+msgstr "編輯驅動器..."
+
+
+msgctxt "Operator"
 msgid "Open Drivers Editor"
 msgstr "開啟驅動器編輯器"
+
+
+msgctxt "Operator"
+msgid "Add Driver..."
+msgstr "新增驅動器..."
 
 
 msgctxt "Operator"
@@ -74844,6 +74930,10 @@ msgstr "無其他有相同頂點數的選取網格可結合"
 
 msgid "Unassigned"
 msgstr "未指派"
+
+
+msgid "Delete selected objects?"
+msgstr "刪除所選物體？"
 
 
 msgid "Empty Material"
@@ -75965,6 +76055,10 @@ msgid "bytes"
 msgstr "位元組"
 
 
+msgid "Delete selected files?"
+msgstr "刪除所選的檔案？"
+
+
 msgid "File does not exist"
 msgstr "檔案不存在"
 
@@ -76019,10 +76113,6 @@ msgstr "視訊"
 
 msgid "OneDrive"
 msgstr "OneDrive"
-
-
-msgid "Movies"
-msgstr "影片"
 
 
 msgid "Cursor X"
@@ -78046,14 +78136,6 @@ msgstr "物體「%s」不支援外形"
 
 msgid "Invalid target!"
 msgstr "無效的目標！"
-
-
-msgid "Mesh has no UV data"
-msgstr "網格沒有 UV 資料"
-
-
-msgid "Mesh has no VCol data"
-msgstr "網格沒有 VCol 資料"
 
 
 msgid "Constraint '%s' not found in pose bone '%s'"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-16 11:27+0000\n"
+"POT-Creation-Date: 2025-12-22 09:32+0000\n"
 "PO-Revision-Date: 2025-12-06 08:12+0000\n"
 "Last-Translator: Banditer1483 <pleum.wongvarit@gmail.com>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -2025,14 +2025,6 @@ msgid "Mix Color"
 msgstr "ผสมสี"
 
 
-msgid "Mirror"
-msgstr "กระจกสะท้อน"
-
-
-msgid "Snap"
-msgstr "ยึดติด"
-
-
 msgid "Local View"
 msgstr "มุมมองท้องถิ่น"
 
@@ -2061,20 +2053,16 @@ msgid "Metaball"
 msgstr "เมตาบอล"
 
 
-msgid "Layout"
-msgstr "เค้าโครง"
-
-
 msgid "Light"
 msgstr "แสง"
 
 
+msgid "Layout"
+msgstr "เค้าโครง"
+
+
 msgid "Add Image"
 msgstr "เพิ่มภาพ"
-
-
-msgid "Keying"
-msgstr "คีย์"
 
 
 msgid "Apply"
@@ -2085,12 +2073,16 @@ msgid "Track"
 msgstr "แทร็ค"
 
 
-msgid "Math"
-msgstr "คณิตศาสตร์"
+msgid "Keying"
+msgstr "คีย์"
 
 
 msgid "Hooks"
 msgstr "ตะขอ"
+
+
+msgid "Math"
+msgstr "คณิตศาสตร์"
 
 
 msgid "Names"
@@ -2113,8 +2105,8 @@ msgid "Pivot Point"
 msgstr "จุดหมุน"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Snap"
+msgstr "ยึดติด"
 
 
 msgid "Proportional Editing Falloff"
@@ -2123,6 +2115,14 @@ msgstr "แก้ไข"
 
 msgid "Mask Edit"
 msgstr "การแก้ไขหน้ากาก"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Mirror"
+msgstr "กระจกสะท้อน"
 
 
 msgid "Zoom"
@@ -3386,12 +3386,12 @@ msgid "Single Image"
 msgstr "ภาพเดี่ยว"
 
 
-msgid "Overlays"
-msgstr "วางซ้อน"
-
-
 msgid "View Lock"
 msgstr "ล็อกมุมมอง"
+
+
+msgid "Overlays"
+msgstr "วางซ้อน"
 
 
 msgid "Mask Display"

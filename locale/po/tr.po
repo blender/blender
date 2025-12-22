@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-16 11:27+0000\n"
+"POT-Creation-Date: 2025-12-22 09:32+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -28953,18 +28953,6 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
-msgid "Mirror"
-msgstr "Yansıtma"
-
-
-msgid "Snap"
-msgstr "Yakala"
-
-
-msgid "UV Mapping"
-msgstr "UV Haritalama"
-
-
 msgid "Local View"
 msgstr "Yerel Görünüm"
 
@@ -29017,16 +29005,16 @@ msgid "Metaball"
 msgstr "Metabol"
 
 
-msgid "Layout"
-msgstr "Yerleşim"
-
-
 msgid "Light"
 msgstr "Işık"
 
 
 msgid "Light Probe"
 msgstr "Işık Sondası"
+
+
+msgid "Layout"
+msgstr "Yerleşim"
 
 
 msgid "Add Image"
@@ -29037,36 +29025,20 @@ msgid "Relations"
 msgstr "İlişkiler"
 
 
-msgid "Adjust"
-msgstr "Ayarlamak"
-
-
 msgid "Rigid Body"
 msgstr "Sert Gövde"
-
-
-msgid "Keying"
-msgstr "Anahtarlama"
 
 
 msgid "Apply"
 msgstr "Uygula"
 
 
-msgid "Tracking"
-msgstr "Takip"
-
-
 msgid "Track"
 msgstr "İzlemek"
 
 
-msgid "Utilities"
-msgstr "Kamu hizmetleri"
-
-
-msgid "Math"
-msgstr "Matematik"
+msgid "Adjust"
+msgstr "Ayarlamak"
 
 
 msgid "Quick Effects"
@@ -29081,12 +29053,20 @@ msgid "Clean Up"
 msgstr "Temizle"
 
 
+msgid "Keying"
+msgstr "Anahtarlama"
+
+
 msgid "Asset"
 msgstr "Varlık"
 
 
 msgid "Make Single User"
 msgstr "Tek Kullanıcı Yap"
+
+
+msgid "Tracking"
+msgstr "Takip"
 
 
 msgid "Convert"
@@ -29097,8 +29077,16 @@ msgid "Link/Transfer Data"
 msgstr "Veriyi Bağlantıla/Aktar"
 
 
+msgid "Utilities"
+msgstr "Kamu hizmetleri"
+
+
 msgid "Hooks"
 msgstr "Kancalar"
+
+
+msgid "Math"
+msgstr "Matematik"
 
 
 msgid "Vertex Group Locks"
@@ -29177,8 +29165,16 @@ msgid "Read"
 msgstr "Okumak"
 
 
+msgid "Special Characters"
+msgstr "Özel Karakterler"
+
+
 msgid "Sample"
 msgstr "Örnek"
+
+
+msgid "Kerning"
+msgstr "Harf aralığı"
 
 
 msgid "Write"
@@ -29189,40 +29185,32 @@ msgid "Primitives"
 msgstr "İlkel"
 
 
-msgid "Special Characters"
-msgstr "Özel Karakterler"
-
-
-msgid "Kerning"
-msgstr "Harf aralığı"
+msgid "Bone Roll"
+msgstr "Kemik Rulosu"
 
 
 msgid "Instances"
 msgstr "Örnekler"
 
 
-msgid "Bone Roll"
-msgstr "Kemik Rulosu"
-
-
 msgid "Import"
 msgstr "İçe Aktar"
-
-
-msgid "Deprecated"
-msgstr "Kullanım dışı bırakıldı"
 
 
 msgid "Pivot Point"
 msgstr "Pivot Noktası"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Snap"
+msgstr "Yakala"
 
 
 msgid "Proportional Editing Falloff"
 msgstr "Orantılı Düzenleme Düşüşü"
+
+
+msgid "Deprecated"
+msgstr "Kullanım dışı bırakıldı"
 
 
 msgid "Mask Edit"
@@ -29235,6 +29223,18 @@ msgstr "Otomatik maskeleme"
 
 msgid "Face Sets Edit"
 msgstr "Yüz Setleri Düzenle"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Mirror"
+msgstr "Yansıtma"
+
+
+msgid "UV Mapping"
+msgstr "UV Haritalama"
 
 
 msgid "Keyframe Insert Pie"
@@ -46876,11 +46876,6 @@ msgstr "Sadece Kullanılmamış"
 
 msgid "Only unused (Fake User only) actions get considered"
 msgstr "Sadece kullanılmayan (sadece Sahte Kullanıcı) eylemler dikkate alınır"
-
-
-msgctxt "Operator"
-msgid "Convert Legacy Action"
-msgstr "Eski Eylemi Dönüştür"
 
 
 msgctxt "Operator"
@@ -76136,30 +76131,6 @@ msgid "Panel containing UI elements"
 msgstr "UI öğelerini içeren panel"
 
 
-msgid "Overlays"
-msgstr "Kaplamalar"
-
-
-msgid "Guides"
-msgstr "Rehberler"
-
-
-msgid "Viewer Node"
-msgstr "Görüntüleyici Düğümü"
-
-
-msgid "Motion Tracking"
-msgstr "Hareket İzleme"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Mesh Düzenleme Modu"
-
-
-msgid "Measurement"
-msgstr "Ölçüm"
-
-
 msgid "Curve Edit Mode"
 msgstr "Eğri Düzenleme Modu"
 
@@ -76174,6 +76145,10 @@ msgstr "İnme Yerleşimi"
 
 msgid "Drawing Plane"
 msgstr "Çizim düzlemi"
+
+
+msgid "Guides"
+msgstr "Rehberler"
 
 
 msgid "Quad View"
@@ -76258,6 +76233,26 @@ msgstr "Render Geçişi"
 
 msgid "Compositor"
 msgstr "Dizgici"
+
+
+msgid "Overlays"
+msgstr "Kaplamalar"
+
+
+msgid "Viewer Node"
+msgstr "Görüntüleyici Düğümü"
+
+
+msgid "Motion Tracking"
+msgstr "Hareket İzleme"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Mesh Düzenleme Modu"
+
+
+msgid "Measurement"
+msgstr "Ölçüm"
 
 
 msgid "Chain Scaling"
@@ -108202,6 +108197,18 @@ msgid "ParticleSettings"
 msgstr "Parçacık Ayarları"
 
 
+msgid "Object was not yet evaluated"
+msgstr "Nesne henüz değerlendirilmedi"
+
+
+msgid "Mesh has no UV data"
+msgstr "Mesh'in UV verisi yok"
+
+
+msgid "Mesh has no VCol data"
+msgstr "Mesh'in VCol verisi yok"
+
+
 msgid "%i frames found!"
 msgstr "%i çerçeve bulundu!"
 
@@ -108799,10 +108806,6 @@ msgid "Compositor node tree has cyclic links!"
 msgstr "Compositor düğüm ağacı döngüsel bağlantılara sahiptir!"
 
 
-msgid "Compositor node tree has undefined nodes or sockets!"
-msgstr "Compositor düğüm ağacında tanımsız düğümler veya soketler var!"
-
-
 msgid "Error: Too many AOVs"
 msgstr "Hata: Çok fazla AOV"
 
@@ -109005,10 +109008,6 @@ msgstr "%s eylemi düzenlenemez"
 
 msgid "Expected an animation area to be active"
 msgstr "Animasyon alanının aktif olması bekleniyor"
-
-
-msgid "Action is already layered"
-msgstr "Eylem zaten katmanlı"
 
 
 msgid "Active object has no action"
@@ -110996,18 +110995,6 @@ msgstr "Kesimler: %s, Pürüzsüzlük: %s"
 
 msgid "Loop cut does not work well on deformed edit mesh display"
 msgstr "Döngü kesimi, deforme olmuş düzenleme ağı görüntüsünde iyi çalışmıyor"
-
-
-msgid "Create Mesh From Paint Mask"
-msgstr "Boya Maskesinden Ağ Oluştur"
-
-
-msgid "Extract"
-msgstr "Çıkarmak"
-
-
-msgid "The geometry cannot be extracted with dyntopo activated"
-msgstr "Dyntopo etkinleştirildiğinde geometri çıkarılamaz"
 
 
 msgid "Path selection requires two matching elements to be selected"
@@ -113144,6 +113131,18 @@ msgid "Texture mapping not set to 3D, results may be unpredictable"
 msgstr "Doku eşlemesi 3D olarak ayarlanmadığında sonuçlar tahmin edilemez olabilir"
 
 
+msgid "Create Mesh From Paint Mask"
+msgstr "Boya Maskesinden Ağ Oluştur"
+
+
+msgid "Extract"
+msgstr "Çıkarmak"
+
+
+msgid "The geometry cannot be extracted with dyntopo activated"
+msgstr "Dyntopo etkinleştirildiğinde geometri çıkarılamaz"
+
+
 msgid "non-triangle face"
 msgstr "üçgen olmayan yüz"
 
@@ -113654,10 +113653,6 @@ msgstr "Videolar"
 
 msgid "OneDrive"
 msgstr "OneDrive"
-
-
-msgid "Movies"
-msgstr "Filmler"
 
 
 msgid "Cursor X"
@@ -117202,18 +117197,6 @@ msgstr "Geçersiz hedef!"
 
 msgid "uv_on_emitter() requires a modifier from an evaluated object"
 msgstr "uv_on_emitter() değerlendirilen bir nesneden bir değiştirici gerektirir"
-
-
-msgid "Mesh has no UV data"
-msgstr "Mesh'in UV verisi yok"
-
-
-msgid "Object was not yet evaluated"
-msgstr "Nesne henüz değerlendirilmedi"
-
-
-msgid "Mesh has no VCol data"
-msgstr "Mesh'in VCol verisi yok"
 
 
 msgid "Cannot edit bone groups for library overrides"

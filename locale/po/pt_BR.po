@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-12-16 11:27+0000\n"
+"POT-Creation-Date: 2025-12-22 09:32+0000\n"
 "PO-Revision-Date: 2025-11-11 12:13+0000\n"
 "Last-Translator: Rafael Teixeira de Avila Soares <rafaeltas@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -21231,18 +21231,6 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Mirror"
-msgstr "Espelhar"
-
-
-msgid "Snap"
-msgstr "Atrair"
-
-
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
-
-
 msgid "Local View"
 msgstr "Visão local"
 
@@ -21291,16 +21279,16 @@ msgid "Metaball"
 msgstr "Meta-esfera"
 
 
-msgid "Layout"
-msgstr "Organizar"
-
-
 msgid "Light"
 msgstr "Luz"
 
 
 msgid "Light Probe"
 msgstr "Sonda de Luz"
+
+
+msgid "Layout"
+msgstr "Organizar"
 
 
 msgid "Add Image"
@@ -21315,24 +21303,12 @@ msgid "Rigid Body"
 msgstr "Corpo rígido"
 
 
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
 msgid "Apply"
 msgstr "Aplicar"
 
 
-msgid "Tracking"
-msgstr "Rastreamento"
-
-
 msgid "Track"
 msgstr "Rastrear"
-
-
-msgid "Math"
-msgstr "Matemática"
 
 
 msgid "Quick Effects"
@@ -21347,8 +21323,16 @@ msgid "Clean Up"
 msgstr "Limpeza"
 
 
+msgid "Keying"
+msgstr "Inserção de chaves"
+
+
 msgid "Make Single User"
 msgstr "Tornar usuário único"
+
+
+msgid "Tracking"
+msgstr "Rastreamento"
 
 
 msgid "Convert"
@@ -21357,6 +21341,10 @@ msgstr "Converter"
 
 msgid "Hooks"
 msgstr "Ganchos"
+
+
+msgid "Math"
+msgstr "Matemática"
 
 
 msgid "Random Mask"
@@ -21407,12 +21395,12 @@ msgid "Special Characters"
 msgstr "Caracteres especiais"
 
 
-msgid "Instances"
-msgstr "Instâncias"
-
-
 msgid "Bone Roll"
 msgstr "Rolagem dos ossos"
+
+
+msgid "Instances"
+msgstr "Instâncias"
 
 
 msgid "Import"
@@ -21423,12 +21411,24 @@ msgid "Pivot Point"
 msgstr "Pontos de pivô"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Snap"
+msgstr "Atrair"
 
 
 msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Mirror"
+msgstr "Espelhar"
+
+
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
 
 
 msgid "Basic"
@@ -48295,10 +48295,6 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
-msgid "Motion Tracking"
-msgstr "Captura de movimentos"
-
-
 msgid "Transform Orientations"
 msgstr "Orientações de transformação"
 
@@ -48313,6 +48309,10 @@ msgstr "Estereoscopia"
 
 msgid "Render Pass"
 msgstr "Passo de renderização"
+
+
+msgid "Motion Tracking"
+msgstr "Captura de movimentos"
 
 
 msgid "Bone Constraints"
@@ -62888,6 +62888,14 @@ msgid "ParticleSettings"
 msgstr "Configurações de partículas"
 
 
+msgid "Mesh has no UV data"
+msgstr "Malha não possui dados UV"
+
+
+msgid "Mesh has no VCol data"
+msgstr "A malha não possui dados de cores de vértices."
+
+
 msgid "%i frames found!"
 msgstr "%i quadros encontrados !"
 
@@ -65881,10 +65889,6 @@ msgid "Cannot swap selected strips as they will not be able to fit in their new 
 msgstr "Não é possível alternar as faixas selecionadas pois estas não se encaixam em seus novos locais."
 
 
-msgid "Action '%s' does not specify what data-blocks it can be used on (try setting the 'ID Root Type' setting from the data-blocks editor for this action to avoid future problems)"
-msgstr "A ação '%s' não especifica em quais blocos de dados pode ser usada. (tente configurar o \"Tipo de identificador raiz\" a partir do editor de blocos de dados nesta ação para evitar problemas futuros)."
-
-
 msgid "Could not add action '%s' as it cannot be used relative to ID-blocks of type '%s'"
 msgstr "Não foi possível adicionar ação '%s' pelo fato de não poder ser usada estando relacionada aos identificadores de blocos do tipo '%s'"
 
@@ -67093,14 +67097,6 @@ msgstr "Objeto '%s' não pode criar dados internos para encontrar o ponto mais p
 
 msgid "Palette '%s' does not contain color given"
 msgstr "A paleta '%s' não contém a cor fornecida."
-
-
-msgid "Mesh has no UV data"
-msgstr "Malha não possui dados UV"
-
-
-msgid "Mesh has no VCol data"
-msgstr "A malha não possui dados de cores de vértices."
 
 
 msgid "Constraint '%s' not found in pose bone '%s'"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-16 11:27+0000\n"
+"POT-Creation-Date: 2025-12-22 09:32+0000\n"
 "PO-Revision-Date: 2025-12-01 14:52+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -15528,14 +15528,6 @@ msgid "Use Material Mask"
 msgstr "Gunakan Masker Bahan"
 
 
-msgid "Mirror"
-msgstr "Cermin"
-
-
-msgid "Snap"
-msgstr "Jepret"
-
-
 msgid "Navigation"
 msgstr "Navigasi"
 
@@ -15552,16 +15544,16 @@ msgid "Metaball"
 msgstr "Metabola"
 
 
-msgid "Layout"
-msgstr "Tata Letak"
-
-
 msgid "Light"
 msgstr "Cahaya"
 
 
 msgid "Light Probe"
 msgstr "Probe Cahaya"
+
+
+msgid "Layout"
+msgstr "Tata Letak"
 
 
 msgid "Add Image"
@@ -15572,28 +15564,28 @@ msgid "Apply"
 msgstr "Tetapkan"
 
 
-msgid "Tracking"
-msgstr "Pelacakan"
-
-
 msgid "Track"
 msgstr "Lacak"
-
-
-msgid "Utilities"
-msgstr "Utilitas"
-
-
-msgid "Math"
-msgstr "Matematika"
 
 
 msgid "Asset"
 msgstr "Aset"
 
 
+msgid "Tracking"
+msgstr "Pelacakan"
+
+
+msgid "Utilities"
+msgstr "Utilitas"
+
+
 msgid "Hooks"
 msgstr "Kait"
+
+
+msgid "Math"
+msgstr "Matematika"
 
 
 msgid "Names"
@@ -15620,8 +15612,16 @@ msgid "Import"
 msgstr "Impor"
 
 
+msgid "Snap"
+msgstr "Jepret"
+
+
 msgid "UV"
 msgstr "UV"
+
+
+msgid "Mirror"
+msgstr "Cermin"
 
 
 msgctxt "MovieClip"
@@ -31537,10 +31537,6 @@ msgstr "Nama dokumen, tindih yang ada"
 
 msgid "File name"
 msgstr "Nama dokumen"
-
-
-msgid "Movies"
-msgstr "Film-film"
 
 
 msgid "Cursor X"

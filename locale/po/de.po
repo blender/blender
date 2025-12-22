@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-16 11:27+0000\n"
+"POT-Creation-Date: 2025-12-22 09:32+0000\n"
 "PO-Revision-Date: 2025-12-02 20:06+0000\n"
 "Last-Translator: Bastitron <bastitronhd@gmail.com>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -18714,14 +18714,6 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Mirror"
-msgstr "Spiegeln"
-
-
-msgid "Snap"
-msgstr "Einrasten"
-
-
 msgid "Local View"
 msgstr "Lokale Ansicht"
 
@@ -18774,16 +18766,16 @@ msgid "Metaball"
 msgstr "Metaball"
 
 
-msgid "Layout"
-msgstr "Layout"
-
-
 msgid "Light"
 msgstr "Licht"
 
 
 msgid "Light Probe"
 msgstr "Lichtsonde"
+
+
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Add Image"
@@ -18798,24 +18790,12 @@ msgid "Rigid Body"
 msgstr "Rigid Body"
 
 
-msgid "Keying"
-msgstr "Schlüsselbilder"
-
-
 msgid "Apply"
 msgstr "Anwenden"
 
 
-msgid "Tracking"
-msgstr "Verfolgen"
-
-
 msgid "Track"
 msgstr "Spur"
-
-
-msgid "Math"
-msgstr "Mathematisch"
 
 
 msgid "Quick Effects"
@@ -18830,6 +18810,10 @@ msgid "Clean Up"
 msgstr "Aufräumen"
 
 
+msgid "Keying"
+msgstr "Schlüsselbilder"
+
+
 msgid "Asset"
 msgstr "Asset"
 
@@ -18838,12 +18822,20 @@ msgid "Make Single User"
 msgstr "Einfachen Benutzer erzeugen"
 
 
+msgid "Tracking"
+msgstr "Verfolgen"
+
+
 msgid "Convert"
 msgstr "Konvertieren"
 
 
 msgid "Hooks"
 msgstr "Haken"
+
+
+msgid "Math"
+msgstr "Mathematisch"
 
 
 msgid "Vertex Group Locks"
@@ -18894,8 +18886,16 @@ msgid "Read"
 msgstr "Lesen"
 
 
+msgid "Special Characters"
+msgstr "Sonderzeichen"
+
+
 msgid "Sample"
 msgstr "Beispiel"
+
+
+msgid "Kerning"
+msgstr "Kerning"
 
 
 msgid "Write"
@@ -18904,14 +18904,6 @@ msgstr "Schreiben"
 
 msgid "Primitives"
 msgstr "Grundkörper"
-
-
-msgid "Special Characters"
-msgstr "Sonderzeichen"
-
-
-msgid "Kerning"
-msgstr "Kerning"
 
 
 msgid "Instances"
@@ -18926,8 +18918,8 @@ msgid "Pivot Point"
 msgstr "Drehpunkt"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Snap"
+msgstr "Einrasten"
 
 
 msgid "Proportional Editing Falloff"
@@ -18936,6 +18928,14 @@ msgstr "Proportionaler Bearbeitungsabfall"
 
 msgid "Mask Edit"
 msgstr "Maskenbearbeitung"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Mirror"
+msgstr "Spiegeln"
 
 
 msgid "Assets"
@@ -38903,26 +38903,6 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
-msgid "Overlays"
-msgstr "Überlagerungen"
-
-
-msgid "Guides"
-msgstr "Hilfslinien"
-
-
-msgid "Motion Tracking"
-msgstr "Bewegungsverfolgung"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Maschenbearbeitungsmodus"
-
-
-msgid "Measurement"
-msgstr "Messung"
-
-
 msgid "Curve Edit Mode"
 msgstr "Kurven-Bearbeitungsmodus"
 
@@ -38933,6 +38913,10 @@ msgstr "Transformationsausrichtung"
 
 msgid "Drawing Plane"
 msgstr "Malfläche"
+
+
+msgid "Guides"
+msgstr "Hilfslinien"
 
 
 msgid "Quad View"
@@ -38981,6 +38965,22 @@ msgstr "Renderdurchgänge"
 
 msgid "Compositor"
 msgstr "Setzer"
+
+
+msgid "Overlays"
+msgstr "Überlagerungen"
+
+
+msgid "Motion Tracking"
+msgstr "Bewegungsverfolgung"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Maschenbearbeitungsmodus"
+
+
+msgid "Measurement"
+msgstr "Messung"
 
 
 msgid "Chain Scaling"
@@ -53737,6 +53737,14 @@ msgid "ParticleSettings"
 msgstr "Partikeleinstellungen"
 
 
+msgid "Mesh has no UV data"
+msgstr "Masche hat keine UV Daten"
+
+
+msgid "Mesh has no VCol data"
+msgstr "Masche hat keine VCol Daten"
+
+
 msgid "%i points found!"
 msgstr "%i Punkte gefunden!"
 
@@ -55980,10 +55988,6 @@ msgid "Videos"
 msgstr "Videos"
 
 
-msgid "Movies"
-msgstr "Filme"
-
-
 msgid "Cursor X"
 msgstr "Cursor X"
 
@@ -57076,14 +57080,6 @@ msgstr "Falscher Knotentindex in der Liste"
 
 msgid "Object %s not in view layer %s"
 msgstr "Objekt %s nicht in Der Ansichtsebene %s"
-
-
-msgid "Mesh has no UV data"
-msgstr "Masche hat keine UV Daten"
-
-
-msgid "Mesh has no VCol data"
-msgstr "Masche hat keine VCol Daten"
 
 
 msgid "Keying set could not be added"

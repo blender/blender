@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-16 11:27+0000\n"
+"POT-Creation-Date: 2025-12-22 09:32+0000\n"
 "PO-Revision-Date: 2025-07-23 15:08+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -26358,18 +26358,6 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
-msgid "Mirror"
-msgstr "Дзеркалення"
-
-
-msgid "Snap"
-msgstr "Підхоп"
-
-
-msgid "UV Mapping"
-msgstr "Розкладання UV"
-
-
 msgid "Local View"
 msgstr "Огляд Локально"
 
@@ -26422,16 +26410,16 @@ msgid "Metaball"
 msgstr "Метакуля"
 
 
-msgid "Layout"
-msgstr "Розстановка"
-
-
 msgid "Light"
 msgstr "Слабко"
 
 
 msgid "Light Probe"
 msgstr "Проба Освітлення"
+
+
+msgid "Layout"
+msgstr "Розстановка"
 
 
 msgid "Add Image"
@@ -26446,28 +26434,12 @@ msgid "Rigid Body"
 msgstr "Тверде тіло"
 
 
-msgid "Keying"
-msgstr "Ключування"
-
-
 msgid "Apply"
 msgstr "Застосувати"
 
 
-msgid "Tracking"
-msgstr "Стеження"
-
-
 msgid "Track"
 msgstr "Стеження"
-
-
-msgid "Utilities"
-msgstr "Утиліти"
-
-
-msgid "Math"
-msgstr "Математика"
 
 
 msgid "Quick Effects"
@@ -26482,12 +26454,20 @@ msgid "Clean Up"
 msgstr "Вичищення"
 
 
+msgid "Keying"
+msgstr "Ключування"
+
+
 msgid "Asset"
 msgstr "Актив"
 
 
 msgid "Make Single User"
 msgstr "Зробити однокористувацьким"
+
+
+msgid "Tracking"
+msgstr "Стеження"
 
 
 msgid "Convert"
@@ -26498,8 +26478,16 @@ msgid "Link/Transfer Data"
 msgstr "Пов'язати/Перенести Дані"
 
 
+msgid "Utilities"
+msgstr "Утиліти"
+
+
 msgid "Hooks"
 msgstr "Гачки"
+
+
+msgid "Math"
+msgstr "Математика"
 
 
 msgid "Vertex Group Locks"
@@ -26562,20 +26550,20 @@ msgid "Merge"
 msgstr "Об'єднання"
 
 
-msgid "Sample"
-msgstr "Вибірка"
-
-
-msgid "Primitives"
-msgstr "Примітиви"
-
-
 msgid "Special Characters"
 msgstr "Спеціальні символи"
 
 
+msgid "Sample"
+msgstr "Вибірка"
+
+
 msgid "Kerning"
 msgstr "Кернінг"
+
+
+msgid "Primitives"
+msgstr "Примітиви"
 
 
 msgid "Bone Roll"
@@ -26590,8 +26578,8 @@ msgid "Pivot Point"
 msgstr "Точка Опертя"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Snap"
+msgstr "Підхоп"
 
 
 msgid "Proportional Editing Falloff"
@@ -26608,6 +26596,18 @@ msgstr "Автомаскування"
 
 msgid "Face Sets Edit"
 msgstr "Редагування Наборів Граней"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Mirror"
+msgstr "Дзеркалення"
+
+
+msgid "UV Mapping"
+msgstr "Розкладання UV"
 
 
 msgid "Basic"
@@ -60931,26 +60931,6 @@ msgid "Panel containing UI elements"
 msgstr "Панель, що містить елементи Інтерфейсу Користувача"
 
 
-msgid "Overlays"
-msgstr "Накладки"
-
-
-msgid "Guides"
-msgstr "Напрямні"
-
-
-msgid "Motion Tracking"
-msgstr "Відстеження руху"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Режим Редагування Сіті"
-
-
-msgid "Measurement"
-msgstr "Вимірювання"
-
-
 msgid "Curve Edit Mode"
 msgstr "Режим Редагування Кривої"
 
@@ -60965,6 +60945,10 @@ msgstr "Розміщення Штриха"
 
 msgid "Drawing Plane"
 msgstr "Площина Рисування"
+
+
+msgid "Guides"
+msgstr "Напрямні"
 
 
 msgid "Quad View"
@@ -61013,6 +60997,22 @@ msgstr "Порожнинність"
 
 msgid "Render Pass"
 msgstr "Прохід Рендера"
+
+
+msgid "Overlays"
+msgstr "Накладки"
+
+
+msgid "Motion Tracking"
+msgstr "Відстеження руху"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Режим Редагування Сіті"
+
+
+msgid "Measurement"
+msgstr "Вимірювання"
 
 
 msgid "Chain Scaling"
@@ -82385,6 +82385,18 @@ msgid "ParticleSettings"
 msgstr "ПараметриЧастинок"
 
 
+msgid "Object was not yet evaluated"
+msgstr "Об'єкт ще не було обчислено"
+
+
+msgid "Mesh has no UV data"
+msgstr "Сіть не має даних UV"
+
+
+msgid "Mesh has no VCol data"
+msgstr "Сіть не має даних про колір вершин"
+
+
 msgid "%i frames found!"
 msgstr "%i кадрів знайдено!"
 
@@ -85793,10 +85805,6 @@ msgid "Videos"
 msgstr "Відео"
 
 
-msgid "Movies"
-msgstr "Фільми"
-
-
 msgid "Cursor X"
 msgstr "Курсор X"
 
@@ -86220,10 +86228,6 @@ msgstr "Потрібно вибрати принаймні дві сусідні
 
 msgid "Cannot swap selected strips as they will not be able to fit in their new places"
 msgstr "Неможливо обміняти вибрані смужки, бо вони не помістяться на нових місцях"
-
-
-msgid "Action '%s' does not specify what data-blocks it can be used on (try setting the 'ID Root Type' setting from the data-blocks editor for this action to avoid future problems)"
-msgstr "Для дії '%s' не визначені блоки даних, з якими воно може використовуватися (спробуйте встановити тип кореневого ID 'ID Root Type' у редакторі блоків даних для цієї дії, щоб уникнути проблем у майбутньому)"
 
 
 msgid "Could not add action '%s' as it cannot be used relative to ID-blocks of type '%s'"
@@ -87814,18 +87818,6 @@ msgstr "Палітра '%s' не містить даного кольору"
 
 msgid "uv_on_emitter() requires a modifier from an evaluated object"
 msgstr "uv_on_emitter() вимагає модифікатор з обчисленого об'єкта"
-
-
-msgid "Mesh has no UV data"
-msgstr "Сіть не має даних UV"
-
-
-msgid "Object was not yet evaluated"
-msgstr "Об'єкт ще не було обчислено"
-
-
-msgid "Mesh has no VCol data"
-msgstr "Сіть не має даних про колір вершин"
 
 
 msgid "Constraint '%s' not found in pose bone '%s'"

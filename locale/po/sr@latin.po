@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-16 11:27+0000\n"
+"POT-Creation-Date: 2025-12-22 09:32+0000\n"
 "PO-Revision-Date: 2025-07-23 14:56+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -8497,18 +8497,6 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
-msgid "Mirror"
-msgstr "Ogledalo"
-
-
-msgid "Snap"
-msgstr "Lepljenje"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapiranje"
-
-
 msgid "Local View"
 msgstr "Lokalni pogled"
 
@@ -8541,24 +8529,12 @@ msgid "Rigid Body"
 msgstr "Kruto telo"
 
 
-msgid "Keying"
-msgstr "Zbirka tastera"
-
-
 msgid "Apply"
 msgstr "Primeni"
 
 
-msgid "Tracking"
-msgstr "Praćenje"
-
-
 msgid "Track"
 msgstr "Staza"
-
-
-msgid "Math"
-msgstr "Matematika"
 
 
 msgid "Quick Effects"
@@ -8569,8 +8545,20 @@ msgid "Show/Hide"
 msgstr "Prikaži/sakrij"
 
 
+msgid "Keying"
+msgstr "Zbirka tastera"
+
+
+msgid "Tracking"
+msgstr "Praćenje"
+
+
 msgid "Hooks"
 msgstr "Udice"
+
+
+msgid "Math"
+msgstr "Matematika"
 
 
 msgid "Clear Transform"
@@ -8621,8 +8609,20 @@ msgid "Import"
 msgstr "Uvoz"
 
 
+msgid "Snap"
+msgstr "Lepljenje"
+
+
 msgid "UV"
 msgstr "UV"
+
+
+msgid "Mirror"
+msgstr "Ogledalo"
+
+
+msgid "UV Mapping"
+msgstr "UV Mapiranje"
 
 
 msgid "Basic"
@@ -19135,12 +19135,12 @@ msgid "Restrict"
 msgstr "Ograniči"
 
 
-msgid "Motion Tracking"
-msgstr "Praćenje pokreta"
-
-
 msgid "Transform Orientations"
 msgstr "Transformacija orijentacija"
+
+
+msgid "Motion Tracking"
+msgstr "Praćenje pokreta"
 
 
 msgid "Bone Constraints"

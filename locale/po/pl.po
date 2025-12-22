@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-16 11:27+0000\n"
+"POT-Creation-Date: 2025-12-22 09:32+0000\n"
 "PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -11531,14 +11531,6 @@ msgid "Use Material Mask"
 msgstr "Używa maski materiału"
 
 
-msgid "Mirror"
-msgstr "Odbicie lustrzane"
-
-
-msgid "Snap"
-msgstr "Przyciągnij"
-
-
 msgid "Local View"
 msgstr "Widok lokalny"
 
@@ -11563,10 +11555,6 @@ msgid "Metaball"
 msgstr "Metakula"
 
 
-msgid "Layout"
-msgstr "Układ"
-
-
 msgid "Light"
 msgstr "Światło"
 
@@ -11575,12 +11563,12 @@ msgid "Light Probe"
 msgstr "Sonda świetlna"
 
 
+msgid "Layout"
+msgstr "Układ"
+
+
 msgid "Rigid Body"
 msgstr "Bryła sztywna"
-
-
-msgid "Keying"
-msgstr "Kluczowanie"
 
 
 msgid "Apply"
@@ -11589,14 +11577,6 @@ msgstr "Zastosuj"
 
 msgid "Track"
 msgstr "Ścieżka"
-
-
-msgid "Utilities"
-msgstr "Narzędzia"
-
-
-msgid "Math"
-msgstr "Matematyka"
 
 
 msgid "Quick Effects"
@@ -11611,12 +11591,24 @@ msgid "Clean Up"
 msgstr "Sprzątanie"
 
 
+msgid "Keying"
+msgstr "Kluczowanie"
+
+
 msgid "Asset"
 msgstr "Prefabrykat"
 
 
 msgid "Convert"
 msgstr "Konwertuj"
+
+
+msgid "Utilities"
+msgstr "Narzędzia"
+
+
+msgid "Math"
+msgstr "Matematyka"
 
 
 msgid "Bone Collections"
@@ -11647,12 +11639,20 @@ msgid "Import"
 msgstr "Importuj"
 
 
-msgid "Deprecated"
-msgstr "Przestarzałe"
+msgid "Snap"
+msgstr "Przyciągnij"
 
 
 msgid "Proportional Editing Falloff"
 msgstr "Proporcjonalne edytowanie spadku"
+
+
+msgid "Deprecated"
+msgstr "Przestarzałe"
+
+
+msgid "Mirror"
+msgstr "Odbicie lustrzane"
 
 
 msgid "Catalog"
@@ -17242,18 +17242,6 @@ msgid "Palette Color"
 msgstr "Kolor palety"
 
 
-msgid "Motion Tracking"
-msgstr "Śledzenie ruchu"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Tryb edycji siatki"
-
-
-msgid "Measurement"
-msgstr "Pomiar"
-
-
 msgid "Curve Edit Mode"
 msgstr "Tryb edycji krzywej"
 
@@ -17272,6 +17260,18 @@ msgstr "Ustawienia cienia"
 
 msgid "Compositor"
 msgstr "Kompozytor"
+
+
+msgid "Motion Tracking"
+msgstr "Śledzenie ruchu"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Tryb edycji siatki"
+
+
+msgid "Measurement"
+msgstr "Pomiar"
 
 
 msgid "Aperture"
@@ -23029,6 +23029,14 @@ msgid "particles"
 msgstr "cząstki"
 
 
+msgid "Mesh has no UV data"
+msgstr "Siatka nie posiada danych UV"
+
+
+msgid "Mesh has no VCol data"
+msgstr "Siatka nie posiada danych VCol"
+
+
 msgid "%i frames found!"
 msgstr "Odnaleziono %i klatek!"
 
@@ -25844,10 +25852,6 @@ msgid "OneDrive"
 msgstr "OneDrive"
 
 
-msgid "Movies"
-msgstr "Filmy"
-
-
 msgid "Cursor X"
 msgstr "Kursor X"
 
@@ -27313,14 +27317,6 @@ msgstr "Obiekt '%s' nie obsługuje kształtów"
 
 msgid "Object '%s' could not create internal data for finding nearest point"
 msgstr "Obiekt '%s' nie zdołał stworzyć wewnętrznych danych do znalezienia najbliższego punktu"
-
-
-msgid "Mesh has no UV data"
-msgstr "Siatka nie posiada danych UV"
-
-
-msgid "Mesh has no VCol data"
-msgstr "Siatka nie posiada danych VCol"
 
 
 msgid "Constraint '%s' not found in pose bone '%s'"

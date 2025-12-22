@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-16 11:27+0000\n"
+"POT-Creation-Date: 2025-12-22 09:32+0000\n"
 "PO-Revision-Date: 2025-12-15 18:48+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
@@ -35426,18 +35426,6 @@ msgid "Editor menu containing buttons"
 msgstr "ボタンを含むエディターメニュー"
 
 
-msgid "Mirror"
-msgstr "ミラー"
-
-
-msgid "Snap"
-msgstr "スナップ"
-
-
-msgid "UV Mapping"
-msgstr "UVマッピング"
-
-
 msgid "Local View"
 msgstr "ローカルビュー"
 
@@ -35490,16 +35478,16 @@ msgid "Metaball"
 msgstr "メタボール"
 
 
-msgid "Layout"
-msgstr "レイアウト"
-
-
 msgid "Light"
 msgstr "ライト"
 
 
 msgid "Light Probe"
 msgstr "ライトプローブ"
+
+
+msgid "Layout"
+msgstr "レイアウト"
 
 
 msgid "Add Image"
@@ -35510,44 +35498,24 @@ msgid "Relations"
 msgstr "関係"
 
 
-msgid "Adjust"
-msgstr "調整"
-
-
 msgid "Rigid Body"
 msgstr "リジッドボディ"
-
-
-msgid "Keying"
-msgstr "キーイング"
 
 
 msgid "Apply"
 msgstr "適用"
 
 
-msgid "Tracking"
-msgstr "トラッキング"
-
-
 msgid "Track"
 msgstr "トラック"
 
 
-msgid "Utilities"
-msgstr "ユーティリティ"
-
-
-msgid "Math"
-msgstr "数式"
+msgid "Adjust"
+msgstr "調整"
 
 
 msgid "Quick Effects"
 msgstr "クイックエフェクト"
-
-
-msgid "Creative"
-msgstr "クリエイティブ"
 
 
 msgid "Show/Hide"
@@ -35558,12 +35526,20 @@ msgid "Clean Up"
 msgstr "クリーンアップ"
 
 
+msgid "Keying"
+msgstr "キーイング"
+
+
 msgid "Asset"
 msgstr "アセット"
 
 
 msgid "Make Single User"
 msgstr "シングルユーザー化"
+
+
+msgid "Tracking"
+msgstr "トラッキング"
 
 
 msgid "Convert"
@@ -35574,8 +35550,20 @@ msgid "Link/Transfer Data"
 msgstr "データのリンク/転送"
 
 
+msgid "Utilities"
+msgstr "ユーティリティ"
+
+
 msgid "Hooks"
 msgstr "フック"
+
+
+msgid "Math"
+msgstr "数式"
+
+
+msgid "Creative"
+msgstr "クリエイティブ"
 
 
 msgid "Vertex Group Locks"
@@ -35584,10 +35572,6 @@ msgstr "頂点グループのロック"
 
 msgid "Trim/Add"
 msgstr "トリム/追加"
-
-
-msgid "Render Preview"
-msgstr "レンダープレビュー"
 
 
 msgid "Sculpt Set Pivot"
@@ -35608,6 +35592,10 @@ msgstr "トランスフォームをクリア"
 
 msgid "In-Betweens"
 msgstr "中間ポーズ"
+
+
+msgid "Render Preview"
+msgstr "レンダープレビュー"
 
 
 msgid "Propagate"
@@ -35658,8 +35646,16 @@ msgid "Read"
 msgstr "読込"
 
 
+msgid "Special Characters"
+msgstr "特殊文字"
+
+
 msgid "Sample"
 msgstr "サンプル"
+
+
+msgid "Kerning"
+msgstr "カーニング"
 
 
 msgid "Write"
@@ -35670,12 +35666,8 @@ msgid "Primitives"
 msgstr "プリミティブ"
 
 
-msgid "Special Characters"
-msgstr "特殊文字"
-
-
-msgid "Kerning"
-msgstr "カーニング"
+msgid "Bone Roll"
+msgstr "ボーンロール"
 
 
 msgid "Gizmo"
@@ -35686,32 +35678,24 @@ msgid "Instances"
 msgstr "インスタンス"
 
 
-msgid "Bone Roll"
-msgstr "ボーンロール"
-
-
 msgid "Import"
 msgstr "インポート"
-
-
-msgid "Deprecated"
-msgstr "廃止予定"
-
-
-msgid "List"
-msgstr "リスト"
 
 
 msgid "Pivot Point"
 msgstr "ピボットポイント"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Snap"
+msgstr "スナップ"
 
 
 msgid "Proportional Editing Falloff"
 msgstr "プロポーショナル編集の減衰タイプ"
+
+
+msgid "Deprecated"
+msgstr "廃止予定"
 
 
 msgid "Mask Edit"
@@ -35724,6 +35708,22 @@ msgstr "自動マスク"
 
 msgid "Face Sets Edit"
 msgstr "面セット編集"
+
+
+msgid "List"
+msgstr "リスト"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Mirror"
+msgstr "ミラー"
+
+
+msgid "UV Mapping"
+msgstr "UVマッピング"
 
 
 msgid "Keyframe Insert Pie"
@@ -57588,15 +57588,6 @@ msgstr "使用されていない物のみ"
 
 msgid "Only unused (Fake User only) actions get considered"
 msgstr "未使用(フェイクユーザーのみ)のアクションを考慮します"
-
-
-msgctxt "Operator"
-msgid "Convert Legacy Action"
-msgstr "旧アクションを変換"
-
-
-msgid "Convert a legacy Action to a layered Action on the active object"
-msgstr "アクティブオブジェクトの旧アクションをレイヤー化アクションに変換します"
 
 
 msgctxt "Operator"
@@ -92397,30 +92388,6 @@ msgid "Panel containing UI elements"
 msgstr "UIの要素を含むパネル"
 
 
-msgid "Overlays"
-msgstr "オーバーレイ"
-
-
-msgid "Guides"
-msgstr "ガイド"
-
-
-msgid "Viewer Node"
-msgstr "ビューアーノード"
-
-
-msgid "Motion Tracking"
-msgstr "モーショントラッキング"
-
-
-msgid "Mesh Edit Mode"
-msgstr "メッシュ編集モード"
-
-
-msgid "Measurement"
-msgstr "計測"
-
-
 msgid "Curve Edit Mode"
 msgstr "カーブ編集モード"
 
@@ -92439,6 +92406,10 @@ msgstr "ストロークの基準"
 
 msgid "Drawing Plane"
 msgstr "ドロー平面"
+
+
+msgid "Guides"
+msgstr "ガイド"
 
 
 msgid "Grease Pencil Options"
@@ -92539,6 +92510,26 @@ msgstr "レンダーパス"
 
 msgid "Compositor"
 msgstr "コンポジター"
+
+
+msgid "Overlays"
+msgstr "オーバーレイ"
+
+
+msgid "Viewer Node"
+msgstr "ビューアーノード"
+
+
+msgid "Motion Tracking"
+msgstr "モーショントラッキング"
+
+
+msgid "Mesh Edit Mode"
+msgstr "メッシュ編集モード"
+
+
+msgid "Measurement"
+msgstr "計測"
 
 
 msgid "Import Settings"
@@ -97846,14 +97837,6 @@ msgid "Chinese (Traditional) - 繁體中文"
 msgstr "繁体字中国語 - 繁體中文"
 
 
-msgid "Croatian - Hrvatski"
-msgstr "クロアチア語（Hrvatski）"
-
-
-msgid "Locale code: hr_HR. Translation progress: 0%"
-msgstr "ロケールコード：hr_HR．翻訳の進行状況: 0％"
-
-
 msgid "Czech - Čeština"
 msgstr "チェコ語 - Čeština"
 
@@ -97922,14 +97905,6 @@ msgid "Locale code: el_GR. Translation progress: 1%"
 msgstr "ロケールコード：el_GR．翻訳の進行状況: 1％"
 
 
-msgid "Hausa - Hausa"
-msgstr "ハウサ語 - Hausa"
-
-
-msgid "Locale code: ha. Translation progress: 0%"
-msgstr "ロケールコード：ha．翻訳の進行状況: 0％"
-
-
 msgid "Hebrew - תירִבְעִ"
 msgstr "ヘブライ語 - תירִבְעִ"
 
@@ -97962,14 +97937,6 @@ msgid "Japanese - 日本語"
 msgstr "日本語 - Japanese"
 
 
-msgid "Khmer - ខ្មែរ"
-msgstr "クメール語 - ខ្មែរ"
-
-
-msgid "Locale code: km. Translation progress: 0%"
-msgstr "ロケールコード：km．翻訳の進行状況: 0％"
-
-
 msgid "Korean - 한국어"
 msgstr "韓国語 - 한국어"
 
@@ -98000,14 +97967,6 @@ msgstr "マラヤ―ラム語 - മലയാളം"
 
 msgid "Locale code: ml. Translation progress: 0%"
 msgstr "ロケールコード：ml．翻訳の進行状況: 0％"
-
-
-msgid "Nepali - नेपाली"
-msgstr "ネパール語 - नेपाली"
-
-
-msgid "Locale code: ne_NP. Translation progress: 0%"
-msgstr "ロケールコード：ne_NP．翻訳の進行状況: 0％"
 
 
 msgid "Persian - ﯽﺳﺭﺎﻓ"
@@ -98080,10 +98039,6 @@ msgstr "スワヒリ語 - Kiswahili"
 
 msgid "Swedish - Svenska"
 msgstr "スウェーデン語 - Svenska"
-
-
-msgid "Locale code: sv_SE. Translation progress: 22%"
-msgstr "ロケールコード：sv_SE．翻訳の進行状況: 22％"
 
 
 msgid "Tamil - தமிழ்"
@@ -131791,6 +131746,18 @@ msgid "particles"
 msgstr "パーティクル"
 
 
+msgid "Object was not yet evaluated"
+msgstr "オブジェクトが未評価です"
+
+
+msgid "Mesh has no UV data"
+msgstr "メッシュに UV データがありません"
+
+
+msgid "Mesh has no VCol data"
+msgstr "メッシュに頂点色データがありません"
+
+
 msgid "Unsaved"
 msgstr "未保存"
 
@@ -132564,14 +132531,6 @@ msgid "Compositor node tree has cyclic links!"
 msgstr "コンポジターノードツリーにリンクのループがあります！"
 
 
-msgid "Compositor node tree has undefined nodes or sockets!"
-msgstr "コンポジターノードツリーに未定義ノードまたはソケットがあります！"
-
-
-msgid "Compositor node tree has unsupported nodes."
-msgstr "コンポジターノードツリーに未対応ノードがあります."
-
-
 msgid "Error: Too many AOVs"
 msgstr "エラー：AOV が多すぎです"
 
@@ -132836,10 +132795,6 @@ msgid "No active action to operate on"
 msgstr "操作するアクティブアクションがありません"
 
 
-msgid "Active action is not layered"
-msgstr "アクティブアクションはレイヤー化されていません"
-
-
 msgid "No active object"
 msgstr "アクティブオブジェクトなし"
 
@@ -132935,10 +132890,6 @@ msgstr "アニメーションの統合に失敗しました．NLA ストリッ�
 
 msgid "Expected an animation area to be active"
 msgstr "アニメーション領域をアクティブにしてください"
-
-
-msgid "Action is already layered"
-msgstr "アクションはすでにレイヤー化されています"
 
 
 msgid "Active object has no action"
@@ -135892,18 +135843,6 @@ msgid "Loop cut does not work well on deformed edit mesh display"
 msgstr "デフォーム編集メッシュ表示では，ループカットはうまく動作しません"
 
 
-msgid "Create Mesh From Paint Mask"
-msgstr "ペイントマスクからメッシュ作成"
-
-
-msgid "Extract"
-msgstr "抽出"
-
-
-msgid "The geometry cannot be extracted with dyntopo activated"
-msgstr "Dyntopo 有効時は形状が抽出できません"
-
-
 msgid "Path selection requires two matching elements to be selected"
 msgstr "経路を選択するには適合する要素を二つ選択してください"
 
@@ -138771,6 +138710,18 @@ msgid "Texture mapping not set to 3D, results may be unpredictable"
 msgstr "テクスチャマッピングが3Dに設定されておらず，予期せぬ結果になる可能性があります"
 
 
+msgid "Create Mesh From Paint Mask"
+msgstr "ペイントマスクからメッシュ作成"
+
+
+msgid "Extract"
+msgstr "抽出"
+
+
+msgid "The geometry cannot be extracted with dyntopo activated"
+msgstr "Dyntopo 有効時は形状が抽出できません"
+
+
 msgid "non-triangle face"
 msgstr "非三角面"
 
@@ -139390,10 +139341,6 @@ msgstr "ビデオ"
 
 msgid "OneDrive"
 msgstr "OneDrive"
-
-
-msgid "Movies"
-msgstr "映画"
 
 
 msgid "Cursor X"
@@ -140063,10 +140010,6 @@ msgstr "新しい場所でお互いが重なるため，選択中のストリッ
 
 msgid "Cannot swap selected strips as they will not be able to fit in their new places"
 msgstr "新しい場所に収まらないため，選択中のストリップを交換できません"
-
-
-msgid "Action '%s' does not specify what data-blocks it can be used on (try setting the 'ID Root Type' setting from the data-blocks editor for this action to avoid future problems)"
-msgstr "アクション「%s」で使用可能なデータブロックを指定できません（将来的な問題を回避するため，データブロックエディターでこのアクション用の「IDルートタイプ」を設定してみてください）"
 
 
 msgid "Could not add action '%s' as it cannot be used relative to ID-blocks of type '%s'"
@@ -144915,18 +144858,6 @@ msgstr "無効なターゲットです！"
 
 msgid "uv_on_emitter() requires a modifier from an evaluated object"
 msgstr "uv_on_emitter() は評価されるオブジェクトのモディファイアーが必要です"
-
-
-msgid "Mesh has no UV data"
-msgstr "メッシュに UV データがありません"
-
-
-msgid "Object was not yet evaluated"
-msgstr "オブジェクトが未評価です"
-
-
-msgid "Mesh has no VCol data"
-msgstr "メッシュに頂点色データがありません"
 
 
 msgid "Cannot edit bone groups for library overrides"

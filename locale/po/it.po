@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-16 11:27+0000\n"
+"POT-Creation-Date: 2025-12-22 09:32+0000\n"
 "PO-Revision-Date: 2025-11-12 16:04+0000\n"
 "Last-Translator: blend-it <blend-it@users.noreply.translate.blender.org>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -24582,18 +24582,6 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Mirror"
-msgstr "Specchia"
-
-
-msgid "Snap"
-msgstr "Aggancia"
-
-
-msgid "UV Mapping"
-msgstr "Mappatura UV"
-
-
 msgid "Local View"
 msgstr "Vista Locale"
 
@@ -24646,16 +24634,16 @@ msgid "Metaball"
 msgstr "Metaball"
 
 
-msgid "Layout"
-msgstr "Layout"
-
-
 msgid "Light"
 msgstr "Luce"
 
 
 msgid "Light Probe"
 msgstr "Sensore di Luce"
+
+
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Add Image"
@@ -24666,36 +24654,20 @@ msgid "Relations"
 msgstr "Relazioni"
 
 
-msgid "Adjust"
-msgstr "Regola"
-
-
 msgid "Rigid Body"
 msgstr "Corpo Rigido"
-
-
-msgid "Keying"
-msgstr "Keying"
 
 
 msgid "Apply"
 msgstr "Applica"
 
 
-msgid "Tracking"
-msgstr "Tracciamento"
-
-
 msgid "Track"
 msgstr "Traccia"
 
 
-msgid "Utilities"
-msgstr "Utilità"
-
-
-msgid "Math"
-msgstr "Matematica"
+msgid "Adjust"
+msgstr "Regola"
 
 
 msgid "Quick Effects"
@@ -24710,12 +24682,20 @@ msgid "Clean Up"
 msgstr "Ripulisci"
 
 
+msgid "Keying"
+msgstr "Keying"
+
+
 msgid "Asset"
 msgstr "Risorsa"
 
 
 msgid "Make Single User"
 msgstr "Rendi Utilizzatore Singolo"
+
+
+msgid "Tracking"
+msgstr "Tracciamento"
 
 
 msgid "Convert"
@@ -24726,8 +24706,16 @@ msgid "Link/Transfer Data"
 msgstr "Collega/Trasferisci Dati"
 
 
+msgid "Utilities"
+msgstr "Utilità"
+
+
 msgid "Hooks"
 msgstr "Ganci"
+
+
+msgid "Math"
+msgstr "Matematica"
 
 
 msgid "Vertex Group Locks"
@@ -24798,8 +24786,16 @@ msgid "Read"
 msgstr "Lettura"
 
 
+msgid "Special Characters"
+msgstr "Caratteri Speciali"
+
+
 msgid "Sample"
 msgstr "Campione"
+
+
+msgid "Kerning"
+msgstr "Crenatura"
 
 
 msgid "Write"
@@ -24810,20 +24806,12 @@ msgid "Primitives"
 msgstr "Primitive"
 
 
-msgid "Special Characters"
-msgstr "Caratteri Speciali"
-
-
-msgid "Kerning"
-msgstr "Crenatura"
+msgid "Bone Roll"
+msgstr "Rollio Osso"
 
 
 msgid "Instances"
 msgstr "Istanze"
-
-
-msgid "Bone Roll"
-msgstr "Rollio Osso"
 
 
 msgid "Import"
@@ -24834,8 +24822,8 @@ msgid "Pivot Point"
 msgstr "Punto di Perno"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Snap"
+msgstr "Aggancia"
 
 
 msgid "Proportional Editing Falloff"
@@ -24852,6 +24840,18 @@ msgstr "Automascheramento"
 
 msgid "Face Sets Edit"
 msgstr "Modifica Sets di Facce"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Mirror"
+msgstr "Specchia"
+
+
+msgid "UV Mapping"
+msgstr "Mappatura UV"
 
 
 msgid "Keyframe Insert Pie"
@@ -50304,32 +50304,16 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
-msgid "Overlays"
-msgstr "Sovrapposizioni"
-
-
-msgid "Guides"
-msgstr "Guide"
-
-
-msgid "Motion Tracking"
-msgstr "Tracciatura Movimento"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Modalità Modifica Mesh"
-
-
-msgid "Measurement"
-msgstr "Misurazione"
-
-
 msgid "Transform Orientations"
 msgstr "Assi (Orientamenti Trasformazione)"
 
 
 msgid "Stroke Placement"
 msgstr "Giacitura Tratto"
+
+
+msgid "Guides"
+msgstr "Guide"
 
 
 msgid "Stereoscopy"
@@ -50362,6 +50346,22 @@ msgstr "Passaggi Render"
 
 msgid "Compositor"
 msgstr "Compositore"
+
+
+msgid "Overlays"
+msgstr "Sovrapposizioni"
+
+
+msgid "Motion Tracking"
+msgstr "Tracciatura Movimento"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Modalità Modifica Mesh"
+
+
+msgid "Measurement"
+msgstr "Misurazione"
 
 
 msgid "Chain Scaling"
@@ -64794,6 +64794,14 @@ msgid "ParticleSettings"
 msgstr "Impostazioni Particelle"
 
 
+msgid "Mesh has no UV data"
+msgstr "La mesh non ha dati UV"
+
+
+msgid "Mesh has no VCol data"
+msgstr "La mesh non ha dati di colore vertice"
+
+
 msgid "%i frames found!"
 msgstr "%i fotogrammi trovati!"
 
@@ -67023,10 +67031,6 @@ msgid "Videos"
 msgstr "Video"
 
 
-msgid "Movies"
-msgstr "Filmati"
-
-
 msgid "Cursor X"
 msgstr "X Cursore"
 
@@ -68356,14 +68360,6 @@ msgstr "L'oggetto '%s' non è nella vista livello '%s'"
 
 msgid "Object '%s' does not support shapes"
 msgstr "L'Oggetto '%s' non supporta le forme"
-
-
-msgid "Mesh has no UV data"
-msgstr "La mesh non ha dati UV"
-
-
-msgid "Mesh has no VCol data"
-msgstr "La mesh non ha dati di colore vertice"
 
 
 msgid "Constraint '%s' not found in pose bone '%s'"

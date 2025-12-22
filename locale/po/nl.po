@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-16 11:27+0000\n"
+"POT-Creation-Date: 2025-12-22 09:32+0000\n"
 "PO-Revision-Date: 2025-07-23 14:52+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -2686,10 +2686,6 @@ msgid "Dots"
 msgstr "Stippen"
 
 
-msgid "Mirror"
-msgstr "Spiegel"
-
-
 msgid "Local View"
 msgstr "Lokale Scherm"
 
@@ -2706,12 +2702,12 @@ msgid "Select Linked"
 msgstr "Selecteer Aaneengesloten"
 
 
-msgid "Layout"
-msgstr "Indeling"
-
-
 msgid "Light"
 msgstr "Licht"
+
+
+msgid "Layout"
+msgstr "Indeling"
 
 
 msgid "Add Image"
@@ -2752,6 +2748,10 @@ msgstr "Namen"
 
 msgid "Import"
 msgstr "Importeren"
+
+
+msgid "Mirror"
+msgstr "Spiegel"
 
 
 msgctxt "MovieClip"
@@ -8791,10 +8791,6 @@ msgstr "Afbeeldingen"
 
 msgid "Videos"
 msgstr "Video's"
-
-
-msgid "Movies"
-msgstr "Films"
 
 
 msgid "It cannot be left blank"

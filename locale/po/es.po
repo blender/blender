@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'7d4876cf0c11')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-16 11:27+0000\n"
-"PO-Revision-Date: 2025-12-10 00:12+0000\n"
+"POT-Creation-Date: 2025-12-22 09:32+0000\n"
+"PO-Revision-Date: 2025-12-17 08:12+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -13255,6 +13255,22 @@ msgid "Lowest Quality"
 msgstr "Ínfima"
 
 
+msgid "Custom Quality"
+msgstr "Personalizada"
+
+
+msgid "Set a custom Constant Rate Factor (CRF)."
+msgstr "Permite definir una tasa de bits constante personalizada (TBC)."
+
+
+msgid "CRF"
+msgstr "TBC"
+
+
+msgid "A smaller Constant Rate Factor (CRF) results in better video quality but larger file size. The range of allowed CRF values is dependent on the codec."
+msgstr "Una tasa de bits constante (TBC) más pequeña producirá un video de mejor calidad, aunque de mayor tamaño. El rango de TBC permitidas dependerá del compresor escogido."
+
+
 msgid "Encoding Speed"
 msgstr "Velocidad de codificación"
 
@@ -19352,7 +19368,7 @@ msgstr "Preajuste de curva de decaimiento"
 
 msgctxt "Curve"
 msgid "Custom"
-msgstr "Personalizada"
+msgstr "Personalizado"
 
 
 msgctxt "Curve"
@@ -34918,18 +34934,6 @@ msgid "Editor menu containing buttons"
 msgstr "Menú del editor que contiene botones"
 
 
-msgid "Mirror"
-msgstr "Simetrizar"
-
-
-msgid "Snap"
-msgstr "Adherir"
-
-
-msgid "UV Mapping"
-msgstr "Mapeo UV"
-
-
 msgid "Local View"
 msgstr "Vista local"
 
@@ -34982,16 +34986,16 @@ msgid "Metaball"
 msgstr "Metabola"
 
 
-msgid "Layout"
-msgstr "Organizar"
-
-
 msgid "Light"
 msgstr "Luz"
 
 
 msgid "Light Probe"
 msgstr "Sonda de luz"
+
+
+msgid "Layout"
+msgstr "Organizar"
 
 
 msgid "Add Image"
@@ -35002,44 +35006,24 @@ msgid "Relations"
 msgstr "Relaciones"
 
 
-msgid "Adjust"
-msgstr "Ajustar"
-
-
 msgid "Rigid Body"
 msgstr "Cuerpo rígido"
-
-
-msgid "Keying"
-msgstr "Recortar"
 
 
 msgid "Apply"
 msgstr "Aplicar"
 
 
-msgid "Tracking"
-msgstr "Rastreo"
-
-
 msgid "Track"
 msgstr "Rastrear"
 
 
-msgid "Utilities"
-msgstr "Utilitarios"
-
-
-msgid "Math"
-msgstr "Operar"
+msgid "Adjust"
+msgstr "Ajustar"
 
 
 msgid "Quick Effects"
 msgstr "Efectos rápidos"
-
-
-msgid "Creative"
-msgstr "Creatividad"
 
 
 msgid "Show/Hide"
@@ -35050,12 +35034,20 @@ msgid "Clean Up"
 msgstr "Limpiar"
 
 
+msgid "Keying"
+msgstr "Recortar"
+
+
 msgid "Asset"
 msgstr "Recurso"
 
 
 msgid "Make Single User"
 msgstr "Hacer de único usuario"
+
+
+msgid "Tracking"
+msgstr "Rastreo"
 
 
 msgid "Convert"
@@ -35066,8 +35058,20 @@ msgid "Link/Transfer Data"
 msgstr "Vincular / Transferir datos"
 
 
+msgid "Utilities"
+msgstr "Utilitarios"
+
+
 msgid "Hooks"
 msgstr "Asignar gancho"
+
+
+msgid "Math"
+msgstr "Operar"
+
+
+msgid "Creative"
+msgstr "Creatividad"
 
 
 msgid "Vertex Group Locks"
@@ -35076,10 +35080,6 @@ msgstr "Bloqueos de grupo de vértices"
 
 msgid "Trim/Add"
 msgstr "Recortar / Agregar"
-
-
-msgid "Render Preview"
-msgstr "Procesar previsualización"
 
 
 msgid "Sculpt Set Pivot"
@@ -35100,6 +35100,10 @@ msgstr "Restablecer transformación"
 
 msgid "In-Betweens"
 msgstr "Intermedios"
+
+
+msgid "Render Preview"
+msgstr "Procesar previsualización"
 
 
 msgid "Propagate"
@@ -35150,8 +35154,16 @@ msgid "Read"
 msgstr "Lectura"
 
 
+msgid "Special Characters"
+msgstr "Caracteres especiales"
+
+
 msgid "Sample"
 msgstr "Muestreo"
+
+
+msgid "Kerning"
+msgstr "Espaciado"
 
 
 msgid "Write"
@@ -35162,12 +35174,8 @@ msgid "Primitives"
 msgstr "Primitivas"
 
 
-msgid "Special Characters"
-msgstr "Caracteres especiales"
-
-
-msgid "Kerning"
-msgstr "Espaciado"
+msgid "Bone Roll"
+msgstr "Giro de huesos"
 
 
 msgid "Gizmo"
@@ -35178,32 +35186,24 @@ msgid "Instances"
 msgstr "Instancias"
 
 
-msgid "Bone Roll"
-msgstr "Giro de huesos"
-
-
 msgid "Import"
 msgstr "Importar"
-
-
-msgid "Deprecated"
-msgstr "Obsoleto"
-
-
-msgid "List"
-msgstr "Lista"
 
 
 msgid "Pivot Point"
 msgstr "Punto de pivote"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Snap"
+msgstr "Adherir"
 
 
 msgid "Proportional Editing Falloff"
 msgstr "Decaimiento de edición proporcional"
+
+
+msgid "Deprecated"
+msgstr "Obsoleto"
 
 
 msgid "Mask Edit"
@@ -35216,6 +35216,22 @@ msgstr "Autoenmascarar"
 
 msgid "Face Sets Edit"
 msgstr "Edición de conjuntos de caras"
+
+
+msgid "List"
+msgstr "Lista"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Mirror"
+msgstr "Simetrizar"
+
+
+msgid "UV Mapping"
+msgstr "Mapeo UV"
 
 
 msgid "Keyframe Insert Pie"
@@ -56918,15 +56934,6 @@ msgstr "Sólo no usado"
 
 msgid "Only unused (Fake User only) actions get considered"
 msgstr "Sólo se consideran las acciones no usadas (Usuario ficticio)"
-
-
-msgctxt "Operator"
-msgid "Convert Legacy Action"
-msgstr "Convertir acción antigua"
-
-
-msgid "Convert a legacy Action to a layered Action on the active object"
-msgstr "Convierte una acción antigua en una acción con capas, en el objeto activo"
 
 
 msgctxt "Operator"
@@ -91574,30 +91581,6 @@ msgid "Panel containing UI elements"
 msgstr "Panel que contiene elementos de la interfaz"
 
 
-msgid "Overlays"
-msgstr "Sobreimpresos"
-
-
-msgid "Guides"
-msgstr "Guías"
-
-
-msgid "Viewer Node"
-msgstr "Nodo Visor"
-
-
-msgid "Motion Tracking"
-msgstr "Rastreo de movimiento"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Modo edición de mallas"
-
-
-msgid "Measurement"
-msgstr "Medición"
-
-
 msgid "Curve Edit Mode"
 msgstr "Modo edición de curvas"
 
@@ -91616,6 +91599,10 @@ msgstr "Ubicación del trazo"
 
 msgid "Drawing Plane"
 msgstr "Plano de dibujo"
+
+
+msgid "Guides"
+msgstr "Guías"
 
 
 msgid "Grease Pencil Options"
@@ -91716,6 +91703,26 @@ msgstr "Pasada de procesamiento"
 
 msgid "Compositor"
 msgstr "Nodos de composición"
+
+
+msgid "Overlays"
+msgstr "Sobreimpresos"
+
+
+msgid "Viewer Node"
+msgstr "Nodo Visor"
+
+
+msgid "Motion Tracking"
+msgstr "Rastreo de movimiento"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Modo edición de mallas"
+
+
+msgid "Measurement"
+msgstr "Medición"
 
 
 msgid "Import Settings"
@@ -96950,14 +96957,6 @@ msgid "Chinese (Traditional) - 繁體中文"
 msgstr "Chino (tradicional) - 繁體中文"
 
 
-msgid "Croatian - Hrvatski"
-msgstr "Croata - Hrvatski"
-
-
-msgid "Locale code: hr_HR. Translation progress: 0%"
-msgstr "Código de localización: hr_HR. Progreso de la traducción: 0%"
-
-
 msgid "Czech - Čeština"
 msgstr "Checo - Čeština"
 
@@ -97038,14 +97037,6 @@ msgid "Locale code: el_GR. Translation progress: 1%"
 msgstr "Código de localización: el_GR. Progreso de la traducción: 1%"
 
 
-msgid "Hausa - Hausa"
-msgstr "Hausa - Hausa"
-
-
-msgid "Locale code: ha. Translation progress: 0%"
-msgstr "Código de localización: ha. Progreso de la traducción: 0%"
-
-
 msgid "Hebrew - תירִבְעִ"
 msgstr "Hebreo - תירִבְעִ"
 
@@ -97082,24 +97073,12 @@ msgid "Italian - Italiano"
 msgstr "Italiano - Italiano"
 
 
-msgid "Locale code: it_IT. Translation progress: 45%"
-msgstr "Código de localización: it_IT. Progreso de la traducción: 45%"
-
-
 msgid "Japanese - 日本語"
 msgstr "Japonés - 日本語"
 
 
 msgid "Locale code: ja_JP. Translation progress: 99%"
 msgstr "Código de localización: ja_JP. Progreso de la traducción: 99%"
-
-
-msgid "Khmer - ខ្មែរ"
-msgstr "Camboyano - ខ្មែរ"
-
-
-msgid "Locale code: km. Translation progress: 0%"
-msgstr "Código de localización: km. Progreso de la traducción: 0%"
 
 
 msgid "Korean - 한국어"
@@ -97132,14 +97111,6 @@ msgstr "Malabar - മലയാളം"
 
 msgid "Locale code: ml. Translation progress: 0%"
 msgstr "Código de localización: ml. Progreso de la traducción: 0%"
-
-
-msgid "Nepali - नेपाली"
-msgstr "Nepalés - नेपाली"
-
-
-msgid "Locale code: ne_NP. Translation progress: 0%"
-msgstr "Código de localización: ne_NP. Progreso de la traducción: 0%"
 
 
 msgid "Norwegian (Bokmål) - Norsk bokmål"
@@ -97242,10 +97213,6 @@ msgid "Swedish - Svenska"
 msgstr "Sueco - Svenska"
 
 
-msgid "Locale code: sv_SE. Translation progress: 22%"
-msgstr "Código de localización: sv_SE. Progreso de la traducción: 22%"
-
-
 msgid "Tamil - தமிழ்"
 msgstr "Tamil - தமிழ்"
 
@@ -97288,10 +97255,6 @@ msgstr "Código de localización: ur. Progreso de la traducción: 87%"
 
 msgid "Vietnamese - Tiếng Việt"
 msgstr "Vietnamita - Tiếng Việt"
-
-
-msgid "Locale code: vi_VN. Translation progress: 95%"
-msgstr "Código de localización: vi_VN. Progreso de la traducción: 95%"
 
 
 msgid "Reference Sphere Size"
@@ -131081,6 +131044,18 @@ msgid "particles"
 msgstr "partículas"
 
 
+msgid "Object was not yet evaluated"
+msgstr "El objeto aún no había sido evaluado"
+
+
+msgid "Mesh has no UV data"
+msgstr "La malla no contiene datos UV"
+
+
+msgid "Mesh has no VCol data"
+msgstr "La malla no contiene datos de colores de vértices"
+
+
 msgid "Unsaved"
 msgstr "No guardado"
 
@@ -131862,14 +131837,6 @@ msgid "Compositor node tree has cyclic links!"
 msgstr "¡El árbol de nodos de composición contiene conexiones cíclicas!"
 
 
-msgid "Compositor node tree has undefined nodes or sockets!"
-msgstr "¡El árbol de nodos de composición contiene nodos o conectores no definidos!"
-
-
-msgid "Compositor node tree has unsupported nodes."
-msgstr "El árbol de nodos del compositor contiene nodos no soportados."
-
-
 msgid "Error: Too many AOVs"
 msgstr "Error: Demasiadas AOV"
 
@@ -132130,10 +132097,6 @@ msgid "No active action to operate on"
 msgstr "Ninguna acción activa sobre la cual operar"
 
 
-msgid "Active action is not layered"
-msgstr "La acción activa no puede contener capas"
-
-
 msgid "No active object"
 msgstr "Ningún objeto activo"
 
@@ -132229,10 +132192,6 @@ msgstr "Error al fusionar animaciones. Nótese que los clips de ANL no pueden se
 
 msgid "Expected an animation area to be active"
 msgstr "Se esperaba que un área de animación estuviera activa"
-
-
-msgid "Action is already layered"
-msgstr "La acción ya contiene capas"
 
 
 msgid "Active object has no action"
@@ -135240,18 +135199,6 @@ msgid "Loop cut does not work well on deformed edit mesh display"
 msgstr "Cortar bucle no funciona bien al visualizar la deformación de mallas en modo Edición"
 
 
-msgid "Create Mesh From Paint Mask"
-msgstr "Crear malla desde máscara de pintura"
-
-
-msgid "Extract"
-msgstr "Extraer"
-
-
-msgid "The geometry cannot be extracted with dyntopo activated"
-msgstr "La geometría no puede ser extraída mientras la topología dinámica se encuentre activa"
-
-
 msgid "Path selection requires two matching elements to be selected"
 msgstr "La selección de trayectoria requiere que se seleccionen dos elementos coincidentes"
 
@@ -138159,6 +138106,18 @@ msgid "Texture mapping not set to 3D, results may be unpredictable"
 msgstr "El mapeo de textura no está definido en 3D, es posible que los resultados sean impredecibles"
 
 
+msgid "Create Mesh From Paint Mask"
+msgstr "Crear malla desde máscara de pintura"
+
+
+msgid "Extract"
+msgstr "Extraer"
+
+
+msgid "The geometry cannot be extracted with dyntopo activated"
+msgstr "La geometría no puede ser extraída mientras la topología dinámica se encuentre activa"
+
+
 msgid "non-triangle face"
 msgstr "cara no triangular"
 
@@ -138782,10 +138741,6 @@ msgstr "Videos"
 
 msgid "OneDrive"
 msgstr "OneDrive"
-
-
-msgid "Movies"
-msgstr "Películas"
 
 
 msgid "Cursor X"
@@ -139453,10 +139408,6 @@ msgstr "No es posible intercambiar los clips seleccionados porque se superpondr�
 
 msgid "Cannot swap selected strips as they will not be able to fit in their new places"
 msgstr "No es posible intercambiar los clips seleccionados porque no entrarán en sus nuevos lugares"
-
-
-msgid "Action '%s' does not specify what data-blocks it can be used on (try setting the 'ID Root Type' setting from the data-blocks editor for this action to avoid future problems)"
-msgstr "La acción '%s' no especifica en qué bloques de datos puede ser usada (intentar especificar la opción 'Tipo de ID base' para esta acción, en el editor de bloques de datos, para evitar futuros problemas)"
 
 
 msgid "Could not add action '%s' as it cannot be used relative to ID-blocks of type '%s'"
@@ -144357,18 +144308,6 @@ msgstr "¡Objetivo inválido!"
 
 msgid "uv_on_emitter() requires a modifier from an evaluated object"
 msgstr "uv_on_emitter() requiere un modificador de un objeto evaluado"
-
-
-msgid "Mesh has no UV data"
-msgstr "La malla no contiene datos UV"
-
-
-msgid "Object was not yet evaluated"
-msgstr "El objeto aún no había sido evaluado"
-
-
-msgid "Mesh has no VCol data"
-msgstr "La malla no contiene datos de colores de vértices"
 
 
 msgid "Cannot edit bone groups for library overrides"
@@ -153778,6 +153717,10 @@ msgid "The intensity of the aberration effect"
 msgstr "La intensidad del efecto de aberración"
 
 
+msgid "Different styles of aberrations"
+msgstr "Distintos estilos de aberración cromática"
+
+
 msgid "Combine Cylindrical"
 msgstr "Combinar (cilíndricos)"
 
@@ -153848,6 +153791,10 @@ msgstr "Variar el ruido en cada fotograma"
 
 msgid "Chroma Noise"
 msgstr "Ruido de croma"
+
+
+msgid "The amount of color noise"
+msgstr "La intensidad del ruido del color"
 
 
 msgid "Luminance Noise"
