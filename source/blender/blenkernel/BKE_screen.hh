@@ -68,6 +68,12 @@ struct wmNotifier;
 struct wmTimer;
 struct wmWindow;
 struct wmWindowManager;
+struct RegionDrawCB;
+struct PanelType;
+struct HeaderType;
+struct ARegionType;
+struct wmEventHandler;
+struct PanelCategoryDyn;
 
 /* spacetype has everything stored to get an editor working, it gets initialized via
  * #ED_spacetypes_init() in `editors/space_api/spacetypes.cc` */
@@ -162,7 +168,7 @@ struct SpaceType {
   void (*blend_write)(BlendWriter *writer, SpaceLink *space_link);
 
   /** Region type definitions. */
-  ListBase regiontypes;
+  ListBaseT<ARegionType> regiontypes;
 
   /* read and write... */
 
@@ -301,13 +307,13 @@ struct ARegionType {
   ARegionTypeFlag flag;
 
   /** Custom drawing callbacks. */
-  ListBase drawcalls;
+  ListBaseT<RegionDrawCB> drawcalls;
 
   /** Panels type definitions. */
-  ListBase paneltypes;
+  ListBaseT<PanelType> paneltypes;
 
   /** Header type definitions. */
-  ListBase headertypes;
+  ListBaseT<HeaderType> headertypes;
 
   /** Hardcoded constraints, smaller than these values region is not visible. */
   int minsizex, minsizey;
@@ -398,7 +404,7 @@ struct PanelType {
 
   /** Sub panels. */
   PanelType *parent;
-  ListBase children;
+  ListBaseT<LinkData> children;
 
   /** RNA integration. */
   ExtensionRNA rna_ext;
@@ -503,11 +509,9 @@ struct ARegionRuntime {
 
   /** Maps #ui::Block::name to ui::Block for faster lookups. */
   Map<std::string, blender::ui::Block *> block_name_map;
-  /** #ui::Block. */
-  ListBase uiblocks = {};
+  ListBaseT<ui::Block> uiblocks = {};
 
-  /** #wmEventHandler. */
-  ListBase handlers = {};
+  ListBaseT<wmEventHandler> handlers = {};
 
   /** Use this string to draw info. */
   char *headerstr = nullptr;
@@ -521,7 +525,7 @@ struct ARegionRuntime {
   wmDrawBuffer *draw_buffer = nullptr;
 
   /** Panel categories runtime. */
-  ListBase panels_category = {};
+  ListBaseT<PanelCategoryDyn> panels_category = {};
 
   /** Region is currently visible on screen. */
   short visible = 0;
