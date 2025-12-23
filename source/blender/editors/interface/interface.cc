@@ -2291,11 +2291,11 @@ void block_draw(const bContext *C, Block *block)
 
     /* Don't draw buttons that are wider than enclosing panel. #150173 */
     if (block->panel && block->panel->sizex > 0) {
-      int panel_width = int(ceil(float(block->panel->sizex) * UI_SCALE_FAC / block->aspect));
+      int panel_width = int(ceil(float(block->panel->sizex) / block->aspect));
       if (panel_should_show_background(region, block->panel->type)) {
         panel_width -= int(floor(UI_PANEL_MARGIN_X / block->aspect * 2.0f));
       }
-      if (BLI_rcti_size_x(&rect) > panel_width) {
+      if (BLI_rcti_size_x(&rect) > int(float(panel_width) * 1.2f)) {
         continue;
       }
     }
