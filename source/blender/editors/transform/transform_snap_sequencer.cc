@@ -664,7 +664,13 @@ void snap_sequencer_image_apply_translate(TransInfo *t, float vec[2])
   }
 }
 
-static int snap_sequencer_to_closest_strip_ex(TransInfo *t, const int frame_1, const int frame_2)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Drag and Drop Snapping
+ * \{ */
+
+static int snap_sequencer_calc_drag_drop_impl(TransInfo *t, const int frame_1, const int frame_2)
 {
   Scene *scene = t->scene;
   TransSeqSnapData *snap_data = MEM_new<TransSeqSnapData>(__func__);
@@ -699,12 +705,12 @@ static int snap_sequencer_to_closest_strip_ex(TransInfo *t, const int frame_1, c
   return snap_offset;
 }
 
-bool snap_sequencer_to_closest_strip_calc(Scene *scene,
-                                          ARegion *region,
-                                          const int frame_1,
-                                          const int frame_2,
-                                          int *r_snap_distance,
-                                          float *r_snap_frame)
+bool snap_sequencer_calc_drag_drop(Scene *scene,
+                                   ARegion *region,
+                                   const int frame_1,
+                                   const int frame_2,
+                                   int *r_snap_distance,
+                                   float *r_snap_frame)
 {
   TransInfo t = {nullptr};
   t.scene = scene;
@@ -713,12 +719,12 @@ bool snap_sequencer_to_closest_strip_calc(Scene *scene,
   t.data_type = &TransConvertType_Sequencer;
 
   t.tsnap.mode = eSnapMode(seq::tool_settings_snap_mode_get(scene));
-  *r_snap_distance = snap_sequencer_to_closest_strip_ex(&t, frame_1, frame_2);
+  *r_snap_distance = snap_sequencer_calc_drag_drop_impl(&t, frame_1, frame_2);
   *r_snap_frame = t.tsnap.snap_target[0];
   return validSnap(&t);
 }
 
-void sequencer_snap_point(ARegion *region, const float snap_point)
+void snap_sequencer_draw_drag_drop(ARegion *region, const float snap_point)
 {
   /* Reuse the snapping drawing code from the transform system. */
   TransInfo t = {nullptr};

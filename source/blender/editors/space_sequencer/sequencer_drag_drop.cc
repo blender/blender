@@ -214,7 +214,7 @@ static float update_overlay_strip_position_data(bContext *C, const int mval[2])
     float snap_frame;
     bool valid_snap;
 
-    valid_snap = transform::snap_sequencer_to_closest_strip_calc(
+    valid_snap = transform::snap_sequencer_calc_drag_drop(
         scene, region, start_frame, end_frame, &snap_delta, &snap_frame);
 
     if (valid_snap) {
@@ -396,7 +396,9 @@ static void draw_strip_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, co
   blender::ui::theme::theme_set(SPACE_SEQ, RGN_TYPE_WINDOW);
 
   if (coords->use_snapping) {
-    transform::sequencer_snap_point(region, coords->snap_point_x);
+    ui::view2d_view_ortho(&region->v2d);
+    transform::snap_sequencer_draw_drag_drop(region, coords->snap_point_x);
+    ui::view2d_view_restore(C);
   }
 
   /* Init GPU drawing. */

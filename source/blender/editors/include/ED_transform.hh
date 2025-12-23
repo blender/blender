@@ -213,13 +213,13 @@ int calc_gizmo_stats(const bContext *C,
  * strip.
  * \returns True if there was anything to snap to.
  */
-bool snap_sequencer_to_closest_strip_calc(Scene *scene,
-                                          ARegion *region,
-                                          int frame_1,
-                                          int frame_2,
-                                          int *r_snap_distance,
-                                          float *r_snap_frame);
+bool snap_sequencer_calc_drag_drop(Scene *scene,
+                                   ARegion *region,
+                                   int frame_1,
+                                   int frame_2,
+                                   int *r_snap_distance,
+                                   float *r_snap_frame);
 
-void sequencer_snap_point(ARegion *region, float snap_point);
+void snap_sequencer_draw_drag_drop(ARegion *region, float snap_point);
 
 }  // namespace blender::ed::transform
