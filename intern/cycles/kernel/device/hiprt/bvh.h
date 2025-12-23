@@ -8,11 +8,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device_inline bool scene_intersect_valid(const ccl_private Ray *ray)
-{
-  return isfinite_safe(ray->P.x) && isfinite_safe(ray->D.x) && len_squared(ray->D) != 0.0f;
-}
-
 ccl_device_intersect bool scene_intersect(KernelGlobals kg,
                                           const ccl_private Ray *ray,
                                           const uint visibility,
@@ -24,7 +19,7 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
   isect->prim = PRIM_NONE;
   isect->object = OBJECT_NONE;
   isect->type = PRIMITIVE_NONE;
-  if (!scene_intersect_valid(ray)) {
+  if (!intersection_ray_valid(ray)) {
     isect->t = ray->tmax;
     isect->type = PRIMITIVE_NONE;
     return false;
@@ -84,7 +79,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
     local_isect->num_hits = 0;
   }
 
-  if (!scene_intersect_valid(ray)) {
+  if (!intersection_ray_valid(ray)) {
     return false;
   }
 
@@ -166,7 +161,7 @@ ccl_device_intersect void scene_intersect_shadow_all(KernelGlobals kg,
   *throughput = 1.0f;
   *num_recorded_hits = 0;
 
-  if (!scene_intersect_valid(ray)) {
+  if (!intersection_ray_valid(ray)) {
     return;
   }
 
@@ -204,7 +199,7 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
   isect->object = OBJECT_NONE;
   isect->type = PRIMITIVE_NONE;
 
-  if (!scene_intersect_valid(ray)) {
+  if (!intersection_ray_valid(ray)) {
     return false;
   }
 
