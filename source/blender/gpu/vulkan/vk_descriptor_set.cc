@@ -368,7 +368,9 @@ void VKDescriptorSetUpdator::bind_storage_buffer_resource(
     case BindSpaceStorageBuffers::Type::IndexBuffer: {
       VKIndexBuffer *index_buffer = static_cast<VKIndexBuffer *>(elem.resource);
       vk_buffer = index_buffer->vk_handle();
-      vk_device_size = index_buffer->size_get() - elem.offset;
+      /* Using the allocated size of the buffer as conservative depth shader can read additional
+       * bytes when there are an uneven number of indices. */
+      vk_device_size = index_buffer->allocated_size_get() - elem.offset;
       break;
     }
     case BindSpaceStorageBuffers::Type::VertexBuffer: {

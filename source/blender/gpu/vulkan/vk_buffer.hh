@@ -98,6 +98,11 @@ class VKBuffer : public NonCopyable {
     return size_in_bytes_;
   }
 
+  inline int64_t allocated_size_in_bytes() const
+  {
+    return alloc_size_in_bytes_;
+  }
+
   VkBuffer vk_handle() const
   {
     return vk_buffer_;
