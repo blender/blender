@@ -118,7 +118,7 @@ static bool return_editmesh_vgroup(Object *obedit, BMEditMesh *em, char *r_name,
       }
     }
     if (indexar_num) {
-      const ListBase *defbase = BKE_object_defgroup_list(obedit);
+      const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(obedit);
       bDeformGroup *dg = static_cast<bDeformGroup *>(BLI_findlink(defbase, defgrp_index));
       BLI_strncpy_utf8(r_name, dg->name, sizeof(dg->name));
       mul_v3_fl(r_cent, 1.0f / float(indexar_num));
@@ -230,7 +230,7 @@ static int return_editcurve_indexar(Object *obedit,
                                     int *r_indexar_num,
                                     float r_cent[3])
 {
-  ListBase *editnurb = object_editcurve_get(obedit);
+  ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
   BPoint *bp;
   BezTriple *bezt;
   int *index, a, nr, indexar_num = 0;
@@ -365,7 +365,7 @@ static bool object_hook_index_array(Main *bmain,
 
 static void select_editcurve_hook(Object *obedit, HookModifierData *hmd)
 {
-  ListBase *editnurb = object_editcurve_get(obedit);
+  ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
   BPoint *bp;
   BezTriple *bezt;
   int index = 0, a, nr = 0;

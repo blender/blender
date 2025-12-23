@@ -1257,7 +1257,7 @@ bool context_copy_to_selected_list(bContext *C,
       return false;
     }
 
-    ListBase selected_objects = {nullptr};
+    ListBaseT<LinkData> selected_objects = {nullptr};
     ED_outliner_selected_objects_get(C, &selected_objects);
     LISTBASE_FOREACH (LinkData *, link, &selected_objects) {
       Object *ob = static_cast<Object *>(link->data);
@@ -2608,8 +2608,11 @@ static wmOperatorStatus ui_view_drop_invoke(bContext *C, wmOperator * /*op*/, co
   std::unique_ptr<DropTargetInterface> drop_target = region_views_find_drop_target_at(region,
                                                                                       event->xy);
 
-  if (!drop_target_apply_drop(
-          *C, *region, *event, *drop_target, *static_cast<const ListBase *>(event->customdata)))
+  if (!drop_target_apply_drop(*C,
+                              *region,
+                              *event,
+                              *drop_target,
+                              *static_cast<const ListBaseT<wmDrag> *>(event->customdata)))
   {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }

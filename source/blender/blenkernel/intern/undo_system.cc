@@ -66,7 +66,7 @@ const UndoType *BKE_UNDOSYS_TYPE_PARTICLE = nullptr;
 const UndoType *BKE_UNDOSYS_TYPE_SCULPT = nullptr;
 const UndoType *BKE_UNDOSYS_TYPE_TEXT = nullptr;
 
-static ListBase g_undo_types = {nullptr, nullptr};
+static ListBaseT<UndoType> g_undo_types = {nullptr, nullptr};
 
 /* An unused function with public linkage just to ensure symbols from the blender_undo.cc are not
  * stripped. */

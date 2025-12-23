@@ -575,7 +575,7 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
   ID *reference_id;
   bool success = true;
 
-  ListBase todo_ids = {nullptr};
+  ListBaseT<ID> todo_ids = {nullptr};
   LinkData *todo_id_iter;
 
   /* Get all IDs we want to override. */
@@ -2222,7 +2222,7 @@ static bool lib_override_library_resync(
     ViewLayer *view_layer,
     ID *id_root,
     LinkNode *id_resync_roots,
-    ListBase *no_main_ids_list,
+    ListBaseT<ID> *no_main_ids_list,
     Collection *override_resync_residual_storage,
     const bool do_hierarchy_enforce,
     const bool do_post_process,
@@ -2445,7 +2445,7 @@ static bool lib_override_library_resync(
   /* Vector of pairs of reference IDs, and their new override IDs. */
   blender::Vector<std::pair<ID *, ID *>> references_and_new_overrides;
 
-  ListBase *lb;
+  ListBaseT<ID> *lb;
   FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb) {
     ID *id_reference_iter;
     FOREACH_MAIN_LISTBASE_ID_BEGIN (lb, id_reference_iter) {
@@ -2909,7 +2909,7 @@ bool BKE_lib_override_library_resync(Main *bmain,
                                      const bool do_hierarchy_enforce,
                                      BlendFileReadReport *reports)
 {
-  ListBase no_main_ids_list = {nullptr};
+  ListBaseT<ID> no_main_ids_list = {nullptr};
   LinkNode id_resync_roots{};
   id_resync_roots.link = id_root;
   id_resync_roots.next = nullptr;
@@ -3547,7 +3547,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
   BKE_main_relations_free(bmain);
   BKE_main_id_tag_all(bmain, ID_TAG_DOIT, false);
 
-  ListBase no_main_ids_list = {nullptr};
+  ListBaseT<ID> no_main_ids_list = {nullptr};
 
   for (const auto &item : id_roots.items()) {
     ID *id_root = item.key;
@@ -4141,7 +4141,7 @@ void BKE_lib_override_library_property_delete(IDOverrideLibrary *liboverride,
 }
 
 static IDOverrideLibraryPropertyOperation *liboverride_opop_find_name_lib_iterative(
-    ListBase *liboverride_operations,
+    ListBaseT<IDOverrideLibraryPropertyOperation> *liboverride_operations,
     const char *subitem_main_name,
     const char *subitem_other_name,
     const std::optional<const ID *> &subitem_main_id,

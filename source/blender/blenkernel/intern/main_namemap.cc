@@ -636,7 +636,7 @@ static bool main_namemap_validate_and_fix(Main &bmain, const bool do_fix)
   Set<Uniqueness_Key> id_names_libs;
   Set<ID *> id_validated;
   bool is_valid = true;
-  ListBase *lb_iter;
+  ListBaseT<ID> *lb_iter;
   FOREACH_MAIN_LISTBASE_BEGIN (&bmain, lb_iter) {
     LISTBASE_FOREACH_MUTABLE (ID *, id_iter, lb_iter) {
       if (id_validated.contains(id_iter)) {

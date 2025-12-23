@@ -31,7 +31,7 @@ struct UndoStack_Text_State {
 };
 
 struct UndoStack_Text {
-  ListBase states;
+  ListBaseT<UndoStack_Text_State> states;
   UndoStack_Text_State *current;
 };
 

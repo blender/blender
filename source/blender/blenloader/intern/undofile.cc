@@ -23,6 +23,7 @@
 #include "DNA_listBase.h"
 
 #include "BLI_implicit_sharing.hh"
+#include "BLI_listbase.h"
 
 #include "BLO_readfile.hh"
 #include "BLO_undofile.hh"

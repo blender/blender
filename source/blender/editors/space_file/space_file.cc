@@ -820,7 +820,7 @@ static void filepath_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 /* region dropbox definition */
 static void file_dropboxes()
 {
-  ListBase *lb = WM_dropboxmap_find("Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
+  ListBaseT<wmDropBox> *lb = WM_dropboxmap_find("Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
 
   WM_dropbox_add(
       lb, "FILE_OT_filepath_drop", filepath_drop_poll, filepath_drop_copy, nullptr, nullptr);

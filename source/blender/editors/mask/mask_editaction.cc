@@ -58,7 +58,7 @@ bool ED_masklayer_frames_looper(MaskLayer *mask_layer,
 /* ****************************************** */
 /* Data Conversion Tools */
 
-void ED_masklayer_make_cfra_list(MaskLayer *mask_layer, ListBase *elems, bool onlysel)
+void ED_masklayer_make_cfra_list(MaskLayer *mask_layer, ListBaseT<CfraElem> *elems, bool onlysel)
 {
 
   /* error checking */

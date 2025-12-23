@@ -8,9 +8,13 @@
  * \ingroup bmesh
  */
 
+#include "DNA_listBase.h"
+
 #include "BKE_customdata.hh"
 
 #include "bmesh_class.hh"
+
+struct BMLoopList;
 
 /**
  * When copying between different BMesh objects,
@@ -309,7 +313,7 @@ BMFace *bmesh_kernel_split_face_make_edge(BMesh *bm,
                                           BMLoop *l_v2,
                                           BMLoop **r_l,
 #ifdef USE_BMESH_HOLES
-                                          ListBase *holes,
+                                          ListBaseT<BMLoopList> *holes,
 #endif
                                           BMEdge *example,
                                           bool no_double);

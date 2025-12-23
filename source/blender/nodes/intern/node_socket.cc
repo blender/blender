@@ -106,7 +106,7 @@ bNodeSocket *node_add_socket_from_template(bNodeTree *ntree,
 static bNodeSocket *verify_socket_template(bNodeTree *ntree,
                                            bNode *node,
                                            eNodeSocketInOut in_out,
-                                           ListBase *socklist,
+                                           ListBaseT<bNodeSocket> *socklist,
                                            bke::bNodeSocketTemplate *stemp)
 {
   bNodeSocket *sock;
@@ -137,7 +137,7 @@ static bNodeSocket *verify_socket_template(bNodeTree *ntree,
 static void verify_socket_template_list(bNodeTree *ntree,
                                         bNode *node,
                                         eNodeSocketInOut in_out,
-                                        ListBase *socklist,
+                                        ListBaseT<bNodeSocket> *socklist,
                                         bke::bNodeSocketTemplate *stemp_first)
 {
   bNodeSocket *sock, *nextsock;

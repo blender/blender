@@ -273,7 +273,7 @@ static void outliner_select_sync_to_strip(WorkSpace *workspace, const TreeElemen
 static void outliner_sync_selection_from_outliner(WorkSpace *workspace,
                                                   Scene *scene,
                                                   ViewLayer *view_layer,
-                                                  ListBase *tree,
+                                                  ListBaseT<TreeElement> *tree,
                                                   const SyncSelectTypes *sync_types,
                                                   SelectedItems *selected_items)
 {
@@ -461,7 +461,7 @@ struct SyncSelectActiveData {
 static void outliner_sync_selection_to_outliner(const Scene *scene,
                                                 ViewLayer *view_layer,
                                                 SpaceOutliner *space_outliner,
-                                                ListBase *tree,
+                                                ListBaseT<TreeElement> *tree,
                                                 SyncSelectActiveData *active_data,
                                                 const SyncSelectTypes *sync_types)
 {

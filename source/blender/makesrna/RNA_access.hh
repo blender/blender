@@ -14,6 +14,8 @@
 #include <stdarg.h>
 #include <string>
 
+#include "DNA_listBase.h"
+
 #include "RNA_types.hh"
 
 #include "BLI_compiler_attrs.h"
@@ -26,7 +28,6 @@ struct IDOverrideLibrary;
 struct IDOverrideLibraryProperty;
 struct IDOverrideLibraryPropertyOperation;
 struct IDProperty;
-struct ListBase;
 struct Main;
 struct ReportList;
 struct Scene;
@@ -204,7 +205,7 @@ std::optional<AncestorPointerRNA> RNA_struct_search_closest_ancestor_by_type(
  * Low level direct access to type->properties,
  * note this ignores parent classes so should be used with care.
  */
-const ListBase *RNA_struct_type_properties(StructRNA *srna);
+const ListBaseT<PropertyRNA> *RNA_struct_type_properties(StructRNA *srna);
 PropertyRNA *RNA_struct_type_find_property_no_base(StructRNA *srna, const char *identifier);
 /**
  * \note #RNA_struct_find_property is a higher level alternative to this function
@@ -213,7 +214,7 @@ PropertyRNA *RNA_struct_type_find_property_no_base(StructRNA *srna, const char *
 PropertyRNA *RNA_struct_type_find_property(StructRNA *srna, const char *identifier);
 
 FunctionRNA *RNA_struct_find_function(StructRNA *srna, const char *identifier);
-const ListBase *RNA_struct_type_functions(StructRNA *srna);
+const ListBaseT<FunctionRNA> *RNA_struct_type_functions(StructRNA *srna);
 
 [[nodiscard]] char *RNA_struct_name_get_alloc_ex(
     PointerRNA *ptr, char *fixedbuf, int fixedlen, int *r_len, PropertyRNA **r_nameprop);
@@ -868,7 +869,7 @@ PropertyRNA *RNA_function_get_parameter(PointerRNA *ptr, FunctionRNA *func, int 
 PropertyRNA *RNA_function_find_parameter(PointerRNA *ptr,
                                          FunctionRNA *func,
                                          const char *identifier);
-const ListBase *RNA_function_defined_parameters(FunctionRNA *func);
+const ListBaseT<PropertyRNA> *RNA_function_defined_parameters(FunctionRNA *func);
 
 /* Utility */
 

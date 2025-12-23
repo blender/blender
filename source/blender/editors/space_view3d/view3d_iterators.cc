@@ -614,7 +614,7 @@ void nurbs_foreachScreenVert(const ViewContext *vc,
 {
   Curve *cu = static_cast<Curve *>(vc->obedit->data);
   int i;
-  ListBase *nurbs = BKE_curve_editNurbs_get(cu);
+  ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
   /* If no point in the triple is selected, the handles are invisible. */
   const bool only_selected = (vc->v3d->overlay.handle_display == CURVE_HANDLE_SELECTED);
 

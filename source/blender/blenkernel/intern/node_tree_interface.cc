@@ -1730,7 +1730,7 @@ void bNodeTreeInterface::ensure_items_cache() const
     runtime.outputs_.clear();
 
     /* Items in the cache are mutable pointers, but node tree update considers ID data to be
-     * immutable when caching. DNA ListBase pointers can be mutable even if their container is
+     * immutable when caching. DNA ListBaseT pointers can be mutable even if their container is
      * const, but the items returned by #foreach_item inherit qualifiers from the container. */
     bNodeTreeInterface &mutable_self = const_cast<bNodeTreeInterface &>(*this);
 

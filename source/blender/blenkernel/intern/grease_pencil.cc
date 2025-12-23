@@ -1753,7 +1753,7 @@ bool LayerGroup::unlink_node(TreeNode &link, const bool keep_children)
 
     /* Take ownership of the children of `link` by replacing the node with the listbase of its
      * children. */
-    ListBase link_children = link.as_group().children;
+    ListBaseT<GreasePencilLayerTreeNode> link_children = link.as_group().children;
     GreasePencilLayerTreeNode *first = static_cast<GreasePencilLayerTreeNode *>(
         link_children.first);
     GreasePencilLayerTreeNode *last = static_cast<GreasePencilLayerTreeNode *>(link_children.last);

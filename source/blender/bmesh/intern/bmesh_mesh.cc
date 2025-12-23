@@ -301,7 +301,7 @@ void bmesh_edit_begin(BMesh * /*bm*/, BMOpTypeFlag /*type_flag*/)
 
 void bmesh_edit_end(BMesh *bm, BMOpTypeFlag type_flag)
 {
-  ListBase select_history;
+  ListBaseT<BMEditSelection> select_history;
 
   /* BMO_OPTYPE_FLAG_UNTAN_MULTIRES disabled for now, see comment above in bmesh_edit_begin. */
 #ifdef BMOP_UNTAN_MULTIRES_ENABLED

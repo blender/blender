@@ -19,7 +19,7 @@
 
 struct GPUNode;
 struct GPUOutput;
-struct ListBase;
+struct GPUInput;
 
 enum GPUDataSource {
   GPU_SOURCE_OUTPUT,
@@ -72,8 +72,8 @@ struct GPUNode {
   /* Internal flag to mark nodes during pruning */
   GPUNodeTag tag;
 
-  ListBase inputs;
-  ListBase outputs;
+  ListBaseT<GPUInput> inputs;
+  ListBaseT<GPUOutput> outputs;
 
   /* Zones. */
   int zone_index;
@@ -169,7 +169,7 @@ struct GPUNodeGraphFunctionLink {
 
 struct GPUNodeGraph {
   /* Nodes */
-  ListBase nodes;
+  ListBaseT<GPUNode> nodes;
 
   /* Main Outputs. */
   GPUNodeLink *outlink_surface;
@@ -177,21 +177,21 @@ struct GPUNodeGraph {
   GPUNodeLink *outlink_displacement;
   GPUNodeLink *outlink_thickness;
   /* List of GPUNodeGraphOutputLink */
-  ListBase outlink_aovs;
+  ListBaseT<GPUNodeGraphOutputLink> outlink_aovs;
   /* List of GPUNodeGraphFunctionLink */
-  ListBase material_functions;
+  ListBaseT<GPUNodeGraphFunctionLink> material_functions;
   /* List of GPUNodeGraphOutputLink */
-  ListBase outlink_compositor;
+  ListBaseT<GPUNodeGraphOutputLink> outlink_compositor;
 
   /* Requested attributes and textures. */
-  ListBase attributes;
-  ListBase textures;
+  ListBaseT<GPUMaterialAttribute> attributes;
+  ListBaseT<GPUMaterialTexture> textures;
 
   /* The list of uniform attributes. */
   GPUUniformAttrList uniform_attrs;
 
   /* The list of layer attributes. */
-  ListBase layer_attrs;
+  ListBaseT<GPULayerAttr> layer_attrs;
 };
 
 /* Node Graph */

@@ -572,8 +572,8 @@ void update_edit_mode_pointers(const Depsgraph *depsgraph, const ID *id_orig, ID
 }
 
 template<typename T>
-void update_list_orig_pointers(const ListBase *listbase_orig,
-                               ListBase *listbase,
+void update_list_orig_pointers(const ListBaseT<T> *listbase_orig,
+                               ListBaseT<T> *listbase,
                                T *T::*orig_field)
 {
   T *element_orig = reinterpret_cast<T *>(listbase_orig->first);
@@ -638,7 +638,8 @@ void update_pose_orig_pointers(const bPose *pose_orig, bPose *pose_cow)
   update_list_orig_pointers(&pose_orig->chanbase, &pose_cow->chanbase, &bPoseChannel::orig_pchan);
 }
 
-void update_nla_strips_orig_pointers(const ListBase *strips_orig, ListBase *strips_cow)
+void update_nla_strips_orig_pointers(const ListBaseT<NlaStrip> *strips_orig,
+                                     ListBaseT<NlaStrip> *strips_cow)
 {
   NlaStrip *strip_orig = reinterpret_cast<NlaStrip *>(strips_orig->first);
   NlaStrip *strip_cow = reinterpret_cast<NlaStrip *>(strips_cow->first);
@@ -650,7 +651,8 @@ void update_nla_strips_orig_pointers(const ListBase *strips_orig, ListBase *stri
   }
 }
 
-void update_nla_tracks_orig_pointers(const ListBase *tracks_orig, ListBase *tracks_cow)
+void update_nla_tracks_orig_pointers(const ListBaseT<NlaTrack> *tracks_orig,
+                                     ListBaseT<NlaTrack> *tracks_cow)
 {
   NlaTrack *track_orig = reinterpret_cast<NlaTrack *>(tracks_orig->first);
   NlaTrack *track_cow = reinterpret_cast<NlaTrack *>(tracks_cow->first);

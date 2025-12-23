@@ -261,7 +261,8 @@ bool ED_workspace_delete(WorkSpace *workspace, Main *bmain, bContext *C, wmWindo
     return false;
   }
 
-  Vector<ID *> ordered = BKE_id_ordered_list(&bmain->workspaces);
+  Vector<ID *> ordered = BKE_id_ordered_list(
+      reinterpret_cast<const ListBaseT<ID> *>(&bmain->workspaces));
   const int index = ordered.first_index_of(&workspace->id);
 
   WorkSpace *new_active = reinterpret_cast<WorkSpace *>(index == 0 ? ordered[1] :
@@ -433,7 +434,10 @@ static wmOperatorStatus workspace_append_activate_exec(bContext *C, wmOperator *
     BLO_update_defaults_workspace(appended_workspace, nullptr);
 
     /* Reorder to last position. */
-    BKE_id_reorder(&bmain->workspaces, &appended_workspace->id, nullptr, true);
+    BKE_id_reorder(reinterpret_cast<const ListBaseT<ID> *>(&bmain->workspaces),
+                   &appended_workspace->id,
+                   nullptr,
+                   true);
 
     /* Changing workspace changes context. Do delayed! */
     WM_event_add_notifier(C, NC_SCREEN | ND_WORKSPACE_SET, appended_workspace);
@@ -588,7 +592,7 @@ static void workspace_add_menu_draw(blender::ui::Layout &layout)
 
   layout.menu_fn(IFACE_("General"), ICON_NONE, workspace_add_menu, nullptr);
 
-  ListBase templates;
+  ListBaseT<LinkData> templates;
   BKE_appdir_app_templates(&templates);
 
   LISTBASE_FOREACH (LinkData *, link, &templates) {
@@ -649,7 +653,8 @@ static wmOperatorStatus workspace_reorder_to_back_exec(bContext *C, wmOperator *
   Main *bmain = CTX_data_main(C);
   WorkSpace *workspace = workspace_context_get(C);
 
-  BKE_id_reorder(&bmain->workspaces, &workspace->id, nullptr, true);
+  BKE_id_reorder(
+      reinterpret_cast<const ListBaseT<ID> *>(&bmain->workspaces), &workspace->id, nullptr, true);
   WM_event_add_notifier(C, NC_WINDOW, nullptr);
 
   return OPERATOR_INTERFACE;
@@ -672,7 +677,8 @@ static wmOperatorStatus workspace_reorder_to_front_exec(bContext *C, wmOperator 
   Main *bmain = CTX_data_main(C);
   WorkSpace *workspace = workspace_context_get(C);
 
-  BKE_id_reorder(&bmain->workspaces, &workspace->id, nullptr, false);
+  BKE_id_reorder(
+      reinterpret_cast<const ListBaseT<ID> *>(&bmain->workspaces), &workspace->id, nullptr, false);
   WM_event_add_notifier(C, NC_WINDOW, nullptr);
 
   return OPERATOR_INTERFACE;

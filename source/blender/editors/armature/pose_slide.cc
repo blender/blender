@@ -128,7 +128,7 @@ struct tPoseSlideOp {
   /** len of the PoseSlideObject array. */
 
   /** Links between pose-channels and f-curves for all the pose objects. */
-  ListBase pfLinks;
+  ListBaseT<tPChanFCurveLink> pfLinks;
   /** binary tree for quicker searching for keyframes (when applicable) */
   AnimKeylist *keylist;
 
@@ -1699,9 +1699,9 @@ struct FrameLink {
   float frame;
 };
 
-static void propagate_curve_values(ListBase /*tPChanFCurveLink*/ *pflinks,
+static void propagate_curve_values(ListBaseT<tPChanFCurveLink> *pflinks,
                                    const float source_frame,
-                                   ListBase /*FrameLink*/ *target_frames)
+                                   ListBaseT<FrameLink> *target_frames)
 {
   using namespace blender::animrig;
   const KeyframeSettings settings = get_keyframe_settings(true);
@@ -1720,7 +1720,7 @@ static void propagate_curve_values(ListBase /*tPChanFCurveLink*/ *pflinks,
   }
 }
 
-static float find_next_key(ListBase *pflinks, const float start_frame)
+static float find_next_key(ListBaseT<tPChanFCurveLink> *pflinks, const float start_frame)
 {
   float target_frame = FLT_MAX;
   LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
@@ -1743,7 +1743,7 @@ static float find_next_key(ListBase *pflinks, const float start_frame)
   return target_frame;
 }
 
-static float find_last_key(ListBase *pflinks)
+static float find_last_key(ListBaseT<tPChanFCurveLink> *pflinks)
 {
   float target_frame = FLT_MIN;
   LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
@@ -1759,9 +1759,9 @@ static float find_last_key(ListBase *pflinks)
   return target_frame;
 }
 
-static void get_selected_marker_positions(Scene *scene, ListBase /*FrameLink*/ *target_frames)
+static void get_selected_marker_positions(Scene *scene, ListBaseT<FrameLink> *target_frames)
 {
-  ListBase selected_markers = {nullptr, nullptr};
+  ListBaseT<CfraElem> selected_markers = {nullptr, nullptr};
   ED_markers_make_cfra_list(&scene->markers, &selected_markers, true);
   LISTBASE_FOREACH (CfraElem *, marker, &selected_markers) {
     FrameLink *link = MEM_callocN<FrameLink>("Marker Key Link");
@@ -1771,10 +1771,10 @@ static void get_selected_marker_positions(Scene *scene, ListBase /*FrameLink*/ *
   BLI_freelistN(&selected_markers);
 }
 
-static void get_keyed_frames_in_range(ListBase *pflinks,
+static void get_keyed_frames_in_range(ListBaseT<tPChanFCurveLink> *pflinks,
                                       const float start_frame,
                                       const float end_frame,
-                                      ListBase /*FrameLink*/ *target_frames)
+                                      ListBaseT<FrameLink> *target_frames)
 {
   AnimKeylist *keylist = ED_keylist_create();
   LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
@@ -1797,7 +1797,8 @@ static void get_keyed_frames_in_range(ListBase *pflinks,
   ED_keylist_free(keylist);
 }
 
-static void get_selected_frames(ListBase *pflinks, ListBase /*FrameLink*/ *target_frames)
+static void get_selected_frames(ListBaseT<tPChanFCurveLink> *pflinks,
+                                ListBaseT<FrameLink> *target_frames)
 {
   AnimKeylist *keylist = ED_keylist_create();
   LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
@@ -1825,7 +1826,7 @@ static wmOperatorStatus pose_propagate_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);
 
-  ListBase pflinks = {nullptr, nullptr};
+  ListBaseT<tPChanFCurveLink> pflinks = {nullptr, nullptr};
 
   const int mode = RNA_enum_get(op->ptr, "mode");
 
@@ -1843,7 +1844,7 @@ static wmOperatorStatus pose_propagate_exec(bContext *C, wmOperator *op)
   const float end_frame = RNA_float_get(op->ptr, "end_frame");
   const float current_frame = BKE_scene_frame_get(scene);
 
-  ListBase target_frames = {nullptr, nullptr};
+  ListBaseT<FrameLink> target_frames = {nullptr, nullptr};
 
   switch (mode) {
     case POSE_PROPAGATE_NEXT_KEY: {

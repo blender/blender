@@ -12,10 +12,10 @@
 #include <optional>
 
 #include "BLI_string_ref.hh"
+#include "DNA_listBase.h"
 #include "UI_resources.hh"
 
 struct ID;
-struct ListBase;
 struct SpaceOutliner;
 
 namespace blender::ed::outliner {
@@ -108,7 +108,7 @@ class AbstractTreeElement {
   virtual void expand(SpaceOutliner & /*soops*/) const {}
 
   /** See #AbstractTreeDisplay::add_element() (which this forwards to). */
-  TreeElement *add_element(ListBase *lb,
+  TreeElement *add_element(ListBaseT<TreeElement> *lb,
                            ID *owner_id,
                            void *create_data,
                            TreeElement *parent,

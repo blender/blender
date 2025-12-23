@@ -16,6 +16,8 @@
  * NOTE: do NOT modify topology while walking a mesh!
  */
 
+struct BMwGenericWalker;
+
 enum BMWOrder {
   BMW_DEPTH_FIRST,
   BMW_BREADTH_FIRST,
@@ -41,7 +43,7 @@ struct BMWalker {
 
   BMesh *bm;
   BLI_mempool *worklist;
-  ListBase states;
+  ListBaseT<BMwGenericWalker> states;
 
   /* these masks are to be tested against elements BMO_elem_flag_test(),
    * should never be accessed directly only through BMW_init() and bmw_mask_check_*() functions */

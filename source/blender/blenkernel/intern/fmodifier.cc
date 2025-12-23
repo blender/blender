@@ -1069,7 +1069,7 @@ const FModifierTypeInfo *fmodifier_get_typeinfo(const FModifier *fcm)
 /** \name F-Curve Modifier Public API
  * \{ */
 
-FModifier *add_fmodifier(ListBase *modifiers, int type, FCurve *owner_fcu)
+FModifier *add_fmodifier(ListBaseT<FModifier> *modifiers, int type, FCurve *owner_fcu)
 {
   const FModifierTypeInfo *fmi = get_fmodifier_typeinfo(type);
   FModifier *fcm;
@@ -1149,7 +1149,7 @@ FModifier *copy_fmodifier(const FModifier *src)
   return dst;
 }
 
-void copy_fmodifiers(ListBase *dst, const ListBase *src)
+void copy_fmodifiers(ListBaseT<FModifier> *dst, const ListBaseT<FModifier> *src)
 {
   FModifier *fcm, *srcfcm;
 
@@ -1177,7 +1177,7 @@ void copy_fmodifiers(ListBase *dst, const ListBase *src)
   }
 }
 
-bool remove_fmodifier(ListBase *modifiers, FModifier *fcm)
+bool remove_fmodifier(ListBaseT<FModifier> *modifiers, FModifier *fcm)
 {
   const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
 
@@ -1217,7 +1217,7 @@ bool remove_fmodifier(ListBase *modifiers, FModifier *fcm)
   return false;
 }
 
-void free_fmodifiers(ListBase *modifiers)
+void free_fmodifiers(ListBaseT<FModifier> *modifiers)
 {
   FModifier *fcm, *fmn;
 
@@ -1233,7 +1233,7 @@ void free_fmodifiers(ListBase *modifiers)
   }
 }
 
-FModifier *find_active_fmodifier(ListBase *modifiers)
+FModifier *find_active_fmodifier(ListBaseT<FModifier> *modifiers)
 {
   /* sanity checks */
   if (ELEM(nullptr, modifiers, modifiers->first)) {
@@ -1251,7 +1251,7 @@ FModifier *find_active_fmodifier(ListBase *modifiers)
   return nullptr;
 }
 
-void set_active_fmodifier(ListBase *modifiers, FModifier *fcm)
+void set_active_fmodifier(ListBaseT<FModifier> *modifiers, FModifier *fcm)
 {
   /* sanity checks */
   if (ELEM(nullptr, modifiers, modifiers->first)) {
@@ -1269,7 +1269,7 @@ void set_active_fmodifier(ListBase *modifiers, FModifier *fcm)
   }
 }
 
-bool list_has_suitable_fmodifier(const ListBase *modifiers, int mtype, short acttype)
+bool list_has_suitable_fmodifier(const ListBaseT<FModifier> *modifiers, int mtype, short acttype)
 {
   /* if there are no specific filtering criteria, just skip */
   if ((mtype == 0) && (acttype == 0)) {
@@ -1306,7 +1306,7 @@ bool list_has_suitable_fmodifier(const ListBase *modifiers, int mtype, short act
 
 /* Evaluation API --------------------------- */
 
-uint evaluate_fmodifiers_storage_size_per_modifier(const ListBase *modifiers)
+uint evaluate_fmodifiers_storage_size_per_modifier(const ListBaseT<FModifier> *modifiers)
 {
   /* Sanity checks. */
   if (ELEM(nullptr, modifiers, modifiers->first)) {
@@ -1379,7 +1379,7 @@ static float eval_fmodifier_influence(FModifier *fcm, float evaltime)
 }
 
 float evaluate_time_fmodifiers(FModifiersStackStorage *storage,
-                               const ListBase *modifiers,
+                               const ListBaseT<FModifier> *modifiers,
                                const FCurve *fcu,
                                float cvalue,
                                float evaltime)
@@ -1439,7 +1439,7 @@ float evaluate_time_fmodifiers(FModifiersStackStorage *storage,
 }
 
 void evaluate_value_fmodifiers(FModifiersStackStorage *storage,
-                               const ListBase *modifiers,
+                               const ListBaseT<FModifier> *modifiers,
                                const FCurve *fcu,
                                float *cvalue,
                                float evaltime)

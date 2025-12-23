@@ -23,7 +23,7 @@ struct BLI_AStarGNLink {
 };
 
 struct BLI_AStarGNode {
-  struct ListBase neighbor_links;
+  ListBaseT<LinkData> neighbor_links;
 
   void *custom_data;
 };

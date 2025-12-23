@@ -144,7 +144,7 @@ class Relations : Overlay {
         }
         else {
           const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(constraint);
-          ListBase targets = {nullptr, nullptr};
+          ListBaseT<bConstraintTarget> targets = {nullptr, nullptr};
 
           if ((constraint->ui_expand_flag & (1 << 0)) &&
               BKE_constraint_targets_get(constraint, &targets))

@@ -85,7 +85,7 @@ static void strip_lookup_build_effect(Strip *strip, StripLookup *lookup)
 }
 
 static void strip_lookup_build_from_seqbase(Strip *parent_meta,
-                                            const ListBase *seqbase,
+                                            const ListBaseT<Strip> *seqbase,
                                             StripLookup *lookup)
 {
   if (parent_meta != nullptr) {

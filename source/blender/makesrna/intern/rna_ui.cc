@@ -221,7 +221,8 @@ static bool rna_Panel_unregister(Main *bmain, StructRNA *type)
   LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-        ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
+        ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                         &sl->regionbase;
         LISTBASE_FOREACH (ARegion *, region, regionbase) {
           LISTBASE_FOREACH (Panel *, panel, &region->panels) {
             panel_type_clear_recursive(panel, pt);

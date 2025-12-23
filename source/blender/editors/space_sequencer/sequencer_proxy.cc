@@ -113,7 +113,7 @@ static wmOperatorStatus sequencer_rebuild_proxy_exec(bContext *C, wmOperator * /
 
   LISTBASE_FOREACH (Strip *, strip, seq::active_seqbase_get(ed)) {
     if (strip->flag & SEQ_SELECT) {
-      ListBase queue = {nullptr, nullptr};
+      ListBaseT<LinkData> queue = {nullptr, nullptr};
 
       seq::proxy_rebuild_context(bmain, depsgraph, scene, strip, &processed_paths, &queue, false);
 

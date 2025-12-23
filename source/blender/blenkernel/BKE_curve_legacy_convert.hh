@@ -9,9 +9,10 @@
  */
 
 #include "DNA_curves_types.h"
+#include "DNA_listBase.h"
 
 struct Curve;
-struct ListBase;
+struct Nurb;
 
 namespace blender::bke {
 
@@ -23,7 +24,7 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy);
  * Convert the old curve type to the new data type using a specific list of #Nurb for the actual
  * geometry data. Caller owns the returned pointer.
  */
-Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_list);
+Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBaseT<Nurb> &nurbs_list);
 
 /**
  * Determine Curves knot mode from legacy flag.

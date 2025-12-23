@@ -307,7 +307,7 @@ static void menu_types_add_from_keymap_items(bContext *C,
                                              Set<MenuType *> &menu_tagged)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  ListBase *handlers[] = {
+  ListBaseT<wmEventHandler> *handlers[] = {
       region ? &region->runtime->handlers : nullptr,
       area ? &area->handlers : nullptr,
       &win->runtime->handlers,

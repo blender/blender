@@ -101,7 +101,7 @@ struct ShaderNodesPreviewJob {
 static void ensure_nodetree_previews(const bContext &C,
                                      NestedTreePreviews &tree_previews,
                                      Material &material,
-                                     ListBase &treepath);
+                                     ListBaseT<bNodeTreePath> &treepath);
 
 static std::optional<ComputeContextHash> get_compute_context_hash_for_node_editor(
     const SpaceNode &snode)
@@ -761,7 +761,7 @@ static void shader_preview_free(void *customdata)
 static void ensure_nodetree_previews(const bContext &C,
                                      NestedTreePreviews &tree_previews,
                                      Material &material,
-                                     ListBase &treepath)
+                                     ListBaseT<bNodeTreePath> &treepath)
 {
   Scene *scene = CTX_data_scene(&C);
   if (!ED_check_engine_supports_preview(scene)) {

@@ -268,7 +268,7 @@ static wmOperatorStatus mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
 
         /* we have a from<>to? - re-interpolate! */
         if (mask_layer_shape_a && mask_layer_shape_b) {
-          ListBase shapes_tmp = {nullptr, nullptr};
+          ListBaseT<MaskLayerShape> shapes_tmp = {nullptr, nullptr};
           MaskLayerShape *mask_layer_shape_tmp;
           MaskLayerShape *mask_layer_shape_tmp_next;
           MaskLayerShape *mask_layer_shape_tmp_last = mask_layer_shape_b->next;

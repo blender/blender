@@ -92,7 +92,7 @@ static void SeqTransInfo(TransInfo *t, Strip *strip, int *r_count, int *r_flag)
 {
   Scene *scene = CTX_data_sequencer_scene(t->context);
   Editing *ed = seq::editing_get(scene);
-  const ListBase *channels = seq::channels_displayed_get(ed);
+  const ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
 
   /* For extend we need to do some tricks. */
   if (t->mode == TFM_TIME_EXTEND) {
@@ -158,7 +158,7 @@ static void SeqTransInfo(TransInfo *t, Strip *strip, int *r_count, int *r_flag)
   }
 }
 
-static int SeqTransCount(TransInfo *t, ListBase *seqbase)
+static int SeqTransCount(TransInfo *t, ListBaseT<Strip> *seqbase)
 {
   int tot = 0, count, flag;
 
@@ -235,7 +235,7 @@ static TransData *SeqToTransData(Scene *scene,
 }
 
 static int SeqToTransData_build(
-    TransInfo *t, ListBase *seqbase, TransData *td, TransData2D *td2d, TransDataSeq *tdsq)
+    TransInfo *t, ListBaseT<Strip> *seqbase, TransData *td, TransData2D *td2d, TransDataSeq *tdsq)
 {
   Scene *scene = CTX_data_sequencer_scene(t->context);
   int count, flag;
@@ -280,7 +280,7 @@ static void free_transform_custom_data(TransCustomData *custom_data)
 static void seq_transform_cancel(TransInfo *t, Span<Strip *> transformed_strips)
 {
   Scene *scene = CTX_data_sequencer_scene(t->context);
-  ListBase *seqbase = seq::active_seqbase_get(seq::editing_get(scene));
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(seq::editing_get(scene));
 
   if (t->remove_on_cancel) {
     for (Strip *strip : transformed_strips) {
@@ -302,7 +302,7 @@ static void seq_transform_cancel(TransInfo *t, Span<Strip *> transformed_strips)
   }
 }
 
-static ListBase *seqbase_active_get(const TransInfo *t)
+static ListBaseT<Strip> *seqbase_active_get(const TransInfo *t)
 {
   Scene *scene = CTX_data_sequencer_scene(t->context);
   Editing *ed = seq::editing_get(scene);
@@ -355,7 +355,7 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
   }
 
   TransSeq *ts = static_cast<TransSeq *>(tc->custom.type.data);
-  ListBase *seqbasep = seqbase_active_get(t);
+  ListBaseT<Strip> *seqbasep = seqbase_active_get(t);
   const bool use_sync_markers = (((SpaceSeq *)t->area->spacedata.first)->flag &
                                  SEQ_MARKER_TRANS) != 0;
   if (seq_transform_check_overlap(transformed_strips)) {
@@ -367,7 +367,7 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
   free_transform_custom_data(custom_data);
 }
 
-static VectorSet<Strip *> query_selected_strips_no_handles(ListBase *seqbase)
+static VectorSet<Strip *> query_selected_strips_no_handles(ListBaseT<Strip> *seqbase)
 {
   VectorSet<Strip *> strips;
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
@@ -411,7 +411,7 @@ static void query_time_dependent_strips_strips(TransInfo *t,
                                                VectorSet<Strip *> &time_dependent_strips)
 {
   Scene *scene = CTX_data_sequencer_scene(t->context);
-  ListBase *seqbase = seqbase_active_get(t);
+  ListBaseT<Strip> *seqbase = seqbase_active_get(t);
 
   /* Query dependent strips where used strips do not have handles selected.
    * If all inputs of any effect even indirectly(through another effect) points to selected strip,
@@ -662,7 +662,7 @@ static void view2d_edge_pan_loc_compensate(TransInfo *t, float r_offset[2])
 static void flushTransSeq(TransInfo *t)
 {
   /* Editing null check already done. */
-  ListBase *seqbasep = seqbase_active_get(t);
+  ListBaseT<Strip> *seqbasep = seqbase_active_get(t);
   Scene *scene = CTX_data_sequencer_scene(t->context);
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);

@@ -116,7 +116,8 @@ static bool use_enabled_catalogs_from_prefs(const AssetShelf &shelf)
   return shelf.type && (shelf.type->flag & ASSET_SHELF_TYPE_FLAG_STORE_CATALOGS_IN_PREFS);
 }
 
-static const ListBase *get_enabled_catalog_path_list(const AssetShelf &shelf)
+static const ListBaseT<AssetCatalogPathLink> *get_enabled_catalog_path_list(
+    const AssetShelf &shelf)
 {
   if (use_enabled_catalogs_from_prefs(shelf)) {
     bUserAssetShelfSettings *pref_settings = BKE_preferences_asset_shelf_settings_get(
@@ -126,15 +127,15 @@ static const ListBase *get_enabled_catalog_path_list(const AssetShelf &shelf)
   return &shelf.settings.enabled_catalog_paths;
 }
 
-static ListBase *get_enabled_catalog_path_list(AssetShelf &shelf)
+static ListBaseT<AssetCatalogPathLink> *get_enabled_catalog_path_list(AssetShelf &shelf)
 {
-  return const_cast<ListBase *>(
+  return const_cast<ListBaseT<AssetCatalogPathLink> *>(
       get_enabled_catalog_path_list(const_cast<const AssetShelf &>(shelf)));
 }
 
 void settings_clear_enabled_catalogs(AssetShelf &shelf)
 {
-  ListBase *enabled_catalog_paths = get_enabled_catalog_path_list(shelf);
+  ListBaseT<AssetCatalogPathLink> *enabled_catalog_paths = get_enabled_catalog_path_list(shelf);
   if (enabled_catalog_paths) {
     BKE_asset_catalog_path_list_free(*enabled_catalog_paths);
     BLI_assert(BLI_listbase_is_empty(enabled_catalog_paths));
@@ -144,7 +145,8 @@ void settings_clear_enabled_catalogs(AssetShelf &shelf)
 bool settings_is_catalog_path_enabled(const AssetShelf &shelf,
                                       const asset_system::AssetCatalogPath &path)
 {
-  const ListBase *enabled_catalog_paths = get_enabled_catalog_path_list(shelf);
+  const ListBaseT<AssetCatalogPathLink> *enabled_catalog_paths = get_enabled_catalog_path_list(
+      shelf);
   if (!enabled_catalog_paths) {
     return false;
   }
@@ -174,7 +176,8 @@ void settings_foreach_enabled_catalog_path(
     const AssetShelf &shelf,
     FunctionRef<void(const asset_system::AssetCatalogPath &catalog_path)> fn)
 {
-  const ListBase *enabled_catalog_paths = get_enabled_catalog_path_list(shelf);
+  const ListBaseT<AssetCatalogPathLink> *enabled_catalog_paths = get_enabled_catalog_path_list(
+      shelf);
   if (!enabled_catalog_paths) {
     return;
   }

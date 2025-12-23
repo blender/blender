@@ -19,14 +19,15 @@ static void strip_connections_free(Strip *strip)
   if (strip == nullptr) {
     return;
   }
-  ListBase *connections = &strip->connections;
+  ListBaseT<StripConnection> *connections = &strip->connections;
   LISTBASE_FOREACH_MUTABLE (StripConnection *, con, connections) {
     MEM_delete(con);
   }
   BLI_listbase_clear(connections);
 }
 
-void connections_duplicate(ListBase *connections_dst, ListBase *connections_src)
+void connections_duplicate(ListBaseT<StripConnection> *connections_dst,
+                           ListBaseT<StripConnection> *connections_src)
 {
   LISTBASE_FOREACH (StripConnection *, con, connections_src) {
     StripConnection *con_duplicate = MEM_new_for_free<StripConnection>(__func__, *con);

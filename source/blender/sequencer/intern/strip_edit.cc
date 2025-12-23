@@ -96,8 +96,8 @@ bool edit_strip_swap(Scene *scene, Strip *strip_a, Strip *strip_b, const char **
   return true;
 }
 
-static void strip_update_muting_recursive(ListBase *channels,
-                                          ListBase *seqbasep,
+static void strip_update_muting_recursive(ListBaseT<SeqTimelineChannel> *channels,
+                                          ListBaseT<Strip> *seqbasep,
                                           Strip *strip_meta,
                                           const bool mute)
 {
@@ -138,7 +138,7 @@ void edit_update_muting(Editing *ed)
   }
 }
 
-static void sequencer_flag_users_for_removal(Scene *scene, ListBase *seqbase, Strip *strip)
+static void sequencer_flag_users_for_removal(Scene *scene, ListBaseT<Strip> *seqbase, Strip *strip)
 {
   LISTBASE_FOREACH (Strip *, user_strip, seqbase) {
     /* Look in meta-strips for usage of strip. */
@@ -162,7 +162,7 @@ static void sequencer_flag_users_for_removal(Scene *scene, ListBase *seqbase, St
   }
 }
 
-void edit_flag_for_removal(Scene *scene, ListBase *seqbase, Strip *strip)
+void edit_flag_for_removal(Scene *scene, ListBaseT<Strip> *seqbase, Strip *strip)
 {
   if (strip == nullptr || flag_is_set(strip->runtime->flag, StripRuntimeFlag::MarkForDelete)) {
     return;
@@ -179,7 +179,7 @@ void edit_flag_for_removal(Scene *scene, ListBase *seqbase, Strip *strip)
   sequencer_flag_users_for_removal(scene, seqbase, strip);
 }
 
-void edit_remove_flagged_strips(Scene *scene, ListBase *seqbase)
+void edit_remove_flagged_strips(Scene *scene, ListBaseT<Strip> *seqbase)
 {
   LISTBASE_FOREACH_MUTABLE (Strip *, strip, seqbase) {
     if (flag_is_set(strip->runtime->flag, StripRuntimeFlag::MarkForDelete)) {
@@ -195,9 +195,9 @@ void edit_remove_flagged_strips(Scene *scene, ListBase *seqbase)
 }
 
 bool edit_move_strip_to_seqbase(Scene *scene,
-                                ListBase *seqbase,
+                                ListBaseT<Strip> *seqbase,
                                 Strip *strip,
-                                ListBase *dst_seqbase)
+                                ListBaseT<Strip> *dst_seqbase)
 {
   /* Move to meta. */
   BLI_remlink(seqbase, strip);
@@ -219,7 +219,7 @@ bool edit_move_strip_to_meta(Scene *scene,
 {
   /* Find the appropriate seqbase */
   Editing *ed = editing_get(scene);
-  ListBase *seqbase = get_seqbase_by_strip(scene, src_strip);
+  ListBaseT<Strip> *seqbase = get_seqbase_by_strip(scene, src_strip);
 
   if (dst_stripm->type != STRIP_TYPE_META) {
     *r_error_str = N_("Cannot move strip to non-meta strip");
@@ -380,7 +380,7 @@ static bool seq_edit_split_operation_permitted_check(const Scene *scene,
                                                      const char **r_error)
 {
   for (Strip *strip : strips) {
-    const ListBase *channels = channels_displayed_get(editing_get(scene));
+    const ListBaseT<SeqTimelineChannel> *channels = channels_displayed_get(editing_get(scene));
     if (transform_is_locked(channels, strip)) {
       *r_error = "Strip is locked.";
       return false;
@@ -408,7 +408,7 @@ static bool seq_edit_split_operation_permitted_check(const Scene *scene,
 
 Strip *edit_strip_split(Main *bmain,
                         Scene *scene,
-                        ListBase *seqbase,
+                        ListBaseT<Strip> *seqbase,
                         Strip *strip,
                         const int timeline_frame,
                         const eSplitMethod method,
@@ -436,7 +436,7 @@ Strip *edit_strip_split(Main *bmain,
   AnimationBackup animation_backup{};
   animation_backup_original(scene, &animation_backup);
 
-  ListBase left_strips = {nullptr, nullptr};
+  ListBaseT<Strip> left_strips = {nullptr, nullptr};
   for (Strip *strip_iter : strips) {
     /* Move strips in collection from seqbase to new ListBase. */
     BLI_remlink(seqbase, strip_iter);
@@ -451,7 +451,7 @@ Strip *edit_strip_split(Main *bmain,
   }
 
   /* Duplicate ListBase. */
-  ListBase right_strips = {nullptr, nullptr};
+  ListBaseT<Strip> right_strips = {nullptr, nullptr};
   seqbase_duplicate_recursive(
       bmain, scene, scene, &right_strips, &left_strips, StripDuplicate::All, 0);
 
@@ -496,7 +496,7 @@ Strip *edit_strip_split(Main *bmain,
 }
 
 bool edit_remove_gaps(Scene *scene,
-                      ListBase *seqbase,
+                      ListBaseT<Strip> *seqbase,
                       const int initial_frame,
                       const bool remove_all_gaps)
 {

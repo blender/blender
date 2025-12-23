@@ -1196,7 +1196,7 @@ static void rna_Scene_active_keying_set_index_set(PointerRNA *ptr, int value)
 
 /* XXX: evil... builtin_keyingsets is defined in `blender::animrig::keyingsets.cc`! */
 /* TODO: make API function to retrieve this... */
-extern ListBase builtin_keyingsets;
+extern ListBaseT<KeyingSet> builtin_keyingsets;
 
 static void rna_Scene_all_keyingsets_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -2225,7 +2225,7 @@ static void rna_Scene_simplify_update_impl(Main *bmain,
   Scene *sce_iter;
   Base *base;
 
-  BKE_main_id_tag_listbase(&bmain->objects, ID_TAG_DOIT, true);
+  BKE_main_id_tag_listbase(&bmain->objects.cast<ID>(), ID_TAG_DOIT, true);
   FOREACH_SCENE_OBJECT_BEGIN (sce, ob) {
     object_simplify_update(sce, ob, update_normals, depsgraph);
   }
@@ -2878,7 +2878,9 @@ static const EnumPropertyItem *rna_TransformOrientation_impl_itemf(Scene *scene,
 
   RNA_enum_items_add(&item, &totitem, rna_enum_transform_orientation_items);
 
-  const ListBase *transform_orientations = scene ? &scene->transform_spaces : nullptr;
+  const ListBaseT<TransformOrientation> *transform_orientations = scene ?
+                                                                      &scene->transform_spaces :
+                                                                      nullptr;
 
   if (transform_orientations && (BLI_listbase_is_empty(transform_orientations) == false)) {
     RNA_enum_item_add_separator(&item, &totitem);

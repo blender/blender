@@ -16,6 +16,7 @@
 
 struct bNode;
 struct bNodeStack;
+struct bNodeThreadStack;
 struct bNodeTree;
 
 /* Node execution data */
@@ -38,7 +39,7 @@ struct bNodeTreeExec {
   int stacksize;
   bNodeStack *stack; /* socket data stack */
   /* only used by material and texture trees to keep one stack for each thread */
-  ListBase *threadstack; /* one instance of the stack for each thread */
+  ListBaseT<bNodeThreadStack> *threadstack; /* one instance of the stack for each thread */
 };
 
 /* stores one stack copy for each thread (material and texture trees) */

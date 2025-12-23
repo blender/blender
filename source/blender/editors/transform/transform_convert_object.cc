@@ -933,7 +933,7 @@ static void special_aftertrans_update__object(bContext *C, TransInfo *t)
   for (int i = 0; i < tc->data_len; i++) {
     TransData *td = tc->data + i;
     TransDataExtension *td_ext = tc->data_ext + i;
-    ListBase pidlist;
+    ListBaseT<PTCacheID> pidlist;
     ob = static_cast<Object *>(td->extra);
 
     if (td->flag & TD_SKIP) {

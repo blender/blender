@@ -26,7 +26,6 @@ struct FileReader;
 struct ID;
 struct Library;
 struct LinkNode;
-struct ListBase;
 struct Main;
 struct MemFile;
 struct PreviewImage;
@@ -42,7 +41,7 @@ struct wmWindowManager;
 struct WorkspaceConfigFileData {
   Main *main; /* has to be freed when done reading file data */
 
-  ListBase workspaces;
+  ListBaseT<WorkSpace> workspaces;
 };
 
 /* -------------------------------------------------------------------- */

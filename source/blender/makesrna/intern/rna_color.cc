@@ -301,7 +301,7 @@ static std::optional<std::string> rna_ColorRampElement_path(const PointerRNA *pt
         break;
       }
       case ID_LS: {
-        ListBase listbase;
+        ListBaseT<LinkData> listbase;
         LinkData *link;
 
         BKE_linestyle_modifier_list_color_ramps((FreestyleLineStyle *)id, &listbase);

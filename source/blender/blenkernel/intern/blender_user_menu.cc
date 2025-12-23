@@ -24,7 +24,9 @@
 /** \name Menu Type
  * \{ */
 
-bUserMenu *BKE_blender_user_menu_find(ListBase *lb, char space_type, const char *context)
+bUserMenu *BKE_blender_user_menu_find(ListBaseT<bUserMenu> *lb,
+                                      char space_type,
+                                      const char *context)
 {
   LISTBASE_FOREACH (bUserMenu *, um, lb) {
     if ((space_type == um->space_type) && STREQ(context, um->context)) {
@@ -34,7 +36,9 @@ bUserMenu *BKE_blender_user_menu_find(ListBase *lb, char space_type, const char 
   return nullptr;
 }
 
-bUserMenu *BKE_blender_user_menu_ensure(ListBase *lb, char space_type, const char *context)
+bUserMenu *BKE_blender_user_menu_ensure(ListBaseT<bUserMenu> *lb,
+                                        char space_type,
+                                        const char *context)
 {
   bUserMenu *um = BKE_blender_user_menu_find(lb, space_type, context);
   if (um == nullptr) {
@@ -52,7 +56,7 @@ bUserMenu *BKE_blender_user_menu_ensure(ListBase *lb, char space_type, const cha
 /** \name Menu Item
  * \{ */
 
-bUserMenuItem *BKE_blender_user_menu_item_add(ListBase *lb, int type)
+bUserMenuItem *BKE_blender_user_menu_item_add(ListBaseT<bUserMenuItem> *lb, int type)
 {
   uint size;
 
@@ -90,7 +94,7 @@ void BKE_blender_user_menu_item_free(bUserMenuItem *umi)
   MEM_freeN(umi);
 }
 
-void BKE_blender_user_menu_item_free_list(ListBase *lb)
+void BKE_blender_user_menu_item_free_list(ListBaseT<bUserMenuItem> *lb)
 {
   for (bUserMenuItem *umi = static_cast<bUserMenuItem *>(lb->first), *umi_next; umi;
        umi = umi_next)

@@ -39,7 +39,6 @@ class FrameBuffer;
 class Texture;
 }  // namespace blender::gpu
 struct GPUViewport;
-struct ListBase;
 
 /** Buffer and textures used by the viewport by default. */
 struct DefaultFramebufferList {

@@ -109,7 +109,7 @@ static const EnumPropertyItem prop_graphkeys_insertkey_types[] = {
 static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
 {
   using namespace blender::animrig;
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
   size_t num_items;
 
@@ -319,7 +319,7 @@ static wmOperatorStatus graphkeys_click_insert_exec(bContext *C, wmOperator *op)
    * keyframes if these will be visible after doing so...
    */
   if (BKE_fcurve_is_keyframable(fcu)) {
-    ListBase anim_data;
+    ListBaseT<bAnimListElem> anim_data;
     ToolSettings *ts = ac.scene->toolsettings;
 
     /* Preserve selection? */
@@ -463,7 +463,7 @@ void GRAPH_OT_click_insert(wmOperatorType *ot)
 
 static bool copy_graph_keys(bAnimContext *ac)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   /* Filter data
@@ -514,7 +514,7 @@ static eKeyPasteError paste_graph_keys(bAnimContext *ac,
    * - Second time, we loosen things up if nothing was found the first time, allowing
    *   users to just paste keyframes back into the original curve again #31670.
    */
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   {
     const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT |
                                      ANIMFILTER_FCURVESONLY | ANIMFILTER_NODUPLIS;
@@ -676,7 +676,7 @@ void GRAPH_OT_paste(wmOperatorType *ot)
 
 static bool duplicate_graph_keys(bAnimContext *ac)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
   bool changed = false;
 
@@ -752,7 +752,7 @@ void GRAPH_OT_duplicate(wmOperatorType *ot)
 
 static bool delete_graph_keys(bAnimContext *ac)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
   bool changed_final = false;
 
@@ -852,7 +852,7 @@ void GRAPH_OT_delete(wmOperatorType *ot)
 
 static void clean_graph_keys(bAnimContext *ac, float thresh, bool clean_chan)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   /* Filter data. */
@@ -933,7 +933,7 @@ void GRAPH_OT_clean(wmOperatorType *ot)
 /* Bake each F-Curve into a set of samples. */
 static void convert_keys_to_samples(bAnimContext *ac, int start, int end)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   /* Filter data. */
@@ -1021,7 +1021,7 @@ void GRAPH_OT_keys_to_samples(wmOperatorType *ot)
 /* Convert F-Points into F-Curves. */
 static void convert_samples_to_keys(bAnimContext *ac, int start, int end)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   /* Filter data. */
   const int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FCURVESONLY |
@@ -1126,7 +1126,7 @@ static float fcurve_samplingcb_sound(FCurve * /*fcu*/, void *data, float evaltim
 static wmOperatorStatus graphkeys_sound_to_samples_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   tSoundBakeInfo sbi;
@@ -1338,7 +1338,7 @@ void GRAPH_OT_sound_to_samples(wmOperatorType *ot)
 /* Evaluates the curves between each selected keyframe on each frame, and keys the value. */
 static void bake_graph_keys(bAnimContext *ac)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   /* filter data */
@@ -1435,7 +1435,7 @@ static const EnumPropertyItem prop_graphkeys_expo_types[] = {
 /* This function is responsible for setting extrapolation mode for keyframes. */
 static void setexpo_graph_keys(bAnimContext *ac, short mode)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   /* Filter data. */
@@ -1539,7 +1539,7 @@ void GRAPH_OT_extrapolation_type(wmOperatorType *ot)
 /* This function is responsible for setting interpolation mode for keyframes. */
 static void setipo_graph_keys(bAnimContext *ac, short mode)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
   KeyframeEditFunc set_cb = ANIM_editkeyframes_ipo(mode);
 
@@ -1618,7 +1618,7 @@ void GRAPH_OT_interpolation_type(wmOperatorType *ot)
 
 static void seteasing_graph_keys(bAnimContext *ac, short mode)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
   KeyframeEditFunc set_cb = ANIM_editkeyframes_easing(mode);
 
@@ -1695,7 +1695,7 @@ void GRAPH_OT_easing_type(wmOperatorType *ot)
 /* This function is responsible for setting handle-type of selected keyframes. */
 static void sethandles_graph_keys(bAnimContext *ac, short mode)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   KeyframeEditFunc edit_cb = ANIM_editkeyframes_handles(mode);
@@ -1804,10 +1804,10 @@ static bool keyframe_time_differs(BezTriple *keyframes[3])
 }
 
 /* Find groups of `rotation_euler` channels. */
-static ListBase /*tEulerFilter*/ euler_filter_group_channels(
-    const ListBase /*bAnimListElem*/ *anim_data, ReportList *reports, int *r_num_groups)
+static ListBaseT<tEulerFilter> euler_filter_group_channels(
+    const ListBaseT<bAnimListElem> *anim_data, ReportList *reports, int *r_num_groups)
 {
-  ListBase euler_groups = {nullptr, nullptr};
+  ListBaseT<tEulerFilter> euler_groups = {nullptr, nullptr};
   tEulerFilter *euf = nullptr;
   *r_num_groups = 0;
 
@@ -1980,7 +1980,7 @@ static bool euler_filter_single_channel(FCurve *fcu)
   return is_modified;
 }
 
-static void euler_filter_perform_filter(ListBase /*tEulerFilter*/ *eulers,
+static void euler_filter_perform_filter(ListBaseT<tEulerFilter> *eulers,
                                         ReportList *reports,
                                         int *r_curves_filtered,
                                         int *r_curves_seen)
@@ -2029,12 +2029,12 @@ static wmOperatorStatus graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
   /* Step 1: extract only the rotation f-curves. */
   const int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_CURVE_VISIBLE |
                       ANIMFILTER_FCURVESONLY | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   ANIM_animdata_filter(
       &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
   int groups = 0;
-  ListBase eulers = euler_filter_group_channels(&anim_data, op->reports, &groups);
+  ListBaseT<tEulerFilter> eulers = euler_filter_group_channels(&anim_data, op->reports, &groups);
   BLI_assert(BLI_listbase_count(&eulers) == groups);
 
   if (groups == 0) {
@@ -2131,7 +2131,7 @@ static bool graphkeys_framejump_poll(bContext *C)
 
 static KeyframeEditData sum_selected_keyframes(bAnimContext *ac)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
   KeyframeEditData ked;
 
@@ -2342,7 +2342,7 @@ static const EnumPropertyItem prop_graphkeys_snap_types[] = {
 /* This function is responsible for snapping keyframes to frame-times. */
 static void snap_graph_keys(bAnimContext *ac, short mode)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   SpaceGraph *sipo = (SpaceGraph *)ac->sl;
@@ -2436,7 +2436,7 @@ static wmOperatorStatus graphkeys_snap_exec(bContext *C, wmOperator *op)
 static bool graph_has_selected_control_points(bContext *C)
 {
   bAnimContext ac;
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   /* Get editor data. */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
@@ -2517,7 +2517,7 @@ static void equalize_graph_keys(bAnimContext *ac, int mode, float handle_length,
   /* Filter data. */
   const int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FCURVESONLY |
                       ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   ANIM_animdata_filter(
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
@@ -2636,7 +2636,7 @@ static const EnumPropertyItem prop_graphkeys_mirror_types[] = {
 /* This function is responsible for mirroring keyframes. */
 static void mirror_graph_keys(bAnimContext *ac, short mode)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   SpaceGraph *sipo = (SpaceGraph *)ac->sl;
@@ -2767,7 +2767,7 @@ void GRAPH_OT_mirror(wmOperatorType *ot)
 static wmOperatorStatus graphkeys_smooth_exec(bContext *C, wmOperator * /*op*/)
 {
   bAnimContext ac;
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   /* Get editor data. */
@@ -2863,7 +2863,7 @@ static const EnumPropertyItem *graph_fmodifier_itemf(bContext *C,
 static wmOperatorStatus graph_fmodifier_add_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
   short type;
 
@@ -3018,7 +3018,7 @@ static wmOperatorStatus graph_fmodifier_paste_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   const bool replace = RNA_boolean_get(op->ptr, "replace");
@@ -3209,7 +3209,7 @@ void GRAPH_OT_driver_variables_paste(wmOperatorType *ot)
 static wmOperatorStatus graph_driver_delete_invalid_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
   bool ok = false;
   uint deleted = 0;

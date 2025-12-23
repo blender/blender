@@ -490,7 +490,7 @@ static PointerRNA rna_BoneCollection_bones_get(CollectionPropertyIterator *iter)
 static void rna_Bone_collections_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   Bone *bone = (Bone *)ptr->data;
-  ListBase /*BoneCollectionReference*/ bone_collection_refs = bone->runtime.collections;
+  ListBaseT<BoneCollectionReference> bone_collection_refs = bone->runtime.collections;
   rna_iterator_listbase_begin(iter, ptr, &bone_collection_refs, nullptr);
 }
 
@@ -506,7 +506,7 @@ static PointerRNA rna_Bone_collections_get(CollectionPropertyIterator *iter)
 static void rna_EditBone_collections_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   EditBone *ebone = (EditBone *)ptr->data;
-  ListBase /*BoneCollectionReference*/ bone_collection_refs = ebone->bone_collections;
+  ListBaseT<BoneCollectionReference> bone_collection_refs = ebone->bone_collections;
   rna_iterator_listbase_begin(iter, ptr, &bone_collection_refs, nullptr);
 }
 

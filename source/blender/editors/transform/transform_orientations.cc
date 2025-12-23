@@ -60,7 +60,7 @@ namespace blender::ed::transform {
 void BIF_clearTransformOrientation(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
-  ListBase *transform_orientations = &scene->transform_spaces;
+  ListBaseT<TransformOrientation> *transform_orientations = &scene->transform_spaces;
 
   BLI_freelistN(transform_orientations);
 
@@ -73,13 +73,14 @@ void BIF_clearTransformOrientation(bContext *C)
   }
 }
 
-static TransformOrientation *findOrientationName(ListBase *lb, const char *name)
+static TransformOrientation *findOrientationName(ListBaseT<TransformOrientation> *lb,
+                                                 const char *name)
 {
   return static_cast<TransformOrientation *>(
       BLI_findstring(lb, name, offsetof(TransformOrientation, name)));
 }
 
-static void uniqueOrientationName(ListBase *lb, char *name)
+static void uniqueOrientationName(ListBaseT<TransformOrientation> *lb, char *name)
 {
   BLI_uniquename_cb(
       [&](const StringRefNull check_name) {
@@ -509,7 +510,7 @@ TransformOrientation *addMatrixSpace(bContext *C,
 {
   TransformOrientation *ts = nullptr;
   Scene *scene = CTX_data_scene(C);
-  ListBase *transform_orientations = &scene->transform_spaces;
+  ListBaseT<TransformOrientation> *transform_orientations = &scene->transform_spaces;
   char name_unique[sizeof(ts->name)];
 
   if (overwrite) {
@@ -559,7 +560,7 @@ void BIF_selectTransformOrientation(bContext *C, TransformOrientation *target)
 int BIF_countTransformOrientation(const bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
-  ListBase *transform_orientations = &scene->transform_spaces;
+  ListBaseT<TransformOrientation> *transform_orientations = &scene->transform_spaces;
   return BLI_listbase_count(transform_orientations);
 }
 
@@ -589,9 +590,7 @@ static int bone_children_clear_transflag(bPose &pose, bPoseChannel &pose_bone)
 /* Updates all `POSE_RUNTIME_TRANSFORM` flags.
  * Returns total number of bones with `POSE_RUNTIME_TRANSFORM`.
  * NOTE: `transform_convert_pose_transflags_update` has a similar logic. */
-static int armature_bone_transflags_update(Object &ob,
-                                           bArmature *arm,
-                                           ListBase /* bPoseChannel */ *lb)
+static int armature_bone_transflags_update(Object &ob, bArmature *arm, ListBaseT<bPoseChannel> *lb)
 {
   int total = 0;
 
@@ -1219,7 +1218,7 @@ int getTransformOrientation_ex(const Scene *scene,
       Curve *cu = static_cast<Curve *>(obedit->data);
       Nurb *nu = nullptr;
       int a;
-      ListBase *nurbs = BKE_curve_editNurbs_get(cu);
+      ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
 
       void *vert_act = nullptr;
       if (activeOnly && BKE_curve_nurb_vert_active_get(cu, &nu, &vert_act)) {

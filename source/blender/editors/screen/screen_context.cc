@@ -695,7 +695,7 @@ static eContextResult screen_ctx_selected_nla_strips(const bContext *C, bContext
 {
   bAnimContext ac;
   if (ANIM_animdata_get_context(C, &ac) != 0) {
-    ListBase anim_data = {nullptr, nullptr};
+    ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
     ANIM_animdata_filter(
         &ac, &anim_data, ANIMFILTER_DATA_VISIBLE, ac.data, eAnimCont_Types(ac.datatype));
@@ -863,7 +863,7 @@ static eContextResult screen_ctx_sel_actions_impl(const bContext *C,
   }
 
   /* Search for selected animation data items. */
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   int filter = ANIMFILTER_DATA_VISIBLE;
   bool check_selected = false;
@@ -942,7 +942,7 @@ static eContextResult screen_ctx_sel_edit_fcurves_(const bContext *C,
 {
   bAnimContext ac;
   if (ANIM_animdata_get_context(C, &ac) && ELEM(ac.spacetype, SPACE_ACTION, SPACE_GRAPH)) {
-    ListBase anim_data = {nullptr, nullptr};
+    ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
     int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_NODUPLIS) |
                  (ac.spacetype == SPACE_GRAPH ?
@@ -989,7 +989,7 @@ static eContextResult screen_ctx_active_editable_fcurve(const bContext *C,
 {
   bAnimContext ac;
   if (ANIM_animdata_get_context(C, &ac) && ELEM(ac.spacetype, SPACE_GRAPH)) {
-    ListBase anim_data = {nullptr, nullptr};
+    ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
     int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_ACTIVE | ANIMFILTER_FOREDIT |
                   ANIMFILTER_FCURVESONLY | ANIMFILTER_CURVE_VISIBLE);
@@ -1014,7 +1014,7 @@ static eContextResult screen_ctx_selected_editable_keyframes(const bContext *C,
 {
   bAnimContext ac;
   if (ANIM_animdata_get_context(C, &ac) && ELEM(ac.spacetype, SPACE_ACTION, SPACE_GRAPH)) {
-    ListBase anim_data = {nullptr, nullptr};
+    ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
     /* Use keyframes from editable selected FCurves. */
     int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_NODUPLIS | ANIMFILTER_FOREDIT |
@@ -1138,7 +1138,7 @@ static eContextResult screen_ctx_selected_editable_strips(const bContext *C,
     return CTX_RESULT_NO_DATA;
   }
 
-  const ListBase *channels = blender::seq::channels_displayed_get(ed);
+  const ListBaseT<SeqTimelineChannel> *channels = blender::seq::channels_displayed_get(ed);
   LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
     if (strip->flag & SEQ_SELECT && !blender::seq::transform_is_locked(channels, strip)) {
       CTX_data_list_add(result, &scene->id, &RNA_Strip, strip);

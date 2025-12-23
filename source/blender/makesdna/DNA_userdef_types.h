@@ -23,6 +23,7 @@
 #include "DNA_vec_types.h"
 
 struct IDProperty;
+struct bUserMenuItem;
 
 /** #UserDef.flag */
 enum eUserPref_Flag {
@@ -574,7 +575,7 @@ struct bUserMenu {
   char space_type = 0;
   char _pad0[7] = {};
   char context[64] = "";
-  ListBaseT<struct bUserMenuItem> items = {nullptr, nullptr};
+  ListBaseT<bUserMenuItem> items = {nullptr, nullptr};
 };
 
 /** May be part of #bUserMenu or other list. */

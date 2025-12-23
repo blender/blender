@@ -298,7 +298,7 @@ static int attribute_index_in_material(const GPUMaterial *gpu_material,
 
   int index = 0;
 
-  ListBase gpu_attrs = GPU_material_attributes(gpu_material);
+  ListBaseT<GPUMaterialAttribute> gpu_attrs = GPU_material_attributes(gpu_material);
   LISTBASE_FOREACH (GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
     if (gpu_attr->is_hair_length == true) {
       if (gpu_attr->is_hair_length == is_curve_length) {
@@ -401,7 +401,7 @@ void curves_bind_resources_implementation(PassT &sub_ps,
   sub_ps.bind_texture("l", module.dummy_vbo);
   sub_ps.bind_texture("i", module.dummy_vbo);
   if (gpu_material) {
-    ListBase attr_list = GPU_material_attributes(gpu_material);
+    ListBaseT<GPUMaterialAttribute> attr_list = GPU_material_attributes(gpu_material);
     ListBaseWrapper<GPUMaterialAttribute> attrs(attr_list);
     for (const GPUMaterialAttribute *attr : attrs) {
       sub_ps.bind_texture(attr->input_name, module.dummy_vbo);

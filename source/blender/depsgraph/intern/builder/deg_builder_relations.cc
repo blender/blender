@@ -144,7 +144,7 @@ bool driver_variable_depends_on_time(const DriverVar *variable)
   return false;
 }
 
-bool driver_variables_depends_on_time(const ListBase *variables)
+bool driver_variables_depends_on_time(const ListBaseT<DriverVar> *variables)
 {
   LISTBASE_FOREACH (const DriverVar *, variable, variables) {
     if (driver_variable_depends_on_time(variable)) {
@@ -407,7 +407,8 @@ void DepsgraphRelationBuilder::add_particle_collision_relations(const OperationK
                                                                 Collection *collection,
                                                                 const char *name)
 {
-  ListBase *relations = build_collision_relations(graph_, collection, eModifierType_Collision);
+  ListBaseT<CollisionRelation> *relations = build_collision_relations(
+      graph_, collection, eModifierType_Collision);
 
   LISTBASE_FOREACH (CollisionRelation *, relation, relations) {
     if (relation->ob != object) {
@@ -427,7 +428,7 @@ void DepsgraphRelationBuilder::add_particle_forcefield_relations(const Operation
                                                                  bool add_absorption,
                                                                  const char *name)
 {
-  ListBase *relations = build_effector_relations(graph_, eff->group);
+  ListBaseT<EffectorRelation> *relations = build_effector_relations(graph_, eff->group);
 
   /* Make sure physics effects like wind are properly re-evaluating the modifier stack. */
   if (!BLI_listbase_is_empty(relations)) {
@@ -1399,7 +1400,7 @@ void DepsgraphRelationBuilder::build_light_linking_collection(Object *emitter,
 void DepsgraphRelationBuilder::build_constraints(ID *id,
                                                  NodeType component_type,
                                                  const char *component_subdata,
-                                                 ListBase *constraints,
+                                                 ListBaseT<bConstraint> *constraints,
                                                  RootPChanMap *root_map)
 {
   OperationKey constraint_op_key(id,
@@ -1411,7 +1412,7 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
   /* Add dependencies for each constraint in turn. */
   LISTBASE_FOREACH (bConstraint *, con, constraints) {
     const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
-    ListBase targets = {nullptr, nullptr};
+    ListBaseT<bConstraintTarget> targets = {nullptr, nullptr};
     /* Invalid constraint type. */
     if (cti == nullptr) {
       continue;
@@ -1687,7 +1688,7 @@ void DepsgraphRelationBuilder::build_animdata_fcurve_target(
 void DepsgraphRelationBuilder::build_animdata_curves_targets(ID *id,
                                                              ComponentKey &adt_key,
                                                              OperationNode *operation_from,
-                                                             ListBase *curves)
+                                                             ListBaseT<FCurve> *curves)
 {
   /* Iterate over all curves and build relations. */
   PointerRNA id_ptr = RNA_id_pointer_create(id);
@@ -1746,7 +1747,7 @@ void DepsgraphRelationBuilder::build_animdata_action_targets(ID *id,
 void DepsgraphRelationBuilder::build_animdata_nlastrip_targets(ID *id,
                                                                ComponentKey &adt_key,
                                                                OperationNode *operation_from,
-                                                               ListBase *strips)
+                                                               ListBaseT<NlaStrip> *strips)
 {
   LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     if (strip->act != nullptr) {
@@ -2298,7 +2299,8 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
    * initialized.
    * TODO(sergey): Verify that it indeed goes to initialization and not to a
    * simulation. */
-  ListBase *effector_relations = build_effector_relations(graph_, rbw->effector_weights->group);
+  ListBaseT<EffectorRelation> *effector_relations = build_effector_relations(
+      graph_, rbw->effector_weights->group);
   LISTBASE_FOREACH (EffectorRelation *, effector_relation, effector_relations) {
     ComponentKey effector_transform_key(&effector_relation->ob->id, NodeType::TRANSFORM);
     add_relation(effector_transform_key, rb_init_key, "RigidBody Field");
@@ -2889,7 +2891,7 @@ void DepsgraphRelationBuilder::build_armature(bArmature *armature)
   build_armature_bone_collections(armature->collections_span());
 }
 
-void DepsgraphRelationBuilder::build_armature_bones(ListBase *bones)
+void DepsgraphRelationBuilder::build_armature_bones(ListBaseT<Bone> *bones)
 {
   LISTBASE_FOREACH (Bone *, bone, bones) {
     build_idproperties(bone->prop);

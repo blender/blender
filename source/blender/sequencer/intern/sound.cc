@@ -46,7 +46,9 @@ const SoundModifierWorkerInfo workersSoundModifiers[] = {
     {0, nullptr}};
 
 #ifdef WITH_CONVOLUTION
-static bool sequencer_refresh_sound_length_recursive(Main *bmain, Scene *scene, ListBase *seqbase)
+static bool sequencer_refresh_sound_length_recursive(Main *bmain,
+                                                     Scene *scene,
+                                                     ListBaseT<Strip> *seqbase)
 {
   bool changed = false;
 
@@ -129,7 +131,7 @@ void sound_update_bounds(Scene *scene, Strip *strip)
   /* mute is set in strip_update_muting_recursive */
 }
 
-static void strip_update_sound_recursive(Scene *scene, ListBase *seqbasep, bSound *sound)
+static void strip_update_sound_recursive(Scene *scene, ListBaseT<Strip> *seqbasep, bSound *sound)
 {
   LISTBASE_FOREACH (Strip *, strip, seqbasep) {
     if (strip->type == STRIP_TYPE_META) {

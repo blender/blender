@@ -67,7 +67,7 @@ bool ED_wpaint_ensure_data(bContext *C,
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
   }
 
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
 
   /* this happens on a Bone select, when no vgroup existed yet */
   if (mesh->vertex_group_active_index <= 0) {
@@ -124,7 +124,7 @@ bool ED_wpaint_ensure_data(bContext *C,
 
 int ED_wpaint_mirror_vgroup_ensure(Object *ob, const int vgroup_active)
 {
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
   bDeformGroup *defgroup = static_cast<bDeformGroup *>(BLI_findlink(defbase, vgroup_active));
 
   if (defgroup) {

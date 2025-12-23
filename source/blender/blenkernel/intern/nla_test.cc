@@ -41,7 +41,7 @@ TEST(nla_strip, BKE_nlastrip_recalculate_blend)
 
 TEST(nla_strip, BKE_nlastrips_add_strip)
 {
-  ListBase strips{};
+  ListBaseT<NlaStrip> strips{};
   NlaStrip strip1{};
   strip1.start = 0;
   strip1.end = 10;

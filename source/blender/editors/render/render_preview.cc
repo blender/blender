@@ -155,7 +155,7 @@ struct IconPreview {
   /** May be nullptr! (see #ICON_TYPE_PREVIEW case in #ui_icon_ensure_deferred()). */
   ID *id;
   ID *id_copy;
-  ListBase sizes;
+  ListBaseT<IconPreviewSize> sizes;
 
   /* May be nullptr, is used for rendering IDs that require some other object for it to be applied
    * on before the ID can be represented as an image, for example when rendering an Action. */
@@ -2218,7 +2218,7 @@ struct PreviewRestartQueueEntry {
   ID *id;
 };
 
-static ListBase /* #PreviewRestartQueueEntry */ G_restart_previews_queue;
+static ListBaseT<PreviewRestartQueueEntry> G_restart_previews_queue;
 
 void ED_preview_restart_queue_free()
 {

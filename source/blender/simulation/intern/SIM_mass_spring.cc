@@ -563,8 +563,11 @@ static void hair_get_boundbox(ClothModifierData *clmd,
   }
 }
 
-static void cloth_calc_force(
-    Scene *scene, ClothModifierData *clmd, float /*frame*/, ListBase *effectors, float time)
+static void cloth_calc_force(Scene *scene,
+                             ClothModifierData *clmd,
+                             float /*frame*/,
+                             ListBaseT<EffectorCache> *effectors,
+                             float time)
 {
   /* Collect forces and derivatives: F, dFdX, dFdV. */
   Cloth *cloth = clmd->clothObject;
@@ -1251,8 +1254,11 @@ static void cloth_record_result(ClothModifierData *clmd, ImplicitSolverResult *r
   sres->status |= result->status;
 }
 
-int SIM_cloth_solve(
-    Depsgraph *depsgraph, Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors)
+int SIM_cloth_solve(Depsgraph *depsgraph,
+                    Object *ob,
+                    float frame,
+                    ClothModifierData *clmd,
+                    ListBaseT<EffectorCache> *effectors)
 {
   /* Hair currently is a cloth sim in disguise ...
    * Collision detection and volumetrics work differently then.

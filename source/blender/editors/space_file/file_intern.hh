@@ -21,6 +21,7 @@ struct ARegionType;
 struct bContextDataResult;
 struct FileAssetSelectParams;
 struct FileSelectParams;
+struct FolderList;
 struct Main;
 struct SpaceFile;
 struct View2D;
@@ -216,10 +217,10 @@ void file_on_reload_callback_register(SpaceFile *sfile,
 /* folder_history.cc */
 
 /* not listbase itself */
-void folderlist_free(ListBase *folderlist);
-void folderlist_popdir(ListBase *folderlist, char *dir);
-void folderlist_pushdir(ListBase *folderlist, const char *dir);
-const char *folderlist_peeklastdir(ListBase *folderlist);
+void folderlist_free(ListBaseT<FolderList> *folderlist);
+void folderlist_popdir(ListBaseT<FolderList> *folderlist, char *dir);
+void folderlist_pushdir(ListBaseT<FolderList> *folderlist, const char *dir);
+const char *folderlist_peeklastdir(ListBaseT<FolderList> *folderlist);
 bool folderlist_clear_next(SpaceFile *sfile);
 
 void folder_history_list_ensure_for_active_browse_mode(SpaceFile *sfile);

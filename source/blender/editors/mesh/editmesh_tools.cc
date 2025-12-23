@@ -1476,9 +1476,10 @@ static bool bm_vert_connect_select_history(BMesh *bm)
  * Convert an edge selection to a temp vertex selection
  * (which must be cleared after use as a path to connect).
  */
-static bool bm_vert_connect_select_history_edge_to_vert_path(BMesh *bm, ListBase *r_selected)
+static bool bm_vert_connect_select_history_edge_to_vert_path(
+    BMesh *bm, ListBaseT<BMEditSelection> *r_selected)
 {
-  ListBase selected_orig = {nullptr, nullptr};
+  ListBaseT<BMEditSelection> selected_orig = {nullptr, nullptr};
   int edges_len = 0;
   bool side = false;
 
@@ -1552,7 +1553,7 @@ static wmOperatorStatus edbm_vert_connect_path_exec(bContext *C, wmOperator *op)
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = em->bm;
     const bool is_pair = (em->bm->totvertsel == 2);
-    ListBase selected_orig = {nullptr, nullptr};
+    ListBaseT<BMEditSelection> selected_orig = {nullptr, nullptr};
 
     if (bm->totvertsel == 0) {
       continue;
@@ -4707,7 +4708,7 @@ static bool edbm_fill_grid_prepare(BMesh *bm, int offset, int *span_p, const boo
   int count;
   int span = *span_p;
 
-  ListBase eloops = {nullptr};
+  ListBaseT<BMEdgeLoopStore> eloops = {nullptr};
   BMEdgeLoopStore *el_store;
   // LinkData *el_store;
 
@@ -4744,7 +4745,7 @@ static bool edbm_fill_grid_prepare(BMesh *bm, int offset, int *span_p, const boo
   if ((count == 1) && ((verts_len & 1) == 0) && (verts_len == edges_len)) {
 
     /* be clever! detect 2 edge loops from one closed edge loop */
-    ListBase *verts = BM_edgeloop_verts_get(el_store);
+    ListBaseT<LinkData> *verts = BM_edgeloop_verts_get(el_store);
     BMVert *v_act = BM_mesh_active_vert_get(bm);
     LinkData *v_act_link;
     int i;

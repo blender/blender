@@ -174,7 +174,7 @@ static int id_free(Main *bmain, void *idv, int flag, const bool use_flag_from_id
   }
 
   if ((flag & LIB_ID_FREE_NO_MAIN) == 0) {
-    ListBase *lb = which_libbase(bmain, type);
+    ListBaseT<ID> *lb = which_libbase(bmain, type);
     BLI_remlink(lb, id);
     if ((flag & LIB_ID_FREE_NO_NAMEMAP_REMOVE) == 0) {
       BKE_main_namemap_remove_id(*bmain, *id);
@@ -293,7 +293,7 @@ static size_t id_delete(Main *bmain,
      * (e.g. meshes before objects). Reduces the chances to have to loop many times in the
      * `while (keep_looking)` outer loop. */
     for (int i = 0; i < base_count; i++) {
-      ListBase *lb = lbarray[i];
+      ListBaseT<ID> *lb = lbarray[i];
       ID *id_iter;
 
       FOREACH_MAIN_LISTBASE_ID_BEGIN (lb, id_iter) {

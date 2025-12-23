@@ -243,7 +243,7 @@ static StripDrawContext strip_draw_context_get(const TimelineDrawContext &ctx, S
   strip_ctx.missing_media = media_presence_is_missing(scene, strip);
   strip_ctx.is_connected = is_strip_connected(strip);
   if (strip->type == STRIP_TYPE_META) {
-    const ListBase *seqbase = &strip->seqbase;
+    const ListBaseT<Strip> *seqbase = &strip->seqbase;
     LISTBASE_FOREACH (const Strip *, sub, seqbase) {
       if (!strip_has_valid_data(sub)) {
         strip_ctx.missing_data_block = true;
@@ -627,10 +627,10 @@ static void drawmeta_contents(const TimelineDrawContext &ctx,
     return;
   }
 
-  ListBase *meta_channels;
+  ListBaseT<SeqTimelineChannel> *meta_channels;
   int offset;
 
-  ListBase *meta_seqbase = get_seqbase_from_strip(strip_meta, &meta_channels, &offset);
+  ListBaseT<Strip> *meta_seqbase = get_seqbase_from_strip(strip_meta, &meta_channels, &offset);
 
   if (!meta_seqbase || BLI_listbase_is_empty(meta_seqbase)) {
     return;
@@ -1874,7 +1874,7 @@ void draw_timeline_seq_display(const bContext *C, ARegion *region)
 
   if (region->winy > UI_ANIM_MINY) {
     if (const Editing *ed = seq::editing_get(scene)) {
-      const ListBase *seqbase = seq::active_seqbase_get(ed);
+      const ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
       seq::timeline_boundbox(scene, seqbase, &v2d->tot);
       const rcti scroller_mask = ED_time_scrub_clamp_scroller_mask(v2d->mask);
       region->v2d.scroll |= V2D_SCROLL_BOTTOM;

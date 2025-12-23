@@ -1640,7 +1640,7 @@ bool peelObjectsTransform(TransInfo *t,
   snap_object_params.snap_target_select = t->tsnap.target_operation;
   snap_object_params.edit_mode_type = (t->flag & T_EDIT) != 0 ? SNAP_GEOM_EDIT : SNAP_GEOM_FINAL;
 
-  ListBase depths_peel = {nullptr};
+  ListBaseT<SnapObjectHitDepth> depths_peel = {nullptr};
   blender::ed::transform::object_project_all_view3d_ex(t->tsnap.object_context,
                                                        t->depsgraph,
                                                        t->region,

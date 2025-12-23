@@ -995,7 +995,7 @@ static void clean_viewport_memory(Main *bmain, Scene *scene)
   Base *base;
 
   /* Tag all the available objects. */
-  BKE_main_id_tag_listbase(&bmain->objects, ID_TAG_DOIT, true);
+  BKE_main_id_tag_listbase(&bmain->objects.cast<ID>(), ID_TAG_DOIT, true);
 
   /* Go over all the visible objects. */
 

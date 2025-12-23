@@ -219,7 +219,7 @@ void BM_select_history_merge_from_targetmap(BMesh *bm,
 
 #define BM_SELECT_HISTORY_BACKUP(bm) \
   { \
-    ListBase _bm_prev_selected = (bm)->selected; \
+    ListBaseT<BMEditSelection> _bm_prev_selected = (bm)->selected; \
     BLI_listbase_clear(&(bm)->selected)
 
 #define BM_SELECT_HISTORY_RESTORE(bm) \

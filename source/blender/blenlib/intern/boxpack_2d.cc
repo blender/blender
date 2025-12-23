@@ -646,9 +646,12 @@ void BLI_box_pack_2d(
   MEM_freeN(vs_ctx.vertarray);
 }
 
-void BLI_box_pack_2d_fixedarea(ListBase *boxes, int width, int height, ListBase *packed)
+void BLI_box_pack_2d_fixedarea(ListBaseT<FixedSizeBoxPack> *boxes,
+                               int width,
+                               int height,
+                               ListBaseT<FixedSizeBoxPack> *packed)
 {
-  ListBase spaces = {nullptr};
+  ListBaseT<FixedSizeBoxPack> spaces = {nullptr};
   FixedSizeBoxPack *full_rect = MEM_callocN<FixedSizeBoxPack>(__func__);
   full_rect->w = width;
   full_rect->h = height;

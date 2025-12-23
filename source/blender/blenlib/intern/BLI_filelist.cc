@@ -118,7 +118,7 @@ static void bli_builddir(BuildDirCtx *dir_ctx, const char *dirname)
     return;
   }
 
-  ListBase dirbase = {nullptr, nullptr};
+  ListBaseT<dirlink> dirbase = {nullptr, nullptr};
   int newnum = 0;
   const dirent *fname;
   bool has_current = false, has_parent = false;

@@ -18,7 +18,6 @@ struct EditBone;
 struct GPUSelectResult;
 struct IDProperty;
 struct LinkData;
-struct ListBase;
 struct Object;
 struct Scene;
 struct bArmature;
@@ -138,7 +137,7 @@ struct tPChanFCurveLink {
   Object *ob;
 
   /** F-Curves for this PoseChannel (wrapped with LinkData) */
-  ListBase fcurves;
+  ListBaseT<LinkData> fcurves;
   /** Pose Channel which data is attached to */
   bPoseChannel *pchan;
 
@@ -175,9 +174,9 @@ Object *poseAnim_object_get(Object *ob_);
  * Build up a list of tPChanFCurveLink. First only selected, and if that yields no result, all
  * visible.
  */
-void poseAnim_mapping_get(bContext *C, ListBase /*tPChanFCurveLink*/ *pfLinks);
+void poseAnim_mapping_get(bContext *C, ListBaseT<tPChanFCurveLink> *pfLinks);
 /** Free F-Curve <-> PoseChannel links. */
-void poseAnim_mapping_free(ListBase /*tPChanFCurveLink*/ *pfLinks);
+void poseAnim_mapping_free(ListBaseT<tPChanFCurveLink> *pfLinks);
 
 /**
  * Helper for apply() / reset() - refresh the data.
@@ -186,16 +185,21 @@ void poseAnim_mapping_refresh(bContext *C, Scene *scene, Object *ob);
 /**
  * Reset changes made to current pose.
  */
-void poseAnim_mapping_reset(ListBase *pfLinks);
+void poseAnim_mapping_reset(ListBaseT<tPChanFCurveLink> *pfLinks);
 /** Perform auto-key-framing after changes were made + confirmed. */
-void poseAnim_mapping_autoKeyframe(bContext *C, Scene *scene, ListBase *pfLinks, float cframe);
+void poseAnim_mapping_autoKeyframe(bContext *C,
+                                   Scene *scene,
+                                   ListBaseT<tPChanFCurveLink> *pfLinks,
+                                   float cframe);
 
 /**
  * Find the next F-Curve for a PoseChannel with matching path.
  * - `path` is not just the #tPChanFCurveLink (`pfl`) rna_path,
  *   since that path doesn't have property info yet.
  */
-LinkData *poseAnim_mapping_getNextFCurve(ListBase *fcuLinks, LinkData *prev, const char *path);
+LinkData *poseAnim_mapping_getNextFCurve(ListBaseT<LinkData> *fcuLinks,
+                                         LinkData *prev,
+                                         const char *path);
 
 /** \} */
 
@@ -235,19 +239,25 @@ void POSE_OT_propagate(wmOperatorType *ot);
  * but some tools still have a bit of overlap which makes things messy -- Feb 2013
  */
 
-EditBone *make_boneList(ListBase *edbo, ListBase *bones, Bone *actBone);
+EditBone *make_boneList(ListBaseT<EditBone> *edbo, ListBaseT<Bone> *bones, Bone *actBone);
 
 /* Duplicate method. */
 
-EditBone *duplicateEditBone(EditBone *cur_bone, const char *name, ListBase *editbones, Object *ob);
+EditBone *duplicateEditBone(EditBone *cur_bone,
+                            const char *name,
+                            ListBaseT<EditBone> *editbones,
+                            Object *ob);
 
 /* Duplicate method (cross objects). */
 
 /**
  * \param editbones: The target list.
  */
-EditBone *duplicateEditBoneObjects(
-    EditBone *cur_bone, const char *name, ListBase *editbones, Object *src_ob, Object *dst_ob);
+EditBone *duplicateEditBoneObjects(EditBone *cur_bone,
+                                   const char *name,
+                                   ListBaseT<EditBone> *editbones,
+                                   Object *src_ob,
+                                   Object *dst_ob);
 
 /** Adds an EditBone between the nominated locations (should be in the right space). */
 EditBone *add_points_bone(Object *obedit, float head[3], float tail[3]);

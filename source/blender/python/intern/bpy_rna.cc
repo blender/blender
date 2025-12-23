@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <optional>
 
+#include "DNA_listBase.h"
 #include "RNA_path.hh"
 #include "RNA_types.hh"
 
@@ -4529,7 +4530,7 @@ static PyObject *pyrna_struct_dir(BPy_StructRNA *self)
   pyrna_dir_members_rna(ret, &self->ptr.value());
 
   if (self->ptr->type == &RNA_Context) {
-    ListBase lb = CTX_data_dir_get(static_cast<const bContext *>(self->ptr->data));
+    ListBaseT<LinkData> lb = CTX_data_dir_get(static_cast<const bContext *>(self->ptr->data));
 
     LISTBASE_FOREACH (LinkData *, link, &lb) {
       PyList_APPEND(ret, PyUnicode_FromString(static_cast<const char *>(link->data)));
@@ -8195,11 +8196,9 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
   /* Add `staticmethod` and `classmethod` functions. */
   {
     const PointerRNA func_ptr = {nullptr, srna, nullptr};
-    const ListBase *lb;
-
-    lb = RNA_struct_type_functions(srna);
-    LISTBASE_FOREACH (Link *, link, lb) {
-      FunctionRNA *func = (FunctionRNA *)link;
+    const ListBaseT<FunctionRNA> *lb = RNA_struct_type_functions(srna);
+    for (const Link &link : lb->cast<Link>()) {
+      FunctionRNA *func = (FunctionRNA *)&link;
       const int flag = RNA_function_flag(func);
       if ((flag & FUNC_NO_SELF) &&         /* Is `staticmethod` or `classmethod`. */
           (flag & FUNC_REGISTER) == false) /* Is not for registration. */
@@ -9312,15 +9311,14 @@ int pyrna_deferred_register_class(StructRNA *srna, PyTypeObject *py_class)
 
 static int rna_function_register_arg_count(FunctionRNA *func, int *min_count)
 {
-  const ListBase *lb = RNA_function_defined_parameters(func);
-  PropertyRNA *parm;
+  const ListBaseT<PropertyRNA> *lb = RNA_function_defined_parameters(func);
   const int flag = RNA_function_flag(func);
   const bool is_staticmethod = (flag & FUNC_NO_SELF) && !(flag & FUNC_USE_SELF_TYPE);
   int count = is_staticmethod ? 0 : 1;
   bool done_min_count = false;
 
-  LISTBASE_FOREACH (Link *, link, lb) {
-    parm = (PropertyRNA *)link;
+  for (const Link &link : lb->cast<Link>()) {
+    PropertyRNA *parm = (PropertyRNA *)&link;
     if (!(RNA_parameter_flag(parm) & PARM_OUTPUT)) {
       if (!done_min_count && (RNA_parameter_flag(parm) & PARM_PYFUNC_REGISTER_OPTIONAL)) {
         /* From now on, the following parameters are optional in a Python function. */
@@ -9352,7 +9350,6 @@ static int bpy_class_validate_recursive(PointerRNA *dummy_ptr,
                                         void *py_data,
                                         bool *have_function)
 {
-  const ListBase *lb;
   const char *class_type = RNA_struct_identifier(srna);
   StructRNA *srna_base = RNA_struct_base(srna);
   PyObject *py_class = (PyObject *)py_data;
@@ -9377,10 +9374,10 @@ static int bpy_class_validate_recursive(PointerRNA *dummy_ptr,
   }
 
   /* Verify callback functions. */
-  lb = RNA_struct_type_functions(srna);
+  const ListBaseT<FunctionRNA> *lb_func = RNA_struct_type_functions(srna);
   i = 0;
-  LISTBASE_FOREACH (Link *, link, lb) {
-    FunctionRNA *func = (FunctionRNA *)link;
+  for (const Link &link : lb_func->cast<Link>()) {
+    FunctionRNA *func = (FunctionRNA *)&link;
     const int flag = RNA_function_flag(func);
     if (!(flag & FUNC_REGISTER)) {
       continue;
@@ -9504,8 +9501,8 @@ static int bpy_class_validate_recursive(PointerRNA *dummy_ptr,
   };
 
   /* Verify properties. */
-  lb = RNA_struct_type_properties(srna);
-  LISTBASE_FOREACH (Link *, link, lb) {
+  const ListBaseT<PropertyRNA> *lb_prop = RNA_struct_type_properties(srna);
+  LISTBASE_FOREACH (Link *, link, reinterpret_cast<const ListBaseT<Link> *>(lb_prop)) {
     PropertyRNA *prop = (PropertyRNA *)link;
     const int flag = RNA_property_flag(prop);
 
@@ -10365,10 +10362,10 @@ static int pyrna_srna_contains_pointer_prop_srna(StructRNA *srna_props,
   PropertyRNA *prop;
 
   /* Verify properties. */
-  const ListBase *lb = RNA_struct_type_properties(srna);
+  const ListBaseT<PropertyRNA> *lb = RNA_struct_type_properties(srna);
 
-  LISTBASE_FOREACH (LinkData *, link, lb) {
-    prop = (PropertyRNA *)link;
+  for (const Link &link : lb->cast<Link>()) {
+    prop = (PropertyRNA *)&link;
     if (RNA_property_type(prop) == PROP_POINTER && !RNA_property_builtin(prop)) {
       PointerRNA tptr = RNA_pointer_create_discrete(nullptr, &RNA_Struct, srna_props);
 

@@ -10,7 +10,8 @@
 
 #include "BLI_function_ref.hh"
 
-#include "DNA_boid_types.h"       /* for #BoidData */
+#include "DNA_boid_types.h" /* for #BoidData */
+#include "DNA_listBase.h"
 #include "DNA_particle_types.h"   /* for KDTree3d */
 #include "DNA_pointcache_types.h" /* for #BPHYS_TOT_DATA */
 
@@ -65,13 +66,14 @@ struct BlendWriter;
 struct ClothModifierData;
 struct DynamicPaintSurface;
 struct FluidModifierData;
-struct ListBase;
+struct LinkData;
 struct Main;
 struct ModifierData;
 struct Object;
 struct ParticleKey;
 struct ParticleSystem;
 struct PointCache;
+struct PTCacheMem;
 struct RigidBodyWorld;
 struct Scene;
 struct SoftBody;
@@ -164,7 +166,7 @@ typedef struct PTCacheID {
   struct PointCache *cache;
   /** Used for setting the current cache from `ptcaches` list. */
   struct PointCache **cache_ptr;
-  struct ListBase *ptcaches;
+  ListBaseT<PointCache> *ptcaches;
 } PTCacheID;
 
 typedef struct PTCacheBaker {
@@ -222,7 +224,7 @@ typedef struct PTCacheUndo {
   int psys_flag;
 
   /* cache stuff */
-  struct ListBase mem_cache;
+  ListBaseT<PTCacheMem> mem_cache;
 
   int totpoint;
 
@@ -254,7 +256,7 @@ typedef struct PTCacheEdit {
   int *mirror_cache;
 
   struct ParticleCacheKey **pathcache; /* path cache (runtime) */
-  ListBase pathcachebufs;
+  ListBaseT<LinkData> pathcachebufs;
 
   int totpoint, totframes, totcached, edited;
 } PTCacheEdit;
@@ -282,7 +284,7 @@ void BKE_ptcache_id_from_rigidbody(PTCacheID *pid, struct Object *ob, struct Rig
  * \param scene: Optional may be NULL.
  */
 PTCacheID BKE_ptcache_id_find(struct Object *ob, struct Scene *scene, struct PointCache *cache);
-void BKE_ptcache_ids_from_object(struct ListBase *lb,
+void BKE_ptcache_ids_from_object(ListBaseT<PTCacheID> *lb,
                                  struct Object *ob,
                                  struct Scene *scene,
                                  int duplis);
@@ -350,13 +352,13 @@ int BKE_ptcache_write(PTCacheID *pid, unsigned int cfra);
 
 /******************* Allocate & free ***************/
 
-struct PointCache *BKE_ptcache_add(struct ListBase *ptcaches);
-void BKE_ptcache_free_mem(struct ListBase *mem_cache);
+struct PointCache *BKE_ptcache_add(ListBaseT<PointCache> *ptcaches);
+void BKE_ptcache_free_mem(ListBaseT<PTCacheMem> *mem_cache);
 void BKE_ptcache_free(struct PointCache *cache);
-void BKE_ptcache_free_list(struct ListBase *ptcaches);
+void BKE_ptcache_free_list(ListBaseT<PointCache> *ptcaches);
 /** Returns first point cache. */
-struct PointCache *BKE_ptcache_copy_list(struct ListBase *ptcaches_new,
-                                         const struct ListBase *ptcaches_old,
+struct PointCache *BKE_ptcache_copy_list(ListBaseT<PointCache> *ptcaches_new,
+                                         const ListBaseT<PointCache> *ptcaches_old,
                                          int flag);
 
 /********************** Baking *********************/
@@ -408,8 +410,8 @@ void BKE_ptcache_invalidate(struct PointCache *cache);
 
 /********************** .blend File I/O *********************/
 
-void BKE_ptcache_blend_write(struct BlendWriter *writer, struct ListBase *ptcaches);
+void BKE_ptcache_blend_write(struct BlendWriter *writer, ListBaseT<PointCache> *ptcaches);
 void BKE_ptcache_blend_read_data(struct BlendDataReader *reader,
-                                 struct ListBase *ptcaches,
+                                 ListBaseT<PointCache> *ptcaches,
                                  struct PointCache **ocache,
                                  int force_disk);

@@ -225,7 +225,7 @@ static void clip_free(SpaceLink *sl)
 /* spacetype; init callback */
 static void clip_init(wmWindowManager * /*wm*/, ScrArea *area)
 {
-  ListBase *lb = WM_dropboxmap_find("Clip", SPACE_CLIP, RGN_TYPE_WINDOW);
+  ListBaseT<wmDropBox> *lb = WM_dropboxmap_find("Clip", SPACE_CLIP, RGN_TYPE_WINDOW);
 
   /* add drop boxes */
   WM_event_add_dropbox_handler(&area->handlers, lb);
@@ -546,7 +546,7 @@ static void clip_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 /* area+region dropbox definition */
 static void clip_dropboxes()
 {
-  ListBase *lb = WM_dropboxmap_find("Clip", SPACE_CLIP, RGN_TYPE_WINDOW);
+  ListBaseT<wmDropBox> *lb = WM_dropboxmap_find("Clip", SPACE_CLIP, RGN_TYPE_WINDOW);
 
   WM_dropbox_add(lb, "CLIP_OT_open", clip_drop_poll, clip_drop_copy, nullptr, nullptr);
 }

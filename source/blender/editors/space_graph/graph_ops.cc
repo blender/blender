@@ -222,8 +222,8 @@ static void GRAPH_OT_cursor_set(wmOperatorType *ot)
 static wmOperatorStatus graphview_curves_hide_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
-  ListBase anim_data = {nullptr, nullptr};
-  ListBase all_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> all_data = {nullptr, nullptr};
   int filter;
   const bool unselected = RNA_boolean_get(op->ptr, "unselected");
 
@@ -337,8 +337,8 @@ static void GRAPH_OT_hide(wmOperatorType *ot)
 static wmOperatorStatus graphview_curves_reveal_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
-  ListBase anim_data = {nullptr, nullptr};
-  ListBase all_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> all_data = {nullptr, nullptr};
   int filter;
   const bool select = RNA_boolean_get(op->ptr, "select");
 

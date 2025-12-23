@@ -392,7 +392,7 @@ bool BKE_regiontype_uses_category_tabs(const ARegionType *region_type)
 /** \name Space handling
  * \{ */
 
-void BKE_spacedata_freelist(ListBase *lb)
+void BKE_spacedata_freelist(ListBaseT<SpaceLink> *lb)
 {
   LISTBASE_FOREACH (SpaceLink *, sl, lb) {
     SpaceType *st = BKE_spacetype_from_id(sl->spacetype);
@@ -412,7 +412,7 @@ void BKE_spacedata_freelist(ListBase *lb)
   BLI_freelistN(lb);
 }
 
-static void panel_list_copy(ListBase *newlb, const ListBase *lb)
+static void panel_list_copy(ListBaseT<Panel> *newlb, const ListBaseT<Panel> *lb)
 {
   BLI_listbase_clear(newlb);
 
@@ -482,7 +482,7 @@ ARegion *BKE_area_region_new()
 }
 
 /* from lb_src to lb_dst, lb_dst is supposed to be freed */
-static void region_copylist(SpaceType *st, ListBase *lb_dst, ListBase *lb_src)
+static void region_copylist(SpaceType *st, ListBaseT<ARegion> *lb_dst, ListBaseT<ARegion> *lb_src)
 {
   /* to be sure */
   BLI_listbase_clear(lb_dst);
@@ -493,7 +493,7 @@ static void region_copylist(SpaceType *st, ListBase *lb_dst, ListBase *lb_src)
   }
 }
 
-void BKE_spacedata_copylist(ListBase *lb_dst, ListBase *lb_src)
+void BKE_spacedata_copylist(ListBaseT<SpaceLink> *lb_dst, ListBaseT<SpaceLink> *lb_src)
 {
   BLI_listbase_clear(lb_dst); /* to be sure */
 
@@ -529,7 +529,8 @@ ARegion *BKE_spacedata_find_region_type(const SpaceLink *slink,
                                         int region_type)
 {
   const bool is_slink_active = slink == area->spacedata.first;
-  const ListBase *regionbase = (is_slink_active) ? &area->regionbase : &slink->regionbase;
+  const ListBaseT<ARegion> *regionbase = (is_slink_active) ? &area->regionbase :
+                                                             &slink->regionbase;
   ARegion *region = nullptr;
 
   BLI_assert(BLI_findindex(&area->spacedata, slink) != -1);
@@ -672,7 +673,7 @@ static void area_region_panels_free_recursive(Panel *panel)
   BKE_panel_free(panel);
 }
 
-void BKE_area_region_panels_free(ListBase *panels)
+void BKE_area_region_panels_free(ListBaseT<Panel> *panels)
 {
   LISTBASE_FOREACH_MUTABLE (Panel *, panel, panels) {
     /* Delete custom data just for parent panels to avoid a double deletion. */
@@ -927,7 +928,8 @@ void BKE_screen_remove_unused_scrverts(bScreen *screen)
 /** \name Utilities
  * \{ */
 
-ARegion *BKE_region_find_in_listbase_by_type(const ListBase *regionbase, const int region_type)
+ARegion *BKE_region_find_in_listbase_by_type(const ListBaseT<ARegion> *regionbase,
+                                             const int region_type)
 {
   LISTBASE_FOREACH (ARegion *, region, regionbase) {
     if (region->regiontype == region_type) {
@@ -1048,8 +1050,8 @@ ARegion *BKE_screen_find_region_in_space(const bScreen *screen,
   LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     LISTBASE_FOREACH (SpaceLink *, slink, &area->spacedata) {
       if (slink == sl) {
-        ListBase *regionbase = (slink == area->spacedata.first) ? &area->regionbase :
-                                                                  &slink->regionbase;
+        ListBaseT<ARegion> *regionbase = (slink == area->spacedata.first) ? &area->regionbase :
+                                                                            &slink->regionbase;
         return BKE_region_find_in_listbase_by_type(regionbase, region_type);
       }
     }
@@ -1284,7 +1286,7 @@ static void write_uilist(BlendWriter *writer, uiList *ui_list)
   }
 }
 
-static void write_panel_list(BlendWriter *writer, ListBase *lb)
+static void write_panel_list(BlendWriter *writer, ListBaseT<Panel> *lb)
 {
   LISTBASE_FOREACH (Panel *, panel, lb) {
     Panel panel_copy = *panel;
@@ -1371,7 +1373,7 @@ static void remove_least_recently_used_panel_states(Panel &panel, const int64_t 
   }
 }
 
-static void direct_link_panel_list(BlendDataReader *reader, ListBase *lb)
+static void direct_link_panel_list(BlendDataReader *reader, ListBaseT<Panel> *lb)
 {
   BLO_read_struct_list(reader, Panel, lb);
 
@@ -1461,7 +1463,7 @@ static void direct_link_region(BlendDataReader *reader, ARegion *region, int spa
   region->v2d.alpha_hor = region->v2d.alpha_vert = 255; /* visible by default */
 }
 
-void BKE_screen_view3d_do_versions_250(View3D *v3d, ListBase *regions)
+void BKE_screen_view3d_do_versions_250(View3D *v3d, ListBaseT<ARegion> *regions)
 {
   LISTBASE_FOREACH (ARegion *, region, regions) {
     if (region->regiontype == RGN_TYPE_WINDOW && region->regiondata == nullptr) {
@@ -1584,7 +1586,7 @@ bool BKE_screen_area_map_blend_read_data(BlendDataReader *reader, ScrAreaMap *ar
  * Removes all regions whose type cannot be reconstructed. For example files from new versions may
  * be stored with a newly introduced region type that this version cannot handle.
  */
-static void regions_remove_invalid(SpaceType *space_type, ListBase *regionbase)
+static void regions_remove_invalid(SpaceType *space_type, ListBaseT<ARegion> *regionbase)
 {
   LISTBASE_FOREACH_MUTABLE (ARegion *, region, regionbase) {
     if (BKE_regiontype_from_id(space_type, region->regiontype) != nullptr) {
@@ -1606,7 +1608,8 @@ void BKE_screen_area_blend_read_after_liblink(BlendLibReader *reader, ID *parent
 {
   LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
     SpaceType *space_type = BKE_spacetype_from_id(sl->spacetype);
-    ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
+    ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                     &sl->regionbase;
 
     /* We cannot restore the region type without a valid space type. So delete all regions to make
      * sure no data is kept around that can't be restored safely (like the type dependent

@@ -89,7 +89,7 @@ struct BMLog {
   blender::Map<BMElem *, uint, 0> elem_to_id;
 
   /** All #BMLogEntrys, ordered from earliest to most recent. */
-  ListBase entries;
+  ListBaseT<BMLogEntry> entries;
 
   /**
    * The current log entry from entries list

@@ -977,7 +977,7 @@ static bool do_lasso_select_curve(const ViewContext *vc,
   view3d_userdata_lassoselect_init(&data, vc, &rect, mcoords, sel_op);
 
   Curve *curve = (Curve *)vc->obedit->data;
-  ListBase *nurbs = BKE_curve_editNurbs_get(curve);
+  ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(curve);
 
   /* For deselect all, items to be selected are tagged with temp flag. Clear that first. */
   if (deselect_all) {
@@ -1741,7 +1741,7 @@ static bool object_mouse_select_menu(bContext *C,
     /** The scale isn't defined, simply use for sorting. */
     uint depth_id;
   };
-  ListBase base_ref_list = {nullptr, nullptr}; /* List of #BaseRefWithDepth. */
+  ListBaseT<BaseRefWithDepth> base_ref_list = {nullptr, nullptr};
 
   /* handle base->object->select_id */
   CTX_DATA_BEGIN (C, Base *, base, selectable_bases) {
@@ -1952,7 +1952,7 @@ static bool bone_mouse_select_menu(bContext *C,
     /** The scale isn't defined, simply use for sorting. */
     uint depth_id;
   };
-  ListBase bone_ref_list = {nullptr, nullptr};
+  ListBaseT<BoneRefWithDepth> bone_ref_list = {nullptr, nullptr};
 
   blender::Set<void *> added_bones;
 
@@ -2531,7 +2531,7 @@ static bool ed_object_select_pick_camera_track(bContext *C,
   bool found = false;
 
   MovieTracking *tracking = &clip->tracking;
-  ListBase *tracksbase = nullptr;
+  ListBaseT<MovieTrackingTrack> *tracksbase = nullptr;
   MovieTrackingTrack *track = nullptr;
 
   for (int i = 0; i < hits; i++) {
@@ -3923,7 +3923,7 @@ static bool do_nurbs_box_select(const ViewContext *vc, const rcti *rect, const e
   view3d_userdata_boxselect_init(&data, vc, rect, sel_op);
 
   Curve *curve = (Curve *)vc->obedit->data;
-  ListBase *nurbs = BKE_curve_editNurbs_get(curve);
+  ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(curve);
 
   /* For deselect all, items to be selected are tagged with temp flag. Clear that first. */
   if (deselect_all) {
@@ -4339,7 +4339,7 @@ static bool do_object_box_select(bContext *C,
     changed |= object_deselect_all_visible(vc->scene, vc->view_layer, vc->v3d);
   }
 
-  ListBase *object_bases = BKE_view_layer_object_bases_get(vc->view_layer);
+  ListBaseT<Base> *object_bases = BKE_view_layer_object_bases_get(vc->view_layer);
   if ((hits == -1) && !SEL_OP_USE_OUTSIDE(sel_op)) {
     if (changed) {
       object_select_tag_updates(*C, *vc->scene);
@@ -4407,7 +4407,7 @@ static bool do_pose_box_select(bContext *C,
   const int hits = view3d_gpu_select(vc, &buffer, rect, VIEW3D_SELECT_ALL, select_filter);
   /*
    * NOTE(@theeth): Regarding the logic use here.
-   * The buffer and #ListBase have the same relative order, which makes the selection
+   * The buffer and #ListBaseT have the same relative order, which makes the selection
    * very simple. Loop through both data sets at the same time, if the color
    * is the same as the object, we have a hit and can move to the next color
    * and object pair, if not, just move to the next object,
@@ -5053,7 +5053,7 @@ static bool nurbscurve_circle_select(const ViewContext *vc,
   view3d_userdata_circleselect_init(&data, vc, select, mval, rad);
 
   Curve *curve = (Curve *)vc->obedit->data;
-  ListBase *nurbs = BKE_curve_editNurbs_get(curve);
+  ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(curve);
 
   /* For deselect all, items to be selected are tagged with temp flag. Clear that first. */
   if (deselect_all) {

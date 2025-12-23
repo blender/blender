@@ -919,7 +919,8 @@ void type_unlink(const Main &bmain, const AssetShelfType &shelf_type)
   LISTBASE_FOREACH (bScreen *, screen, &bmain.screens) {
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-        ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
+        ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                         &sl->regionbase;
         LISTBASE_FOREACH (ARegion *, region, regionbase) {
           if (region->regiontype != RGN_TYPE_ASSET_SHELF) {
             continue;

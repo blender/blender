@@ -53,6 +53,11 @@ enum {
 
 using CollectionObjectMap = blender::Map<const Object *, CollectionObject *>;
 
+struct CollectionParent {
+  struct CollectionParent *next, *prev;
+  struct Collection *collection;
+};
+
 namespace blender::bke {
 
 struct CollectionRuntime {
@@ -61,13 +66,13 @@ struct CollectionRuntime {
    * This is created on demand when e.g. some physics simulation needs it,
    * we don't want to have it for every collections due to memory usage reasons.
    */
-  ListBase object_cache = {};
+  ListBaseT<Base> object_cache = {};
 
   /** Need this for line art sub-collection selections. */
-  ListBase object_cache_instanced = {};
+  ListBaseT<Base> object_cache_instanced = {};
 
   /** List of collections that are a parent of this data-block. */
-  ListBase parents = {};
+  ListBaseT<CollectionParent> parents = {};
 
   /** An optional map for faster lookups on #Collection.gobject */
   CollectionObjectMap *gobject_hash = nullptr;
@@ -77,16 +82,11 @@ struct CollectionRuntime {
 
 }  // namespace blender::bke
 
-struct CollectionParent {
-  struct CollectionParent *next, *prev;
-  struct Collection *collection;
-};
-
 /* Collections */
 
 /**
- * Add a collection to a collection ListBase and synchronize all render layers
- * The ListBase is NULL when the collection is to be added to the master collection
+ * Add a collection to a collection ListBaseT and synchronize all render layers
+ * The ListBaseT is NULL when the collection is to be added to the master collection
  */
 Collection *BKE_collection_add(Main *bmain,
                                Collection *collection_parent,
@@ -134,7 +134,7 @@ bool BKE_collection_exporter_move(Collection *collection, const int from, const 
 /**
  * Assigns a unique name to the collection exporter.
  */
-void BKE_collection_exporter_name_set(const ListBase *exporters,
+void BKE_collection_exporter_name_set(const ListBaseT<CollectionExport> *exporters,
                                       CollectionExport *data,
                                       const char *newname);
 
@@ -295,8 +295,8 @@ bool BKE_collection_object_cyclic_check(Main *bmain, Object *object, Collection 
 
 /* Object list cache. */
 
-ListBase BKE_collection_object_cache_get(Collection *collection);
-ListBase BKE_collection_object_cache_instanced_get(Collection *collection);
+ListBaseT<Base> BKE_collection_object_cache_get(Collection *collection);
+ListBaseT<Base> BKE_collection_object_cache_instanced_get(Collection *collection);
 /**
  * Free the object cache of given `collection` and all of its ancestors (recursively).
  *

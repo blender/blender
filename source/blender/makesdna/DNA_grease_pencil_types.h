@@ -306,7 +306,7 @@ struct GreasePencilLayerMask {
 
 struct GreasePencilLayerTreeGroup;
 struct GreasePencilLayerTreeNode {
-  /* ListBase pointers. */
+  /* ListBaseT pointers. */
   struct GreasePencilLayerTreeNode *next = nullptr, *prev = nullptr;
   /* Parent pointer. Can be null. */
   struct GreasePencilLayerTreeGroup *parent = nullptr;

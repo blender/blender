@@ -47,7 +47,7 @@ struct TestChunk {
   size_t data_len;
 };
 
-static TestChunk *testchunk_list_add(ListBase *lb, const void *data, size_t data_len)
+static TestChunk *testchunk_list_add(ListBaseT<TestChunk> *lb, const void *data, size_t data_len)
 {
   TestChunk *tc = MEM_mallocN<TestChunk>(__func__);
   tc->data = data;
@@ -58,7 +58,7 @@ static TestChunk *testchunk_list_add(ListBase *lb, const void *data, size_t data
 }
 
 #if 0
-static TestChunk *testchunk_list_add_copydata(ListBase *lb, const void *data, size_t data_len)
+static TestChunk *testchunk_list_add_copydata(ListBaseT<TestChunk> *lb, const void *data, size_t data_len)
 {
   void *data_copy = MEM_mallocN(data_len, __func__);
   memcpy(data_copy, data, data_len);
@@ -66,7 +66,7 @@ static TestChunk *testchunk_list_add_copydata(ListBase *lb, const void *data, si
 }
 #endif
 
-static void testchunk_list_free(ListBase *lb)
+static void testchunk_list_free(ListBaseT<TestChunk> *lb)
 {
   for (TestChunk *tc = (TestChunk *)lb->first, *tb_next; tc; tc = tb_next) {
     tb_next = tc->next;
@@ -77,7 +77,7 @@ static void testchunk_list_free(ListBase *lb)
 }
 
 #if 0
-static char *testchunk_as_data(ListBase *lb, size_t *r_data_len)
+static char *testchunk_as_data(ListBaseT<TestChunk> *lb, size_t *r_data_len)
 {
   size_t data_len = 0;
   for (TestChunk *tc = (TestChunk *)lb->first; tc; tc = tc->next) {
@@ -129,7 +129,9 @@ struct TestBuffer {
   BArrayState *state;
 };
 
-static TestBuffer *testbuffer_list_add(ListBase *lb, const void *data, size_t data_len)
+static TestBuffer *testbuffer_list_add(ListBaseT<TestBuffer> *lb,
+                                       const void *data,
+                                       size_t data_len)
 {
   TestBuffer *tb = MEM_mallocN<TestBuffer>(__func__);
   tb->data = data;
@@ -139,14 +141,18 @@ static TestBuffer *testbuffer_list_add(ListBase *lb, const void *data, size_t da
   return tb;
 }
 
-static TestBuffer *testbuffer_list_add_copydata(ListBase *lb, const void *data, size_t data_len)
+static TestBuffer *testbuffer_list_add_copydata(ListBaseT<TestBuffer> *lb,
+                                                const void *data,
+                                                size_t data_len)
 {
   void *data_copy = MEM_mallocN(data_len, __func__);
   memcpy(data_copy, data, data_len);
   return testbuffer_list_add(lb, data_copy, data_len);
 }
 
-static void testbuffer_list_state_from_data(ListBase *lb, const char *data, const size_t data_len)
+static void testbuffer_list_state_from_data(ListBaseT<TestBuffer> *lb,
+                                            const char *data,
+                                            const size_t data_len)
 {
   testbuffer_list_add_copydata(lb, (const void *)data, data_len);
 }
@@ -155,7 +161,7 @@ static void testbuffer_list_state_from_data(ListBase *lb, const char *data, cons
  * A version of testbuffer_list_state_from_data that expand data by stride,
  * handy so we can test data at different strides.
  */
-static void testbuffer_list_state_from_data__stride_expand(ListBase *lb,
+static void testbuffer_list_state_from_data__stride_expand(ListBaseT<TestBuffer> *lb,
                                                            const char *data,
                                                            const size_t data_len,
                                                            const size_t stride)
@@ -198,7 +204,7 @@ static void testbuffer_list_state_from_data__stride_expand(ListBase *lb,
 /* test in both directions */
 #define TESTBUFFER_STRINGS(stride, chunk_count, ...) \
   { \
-    ListBase lb; \
+    ListBaseT<TestBuffer> lb; \
     TESTBUFFER_STRINGS_CREATE(&lb, __VA_ARGS__); \
 \
     testbuffer_run_tests_simple(&lb, stride, chunk_count); \
@@ -222,7 +228,7 @@ static bool testbuffer_item_validate(TestBuffer *tb)
   return ok;
 }
 
-static bool testbuffer_list_validate(const ListBase *lb)
+static bool testbuffer_list_validate(const ListBaseT<TestBuffer> *lb)
 {
   LISTBASE_FOREACH (TestBuffer *, tb, lb) {
     if (!testbuffer_item_validate(tb)) {
@@ -233,14 +239,14 @@ static bool testbuffer_list_validate(const ListBase *lb)
   return true;
 }
 
-static void testbuffer_list_data_randomize(ListBase *lb, uint random_seed)
+static void testbuffer_list_data_randomize(ListBaseT<TestBuffer> *lb, uint random_seed)
 {
   LISTBASE_FOREACH (TestBuffer *, tb, lb) {
     BLI_array_randomize((void *)tb->data, 1, tb->data_len, random_seed++);
   }
 }
 
-static void testbuffer_list_store_populate(BArrayStore *bs, ListBase *lb)
+static void testbuffer_list_store_populate(BArrayStore *bs, ListBaseT<TestBuffer> *lb)
 {
   for (TestBuffer *tb = (TestBuffer *)lb->first, *tb_prev = nullptr; tb;
        tb_prev = tb, tb = tb->next)
@@ -250,7 +256,7 @@ static void testbuffer_list_store_populate(BArrayStore *bs, ListBase *lb)
   }
 }
 
-static void testbuffer_list_store_clear(BArrayStore *bs, ListBase *lb)
+static void testbuffer_list_store_clear(BArrayStore *bs, ListBaseT<TestBuffer> *lb)
 {
   LISTBASE_FOREACH (TestBuffer *, tb, lb) {
     BLI_array_store_state_remove(bs, tb->state);
@@ -258,7 +264,7 @@ static void testbuffer_list_store_clear(BArrayStore *bs, ListBase *lb)
   }
 }
 
-static void testbuffer_list_free(ListBase *lb)
+static void testbuffer_list_free(ListBaseT<TestBuffer> *lb)
 {
   for (TestBuffer *tb = (TestBuffer *)lb->first, *tb_next; tb; tb = tb_next) {
     tb_next = tb->next;
@@ -268,7 +274,7 @@ static void testbuffer_list_free(ListBase *lb)
   BLI_listbase_clear(lb);
 }
 
-static void testbuffer_run_tests_single(BArrayStore *bs, ListBase *lb)
+static void testbuffer_run_tests_single(BArrayStore *bs, ListBaseT<TestBuffer> *lb)
 {
   testbuffer_list_store_populate(bs, lb);
   EXPECT_TRUE(testbuffer_list_validate(lb));
@@ -279,7 +285,7 @@ static void testbuffer_run_tests_single(BArrayStore *bs, ListBase *lb)
 }
 
 /* avoid copy-paste code to run tests */
-static void testbuffer_run_tests(BArrayStore *bs, ListBase *lb)
+static void testbuffer_run_tests(BArrayStore *bs, ListBaseT<TestBuffer> *lb)
 {
   /* forwards */
   testbuffer_run_tests_single(bs, lb);
@@ -292,7 +298,9 @@ static void testbuffer_run_tests(BArrayStore *bs, ListBase *lb)
   testbuffer_list_store_clear(bs, lb);
 }
 
-static void testbuffer_run_tests_simple(ListBase *lb, const int stride, const int chunk_count)
+static void testbuffer_run_tests_simple(ListBaseT<TestBuffer> *lb,
+                                        const int stride,
+                                        const int chunk_count)
 {
   BArrayStore *bs = BLI_array_store_create(stride, chunk_count);
   testbuffer_run_tests(bs, lb);
@@ -395,7 +403,7 @@ TEST(array_store, TextMixed)
 
 TEST(array_store, TextDupeIncreaseDecrease)
 {
-  ListBase lb;
+  ListBaseT<TestBuffer> lb;
 
 #define D "#1#2#3#4"
   TESTBUFFER_STRINGS_CREATE(&lb, D, D D, D D D, D D D D, );
@@ -439,7 +447,7 @@ static void plain_text_helper(const char *words,
                               const int random_seed)
 {
 
-  ListBase lb;
+  ListBaseT<TestBuffer> lb;
   BLI_listbase_clear(&lb);
 
   for (int i = 0, i_prev = 0; i < words_len; i++) {
@@ -579,7 +587,7 @@ static uint rand_range_i(RNG *rng, uint min_i, uint max_i, uint step)
   return min_i + value;
 }
 
-static void testbuffer_list_state_random_data(ListBase *lb,
+static void testbuffer_list_state_random_data(ListBaseT<TestBuffer> *lb,
                                               const size_t stride,
                                               const size_t data_min_len,
                                               const size_t data_max_len,
@@ -668,7 +676,7 @@ static void random_data_mutate_helper(const int items_size_min,
                                       const int mutate)
 {
 
-  ListBase lb;
+  ListBaseT<TestBuffer> lb;
   BLI_listbase_clear(&lb);
 
   const size_t data_min_len = items_size_min * stride;
@@ -711,7 +719,7 @@ TEST(array_store, TestData_Stride32_Chunk64_Mutate8)
 /* -------------------------------------------------------------------- */
 /* Randomized Chunks Test */
 
-static void random_chunk_generate(ListBase *lb,
+static void random_chunk_generate(ListBaseT<TestChunk> *lb,
                                   const int chunks_per_buffer,
                                   const int stride,
                                   const int chunk_count,
@@ -738,7 +746,7 @@ static void random_chunk_mutate_helper(const int chunks_per_buffer,
 {
   /* generate random chunks */
 
-  ListBase random_chunks;
+  ListBaseT<TestChunk> random_chunks;
   BLI_listbase_clear(&random_chunks);
   random_chunk_generate(&random_chunks, chunks_per_buffer, stride, chunk_count, random_seed);
   TestChunk **chunks_array = MEM_malloc_arrayN<TestChunk *>(size_t(chunks_per_buffer), __func__);
@@ -750,7 +758,7 @@ static void random_chunk_mutate_helper(const int chunks_per_buffer,
   }
 
   /* add and re-order each time */
-  ListBase lb;
+  ListBaseT<TestBuffer> lb;
   BLI_listbase_clear(&lb);
 
   {
@@ -1102,7 +1110,7 @@ static void *file_read_binary_as_mem(const char *filepath, size_t pad_bytes, siz
 
 TEST(array_store, PlainTextFiles)
 {
-  ListBase lb;
+  ListBaseT<TestBuffer> lb;
   BLI_listbase_clear(&lb);
   BArrayStore *bs = BLI_array_store_create(1, 128);
 

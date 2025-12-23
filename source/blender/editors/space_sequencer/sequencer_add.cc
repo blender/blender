@@ -321,7 +321,7 @@ static void sequencer_generic_invoke_path__internal(bContext *C,
 
 static int find_unlocked_unmuted_channel(const Editing *ed, int channel_index)
 {
-  const ListBase *channels = seq::channels_displayed_get(ed);
+  const ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
 
   while (channel_index < seq::MAX_CHANNELS) {
     SeqTimelineChannel *channel = seq::channel_get_by_index(channels, channel_index);
@@ -1829,7 +1829,8 @@ static bool sequencer_add_images(bContext *C, wmOperator *op, seq::LoadData &loa
   Editing *ed = seq::editing_ensure(scene);
 
   const char *blendfile_path = BKE_main_blendfile_path(bmain);
-  ListBase ranges = ED_image_filesel_detect_sequences(blendfile_path, blendfile_path, op, false);
+  ListBaseT<ImageFrameRange> ranges = ED_image_filesel_detect_sequences(
+      blendfile_path, blendfile_path, op, false);
   if (BLI_listbase_is_empty(&ranges)) {
     sequencer_add_free(C, op);
     return false;

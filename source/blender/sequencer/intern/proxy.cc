@@ -430,7 +430,7 @@ bool proxy_rebuild_context(Main *bmain,
                            Scene *scene,
                            Strip *strip,
                            Set<std::string> *processed_paths,
-                           ListBase *queue,
+                           ListBaseT<LinkData> *queue,
                            bool build_only_on_bad_performance)
 {
   if (!strip->data || !strip->data->proxy) {

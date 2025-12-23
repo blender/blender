@@ -67,7 +67,7 @@ struct MovieDistortion {
 };
 
 static struct {
-  ListBase tracks;
+  ListBaseT<MovieTrackingTrack> tracks;
 } tracking_clipboard;
 
 /* --------------------------------------------------------------------
@@ -75,7 +75,7 @@ static struct {
  */
 
 /* Free the whole list of tracks, list's head and tail are set to nullptr. */
-static void tracking_tracks_free(ListBase *tracks)
+static void tracking_tracks_free(ListBaseT<MovieTrackingTrack> *tracks)
 {
   LISTBASE_FOREACH (MovieTrackingTrack *, track, tracks) {
     BKE_tracking_track_free(track);
@@ -85,7 +85,7 @@ static void tracking_tracks_free(ListBase *tracks)
 }
 
 /* Free the whole list of plane tracks, list's head and tail are set to nullptr. */
-static void tracking_plane_tracks_free(ListBase *plane_tracks)
+static void tracking_plane_tracks_free(ListBaseT<MovieTrackingPlaneTrack> *plane_tracks)
 {
   LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, plane_tracks) {
     BKE_tracking_plane_track_free(plane_track);
@@ -119,7 +119,7 @@ static void tracking_object_free(MovieTrackingObject *tracking_object)
 }
 
 /* Free list of tracking objects, list's head and tail is set to nullptr. */
-static void tracking_objects_free(ListBase *objects)
+static void tracking_objects_free(ListBaseT<MovieTrackingObject> *objects)
 {
   /* Free objects contents. */
   LISTBASE_FOREACH (MovieTrackingObject *, object, objects) {
@@ -192,8 +192,8 @@ static void tracking_copy_context_delete(TrackingCopyContext *ctx)
 
 /* Copy the whole list of tracks. */
 static void tracking_tracks_copy(TrackingCopyContext *ctx,
-                                 ListBase *tracks_dst,
-                                 const ListBase *tracks_src,
+                                 ListBaseT<MovieTrackingTrack> *tracks_dst,
+                                 const ListBaseT<MovieTrackingTrack> *tracks_src,
                                  const int flag)
 {
   BLI_listbase_clear(tracks_dst);
@@ -215,10 +215,11 @@ static void tracking_tracks_copy(TrackingCopyContext *ctx,
 /* Copy the whole list of plane tracks
  * (need whole MovieTracking structures due to embedded pointers to tracks).
  * WARNING: implies tracking_[dst/src] and their tracks have already been copied. */
-static void tracking_plane_tracks_copy(TrackingCopyContext *ctx,
-                                       ListBase *plane_tracks_list_dst,
-                                       const ListBase *plane_tracks_list_src,
-                                       const int flag)
+static void tracking_plane_tracks_copy(
+    TrackingCopyContext *ctx,
+    ListBaseT<MovieTrackingPlaneTrack> *plane_tracks_list_dst,
+    const ListBaseT<MovieTrackingPlaneTrack> *plane_tracks_list_src,
+    const int flag)
 {
   BLI_listbase_clear(plane_tracks_list_dst);
 
@@ -295,8 +296,8 @@ static void tracking_object_copy(MovieTrackingObject *tracking_object_dst,
 }
 
 /* Copy list of tracking objects. */
-static void tracking_objects_copy(ListBase *tracking_objects_dst,
-                                  const ListBase *tracking_objects_src,
+static void tracking_objects_copy(ListBaseT<MovieTrackingObject> *tracking_objects_dst,
+                                  const ListBaseT<MovieTrackingObject> *tracking_objects_src,
                                   const int flag)
 {
   BLI_listbase_clear(tracking_objects_dst);
@@ -500,7 +501,8 @@ void BKE_tracking_clipboard_paste_tracks(MovieTracking * /*tracking*/,
  * Tracks.
  */
 
-MovieTrackingTrack *BKE_tracking_track_add_empty(MovieTracking *tracking, ListBase *tracks_list)
+MovieTrackingTrack *BKE_tracking_track_add_empty(MovieTracking *tracking,
+                                                 ListBaseT<MovieTrackingTrack> *tracks_list)
 {
   const MovieTrackingSettings *settings = &tracking->settings;
 
@@ -525,7 +527,7 @@ MovieTrackingTrack *BKE_tracking_track_add_empty(MovieTracking *tracking, ListBa
 }
 
 MovieTrackingTrack *BKE_tracking_track_add(MovieTracking *tracking,
-                                           ListBase *tracksbase,
+                                           ListBaseT<MovieTrackingTrack> *tracksbase,
                                            float x,
                                            float y,
                                            int framenr,
@@ -584,7 +586,8 @@ MovieTrackingTrack *BKE_tracking_track_duplicate(MovieTrackingTrack *track)
   return new_track;
 }
 
-void BKE_tracking_track_unique_name(ListBase *tracksbase, MovieTrackingTrack *track)
+void BKE_tracking_track_unique_name(ListBaseT<MovieTrackingTrack> *tracksbase,
+                                    MovieTrackingTrack *track)
 {
   BLI_uniquename(tracksbase,
                  track,
@@ -627,7 +630,7 @@ void BKE_tracking_tracks_first_last_frame_minmax(/*const*/ MovieTrackingTrack **
   }
 }
 
-int BKE_tracking_count_selected_tracks_in_list(const ListBase *tracks_list)
+int BKE_tracking_count_selected_tracks_in_list(const ListBaseT<MovieTrackingTrack> *tracks_list)
 {
   int num_selected_tracks = 0;
   LISTBASE_FOREACH (const MovieTrackingTrack *, track, tracks_list) {
@@ -1023,9 +1026,8 @@ void BKE_tracking_tracks_average(MovieTrackingTrack *dst_track,
   tracking_average_tracks(dst_track, src_tracks, num_src_tracks);
 }
 
-MovieTrackingTrack *BKE_tracking_track_get_for_selection_index(MovieTracking *tracking,
-                                                               int selection_index,
-                                                               ListBase **r_tracksbase)
+MovieTrackingTrack *BKE_tracking_track_get_for_selection_index(
+    MovieTracking *tracking, int selection_index, ListBaseT<MovieTrackingTrack> **r_tracksbase)
 {
   int cur = 1;
 
@@ -1188,7 +1190,7 @@ float BKE_tracking_track_get_weight_for_marker(MovieClip *clip,
   return weight;
 }
 
-void BKE_tracking_track_select(ListBase *tracksbase,
+void BKE_tracking_track_select(ListBaseT<MovieTrackingTrack> *tracksbase,
                                MovieTrackingTrack *track,
                                eTrackArea area,
                                bool extend)
@@ -1220,7 +1222,7 @@ void BKE_tracking_track_deselect(MovieTrackingTrack *track, eTrackArea area)
   BKE_tracking_track_flag_clear(track, area, SELECT);
 }
 
-void BKE_tracking_tracks_deselect_all(ListBase *tracksbase)
+void BKE_tracking_tracks_deselect_all(ListBaseT<MovieTrackingTrack> *tracksbase)
 {
   LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
     if ((track->flag & TRACK_HIDDEN) == 0) {
@@ -1540,10 +1542,11 @@ void BKE_tracking_marker_get_subframe_position(MovieTrackingTrack *track,
  * Plane track.
  */
 
-MovieTrackingPlaneTrack *BKE_tracking_plane_track_add(MovieTracking *tracking,
-                                                      ListBase *plane_tracks_base,
-                                                      ListBase *tracks,
-                                                      int framenr)
+MovieTrackingPlaneTrack *BKE_tracking_plane_track_add(
+    MovieTracking *tracking,
+    ListBaseT<MovieTrackingPlaneTrack> *plane_tracks_base,
+    ListBaseT<MovieTrackingTrack> *tracks,
+    int framenr)
 {
   MovieTrackingPlaneTrack *plane_track;
   MovieTrackingPlaneMarker plane_marker;
@@ -1612,7 +1615,7 @@ MovieTrackingPlaneTrack *BKE_tracking_plane_track_add(MovieTracking *tracking,
   return plane_track;
 }
 
-void BKE_tracking_plane_track_unique_name(ListBase *plane_tracks_base,
+void BKE_tracking_plane_track_unique_name(ListBaseT<MovieTrackingPlaneTrack> *plane_tracks_base,
                                           MovieTrackingPlaneTrack *plane_track)
 {
   BLI_uniquename(plane_tracks_base,
@@ -1632,7 +1635,7 @@ void BKE_tracking_plane_track_free(MovieTrackingPlaneTrack *plane_track)
   MEM_freeN(plane_track->point_tracks);
 }
 
-void BKE_tracking_plane_tracks_deselect_all(ListBase *plane_tracks_base)
+void BKE_tracking_plane_tracks_deselect_all(ListBaseT<MovieTrackingPlaneTrack> *plane_tracks_base)
 {
   LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, plane_tracks_base) {
     plane_track->flag &= ~SELECT;

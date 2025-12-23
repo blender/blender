@@ -15,6 +15,7 @@
 #include "BKE_grease_pencil_legacy_convert.hh"
 #include "BKE_object.hh"
 
+#include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_task.h"
@@ -27,7 +28,8 @@
 
 /* Shadow loading etc. ================== */
 
-LineartElementLinkNode *lineart_find_matching_eln(ListBase *shadow_elns, int obindex)
+LineartElementLinkNode *lineart_find_matching_eln(ListBaseT<LineartElementLinkNode> *shadow_elns,
+                                                  int obindex)
 {
   LISTBASE_FOREACH (LineartElementLinkNode *, eln, shadow_elns) {
     if (eln->obindex == obindex) {
@@ -115,7 +117,8 @@ void lineart_register_shadow_cuts(LineartData *ld, LineartEdge *e, LineartEdge *
   }
 }
 
-void lineart_register_intersection_shadow_cuts(LineartData *ld, ListBase *shadow_elns)
+void lineart_register_intersection_shadow_cuts(LineartData *ld,
+                                               ListBaseT<LineartElementLinkNode> *shadow_elns)
 {
   if (!shadow_elns) {
     return;
@@ -1142,15 +1145,16 @@ static void lineart_shadow_register_enclosed_shapes(LineartData *ld, LineartData
   }
 }
 
-bool lineart_main_try_generate_shadow_v3(Depsgraph *depsgraph,
-                                         Scene *scene,
-                                         LineartData *original_ld,
-                                         GreasePencilLineartModifierData *lmd,
-                                         LineartStaticMemPool *shadow_data_pool,
-                                         LineartElementLinkNode **r_veln,
-                                         LineartElementLinkNode **r_eeln,
-                                         ListBase *r_calculated_edges_eln_list,
-                                         LineartData **r_shadow_ld_if_reproject)
+bool lineart_main_try_generate_shadow_v3(
+    Depsgraph *depsgraph,
+    Scene *scene,
+    LineartData *original_ld,
+    GreasePencilLineartModifierData *lmd,
+    LineartStaticMemPool *shadow_data_pool,
+    LineartElementLinkNode **r_veln,
+    LineartElementLinkNode **r_eeln,
+    ListBaseT<LineartElementLinkNode> *r_calculated_edges_eln_list,
+    LineartData **r_shadow_ld_if_reproject)
 {
   if ((!original_ld->conf.use_shadow && !original_ld->conf.use_light_contour &&
        !original_ld->conf.shadow_selection) ||
@@ -1309,15 +1313,16 @@ bool lineart_main_try_generate_shadow_v3(Depsgraph *depsgraph,
   return any_generated;
 }
 
-bool lineart_main_try_generate_shadow(Depsgraph *depsgraph,
-                                      Scene *scene,
-                                      LineartData *original_ld,
-                                      LineartGpencilModifierData *lmd_legacy,
-                                      LineartStaticMemPool *shadow_data_pool,
-                                      LineartElementLinkNode **r_veln,
-                                      LineartElementLinkNode **r_eeln,
-                                      ListBase *r_calculated_edges_eln_list,
-                                      LineartData **r_shadow_ld_if_reproject)
+bool lineart_main_try_generate_shadow(
+    Depsgraph *depsgraph,
+    Scene *scene,
+    LineartData *original_ld,
+    LineartGpencilModifierData *lmd_legacy,
+    LineartStaticMemPool *shadow_data_pool,
+    LineartElementLinkNode **r_veln,
+    LineartElementLinkNode **r_eeln,
+    ListBaseT<LineartElementLinkNode> *r_calculated_edges_eln_list,
+    LineartData **r_shadow_ld_if_reproject)
 {
   bool ret = false;
   GreasePencilLineartModifierData lmd;

@@ -524,7 +524,7 @@ static void COLLECTION_OT_exporter_add(wmOperatorType *ot)
 static wmOperatorStatus collection_exporter_remove_exec(bContext *C, wmOperator *op)
 {
   Collection *collection = CTX_data_collection(C);
-  ListBase *exporters = &collection->exporters;
+  ListBaseT<CollectionExport> *exporters = &collection->exporters;
 
   int index = RNA_int_get(op->ptr, "index");
   CollectionExport *data = static_cast<CollectionExport *>(BLI_findlink(exporters, index));
@@ -691,7 +691,7 @@ static wmOperatorStatus collection_exporter_export(bContext *C,
 static wmOperatorStatus collection_exporter_export_exec(bContext *C, wmOperator *op)
 {
   Collection *collection = CTX_data_collection(C);
-  ListBase *exporters = &collection->exporters;
+  ListBaseT<CollectionExport> *exporters = &collection->exporters;
 
   int index = RNA_int_get(op->ptr, "index");
   CollectionExport *data = static_cast<CollectionExport *>(BLI_findlink(exporters, index));
@@ -729,7 +729,7 @@ static wmOperatorStatus collection_export(bContext *C,
                                           Collection *collection,
                                           CollectionExportStats &stats)
 {
-  ListBase *exporters = &collection->exporters;
+  ListBaseT<CollectionExport> *exporters = &collection->exporters;
   int files_num = 0;
 
   LISTBASE_FOREACH (CollectionExport *, data, exporters) {

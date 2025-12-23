@@ -7,9 +7,11 @@
  * \ingroup bke
  */
 
+#include "DNA_listBase.h"
+
 struct Collection;
 struct Depsgraph;
-struct ListBase;
+struct ColliderCache;
 struct RNG;
 struct Object;
 struct ParticleData;
@@ -101,31 +103,31 @@ void BKE_partdeflect_free(struct PartDeflect *pd);
  * This is used by the depsgraph to build relations, as well as faster
  * lookup of effectors during evaluation.
  */
-struct ListBase *BKE_effector_relations_create(struct Depsgraph *depsgraph,
-                                               const struct Scene *scene,
-                                               struct ViewLayer *view_layer,
-                                               struct Collection *collection);
-void BKE_effector_relations_free(struct ListBase *lb);
+ListBaseT<EffectorRelation> *BKE_effector_relations_create(struct Depsgraph *depsgraph,
+                                                           const struct Scene *scene,
+                                                           struct ViewLayer *view_layer,
+                                                           struct Collection *collection);
+void BKE_effector_relations_free(ListBaseT<EffectorRelation> *lb);
 
 /**
  * Create effective list of effectors from relations built beforehand.
  */
-struct ListBase *BKE_effectors_create(struct Depsgraph *depsgraph,
-                                      struct Object *ob_src,
-                                      struct ParticleSystem *psys_src,
-                                      struct EffectorWeights *weights,
-                                      bool use_rotation);
+ListBaseT<EffectorCache> *BKE_effectors_create(struct Depsgraph *depsgraph,
+                                               struct Object *ob_src,
+                                               struct ParticleSystem *psys_src,
+                                               struct EffectorWeights *weights,
+                                               bool use_rotation);
 /**
  * Generic force/speed system, now used for particles, soft-bodies & dynamic-paint.
  */
-void BKE_effectors_apply(struct ListBase *effectors,
-                         struct ListBase *colliders,
+void BKE_effectors_apply(ListBaseT<EffectorCache> *effectors,
+                         ListBaseT<ColliderCache> *colliders,
                          struct EffectorWeights *weights,
                          struct EffectedPoint *point,
                          float *force,
                          float *wind_force,
                          float *impulse);
-void BKE_effectors_free(struct ListBase *lb);
+void BKE_effectors_free(ListBaseT<EffectorCache> *lb);
 
 void pd_point_from_particle(struct ParticleSimulationData *sim,
                             struct ParticleData *pa,

@@ -512,7 +512,7 @@ void WM_xr_actionmaps_clear(wmXrRuntimeData *runtime)
   runtime->actactionmap = runtime->selactionmap = 0;
 }
 
-ListBase *WM_xr_actionmaps_get(wmXrRuntimeData *runtime)
+ListBaseT<XrActionMap> *WM_xr_actionmaps_get(wmXrRuntimeData *runtime)
 {
   return &runtime->actionmaps;
 }

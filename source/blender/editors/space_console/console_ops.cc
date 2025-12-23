@@ -205,7 +205,7 @@ static bool console_line_cursor_set(ConsoleLine *cl, int cursor)
 }
 
 #if 0 /* XXX unused */
-static void console_lb_debug__internal(ListBase *lb)
+static void console_lb_debug__internal(ListBaseT<ConsoleLine> *lb)
 {
   ConsoleLine *cl;
 
@@ -224,7 +224,7 @@ static void console_history_debug(const bContext *C)
 }
 #endif
 
-static ConsoleLine *console_lb_add__internal(ListBase *lb, ConsoleLine *from)
+static ConsoleLine *console_lb_add__internal(ListBaseT<ConsoleLine> *lb, ConsoleLine *from)
 {
   ConsoleLine *ci = MEM_new_for_free<ConsoleLine>("ConsoleLine Add");
 
@@ -259,7 +259,7 @@ static ConsoleLine *console_scrollback_add(const bContext *C, ConsoleLine *from)
 }
 #endif
 
-static ConsoleLine *console_lb_add_str__internal(ListBase *lb, char *str, bool own)
+static ConsoleLine *console_lb_add_str__internal(ListBaseT<ConsoleLine> *lb, char *str, bool own)
 {
   ConsoleLine *ci = MEM_new_for_free<ConsoleLine>("ConsoleLine Add");
   const int str_len = strlen(str);

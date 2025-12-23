@@ -15,6 +15,7 @@
 #include "BLI_map.hh"
 
 struct GHash;
+struct Nurb;
 struct PackedFile;
 struct VFont;
 
@@ -54,7 +55,7 @@ struct VFontData {
 };
 
 struct VChar {
-  ListBase nurbsbase;
+  ListBaseT<Nurb> nurbsbase;
   float width;
 };
 

@@ -62,7 +62,7 @@ using blender::StringRefNull;
 
 static CLG_LogRef LOG = {"geom.mesh.convert"};
 
-static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispbase)
+static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBaseT<DispList> *dispbase)
 {
   using namespace blender;
   using namespace blender::bke;
@@ -326,7 +326,8 @@ static void mesh_copy_texture_space_from_curve_type(const Curve *cu, Mesh *mesh)
   BKE_mesh_texspace_calc(mesh);
 }
 
-Mesh *BKE_mesh_new_nomain_from_curve_displist(const Object *ob, const ListBase *dispbase)
+Mesh *BKE_mesh_new_nomain_from_curve_displist(const Object *ob,
+                                              const ListBaseT<DispList> *dispbase)
 {
   const Curve *cu = (const Curve *)ob->data;
 
@@ -340,7 +341,7 @@ Mesh *BKE_mesh_new_nomain_from_curve_displist(const Object *ob, const ListBase *
 
 Mesh *BKE_mesh_new_nomain_from_curve(const Object *ob)
 {
-  ListBase disp = {nullptr, nullptr};
+  ListBaseT<DispList> disp = {nullptr, nullptr};
 
   if (ob->runtime->curve_cache) {
     disp = ob->runtime->curve_cache->disp;
@@ -359,21 +360,23 @@ struct VertLink {
   uint index;
 };
 
-static void prependPolyLineVert(ListBase *lb, uint index)
+static void prependPolyLineVert(ListBaseT<VertLink> *lb, uint index)
 {
   VertLink *vl = MEM_callocN<VertLink>("VertLink");
   vl->index = index;
   BLI_addhead(lb, vl);
 }
 
-static void appendPolyLineVert(ListBase *lb, uint index)
+static void appendPolyLineVert(ListBaseT<VertLink> *lb, uint index)
 {
   VertLink *vl = MEM_callocN<VertLink>("VertLink");
   vl->index = index;
   BLI_addtail(lb, vl);
 }
 
-void BKE_mesh_to_curve_nurblist(const Mesh *mesh, ListBase *nurblist, const int edge_users_test)
+void BKE_mesh_to_curve_nurblist(const Mesh *mesh,
+                                ListBaseT<Nurb> *nurblist,
+                                const int edge_users_test)
 {
   const Span<float3> positions = mesh->vert_positions();
   const Span<blender::int2> mesh_edges = mesh->edges();
@@ -383,7 +386,7 @@ void BKE_mesh_to_curve_nurblist(const Mesh *mesh, ListBase *nurblist, const int 
   /* only to detect edge polylines */
   int *edge_users;
 
-  ListBase edges = {nullptr, nullptr};
+  ListBaseT<EdgeLink> edges = {nullptr, nullptr};
 
   /* get boundary edges */
   edge_users = MEM_calloc_arrayN<int>(mesh_edges.size(), __func__);
@@ -408,7 +411,7 @@ void BKE_mesh_to_curve_nurblist(const Mesh *mesh, ListBase *nurblist, const int 
     while (edges.first) {
       /* each iteration find a polyline and add this as a nurbs poly spline */
 
-      ListBase polyline = {nullptr, nullptr}; /* store a list of VertLink's */
+      ListBaseT<VertLink> polyline = {nullptr, nullptr}; /* store a list of VertLink's */
       bool closed = false;
       int faces_num = 0;
       blender::int2 &edge_current = *(blender::int2 *)((EdgeLink *)edges.last)->edge;

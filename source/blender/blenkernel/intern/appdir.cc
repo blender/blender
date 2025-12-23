@@ -1113,7 +1113,7 @@ bool BKE_appdir_app_template_has_userpref(const char *app_template)
   return BLI_exists(userpref_path);
 }
 
-void BKE_appdir_app_templates(ListBase *templates)
+void BKE_appdir_app_templates(ListBaseT<LinkData> *templates)
 {
   BLI_listbase_clear(templates);
 

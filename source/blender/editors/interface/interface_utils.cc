@@ -861,10 +861,12 @@ void but_ensure_in_view(const bContext *C, ARegion *region, const Button *but)
  *
  * \{ */
 
+struct ButStoreElem;
+
 struct ButStore {
   ButStore *next, *prev;
   Block *block;
-  ListBase items;
+  ListBaseT<ButStoreElem> items;
 };
 
 struct ButStoreElem {

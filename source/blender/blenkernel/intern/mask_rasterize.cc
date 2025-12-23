@@ -908,8 +908,8 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
       int scanfill_flag = 0;
 
       bool is_isect = false;
-      ListBase isect_remvertbase = {nullptr, nullptr};
-      ListBase isect_remedgebase = {nullptr, nullptr};
+      ListBaseT<ScanFillVert> isect_remvertbase = {nullptr, nullptr};
+      ListBaseT<ScanFillEdge> isect_remedgebase = {nullptr, nullptr};
 
       /* now we have all the splines */
       face_coords = MEM_calloc_arrayN<float[3]>(sf_vert_tot, "maskrast_face_coords");
@@ -977,7 +977,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
       ScanFillEdge **sf_edge_array = nullptr;
       uint sf_edge_array_num = 0;
       if (tot_feather_quads) {
-        const ListBase *lb_array[] = {&sf_ctx.filledgebase, &isect_remedgebase};
+        const ListBaseT<ScanFillEdge> *lb_array[] = {&sf_ctx.filledgebase, &isect_remedgebase};
         for (int pass = 0; pass < 2; pass++) {
           LISTBASE_FOREACH (ScanFillEdge *, sf_edge, lb_array[pass]) {
             if (sf_edge->tmp.c == SF_EDGE_IS_BOUNDARY) {

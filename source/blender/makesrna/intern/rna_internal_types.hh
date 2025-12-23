@@ -335,7 +335,7 @@ struct ContainerRNA {
   void *next, *prev;
 
   blender::CustomIDVectorSet<PropertyRNA *, PropertyRNAIdentifierGetter> *prop_lookup_set;
-  ListBase properties;
+  ListBaseT<PropertyRNA> properties;
 };
 
 struct FunctionRNA {
@@ -745,7 +745,7 @@ struct StructRNA {
   IDPropertiesFunc system_idproperties = nullptr;
 
   /** Functions of this struct. */
-  ListBase functions = {nullptr, nullptr};
+  ListBaseT<FunctionRNA> functions = {nullptr, nullptr};
 };
 
 /**

@@ -421,7 +421,6 @@ static bool sequencer_main_region_poll(const RegionPollParams *params)
 static void sequencer_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
-  ListBase *lb;
 
   view2d_region_reinit(&region->v2d, ui::V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
@@ -440,7 +439,7 @@ static void sequencer_main_region_init(wmWindowManager *wm, ARegion *region)
       &region->runtime->handlers, keymap, WM_event_handler_region_v2d_mask_no_marker_poll);
 
   /* Add drop boxes. */
-  lb = WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_WINDOW);
+  ListBaseT<wmDropBox> *lb = WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_WINDOW);
 
   WM_event_add_dropbox_handler(&region->runtime->handlers, lb);
 }
@@ -687,7 +686,7 @@ static void sequencer_main_cursor(wmWindow *win, ScrArea *area, ARegion *region)
     int mval[2] = {int(mouse_co_region[0]), int(mouse_co_region[1])};
     Strip *strip = strip_under_mouse_get(scene, v2d, mval);
     if (strip != nullptr) {
-      const ListBase *channels = seq::channels_displayed_get(ed);
+      const ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
       const bool locked = seq::transform_is_locked(channels, strip);
       if (STREQ(tref->idname, "builtin.blade")) {
         wmcursor = locked ? WM_CURSOR_STOP : WM_CURSOR_BLADE;
@@ -844,7 +843,7 @@ static void sequencer_preview_region_init(wmWindowManager *wm, ARegion *region)
   keymap = WM_keymap_ensure(wm->runtime->defaultconf, "Frames", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
 
-  ListBase *lb = WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_PREVIEW);
+  ListBaseT<wmDropBox> *lb = WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_PREVIEW);
   WM_event_add_dropbox_handler(&region->runtime->handlers, lb);
 }
 

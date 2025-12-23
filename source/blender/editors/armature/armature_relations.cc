@@ -74,12 +74,12 @@ static void joined_armature_fix_links_constraints(Main *bmain,
                                                   Object *srcArm,
                                                   bPoseChannel *pchan,
                                                   EditBone *curbone,
-                                                  ListBase *lb)
+                                                  ListBaseT<bConstraint> *lb)
 {
   bool changed = false;
 
   LISTBASE_FOREACH (bConstraint *, con, lb) {
-    ListBase targets = {nullptr, nullptr};
+    ListBaseT<bConstraintTarget> targets = {nullptr, nullptr};
 
     /* constraint targets */
     if (BKE_constraint_targets_get(con, &targets)) {
@@ -549,7 +549,7 @@ wmOperatorStatus ED_armature_join_objects_exec(bContext *C, wmOperator *op)
 static void separated_armature_fix_links(Main *bmain, Object *origArm, Object *newArm)
 {
   Object *ob;
-  ListBase *opchans, *npchans;
+  ListBaseT<bPoseChannel> *opchans, *npchans;
 
   /* Get reference to list of bones in original and new armatures. */
   opchans = &origArm->pose->chanbase;
@@ -563,7 +563,7 @@ static void separated_armature_fix_links(Main *bmain, Object *origArm, Object *n
     if (ob->type == OB_ARMATURE) {
       LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
         LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
-          ListBase targets = {nullptr, nullptr};
+          ListBaseT<bConstraintTarget> targets = {nullptr, nullptr};
 
           /* constraint targets */
           if (BKE_constraint_targets_get(con, &targets)) {
@@ -596,7 +596,7 @@ static void separated_armature_fix_links(Main *bmain, Object *origArm, Object *n
     /* fix object-level constraints */
     if (ob != origArm) {
       LISTBASE_FOREACH (bConstraint *, con, &ob->constraints) {
-        ListBase targets = {nullptr, nullptr};
+        ListBaseT<bConstraintTarget> targets = {nullptr, nullptr};
 
         /* constraint targets */
         if (BKE_constraint_targets_get(con, &targets)) {
@@ -837,7 +837,7 @@ static void bone_connect_to_existing_parent(EditBone *bone)
   bone->rad_head = bone->parent->rad_tail;
 }
 
-static void bone_connect_to_new_parent(ListBase *edbo,
+static void bone_connect_to_new_parent(ListBaseT<EditBone> *edbo,
                                        EditBone *selbone,
                                        EditBone *actbone,
                                        short mode)

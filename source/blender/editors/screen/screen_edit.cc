@@ -1413,7 +1413,7 @@ static void screen_set_3dview_camera(Scene *scene,
   if (!v3d->camera || !BKE_view_layer_base_find(view_layer, v3d->camera)) {
     v3d->camera = BKE_view_layer_camera_find(scene, view_layer);
   }
-  ListBase *regionbase;
+  ListBaseT<ARegion> *regionbase;
 
   /* regionbase is in different place depending if space is active. */
   if (v3d == area->spacedata.first) {

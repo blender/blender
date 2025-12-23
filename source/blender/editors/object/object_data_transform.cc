@@ -74,7 +74,7 @@ struct ElemData_Armature {
   float zwidth;
 };
 
-static ElemData_Armature *armature_coords_and_quats_get_recurse(const ListBase *bone_base,
+static ElemData_Armature *armature_coords_and_quats_get_recurse(const ListBaseT<Bone> *bone_base,
                                                                 ElemData_Armature *elem_array)
 {
   ElemData_Armature *elem = elem_array;
@@ -108,7 +108,7 @@ static void armature_coords_and_quats_get(const bArmature *arm,
 }
 
 static const ElemData_Armature *armature_coords_and_quats_apply_with_mat4_recurse(
-    ListBase *bone_base, const ElemData_Armature *elem_array, const float4x4 &transform)
+    ListBaseT<Bone> *bone_base, const ElemData_Armature *elem_array, const float4x4 &transform)
 {
   const ElemData_Armature *elem = elem_array;
   LISTBASE_FOREACH (Bone *, bone, bone_base) {
@@ -397,7 +397,7 @@ static std::unique_ptr<XFormObjectData> data_xform_create_ex(ID *id, bool is_edi
       }
 
       const int key_index = -1;
-      ListBase *nurbs;
+      ListBaseT<Nurb> *nurbs;
       if (is_edit_mode) {
         EditNurb *editnurb = cu->editnurb;
         nurbs = &editnurb->nurbs;
@@ -575,7 +575,7 @@ void data_xform_by_mat4(XFormObjectData &xod_base, const float4x4 &transform)
 
       Key *key = cu->key;
       const int key_index = -1;
-      ListBase *nurb = nullptr;
+      const ListBaseT<Nurb> *nurb = nullptr;
 
       if (xod.is_edit_mode) {
         EditNurb *editnurb = cu->editnurb;

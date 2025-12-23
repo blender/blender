@@ -434,7 +434,7 @@ void key_curve_normal_weights(const float t, float data[4], const KeyInterpolati
  * false means interpolate.
  */
 static bool get_keys_for_absolute_eval(float eval_time,
-                                       const ListBase * /* KeyBlock */ keyblocks,
+                                       const ListBaseT<KeyBlock> *keyblocks,
                                        KeyBlock *r_target_keys[4],
                                        float r_weights[4])
 {
@@ -1254,7 +1254,9 @@ static void do_latt_key(Object *ob, Key *key, char *out, const int tot)
 static void keyblock_data_convert_to_lattice(const float (*fp)[3],
                                              BPoint *bpoint,
                                              const int totpoint);
-static void keyblock_data_convert_to_curve(const float *fp, ListBase *nurb, const int totpoint);
+static void keyblock_data_convert_to_curve(const float *fp,
+                                           ListBaseT<Nurb> *nurb,
+                                           const int totpoint);
 
 float *BKE_key_evaluate_object_ex(
     Object *ob, int *r_totelem, float *arr, size_t arr_size, ID *obdata)
@@ -1465,7 +1467,7 @@ void BKE_keyblock_data_set_with_mat4(Key *key,
 }
 
 void BKE_keyblock_curve_data_set_with_mat4(Key *key,
-                                           const ListBase *nurb,
+                                           const ListBaseT<Nurb> *nurb,
                                            const int shape_index,
                                            const void *data,
                                            const float4x4 &transform)
@@ -1770,7 +1772,7 @@ void BKE_keyblock_convert_to_lattice(const KeyBlock *kb, Lattice *lt)
 
 /************************* Curve ************************/
 
-int BKE_keyblock_curve_element_count(const ListBase *nurb)
+int BKE_keyblock_curve_element_count(const ListBaseT<Nurb> *nurb)
 {
   const Nurb *nu;
   int tot = 0;
@@ -1789,7 +1791,9 @@ int BKE_keyblock_curve_element_count(const ListBase *nurb)
   return tot;
 }
 
-void BKE_keyblock_update_from_curve(const Curve * /*cu*/, KeyBlock *kb, const ListBase *nurb)
+void BKE_keyblock_update_from_curve(const Curve * /*cu*/,
+                                    KeyBlock *kb,
+                                    const ListBaseT<Nurb> *nurb)
 {
   BLI_assert(BKE_keyblock_curve_element_count(nurb) == kb->totelem);
 
@@ -1824,7 +1828,7 @@ void BKE_keyblock_update_from_curve(const Curve * /*cu*/, KeyBlock *kb, const Li
   }
 }
 
-void BKE_keyblock_curve_data_transform(const ListBase *nurb,
+void BKE_keyblock_curve_data_transform(const ListBaseT<Nurb> *nurb,
                                        const float mat[4][4],
                                        const void *src_data,
                                        void *dst_data)
@@ -1855,7 +1859,7 @@ void BKE_keyblock_curve_data_transform(const ListBase *nurb,
   }
 }
 
-void BKE_keyblock_convert_from_curve(const Curve *cu, KeyBlock *kb, const ListBase *nurb)
+void BKE_keyblock_convert_from_curve(const Curve *cu, KeyBlock *kb, const ListBaseT<Nurb> *nurb)
 {
   const int tot = BKE_keyblock_curve_element_count(nurb);
   if (tot == 0) {
@@ -1870,7 +1874,7 @@ void BKE_keyblock_convert_from_curve(const Curve *cu, KeyBlock *kb, const ListBa
   BKE_keyblock_update_from_curve(cu, kb, nurb);
 }
 
-static void keyblock_data_convert_to_curve(const float *fp, ListBase *nurb, int totpoint)
+static void keyblock_data_convert_to_curve(const float *fp, ListBaseT<Nurb> *nurb, int totpoint)
 {
   for (Nurb *nu = static_cast<Nurb *>(nurb->first); nu && totpoint > 0; nu = nu->next) {
     if (nu->bezt != nullptr) {
@@ -1898,7 +1902,7 @@ static void keyblock_data_convert_to_curve(const float *fp, ListBase *nurb, int 
   }
 }
 
-void BKE_keyblock_convert_to_curve(KeyBlock *kb, Curve * /*cu*/, ListBase *nurb)
+void BKE_keyblock_convert_to_curve(KeyBlock *kb, Curve * /*cu*/, ListBaseT<Nurb> *nurb)
 {
   const float *fp = static_cast<const float *>(kb->data);
   const int tot = min_ii(kb->totelem, BKE_keyblock_curve_element_count(nurb));

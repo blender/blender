@@ -58,7 +58,7 @@ static void fontstyle_set_ex(const uiFontStyle *fs, const float dpi_fac);
 
 /* ********************************************** */
 
-static uiStyle *ui_style_new(ListBase *styles, const char *name, short uifont_id)
+static uiStyle *ui_style_new(ListBaseT<uiStyle> *styles, const char *name, short uifont_id)
 {
   uiStyle *style = MEM_callocN<uiStyle>(__func__);
 

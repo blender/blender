@@ -5509,7 +5509,7 @@ static void achannel_setting_flush_widget_cb(bContext *C, void *ale_npoin, void 
 {
   bAnimListElem *ale_setting = static_cast<bAnimListElem *>(ale_npoin);
   bAnimContext ac;
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
   const eAnimChannel_Settings setting = eAnimChannel_Settings(POINTER_AS_INT(setting_wrap));
   short on = 0;
@@ -5610,7 +5610,7 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
   Scene *scene = CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   ToolSettings *ts = scene->toolsettings;
-  ListBase nla_cache = {nullptr, nullptr};
+  ListBaseT<NlaKeyframingContext> nla_cache = {nullptr, nullptr};
   PointerRNA ptr;
   PropertyRNA *prop;
   eInsertKeyFlags flag = INSERTKEY_NOFLAGS;

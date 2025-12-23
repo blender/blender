@@ -390,7 +390,7 @@ void WM_operator_handlers_clear(wmWindowManager *wm, const Set<wmOperatorType *>
   }
 
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    ListBase *lb[2] = {&win->runtime->handlers, &win->runtime->modalhandlers};
+    ListBaseT<wmEventHandler> *lb[2] = {&win->runtime->handlers, &win->runtime->modalhandlers};
     for (int i = 0; i < ARRAY_SIZE(lb); i++) {
       LISTBASE_FOREACH (wmEventHandler *, handler_base, lb[i]) {
         if (handler_base->type == WM_HANDLER_TYPE_OP) {

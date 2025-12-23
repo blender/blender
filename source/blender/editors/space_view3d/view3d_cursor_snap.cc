@@ -53,7 +53,7 @@ struct SnapStateIntern {
 
 struct SnapCursorDataIntern {
   V3DSnapCursorState state_default;
-  ListBase state_intern;
+  ListBaseT<SnapStateIntern> state_intern;
   V3DSnapCursorData snap_data;
 
   blender::ed::transform::SnapObjectContext *snap_context_v3d;

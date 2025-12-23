@@ -275,9 +275,9 @@ static void blo_update_defaults_screen(bScreen *screen,
   const bool hide_image_tool_header = STREQ(workspace_name, "Rendering");
   LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-      ListBase *regionbase = (sl == static_cast<SpaceLink *>(area->spacedata.first)) ?
-                                 &area->regionbase :
-                                 &sl->regionbase;
+      ListBaseT<ARegion> *regionbase = (sl == static_cast<SpaceLink *>(area->spacedata.first)) ?
+                                           &area->regionbase :
+                                           &sl->regionbase;
 
       LISTBASE_FOREACH (ARegion *, region, regionbase) {
         if (region->regiontype == RGN_TYPE_TOOL_HEADER) {
@@ -362,8 +362,8 @@ void BLO_update_defaults_workspace(WorkSpace *workspace, const char *app_templat
               if (((SpaceSeq *)sl)->view == SEQ_VIEW_PREVIEW) {
                 continue;
               }
-              ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                     &sl->regionbase;
+              ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                               &sl->regionbase;
               ARegion *sidebar = BKE_region_find_in_listbase_by_type(regionbase, RGN_TYPE_UI);
               sidebar->flag |= RGN_FLAG_HIDDEN;
             }

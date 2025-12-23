@@ -651,7 +651,7 @@ static bool bpath_list_append(BPathForeachPathData *bpath_data,
                               size_t /*path_dst_maxncpy*/,
                               const char *path_src)
 {
-  ListBase *path_list = static_cast<ListBase *>(bpath_data->user_data);
+  ListBaseT<PathStore> *path_list = static_cast<ListBaseT<PathStore> *>(bpath_data->user_data);
   size_t path_size = strlen(path_src) + 1;
 
   /* NOTE: the PathStore and its string are allocated together in a single alloc. */
@@ -670,7 +670,7 @@ static bool bpath_list_restore(BPathForeachPathData *bpath_data,
                                size_t path_dst_maxncpy,
                                const char *path_src)
 {
-  ListBase *path_list = static_cast<ListBase *>(bpath_data->user_data);
+  ListBaseT<PathStore> *path_list = static_cast<ListBaseT<PathStore> *>(bpath_data->user_data);
 
   /* `ls->first` should never be nullptr, because the number of paths should not change.
    * If this happens, there is a bug in caller code. */
@@ -691,7 +691,7 @@ static bool bpath_list_restore(BPathForeachPathData *bpath_data,
 
 void *BKE_bpath_list_backup(Main *bmain, const eBPathForeachFlag flag)
 {
-  ListBase *path_list = MEM_callocN<ListBase>(__func__);
+  ListBaseT<PathStore> *path_list = MEM_callocN<ListBaseT<PathStore>>(__func__);
 
   BPathForeachPathData path_data{};
   path_data.bmain = bmain;
@@ -705,7 +705,7 @@ void *BKE_bpath_list_backup(Main *bmain, const eBPathForeachFlag flag)
 
 void BKE_bpath_list_restore(Main *bmain, const eBPathForeachFlag flag, void *path_list_handle)
 {
-  ListBase *path_list = static_cast<ListBase *>(path_list_handle);
+  ListBaseT<PathStore> *path_list = static_cast<ListBaseT<PathStore> *>(path_list_handle);
 
   BPathForeachPathData path_data{};
   path_data.bmain = bmain;
@@ -717,7 +717,7 @@ void BKE_bpath_list_restore(Main *bmain, const eBPathForeachFlag flag, void *pat
 
 void BKE_bpath_list_free(void *path_list_handle)
 {
-  ListBase *path_list = static_cast<ListBase *>(path_list_handle);
+  ListBaseT<PathStore> *path_list = static_cast<ListBaseT<PathStore> *>(path_list_handle);
   /* The whole list should have been consumed by #BKE_bpath_list_restore, see also comment in
    * #bpath_list_restore. */
   BLI_assert(BLI_listbase_is_empty(path_list));

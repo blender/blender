@@ -104,7 +104,9 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+struct BArrayState;
 struct BChunkList;
+struct BChunkRef;
 
 /* -------------------------------------------------------------------- */
 /** \name Defines
@@ -310,7 +312,7 @@ struct BArrayStore {
   /**
    * #BArrayState may be in any order (logic should never depend on state order).
    */
-  ListBase states;
+  ListBaseT<BArrayState> states;
 };
 
 /**
@@ -332,7 +334,7 @@ struct BArrayState {
 
 struct BChunkList {
   /** List of #BChunkRef's. */
-  ListBase chunk_refs;
+  ListBaseT<BChunkRef> chunk_refs;
   /** Result of `BLI_listbase_count(chunks)`, store for reuse. */
   uint chunk_refs_len;
   /** Size of all chunks (expanded). */

@@ -56,7 +56,7 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
   }
   else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
     Curve *cu = static_cast<Curve *>(obedit->data);
-    ListBase *nurbs = BKE_curve_editNurbs_get(cu);
+    ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
     Nurb *nu = static_cast<Nurb *>(nurbs->first);
 
     while (nu) {
@@ -389,7 +389,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
   else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
     Curve *cu = static_cast<Curve *>(obedit->data);
     int totmalloc = 0;
-    ListBase *nurbs = BKE_curve_editNurbs_get(cu);
+    ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
 
     LISTBASE_FOREACH (Nurb *, nu, nurbs) {
       if (nu->type == CU_BEZIER) {

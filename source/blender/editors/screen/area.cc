@@ -1964,8 +1964,11 @@ static void region_evaluate_visibility(ARegion *region)
 /**
  * \param region: Region, may be nullptr when adding handlers for \a area.
  */
-static void ed_default_handlers(
-    wmWindowManager *wm, ScrArea *area, ARegion *region, ListBase *handlers, int flag)
+static void ed_default_handlers(wmWindowManager *wm,
+                                ScrArea *area,
+                                ARegion *region,
+                                ListBaseT<wmEventHandler> *handlers,
+                                int flag)
 {
   BLI_assert(region ? (&region->runtime->handlers == handlers) : (&area->handlers == handlers));
 
@@ -1977,7 +1980,8 @@ static void ed_default_handlers(
         wm->runtime->defaultconf, "User Interface", SPACE_EMPTY, RGN_TYPE_WINDOW);
     WM_event_add_keymap_handler(handlers, keymap);
 
-    ListBase *dropboxes = WM_dropboxmap_find("User Interface", SPACE_EMPTY, RGN_TYPE_WINDOW);
+    ListBaseT<wmDropBox> *dropboxes = WM_dropboxmap_find(
+        "User Interface", SPACE_EMPTY, RGN_TYPE_WINDOW);
     WM_event_add_dropbox_handler(handlers, dropboxes);
 
     /* user interface widgets */
@@ -2983,7 +2987,7 @@ BLI_INLINE bool streq_array_any(const char *s, const char *arr[])
  */
 static void ed_panel_draw(const bContext *C,
                           ARegion *region,
-                          ListBase *lb,
+                          ListBaseT<Panel> *lb,
                           PanelType *pt,
                           Panel *panel,
                           int w,
@@ -3234,7 +3238,7 @@ static int panel_draw_width_from_max_width_get(const ARegion *region,
 
 void ED_region_panels_layout_ex(const bContext *C,
                                 ARegion *region,
-                                ListBase *paneltypes,
+                                ListBaseT<PanelType> *paneltypes,
                                 blender::wm::OpCallContext op_context,
                                 const char *contexts[],
                                 const char *category_override)
@@ -3732,7 +3736,7 @@ static bool panel_property_search(const bContext *C,
 
 bool ED_region_property_search(const bContext *C,
                                ARegion *region,
-                               ListBase *paneltypes,
+                               ListBaseT<PanelType> *paneltypes,
                                const char *contexts[],
                                const char *category_override)
 {

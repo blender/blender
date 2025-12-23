@@ -36,7 +36,7 @@ void template_shader_fx(Layout * /*layout*/, bContext *C)
 {
   ARegion *region = CTX_wm_region(C);
   Object *ob = blender::ed::object::context_active_object(C);
-  ListBase *shaderfx = &ob->shader_fx;
+  ListBaseT<ShaderFxData> *shaderfx = &ob->shader_fx;
 
   const bool panels_match = panel_list_matches_data(region, shaderfx, shaderfx_panel_id);
 

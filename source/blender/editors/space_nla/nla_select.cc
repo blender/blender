@@ -75,7 +75,7 @@ enum {
  */
 static void deselect_nla_strips(bAnimContext *ac, short test, short sel)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   short smode;
 
   /* determine type-based settings */
@@ -202,7 +202,7 @@ enum {
 
 static void box_select_nla_strips(bAnimContext *ac, rcti rect, short mode, short selectmode)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   SpaceNla *snla = reinterpret_cast<SpaceNla *>(ac->sl);
   View2D *v2d = &ac->region->v2d;
@@ -270,7 +270,7 @@ static void nlaedit_strip_at_region_position(
   blender::ui::view2d_listview_view_to_cell(
       0, NLATRACK_STEP(snla), 0, NLATRACK_FIRST_TOP(ac), view_x, view_y, nullptr, &track_index);
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
                               ANIMFILTER_LIST_CHANNELS | ANIMFILTER_FCURVESONLY);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
@@ -441,7 +441,7 @@ static void nlaedit_select_leftright(bContext *C,
                                      short leftright,
                                      short select_mode)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   Scene *scene = ac->scene;
   float xmin, xmax;

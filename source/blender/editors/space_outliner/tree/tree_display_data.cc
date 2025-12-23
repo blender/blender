@@ -22,9 +22,9 @@ TreeDisplayDataAPI::TreeDisplayDataAPI(SpaceOutliner &space_outliner)
 {
 }
 
-ListBase TreeDisplayDataAPI::build_tree(const TreeSourceData &source_data)
+ListBaseT<TreeElement> TreeDisplayDataAPI::build_tree(const TreeSourceData &source_data)
 {
-  ListBase tree = {nullptr};
+  ListBaseT<TreeElement> tree = {nullptr};
 
   PointerRNA mainptr = RNA_main_pointer_create(source_data.bmain);
 

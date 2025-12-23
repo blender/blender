@@ -379,7 +379,7 @@ static bool rna_path_parse(const PointerRNA *ptr,
                            PropertyRNA **r_prop,
                            int *r_index,
                            PointerRNA *r_item_ptr,
-                           ListBase *r_elements,
+                           ListBaseT<PropertyElemRNA> *r_elements,
                            const bool eval_pointer)
 {
   BLI_assert(r_item_ptr == nullptr || !eval_pointer);
@@ -605,7 +605,9 @@ bool RNA_path_resolve_property_and_item_pointer_full(const PointerRNA *ptr,
 
   return r_ptr->data != nullptr && *r_prop != nullptr;
 }
-bool RNA_path_resolve_elements(PointerRNA *ptr, const char *path, ListBase *r_elements)
+bool RNA_path_resolve_elements(PointerRNA *ptr,
+                               const char *path,
+                               ListBaseT<PropertyElemRNA> *r_elements)
 {
   return rna_path_parse(ptr, path, nullptr, nullptr, nullptr, nullptr, r_elements, false);
 }
@@ -1199,7 +1201,7 @@ std::optional<std::string> RNA_path_resolve_from_type_to_property(const PointerR
 {
   /* Try to recursively find an "type"'d ancestor,
    * to handle situations where path from ID is not enough. */
-  ListBase path_elems = {nullptr};
+  ListBaseT<PropertyElemRNA> path_elems = {nullptr};
   const std::optional<std::string> full_path = RNA_path_from_ID_to_property(ptr, prop);
   if (!full_path) {
     return std::nullopt;

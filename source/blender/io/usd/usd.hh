@@ -10,13 +10,15 @@
 
 #include "DEG_depsgraph.hh"
 
+#include "DNA_listBase.h"
 #include "DNA_modifier_types.h"
+
 #include "RNA_types.hh"
 
 struct bContext;
 struct CacheArchiveHandle;
+struct CacheObjectPath;
 struct CacheReader;
-struct ListBase;
 struct Mesh;
 struct Object;
 struct ReportList;
@@ -290,7 +292,9 @@ int USD_get_version();
  * attempting to normalize the path. */
 void USD_path_abs(char *path, const char *basepath, bool for_import);
 
-CacheArchiveHandle *USD_create_handle(Main *bmain, const char *filepath, ListBase *object_paths);
+CacheArchiveHandle *USD_create_handle(Main *bmain,
+                                      const char *filepath,
+                                      ListBaseT<CacheObjectPath> *object_paths);
 
 void USD_free_handle(CacheArchiveHandle *handle);
 

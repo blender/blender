@@ -105,7 +105,7 @@ Nurb *ED_curve_add_nurbs_primitive(
     bContext *C, Object *obedit, float mat[4][4], int type, int newob)
 {
   static int xzproj = 0; /* this function calls itself... */
-  ListBase *editnurb = object_editcurve_get(obedit);
+  ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
   RegionView3D *rv3d = ED_view3d_context_rv3d(C);
   Nurb *nu = nullptr;
   BezTriple *bezt;
@@ -500,7 +500,7 @@ static wmOperatorStatus curvesurf_prim_add(bContext *C, wmOperator *op, int type
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
-  ListBase *editnurb;
+  ListBaseT<Nurb> *editnurb;
   Nurb *nu;
   bool newob = false;
   bool enter_editmode;

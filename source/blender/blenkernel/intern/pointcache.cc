@@ -1089,7 +1089,7 @@ PTCacheID BKE_ptcache_id_find(Object *ob, Scene *scene, PointCache *cache)
 {
   PTCacheID result = {nullptr};
 
-  ListBase pidlist;
+  ListBaseT<PTCacheID> pidlist;
   BKE_ptcache_ids_from_object(&pidlist, ob, scene, MAX_DUPLI_RECUR);
 
   LISTBASE_FOREACH (PTCacheID *, pid, &pidlist) {
@@ -1235,7 +1235,7 @@ static bool foreach_object_ptcache(Scene *scene,
   return true;
 }
 
-void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int duplis)
+void BKE_ptcache_ids_from_object(ListBaseT<PTCacheID> *lb, Object *ob, Scene *scene, int duplis)
 {
   lb->first = lb->last = nullptr;
   foreach_object_ptcache(scene, ob, duplis, [&](PTCacheID &pid, ModifierData * /*md*/) -> bool {
@@ -2931,7 +2931,7 @@ int BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
 
 /* Point Cache handling */
 
-PointCache *BKE_ptcache_add(ListBase *ptcaches)
+PointCache *BKE_ptcache_add(ListBaseT<PointCache> *ptcaches)
 {
   PointCache *cache;
 
@@ -2946,7 +2946,7 @@ PointCache *BKE_ptcache_add(ListBase *ptcaches)
   return cache;
 }
 
-void BKE_ptcache_free_mem(ListBase *mem_cache)
+void BKE_ptcache_free_mem(ListBaseT<PTCacheMem> *mem_cache)
 {
   PTCacheMem *pm = static_cast<PTCacheMem *>(mem_cache->first);
 
@@ -2969,7 +2969,7 @@ void BKE_ptcache_free(PointCache *cache)
   }
   MEM_freeN(cache);
 }
-void BKE_ptcache_free_list(ListBase *ptcaches)
+void BKE_ptcache_free_list(ListBaseT<PointCache> *ptcaches)
 {
   while (PointCache *cache = static_cast<PointCache *>(BLI_pophead(ptcaches))) {
     BKE_ptcache_free(cache);
@@ -3017,8 +3017,8 @@ static PointCache *ptcache_copy(PointCache *cache, const bool copy_data)
   return ncache;
 }
 
-PointCache *BKE_ptcache_copy_list(ListBase *ptcaches_new,
-                                  const ListBase *ptcaches_old,
+PointCache *BKE_ptcache_copy_list(ListBaseT<PointCache> *ptcaches_new,
+                                  const ListBaseT<PointCache> *ptcaches_old,
                                   const int flag)
 {
   PointCache *cache = static_cast<PointCache *>(ptcaches_old->first);
@@ -3080,7 +3080,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
   Depsgraph *depsgraph = baker->depsgraph;
   Scene *sce_iter; /* SETLOOPER macro only */
   Base *base;
-  ListBase pidlist;
+  ListBaseT<PTCacheID> pidlist;
   PTCacheID *pid = &baker->pid;
   PointCache *cache = nullptr;
   float frameleno = scene->r.framelen;
@@ -3109,7 +3109,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
       }
       else if (pid->type == PTCACHE_TYPE_SMOKE_HIGHRES) {
         /* get all pids from the object and search for smoke low res */
-        ListBase pidlist2;
+        ListBaseT<PTCacheID> pidlist2;
         BLI_assert(GS(pid->owner_id->name) == ID_OB);
         BKE_ptcache_ids_from_object(&pidlist2, (Object *)pid->owner_id, scene, MAX_DUPLI_RECUR);
         LISTBASE_FOREACH (PTCacheID *, pid2, &pidlist2) {
@@ -3717,7 +3717,7 @@ void BKE_ptcache_invalidate(PointCache *cache)
   }
 }
 
-void BKE_ptcache_blend_write(BlendWriter *writer, ListBase *ptcaches)
+void BKE_ptcache_blend_write(BlendWriter *writer, ListBaseT<PointCache> *ptcaches)
 {
   LISTBASE_FOREACH (PointCache *, cache, ptcaches) {
     writer->write_struct(cache);
@@ -3812,7 +3812,7 @@ static void direct_link_pointcache(BlendDataReader *reader, PointCache *cache)
 }
 
 void BKE_ptcache_blend_read_data(BlendDataReader *reader,
-                                 ListBase *ptcaches,
+                                 ListBaseT<PointCache> *ptcaches,
                                  PointCache **ocache,
                                  int force_disk)
 {

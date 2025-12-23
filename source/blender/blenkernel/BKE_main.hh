@@ -83,6 +83,45 @@ struct Curves;
 struct PointCloud;
 struct Volume;
 
+struct Brush;
+struct CacheFile;
+struct Camera;
+struct Collection;
+struct Curve;
+struct Curves;
+struct FreestyleLineStyle;
+struct GreasePencil;
+struct Image;
+struct Key;
+struct Lattice;
+struct Light;
+struct LightProbe;
+struct Mask;
+struct Material;
+struct Mesh;
+struct MetaBall;
+struct MovieClip;
+struct Object;
+struct PaintCurve;
+struct Palette;
+struct ParticleSettings;
+struct PointCloud;
+struct Scene;
+struct Speaker;
+struct Tex;
+struct Text;
+struct VFont;
+struct Volume;
+struct WorkSpace;
+struct World;
+struct bAction;
+struct bArmature;
+struct bGPdata;
+struct bNodeTree;
+struct bScreen;
+struct bSound;
+struct wmWindowManager;
+
 /**
  * Blender thumbnail, as written to the `.blend` file (width, height, and data as char RGBA).
  */
@@ -620,7 +659,7 @@ void BKE_main_library_weak_reference_add(ID *local_id,
  * #FOREACH_MAIN_LISTBASE_ID instead if you need that kind of control flow. */
 #define FOREACH_MAIN_ID_BEGIN(_bmain, _id) \
   { \
-    ListBase *_lb; \
+    ListBaseT<ID> *_lb; \
     FOREACH_MAIN_LISTBASE_BEGIN ((_bmain), _lb) { \
       FOREACH_MAIN_LISTBASE_ID_BEGIN (_lb, (_id))
 
@@ -681,20 +720,20 @@ const char *BKE_main_blendfile_path_from_global();
 const char *BKE_main_blendfile_path_from_library(const Library &library);
 
 /**
- * \return A pointer to the \a ListBase of given \a bmain for requested \a type ID type.
+ * \return A pointer to the \a ListBaseT of given \a bmain for requested \a type ID type.
  */
-ListBase *which_libbase(Main *bmain, short type);
+ListBaseT<ID> *which_libbase(Main *bmain, short type);
 
 /** Subtracting 1, because #INDEX_ID_NULL is ignored here. */
-using MainListsArray = std::array<ListBase *, INDEX_ID_MAX - 1>;
+using MainListsArray = std::array<ListBaseT<ID> *, INDEX_ID_MAX - 1>;
 
 /**
- * Returns the pointers to all the #ListBase structs in given `bmain`.
+ * Returns the pointers to all the #ListBaseT structs in given `bmain`.
  *
  * This is useful for generic traversal of all the blocks in a #Main (by traversing all the lists
  * in turn), without worrying about block types.
  *
- * \note The order of each ID type #ListBase in the array is determined by the `INDEX_ID_<IDTYPE>`
+ * \note The order of each ID type #ListBaseT in the array is determined by the `INDEX_ID_<IDTYPE>`
  * enum definitions in `DNA_ID.h`. See also the #FOREACH_MAIN_ID_BEGIN macro in `BKE_main.hh`
  */
 MainListsArray BKE_main_lists_get(Main &bmain);

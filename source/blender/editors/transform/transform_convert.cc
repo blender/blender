@@ -535,7 +535,7 @@ bool FrameOnMouseSide(char side, float frame, float cframe)
 /** \name Transform Utilities
  * \{ */
 
-bool constraints_list_needinv(TransInfo *t, ListBase *list)
+bool constraints_list_needinv(TransInfo *t, ListBaseT<bConstraint> *list)
 {
   /* Loop through constraints, checking if there's one of the mentioned
    * constraints needing special crazy-space corrections. */

@@ -27,8 +27,8 @@
 #include "WM_api.hh"
 
 /* Keying Set Type Info declarations. */
-static ListBase keyingset_type_infos = {nullptr, nullptr};
-ListBase builtin_keyingsets = {nullptr, nullptr};
+static ListBaseT<KeyingSetInfo> keyingset_type_infos = {nullptr, nullptr};
+ListBaseT<KeyingSet> builtin_keyingsets = {nullptr, nullptr};
 
 namespace blender::animrig {
 

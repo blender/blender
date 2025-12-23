@@ -997,7 +997,8 @@ void WM_gizmomaptype_group_init_runtime(const Main *bmain,
   {
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-        ListBase *lb = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
+        ListBaseT<ARegion> *lb = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                 &sl->regionbase;
         LISTBASE_FOREACH (ARegion *, region, lb) {
           wmGizmoMap *gzmap = region->runtime->gizmo_map;
           if (gzmap && gzmap->type == gzmap_type) {
@@ -1051,7 +1052,8 @@ void WM_gizmomaptype_group_unlink(bContext *C,
   {
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-        ListBase *lb = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
+        ListBaseT<ARegion> *lb = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                 &sl->regionbase;
         LISTBASE_FOREACH (ARegion *, region, lb) {
           wmGizmoMap *gzmap = region->runtime->gizmo_map;
           if (gzmap && gzmap->type == gzmap_type) {

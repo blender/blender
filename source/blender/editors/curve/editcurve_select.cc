@@ -12,6 +12,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bitmap.h"
+#include "BLI_ghash.h"
 #include "BLI_heap_simple.h"
 #include "BLI_kdtree.hh"
 #include "BLI_listbase.h"
@@ -328,7 +329,7 @@ bool ED_curve_select_swap(EditNurb *editnurb, bool hide_handles)
  * \param cont: when true select continuously
  * \param selstatus: inverts behavior
  */
-static void select_adjacent_cp(ListBase *editnurb,
+static void select_adjacent_cp(ListBaseT<Nurb> *editnurb,
                                short next,
                                const bool cont,
                                const bool selstatus)
@@ -418,7 +419,7 @@ static void select_adjacent_cp(ListBase *editnurb,
  */
 static void selectend_nurb(Object *obedit, eEndPoint_Types selfirst, bool doswap, bool selstatus)
 {
-  ListBase *editnurb = object_editcurve_get(obedit);
+  ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
   BPoint *bp;
   BezTriple *bezt;
   Curve *cu;
@@ -639,7 +640,7 @@ static wmOperatorStatus select_linked_exec(bContext *C, wmOperator * /*op*/)
   for (Object *obedit : objects) {
     Curve *cu = static_cast<Curve *>(obedit->data);
     EditNurb *editnurb = cu->editnurb;
-    ListBase *nurbs = &editnurb->nurbs;
+    ListBaseT<Nurb> *nurbs = &editnurb->nurbs;
     bool changed = false;
 
     LISTBASE_FOREACH (Nurb *, nu, nurbs) {
@@ -769,7 +770,7 @@ static wmOperatorStatus select_row_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *obedit = CTX_data_edit_object(C);
   Curve *cu = static_cast<Curve *>(obedit->data);
-  ListBase *editnurb = object_editcurve_get(obedit);
+  ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
   static BPoint *last = nullptr;
   static int direction = 0;
   Nurb *nu = nullptr;
@@ -842,7 +843,7 @@ static wmOperatorStatus select_next_exec(bContext *C, wmOperator * /*op*/)
 
   for (Object *obedit : objects) {
 
-    ListBase *editnurb = object_editcurve_get(obedit);
+    ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
     select_adjacent_cp(editnurb, 1, false, SELECT);
 
     DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
@@ -881,7 +882,7 @@ static wmOperatorStatus select_previous_exec(bContext *C, wmOperator * /*op*/)
 
   for (Object *obedit : objects) {
 
-    ListBase *editnurb = object_editcurve_get(obedit);
+    ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
     select_adjacent_cp(editnurb, -1, false, SELECT);
 
     DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
@@ -913,7 +914,7 @@ void CURVE_OT_select_previous(wmOperatorType *ot)
 
 static void curve_select_more(Object *obedit)
 {
-  ListBase *editnurb = object_editcurve_get(obedit);
+  ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
   BPoint *bp, *tempbp;
   int a;
   short sel = 0;
@@ -1024,7 +1025,7 @@ void CURVE_OT_select_more(wmOperatorType *ot)
 /* basic method: deselect if control point doesn't have all neighbors selected */
 static void curve_select_less(Object *obedit)
 {
-  ListBase *editnurb = object_editcurve_get(obedit);
+  ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
   BPoint *bp;
   BezTriple *bezt;
   int a;
@@ -1251,7 +1252,7 @@ static wmOperatorStatus curve_select_random_exec(bContext *C, wmOperator *op)
 
   for (const int ob_index : objects.index_range()) {
     Object *obedit = objects[ob_index];
-    ListBase *editnurb = object_editcurve_get(obedit);
+    ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
     int seed_iter = seed;
 
     /* This gives a consistent result regardless of object order. */

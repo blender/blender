@@ -452,13 +452,13 @@ static void do_versions_fix_annotations(bGPdata *gpd)
   }
 }
 
-static void do_versions_remove_region(ListBase *regionbase, ARegion *region)
+static void do_versions_remove_region(ListBaseT<ARegion> *regionbase, ARegion *region)
 {
   MEM_delete(region->runtime);
   BLI_freelinkN(regionbase, region);
 }
 
-static void do_versions_remove_regions_by_type(ListBase *regionbase, int regiontype)
+static void do_versions_remove_regions_by_type(ListBaseT<ARegion> *regionbase, int regiontype)
 {
   ARegion *region, *region_next;
   for (region = static_cast<ARegion *>(regionbase->first); region; region = region_next) {
@@ -469,7 +469,7 @@ static void do_versions_remove_regions_by_type(ListBase *regionbase, int regiont
   }
 }
 
-static ARegion *do_versions_find_region_or_null(ListBase *regionbase, int regiontype)
+static ARegion *do_versions_find_region_or_null(ListBaseT<ARegion> *regionbase, int regiontype)
 {
   LISTBASE_FOREACH (ARegion *, region, regionbase) {
     if (region->regiontype == regiontype) {
@@ -479,7 +479,7 @@ static ARegion *do_versions_find_region_or_null(ListBase *regionbase, int region
   return nullptr;
 }
 
-static ARegion *do_versions_find_region(ListBase *regionbase, int regiontype)
+static ARegion *do_versions_find_region(ListBaseT<ARegion> *regionbase, int regiontype)
 {
   ARegion *region = do_versions_find_region_or_null(regionbase, regiontype);
   if (region == nullptr) {
@@ -496,8 +496,8 @@ static void do_versions_area_ensure_tool_region(Main *bmain,
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
         if (sl->spacetype == space_type) {
-          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                 &sl->regionbase;
+          ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                           &sl->regionbase;
           ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_TOOLS);
           if (!region) {
             ARegion *header = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
@@ -512,7 +512,7 @@ static void do_versions_area_ensure_tool_region(Main *bmain,
   }
 }
 
-static void do_version_bones_split_bbone_scale(ListBase *lb)
+static void do_version_bones_split_bbone_scale(ListBaseT<Bone> *lb)
 {
   LISTBASE_FOREACH (Bone *, bone, lb) {
     bone->scale_in_z = bone->scale_in_x;
@@ -522,7 +522,7 @@ static void do_version_bones_split_bbone_scale(ListBase *lb)
   }
 }
 
-static void do_version_bones_inherit_scale(ListBase *lb)
+static void do_version_bones_inherit_scale(ListBaseT<Bone> *lb)
 {
   LISTBASE_FOREACH (Bone *, bone, lb) {
     if (bone->flag & BONE_NO_SCALE) {
@@ -553,7 +553,7 @@ static bool replace_bbone_scale_rnapath(char **p_old_path)
   return false;
 }
 
-static void do_version_bbone_scale_fcurve_fix(ListBase *curves, FCurve *fcu)
+static void do_version_bbone_scale_fcurve_fix(ListBaseT<FCurve> *curves, FCurve *fcu)
 {
   /* Update driver variable paths. */
   if (fcu->driver) {
@@ -583,7 +583,7 @@ static void do_version_bbone_scale_fcurve_fix(ListBase *curves, FCurve *fcu)
   }
 }
 
-static void do_version_constraints_maintain_volume_mode_uniform(ListBase *lb)
+static void do_version_constraints_maintain_volume_mode_uniform(ListBaseT<bConstraint> *lb)
 {
   LISTBASE_FOREACH (bConstraint *, con, lb) {
     if (con->type == CONSTRAINT_TYPE_SAMEVOL) {
@@ -593,7 +593,7 @@ static void do_version_constraints_maintain_volume_mode_uniform(ListBase *lb)
   }
 }
 
-static void do_version_constraints_copy_scale_power(ListBase *lb)
+static void do_version_constraints_copy_scale_power(ListBaseT<bConstraint> *lb)
 {
   LISTBASE_FOREACH (bConstraint *, con, lb) {
     if (con->type == CONSTRAINT_TYPE_SIZELIKE) {
@@ -603,7 +603,7 @@ static void do_version_constraints_copy_scale_power(ListBase *lb)
   }
 }
 
-static void do_version_constraints_copy_rotation_mix_mode(ListBase *lb)
+static void do_version_constraints_copy_rotation_mix_mode(ListBaseT<bConstraint> *lb)
 {
   LISTBASE_FOREACH (bConstraint *, con, lb) {
     if (con->type == CONSTRAINT_TYPE_ROTLIKE) {
@@ -614,7 +614,7 @@ static void do_version_constraints_copy_rotation_mix_mode(ListBase *lb)
   }
 }
 
-static void do_versions_seq_alloc_transform_and_crop(ListBase *seqbase)
+static void do_versions_seq_alloc_transform_and_crop(ListBaseT<Strip> *seqbase)
 {
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
     if (ELEM(strip->type, STRIP_TYPE_SOUND, STRIP_TYPE_SOUND_HD) == 0) {
@@ -3007,7 +3007,7 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
  * but was initially introduced in 2.27 already.
  * But in 2.79 another case generating non-unique names was discovered
  * (see #55668, involving Meta strips). */
-static void do_versions_seq_unique_name_all_strips(Scene *sce, ListBase *seqbasep)
+static void do_versions_seq_unique_name_all_strips(Scene *sce, ListBaseT<Strip> *seqbasep)
 {
   LISTBASE_FOREACH (Strip *, strip, seqbasep) {
     blender::seq::strip_unique_name_set(sce, &sce->ed->seqbase, strip);
@@ -3351,8 +3351,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (ELEM(sl->spacetype, SPACE_VIEW3D, SPACE_CLIP)) {
-            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                   &sl->regionbase;
+            ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                             &sl->regionbase;
 
             for (ARegion *region = static_cast<ARegion *>(regionbase->first), *region_next; region;
                  region = region_next)
@@ -4205,8 +4205,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                   &sl->regionbase;
+            ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                             &sl->regionbase;
             ARegion *region_header = do_versions_find_region_or_null(regionbase, RGN_TYPE_HEADER);
 
             if (!region_header) {
@@ -4230,8 +4230,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_PROPERTIES) {
-            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                   &sl->regionbase;
+            ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                             &sl->regionbase;
             ARegion *region = BKE_area_region_new();
             ARegion *region_header = nullptr;
 
@@ -4458,8 +4458,9 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
 
             if (!navigation_region) {
               ARegion *main_region = BKE_spacedata_find_region_type(slink, area, RGN_TYPE_WINDOW);
-              ListBase *regionbase = (slink == area->spacedata.first) ? &area->regionbase :
-                                                                        &slink->regionbase;
+              ListBaseT<ARegion> *regionbase = (slink == area->spacedata.first) ?
+                                                   &area->regionbase :
+                                                   &slink->regionbase;
 
               navigation_region = BKE_area_region_new();
 
@@ -4725,8 +4726,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
             ARegion *execute_region = BKE_spacedata_find_region_type(sl, area, RGN_TYPE_EXECUTE);
 
             if (!execute_region) {
-              ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                     &sl->regionbase;
+              ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                               &sl->regionbase;
               ARegion *region_navbar = BKE_spacedata_find_region_type(sl, area, RGN_TYPE_NAV_BAR);
 
               execute_region = BKE_area_region_new();
@@ -4746,7 +4747,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 280, 43)) {
-    ListBase *lb = which_libbase(bmain, ID_BR);
+    ListBaseT<ID> *lb = which_libbase(bmain, ID_BR);
     BKE_main_id_repair_duplicate_names_listbase(bmain, lb);
   }
 
@@ -4961,8 +4962,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_TEXT) {
-            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                   &sl->regionbase;
+            ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                             &sl->regionbase;
 
             /* Remove multiple footers that were added by mistake. */
             do_versions_remove_regions_by_type(regionbase, RGN_TYPE_FOOTER);
@@ -5054,8 +5055,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                 &sl->regionbase;
+          ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                           &sl->regionbase;
           /* All spaces that use tools must be eventually added. */
           ARegion *region = nullptr;
           if (ELEM(sl->spacetype, SPACE_VIEW3D, SPACE_IMAGE, SPACE_SEQ) &&
@@ -5173,8 +5174,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (ELEM(sl->spacetype, SPACE_CLIP, SPACE_GRAPH, SPACE_SEQ)) {
-            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                   &sl->regionbase;
+            ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                             &sl->regionbase;
 
             ARegion *region = nullptr;
             if (sl->spacetype == SPACE_CLIP) {
@@ -5338,8 +5339,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_TEXT) {
-            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                   &sl->regionbase;
+            ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                             &sl->regionbase;
             ARegion *region = do_versions_find_region_or_null(regionbase, RGN_TYPE_UI);
             if (region) {
               region->alignment = RGN_ALIGN_RIGHT;
@@ -5425,8 +5426,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_FILE) {
             SpaceFile *sfile = (SpaceFile *)sl;
-            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                   &sl->regionbase;
+            ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                             &sl->regionbase;
             ARegion *region_ui = do_versions_find_region(regionbase, RGN_TYPE_UI);
             ARegion *region_header = do_versions_find_region(regionbase, RGN_TYPE_HEADER);
             ARegion *region_toolprops = do_versions_find_region_or_null(regionbase,
@@ -5560,8 +5561,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
             }
           }
           else if (sl->spacetype == SPACE_FILE) {
-            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                   &sl->regionbase;
+            ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                             &sl->regionbase;
             ARegion *region_tools = do_versions_find_region_or_null(regionbase, RGN_TYPE_TOOLS);
             ARegion *region_header = do_versions_find_region(regionbase, RGN_TYPE_HEADER);
 

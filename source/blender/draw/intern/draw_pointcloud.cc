@@ -91,7 +91,7 @@ gpu::Batch *pointcloud_sub_pass_setup_implementation(PassT &sub_ps,
   sub_ps.bind_texture("ptcloud_pos_rad_tx", is_empty ? module.dummy_vbo : pos_rad_buf);
 
   if (gpu_material != nullptr) {
-    ListBase gpu_attrs = GPU_material_attributes(gpu_material);
+    ListBaseT<GPUMaterialAttribute> gpu_attrs = GPU_material_attributes(gpu_material);
     LISTBASE_FOREACH (GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
       char sampler_name[32];
       /** NOTE: Reusing curve attribute function. */

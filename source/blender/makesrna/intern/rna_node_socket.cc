@@ -247,7 +247,7 @@ static std::optional<std::string> rna_NodeSocket_path(const PointerRNA *ptr)
   const bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
 
   const bNode &node = blender::bke::node_find_node(*ntree, *sock);
-  const ListBase *sockets = (sock->in_out == SOCK_IN) ? &node.inputs : &node.outputs;
+  const ListBaseT<bNodeSocket> *sockets = (sock->in_out == SOCK_IN) ? &node.inputs : &node.outputs;
   const int socketindex = BLI_findindex(sockets, sock);
 
   char name_esc[sizeof(node.name) * 2];

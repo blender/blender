@@ -12,7 +12,6 @@
 
 struct CustomData;
 struct CustomDataTransferLayerMap;
-struct ListBase;
 struct Object;
 struct Mesh;
 

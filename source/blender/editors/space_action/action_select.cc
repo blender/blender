@@ -73,7 +73,7 @@ static bAnimListElem *actkeys_find_list_element_at_position(bAnimContext *ac,
                                             nullptr,
                                             &channel_index);
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
   bAnimListElem *ale = static_cast<bAnimListElem *>(BLI_findlink(&anim_data, channel_index));
@@ -291,7 +291,7 @@ static bool actkeys_is_key_at_position(bAnimContext *ac, float region_x, float r
  */
 static void deselect_action_keys(bAnimContext *ac, short test, eEditKeyframes_Select sel)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter;
 
   KeyframeEditData ked = {{nullptr}};
@@ -504,7 +504,7 @@ static void box_select_elem(
       }
 
       if (ale->type == ANIMTYPE_SUMMARY) {
-        ListBase anim_data = {nullptr, nullptr};
+        ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
         ANIM_animdata_filter(
             ac, &anim_data, ANIMFILTER_DATA_VISIBLE, ac->data, eAnimCont_Types(ac->datatype));
 
@@ -529,7 +529,7 @@ static void box_select_action(bAnimContext *ac,
                               short mode,
                               const eEditKeyframes_Select selectmode)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   bAnimListElem *ale;
   eAnimFilter_Flags filter;
 
@@ -745,7 +745,7 @@ static void region_select_elem(RegionSelectData *sel_data, bAnimListElem *ale, b
       break;
     }
     case ANIMTYPE_GREASE_PENCIL_DATABLOCK: {
-      ListBase anim_data = {nullptr, nullptr};
+      ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
       ANIM_animdata_filter(
           ac, &anim_data, ANIMFILTER_DATA_VISIBLE, ac->data, eAnimCont_Types(ac->datatype));
 
@@ -783,7 +783,7 @@ static void region_select_elem(RegionSelectData *sel_data, bAnimListElem *ale, b
       }
 
       if (ale->type == ANIMTYPE_SUMMARY) {
-        ListBase anim_data = {nullptr, nullptr};
+        ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
         ANIM_animdata_filter(
             ac, &anim_data, ANIMFILTER_DATA_VISIBLE, ac->data, eAnimCont_Types(ac->datatype));
 
@@ -809,7 +809,7 @@ static void region_select_action_keys(bAnimContext *ac,
                                       eEditKeyframes_Select selectmode,
                                       void *data)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   bAnimListElem *ale;
   eAnimFilter_Flags filter;
 
@@ -1062,7 +1062,7 @@ static const EnumPropertyItem prop_column_select_types[] = {
  * `graph_select.cc` should de-duplicate. */
 static void markers_selectkeys_between(bAnimContext *ac)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter;
 
   KeyframeEditFunc ok_cb, select_cb;
@@ -1124,7 +1124,7 @@ static void markers_selectkeys_between(bAnimContext *ac)
 /* Selects all visible keyframes in the same frames as the specified elements */
 static void columnselect_action_keys(bAnimContext *ac, short mode)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter;
 
   Scene *scene = ac->scene;
@@ -1142,8 +1142,9 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
         LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
           switch (ale->type) {
             case ANIMTYPE_GPLAYER:
-              ED_gpencil_layer_make_cfra_list(
-                  static_cast<bGPDlayer *>(ale->data), &ked.list, true);
+              ED_gpencil_layer_make_cfra_list(static_cast<bGPDlayer *>(ale->data),
+                                              static_cast<ListBaseT<CfraElem> *>(&ked.list),
+                                              true);
               break;
             case ANIMTYPE_GREASE_PENCIL_LAYER:
               blender::ed::greasepencil ::create_keyframe_edit_data_selected_frames_list(
@@ -1161,7 +1162,9 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
 
         LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
           if (ale->datatype == ALE_GPFRAME) {
-            ED_gpencil_layer_make_cfra_list(static_cast<bGPDlayer *>(ale->data), &ked.list, true);
+            ED_gpencil_layer_make_cfra_list(static_cast<bGPDlayer *>(ale->data),
+                                            static_cast<ListBaseT<CfraElem> *>(&ked.list),
+                                            true);
           }
           else {
             ked.data = ale;
@@ -1182,7 +1185,7 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
       break;
 
     case ACTKEYS_COLUMNSEL_MARKERS_COLUMN: /* list of selected markers */
-      ED_markers_make_cfra_list(ac->markers, &ked.list, true);
+      ED_markers_make_cfra_list(ac->markers, static_cast<ListBaseT<CfraElem> *>(&ked.list), true);
       break;
 
     default: /* invalid option */
@@ -1293,7 +1296,7 @@ static wmOperatorStatus actkeys_select_linked_exec(bContext *C, wmOperator * /*o
 {
   bAnimContext ac;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter;
 
   KeyframeEditFunc ok_cb = ANIM_editkeyframes_ok(BEZT_OK_SELECTED);
@@ -1354,7 +1357,7 @@ void ACTION_OT_select_linked(wmOperatorType *ot)
 /* Common code to perform selection */
 static void select_moreless_action_keys(bAnimContext *ac, short mode)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter;
 
   KeyframeEditData ked = {{nullptr}};
@@ -1493,7 +1496,7 @@ static void actkeys_select_leftright(bAnimContext *ac,
                                      short leftright,
                                      eEditKeyframes_Select select_mode)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter;
 
   KeyframeEditFunc ok_cb, select_cb;
@@ -1725,7 +1728,7 @@ static void actkeys_mselect_single(bAnimContext *ac,
         static_cast<GreasePencilLayerTreeGroup *>(ale->data)->wrap(), selx, select_mode);
   }
   else if (ale->type == ANIMTYPE_GREASE_PENCIL_DATABLOCK) {
-    ListBase anim_data = {nullptr, nullptr};
+    ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
     eAnimFilter_Flags filter;
 
     filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS);
@@ -1746,7 +1749,7 @@ static void actkeys_mselect_single(bAnimContext *ac,
   }
   else {
     if (ale->type == ANIMTYPE_SUMMARY && ale->datatype == ALE_ALL) {
-      ListBase anim_data = {nullptr, nullptr};
+      ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
       eAnimFilter_Flags filter;
 
       filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS);
@@ -1792,7 +1795,7 @@ static void actkeys_mselect_single(bAnimContext *ac,
 /* Option 3) Selects all visible keyframes in the same frame as the mouse click */
 static void actkeys_mselect_column(bAnimContext *ac, eEditKeyframes_Select select_mode, float selx)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter;
 
   KeyframeEditFunc select_cb, ok_cb;
@@ -1863,7 +1866,7 @@ static void actkeys_mselect_channel_only(bAnimContext *ac,
   }
   else {
     if (ale->type == ANIMTYPE_SUMMARY && ale->datatype == ALE_ALL) {
-      ListBase anim_data = {nullptr, nullptr};
+      ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
       eAnimFilter_Flags filter;
 
       filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS);
@@ -2033,7 +2036,7 @@ static wmOperatorStatus mouse_action_keys(bAnimContext *ac,
     /* flush tagged updates
      * NOTE: We temporarily add this channel back to the list so that this can happen
      */
-    ListBase anim_data = {ale, ale};
+    ListBaseT<bAnimListElem> anim_data = {ale, ale};
     ANIM_animdata_update(ac, &anim_data);
 
     /* free this channel */

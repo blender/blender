@@ -77,7 +77,7 @@ namespace blender::ed::object {
 /** \name Constraint Data Accessors
  * \{ */
 
-ListBase *constraint_active_list(Object *ob)
+ListBaseT<bConstraint> *constraint_active_list(Object *ob)
 {
   if (ob == nullptr) {
     return nullptr;
@@ -98,7 +98,7 @@ ListBase *constraint_active_list(Object *ob)
   return nullptr;
 }
 
-ListBase *pose_constraint_list(const bContext *C)
+ListBaseT<bConstraint> *pose_constraint_list(const bContext *C)
 {
   bPoseChannel *pose_bone = static_cast<bPoseChannel *>(CTX_data_pointer_get(C, "pose_bone").data);
   if (pose_bone == nullptr) {
@@ -111,7 +111,9 @@ ListBase *pose_constraint_list(const bContext *C)
   return &pose_bone->constraints;
 }
 
-ListBase *constraint_list_from_constraint(Object *ob, bConstraint *con, bPoseChannel **r_pchan)
+ListBaseT<bConstraint> *constraint_list_from_constraint(Object *ob,
+                                                        bConstraint *con,
+                                                        bPoseChannel **r_pchan)
 {
   if (r_pchan) {
     *r_pchan = nullptr;
@@ -164,7 +166,7 @@ static void set_constraint_nth_target(bConstraint *con,
                                       const char subtarget[],
                                       int index)
 {
-  ListBase targets = {nullptr, nullptr};
+  ListBaseT<bConstraintTarget> targets = {nullptr, nullptr};
   bConstraintTarget *ct;
   int targets_num, i;
 
@@ -204,7 +206,7 @@ static void set_constraint_nth_target(bConstraint *con,
 static void test_constraint(
     Main *bmain, Object *owner, bPoseChannel *pchan, bConstraint *con, int type)
 {
-  ListBase targets = {nullptr, nullptr};
+  ListBaseT<bConstraintTarget> targets = {nullptr, nullptr};
   bool check_targets = true;
 
   /* clear disabled-flag first */
@@ -488,7 +490,7 @@ static int constraint_type_get(Object *owner, bPoseChannel *pchan)
  */
 static void test_constraints(Main *bmain, Object *ob, bPoseChannel *pchan)
 {
-  ListBase *conlist = nullptr;
+  ListBaseT<bConstraint> *conlist = nullptr;
   int type;
 
   if (ob == nullptr) {
@@ -633,7 +635,7 @@ static bool edit_constraint_invoke_properties(bContext *C,
   PointerRNA ptr = CTX_data_pointer_get_type(C, "constraint", &RNA_Constraint);
   Object *ob = (ptr.owner_id) ? (Object *)ptr.owner_id : context_active_object(C);
   bConstraint *con;
-  ListBase *list;
+  ListBaseT<bConstraint> *list;
 
   if (RNA_struct_property_is_set(op->ptr, "constraint") &&
       RNA_struct_property_is_set(op->ptr, "owner"))
@@ -693,7 +695,7 @@ static bConstraint *edit_constraint_property_get(bContext *C, wmOperator *op, Ob
   char constraint_name[MAX_NAME];
   int owner = RNA_enum_get(op->ptr, "owner");
   bConstraint *con;
-  ListBase *list = nullptr;
+  ListBaseT<bConstraint> *list = nullptr;
 
   RNA_string_get(op->ptr, "constraint", constraint_name);
 
@@ -1282,7 +1284,7 @@ void CONSTRAINT_OT_objectsolver_clear_inverse(wmOperatorType *ot)
 
 void constraint_active_set(Object *ob, bConstraint *con)
 {
-  ListBase *lb = constraint_list_from_constraint(ob, con, nullptr);
+  ListBaseT<bConstraint> *lb = constraint_list_from_constraint(ob, con, nullptr);
 
   /* lets be nice and escape if its active already */
   /* NOTE: this assumes that the stack doesn't have other active ones set... */
@@ -1362,7 +1364,7 @@ bool constraint_move_to_index(Object *ob, bConstraint *con, const int index)
   BLI_assert(con != nullptr);
   BLI_assert(index >= 0);
 
-  ListBase *conlist = constraint_list_from_constraint(ob, con, nullptr);
+  ListBaseT<bConstraint> *conlist = constraint_list_from_constraint(ob, con, nullptr);
   int current_index = BLI_findindex(conlist, con);
   BLI_assert(current_index >= 0);
 
@@ -1373,7 +1375,10 @@ bool constraint_move_to_index(Object *ob, bConstraint *con, const int index)
   return true;
 }
 
-void constraint_link(Main *bmain, Object *ob_dst, ListBase *dst, ListBase *src)
+void constraint_link(Main *bmain,
+                     Object *ob_dst,
+                     ListBaseT<bConstraint> *dst,
+                     ListBaseT<bConstraint> *src)
 {
   BKE_constraints_free(dst);
   BKE_constraints_copy(dst, src, true);
@@ -1417,7 +1422,7 @@ static wmOperatorStatus constraint_delete_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  ListBase *lb = constraint_list_from_constraint(ob, con, nullptr);
+  ListBaseT<bConstraint> *lb = constraint_list_from_constraint(ob, con, nullptr);
 
   /* Store name temporarily for report. */
   char name[MAX_NAME];
@@ -1490,7 +1495,7 @@ static wmOperatorStatus constraint_apply_exec(bContext *C, wmOperator *op)
   }
 
   bPoseChannel *pchan;
-  ListBase *constraints = constraint_list_from_constraint(ob, con, &pchan);
+  ListBaseT<bConstraint> *constraints = constraint_list_from_constraint(ob, con, &pchan);
 
   /* Store name temporarily for report. */
   char name[MAX_NAME];
@@ -1587,7 +1592,7 @@ static wmOperatorStatus constraint_copy_exec(bContext *C, wmOperator *op)
   }
 
   bPoseChannel *pchan;
-  ListBase *constraints = constraint_list_from_constraint(ob, con, &pchan);
+  ListBaseT<bConstraint> *constraints = constraint_list_from_constraint(ob, con, &pchan);
 
   /* Store name temporarily for report. */
   char name[MAX_NAME];
@@ -1821,7 +1826,7 @@ static wmOperatorStatus constraint_move_down_exec(bContext *C, wmOperator *op)
   bConstraint *con = edit_constraint_property_get(C, op, ob, 0);
 
   if (con && con->next) {
-    ListBase *conlist = constraint_list_from_constraint(ob, con, nullptr);
+    ListBaseT<bConstraint> *conlist = constraint_list_from_constraint(ob, con, nullptr);
     bConstraint *nextCon = con->next;
 
     /* insert the nominated constraint after the one that used to be after it */
@@ -1879,7 +1884,7 @@ static wmOperatorStatus constraint_move_up_exec(bContext *C, wmOperator *op)
   bConstraint *con = edit_constraint_property_get(C, op, ob, 0);
 
   if (con && con->prev) {
-    ListBase *conlist = constraint_list_from_constraint(ob, con, nullptr);
+    ListBaseT<bConstraint> *conlist = constraint_list_from_constraint(ob, con, nullptr);
     bConstraint *prevCon = con->prev;
 
     /* insert the nominated constraint before the one that used to be before it */
@@ -2338,8 +2343,12 @@ static bool get_new_constraint_target(
 }
 
 /* used by add constraint operators to add the constraint required */
-static wmOperatorStatus constraint_add_exec(
-    bContext *C, wmOperator *op, Object *ob, ListBase *list, int type, const bool setTarget)
+static wmOperatorStatus constraint_add_exec(bContext *C,
+                                            wmOperator *op,
+                                            Object *ob,
+                                            ListBaseT<bConstraint> *list,
+                                            int type,
+                                            const bool setTarget)
 {
   Main *bmain = CTX_data_main(C);
   bPoseChannel *pchan;

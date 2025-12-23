@@ -56,7 +56,7 @@ void BKE_nlatrack_free(NlaTrack *nlt, bool do_id_user);
  * Free the elements of type NLA Tracks provided in the given list, but do not free
  * the list itself since that is not free-standing
  */
-void BKE_nla_tracks_free(ListBase *tracks, bool do_id_user);
+void BKE_nla_tracks_free(ListBaseT<NlaTrack> *tracks, bool do_id_user);
 
 /**
  * Copy NLA strip
@@ -77,7 +77,10 @@ NlaTrack *BKE_nlatrack_copy(Main *bmain, NlaTrack *nlt, bool use_same_actions, i
  * \param flag: Control ID pointers management, see LIB_ID_CREATE_.../LIB_ID_COPY_...
  * flags in BKE_lib_id.hh
  */
-void BKE_nla_tracks_copy(Main *bmain, ListBase *dst, const ListBase *src, int flag);
+void BKE_nla_tracks_copy(Main *bmain,
+                         ListBaseT<NlaTrack> *dst,
+                         const ListBaseT<NlaTrack> *src,
+                         int flag);
 
 /**
  * Copy NLA tracks from #adt_source to #adt_dest, and update the active track/strip pointers to
@@ -92,7 +95,7 @@ void BKE_nla_tracks_copy_from_adt(Main *bmain,
  * Inserts a given NLA track before a specified NLA track within the
  * passed NLA track list.
  */
-void BKE_nlatrack_insert_before(ListBase *nla_tracks,
+void BKE_nlatrack_insert_before(ListBaseT<NlaTrack> *nla_tracks,
                                 NlaTrack *next,
                                 NlaTrack *new_track,
                                 bool is_liboverride);
@@ -101,7 +104,7 @@ void BKE_nlatrack_insert_before(ListBase *nla_tracks,
  * Inserts a given NLA track after a specified NLA track within the
  * passed NLA track list.
  */
-void BKE_nlatrack_insert_after(ListBase *nla_tracks,
+void BKE_nlatrack_insert_after(ListBaseT<NlaTrack> *nla_tracks,
                                NlaTrack *prev,
                                NlaTrack *new_track,
                                bool is_liboverride);
@@ -110,36 +113,40 @@ void BKE_nlatrack_insert_after(ListBase *nla_tracks,
  * Calls #BKE_nlatrack_new to create a new NLA track, inserts it before the
  * given NLA track with #BKE_nlatrack_insert_before.
  */
-NlaTrack *BKE_nlatrack_new_before(ListBase *nla_tracks, NlaTrack *next, bool is_liboverride);
+NlaTrack *BKE_nlatrack_new_before(ListBaseT<NlaTrack> *nla_tracks,
+                                  NlaTrack *next,
+                                  bool is_liboverride);
 
 /**
  * Calls #BKE_nlatrack_new to create a new NLA track, inserts it after the
  * given NLA track with #BKE_nlatrack_insert_after.
  */
-NlaTrack *BKE_nlatrack_new_after(ListBase *nla_tracks, NlaTrack *prev, bool is_liboverride);
+NlaTrack *BKE_nlatrack_new_after(ListBaseT<NlaTrack> *nla_tracks,
+                                 NlaTrack *prev,
+                                 bool is_liboverride);
 
 /**
  * Calls #BKE_nlatrack_new to create a new NLA track, inserts it as the head of the
  * NLA track list with #BKE_nlatrack_new_before.
  */
-NlaTrack *BKE_nlatrack_new_head(ListBase *nla_tracks, bool is_liboverride);
+NlaTrack *BKE_nlatrack_new_head(ListBaseT<NlaTrack> *nla_tracks, bool is_liboverride);
 
 /**
  * Calls #BKE_nlatrack_new to create a new NLA track, inserts it as the tail of the
  * NLA track list with #BKE_nlatrack_new_after.
  */
-NlaTrack *BKE_nlatrack_new_tail(ListBase *nla_tracks, const bool is_liboverride);
+NlaTrack *BKE_nlatrack_new_tail(ListBaseT<NlaTrack> *nla_tracks, const bool is_liboverride);
 
 /**
  * Removes the given NLA track from the list of tracks provided.
  */
-void BKE_nlatrack_remove(ListBase *tracks, NlaTrack *nlt);
+void BKE_nlatrack_remove(ListBaseT<NlaTrack> *tracks, NlaTrack *nlt);
 
 /**
  * Remove the given NLA track from the list of NLA tracks, free the track's data,
  * and the track itself.
  */
-void BKE_nlatrack_remove_and_free(ListBase *tracks, NlaTrack *nlt, bool do_id_user);
+void BKE_nlatrack_remove_and_free(ListBaseT<NlaTrack> *tracks, NlaTrack *nlt, bool do_id_user);
 
 /**
  * Return whether this NLA track is enabled.
@@ -204,12 +211,14 @@ NlaStrip *BKE_nlastrip_new_for_slot(bAction *act,
 /*
  * Removes the given NLA strip from the list of strips provided.
  */
-void BKE_nlastrip_remove(ListBase *strips, NlaStrip *strip);
+void BKE_nlastrip_remove(ListBaseT<NlaStrip> *strips, NlaStrip *strip);
 
 /*
  * Removes the given NLA strip from the list of strips provided, and frees it's memory.
  */
-void BKE_nlastrip_remove_and_free(ListBase *strips, NlaStrip *strip, const bool do_id_user);
+void BKE_nlastrip_remove_and_free(ListBaseT<NlaStrip> *strips,
+                                  NlaStrip *strip,
+                                  const bool do_id_user);
 
 /**
  * Add new NLA-strip to the top of the NLA stack - i.e.
@@ -234,26 +243,26 @@ void BKE_nla_strip_foreach_id(NlaStrip *strip, LibraryForeachIDData *data);
 /**
  * Check if there is any space in the given list to add the given strip.
  */
-bool BKE_nlastrips_has_space(ListBase *strips, float start, float end);
+bool BKE_nlastrips_has_space(ListBaseT<NlaStrip> *strips, float start, float end);
 /**
  * Rearrange the strips in the track so that they are always in order
  * (usually only needed after a strip has been moved)
  */
-void BKE_nlastrips_sort_strips(ListBase *strips);
+void BKE_nlastrips_sort_strips(ListBaseT<NlaStrip> *strips);
 
 /**
  * Add the given NLA-Strip to the given list of strips, assuming that it
  * isn't currently a member of another list, NULL, or conflicting with existing
  * strips position.
  */
-void BKE_nlastrips_add_strip_unsafe(ListBase *strips, NlaStrip *strip);
+void BKE_nlastrips_add_strip_unsafe(ListBaseT<NlaStrip> *strips, NlaStrip *strip);
 
 /**
  * NULL checks incoming strip and verifies no overlap / invalid
  * configuration against other strips in NLA Track before calling
  * #BKE_nlastrips_add_strip_unsafe.
  */
-bool BKE_nlastrips_add_strip(ListBase *strips, NlaStrip *strip);
+bool BKE_nlastrips_add_strip(ListBaseT<NlaStrip> *strips, NlaStrip *strip);
 
 /**
  * Convert 'islands' (i.e. continuous string of) selected strips to be
@@ -261,18 +270,18 @@ bool BKE_nlastrips_add_strip(ListBase *strips, NlaStrip *strip);
  *
  * \param is_temp: are the meta-strips to be created 'temporary' ones used for transforms?
  */
-void BKE_nlastrips_make_metas(ListBase *strips, bool is_temp);
+void BKE_nlastrips_make_metas(ListBaseT<NlaStrip> *strips, bool is_temp);
 /**
  * Remove meta-strips (i.e. flatten the list of strips) from the top-level of the list of strips.
  *
  * \param only_sel: only consider selected meta-strips, otherwise all meta-strips are removed
  * \param only_temp: only remove the 'temporary' meta-strips used for transforms
  */
-void BKE_nlastrips_clear_metas(ListBase *strips, bool only_sel, bool only_temp);
+void BKE_nlastrips_clear_metas(ListBaseT<NlaStrip> *strips, bool only_sel, bool only_temp);
 /**
  * Split a meta-strip into a set of normal strips.
  */
-void BKE_nlastrips_clear_metastrip(ListBase *strips, NlaStrip *strip);
+void BKE_nlastrips_clear_metastrip(ListBaseT<NlaStrip> *strips, NlaStrip *strip);
 /**
  * Add the given NLA-Strip to the given Meta-Strip, assuming that the
  * strip isn't attached to any list of strips
@@ -289,12 +298,12 @@ void BKE_nlameta_flush_transforms(NlaStrip *mstrip);
 /**
  * Find the active NLA-track for the given stack.
  */
-NlaTrack *BKE_nlatrack_find_active(ListBase *tracks);
+NlaTrack *BKE_nlatrack_find_active(ListBaseT<NlaTrack> *tracks);
 /**
  * Make the given NLA-track the active one for the given stack. If no track is provided,
  * this function can be used to simply deactivate all the NLA tracks in the given stack too.
  */
-void BKE_nlatrack_set_active(ListBase *tracks, NlaTrack *nlt);
+void BKE_nlatrack_set_active(ListBaseT<NlaTrack> *tracks, NlaTrack *nlt);
 
 /**
  * Get the NLA Track that the active action/action strip comes from,
@@ -318,7 +327,7 @@ bool BKE_nlatrack_has_space(NlaTrack *nlt, float start, float end);
 /**
  * Check to see if there are any NLA strips in the NLA tracks.
  */
-bool BKE_nlatrack_has_strips(ListBase *tracks);
+bool BKE_nlatrack_has_strips(ListBaseT<NlaTrack> *tracks);
 
 /**
  * Rearrange the strips in the track so that they are always in order
@@ -454,7 +463,7 @@ bool BKE_nlatrack_has_animated_strips(NlaTrack *nlt);
 /**
  * Check if given NLA-Tracks have any strips with their own F-Curves.
  */
-bool BKE_nlatracks_have_animated_strips(ListBase *tracks);
+bool BKE_nlatracks_have_animated_strips(ListBaseT<NlaTrack> *tracks);
 /**
  * Validate the NLA-Strips 'control' F-Curves based on the flags set.
  */
@@ -569,8 +578,8 @@ float BKE_nla_tweakedit_remap(AnimData *adt, float cframe, eNlaTime_ConvertModes
 /* ----------------------------- */
 /* .blend file API */
 
-void BKE_nla_blend_write(BlendWriter *writer, ListBase *tracks);
-void BKE_nla_blend_read_data(BlendDataReader *reader, ID *id_owner, ListBase *tracks);
+void BKE_nla_blend_write(BlendWriter *writer, ListBaseT<NlaTrack> *tracks);
+void BKE_nla_blend_read_data(BlendDataReader *reader, ID *id_owner, ListBaseT<NlaTrack> *tracks);
 
 /**
  * Ensure NLA Tweak Mode related flags & pointers are consistent.

@@ -61,7 +61,7 @@ static SpaceProperties *find_space_properties(const bContext *C);
 
 /************************* Texture User **************************/
 
-static void buttons_texture_user_socket_property_add(ListBase *users,
+static void buttons_texture_user_socket_property_add(ListBaseT<ButsTextureUser> *users,
                                                      ID *id,
                                                      PointerRNA ptr,
                                                      PropertyRNA *prop,
@@ -88,7 +88,7 @@ static void buttons_texture_user_socket_property_add(ListBase *users,
   BLI_addtail(users, user);
 }
 
-static void buttons_texture_user_property_add(ListBase *users,
+static void buttons_texture_user_property_add(ListBaseT<ButsTextureUser> *users,
                                               ID *id,
                                               PointerRNA ptr,
                                               PropertyRNA *prop,
@@ -109,7 +109,7 @@ static void buttons_texture_user_property_add(ListBase *users,
   BLI_addtail(users, user);
 }
 
-static void buttons_texture_user_node_add(ListBase *users,
+static void buttons_texture_user_node_add(ListBaseT<ButsTextureUser> *users,
                                           ID *id,
                                           bNodeTree *ntree,
                                           bNode *node,
@@ -134,7 +134,7 @@ static void buttons_texture_user_node_add(ListBase *users,
   BLI_addtail(users, user);
 }
 
-static void buttons_texture_user_mtex_add(ListBase *users,
+static void buttons_texture_user_mtex_add(ListBaseT<ButsTextureUser> *users,
                                           ID *id,
                                           MTex *mtex,
                                           const char *category)
@@ -146,7 +146,7 @@ static void buttons_texture_user_mtex_add(ListBase *users,
       users, id, ptr, prop, category, RNA_struct_ui_icon(ptr.type), BKE_id_name(mtex->tex->id));
 }
 
-static void buttons_texture_users_find_nodetree(ListBase *users,
+static void buttons_texture_users_find_nodetree(ListBaseT<ButsTextureUser> *users,
                                                 ID *id,
                                                 bNodeTree *ntree,
                                                 const char *category)
@@ -176,7 +176,7 @@ static void buttons_texture_modifier_geonodes_users_add(
     Object *ob,
     NodesModifierData *nmd,
     bNodeTree *node_tree,
-    ListBase *users,
+    ListBaseT<ButsTextureUser> *users,
     blender::Set<const bNodeTree *> &handled_groups)
 {
   PropertyRNA *prop;
@@ -223,7 +223,7 @@ static void buttons_texture_modifier_foreach(void *user_data,
                                              const PointerRNA *ptr,
                                              PropertyRNA *texture_prop)
 {
-  ListBase *users = static_cast<ListBase *>(user_data);
+  ListBaseT<ButsTextureUser> *users = static_cast<ListBaseT<ButsTextureUser> *>(user_data);
 
   if (md->type == eModifierType_Nodes) {
     NodesModifierData *nmd = (NodesModifierData *)md;
@@ -240,7 +240,7 @@ static void buttons_texture_modifier_foreach(void *user_data,
   }
 }
 
-static void buttons_texture_users_from_context(ListBase *users,
+static void buttons_texture_users_from_context(ListBaseT<ButsTextureUser> *users,
                                                const bContext *C,
                                                SpaceProperties *sbuts)
 {

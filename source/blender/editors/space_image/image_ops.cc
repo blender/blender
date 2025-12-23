@@ -1409,7 +1409,8 @@ static wmOperatorStatus image_open_exec(bContext *C, wmOperator *op)
   blender::StringRefNull root_path = owner_library ? owner_library->runtime->filepath_abs :
                                                      blendfile_path;
 
-  ListBase ranges = ED_image_filesel_detect_sequences(blendfile_path, root_path, op, use_udim);
+  ListBaseT<ImageFrameRange> ranges = ED_image_filesel_detect_sequences(
+      blendfile_path, root_path, op, use_udim);
   LISTBASE_FOREACH (ImageFrameRange *, range, &ranges) {
     Image *ima_range = image_open_single(bmain, owner_library, op, range, use_multiview);
 

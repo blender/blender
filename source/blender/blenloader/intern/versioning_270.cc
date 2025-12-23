@@ -166,7 +166,7 @@ static void migrate_single_rot_stabilization_track_settings(MovieTrackingStabili
   stab->rot_track_legacy = nullptr; /* this field is now ignored */
 }
 
-static void do_version_constraints_radians_degrees_270_1(ListBase *lb)
+static void do_version_constraints_radians_degrees_270_1(ListBaseT<bConstraint> *lb)
 {
   LISTBASE_FOREACH (bConstraint *, con, lb) {
     if (con->type == CONSTRAINT_TYPE_TRANSFORM) {
@@ -186,7 +186,7 @@ static void do_version_constraints_radians_degrees_270_1(ListBase *lb)
   }
 }
 
-static void do_version_constraints_radians_degrees_270_5(ListBase *lb)
+static void do_version_constraints_radians_degrees_270_5(ListBaseT<bConstraint> *lb)
 {
   LISTBASE_FOREACH (bConstraint *, con, lb) {
     if (con->type == CONSTRAINT_TYPE_TRANSFORM) {
@@ -213,7 +213,7 @@ static void do_version_constraints_radians_degrees_270_5(ListBase *lb)
   }
 }
 
-static void do_version_constraints_stretch_to_limits(ListBase *lb)
+static void do_version_constraints_stretch_to_limits(ListBaseT<bConstraint> *lb)
 {
   LISTBASE_FOREACH (bConstraint *, con, lb) {
     if (con->type == CONSTRAINT_TYPE_STRETCHTO) {
@@ -224,7 +224,7 @@ static void do_version_constraints_stretch_to_limits(ListBase *lb)
   }
 }
 
-static void do_version_action_editor_properties_region(ListBase *regionbase)
+static void do_version_action_editor_properties_region(ListBaseT<ARegion> *regionbase)
 {
   LISTBASE_FOREACH (ARegion *, region, regionbase) {
     if (region->regiontype == RGN_TYPE_UI) {
@@ -246,7 +246,7 @@ static void do_version_action_editor_properties_region(ListBase *regionbase)
   }
 }
 
-static void do_version_bones_super_bbone(ListBase *lb)
+static void do_version_bones_super_bbone(ListBaseT<Bone> *lb)
 {
   LISTBASE_FOREACH (Bone *, bone, lb) {
     bone->scale_in_x = bone->scale_in_z = 1.0f;
@@ -584,7 +584,8 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-          ListBase *lb = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
+          ListBaseT<ARegion> *lb = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                   &sl->regionbase;
           LISTBASE_FOREACH (ARegion *, region, lb) {
             BLI_listbase_clear(&region->ui_previews);
           }
@@ -1010,7 +1011,8 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_VIEW3D) {
-            ListBase *lb = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
+            ListBaseT<ARegion> *lb = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                     &sl->regionbase;
             LISTBASE_FOREACH (ARegion *, region, lb) {
               if (region->regiontype == RGN_TYPE_WINDOW) {
                 if (region->regiondata) {
@@ -1122,8 +1124,8 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                 &sl->regionbase;
+          ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                           &sl->regionbase;
           /* Bug: Was possible to add preview region to sequencer view by using AZones. */
           if (sl->spacetype == SPACE_SEQ) {
             SpaceSeq *sseq = (SpaceSeq *)sl;
@@ -1336,9 +1338,10 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
         const MovieTracking *tracking = &clip->tracking;
         LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
-          const ListBase *tracksbase = (tracking_object->flag & TRACKING_OBJECT_CAMERA) ?
-                                           &tracking->tracks_legacy :
-                                           &tracking_object->tracks;
+          const ListBaseT<MovieTrackingTrack> *tracksbase = (tracking_object->flag &
+                                                             TRACKING_OBJECT_CAMERA) ?
+                                                                &tracking->tracks_legacy :
+                                                                &tracking_object->tracks;
           LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
             track->weight_stab = track->weight;
           }

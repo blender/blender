@@ -5105,7 +5105,7 @@ struct DynamicPaintEffectData {
   Scene *scene;
 
   float *force;
-  ListBase *effectors;
+  ListBaseT<EffectorCache> *effectors;
   const void *prevPoint;
   float eff_scale;
 
@@ -5139,7 +5139,7 @@ static void dynamic_paint_prepare_effect_cb(void *__restrict userdata,
   Scene *scene = data->scene;
 
   float *force = data->force;
-  ListBase *effectors = data->effectors;
+  ListBaseT<EffectorCache> *effectors = data->effectors;
 
   float forc[3] = {0};
   float vel[3] = {0};
@@ -5198,7 +5198,7 @@ static int dynamicPaint_prepareEffectStep(Depsgraph *depsgraph,
 
   /* Init force data if required */
   if (surface->effect & MOD_DPAINT_EFFECT_DO_DRIP) {
-    ListBase *effectors = BKE_effectors_create(
+    ListBaseT<EffectorCache> *effectors = BKE_effectors_create(
         depsgraph, ob, nullptr, surface->effector_weights, false);
 
     /* allocate memory for force data (dir vector + strength) */

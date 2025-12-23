@@ -301,7 +301,7 @@ static PTCacheEdit *pe_get_current(Depsgraph *depsgraph, Scene *scene, Object *o
 {
   ParticleEditSettings *pset = PE_settings(scene);
   PTCacheEdit *edit = nullptr;
-  ListBase pidlist;
+  ListBaseT<PTCacheID> pidlist;
   PTCacheID *pid;
 
   if (pset == nullptr || ob == nullptr) {

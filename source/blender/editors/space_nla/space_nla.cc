@@ -196,7 +196,7 @@ static void nla_track_region_draw(const bContext *C, ARegion *region)
   /* clear and setup matrix */
   blender::ui::theme::frame_buffer_clear(TH_BACK);
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   SpaceNla *snla = reinterpret_cast<SpaceNla *>(ac.sl);
   View2D *v2d = &region->v2d;

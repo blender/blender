@@ -162,7 +162,7 @@ static void precalculate_effector(Depsgraph *depsgraph, EffectorCache *eff)
   }
 }
 
-static void add_effector_relation(ListBase *relations,
+static void add_effector_relation(ListBaseT<EffectorRelation> *relations,
                                   Object *ob,
                                   ParticleSystem *psys,
                                   PartDeflect *pd)
@@ -175,7 +175,7 @@ static void add_effector_relation(ListBase *relations,
   BLI_addtail(relations, relation);
 }
 
-static void add_effector_evaluation(ListBase **effectors,
+static void add_effector_evaluation(ListBaseT<EffectorCache> **effectors,
                                     Depsgraph *depsgraph,
                                     Scene *scene,
                                     Object *ob,
@@ -183,7 +183,7 @@ static void add_effector_evaluation(ListBase **effectors,
                                     PartDeflect *pd)
 {
   if (*effectors == nullptr) {
-    *effectors = MEM_callocN<ListBase>("effector effectors");
+    *effectors = MEM_callocN<ListBaseT<EffectorCache>>("effector effectors");
   }
 
   EffectorCache *eff = MEM_callocN<EffectorCache>("EffectorCache");
@@ -198,16 +198,17 @@ static void add_effector_evaluation(ListBase **effectors,
   precalculate_effector(depsgraph, eff);
 }
 
-ListBase *BKE_effector_relations_create(Depsgraph *depsgraph,
-                                        const Scene *scene,
-                                        ViewLayer *view_layer,
-                                        Collection *collection)
+ListBaseT<EffectorRelation> *BKE_effector_relations_create(Depsgraph *depsgraph,
+                                                           const Scene *scene,
+                                                           ViewLayer *view_layer,
+                                                           Collection *collection)
 {
   Base *base = BKE_collection_or_layer_objects(scene, view_layer, collection);
   const bool for_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
   const int base_flag = (for_render) ? BASE_ENABLED_RENDER : BASE_ENABLED_VIEWPORT;
 
-  ListBase *relations = MEM_callocN<ListBase>("effector relations");
+  ListBaseT<EffectorRelation> *relations = MEM_callocN<ListBaseT<EffectorRelation>>(
+      "effector relations");
 
   for (; base; base = base->next) {
     if (!(base->flag & base_flag)) {
@@ -237,7 +238,7 @@ ListBase *BKE_effector_relations_create(Depsgraph *depsgraph,
   return relations;
 }
 
-void BKE_effector_relations_free(ListBase *lb)
+void BKE_effector_relations_free(ListBaseT<EffectorRelation> *lb)
 {
   if (lb) {
     BLI_freelistN(lb);
@@ -304,15 +305,15 @@ static bool is_effector_relevant(PartDeflect *pd, EffectorWeights *weights, bool
          is_effector_nonzero_strength(pd);
 }
 
-ListBase *BKE_effectors_create(Depsgraph *depsgraph,
-                               Object *ob_src,
-                               ParticleSystem *psys_src,
-                               EffectorWeights *weights,
-                               bool use_rotation)
+ListBaseT<EffectorCache> *BKE_effectors_create(Depsgraph *depsgraph,
+                                               Object *ob_src,
+                                               ParticleSystem *psys_src,
+                                               EffectorWeights *weights,
+                                               bool use_rotation)
 {
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
-  ListBase *relations = DEG_get_effector_relations(depsgraph, weights->group);
-  ListBase *effectors = nullptr;
+  ListBaseT<EffectorRelation> *relations = DEG_get_effector_relations(depsgraph, weights->group);
+  ListBaseT<EffectorCache> *effectors = nullptr;
 
   if (!relations) {
     return nullptr;
@@ -359,7 +360,7 @@ ListBase *BKE_effectors_create(Depsgraph *depsgraph,
   return effectors;
 }
 
-void BKE_effectors_free(ListBase *lb)
+void BKE_effectors_free(ListBaseT<EffectorCache> *lb)
 {
   if (lb) {
     LISTBASE_FOREACH (EffectorCache *, eff, lb) {
@@ -461,13 +462,13 @@ static void eff_tri_ray_hit(void * /*user_data*/,
 /**
  * Get visibility of a wind ray.
  */
-static float eff_calc_visibility(ListBase *colliders,
+static float eff_calc_visibility(ListBaseT<ColliderCache> *colliders,
                                  EffectorCache *eff,
                                  EffectorData *efd,
                                  EffectedPoint *point)
 {
   const int raycast_flag = BVH_RAYCAST_DEFAULT & ~BVH_RAYCAST_WATERTIGHT;
-  ListBase *colls = colliders;
+  ListBaseT<ColliderCache> *colls = colliders;
   float norm[3], len = 0.0;
   float visibility = 1.0, absorption = 0.0;
 
@@ -1104,8 +1105,8 @@ static void do_physical_effector(EffectorCache *eff,
   }
 }
 
-void BKE_effectors_apply(ListBase *effectors,
-                         ListBase *colliders,
+void BKE_effectors_apply(ListBaseT<EffectorCache> *effectors,
+                         ListBaseT<ColliderCache> *colliders,
                          EffectorWeights *weights,
                          EffectedPoint *point,
                          float *force,

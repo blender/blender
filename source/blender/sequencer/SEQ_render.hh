@@ -8,16 +8,17 @@
  * \ingroup sequencer
  */
 
+#include "DNA_listBase.h"
 #include "DNA_space_enums.h"
 
 struct Depsgraph;
 struct GPUOffScreen;
 struct GPUViewport;
 struct ImBuf;
-struct ListBase;
 struct Main;
 struct Render;
 struct Scene;
+struct SeqTimelineChannel;
 struct Strip;
 struct StripElem;
 
@@ -81,7 +82,7 @@ void render_pixel_from_sequencer_space_v4(const Scene *scene, float pixel[4]);
  * Check if `strip` is muted for rendering.
  * This function also checks `SeqTimelineChannel` flag.
  */
-bool render_is_muted(const ListBase *channels, const Strip *strip);
+bool render_is_muted(const ListBaseT<SeqTimelineChannel> *channels, const Strip *strip);
 
 /**
  * Calculate render scale factor relative to full size. This can be due to render

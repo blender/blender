@@ -37,7 +37,7 @@ const char *outliner_idcode_to_plural(short idcode)
 
 /** \} */
 
-void outliner_make_object_parent_hierarchy(ListBase *lb)
+void outliner_make_object_parent_hierarchy(ListBaseT<TreeElement> *lb)
 {
   /* build hierarchy */
   /* XXX also, set extents here... */

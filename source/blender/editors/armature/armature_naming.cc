@@ -58,7 +58,9 @@ using namespace blender;
  * \{ */
 
 /* NOTE: there's a ed_armature_bone_unique_name() too! */
-static bool editbone_unique_check(ListBase *ebones, const StringRefNull name, EditBone *bone)
+static bool editbone_unique_check(ListBaseT<EditBone> *ebones,
+                                  const StringRefNull name,
+                                  EditBone *bone)
 {
   if (bone) {
     /* This indicates that there is a bone to ignore. This means ED_armature_ebone_find_name()
@@ -75,7 +77,7 @@ static bool editbone_unique_check(ListBase *ebones, const StringRefNull name, Ed
   return dupli && dupli != bone;
 }
 
-void ED_armature_ebone_unique_name(ListBase *ebones, char *name, EditBone *bone)
+void ED_armature_ebone_unique_name(ListBaseT<EditBone> *ebones, char *name, EditBone *bone)
 {
   BLI_uniquename_cb(
       [&](const StringRefNull check_name) {
@@ -119,12 +121,12 @@ static void ed_armature_bone_unique_name(bArmature *arm, char *name)
  */
 static void constraint_bone_name_fix(Object *rename_ob,
                                      Object *constraint_ob,
-                                     ListBase *conlist,
+                                     ListBaseT<bConstraint> *conlist,
                                      const char *oldname,
                                      const char *newname)
 {
   LISTBASE_FOREACH (bConstraint *, curcon, conlist) {
-    ListBase targets = {nullptr, nullptr};
+    ListBaseT<bConstraintTarget> targets = {nullptr, nullptr};
 
     /* constraint targets */
     if (BKE_constraint_targets_get(curcon, &targets)) {
@@ -405,10 +407,10 @@ struct BoneFlipNameData {
 
 void ED_armature_bones_flip_names(Main *bmain,
                                   bArmature *arm,
-                                  ListBase *bones_names,
+                                  ListBaseT<LinkData> *bones_names,
                                   const bool do_strip_numbers)
 {
-  ListBase bones_names_conflicts = {nullptr};
+  ListBaseT<BoneFlipNameData> bones_names_conflicts = {nullptr};
   BoneFlipNameData *bfn;
 
   /* First pass: generate flip names, and blindly rename.
@@ -466,7 +468,7 @@ static wmOperatorStatus armature_flip_names_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    ListBase bones_names = {nullptr};
+    ListBaseT<LinkData> bones_names = {nullptr};
 
     LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
       if (blender::animrig::bone_is_selected(arm, ebone)) {

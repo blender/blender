@@ -29,7 +29,6 @@ struct CustomData_MeshMasks;
 struct Depsgraph;
 struct DupliObject;
 struct ID;
-struct ListBase;
 struct PointerRNA;
 struct Scene;
 struct ViewLayer;

@@ -178,7 +178,7 @@ void node_vector_math_label(const bNodeTree * /*ntree*/,
   BLI_strncpy_utf8(label, CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, name), label_maxncpy);
 }
 
-void node_combsep_color_label(const ListBase *sockets, NodeCombSepColorMode mode)
+void node_combsep_color_label(const ListBaseT<bNodeSocket> *sockets, NodeCombSepColorMode mode)
 {
   bNodeSocket *sock1 = (bNodeSocket *)sockets->first;
   bNodeSocket *sock2 = sock1->next;

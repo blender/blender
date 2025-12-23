@@ -80,7 +80,7 @@ void TreeElementIDArmature::expand_edit_bones() const
 
 /* special handling of hierarchical non-lib data */
 static void outliner_add_bone(SpaceOutliner *space_outliner,
-                              ListBase *lb,
+                              ListBaseT<TreeElement> *lb,
                               ID *id,
                               Bone *curBone,
                               TreeElement *parent,

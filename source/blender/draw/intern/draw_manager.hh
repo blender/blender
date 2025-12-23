@@ -484,7 +484,7 @@ inline void Manager::extract_object_attributes(ResourceHandle handle,
 
 inline void Manager::register_layer_attributes(GPUMaterial *material)
 {
-  const ListBase *attr_list = GPU_material_layer_attributes(material);
+  const ListBaseT<GPULayerAttr> *attr_list = GPU_material_layer_attributes(material);
 
   if (attr_list != nullptr) {
     LISTBASE_FOREACH (const GPULayerAttr *, attr, attr_list) {

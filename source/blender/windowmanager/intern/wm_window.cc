@@ -1128,7 +1128,7 @@ static void wm_window_ghostwindow_ensure(wmWindowManager *wm, wmWindow *win, boo
 
   /* Add drop boxes. */
   {
-    ListBase *lb = WM_dropboxmap_find("Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
+    ListBaseT<wmDropBox> *lb = WM_dropboxmap_find("Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
     WM_event_add_dropbox_handler(&win->runtime->handlers, lb);
   }
 
@@ -3165,7 +3165,7 @@ bool WM_window_support_hdr_color(const wmWindow *win)
 /** \name Window Screen/Scene/WorkSpaceViewLayer API
  * \{ */
 
-void WM_windows_scene_data_sync(const ListBase *win_lb, Scene *scene)
+void WM_windows_scene_data_sync(const ListBaseT<wmWindow> *win_lb, Scene *scene)
 {
   LISTBASE_FOREACH (wmWindow *, win, win_lb) {
     if (WM_window_get_active_scene(win) == scene) {

@@ -68,7 +68,7 @@ void outliner_viewcontext_init(const bContext *C, TreeViewContext *tvc)
 /** \} */
 
 TreeElement *outliner_find_item_at_y(const SpaceOutliner *space_outliner,
-                                     const ListBase *tree,
+                                     const ListBaseT<TreeElement> *tree,
                                      float view_co_y)
 {
   LISTBASE_FOREACH (TreeElement *, te_iter, tree) {
@@ -156,7 +156,8 @@ TreeElement *outliner_find_item_at_x_in_row(const SpaceOutliner *space_outliner,
   return te;
 }
 
-TreeElement *outliner_find_tree_element(ListBase *lb, const TreeStoreElem *store_elem)
+TreeElement *outliner_find_tree_element(ListBaseT<TreeElement> *lb,
+                                        const TreeStoreElem *store_elem)
 {
   LISTBASE_FOREACH (TreeElement *, te, lb) {
     if (te->store_elem == store_elem) {
@@ -170,7 +171,7 @@ TreeElement *outliner_find_tree_element(ListBase *lb, const TreeStoreElem *store
   return nullptr;
 }
 
-TreeElement *outliner_find_parent_element(ListBase *lb,
+TreeElement *outliner_find_parent_element(ListBaseT<TreeElement> *lb,
                                           TreeElement *parent_te,
                                           const TreeElement *child_te)
 {
@@ -188,7 +189,7 @@ TreeElement *outliner_find_parent_element(ListBase *lb,
 }
 
 TreeElement *outliner_find_id(SpaceOutliner *space_outliner,
-                              ListBase *lb,
+                              ListBaseT<TreeElement> *lb,
                               const ID *id,
                               TreeElementFlag exclude_flags)
 {
@@ -221,7 +222,7 @@ TreeElement *outliner_find_id(SpaceOutliner *space_outliner,
   return nullptr;
 }
 
-TreeElement *outliner_find_posechannel(ListBase *lb, const bPoseChannel *pchan)
+TreeElement *outliner_find_posechannel(ListBaseT<TreeElement> *lb, const bPoseChannel *pchan)
 {
   LISTBASE_FOREACH (TreeElement *, te, lb) {
     if (te->directdata == pchan) {
@@ -239,7 +240,7 @@ TreeElement *outliner_find_posechannel(ListBase *lb, const bPoseChannel *pchan)
   return nullptr;
 }
 
-TreeElement *outliner_find_editbone(ListBase *lb, const EditBone *ebone)
+TreeElement *outliner_find_editbone(ListBaseT<TreeElement> *lb, const EditBone *ebone)
 {
   LISTBASE_FOREACH (TreeElement *, te, lb) {
     if (te->directdata == ebone) {
@@ -286,7 +287,7 @@ ID *outliner_search_back(TreeElement *te, short idcode)
 }
 
 bool outliner_tree_traverse(const SpaceOutliner *space_outliner,
-                            ListBase *tree,
+                            ListBaseT<TreeElement> *tree,
                             int filter_te_flag,
                             int filter_tselem_flag,
                             TreeTraversalFunc func,
@@ -296,7 +297,7 @@ bool outliner_tree_traverse(const SpaceOutliner *space_outliner,
     TreeTraversalAction func_retval = TRAVERSE_CONTINUE;
     /* in case te is freed in callback */
     TreeStoreElem *tselem = TREESTORE(te);
-    ListBase subtree = te->subtree;
+    ListBaseT<TreeElement> subtree = te->subtree;
     te_next = te->next;
 
     if (filter_te_flag && (te->flag & filter_te_flag) == 0) {
@@ -378,7 +379,7 @@ float outliner_right_columns_width(const SpaceOutliner *space_outliner)
   return (num_columns * UI_UNIT_X + V2D_SCROLL_WIDTH);
 }
 
-TreeElement *outliner_find_element_with_flag(const ListBase *lb, short flag)
+TreeElement *outliner_find_element_with_flag(const ListBaseT<TreeElement> *lb, short flag)
 {
   LISTBASE_FOREACH (TreeElement *, te, lb) {
     if ((TREESTORE(te)->flag & flag) == flag) {

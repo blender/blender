@@ -153,7 +153,7 @@ void ED_curve_nurb_vert_selected_find(
 {
   /* In nu and (bezt or bp) selected are written if there's 1 sel. */
   /* If more points selected in 1 spline: return only nu, bezt and bp are 0. */
-  ListBase *editnurb = &cu->editnurb->nurbs;
+  ListBaseT<Nurb> *editnurb = &cu->editnurb->nurbs;
   BezTriple *bezt1;
   BPoint *bp1;
   int a;

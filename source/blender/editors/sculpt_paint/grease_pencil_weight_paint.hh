@@ -150,7 +150,7 @@ class WeightPaintOperation : public GreasePencilStrokeOperation {
   {
     int object_defgroup_nr = BKE_object_defgroup_active_index_get(this->object) - 1;
     if (object_defgroup_nr == -1) {
-      const ListBase *defbase = BKE_object_defgroup_list(this->object);
+      const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(this->object);
       if (const Object *modob = BKE_modifiers_is_deformed_by_armature(this->object)) {
         /* This happens on a Bone select, when no vgroup existed yet. */
         const Bone *actbone = static_cast<bArmature *>(modob->data)->act_bone;
@@ -184,7 +184,7 @@ class WeightPaintOperation : public GreasePencilStrokeOperation {
   /* Get locked and bone-deformed vertex groups in GP object. */
   void get_locked_and_bone_deformed_vertex_groups()
   {
-    const ListBase *defgroups = BKE_object_defgroup_list(this->object);
+    const ListBaseT<bDeformGroup> *defgroups = BKE_object_defgroup_list(this->object);
     LISTBASE_FOREACH (bDeformGroup *, dg, defgroups) {
       if ((dg->flag & DG_LOCK_WEIGHT) != 0) {
         this->object_locked_defgroups.add(dg->name);

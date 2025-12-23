@@ -570,7 +570,7 @@ struct EditBonePoint {
 };
 
 /* find chain-tips (i.e. bones without children) */
-static void chains_find_tips(ListBase *edbo, ListBase *list)
+static void chains_find_tips(ListBaseT<EditBone> *edbo, ListBaseT<LinkData> *list)
 {
   EditBone *ebo;
   LinkData *ld;
@@ -630,7 +630,7 @@ static void chains_find_tips(ListBase *edbo, ListBase *list)
 /** \name Fill Operator
  * \{ */
 
-static void fill_add_joint(EditBone *ebo, short eb_tail, ListBase *points)
+static void fill_add_joint(EditBone *ebo, short eb_tail, ListBaseT<EditBonePoint> *points)
 {
   EditBonePoint *ebp;
   float vec[3];
@@ -686,7 +686,7 @@ static wmOperatorStatus armature_fill_bones_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   View3D *v3d = CTX_wm_view3d(C);
-  ListBase points = {nullptr, nullptr};
+  ListBaseT<EditBonePoint> points = {nullptr, nullptr};
   EditBone *newbone = nullptr;
   int count;
   bool mixed_object_error = false;
@@ -912,7 +912,7 @@ static wmOperatorStatus armature_switch_direction_exec(bContext *C, wmOperator *
   for (Object *ob : objects) {
     bArmature *arm = static_cast<bArmature *>(ob->data);
 
-    ListBase chains = {nullptr, nullptr};
+    ListBaseT<LinkData> chains = {nullptr, nullptr};
 
     /* get chains of bones (ends on chains) */
     chains_find_tips(arm->edbo, &chains);
@@ -1043,7 +1043,7 @@ static void fix_connected_bone(EditBone *ebone)
 }
 
 /* helper to recursively find chains of connected bones starting at ebone and fix their position */
-static void fix_editbone_connected_children(ListBase *edbo, EditBone *ebone)
+static void fix_editbone_connected_children(ListBaseT<EditBone> *edbo, EditBone *ebone)
 {
   LISTBASE_FOREACH (EditBone *, selbone, edbo) {
     if ((selbone->parent) && (selbone->parent == ebone) && (selbone->flag & BONE_CONNECTED)) {
@@ -1053,7 +1053,7 @@ static void fix_editbone_connected_children(ListBase *edbo, EditBone *ebone)
   }
 }
 
-static void bone_align_to_bone(ListBase *edbo, EditBone *selbone, EditBone *actbone)
+static void bone_align_to_bone(ListBaseT<EditBone> *edbo, EditBone *selbone, EditBone *actbone)
 {
   float selboneaxis[3], actboneaxis[3], length;
 

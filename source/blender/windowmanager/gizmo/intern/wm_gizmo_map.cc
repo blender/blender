@@ -50,7 +50,7 @@
  * Store all gizmo-maps here. Anyone who wants to register a gizmo for a certain
  * area type can query the gizmo-map to do so.
  */
-static ListBase gizmomaptypes = {nullptr, nullptr};
+static ListBaseT<wmGizmoMapType> gizmomaptypes = {nullptr, nullptr};
 
 /**
  * Update when gizmo-map types change.
@@ -235,7 +235,7 @@ wmGizmoGroup *WM_gizmomap_group_find_ptr(wmGizmoMap *gzmap, const wmGizmoGroupTy
   return nullptr;
 }
 
-const ListBase *WM_gizmomap_group_list(wmGizmoMap *gzmap)
+const ListBaseT<wmGizmoGroup> *WM_gizmomap_group_list(wmGizmoMap *gzmap)
 {
   return &gzmap->groups;
 }
@@ -345,7 +345,7 @@ bool WM_gizmomap_tag_delay_refresh_for_tweak_check(wmGizmoMap *gzmap)
 static bool gizmo_prepare_drawing(wmGizmoMap *gzmap,
                                   wmGizmo *gz,
                                   const bContext *C,
-                                  ListBase *draw_gizmos,
+                                  ListBaseT<wmGizmo> *draw_gizmos,
                                   const eWM_GizmoFlagMapDrawStep drawstep)
 {
   int do_draw = wm_gizmo_is_visible(gz);
@@ -373,7 +373,7 @@ static bool gizmo_prepare_drawing(wmGizmoMap *gzmap,
  */
 static void gizmomap_prepare_drawing(wmGizmoMap *gzmap,
                                      const bContext *C,
-                                     ListBase *draw_gizmos,
+                                     ListBaseT<wmGizmo> *draw_gizmos,
                                      const eWM_GizmoFlagMapDrawStep drawstep)
 {
   if (!gzmap || BLI_listbase_is_empty(&gzmap->groups)) {
@@ -441,7 +441,9 @@ static void gizmomap_prepare_drawing(wmGizmoMap *gzmap,
  * Draw all visible gizmos in \a gzmap.
  * Uses global draw_gizmos listbase.
  */
-static void gizmos_draw_list(const wmGizmoMap *gzmap, const bContext *C, ListBase *draw_gizmos)
+static void gizmos_draw_list(const wmGizmoMap *gzmap,
+                             const bContext *C,
+                             ListBaseT<wmGizmo> *draw_gizmos)
 {
   /* Can be empty if we're dynamically added and removed. */
   if ((gzmap == nullptr) || BLI_listbase_is_empty(&gzmap->groups)) {
@@ -508,7 +510,7 @@ void WM_gizmomap_draw(wmGizmoMap *gzmap,
     return;
   }
 
-  ListBase draw_gizmos = {nullptr};
+  ListBaseT<wmGizmo> draw_gizmos = {nullptr};
 
   gizmomap_prepare_drawing(gzmap, C, &draw_gizmos, drawstep);
   gizmos_draw_list(gzmap, C, &draw_gizmos);
@@ -1210,7 +1212,7 @@ wmGizmo **wm_gizmomap_selected_get(wmGizmoMap *gzmap, int *r_selected_len)
   return gzmap->gzmap_context.select.items;
 }
 
-ListBase *wm_gizmomap_groups_get(wmGizmoMap *gzmap)
+ListBaseT<wmGizmoGroup> *wm_gizmomap_groups_get(wmGizmoMap *gzmap)
 {
   return &gzmap->groups;
 }
@@ -1427,8 +1429,8 @@ void WM_gizmoconfig_update(Main *bmain)
     {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                 &sl->regionbase;
+          ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                           &sl->regionbase;
           LISTBASE_FOREACH (ARegion *, region, regionbase) {
             wmGizmoMap *gzmap = region->runtime->gizmo_map;
             if (gzmap != nullptr && gzmap->tag_remove_group) {
@@ -1475,7 +1477,8 @@ void WM_reinit_gizmomap_all(Main *bmain)
   {
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-        ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
+        ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                         &sl->regionbase;
         LISTBASE_FOREACH (ARegion *, region, regionbase) {
           wmGizmoMap *gzmap = region->runtime->gizmo_map;
           if ((gzmap != nullptr) && (gzmap->is_init == false)) {

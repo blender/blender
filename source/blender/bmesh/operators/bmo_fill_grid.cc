@@ -481,11 +481,11 @@ static void bm_grid_fill(BMesh *bm,
   LinkData *el;
   bool use_flip = false;
 
-  ListBase *lb_a = BM_edgeloop_verts_get(estore_a);
-  ListBase *lb_b = BM_edgeloop_verts_get(estore_b);
+  ListBaseT<LinkData> *lb_a = BM_edgeloop_verts_get(estore_a);
+  ListBaseT<LinkData> *lb_b = BM_edgeloop_verts_get(estore_b);
 
-  ListBase *lb_rail_a = BM_edgeloop_verts_get(estore_rail_a);
-  ListBase *lb_rail_b = BM_edgeloop_verts_get(estore_rail_b);
+  ListBaseT<LinkData> *lb_rail_a = BM_edgeloop_verts_get(estore_rail_a);
+  ListBaseT<LinkData> *lb_rail_b = BM_edgeloop_verts_get(estore_rail_b);
 
   BMVert **v_grid = MEM_calloc_arrayN<BMVert *>(size_t(xtot * ytot), __func__);
   /**
@@ -532,7 +532,7 @@ static void bm_grid_fill(BMesh *bm,
 
 #ifdef USE_FLIP_DETECT
   {
-    ListBase *lb_iter[4] = {lb_a, lb_b, lb_rail_a, lb_rail_b};
+    ListBaseT<LinkData> *lb_iter[4] = {lb_a, lb_b, lb_rail_a, lb_rail_b};
     const int lb_iter_dir[4] = {-1, 1, 1, -1};
     int winding_votes = 0;
 
@@ -590,8 +590,8 @@ static bool bm_edge_test_rail_cb(BMEdge *e, void * /*bm_v*/)
 
 void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
 {
-  ListBase eloops = {nullptr, nullptr};
-  ListBase eloops_rail = {nullptr, nullptr};
+  ListBaseT<BMEdgeLoopStore> eloops = {nullptr, nullptr};
+  ListBaseT<BMEdgeLoopStore> eloops_rail = {nullptr, nullptr};
   BMEdgeLoopStore *estore_a, *estore_b;
   BMEdgeLoopStore *estore_rail_a, *estore_rail_b;
   BMVert *v_a_first, *v_a_last;

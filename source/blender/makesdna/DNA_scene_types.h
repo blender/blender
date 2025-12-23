@@ -51,6 +51,8 @@ struct World;
 struct bGPdata;
 struct bNodeTree;
 struct Depsgraph;
+struct KeyingSet;
+struct TransformOrientation;
 
 /** Workaround to forward-declare C++ type in C header. */
 #ifdef __cplusplus
@@ -2762,7 +2764,7 @@ struct Scene {
   struct AudioData audio;
 
   ListBaseT<TimeMarker> markers = {nullptr, nullptr};
-  ListBaseT<struct TransformOrientation> transform_spaces = {nullptr, nullptr};
+  ListBaseT<TransformOrientation> transform_spaces = {nullptr, nullptr};
 
   /** First is the [scene, translate, rotate, scale]. */
   TransformOrientationSlot orientation_slots[4];

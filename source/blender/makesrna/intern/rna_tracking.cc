@@ -655,8 +655,11 @@ static void rna_trackingDopesheet_tagUpdate(Main * /*bmain*/, Scene * /*scene*/,
 
 /* API */
 
-static MovieTrackingTrack *add_track_to_base(
-    MovieClip *clip, MovieTracking *tracking, ListBase *tracksbase, const char *name, int frame)
+static MovieTrackingTrack *add_track_to_base(MovieClip *clip,
+                                             MovieTracking *tracking,
+                                             ListBaseT<MovieTrackingTrack> *tracksbase,
+                                             const char *name,
+                                             int frame)
 {
   int width, height;
   MovieClipUser user = {};

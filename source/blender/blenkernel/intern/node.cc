@@ -1805,7 +1805,8 @@ static void direct_link_node_socket(BlendDataReader *reader, const bNode *node, 
   sock->runtime = MEM_new<bNodeSocketRuntime>(__func__);
 }
 
-static void remove_unsupported_sockets(ListBase *sockets, ListBase *links)
+static void remove_unsupported_sockets(ListBaseT<bNodeSocket> *sockets,
+                                       ListBaseT<bNodeLink> *links)
 {
   LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, sockets) {
     if (is_node_socket_supported(sock)) {
@@ -5016,8 +5017,8 @@ int node_socket_link_limit(const bNodeSocket &sock)
                                                     stype.output_link_limit;
 }
 
-static void update_socket_declarations(ListBase *sockets,
-                                       Span<nodes::SocketDeclaration *> declarations)
+static void update_socket_declarations(ListBaseT<bNodeSocket> *sockets,
+                                       const Span<SocketDeclaration *> declarations)
 {
   int index;
   LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, sockets, index) {
@@ -5041,8 +5042,8 @@ void node_socket_declarations_update(bNode *node)
     reset_socket_declarations(&node->outputs);
     return;
   }
-  update_socket_declarations(&node->inputs, node->runtime->declaration->inputs);
-  update_socket_declarations(&node->outputs, node->runtime->declaration->outputs);
+  update_socket_declarations(&node->inputs, node->runtime->declaration->inputs.as_span());
+  update_socket_declarations(&node->outputs, node->runtime->declaration->outputs.as_span());
 }
 
 bool node_declaration_ensure_on_outdated_node(bNodeTree &ntree, bNode &node)

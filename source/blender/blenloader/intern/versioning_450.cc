@@ -118,7 +118,7 @@ static void fix_curve_nurbs_knot_mode_custom(Main *bmain)
   }
 }
 
-static void nlastrips_apply_fcurve_versioning(ListBase &strips)
+static void nlastrips_apply_fcurve_versioning(ListBaseT<NlaStrip> &strips)
 {
   LISTBASE_FOREACH (NlaStrip *, strip, &strips) {
     LISTBASE_FOREACH (FCurve *, fcurve, &strip->fcurves) {
@@ -5494,8 +5494,8 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_SEQ) {
-            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                   &sl->regionbase;
+            ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                             &sl->regionbase;
             LISTBASE_FOREACH (ARegion *, region, regionbase) {
               if (region->regiontype == RGN_TYPE_WINDOW) {
                 region->v2d.keepzoom |= V2D_KEEPZOOM;
@@ -5735,8 +5735,8 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_SEQ) {
-            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                   &sl->regionbase;
+            ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                             &sl->regionbase;
             LISTBASE_FOREACH (ARegion *, region, regionbase) {
               if (region->regiontype == RGN_TYPE_WINDOW) {
                 region->v2d.flag |= V2D_ZOOM_IGNORE_KEEPOFS;

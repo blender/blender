@@ -122,7 +122,7 @@ static void strip_data_free(StripData *data)
   MEM_freeN(data);
 }
 
-Strip *strip_alloc(ListBase *lb, int timeline_frame, int channel, StripType type)
+Strip *strip_alloc(ListBaseT<Strip> *lb, int timeline_frame, int channel, StripType type)
 {
   Strip *strip = MEM_new_for_free<Strip>("addseq");
   strip->runtime = MEM_new<StripRuntime>(__func__);
@@ -416,7 +416,7 @@ int tool_settings_pivot_point_get(Scene *scene)
   return tool_settings->pivot_point;
 }
 
-ListBase *active_seqbase_get(const Editing *ed)
+ListBaseT<Strip> *active_seqbase_get(const Editing *ed)
 {
   return ed ? ed->current_strips() : nullptr;
 }
@@ -592,7 +592,9 @@ static void seq_duplicate_postprocess(StripDuplicateContext &ctx)
   }
 }
 
-static Strip *strip_duplicate(StripDuplicateContext &ctx, ListBase *seqbase_dst, Strip *strip)
+static Strip *strip_duplicate(StripDuplicateContext &ctx,
+                              ListBaseT<Strip> *seqbase_dst,
+                              Strip *strip)
 {
   Strip *strip_new = static_cast<Strip *>(MEM_dupallocN(strip));
   strip_new->runtime = MEM_new<StripRuntime>(__func__);
@@ -744,7 +746,7 @@ static Strip *strip_duplicate(StripDuplicateContext &ctx, ListBase *seqbase_dst,
 }
 
 static Strip *strip_duplicate_recursive_impl(StripDuplicateContext &ctx,
-                                             ListBase *seqbase_dst,
+                                             ListBaseT<Strip> *seqbase_dst,
                                              Strip *strip)
 {
   Strip *strip_new = strip_duplicate(ctx, seqbase_dst, strip);
@@ -759,7 +761,7 @@ static Strip *strip_duplicate_recursive_impl(StripDuplicateContext &ctx,
 Strip *strip_duplicate_recursive(Main *bmain,
                                  const Scene *scene_src,
                                  Scene *scene_dst,
-                                 ListBase *seqbase_dst,
+                                 ListBaseT<Strip> *seqbase_dst,
                                  Strip *strip,
                                  const StripDuplicate dupe_flag)
 {
@@ -774,8 +776,8 @@ Strip *strip_duplicate_recursive(Main *bmain,
 }
 
 static void seqbase_duplicate_recursive_impl(StripDuplicateContext &ctx,
-                                             ListBase *seqbase_dst,
-                                             const ListBase *seqbase_src)
+                                             ListBaseT<Strip> *seqbase_dst,
+                                             const ListBaseT<Strip> *seqbase_src)
 {
   LISTBASE_FOREACH (Strip *, strip, seqbase_src) {
     if ((strip->flag & SEQ_SELECT) == 0 && !flag_is_set(ctx.dupe_flag, StripDuplicate::All)) {
@@ -798,8 +800,8 @@ static void seqbase_duplicate_recursive_impl(StripDuplicateContext &ctx,
 void seqbase_duplicate_recursive(Main *bmain,
                                  const Scene *scene_src,
                                  Scene *scene_dst,
-                                 ListBase *seqbase_dst,
-                                 const ListBase *seqbase_src,
+                                 ListBaseT<Strip> *seqbase_dst,
+                                 const ListBaseT<Strip> *seqbase_src,
                                  const StripDuplicate dupe_flag,
                                  const int copy_flag)
 {
@@ -910,7 +912,7 @@ static bool strip_write_data_cb(Strip *strip, void *userdata)
   return true;
 }
 
-void blend_write(BlendWriter *writer, ListBase *seqbase)
+void blend_write(BlendWriter *writer, ListBaseT<Strip> *seqbase)
 {
   foreach_strip(seqbase, strip_write_data_cb, writer);
 }
@@ -1026,7 +1028,7 @@ static bool strip_read_data_cb(Strip *strip, void *user_data)
 
   return true;
 }
-void blend_read(BlendDataReader *reader, ListBase *seqbase)
+void blend_read(BlendDataReader *reader, ListBaseT<Strip> *seqbase)
 {
   foreach_strip(seqbase, strip_read_data_cb, reader);
 }
@@ -1137,7 +1139,7 @@ static void seq_update_sound_strips(Scene *scene, Strip *strip)
   }
 }
 
-static bool scene_sequencer_is_used(const Scene *scene, ListBase *seqbase)
+static bool scene_sequencer_is_used(const Scene *scene, ListBaseT<Strip> *seqbase)
 {
   bool sequencer_is_used = false;
   LISTBASE_FOREACH (Strip *, strip_iter, seqbase) {
@@ -1193,7 +1195,7 @@ static bool strip_sound_update_cb(Strip *strip, void *user_data)
   return true;
 }
 
-void eval_strips(Depsgraph *depsgraph, Scene *scene, ListBase *seqbase)
+void eval_strips(Depsgraph *depsgraph, Scene *scene, ListBaseT<Strip> *seqbase)
 {
   DEG_debug_print_eval(depsgraph, __func__, scene->id.name, scene);
   BKE_sound_ensure_scene(scene);
@@ -1219,7 +1221,7 @@ ListBaseT<Strip> *Editing::current_strips() const
   if (this->current_meta_strip) {
     return &this->current_meta_strip->seqbase;
   }
-  /* NOTE: Const correctness is non-existent with ListBase anyway. */
+  /* NOTE: Const correctness is non-existent with ListBaseT anyway. */
   return &const_cast<ListBaseT<Strip> &>(this->seqbase);
 }
 
@@ -1236,7 +1238,7 @@ ListBaseT<SeqTimelineChannel> *Editing::current_channels() const
   if (this->current_meta_strip) {
     return &this->current_meta_strip->channels;
   }
-  /* NOTE: Const correctness is non-existent with ListBase anyway. */
+  /* NOTE: Const correctness is non-existent with ListBaseT anyway. */
   return &const_cast<ListBaseT<SeqTimelineChannel> &>(this->channels);
 }
 

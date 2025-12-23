@@ -11,7 +11,7 @@
 #include "DNA_ID.h"
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
-#include "DNA_userdef_types.h"
+#include "DNA_theme_types.h"
 
 #include "BLI_enum_flags.hh"
 
@@ -24,6 +24,9 @@ class BoneColor;
 
 struct AnimData;
 struct BoneCollection;
+struct BoneCollectionMember;
+struct BoneCollectionReference;
+struct EditBone;
 
 /* armature->flag */
 /* don't use bit 7, was saved in files to disable stuff */
@@ -286,7 +289,7 @@ struct BoneColor {
 };
 
 struct Bone_Runtime {
-  ListBaseT<struct BoneCollectionReference> collections = {nullptr, nullptr};
+  ListBaseT<BoneCollectionReference> collections = {nullptr, nullptr};
 };
 
 struct Bone {
@@ -419,7 +422,7 @@ struct bArmature {
   void *_pad1 = nullptr;
 
   /** #EditBone list (use an allocated pointer so the state can be checked). */
-  ListBaseT<struct EditBone> *edbo = nullptr;
+  ListBaseT<EditBone> *edbo = nullptr;
 
   /* active bones should work like active object where possible
    * - active and selection are unrelated
@@ -509,7 +512,7 @@ struct BoneCollection {
 
   char name[/*MAX_NAME*/ 64] = "";
 
-  ListBaseT<struct BoneCollectionMember> bones = {nullptr, nullptr};
+  ListBaseT<BoneCollectionMember> bones = {nullptr, nullptr};
 
   /** eBoneCollection_Flag. */
   uint8_t flags = 0;

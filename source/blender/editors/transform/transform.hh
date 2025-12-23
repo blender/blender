@@ -553,7 +553,7 @@ struct TransSnap {
   /** To this point (in global-space). */
   float snap_target[3];
   float snapNormal[3];
-  ListBase points;
+  ListBaseT<TransSnapPoint> points;
   TransSnapPoint *selectedPoint;
   double last;
   void (*snap_target_fn)(TransInfo *, float *);

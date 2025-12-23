@@ -7,6 +7,8 @@
  * \ingroup bke
  */
 
+#include "DNA_listBase.h"
+
 #include "BLI_compiler_attrs.h"
 #include "BLI_mutex.hh"
 
@@ -35,7 +37,6 @@ struct ImagePool;
 struct ImageTile;
 struct ImbFormatOptions;
 struct Library;
-struct ListBase;
 struct Main;
 struct MovieCache;
 struct Object;
@@ -462,7 +463,7 @@ int BKE_image_get_tile_label(const Image *ima,
  * \param tiles: may be filled even if the result ultimately is false!
  */
 bool BKE_image_get_tile_info(char *filepath,
-                             ListBase *tiles,
+                             ListBaseT<LinkData> *tiles,
                              int *r_tile_start,
                              int *r_tile_range);
 

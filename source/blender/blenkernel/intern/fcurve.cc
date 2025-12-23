@@ -94,7 +94,7 @@ void BKE_fcurve_free(FCurve *fcu)
   MEM_freeN(fcu);
 }
 
-void BKE_fcurves_free(ListBase *list)
+void BKE_fcurves_free(ListBaseT<FCurve> *list)
 {
   /* Sanity check. */
   if (list == nullptr) {
@@ -149,7 +149,7 @@ FCurve *BKE_fcurve_copy(const FCurve *fcu)
   return fcu_d;
 }
 
-void BKE_fcurves_copy(ListBase *dst, ListBase *src)
+void BKE_fcurves_copy(ListBaseT<FCurve> *dst, ListBaseT<FCurve> *src)
 {
   /* Sanity checks. */
   if (ELEM(nullptr, dst, src)) {
@@ -180,7 +180,7 @@ void BKE_fmodifier_name_set(FModifier *fcm, const char *name)
   /* Set default modifier name when name parameter is an empty string.
    * Ensure the name is unique. */
   const FModifierTypeInfo *fmi = get_fmodifier_typeinfo(fcm->type);
-  ListBase list = BLI_listbase_from_link((Link *)fcm);
+  ListBaseT<FModifier> list = {fcm, fcm};
   BLI_uniquename(&list,
                  fcm,
                  CTX_DATA_(BLT_I18NCONTEXT_ID_ACTION, fmi->name),
@@ -250,7 +250,7 @@ FCurve *id_data_find_fcurve(
   return fcu;
 }
 
-FCurve *BKE_fcurve_find(ListBase *list, const char rna_path[], const int array_index)
+FCurve *BKE_fcurve_find(ListBaseT<FCurve> *list, const char rna_path[], const int array_index)
 {
   /* Sanity checks. */
   if (ELEM(nullptr, list, rna_path) || array_index < 0) {
@@ -1805,7 +1805,7 @@ struct tRetainedKeyframe {
 void BKE_fcurve_merge_duplicate_keys(FCurve *fcu, const int sel_flag, const bool use_handle)
 {
   /* NOTE: We assume that all keys are sorted */
-  ListBase retained_keys = {nullptr, nullptr};
+  ListBaseT<tRetainedKeyframe> retained_keys = {nullptr, nullptr};
   const bool can_average_points = ((fcu->flag & (FCURVE_INT_VALUES | FCURVE_DISCRETE_VALUES)) ==
                                    0);
 
@@ -2483,7 +2483,7 @@ float calculate_fcurve(PathResolvedRNA *anim_rna,
 /** \name F-Curve - .blend file API
  * \{ */
 
-void BKE_fmodifiers_blend_write(BlendWriter *writer, ListBase *fmodifiers)
+void BKE_fmodifiers_blend_write(BlendWriter *writer, ListBaseT<FModifier> *fmodifiers)
 {
   /* Write all modifiers first (for faster reloading) */
   BLO_write_struct_list(writer, FModifier, fmodifiers);
@@ -2524,7 +2524,9 @@ void BKE_fmodifiers_blend_write(BlendWriter *writer, ListBase *fmodifiers)
   }
 }
 
-void BKE_fmodifiers_blend_read_data(BlendDataReader *reader, ListBase *fmodifiers, FCurve *curve)
+void BKE_fmodifiers_blend_read_data(BlendDataReader *reader,
+                                    ListBaseT<FModifier> *fmodifiers,
+                                    FCurve *curve)
 {
   LISTBASE_FOREACH (FModifier *, fcm, fmodifiers) {
     const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
@@ -2599,7 +2601,7 @@ void BKE_fcurve_blend_write_data(BlendWriter *writer, FCurve *fcu)
   BKE_fmodifiers_blend_write(writer, &fcu->modifiers);
 }
 
-void BKE_fcurve_blend_write_listbase(BlendWriter *writer, ListBase *fcurves)
+void BKE_fcurve_blend_write_listbase(BlendWriter *writer, ListBaseT<FCurve> *fcurves)
 {
   BLO_write_struct_list(writer, FCurve, fcurves);
   LISTBASE_FOREACH (FCurve *, fcu, fcurves) {
@@ -2660,7 +2662,7 @@ void BKE_fcurve_blend_read_data(BlendDataReader *reader, FCurve *fcu)
   BKE_fmodifiers_blend_read_data(reader, &fcu->modifiers, fcu);
 }
 
-void BKE_fcurve_blend_read_data_listbase(BlendDataReader *reader, ListBase *fcurves)
+void BKE_fcurve_blend_read_data_listbase(BlendDataReader *reader, ListBaseT<FCurve> *fcurves)
 {
   /* Link F-Curve data to F-Curve again (non ID-libraries). */
   LISTBASE_FOREACH (FCurve *, fcu, fcurves) {

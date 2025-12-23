@@ -17,7 +17,7 @@
 
 #include "BLI_compiler_attrs.h"
 
-struct ListBase;
+#include "DNA_listBase.h"
 
 /**
  * Sanity check to ensure correct API use in debug mode.
@@ -101,7 +101,7 @@ bool BKE_appdir_app_template_any();
 bool BKE_appdir_app_template_id_search(const char *app_template, char *path, size_t path_maxncpy)
     ATTR_NONNULL(1);
 bool BKE_appdir_app_template_has_userpref(const char *app_template) ATTR_NONNULL(1);
-void BKE_appdir_app_templates(ListBase *templates) ATTR_NONNULL(1);
+void BKE_appdir_app_templates(ListBaseT<LinkData> *templates) ATTR_NONNULL(1);
 
 /**
  * Initialize path to program executable.

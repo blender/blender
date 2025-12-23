@@ -9,11 +9,11 @@
 #pragma once
 
 #include "BLI_linklist.h"
-#include "BLI_listbase.h"
 #include "BLI_set.hh"
 #include "BLI_threads.h"
 
 #include "DNA_lineart_types.h"
+#include "DNA_listBase.h"
 
 #include <math.h>
 #include <string.h>
@@ -23,6 +23,7 @@ struct LineartEdge;
 struct LineartData;
 struct LineartStaticMemPool;
 struct LineartStaticMemPoolNode;
+struct LineartElementLinkNode;
 struct GreasePencilLineartModifierData;
 
 void *lineart_list_append_pointer_pool(ListBase *h, struct LineartStaticMemPool *smp, void *data);
@@ -129,7 +130,7 @@ void lineart_main_load_geometries(struct Depsgraph *depsgraph,
                                   struct LineartData *ld,
                                   bool allow_duplicates,
                                   bool do_shadow_casting,
-                                  struct ListBase *shadow_elns,
+                                  ListBaseT<LineartElementLinkNode> *shadow_elns,
                                   blender::Set<const Object *> *included_objects);
 /**
  * The calculated view vector will point towards the far-plane from the camera position.
@@ -156,24 +157,26 @@ void lineart_main_add_triangles(struct LineartData *ld);
  * 2) Shadow render buffer if 3rd stage reprojection is need for silhouette/lit/shaded region
  * selection. Otherwise the shadow render buffer is deleted before this function returns.
  */
-bool lineart_main_try_generate_shadow(struct Depsgraph *depsgraph,
-                                      struct Scene *scene,
-                                      struct LineartData *original_ld,
-                                      struct LineartGpencilModifierData *lmd_legacy,
-                                      struct LineartStaticMemPool *shadow_data_pool,
-                                      struct LineartElementLinkNode **r_veln,
-                                      struct LineartElementLinkNode **r_eeln,
-                                      struct ListBase *r_calculated_edges_eln_list,
-                                      struct LineartData **r_shadow_ld_if_reproject);
-bool lineart_main_try_generate_shadow_v3(struct Depsgraph *depsgraph,
-                                         struct Scene *scene,
-                                         struct LineartData *original_ld,
-                                         struct GreasePencilLineartModifierData *lmd,
-                                         struct LineartStaticMemPool *shadow_data_pool,
-                                         struct LineartElementLinkNode **r_veln,
-                                         struct LineartElementLinkNode **r_eeln,
-                                         struct ListBase *r_calculated_edges_eln_list,
-                                         struct LineartData **r_shadow_ld_if_reproject);
+bool lineart_main_try_generate_shadow(
+    struct Depsgraph *depsgraph,
+    struct Scene *scene,
+    struct LineartData *original_ld,
+    struct LineartGpencilModifierData *lmd_legacy,
+    struct LineartStaticMemPool *shadow_data_pool,
+    struct LineartElementLinkNode **r_veln,
+    struct LineartElementLinkNode **r_eeln,
+    ListBaseT<LineartElementLinkNode> *r_calculated_edges_eln_list,
+    struct LineartData **r_shadow_ld_if_reproject);
+bool lineart_main_try_generate_shadow_v3(
+    struct Depsgraph *depsgraph,
+    struct Scene *scene,
+    struct LineartData *original_ld,
+    struct GreasePencilLineartModifierData *lmd,
+    struct LineartStaticMemPool *shadow_data_pool,
+    struct LineartElementLinkNode **r_veln,
+    struct LineartElementLinkNode **r_eeln,
+    ListBaseT<LineartElementLinkNode> *r_calculated_edges_eln_list,
+    struct LineartData **r_shadow_ld_if_reproject);
 /**
  * Does the 3rd stage reprojection, will not re-load objects because #shadow_ld is not deleted.
  * Only re-projects view camera edges and check visibility in light camera, then we can determine
@@ -187,8 +190,10 @@ void lineart_main_transform_and_add_shadow(struct LineartData *ld,
                                            struct LineartElementLinkNode *veln,
                                            struct LineartElementLinkNode *eeln);
 
-LineartElementLinkNode *lineart_find_matching_eln(struct ListBase *shadow_elns, int obindex);
-LineartElementLinkNode *lineart_find_matching_eln_obj(struct ListBase *elns, struct Object *ob);
+LineartElementLinkNode *lineart_find_matching_eln(ListBaseT<LineartElementLinkNode> *shadow_elns,
+                                                  int obindex);
+LineartElementLinkNode *lineart_find_matching_eln_obj(ListBaseT<LineartElementLinkNode> *elns,
+                                                      struct Object *ob);
 LineartEdge *lineart_find_matching_edge(struct LineartElementLinkNode *shadow_eln,
                                         uint64_t edge_identifier);
 /**
@@ -199,7 +204,7 @@ void lineart_register_shadow_cuts(struct LineartData *ld,
                                   struct LineartEdge *e,
                                   struct LineartEdge *shadow_edge);
 void lineart_register_intersection_shadow_cuts(struct LineartData *ld,
-                                               struct ListBase *shadow_elns);
+                                               ListBaseT<LineartElementLinkNode> *shadow_elns);
 
 bool lineart_edge_from_triangle(const struct LineartTriangle *tri,
                                 const struct LineartEdge *e,

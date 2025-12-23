@@ -1358,7 +1358,7 @@ static void do_version_split_node_rotation(bNodeTree *node_tree, bNode *node)
 
 static void do_version_remove_lzo_and_lzma_compression(FileData *fd, Object *object)
 {
-  ListBase pidlist;
+  ListBaseT<PTCacheID> pidlist;
 
   BKE_ptcache_ids_from_object(&pidlist, object, nullptr, 0);
 
@@ -3300,8 +3300,8 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
           if (!ELEM(sl->spacetype, SPACE_ACTION, SPACE_GRAPH, SPACE_NLA, SPACE_SEQ)) {
             continue;
           }
-          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                 &sl->regionbase;
+          ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                           &sl->regionbase;
           ARegion *new_footer = do_versions_add_region_if_not_found(
               regionbase, RGN_TYPE_FOOTER, "footer for animation editors", RGN_TYPE_HEADER);
           if (new_footer == nullptr) {
@@ -4031,8 +4031,8 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_USERPREF) {
-            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                   &sl->regionbase;
+            ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                             &sl->regionbase;
             ARegion *new_sidebar = do_versions_add_region_if_not_found(
                 regionbase, RGN_TYPE_UI, "sidebar for preferences", RGN_TYPE_HEADER);
             if (new_sidebar != nullptr) {
@@ -4296,8 +4296,8 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
             continue;
           }
 
-          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                 &sl->regionbase;
+          ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                           &sl->regionbase;
 
           if (ARegion *new_shelf_region = do_versions_add_region_if_not_found(
                   regionbase,

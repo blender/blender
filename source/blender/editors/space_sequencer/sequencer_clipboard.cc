@@ -71,8 +71,8 @@ using namespace bke::blendfile;
 
 static void sequencer_copy_animation_listbase(Scene *scene_src,
                                               Strip *strip_dst,
-                                              ListBase *clipboard_dst,
-                                              ListBase *fcurve_base_src)
+                                              ListBaseT<FCurve> *clipboard_dst,
+                                              ListBaseT<FCurve> *fcurve_base_src)
 {
   /* Add curves for strips inside meta strip. */
   if (strip_dst->type == STRIP_TYPE_META) {
@@ -124,7 +124,7 @@ static void sequencer_copy_animation_to_vector(Scene *scene_src,
 
 static void sequencer_copy_animation(Scene *scene_src,
                                      Vector<FCurve *> &fcurves_dst,
-                                     ListBase *drivers_dst,
+                                     ListBaseT<FCurve> *drivers_dst,
                                      Strip *strip_dst)
 {
   if (seq::animation_keyframes_exist(scene_src)) {
@@ -185,7 +185,7 @@ static bool sequencer_write_copy_paste_file(Main *bmain_src,
   }
 
   Vector<FCurve *> fcurves_dst = {};
-  ListBase drivers_dst = {nullptr, nullptr};
+  ListBaseT<FCurve> drivers_dst = {nullptr, nullptr};
   LISTBASE_FOREACH (Strip *, strip_dst, &scene_dst->ed->seqbase) {
     /* Copy any fcurves/drivers from `scene_src` that are relevant to `strip_dst`. */
     sequencer_copy_animation(scene_src, fcurves_dst, &drivers_dst, strip_dst);
@@ -475,7 +475,7 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
   seq::animation_backup_original(scene_dst, &animation_backup);
   bool has_animation = sequencer_paste_animation(bmain_dst, scene_dst, scene_src);
 
-  ListBase nseqbase = {nullptr, nullptr};
+  ListBaseT<Strip> nseqbase = {nullptr, nullptr};
   /* NOTE: seq::seqbase_duplicate_recursive() takes care of generating
    * new UIDs for sequences in the new list. */
   seq::seqbase_duplicate_recursive(bmain_dst,

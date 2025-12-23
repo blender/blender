@@ -54,7 +54,7 @@ struct bArgument {
 };
 
 struct bArgs {
-  ListBase docs;
+  ListBaseT<bArgDoc> docs;
   GHash *items;
   int argc;
   const char **argv;

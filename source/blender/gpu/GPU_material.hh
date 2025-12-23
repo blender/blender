@@ -23,6 +23,7 @@
 
 struct GHash;
 struct GPUMaterial;
+struct GPUInput;
 struct GPUNodeLink;
 struct GPUNodeStack;
 struct GPUPass;
@@ -32,7 +33,6 @@ class UniformBuf;
 }  // namespace blender::gpu
 struct Image;
 struct ImageUser;
-struct ListBase;
 struct Main;
 struct Material;
 struct Scene;
@@ -121,7 +121,7 @@ struct GPUMaterialFromNodeTreeResult {
 GPUMaterialFromNodeTreeResult GPU_material_from_nodetree(
     Material *ma,
     bNodeTree *ntree,
-    ListBase *gpumaterials,
+    ListBaseT<LinkData> *gpumaterials,
     const char *name,
     eGPUMaterialEngine engine,
     uint64_t shader_uuid,
@@ -142,7 +142,7 @@ GPUMaterial *GPU_material_from_callbacks(eGPUMaterialEngine engine,
                                          void *thunk);
 
 void GPU_material_free_single(GPUMaterial *material);
-void GPU_material_free(ListBase *gpumaterial);
+void GPU_material_free(ListBaseT<LinkData> *gpumaterial);
 
 void GPU_materials_free(Main *bmain);
 
@@ -174,7 +174,7 @@ blender::gpu::UniformBuf *GPU_material_uniform_buffer_get(GPUMaterial *material)
  *
  * \param inputs: Items are #LinkData, data is #GPUInput (`BLI_genericNodeN(GPUInput)`).
  */
-void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBase *inputs);
+void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBaseT<LinkData> *inputs);
 
 bool GPU_material_has_surface_output(GPUMaterial *mat);
 bool GPU_material_has_volume_output(GPUMaterial *mat);
@@ -196,7 +196,7 @@ struct GPULayerAttr {
   int users;
 };
 
-const ListBase *GPU_material_layer_attributes(const GPUMaterial *material);
+const ListBaseT<GPULayerAttr> *GPU_material_layer_attributes(const GPUMaterial *material);
 
 /* Requested Material Attributes and Textures */
 
@@ -268,8 +268,8 @@ struct GPUMaterialTexture {
   GPUSamplerState sampler_state;
 };
 
-ListBase GPU_material_attributes(const GPUMaterial *material);
-ListBase GPU_material_textures(GPUMaterial *material);
+ListBaseT<GPUMaterialAttribute> GPU_material_attributes(const GPUMaterial *material);
+ListBaseT<GPUMaterialTexture> GPU_material_textures(GPUMaterial *material);
 
 struct GPUUniformAttr {
   GPUUniformAttr *next, *prev;
@@ -286,7 +286,7 @@ struct GPUUniformAttr {
 };
 
 struct GPUUniformAttrList {
-  ListBase list; /* GPUUniformAttr */
+  ListBaseT<GPUUniformAttr> list;
 
   /* List length and hash code precomputed for fast lookup and comparison. */
   unsigned int count, hash_code;

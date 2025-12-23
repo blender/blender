@@ -375,7 +375,7 @@ void blo_do_versions_430(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     using namespace blender;
 
     LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
-      const ListBase *exporters = &collection->exporters;
+      const ListBaseT<CollectionExport> *exporters = &collection->exporters;
       LISTBASE_FOREACH (CollectionExport *, data, exporters) {
         /* The name field should be empty at this point. */
         BLI_assert(data->name[0] == '\0');

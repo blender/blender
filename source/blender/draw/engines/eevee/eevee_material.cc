@@ -128,7 +128,7 @@ void MaterialModule::begin_sync()
 
 void MaterialModule::queue_texture_loading(GPUMaterial *material)
 {
-  ListBase textures = GPU_material_textures(material);
+  ListBaseT<GPUMaterialTexture> textures = GPU_material_textures(material);
   for (GPUMaterialTexture *tex : ListBaseWrapper<GPUMaterialTexture>(textures)) {
     if (tex->ima) {
       const bool use_tile_mapping = tex->tiled_mapping_name[0];

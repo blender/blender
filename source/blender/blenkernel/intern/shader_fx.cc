@@ -112,7 +112,7 @@ void BKE_shaderfx_free(ShaderFxData *fx)
   BKE_shaderfx_free_ex(fx, 0);
 }
 
-void BKE_shaderfx_unique_name(ListBase *shaders, ShaderFxData *fx)
+void BKE_shaderfx_unique_name(ListBaseT<ShaderFxData> *shaders, ShaderFxData *fx)
 {
   if (shaders && fx) {
     const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(ShaderFxType(fx->type));
@@ -207,7 +207,7 @@ void BKE_shaderfx_copydata(ShaderFxData *fx, ShaderFxData *target)
   BKE_shaderfx_copydata_ex(fx, target, 0);
 }
 
-void BKE_shaderfx_copy(ListBase *dst, const ListBase *src)
+void BKE_shaderfx_copy(ListBaseT<ShaderFxData> *dst, const ListBaseT<ShaderFxData> *src)
 {
   ShaderFxData *fx;
   ShaderFxData *srcfx;
@@ -256,7 +256,7 @@ ShaderFxData *BKE_shaderfx_findby_name(Object *ob, const char *name)
       BLI_findstring(&(ob->shader_fx), name, offsetof(ShaderFxData, name)));
 }
 
-void BKE_shaderfx_blend_write(BlendWriter *writer, ListBase *fxbase)
+void BKE_shaderfx_blend_write(BlendWriter *writer, ListBaseT<ShaderFxData> *fxbase)
 {
   if (fxbase == nullptr) {
     return;
@@ -272,7 +272,7 @@ void BKE_shaderfx_blend_write(BlendWriter *writer, ListBase *fxbase)
   }
 }
 
-void BKE_shaderfx_blend_read_data(BlendDataReader *reader, ListBase *lb, Object *ob)
+void BKE_shaderfx_blend_read_data(BlendDataReader *reader, ListBaseT<ShaderFxData> *lb, Object *ob)
 {
   BLO_read_struct_list(reader, ShaderFxData, lb);
 

@@ -64,7 +64,7 @@ struct ButsTextureUser {
 };
 
 struct ButsContextTexture {
-  ListBase users;
+  ListBaseT<ButsTextureUser> users;
 
   struct Tex *texture;
 

@@ -161,7 +161,7 @@ static void ensure_change_frame_keylist(bContext *C, FrameChangeModalData &op_da
       return;
     }
 
-    ListBase *seqbase = blender::seq::active_seqbase_get(blender::seq::editing_get(scene));
+    ListBaseT<Strip> *seqbase = blender::seq::active_seqbase_get(blender::seq::editing_get(scene));
     LISTBASE_FOREACH (Strip *, strip, seqbase) {
       sequencer_strip_to_keylist(*strip, *op_data.keylist, *scene);
     }
@@ -178,7 +178,7 @@ static void ensure_change_frame_keylist(bContext *C, FrameChangeModalData &op_da
     return;
   }
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   switch (area->spacetype) {
     case SPACE_ACTION: {
@@ -315,7 +315,7 @@ static void append_nla_strip_snap_target(bContext *C,
     BLI_assert_unreachable();
   }
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
                               ANIMFILTER_LIST_CHANNELS | ANIMFILTER_FCURVESONLY);
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
@@ -368,7 +368,7 @@ static blender::Vector<SnapTarget> seq_get_snap_targets(bContext *C,
   blender::Vector<SnapTarget> targets;
 
   if (tool_settings->snap_playhead_mode & SCE_SNAP_TO_STRIPS) {
-    ListBase *seqbase = blender::seq::active_seqbase_get(ed);
+    ListBaseT<Strip> *seqbase = blender::seq::active_seqbase_get(ed);
     append_sequencer_strip_snap_target(
         blender::seq::query_all_strips(seqbase), scene, timeline_frame, targets);
   }
@@ -1132,7 +1132,7 @@ static wmOperatorStatus debug_channel_list_exec(bContext *C, wmOperator * /*op*/
     return OPERATOR_CANCELLED;
   }
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   /* Same filter flags as in action_channel_region_draw() in
    * `source/blender/editors/space_action/space_action.cc`. */
   const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |

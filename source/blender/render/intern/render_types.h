@@ -142,7 +142,7 @@ struct Render : public BaseRender {
   /* if render with single-layer option, other rendered layers are stored here */
   RenderResult *pushedresult = nullptr;
   /** A list of #RenderResults, for full-samples. */
-  ListBase fullresult = {nullptr, nullptr};
+  ListBaseT<RenderResult> fullresult = {nullptr, nullptr};
   /* True if result has GPU textures, to quickly skip cache clear. */
   bool result_has_gpu_texture_caches = false;
 

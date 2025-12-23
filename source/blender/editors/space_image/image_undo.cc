@@ -593,10 +593,10 @@ struct UndoImageHandle {
   /**
    * List of #UndoImageBuf's to support multiple buffers per image.
    */
-  ListBase buffers;
+  ListBaseT<UndoImageBuf> buffers;
 };
 
-static void uhandle_restore_list(ListBase *undo_handles, bool use_init)
+static void uhandle_restore_list(ListBaseT<UndoImageHandle> *undo_handles, bool use_init)
 {
   ImBuf *tmpibuf = imbuf_alloc_temp_tile();
 
@@ -644,7 +644,7 @@ static void uhandle_restore_list(ListBase *undo_handles, bool use_init)
   IMB_freeImBuf(tmpibuf);
 }
 
-static void uhandle_free_list(ListBase *undo_handles)
+static void uhandle_free_list(ListBaseT<UndoImageHandle> *undo_handles)
 {
   LISTBASE_FOREACH_MUTABLE (UndoImageHandle *, uh, undo_handles) {
     LISTBASE_FOREACH_MUTABLE (UndoImageBuf *, ubuf, &uh->buffers) {
@@ -696,7 +696,7 @@ static UndoImageBuf *uhandle_ensure_ubuf(UndoImageHandle *uh, Image *image, ImBu
   return ubuf;
 }
 
-static UndoImageHandle *uhandle_lookup_by_name(ListBase *undo_handles,
+static UndoImageHandle *uhandle_lookup_by_name(ListBaseT<UndoImageHandle> *undo_handles,
                                                const Image *image,
                                                int tile_number)
 {
@@ -708,7 +708,9 @@ static UndoImageHandle *uhandle_lookup_by_name(ListBase *undo_handles,
   return nullptr;
 }
 
-static UndoImageHandle *uhandle_lookup(ListBase *undo_handles, const Image *image, int tile_number)
+static UndoImageHandle *uhandle_lookup(ListBaseT<UndoImageHandle> *undo_handles,
+                                       const Image *image,
+                                       int tile_number)
 {
   LISTBASE_FOREACH (UndoImageHandle *, uh, undo_handles) {
     if (image == uh->image_ref.ptr && uh->iuser.tile == tile_number) {
@@ -718,7 +720,9 @@ static UndoImageHandle *uhandle_lookup(ListBase *undo_handles, const Image *imag
   return nullptr;
 }
 
-static UndoImageHandle *uhandle_add(ListBase *undo_handles, Image *image, ImageUser *iuser)
+static UndoImageHandle *uhandle_add(ListBaseT<UndoImageHandle> *undo_handles,
+                                    Image *image,
+                                    ImageUser *iuser)
 {
   BLI_assert(uhandle_lookup(undo_handles, image, iuser->tile) == nullptr);
   UndoImageHandle *uh = MEM_new_for_free<UndoImageHandle>(__func__);
@@ -729,7 +733,9 @@ static UndoImageHandle *uhandle_add(ListBase *undo_handles, Image *image, ImageU
   return uh;
 }
 
-static UndoImageHandle *uhandle_ensure(ListBase *undo_handles, Image *image, ImageUser *iuser)
+static UndoImageHandle *uhandle_ensure(ListBaseT<UndoImageHandle> *undo_handles,
+                                       Image *image,
+                                       ImageUser *iuser)
 {
   UndoImageHandle *uh = uhandle_lookup(undo_handles, image, iuser->tile);
   if (uh == nullptr) {
@@ -747,8 +753,7 @@ static UndoImageHandle *uhandle_ensure(ListBase *undo_handles, Image *image, Ima
 struct ImageUndoStep {
   UndoStep step;
 
-  /** #UndoImageHandle */
-  ListBase handles;
+  ListBaseT<UndoImageHandle> handles;
 
   /**
    * #PaintTile

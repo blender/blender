@@ -8,14 +8,16 @@
 
 #pragma once
 
+#include "DNA_listBase.h"
+
 struct AnimData;
-struct ListBase;
+struct TreeElement;
 
 namespace blender::ed::outliner {
 
 const char *outliner_idcode_to_plural(short idcode);
 
-void outliner_make_object_parent_hierarchy(ListBase *lb);
+void outliner_make_object_parent_hierarchy(ListBaseT<TreeElement> *lb);
 bool outliner_animdata_test(const AnimData *adt);
 
 }  // namespace blender::ed::outliner

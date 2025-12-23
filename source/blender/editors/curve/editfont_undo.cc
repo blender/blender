@@ -77,7 +77,7 @@ static struct {
   int users;
 
   /* We could have the undo API pass in the previous state, for now store a local list */
-  ListBase local_links;
+  ListBaseT<LinkData> local_links;
 
 } uf_arraystore = {{nullptr}};
 

@@ -65,7 +65,7 @@ short do_versions_new_to_old_idcode_get(const short id_code_new)
   }
 }
 
-ARegion *do_versions_add_region_if_not_found(ListBase *regionbase,
+ARegion *do_versions_add_region_if_not_found(ListBaseT<ARegion> *regionbase,
                                              int region_type,
                                              const char * /*allocname*/,
                                              int link_after_region_type)
@@ -86,7 +86,7 @@ ARegion *do_versions_add_region_if_not_found(ListBase *regionbase,
   return new_region;
 }
 
-ARegion *do_versions_ensure_region(ListBase *regionbase,
+ARegion *do_versions_ensure_region(ListBaseT<ARegion> *regionbase,
                                    int region_type,
                                    const char * /*allocname*/,
                                    int link_after_region_type)
@@ -113,7 +113,7 @@ ID *do_versions_rename_id(Main *bmain,
                           const char *name_dst)
 {
   /* We can ignore libraries */
-  ListBase *lb = which_libbase(bmain, id_type);
+  ListBaseT<ID> *lb = which_libbase(bmain, id_type);
   ID *id = nullptr;
   LISTBASE_FOREACH (ID *, idtest, lb) {
     if (!ID_IS_LINKED(idtest)) {
@@ -131,7 +131,9 @@ ID *do_versions_rename_id(Main *bmain,
   return id;
 }
 
-static void change_node_socket_name(ListBase *sockets, const char *old_name, const char *new_name)
+static void change_node_socket_name(ListBaseT<bNodeSocket> *sockets,
+                                    const char *old_name,
+                                    const char *new_name)
 {
   LISTBASE_FOREACH (bNodeSocket *, socket, sockets) {
     if (STREQ(socket->name, old_name)) {

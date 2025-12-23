@@ -254,7 +254,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
   TransDataGraph *tdg = nullptr;
 
   bAnimContext ac;
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   BezTriple *bezt;
@@ -907,7 +907,7 @@ static void recalcData_graphedit(TransInfo *t)
   SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
   ViewLayer *view_layer = t->view_layer;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   bAnimContext ac = {nullptr};
   int filter;
 
@@ -991,7 +991,7 @@ static void special_aftertrans_update__graph(bContext *C, TransInfo *t)
   }
 
   if (ac.datatype) {
-    ListBase anim_data = {nullptr, nullptr};
+    ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
     short filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE |
                     ANIMFILTER_FCURVESONLY);
 

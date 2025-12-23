@@ -2014,7 +2014,7 @@ void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
 
     const Object *obact_orig = DEG_get_original(draw_ctx->obact);
 
-    const ListBase *defbase = BKE_object_defgroup_list(obact_orig);
+    const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(obact_orig);
     for (const bDeformGroup *dg : ConstListBaseWrapper<bDeformGroup>(defbase)) {
       if ((dg->flag & DG_LOCK_WEIGHT) == 0) {
         continue;

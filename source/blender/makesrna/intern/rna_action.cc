@@ -1168,7 +1168,7 @@ static void reevaluate_fcurve_errors(bAnimContext *ac)
   if (filtering_enabled) {
     ac->filters.flag &= ~ADS_FILTER_ONLY_ERRORS;
   }
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FCURVESONLY;
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 

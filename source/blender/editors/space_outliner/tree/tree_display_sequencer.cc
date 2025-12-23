@@ -29,9 +29,9 @@ TreeDisplaySequencer::TreeDisplaySequencer(SpaceOutliner &space_outliner)
 {
 }
 
-ListBase TreeDisplaySequencer::build_tree(const TreeSourceData &source_data)
+ListBaseT<TreeElement> TreeDisplaySequencer::build_tree(const TreeSourceData &source_data)
 {
-  ListBase tree = {nullptr};
+  ListBaseT<TreeElement> tree = {nullptr};
   Scene *sequencer_scene = source_data.workspace->sequencer_scene;
   if (!sequencer_scene) {
     return tree;

@@ -10,6 +10,7 @@
 
 #include "BLI_span.hh"
 
+#include "DNA_listBase.h"
 #include "DNA_windowmanager_enums.h"
 
 struct BPoint;
@@ -18,7 +19,6 @@ struct BezTriple;
 struct Curve;
 struct EditNurb;
 struct KeyBlock;
-struct ListBase;
 struct Main;
 struct Nurb;
 struct Object;
@@ -38,7 +38,7 @@ void ED_keymap_curve(wmKeyConfig *keyconf);
 
 /* `editcurve.cc` */
 
-ListBase *object_editcurve_get(Object *ob);
+ListBaseT<Nurb> *object_editcurve_get(Object *ob);
 
 KeyBlock *ED_curve_get_edit_shape_key(const Curve *cu);
 

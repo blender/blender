@@ -1633,7 +1633,9 @@ static bool can_select_recursive(TreeElement *te, Collection *in_collection)
   return false;
 }
 
-static void do_outliner_select_recursive(ListBase *lb, bool selecting, Collection *in_collection)
+static void do_outliner_select_recursive(ListBaseT<TreeElement> *lb,
+                                         bool selecting,
+                                         Collection *in_collection)
 {
   LISTBASE_FOREACH (TreeElement *, te, lb) {
     TreeStoreElem *tselem = TREESTORE(te);
@@ -1657,7 +1659,7 @@ static void do_outliner_select_recursive(ListBase *lb, bool selecting, Collectio
   }
 }
 
-static bool do_outliner_range_select_recursive(ListBase *lb,
+static bool do_outliner_range_select_recursive(ListBaseT<TreeElement> *lb,
                                                TreeElement *active,
                                                TreeElement *cursor,
                                                bool selecting,

@@ -278,7 +278,8 @@ class AnimDataConvertor {
     return is_changed;
   }
 
-  bool fcurve_foreach_in_listbase(ListBase &fcurves, FunctionRef<FCurveCallback> callback) const
+  bool fcurve_foreach_in_listbase(ListBaseT<FCurve> &fcurves,
+                                  FunctionRef<FCurveCallback> callback) const
   {
     bool is_changed = false;
     LISTBASE_FOREACH (FCurve *, fcurve, &fcurves) {
@@ -567,14 +568,15 @@ class AnimDataConvertor {
       }
     };
 
-    auto fcurves_move_between_listbases =
-        [&](ListBase &fcurves_dst, ListBase &fcurves_src, const Span<FCurve *> fcurves) {
-          for (FCurve *fcurve : fcurves) {
-            BLI_assert(BLI_findindex(&fcurves_src, fcurve) >= 0);
-            BLI_remlink(&fcurves_src, fcurve);
-            BLI_addtail(&fcurves_dst, fcurve);
-          }
-        };
+    auto fcurves_move_between_listbases = [&](ListBaseT<FCurve> &fcurves_dst,
+                                              ListBaseT<FCurve> &fcurves_src,
+                                              const Span<FCurve *> fcurves) {
+      for (FCurve *fcurve : fcurves) {
+        BLI_assert(BLI_findindex(&fcurves_src, fcurve) >= 0);
+        BLI_remlink(&fcurves_src, fcurve);
+        BLI_addtail(&fcurves_dst, fcurve);
+      }
+    };
 
     if (!this->fcurves_from_src_main_action.is_empty()) {
       if (!this->animdata_dst->action) {
@@ -630,13 +632,13 @@ class AnimDataConvertor {
 /**
  * Find vertex groups that have assigned vertices in this drawing.
  * Returns:
- * - ListBase with used vertex group names (bDeformGroup)
+ * - ListBaseT<bDeformGroup> with used vertex group names
  * - Array of indices in the new vertex group list for remapping
  */
 static void find_used_vertex_groups(const bGPDframe &gpf,
-                                    const ListBase &vertex_group_names,
+                                    const ListBaseT<bDeformGroup> &vertex_group_names,
                                     const int num_vertex_groups,
-                                    ListBase &r_vertex_group_names,
+                                    ListBaseT<bDeformGroup> &r_vertex_group_names,
                                     Array<int> &r_indices)
 {
   Array<int> is_group_used(num_vertex_groups, false);
@@ -778,8 +780,8 @@ static blender::float4x2 get_legacy_texture_matrix(bGPDstroke *gps)
   return texture_matrix * strokemat4x3;
 }
 
-static Drawing legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
-                                                             const ListBase &vertex_group_names)
+static Drawing legacy_gpencil_frame_to_grease_pencil_drawing(
+    const bGPDframe &gpf, const ListBaseT<bDeformGroup> &vertex_group_names)
 {
   /* Create a new empty drawing. */
   Drawing drawing;

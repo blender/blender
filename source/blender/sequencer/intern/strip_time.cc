@@ -228,7 +228,7 @@ int time_find_next_prev_edit(Scene *scene,
                              const bool do_unselected)
 {
   Editing *ed = editing_get(scene);
-  ListBase *channels = channels_displayed_get(ed);
+  ListBaseT<SeqTimelineChannel> *channels = channels_displayed_get(ed);
 
   int dist, best_dist, best_frame = timeline_frame;
   int strip_frames[2], strip_frames_tot;
@@ -303,7 +303,7 @@ void timeline_init_boundbox(const Scene *scene, rctf *r_rect)
   r_rect->ymax = 8.0f;
 }
 
-void timeline_expand_boundbox(const Scene *scene, const ListBase *seqbase, rctf *rect)
+void timeline_expand_boundbox(const Scene *scene, const ListBaseT<Strip> *seqbase, rctf *rect)
 {
   if (seqbase == nullptr) {
     return;
@@ -317,7 +317,7 @@ void timeline_expand_boundbox(const Scene *scene, const ListBase *seqbase, rctf 
   }
 }
 
-void timeline_boundbox(const Scene *scene, const ListBase *seqbase, rctf *r_rect)
+void timeline_boundbox(const Scene *scene, const ListBaseT<Strip> *seqbase, rctf *r_rect)
 {
   timeline_init_boundbox(scene, r_rect);
   timeline_expand_boundbox(scene, seqbase, r_rect);
@@ -336,7 +336,7 @@ static bool strip_exists_at_frame(const Scene *scene,
 }
 
 void seq_time_gap_info_get(const Scene *scene,
-                           ListBase *seqbase,
+                           ListBaseT<Strip> *seqbase,
                            const int initial_frame,
                            GapInfo *r_gap_info)
 {

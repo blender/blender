@@ -162,7 +162,7 @@ void WM_gizmo_free(wmGizmo *gz)
   MEM_freeN(static_cast<void *>(gz));
 }
 
-void WM_gizmo_unlink(ListBase *gizmolist, wmGizmoMap *gzmap, wmGizmo *gz, bContext *C)
+void WM_gizmo_unlink(ListBaseT<wmGizmo> *gizmolist, wmGizmoMap *gzmap, wmGizmo *gz, bContext *C)
 {
   if (gz->state & WM_GIZMO_STATE_HIGHLIGHT) {
     wm_gizmomap_highlight_set(gzmap, C, nullptr, 0);

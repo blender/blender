@@ -241,7 +241,7 @@ void ANIM_set_active_channel(bAnimContext *ac,
 {
   /* TODO: extend for animdata types. */
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   bAnimListElem *ale;
 
   /* try to build list of filtered items */
@@ -521,9 +521,9 @@ static void select_pchan_for_action_group(bAnimContext *ac,
   }
 }
 
-static ListBase /*bAnimListElem*/ anim_channels_for_selection(bAnimContext *ac)
+static ListBaseT<bAnimListElem> anim_channels_for_selection(bAnimContext *ac)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   /* filter data */
   /* NOTE: no list visible, otherwise, we get dangling */
@@ -534,7 +534,8 @@ static ListBase /*bAnimListElem*/ anim_channels_for_selection(bAnimContext *ac)
   return anim_data;
 }
 
-static eAnimChannels_SetFlag anim_channels_selection_flag_for_toggle(const ListBase anim_data)
+static eAnimChannels_SetFlag anim_channels_selection_flag_for_toggle(
+    const ListBaseT<bAnimListElem> anim_data)
 {
   /* See if we should be selecting or deselecting. */
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
@@ -676,7 +677,7 @@ static void templated_selection_state_update(T &selectable_thing,
 }
 
 static void anim_channels_select_set(bAnimContext *ac,
-                                     const ListBase anim_data,
+                                     const ListBaseT<bAnimListElem> anim_data,
                                      eAnimChannels_SetFlag sel)
 {
   using namespace blender;
@@ -822,14 +823,14 @@ static void anim_channels_select_set(bAnimContext *ac,
 
 void ANIM_anim_channels_select_set(bAnimContext *ac, eAnimChannels_SetFlag sel)
 {
-  ListBase anim_data = anim_channels_for_selection(ac);
+  ListBaseT<bAnimListElem> anim_data = anim_channels_for_selection(ac);
   anim_channels_select_set(ac, anim_data, sel);
   ANIM_animdata_freelist(&anim_data);
 }
 
 void ANIM_anim_channels_select_toggle(bAnimContext *ac)
 {
-  ListBase anim_data = anim_channels_for_selection(ac);
+  ListBaseT<bAnimListElem> anim_data = anim_channels_for_selection(ac);
   const eAnimChannels_SetFlag sel = anim_channels_selection_flag_for_toggle(anim_data);
   anim_channels_select_set(ac, anim_data, sel);
   ANIM_animdata_freelist(&anim_data);
@@ -951,7 +952,7 @@ static void anim_flush_channel_setting_down(bAnimContext *ac,
 }
 
 void ANIM_flush_setting_anim_channels(bAnimContext *ac,
-                                      ListBase *anim_data,
+                                      ListBaseT<bAnimListElem> *anim_data,
                                       bAnimListElem *ale_setting,
                                       eAnimChannel_Settings setting,
                                       eAnimChannels_SetFlag mode)
@@ -1012,7 +1013,7 @@ void ANIM_frame_channel_y_extents(bContext *C, bAnimContext *ac)
     return;
   }
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   const int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS |
                       ANIMFILTER_FCURVESONLY | ANIMFILTER_CURVE_VISIBLE);
   ANIM_animdata_filter(
@@ -1132,8 +1133,8 @@ static const EnumPropertyItem prop_animchannel_rearrange_types[] = {
 struct tReorderChannelIsland {
   tReorderChannelIsland *next, *prev;
 
-  ListBase channels; /* channels within this region with the same state */
-  int flag;          /* eReorderIslandFlag */
+  ListBaseT<bAnimListElem> channels; /* channels within this region with the same state */
+  int flag;                          /* eReorderIslandFlag */
 };
 
 /* flags for channel reordering islands */
@@ -1159,7 +1160,8 @@ static bool rearrange_island_ok(tReorderChannelIsland *island)
 
 /* ............................. */
 
-static bool rearrange_island_top(ListBase *list, tReorderChannelIsland *island)
+static bool rearrange_island_top(ListBaseT<tReorderChannelIsland> *list,
+                                 tReorderChannelIsland *island)
 {
   if (rearrange_island_ok(island)) {
     /* remove from current position */
@@ -1174,7 +1176,8 @@ static bool rearrange_island_top(ListBase *list, tReorderChannelIsland *island)
   return false;
 }
 
-static bool rearrange_island_up(ListBase *list, tReorderChannelIsland *island)
+static bool rearrange_island_up(ListBaseT<tReorderChannelIsland> *list,
+                                tReorderChannelIsland *island)
 {
   if (rearrange_island_ok(island)) {
     /* moving up = moving before the previous island, otherwise we're in the same place */
@@ -1199,7 +1202,8 @@ static bool rearrange_island_up(ListBase *list, tReorderChannelIsland *island)
   return false;
 }
 
-static bool rearrange_island_down(ListBase *list, tReorderChannelIsland *island)
+static bool rearrange_island_down(ListBaseT<tReorderChannelIsland> *list,
+                                  tReorderChannelIsland *island)
 {
   if (rearrange_island_ok(island)) {
     /* moving down = moving after the next island, otherwise we're in the same place */
@@ -1228,7 +1232,8 @@ static bool rearrange_island_down(ListBase *list, tReorderChannelIsland *island)
   return false;
 }
 
-static bool rearrange_island_bottom(ListBase *list, tReorderChannelIsland *island)
+static bool rearrange_island_bottom(ListBaseT<tReorderChannelIsland> *list,
+                                    tReorderChannelIsland *island)
 {
   if (rearrange_island_ok(island)) {
     tReorderChannelIsland *last = static_cast<tReorderChannelIsland *>(list->last);
@@ -1261,7 +1266,8 @@ static bool rearrange_island_bottom(ListBase *list, tReorderChannelIsland *islan
  * \param island: Island to be moved
  * \return Whether operation was a success
  */
-using AnimChanRearrangeFp = bool (*)(ListBase *list, tReorderChannelIsland *island);
+using AnimChanRearrangeFp = bool (*)(ListBaseT<tReorderChannelIsland> *list,
+                                     tReorderChannelIsland *island);
 
 /* get rearranging function, given 'rearrange' mode */
 static AnimChanRearrangeFp rearrange_get_mode_func(eRearrangeAnimChan_Mode mode)
@@ -1300,7 +1306,7 @@ static AnimChanRearrangeFp rearrange_gpencil_get_mode_func(eRearrangeAnimChan_Mo
 /* Rearrange Islands Generics ------------------------------------- */
 
 /* add channel into list of islands */
-static void rearrange_animchannel_add_to_islands(ListBase *islands,
+static void rearrange_animchannel_add_to_islands(ListBaseT<tReorderChannelIsland> *islands,
                                                  ListBase *srcList,
                                                  Link *channel,
                                                  eAnim_ChannelType type,
@@ -1377,7 +1383,8 @@ static void rearrange_animchannel_add_to_islands(ListBase *islands,
 }
 
 /* flatten islands out into a single list again */
-static void rearrange_animchannel_flatten_islands(ListBase *islands, ListBase *srcList)
+static void rearrange_animchannel_flatten_islands(ListBaseT<tReorderChannelIsland> *islands,
+                                                  ListBase *srcList)
 {
   tReorderChannelIsland *island, *isn = nullptr;
 
@@ -1398,12 +1405,12 @@ static void rearrange_animchannel_flatten_islands(ListBase *islands, ListBase *s
 
 /* get a list of all bAnimListElem's of a certain type which are currently visible */
 static void rearrange_animchannels_filter_visible(
-    ListBase *anim_data_visible,
+    ListBaseT<bAnimListElem> *anim_data_visible,
     bAnimContext *ac,
     const eAnim_ChannelType type,
     const eAnimFilter_Flags additional_filters = eAnimFilter_Flags(0))
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
                               ANIMFILTER_LIST_CHANNELS | additional_filters);
 
@@ -1437,9 +1444,9 @@ static bool rearrange_animchannel_islands(ListBase *list,
                                           AnimChanRearrangeFp rearrange_func,
                                           eRearrangeAnimChan_Mode mode,
                                           eAnim_ChannelType type,
-                                          ListBase *anim_data_visible)
+                                          ListBaseT<bAnimListElem> *anim_data_visible)
 {
-  ListBase islands = {nullptr, nullptr};
+  ListBaseT<tReorderChannelIsland> islands = {nullptr, nullptr};
   Link *channel, *chanNext = nullptr;
   bool done = false;
 
@@ -1496,7 +1503,7 @@ static bool rearrange_animchannel_islands(ListBase *list,
 static void rearrange_nla_tracks(bAnimContext *ac, AnimData *adt, eRearrangeAnimChan_Mode mode)
 {
   AnimChanRearrangeFp rearrange_func;
-  ListBase anim_data_visible = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data_visible = {nullptr, nullptr};
   const bool is_liboverride = (ac->obact != nullptr) ? ID_IS_OVERRIDE_LIBRARY(ac->obact) : false;
 
   /* hack: invert mode so that functions will work in right order */
@@ -1514,7 +1521,7 @@ static void rearrange_nla_tracks(bAnimContext *ac, AnimData *adt, eRearrangeAnim
    *
    * Note that both override apply code for NLA tracks collection, and NLA editing code, are
    * responsible to ensure that non-local tracks always remain first in the list. */
-  ListBase extracted_nonlocal_nla_tracks = {nullptr, nullptr};
+  ListBaseT<NlaTrack> extracted_nonlocal_nla_tracks = {nullptr, nullptr};
   if (is_liboverride) {
     NlaTrack *nla_track;
     for (nla_track = static_cast<NlaTrack *>(adt->nla_tracks.first); nla_track != nullptr;
@@ -1565,7 +1572,7 @@ static void rearrange_driver_channels(bAnimContext *ac,
 {
   /* get rearranging function */
   AnimChanRearrangeFp rearrange_func = rearrange_get_mode_func(mode);
-  ListBase anim_data_visible = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data_visible = {nullptr, nullptr};
 
   if (rearrange_func == nullptr) {
     return;
@@ -1601,7 +1608,7 @@ static bool rearrange_layered_action_slots(bAnimContext *ac, const eRearrangeAni
    * `rearrange_layered_action_fcurves()`. It would be nice to DRY them at some
    * point if we can. */
 
-  ListBase anim_data_selected_visible = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data_selected_visible = {nullptr, nullptr};
   rearrange_animchannels_filter_visible(
       &anim_data_selected_visible, ac, ANIMTYPE_ACTION_SLOT, ANIMFILTER_SEL);
 
@@ -1720,7 +1727,7 @@ static void rearrange_layered_action_channel_groups(bAnimContext *ac,
                                                     blender::animrig::Action &action,
                                                     const eRearrangeAnimChan_Mode mode)
 {
-  ListBase anim_data_visible = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data_visible = {nullptr, nullptr};
 
   /* We don't use `ANIMFILTER_SEL` here, and instead individually check on each
    * element whether it's selected or not in the code further below. This is
@@ -1843,7 +1850,7 @@ static void rearrange_layered_action_fcurves(bAnimContext *ac,
                                              blender::animrig::Action &action,
                                              const eRearrangeAnimChan_Mode mode)
 {
-  ListBase anim_data_visible = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data_visible = {nullptr, nullptr};
 
   /* We don't use `ANIMFILTER_SEL` here, and instead individually check on each
    * element whether it's selected or not in the code further below. This is
@@ -2016,7 +2023,7 @@ static void rearrange_nla_control_channels(bAnimContext *ac,
                                            AnimData *adt,
                                            eRearrangeAnimChan_Mode mode)
 {
-  ListBase anim_data_visible = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data_visible = {nullptr, nullptr};
 
   /* get rearranging function */
   AnimChanRearrangeFp rearrange_func = rearrange_get_mode_func(mode);
@@ -2050,7 +2057,7 @@ static void rearrange_nla_control_channels(bAnimContext *ac,
 static void rearrange_grease_pencil_channels(bAnimContext *ac, eRearrangeAnimChan_Mode mode)
 {
   using namespace blender::bke::greasepencil;
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   blender::Vector<Layer *> layer_list;
   int filter = ANIMFILTER_DATA_VISIBLE;
 
@@ -2102,7 +2109,7 @@ static void rearrange_grease_pencil_channels(bAnimContext *ac, eRearrangeAnimCha
 
 static void rearrange_gpencil_channels(bAnimContext *ac, eRearrangeAnimChan_Mode mode)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   /* get rearranging function */
@@ -2124,7 +2131,7 @@ static void rearrange_gpencil_channels(bAnimContext *ac, eRearrangeAnimChan_Mode
       continue;
     }
 
-    ListBase anim_data_visible = {nullptr, nullptr};
+    ListBaseT<bAnimListElem> anim_data_visible = {nullptr, nullptr};
     bGPdata *gpd = static_cast<bGPdata *>(ale->data);
 
     /* only consider layers if this datablock is open */
@@ -2181,7 +2188,7 @@ static wmOperatorStatus animchannels_rearrange_exec(bContext *C, wmOperator *op)
     rearrange_action_channels(&ac, static_cast<bAction *>(ac.data), mode);
   }
   else {
-    ListBase anim_data = {nullptr, nullptr};
+    ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
     int filter;
 
     if (ELEM(ac.datatype, ANIMCONT_DOPESHEET, ANIMCONT_TIMELINE)) {
@@ -2344,7 +2351,7 @@ static void animchannels_group_channels(bAnimContext *ac,
   }
 
   /* Get list of selected F-Curves to re-group. */
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
                                    ANIMFILTER_SEL | ANIMFILTER_FCURVESONLY;
   ANIM_animdata_filter(ac, &anim_data, filter, adt_ref, ANIMCONT_CHANNEL);
@@ -2401,7 +2408,7 @@ static wmOperatorStatus animchannels_group_exec(bContext *C, wmOperator *op)
 
   /* XXX: name for group should never be empty... */
   if (name[0]) {
-    ListBase anim_data = {nullptr, nullptr};
+    ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
     int filter;
 
     /* Handle each animdata block separately, so that the regrouping doesn't flow into blocks. */
@@ -2460,7 +2467,7 @@ static wmOperatorStatus animchannels_ungroup_exec(bContext *C, wmOperator * /*op
 {
   bAnimContext ac;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   /* get editor data */
@@ -2554,7 +2561,7 @@ static bool animchannels_delete_containers(const bContext *C, bAnimContext *ac)
   const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
                                     ANIMFILTER_SEL | ANIMFILTER_LIST_CHANNELS |
                                     ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   bool must_skip_groups = false;
@@ -2731,7 +2738,7 @@ void ED_anim_ale_fcurve_delete(bAnimContext &ac, bAnimListElem &ale)
 static wmOperatorStatus animchannels_delete_exec(bContext *C, wmOperator * /*op*/)
 {
   bAnimContext ac;
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   /* get editor data */
@@ -2918,8 +2925,8 @@ static void setflag_anim_channels(bAnimContext *ac,
                                   bool onlysel,
                                   bool flush)
 {
-  ListBase anim_data = {nullptr, nullptr};
-  ListBase all_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> all_data = {nullptr, nullptr};
   int filter;
 
   /* filter data that we need if flush is on */
@@ -3250,7 +3257,7 @@ static wmOperatorStatus animchannels_clean_empty_exec(bContext *C, wmOperator * 
 {
   bAnimContext ac;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   /* get editor data */
@@ -3374,7 +3381,7 @@ static wmOperatorStatus animchannels_enable_exec(bContext *C, wmOperator * /*op*
 {
   bAnimContext ac;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   /* get editor data */
@@ -3571,7 +3578,7 @@ static void ANIM_OT_channels_select_all(wmOperatorType *ot)
 
 static void box_select_anim_channels(bAnimContext *ac, const rcti &rect, short selectmode)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   SpaceNla *snla = reinterpret_cast<SpaceNla *>(ac->sl);
@@ -3761,7 +3768,7 @@ static void ANIM_OT_channels_select_box(wmOperatorType *ot)
 
 static bool rename_anim_channels(bAnimContext *ac, int channel_index)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   const bAnimChannelType *acf;
   bAnimListElem *ale;
   int filter;
@@ -3955,7 +3962,7 @@ static int click_select_channel_scene(bAnimListElem *ale,
 /* Return whether active channel of given type is present. */
 static bool animchannel_has_active_of_type(bAnimContext *ac, const eAnim_ChannelType type)
 {
-  ListBase anim_data = anim_channels_for_selection(ac);
+  ListBaseT<bAnimListElem> anim_data = anim_channels_for_selection(ac);
   bool is_active_found = false;
 
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
@@ -3975,7 +3982,7 @@ static bool animchannel_has_active_of_type(bAnimContext *ac, const eAnim_Channel
 /* Select channels that lies between active channel and cursor_elem. */
 static void animchannel_select_range(bAnimContext *ac, bAnimListElem *cursor_elem)
 {
-  ListBase anim_data = anim_channels_for_selection(ac);
+  ListBaseT<bAnimListElem> anim_data = anim_channels_for_selection(ac);
   bool in_selection_range = false;
 
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
@@ -4465,7 +4472,7 @@ static int mouse_anim_channels(bContext *C,
                                const int channel_index,
                                short /* eEditKeyframes_Select or -1 */ selectmode)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   bAnimListElem *ale;
   int filter;
   int notifierFlags = 0;
@@ -4694,7 +4701,7 @@ static void ANIM_OT_channels_click(wmOperatorType *ot)
 
 static bool select_anim_channel_keys(bAnimContext *ac, int channel_index, bool extend)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   bAnimListElem *ale;
   int filter;
   bool success = false;
@@ -4839,7 +4846,7 @@ static wmOperatorStatus graphkeys_view_selected_channels_exec(bContext *C, wmOpe
     return OPERATOR_CANCELLED;
   }
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   const int filter = (ANIMFILTER_SEL | ANIMFILTER_NODUPLIS | ANIMFILTER_DATA_VISIBLE |
                       ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
   size_t anim_data_length = ANIM_animdata_filter(
@@ -4941,7 +4948,7 @@ static wmOperatorStatus graphkeys_channel_view_pick_invoke(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   const int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS |
                       ANIMFILTER_LIST_CHANNELS);
   ANIM_animdata_filter(
@@ -5028,7 +5035,7 @@ static wmOperatorStatus channels_bake_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   const int filter = (ANIMFILTER_SEL | ANIMFILTER_NODUPLIS | ANIMFILTER_DATA_VISIBLE |
                       ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FCURVESONLY);
   size_t anim_data_length = ANIM_animdata_filter(
@@ -5213,7 +5220,7 @@ static wmOperatorStatus slot_channels_move_to_new_action_exec(bContext *C, wmOpe
     return OPERATOR_CANCELLED;
   }
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   const eAnimFilter_Flags filter = (ANIMFILTER_SEL | ANIMFILTER_NODUPLIS |
                                     ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS);
 
@@ -5395,7 +5402,7 @@ static bool context_find_graph_editor(bContext *C,
 
 static void deselect_all_fcurves(bAnimContext *ac, const bool hide)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE |
                                     ANIMFILTER_FCURVESONLY | ANIMFILTER_NODUPLIS);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
@@ -5414,7 +5421,7 @@ static void deselect_all_fcurves(bAnimContext *ac, const bool hide)
 
 static int count_fcurves_hidden_by_filter(bAnimContext *ac, const blender::Span<FCurve *> fcurves)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   if (ac->sl->spacetype != SPACE_GRAPH) {
     return 0;
   }

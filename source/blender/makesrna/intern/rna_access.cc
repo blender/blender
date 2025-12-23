@@ -1001,7 +1001,7 @@ std::optional<AncestorPointerRNA> RNA_struct_search_closest_ancestor_by_type(Poi
   return std::nullopt;
 }
 
-const ListBase *RNA_struct_type_properties(StructRNA *srna)
+const ListBaseT<PropertyRNA> *RNA_struct_type_properties(StructRNA *srna)
 {
   return &srna->cont.properties;
 }
@@ -1058,7 +1058,7 @@ FunctionRNA *RNA_struct_find_function(StructRNA *srna, const char *identifier)
 #endif
 }
 
-const ListBase *RNA_struct_type_functions(StructRNA *srna)
+const ListBaseT<FunctionRNA> *RNA_struct_type_functions(StructRNA *srna)
 {
   return &srna->functions;
 }
@@ -6938,7 +6938,7 @@ PropertyRNA *RNA_function_find_parameter(PointerRNA * /*ptr*/,
   return parm;
 }
 
-const ListBase *RNA_function_defined_parameters(FunctionRNA *func)
+const ListBaseT<PropertyRNA> *RNA_function_defined_parameters(FunctionRNA *func)
 {
   return &func->cont.properties;
 }

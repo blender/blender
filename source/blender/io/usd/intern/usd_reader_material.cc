@@ -162,7 +162,7 @@ static blender::Vector<int> get_udim_tiles(const std::string &file_path)
   blender::Vector<int> udim_tiles;
 
   /* Extract the tile numbers from all files on disk. */
-  ListBase tiles = {nullptr, nullptr};
+  ListBaseT<LinkData> tiles = {nullptr, nullptr};
   int tile_start, tile_range;
   bool result = BKE_image_get_tile_info(base_udim_path, &tiles, &tile_start, &tile_range);
   if (result) {

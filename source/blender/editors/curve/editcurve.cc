@@ -81,7 +81,7 @@ using blender::Vector;
 
 void selectend_nurb(Object *obedit, enum eEndPoint_Types selfirst, bool doswap, bool selstatus);
 static void adduplicateflagNurb(
-    Object *obedit, View3D *v3d, ListBase *newnurb, const uint8_t flag, const bool split);
+    Object *obedit, View3D *v3d, ListBaseT<Nurb> *newnurb, const uint8_t flag, const bool split);
 static bool curve_delete_segments(Object *obedit, View3D *v3d, const bool split);
 static bool curve_delete_vertices(Object *obedit, View3D *v3d);
 
@@ -89,7 +89,7 @@ static bool curve_delete_vertices(Object *obedit, View3D *v3d);
 /** \name Utility Functions
  * \{ */
 
-ListBase *object_editcurve_get(Object *ob)
+ListBaseT<Nurb> *object_editcurve_get(Object *ob)
 {
   if (ob && ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
     Curve *cu = static_cast<Curve *>(ob->data);
@@ -114,7 +114,7 @@ KeyBlock *ED_curve_get_edit_shape_key(const Curve *cu)
 #if 0
 void printknots(Object *obedit)
 {
-  ListBase *editnurb = object_editcurve_get(obedit);
+  ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
   Nurb *nu;
   int a, num;
 
@@ -158,7 +158,7 @@ static CVKeyIndex *init_cvKeyIndex(
   return cvIndex;
 }
 
-static void init_editNurb_keyIndex(EditNurb *editnurb, ListBase *origBase)
+static void init_editNurb_keyIndex(EditNurb *editnurb, ListBaseT<Nurb> *origBase)
 {
   Nurb *nu = static_cast<Nurb *>(editnurb->nurbs.first);
   Nurb *orignu = static_cast<Nurb *>(origBase->first);
@@ -315,7 +315,7 @@ static void keyIndex_delNurb(EditNurb *editnurb, Nurb *nu)
   }
 }
 
-static void keyIndex_delNurbList(EditNurb *editnurb, ListBase *nubase)
+static void keyIndex_delNurbList(EditNurb *editnurb, ListBaseT<Nurb> *nubase)
 {
   LISTBASE_FOREACH (Nurb *, nu, nubase) {
     keyIndex_delNurb(editnurb, nu);
@@ -483,7 +483,7 @@ static void keyIndex_switchDirection(EditNurb *editnurb, Nurb *nu)
 static void switch_keys_direction(Curve *cu, Nurb *actnu)
 {
   EditNurb *editnurb = cu->editnurb;
-  ListBase *nubase = &editnurb->nurbs;
+  ListBaseT<Nurb> *nubase = &editnurb->nurbs;
   float *fp;
   int a;
 
@@ -577,7 +577,7 @@ static void bezt_to_key(BezTriple *bezt, float *key)
   key[10] = bezt->radius;
 }
 
-static void calc_keyHandles(ListBase *nurb, float *key)
+static void calc_keyHandles(ListBaseT<Nurb> *nurb, float *key)
 {
   int a;
   float *fp = key;
@@ -652,7 +652,7 @@ static void calc_keyHandles(ListBase *nurb, float *key)
   }
 }
 
-static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
+static void calc_shapeKeys(Object *obedit, ListBaseT<Nurb> *newnurbs)
 {
   Curve *cu = (Curve *)obedit->data;
 
@@ -1290,7 +1290,7 @@ static void remap_hooks_and_vertex_parents(Main *bmain, Object *obedit)
 
 void ED_curve_editnurb_load(Main *bmain, Object *obedit)
 {
-  ListBase *editnurb = object_editcurve_get(obedit);
+  ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
 
   if (obedit == nullptr) {
     return;
@@ -1405,7 +1405,7 @@ static wmOperatorStatus separate_exec(bContext *C, wmOperator *op)
     Object *oldob, *newob;
     Curve *oldcu, *newcu;
     EditNurb *newedit;
-    ListBase newnurb = {nullptr, nullptr};
+    ListBaseT<Nurb> newnurb = {nullptr, nullptr};
 
     oldob = oldbase->object;
     oldcu = static_cast<Curve *>(oldob->data);
@@ -1536,7 +1536,7 @@ static wmOperatorStatus curve_split_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    ListBase newnurb = {nullptr, nullptr};
+    ListBaseT<Nurb> newnurb = {nullptr, nullptr};
 
     adduplicateflagNurb(obedit, v3d, &newnurb, SELECT, true);
 
@@ -1545,7 +1545,7 @@ static wmOperatorStatus curve_split_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    ListBase *editnurb = object_editcurve_get(obedit);
+    ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
     const int len_orig = BLI_listbase_count(editnurb);
 
     curve_delete_segments(obedit, v3d, true);
@@ -1646,7 +1646,7 @@ static bool isNurbselV(Nurb *nu, int *u, int flag)
   return true;
 }
 
-static void rotateflagNurb(ListBase *editnurb,
+static void rotateflagNurb(ListBaseT<Nurb> *editnurb,
                            short flag,
                            const float cent[3],
                            const float rotmat[3][3])
@@ -1672,7 +1672,10 @@ static void rotateflagNurb(ListBase *editnurb,
   }
 }
 
-void ed_editnurb_translate_flag(ListBase *editnurb, uint8_t flag, const float vec[3], bool is_2d)
+void ed_editnurb_translate_flag(ListBaseT<Nurb> *editnurb,
+                                uint8_t flag,
+                                const float vec[3],
+                                bool is_2d)
 {
   /* all verts with ('flag' & flag) translate */
   BezTriple *bezt;
@@ -1713,7 +1716,7 @@ void ed_editnurb_translate_flag(ListBase *editnurb, uint8_t flag, const float ve
   }
 }
 
-static void weightflagNurb(ListBase *editnurb, short flag, float w)
+static void weightflagNurb(ListBaseT<Nurb> *editnurb, short flag, float w)
 {
   BPoint *bp;
   int a;
@@ -1736,7 +1739,7 @@ static void weightflagNurb(ListBase *editnurb, short flag, float w)
 static void ed_surf_delete_selected(Object *obedit)
 {
   Curve *cu = static_cast<Curve *>(obedit->data);
-  ListBase *editnurb = object_editcurve_get(obedit);
+  ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
   BPoint *bp, *bpn, *newbp;
   int a, b, newu, newv;
 
@@ -1836,7 +1839,7 @@ static void ed_curve_delete_selected(Object *obedit, View3D *v3d)
 {
   Curve *cu = static_cast<Curve *>(obedit->data);
   EditNurb *editnurb = cu->editnurb;
-  ListBase *nubase = &editnurb->nurbs;
+  ListBaseT<Nurb> *nubase = &editnurb->nurbs;
   BezTriple *bezt, *bezt1;
   BPoint *bp, *bp1;
   int a, type, nuindex = 0;
@@ -2164,13 +2167,19 @@ bool ed_editnurb_extrude_flag(EditNurb *editnurb, const uint8_t flag)
   return ok;
 }
 
-static void calc_duplicate_actnurb(const ListBase *editnurb, const ListBase *newnurb, Curve *cu)
+static void calc_duplicate_actnurb(const ListBaseT<Nurb> *editnurb,
+                                   const ListBaseT<Nurb> *newnurb,
+                                   Curve *cu)
 {
   cu->actnu = BLI_listbase_count(editnurb) + BLI_listbase_count(newnurb);
 }
 
-static bool calc_duplicate_actvert(
-    const ListBase *editnurb, const ListBase *newnurb, Curve *cu, int start, int end, int vert)
+static bool calc_duplicate_actvert(const ListBaseT<Nurb> *editnurb,
+                                   const ListBaseT<Nurb> *newnurb,
+                                   Curve *cu,
+                                   int start,
+                                   int end,
+                                   int vert)
 {
   if (cu->actvert == -1) {
     calc_duplicate_actnurb(editnurb, newnurb, cu);
@@ -2186,9 +2195,9 @@ static bool calc_duplicate_actvert(
 }
 
 static void adduplicateflagNurb(
-    Object *obedit, View3D *v3d, ListBase *newnurb, const uint8_t flag, const bool split)
+    Object *obedit, View3D *v3d, ListBaseT<Nurb> *newnurb, const uint8_t flag, const bool split)
 {
-  ListBase *editnurb = object_editcurve_get(obedit);
+  ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
   Nurb *newnu;
   BezTriple *bezt, *bezt1;
   BPoint *bp, *bp1, *bp2, *bp3;
@@ -2667,7 +2676,7 @@ static wmOperatorStatus set_goal_weight_exec(bContext *C, wmOperator *op)
       scene, view_layer, CTX_wm_view3d(C));
 
   for (Object *obedit : objects) {
-    ListBase *editnurb = object_editcurve_get(obedit);
+    ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
     BezTriple *bezt;
     BPoint *bp;
     float weight = RNA_float_get(op->ptr, "weight");
@@ -2739,7 +2748,7 @@ static wmOperatorStatus set_radius_exec(bContext *C, wmOperator *op)
 
     totobjects++;
 
-    ListBase *editnurb = object_editcurve_get(obedit);
+    ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
     BezTriple *bezt;
     BPoint *bp;
     float radius = RNA_float_get(op->ptr, "radius");
@@ -2856,7 +2865,7 @@ static wmOperatorStatus smooth_exec(bContext *C, wmOperator *op)
 
     totobjects++;
 
-    ListBase *editnurb = object_editcurve_get(obedit);
+    ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
 
     int a, a_end;
 
@@ -2958,7 +2967,9 @@ void CURVE_OT_smooth(wmOperatorType *ot)
  * - Support cyclic curves.
  * \{ */
 
-static void curve_smooth_value(ListBase *editnurb, const int bezt_offsetof, const int bp_offset)
+static void curve_smooth_value(ListBaseT<Nurb> *editnurb,
+                               const int bezt_offsetof,
+                               const int bp_offset)
 {
   BezTriple *bezt;
   BPoint *bp;
@@ -3148,7 +3159,7 @@ static wmOperatorStatus curve_smooth_weight_exec(bContext *C, wmOperator * /*op*
       scene, view_layer, CTX_wm_view3d(C));
 
   for (Object *obedit : objects) {
-    ListBase *editnurb = object_editcurve_get(obedit);
+    ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
 
     curve_smooth_value(editnurb, offsetof(BezTriple, weight), offsetof(BPoint, weight));
 
@@ -3198,7 +3209,7 @@ static wmOperatorStatus curve_smooth_radius_exec(bContext *C, wmOperator *op)
 
     totobjects++;
 
-    ListBase *editnurb = object_editcurve_get(obedit);
+    ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
 
     curve_smooth_value(editnurb, offsetof(BezTriple, radius), offsetof(BPoint, radius));
 
@@ -3247,7 +3258,7 @@ static wmOperatorStatus curve_smooth_tilt_exec(bContext *C, wmOperator *op)
 
     totobjects++;
 
-    ListBase *editnurb = object_editcurve_get(obedit);
+    ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
 
     curve_smooth_value(editnurb, offsetof(BezTriple, tilt), offsetof(BPoint, tilt));
 
@@ -3296,7 +3307,7 @@ static wmOperatorStatus hide_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    ListBase *editnurb = object_editcurve_get(obedit);
+    ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
     BPoint *bp;
     BezTriple *bezt;
     int a, sel;
@@ -3390,7 +3401,7 @@ static wmOperatorStatus reveal_exec(bContext *C, wmOperator *op)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
   for (Object *obedit : objects) {
-    ListBase *editnurb = object_editcurve_get(obedit);
+    ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
     BPoint *bp;
     BezTriple *bezt;
     int a;
@@ -3937,7 +3948,7 @@ static wmOperatorStatus set_spline_type_exec(bContext *C, wmOperator *op)
   for (Object *obedit : objects) {
     Main *bmain = CTX_data_main(C);
     View3D *v3d = CTX_wm_view3d(C);
-    ListBase *editnurb = object_editcurve_get(obedit);
+    ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
     bool changed = false;
     bool changed_size = false;
     const bool use_handles = RNA_boolean_get(op->ptr, "use_handles");
@@ -4035,7 +4046,7 @@ static wmOperatorStatus set_handle_type_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    ListBase *editnurb = object_editcurve_get(obedit);
+    ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
     BKE_nurbList_handles_set(editnurb, handle_mode, handle_type);
 
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
@@ -4105,7 +4116,7 @@ static wmOperatorStatus curve_normals_make_consistent_exec(bContext *C, wmOperat
 
     totobjects++;
 
-    ListBase *editnurb = object_editcurve_get(obedit);
+    ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
     BKE_nurbList_handles_recalculate(editnurb, calc_length, SELECT);
 
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
@@ -4232,9 +4243,11 @@ struct NurbSort {
   float vec[3];
 };
 
-static void make_selection_list_nurb(View3D *v3d, ListBase *editnurb, ListBase *nsortbase)
+static void make_selection_list_nurb(View3D *v3d,
+                                     ListBaseT<Nurb> *editnurb,
+                                     ListBaseT<NurbSort> *nsortbase)
 {
-  ListBase nbase = {nullptr, nullptr};
+  ListBaseT<NurbSort> nbase = {nullptr, nullptr};
   NurbSort *nus, *nustest, *headdo, *taildo;
   BPoint *bp;
   float dist, headdist, taildist;
@@ -4303,7 +4316,7 @@ enum {
   CURVE_MERGE_ERR_RESOLUTION_SOME,
 };
 
-static bool merge_2_nurb(Curve *cu, ListBase *editnurb, Nurb *nu1, Nurb *nu2)
+static bool merge_2_nurb(Curve *cu, ListBaseT<Nurb> *editnurb, Nurb *nu1, Nurb *nu2)
 {
   BPoint *bp, *bp1, *bp2, *temp;
   float len1, len2;
@@ -4465,10 +4478,10 @@ static bool merge_2_nurb(Curve *cu, ListBase *editnurb, Nurb *nu1, Nurb *nu2)
 static int merge_nurb(View3D *v3d, Object *obedit)
 {
   Curve *cu = static_cast<Curve *>(obedit->data);
-  ListBase *editnurb = object_editcurve_get(obedit);
+  ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
   NurbSort *nus1, *nus2;
   bool ok = true;
-  ListBase nsortbase = {nullptr, nullptr};
+  ListBaseT<NurbSort> nsortbase = {nullptr, nullptr};
 
   make_selection_list_nurb(v3d, editnurb, &nsortbase);
 
@@ -4550,7 +4563,7 @@ static wmOperatorStatus make_segment_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    ListBase *nubase = object_editcurve_get(obedit);
+    ListBaseT<Nurb> *nubase = object_editcurve_get(obedit);
     Nurb *nu, *nu1 = nullptr, *nu2 = nullptr;
     BPoint *bp;
     bool ok = false;
@@ -4876,7 +4889,7 @@ bool ED_curve_editnurb_select_pick(bContext *C,
   if (found) {
     Object *obedit = basact->object;
     Curve *cu = static_cast<Curve *>(obedit->data);
-    ListBase *editnurb = object_editcurve_get(obedit);
+    ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
     const void *vert = BKE_curve_vert_active_get(cu);
 
     switch (params.sel_op) {
@@ -5046,7 +5059,7 @@ bool ed_editnurb_spin(
     float viewmat[4][4], View3D *v3d, Object *obedit, const float axis[3], const float cent[3])
 {
   Curve *cu = (Curve *)obedit->data;
-  ListBase *editnurb = object_editcurve_get(obedit);
+  ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
   float cmat[3][3], tmat[3][3], imat[3][3];
   float bmat[3][3], rotmat[3][3], scalemat1[3][3], scalemat2[3][3];
   float persmat[3][3], persinv[3][3];
@@ -5847,7 +5860,7 @@ void CURVE_OT_extrude(wmOperatorType *ot)
 /** \name Make Cyclic Operator
  * \{ */
 
-bool curve_toggle_cyclic(View3D *v3d, ListBase *editnurb, int direction)
+bool curve_toggle_cyclic(View3D *v3d, ListBaseT<Nurb> *editnurb, int direction)
 {
   BezTriple *bezt;
   BPoint *bp;
@@ -5942,7 +5955,7 @@ static wmOperatorStatus toggle_cyclic_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    ListBase *editnurb = object_editcurve_get(obedit);
+    ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
     if (curve_toggle_cyclic(v3d, editnurb, direction)) {
       changed_multi = true;
       WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
@@ -5958,7 +5971,7 @@ static wmOperatorStatus toggle_cyclic_invoke(bContext *C,
                                              const wmEvent * /*event*/)
 {
   Object *obedit = CTX_data_edit_object(C);
-  ListBase *editnurb = object_editcurve_get(obedit);
+  ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
 
   if (obedit->type == OB_SURF) {
     LISTBASE_FOREACH (Nurb *, nu, editnurb) {
@@ -6032,7 +6045,7 @@ static wmOperatorStatus duplicate_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    ListBase newnurb = {nullptr, nullptr};
+    ListBaseT<Nurb> newnurb = {nullptr, nullptr};
     adduplicateflagNurb(obedit, v3d, &newnurb, SELECT, false);
 
     if (BLI_listbase_is_empty(&newnurb)) {
@@ -6092,7 +6105,7 @@ static bool curve_delete_segments(Object *obedit, View3D *v3d, const bool split)
 {
   Curve *cu = static_cast<Curve *>(obedit->data);
   EditNurb *editnurb = cu->editnurb;
-  ListBase *nubase = &editnurb->nurbs, newnurb = {nullptr, nullptr};
+  ListBaseT<Nurb> *nubase = &editnurb->nurbs, newnurb = {nullptr, nullptr};
   Nurb *nu1;
   BezTriple *bezt, *bezt1, *bezt2;
   BPoint *bp, *bp1, *bp2;
@@ -6712,7 +6725,7 @@ static wmOperatorStatus curve_dissolve_exec(bContext *C, wmOperator * /*op*/)
       continue;
     }
 
-    ListBase *editnurb = object_editcurve_get(obedit);
+    ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
 
     LISTBASE_FOREACH (Nurb *, nu, editnurb) {
       if ((nu->type == CU_BEZIER) && (nu->pntsu > 2)) {
@@ -6802,7 +6815,7 @@ static wmOperatorStatus curve_decimate_exec(bContext *C, wmOperator *op)
     bool changed = false;
 
     {
-      ListBase *editnurb = object_editcurve_get(obedit);
+      ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
 
       LISTBASE_FOREACH (Nurb *, nu, editnurb) {
         if (nu->type == CU_BEZIER) {
@@ -6877,7 +6890,7 @@ static wmOperatorStatus shade_smooth_exec(bContext *C, wmOperator *op)
   wmOperatorStatus ret_value = OPERATOR_CANCELLED;
 
   for (Object *obedit : objects) {
-    ListBase *editnurb = object_editcurve_get(obedit);
+    ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
 
     if (obedit->type != OB_CURVES_LEGACY) {
       continue;
@@ -6946,7 +6959,7 @@ wmOperatorStatus ED_curve_join_objects_exec(bContext *C, wmOperator *op)
   Curve *cu;
   BezTriple *bezt;
   BPoint *bp;
-  ListBase tempbase;
+  ListBaseT<Nurb> tempbase;
   float imat[4][4], cmat[4][4];
   int a;
   bool ok = false;
@@ -6966,7 +6979,6 @@ wmOperatorStatus ED_curve_join_objects_exec(bContext *C, wmOperator *op)
   }
 
   BLI_listbase_clear(&tempbase);
-
   /* Inverse transform for all selected curves in this object,
    * See object_join_exec for detailed comment on why the safe version is used. */
   invert_m4_m4_safe_ortho(imat, ob_active->object_to_world().ptr());
@@ -7082,7 +7094,7 @@ static wmOperatorStatus clear_tilt_exec(bContext *C, wmOperator *op)
 
     totobjects++;
 
-    ListBase *editnurb = object_editcurve_get(obedit);
+    ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
     BezTriple *bezt;
     BPoint *bp;
     int a;

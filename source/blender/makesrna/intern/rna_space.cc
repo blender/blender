@@ -1161,7 +1161,8 @@ static PointerRNA rna_SpaceView3D_region_3d_get(PointerRNA *ptr)
   ScrArea *area = rna_area_from_space(ptr);
   void *regiondata = nullptr;
   if (area) {
-    ListBase *regionbase = (area->spacedata.first == v3d) ? &area->regionbase : &v3d->regionbase;
+    ListBaseT<ARegion> *regionbase = (area->spacedata.first == v3d) ? &area->regionbase :
+                                                                      &v3d->regionbase;
     ARegion *region = static_cast<ARegion *>(regionbase->last); /* always last in list, weak. */
     regiondata = region->regiondata;
   }
@@ -1211,7 +1212,7 @@ static void rna_SpaceView3D_region_quadviews_begin(CollectionPropertyIterator *i
 
   ARegion *region = static_cast<ARegion *>(
       ((area && area->spacedata.first == v3d) ? &area->regionbase : &v3d->regionbase)->last);
-  ListBase lb = {nullptr, nullptr};
+  ListBaseT<ARegion> lb = {nullptr, nullptr};
 
   if (region && region->alignment == RGN_ALIGN_QSPLIT) {
     while (i-- && region) {
@@ -2459,7 +2460,7 @@ static void seq_build_proxy(bContext *C, PointerRNA *ptr)
 
   SpaceSeq *sseq = static_cast<SpaceSeq *>(ptr->data);
   Scene *scene = CTX_data_sequencer_scene(C);
-  ListBase *seqbase = blender::seq::active_seqbase_get(blender::seq::editing_get(scene));
+  ListBaseT<Strip> *seqbase = blender::seq::active_seqbase_get(blender::seq::editing_get(scene));
 
   blender::Set<std::string> processed_paths;
   wmJob *wm_job = blender::seq::ED_seq_proxy_wm_job_get(C);

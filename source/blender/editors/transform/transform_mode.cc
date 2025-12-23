@@ -270,7 +270,7 @@ void constraintTransLim(const TransInfo *t, const TransDataContainer *tc, TransD
     /* Evaluate valid constraints. */
     for (con = td->con; con; con = con->next) {
       const bConstraintTypeInfo *cti = nullptr;
-      ListBase targets = {nullptr, nullptr};
+      ListBaseT<bConstraintTarget> targets = {nullptr, nullptr};
 
       /* Only consider constraint if enabled. */
       if (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) {

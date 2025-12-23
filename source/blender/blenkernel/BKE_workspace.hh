@@ -22,6 +22,7 @@ struct bToolRef;
 struct WorkSpace;
 struct WorkSpaceInstanceHook;
 struct WorkSpaceLayout;
+struct WorkSpaceDataRelation;
 
 namespace blender::bke {
 
@@ -72,7 +73,7 @@ WorkSpaceLayout *BKE_workspace_layout_add_from_layout(Main *bmain,
 void BKE_workspace_layout_remove(Main *bmain, WorkSpace *workspace, WorkSpaceLayout *layout)
     ATTR_NONNULL();
 
-void BKE_workspace_relations_free(ListBase *relation_list);
+void BKE_workspace_relations_free(ListBaseT<WorkSpaceDataRelation> *relation_list);
 
 /** \} */
 

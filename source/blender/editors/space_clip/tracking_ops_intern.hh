@@ -10,9 +10,10 @@
 
 #include "BLI_compiler_compat.h"
 
+#include "DNA_listBase.h"
+
 #include "BKE_tracking.hh"
 
-struct ListBase;
 struct MovieClip;
 struct SpaceClip;
 struct bContext;
@@ -30,8 +31,8 @@ void clip_tracking_hide_cursor(bContext *C);
 
 /* tracking_select.h */
 
-void ed_tracking_deselect_all_tracks(ListBase *tracks_base);
-void ed_tracking_deselect_all_plane_tracks(ListBase *plane_tracks_base);
+void ed_tracking_deselect_all_tracks(ListBaseT<MovieTrackingTrack> *tracks_base);
+void ed_tracking_deselect_all_plane_tracks(ListBaseT<MovieTrackingPlaneTrack> *plane_tracks_base);
 
 struct TrackPickOptions {
   /* Ignore tracks which are not selected */

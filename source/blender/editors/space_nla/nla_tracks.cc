@@ -58,7 +58,7 @@
 
 static int mouse_nla_tracks(bContext *C, bAnimContext *ac, int track_index, short selectmode)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   int notifierFlags = 0;
 
@@ -392,7 +392,7 @@ static wmOperatorStatus nlatracks_pushdown_exec(bContext *C, wmOperator *op)
   }
   else {
     /* indexed track */
-    ListBase anim_data = {nullptr, nullptr};
+    ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
     /* filter tracks */
     eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
@@ -556,7 +556,7 @@ void NLA_OT_action_unlink(wmOperatorType *ot)
 
 bool nlaedit_add_tracks_existing(bAnimContext *ac, bool above_sel)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   AnimData *lastAdt = nullptr;
   bool added = false;
 
@@ -605,7 +605,7 @@ bool nlaedit_add_tracks_existing(bAnimContext *ac, bool above_sel)
 
 bool nlaedit_add_tracks_empty(bAnimContext *ac)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   bool added = false;
 
@@ -705,7 +705,7 @@ static wmOperatorStatus nlaedit_delete_tracks_exec(bContext *C, wmOperator * /*o
 {
   bAnimContext ac;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   /* get editor data */
   if (ANIM_animdata_get_context(C, &ac) == 0) {

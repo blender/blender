@@ -79,7 +79,8 @@ static wmOperatorStatus volume_import_exec(bContext *C, wmOperator *op)
   bool imported = false;
 
   const char *blendfile_path = BKE_main_blendfile_path(bmain);
-  ListBase ranges = ED_image_filesel_detect_sequences(blendfile_path, blendfile_path, op, false);
+  ListBaseT<ImageFrameRange> ranges = ED_image_filesel_detect_sequences(
+      blendfile_path, blendfile_path, op, false);
   LISTBASE_FOREACH (ImageFrameRange *, range, &ranges) {
     char filename[FILE_MAX];
     BLI_path_split_file_part(range->filepath, filename, sizeof(filename));

@@ -38,7 +38,7 @@
 /** \name Validation
  * \{ */
 
-void ED_armature_edit_sync_selection(ListBase *edbo)
+void ED_armature_edit_sync_selection(ListBaseT<EditBone> *edbo)
 {
   LISTBASE_FOREACH (EditBone *, ebo, edbo) {
     /* if bone is not selectable, we shouldn't alter this setting... */
@@ -245,7 +245,7 @@ void ED_armature_ebone_from_mat4(EditBone *ebone, const float mat[4][4])
   ED_armature_ebone_from_mat3(ebone, mat3);
 }
 
-EditBone *ED_armature_ebone_find_name(const ListBase *edbo, const char *name)
+EditBone *ED_armature_ebone_find_name(const ListBaseT<EditBone> *edbo, const char *name)
 {
   return static_cast<EditBone *>(BLI_findstring(edbo, name, offsetof(EditBone, name)));
 }
@@ -256,7 +256,7 @@ EditBone *ED_armature_ebone_find_name(const ListBase *edbo, const char *name)
 /** \name Mirroring
  * \{ */
 
-EditBone *ED_armature_ebone_get_mirrored(const ListBase *edbo, EditBone *ebo)
+EditBone *ED_armature_ebone_get_mirrored(const ListBaseT<EditBone> *edbo, EditBone *ebo)
 {
   char name_flip[MAXBONENAME];
 
@@ -442,8 +442,8 @@ static void copy_bonecollection_membership(EditBone *eBone, const Bone *bone)
 }
 
 /* converts Bones to EditBone list, used for tools as well */
-static EditBone *make_boneList_recursive(ListBase *edbo,
-                                         ListBase *bones,
+static EditBone *make_boneList_recursive(ListBaseT<EditBone> *edbo,
+                                         ListBaseT<Bone> *bones,
                                          EditBone *parent,
                                          Bone *actBone)
 {
@@ -548,7 +548,7 @@ static EditBone *make_boneList_recursive(ListBase *edbo,
   return eBoneAct;
 }
 
-static EditBone *find_ebone_link(ListBase *edbo, Bone *link)
+static EditBone *find_ebone_link(ListBaseT<EditBone> *edbo, Bone *link)
 {
   if (link != nullptr) {
     LISTBASE_FOREACH (EditBone *, ebone, edbo) {
@@ -561,7 +561,7 @@ static EditBone *find_ebone_link(ListBase *edbo, Bone *link)
   return nullptr;
 }
 
-EditBone *make_boneList(ListBase *edbo, ListBase *bones, Bone *actBone)
+EditBone *make_boneList(ListBaseT<EditBone> *edbo, ListBaseT<Bone> *bones, Bone *actBone)
 {
   BLI_assert(!edbo->first && !edbo->last);
 
@@ -590,7 +590,8 @@ EditBone *make_boneList(ListBase *edbo, ListBase *bones, Bone *actBone)
  * \note The order is crucial here, we can only handle child
  * if all its parents in chain have already been handled (this is ensured by recursive process).
  */
-static void armature_finalize_restpose(ListBase *bonelist, ListBase *editbonelist)
+static void armature_finalize_restpose(ListBaseT<Bone> *bonelist,
+                                       ListBaseT<EditBone> *editbonelist)
 {
   LISTBASE_FOREACH (Bone *, curBone, bonelist) {
     /* Set bone's local head/tail.
@@ -872,7 +873,7 @@ void ED_armature_to_edit(bArmature *arm)
 /** \name Used by Undo for Armature EditMode
  * \{ */
 
-void ED_armature_ebone_listbase_free(ListBase *lb, const bool do_id_user)
+void ED_armature_ebone_listbase_free(ListBaseT<EditBone> *lb, const bool do_id_user)
 {
   EditBone *ebone, *ebone_next;
 
@@ -894,7 +895,9 @@ void ED_armature_ebone_listbase_free(ListBase *lb, const bool do_id_user)
   BLI_listbase_clear(lb);
 }
 
-void ED_armature_ebone_listbase_copy(ListBase *lb_dst, ListBase *lb_src, const bool do_id_user)
+void ED_armature_ebone_listbase_copy(ListBaseT<EditBone> *lb_dst,
+                                     ListBaseT<EditBone> *lb_src,
+                                     const bool do_id_user)
 {
   BLI_assert(BLI_listbase_is_empty(lb_dst));
 
@@ -928,7 +931,7 @@ void ED_armature_ebone_listbase_copy(ListBase *lb_dst, ListBase *lb_src, const b
   }
 }
 
-void ED_armature_ebone_listbase_temp_clear(ListBase *lb)
+void ED_armature_ebone_listbase_temp_clear(ListBaseT<EditBone> *lb)
 {
   /* be sure they don't hang ever */
   LISTBASE_FOREACH (EditBone *, ebone, lb) {

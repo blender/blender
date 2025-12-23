@@ -51,7 +51,7 @@ struct TemplateID {
   PointerRNA ptr = {};
   PropertyRNA *prop = nullptr;
 
-  ListBase *idlb = nullptr;
+  ListBaseT<ID> *idlb = nullptr;
   short idcode = 0;
   short filter = 0;
   int prv_rows = 0;
@@ -139,7 +139,7 @@ static void id_search_cb(const bContext *C,
                          const bool /*is_first*/)
 {
   TemplateID *template_ui = (TemplateID *)arg_template;
-  ListBase *lb = template_ui->idlb;
+  ListBaseT<ID> *lb = template_ui->idlb;
   const int flag = RNA_property_flag(template_ui->prop);
 
   string_search::StringSearch<ID> search;
@@ -169,7 +169,7 @@ static void id_search_cb_tagged(const bContext *C,
                                 SearchItems *items)
 {
   TemplateID *template_ui = (TemplateID *)arg_template;
-  ListBase *lb = template_ui->idlb;
+  ListBaseT<ID> *lb = template_ui->idlb;
   const int flag = RNA_property_flag(template_ui->prop);
 
   blender::string_search::StringSearch<ID> search{nullptr,
@@ -204,7 +204,7 @@ static void id_search_cb_objects_from_scene(const bContext *C,
                                             const bool /*is_first*/)
 {
   TemplateID *template_ui = (TemplateID *)arg_template;
-  ListBase *lb = template_ui->idlb;
+  ListBaseT<ID> *lb = template_ui->idlb;
   Scene *scene = nullptr;
   ID *id_from = template_ui->ptr.owner_id;
 

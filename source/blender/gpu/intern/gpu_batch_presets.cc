@@ -51,8 +51,8 @@ static struct {
   } attr_id;
 } g_presets_2d = {{nullptr}};
 
-static ListBase presets_list = {nullptr, nullptr};
-static ListBase buffer_list = {nullptr, nullptr};
+static ListBaseT<LinkData> presets_list = {nullptr, nullptr};
+static ListBaseT<LinkData> buffer_list = {nullptr, nullptr};
 
 /** \} */
 

@@ -276,7 +276,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
     BezTriple *bezt;
     BPoint *bp;
     int a;
-    ListBase *nurbs = BKE_curve_editNurbs_get(cu);
+    ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
 
     LISTBASE_FOREACH (Nurb *, nu, nurbs) {
       if (nu->type == CU_BEZIER) {

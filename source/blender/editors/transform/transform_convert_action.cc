@@ -662,7 +662,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
   float ymask = BLI_rcti_size_y(mask);
 
   bAnimContext ac;
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
   const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
 
@@ -990,7 +990,7 @@ static void recalcData_actedit(TransInfo *t)
   SpaceAction *saction = (SpaceAction *)t->area->spacedata.first;
 
   bAnimContext ac = {nullptr};
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   BKE_view_layer_synced_ensure(t->scene, t->view_layer);
@@ -1176,7 +1176,7 @@ static void posttrans_gpd_clean(bGPdata *gpd)
  */
 static void posttrans_action_clean(bAnimContext *ac, bAction *act)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   /* Filter data. */
@@ -1221,7 +1221,7 @@ static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
   Set<GreasePencil *> grease_pencils_to_update;
 
   if (ELEM(ac.datatype, ANIMCONT_DOPESHEET, ANIMCONT_SHAPEKEY, ANIMCONT_TIMELINE)) {
-    ListBase anim_data = {nullptr, nullptr};
+    ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
     short filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT);
 
     /* Get channels to work on. */
@@ -1302,7 +1302,7 @@ static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
      * 3) canceled + duplicate -> user canceled the transform,
      *                            but we made duplicates, so get rid of these.
      */
-    ListBase anim_data = {nullptr, nullptr};
+    ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
     const int filter = ANIMFILTER_DATA_VISIBLE;
     ANIM_animdata_filter(
         &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
@@ -1344,7 +1344,7 @@ static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
      *    User canceled the transform, but we made duplicates, so get rid of these.
      */
     if ((saction->flag & SACTION_NOTRANSKEYCULL) == 0 && ((canceled == 0) || (duplicate))) {
-      ListBase anim_data = {nullptr, nullptr};
+      ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
       const int filter = ANIMFILTER_DATA_VISIBLE;
       ANIM_animdata_filter(
           &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));

@@ -764,7 +764,7 @@ int /*eContextResult*/ CTX_data_get(const bContext *C,
   return ret;
 }
 
-static void data_dir_add(ListBase *lb, const char *member, const bool use_all)
+static void data_dir_add(ListBaseT<LinkData> *lb, const char *member, const bool use_all)
 {
   LinkData *link;
 
@@ -781,13 +781,13 @@ static void data_dir_add(ListBase *lb, const char *member, const bool use_all)
   BLI_addtail(lb, link);
 }
 
-ListBase CTX_data_dir_get_ex(const bContext *C,
-                             const bool use_store,
-                             const bool use_rna,
-                             const bool use_all)
+ListBaseT<LinkData> CTX_data_dir_get_ex(const bContext *C,
+                                        const bool use_store,
+                                        const bool use_rna,
+                                        const bool use_all)
 {
   bContextDataResult result{};
-  ListBase lb;
+  ListBaseT<LinkData> lb;
   bScreen *screen;
   ScrArea *area;
   ARegion *region;
@@ -850,7 +850,7 @@ ListBase CTX_data_dir_get_ex(const bContext *C,
   return lb;
 }
 
-ListBase CTX_data_dir_get(const bContext *C)
+ListBaseT<LinkData> CTX_data_dir_get(const bContext *C)
 {
   return CTX_data_dir_get_ex(C, true, false, false);
 }

@@ -489,7 +489,9 @@ static ParticleCacheKey *pcache_key_segment_endpoint_safe(ParticleCacheKey *key)
   return (key->segments > 0) ? (key + (key->segments - 1)) : key;
 }
 
-static ParticleCacheKey **psys_alloc_path_cache_buffers(ListBase *bufs, int tot, int totkeys)
+static ParticleCacheKey **psys_alloc_path_cache_buffers(ListBaseT<LinkData> *bufs,
+                                                        int tot,
+                                                        int totkeys)
 {
   LinkData *buf;
   ParticleCacheKey **cache;
@@ -516,7 +518,7 @@ static ParticleCacheKey **psys_alloc_path_cache_buffers(ListBase *bufs, int tot,
   return cache;
 }
 
-static void psys_free_path_cache_buffers(ParticleCacheKey **cache, ListBase *bufs)
+static void psys_free_path_cache_buffers(ParticleCacheKey **cache, ListBaseT<LinkData> *bufs)
 {
   if (cache) {
     MEM_freeN(cache);
@@ -744,7 +746,7 @@ void psys_find_group_weights(ParticleSettings *part)
   /* Find object pointers based on index. If the collection is linked from
    * another library linking may not have the object pointers available on
    * file load, so we have to retrieve them later. See #49273. */
-  ListBase instance_collection_objects = {nullptr, nullptr};
+  ListBaseT<Base> instance_collection_objects = {nullptr, nullptr};
 
   if (part->instance_collection) {
     instance_collection_objects = BKE_collection_object_cache_get(part->instance_collection);
@@ -2276,7 +2278,7 @@ void psys_particle_on_emitter(ParticleSystemModifierData *psmd,
 /*          Path Cache                          */
 /************************************************/
 
-void precalc_guides(ParticleSimulationData *sim, ListBase *effectors)
+void precalc_guides(ParticleSimulationData *sim, ListBaseT<EffectorCache> *effectors)
 {
   EffectedPoint point;
   ParticleKey state;
@@ -2332,7 +2334,7 @@ void precalc_guides(ParticleSimulationData *sim, ListBase *effectors)
 
 bool do_guides(Depsgraph *depsgraph,
                ParticleSettings *part,
-               ListBase *effectors,
+               ListBaseT<EffectorCache> *effectors,
                ParticleKey *state,
                int index,
                float time)
@@ -3099,7 +3101,7 @@ static void psys_thread_create_path(ParticleTask *task,
     }
 
     if (pa) {
-      ListBase modifiers;
+      ListBaseT<ModifierData> modifiers;
       BLI_listbase_clear(&modifiers);
 
       psys_particle_on_emitter(ctx->sim.psmd,
@@ -5552,7 +5554,7 @@ void BKE_particle_batch_cache_free(ParticleSystem *psys)
   }
 }
 
-void BKE_particle_system_blend_write(BlendWriter *writer, ListBase *particles)
+void BKE_particle_system_blend_write(BlendWriter *writer, ListBaseT<ParticleSystem> *particles)
 {
   LISTBASE_FOREACH (ParticleSystem *, psys, particles) {
     writer->write_struct(psys);
@@ -5597,7 +5599,8 @@ void BKE_particle_system_blend_write(BlendWriter *writer, ListBase *particles)
   }
 }
 
-void BKE_particle_system_blend_read_data(BlendDataReader *reader, ListBase *particles)
+void BKE_particle_system_blend_read_data(BlendDataReader *reader,
+                                         ListBaseT<ParticleSystem> *particles)
 {
   ParticleData *pa;
   int a;
@@ -5688,7 +5691,7 @@ void BKE_particle_system_blend_read_data(BlendDataReader *reader, ListBase *part
 void BKE_particle_system_blend_read_after_liblink(BlendLibReader * /*reader*/,
                                                   Object *ob,
                                                   ID * /*id*/,
-                                                  ListBase *particles)
+                                                  ListBaseT<ParticleSystem> *particles)
 {
   LISTBASE_FOREACH_MUTABLE (ParticleSystem *, psys, particles) {
     if (psys->part) {

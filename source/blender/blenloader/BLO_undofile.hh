@@ -11,8 +11,9 @@
 
 #include "BLI_filereader.h"
 #include "BLI_implicit_sharing.hh"
-#include "BLI_listbase.h"
 #include "BLI_map.hh"
+
+#include "DNA_listBase.h"
 
 struct Main;
 struct Scene;
@@ -45,7 +46,7 @@ struct MemFileChunk {
 };
 
 struct MemFile {
-  ListBase chunks;
+  ListBaseT<MemFileChunk> chunks;
   size_t size;
   /**
    * Some data is not serialized into a new buffer because the undo-step can take ownership of it

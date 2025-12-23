@@ -59,7 +59,7 @@ SpaceOutliner_Runtime::SpaceOutliner_Runtime(const SpaceOutliner_Runtime & /*oth
 
 static void outliner_main_region_init(wmWindowManager *wm, ARegion *region)
 {
-  ListBase *lb;
+  ListBaseT<wmDropBox> *lb;
   wmKeyMap *keymap;
 
   region->flag |= RGN_FLAG_INDICATE_OVERFLOW;

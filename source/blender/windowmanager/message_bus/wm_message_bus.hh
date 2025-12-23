@@ -71,7 +71,7 @@ struct wmMsg {
 struct wmMsgSubscribeKey {
   /** Linked list for predictable ordering, otherwise we would depend on #GHash bucketing. */
   wmMsgSubscribeKey *next, *prev;
-  ListBase values;
+  ListBaseT<wmMsgSubscribeValueLink> values;
   /* Over-allocate, eg: #wmMsgSubscribeKey_RNA. */
   /* Last member will be `wmMsg_*`. */
 };

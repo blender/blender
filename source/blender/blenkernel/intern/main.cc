@@ -107,7 +107,7 @@ void BKE_main_clear(Main &bmain)
   MainListsArray lbarray = BKE_main_lists_get(bmain);
   int a = lbarray.size();
   while (a--) {
-    ListBase *lb = lbarray[a];
+    ListBaseT<ID> *lb = lbarray[a];
     ID *id, *id_next;
 
     for (id = static_cast<ID *>(lb->first); id != nullptr; id = id_next) {
@@ -730,7 +730,7 @@ MainLibraryWeakReferenceMap *BKE_main_library_weak_reference_create(Main *bmain)
 {
   auto *library_weak_reference_mapping = MEM_new<MainLibraryWeakReferenceMap>(__func__);
 
-  ListBase *lb;
+  ListBaseT<ID> *lb;
   FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb) {
     ID *id_iter = static_cast<ID *>(lb->first);
     if (id_iter == nullptr) {
@@ -843,7 +843,7 @@ ID *BKE_main_library_weak_reference_find(Main *bmain,
   STRNCPY(library_filepath_abs, library_filepath);
   BLI_path_abs(library_filepath_abs, BKE_main_blendfile_path(bmain));
 
-  ListBase *id_list = which_libbase(bmain, GS(library_id_name));
+  ListBaseT<ID> *id_list = which_libbase(bmain, GS(library_id_name));
   LISTBASE_FOREACH (ID *, existing_id, id_list) {
     if (!(existing_id->library_weak_reference &&
           STREQ(existing_id->library_weak_reference->library_id_name, library_id_name)))
@@ -964,87 +964,87 @@ const char *BKE_main_blendfile_path_from_library(const Library &library)
   return library.runtime->filepath_abs;
 }
 
-ListBase *which_libbase(Main *bmain, short type)
+ListBaseT<ID> *which_libbase(Main *bmain, short type)
 {
   switch ((ID_Type)type) {
     case ID_SCE:
-      return &(bmain->scenes);
+      return &(bmain->scenes.cast<ID>());
     case ID_LI:
-      return &(bmain->libraries);
+      return &(bmain->libraries.cast<ID>());
     case ID_OB:
-      return &(bmain->objects);
+      return &(bmain->objects.cast<ID>());
     case ID_ME:
-      return &(bmain->meshes);
+      return &(bmain->meshes.cast<ID>());
     case ID_CU_LEGACY:
-      return &(bmain->curves);
+      return &(bmain->curves.cast<ID>());
     case ID_MB:
-      return &(bmain->metaballs);
+      return &(bmain->metaballs.cast<ID>());
     case ID_MA:
-      return &(bmain->materials);
+      return &(bmain->materials.cast<ID>());
     case ID_TE:
-      return &(bmain->textures);
+      return &(bmain->textures.cast<ID>());
     case ID_IM:
-      return &(bmain->images);
+      return &(bmain->images.cast<ID>());
     case ID_LT:
-      return &(bmain->lattices);
+      return &(bmain->lattices.cast<ID>());
     case ID_LA:
-      return &(bmain->lights);
+      return &(bmain->lights.cast<ID>());
     case ID_CA:
-      return &(bmain->cameras);
+      return &(bmain->cameras.cast<ID>());
     case ID_KE:
-      return &(bmain->shapekeys);
+      return &(bmain->shapekeys.cast<ID>());
     case ID_WO:
-      return &(bmain->worlds);
+      return &(bmain->worlds.cast<ID>());
     case ID_SCR:
-      return &(bmain->screens);
+      return &(bmain->screens.cast<ID>());
     case ID_VF:
-      return &(bmain->fonts);
+      return &(bmain->fonts.cast<ID>());
     case ID_TXT:
-      return &(bmain->texts);
+      return &(bmain->texts.cast<ID>());
     case ID_SPK:
-      return &(bmain->speakers);
+      return &(bmain->speakers.cast<ID>());
     case ID_LP:
-      return &(bmain->lightprobes);
+      return &(bmain->lightprobes.cast<ID>());
     case ID_SO:
-      return &(bmain->sounds);
+      return &(bmain->sounds.cast<ID>());
     case ID_GR:
-      return &(bmain->collections);
+      return &(bmain->collections.cast<ID>());
     case ID_AR:
-      return &(bmain->armatures);
+      return &(bmain->armatures.cast<ID>());
     case ID_AC:
-      return &(bmain->actions);
+      return &(bmain->actions.cast<ID>());
     case ID_NT:
-      return &(bmain->nodetrees);
+      return &(bmain->nodetrees.cast<ID>());
     case ID_BR:
-      return &(bmain->brushes);
+      return &(bmain->brushes.cast<ID>());
     case ID_PA:
-      return &(bmain->particles);
+      return &(bmain->particles.cast<ID>());
     case ID_WM:
-      return &(bmain->wm);
+      return &(bmain->wm.cast<ID>());
     case ID_GD_LEGACY:
-      return &(bmain->gpencils);
+      return &(bmain->gpencils.cast<ID>());
     case ID_GP:
-      return &(bmain->grease_pencils);
+      return &(bmain->grease_pencils.cast<ID>());
     case ID_MC:
-      return &(bmain->movieclips);
+      return &(bmain->movieclips.cast<ID>());
     case ID_MSK:
-      return &(bmain->masks);
+      return &(bmain->masks.cast<ID>());
     case ID_LS:
-      return &(bmain->linestyles);
+      return &(bmain->linestyles.cast<ID>());
     case ID_PAL:
-      return &(bmain->palettes);
+      return &(bmain->palettes.cast<ID>());
     case ID_PC:
-      return &(bmain->paintcurves);
+      return &(bmain->paintcurves.cast<ID>());
     case ID_CF:
-      return &(bmain->cachefiles);
+      return &(bmain->cachefiles.cast<ID>());
     case ID_WS:
-      return &(bmain->workspaces);
+      return &(bmain->workspaces.cast<ID>());
     case ID_CV:
-      return &(bmain->hair_curves);
+      return &(bmain->hair_curves.cast<ID>());
     case ID_PT:
-      return &(bmain->pointclouds);
+      return &(bmain->pointclouds.cast<ID>());
     case ID_VO:
-      return &(bmain->volumes);
+      return &(bmain->volumes.cast<ID>());
   }
   return nullptr;
 }
@@ -1053,64 +1053,64 @@ MainListsArray BKE_main_lists_get(Main &bmain)
 {
   MainListsArray lb{};
   /* Libraries may be accessed from pretty much any other ID. */
-  lb[INDEX_ID_LI] = &bmain.libraries;
+  lb[INDEX_ID_LI] = &(bmain.libraries.cast<ID>());
 
   /* Moved here to avoid problems when freeing with animato (aligorith). */
-  lb[INDEX_ID_AC] = &bmain.actions;
+  lb[INDEX_ID_AC] = &(bmain.actions.cast<ID>());
 
-  lb[INDEX_ID_KE] = &bmain.shapekeys;
+  lb[INDEX_ID_KE] = &(bmain.shapekeys.cast<ID>());
 
   /* Referenced by gpencil, so needs to be before that to avoid crashes. */
-  lb[INDEX_ID_PAL] = &bmain.palettes;
+  lb[INDEX_ID_PAL] = &(bmain.palettes.cast<ID>());
 
   /* Referenced by nodes, objects, view, scene etc, before to free after. */
-  lb[INDEX_ID_GD_LEGACY] = &bmain.gpencils;
-  lb[INDEX_ID_GP] = &bmain.grease_pencils;
+  lb[INDEX_ID_GD_LEGACY] = &(bmain.gpencils.cast<ID>());
+  lb[INDEX_ID_GP] = &(bmain.grease_pencils.cast<ID>());
 
-  lb[INDEX_ID_NT] = &bmain.nodetrees;
-  lb[INDEX_ID_IM] = &bmain.images;
-  lb[INDEX_ID_TE] = &bmain.textures;
-  lb[INDEX_ID_MA] = &bmain.materials;
-  lb[INDEX_ID_VF] = &bmain.fonts;
+  lb[INDEX_ID_NT] = &(bmain.nodetrees.cast<ID>());
+  lb[INDEX_ID_IM] = &(bmain.images.cast<ID>());
+  lb[INDEX_ID_TE] = &(bmain.textures.cast<ID>());
+  lb[INDEX_ID_MA] = &(bmain.materials.cast<ID>());
+  lb[INDEX_ID_VF] = &(bmain.fonts.cast<ID>());
 
   /* Important!: When adding a new object type,
    * the specific data should be inserted here. */
 
-  lb[INDEX_ID_AR] = &bmain.armatures;
+  lb[INDEX_ID_AR] = &(bmain.armatures.cast<ID>());
 
-  lb[INDEX_ID_CF] = &bmain.cachefiles;
-  lb[INDEX_ID_ME] = &bmain.meshes;
-  lb[INDEX_ID_CU_LEGACY] = &bmain.curves;
-  lb[INDEX_ID_MB] = &bmain.metaballs;
-  lb[INDEX_ID_CV] = &bmain.hair_curves;
-  lb[INDEX_ID_PT] = &bmain.pointclouds;
-  lb[INDEX_ID_VO] = &bmain.volumes;
+  lb[INDEX_ID_CF] = &(bmain.cachefiles.cast<ID>());
+  lb[INDEX_ID_ME] = &(bmain.meshes.cast<ID>());
+  lb[INDEX_ID_CU_LEGACY] = &(bmain.curves.cast<ID>());
+  lb[INDEX_ID_MB] = &(bmain.metaballs.cast<ID>());
+  lb[INDEX_ID_CV] = &(bmain.hair_curves.cast<ID>());
+  lb[INDEX_ID_PT] = &(bmain.pointclouds.cast<ID>());
+  lb[INDEX_ID_VO] = &(bmain.volumes.cast<ID>());
 
-  lb[INDEX_ID_LT] = &bmain.lattices;
-  lb[INDEX_ID_LA] = &bmain.lights;
-  lb[INDEX_ID_CA] = &bmain.cameras;
+  lb[INDEX_ID_LT] = &(bmain.lattices.cast<ID>());
+  lb[INDEX_ID_LA] = &(bmain.lights.cast<ID>());
+  lb[INDEX_ID_CA] = &(bmain.cameras.cast<ID>());
 
-  lb[INDEX_ID_TXT] = &bmain.texts;
-  lb[INDEX_ID_SO] = &bmain.sounds;
-  lb[INDEX_ID_GR] = &bmain.collections;
-  lb[INDEX_ID_PAL] = &bmain.palettes;
-  lb[INDEX_ID_PC] = &bmain.paintcurves;
-  lb[INDEX_ID_BR] = &bmain.brushes;
-  lb[INDEX_ID_PA] = &bmain.particles;
-  lb[INDEX_ID_SPK] = &bmain.speakers;
-  lb[INDEX_ID_LP] = &bmain.lightprobes;
+  lb[INDEX_ID_TXT] = &(bmain.texts.cast<ID>());
+  lb[INDEX_ID_SO] = &(bmain.sounds.cast<ID>());
+  lb[INDEX_ID_GR] = &(bmain.collections.cast<ID>());
+  lb[INDEX_ID_PAL] = &(bmain.palettes.cast<ID>());
+  lb[INDEX_ID_PC] = &(bmain.paintcurves.cast<ID>());
+  lb[INDEX_ID_BR] = &(bmain.brushes.cast<ID>());
+  lb[INDEX_ID_PA] = &(bmain.particles.cast<ID>());
+  lb[INDEX_ID_SPK] = &(bmain.speakers.cast<ID>());
+  lb[INDEX_ID_LP] = &(bmain.lightprobes.cast<ID>());
 
-  lb[INDEX_ID_WO] = &bmain.worlds;
-  lb[INDEX_ID_MC] = &bmain.movieclips;
-  lb[INDEX_ID_SCR] = &bmain.screens;
-  lb[INDEX_ID_OB] = &bmain.objects;
+  lb[INDEX_ID_WO] = &(bmain.worlds.cast<ID>());
+  lb[INDEX_ID_MC] = &(bmain.movieclips.cast<ID>());
+  lb[INDEX_ID_SCR] = &(bmain.screens.cast<ID>());
+  lb[INDEX_ID_OB] = &(bmain.objects.cast<ID>());
   /* referenced by scenes */
-  lb[INDEX_ID_LS] = &bmain.linestyles;
-  lb[INDEX_ID_SCE] = &bmain.scenes;
+  lb[INDEX_ID_LS] = &(bmain.linestyles.cast<ID>());
+  lb[INDEX_ID_SCE] = &(bmain.scenes.cast<ID>());
   /* before wm, so it's freed after it! */
-  lb[INDEX_ID_WS] = &bmain.workspaces;
-  lb[INDEX_ID_WM] = &bmain.wm;
-  lb[INDEX_ID_MSK] = &bmain.masks;
+  lb[INDEX_ID_WS] = &(bmain.workspaces.cast<ID>());
+  lb[INDEX_ID_WM] = &(bmain.wm.cast<ID>());
+  lb[INDEX_ID_MSK] = &(bmain.masks.cast<ID>());
 
   return lb;
 }

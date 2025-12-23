@@ -28,6 +28,7 @@
 #include "DNA_effect_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_listBase.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -124,7 +125,7 @@ static void do_version_bone_head_tail_237(Bone *bone)
   }
 }
 
-static void bone_version_238(ListBase *lb)
+static void bone_version_238(ListBaseT<Bone> *lb)
 {
   LISTBASE_FOREACH (Bone *, bone, lb) {
     if (bone->rad_tail == 0.0f && bone->rad_head == 0.0f) {
@@ -138,7 +139,7 @@ static void bone_version_238(ListBase *lb)
   }
 }
 
-static void bone_version_239(ListBase *lb)
+static void bone_version_239(ListBaseT<Bone> *lb)
 {
   LISTBASE_FOREACH (Bone *, bone, lb) {
     if (bone->layer == 0) {
@@ -246,11 +247,9 @@ static void idproperties_fix_groups_lengths_recurse(IDProperty *prop)
   }
 }
 
-static void idproperties_fix_group_lengths(ListBase idlist)
+template<typename T> static void idproperties_fix_group_lengths(const ListBaseT<T> &idlist)
 {
-  ID *id;
-
-  for (id = static_cast<ID *>(idlist.first); id; id = static_cast<ID *>(id->next)) {
+  LISTBASE_FOREACH (ID *, id, &idlist.template cast<ID>()) {
     if (id->properties) {
       idproperties_fix_groups_lengths_recurse(id->properties);
     }
@@ -399,14 +398,14 @@ static void do_version_free_effect_245(Effect *eff)
   MEM_freeN(eff);
 }
 
-static void do_version_free_effects_245(ListBase *lb)
+static void do_version_free_effects_245(ListBaseT<Effect> *lb)
 {
   while (Effect *eff = static_cast<Effect *>(BLI_pophead(lb))) {
     do_version_free_effect_245(eff);
   }
 }
 
-static void do_version_constraints_245(ListBase *lb)
+static void do_version_constraints_245(ListBaseT<bConstraint> *lb)
 {
   LISTBASE_FOREACH (bConstraint *, con, lb) {
     if (con->type == CONSTRAINT_TYPE_LOCLIKE) {
@@ -876,7 +875,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     ob = static_cast<Object *>(bmain->objects.first);
 
     while (ob) {
-      ListBase &list = ob->constraints;
+      ListBaseT<bConstraint> &list = ob->constraints;
 
       /* check for already existing TrackTo constraint
        * set their track and up flag correctly
@@ -946,7 +945,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     ob = static_cast<Object *>(bmain->objects.first);
 
     while (ob) {
-      ListBase &list = ob->constraints;
+      ListBaseT<bConstraint> &list = ob->constraints;
 
       /* check for already existing TrackTo constraint
        * set their track and up flag correctly */
@@ -1687,7 +1686,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
          ob = static_cast<Object *>(ob->id.next))
     {
-      ListBase &list = ob->constraints;
+      ListBaseT<bConstraint> &list = ob->constraints;
 
       /* check for already existing MinMax (floor) constraint
        * and update the sticky flagging */
@@ -1926,7 +1925,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       for (ob = static_cast<Object *>(bmain->objects.first); ob;
            ob = static_cast<Object *>(ob->id.next))
       {
-        ListBase &list = ob->constraints;
+        ListBaseT<bConstraint> &list = ob->constraints;
 
         /* fix up constraints due to constraint recode changes (originally at 2.44.3) */
         LISTBASE_FOREACH (bConstraint *, curcon, &list) {

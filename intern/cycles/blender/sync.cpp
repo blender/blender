@@ -183,7 +183,7 @@ void BlenderSync::sync_recalc(::Depsgraph &b_depsgraph,
           }
 
           if (updated_geometry) {
-            LISTBASE_FOREACH (ParticleSystem *, b_psys, &b_ob->particlesystem) {
+            LISTBASE_FOREACH (::ParticleSystem *, b_psys, &b_ob->particlesystem) {
               particle_system_map.set_recalc(b_ob);
             }
           }

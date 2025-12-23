@@ -68,7 +68,8 @@
 #include <fmt/format.h>
 /* ****************************************************** */
 
-static ListBase dropboxes = {nullptr, nullptr};
+struct wmDropBoxMap;
+static ListBaseT<wmDropBoxMap> dropboxes = {nullptr, nullptr};
 
 static void wm_drag_free_asset_data(wmDragAsset **asset_data);
 static void wm_drag_free_path_data(wmDragPath **path_data);
@@ -86,12 +87,12 @@ wmDragActiveDropState::~wmDragActiveDropState() = default;
 struct wmDropBoxMap {
   wmDropBoxMap *next, *prev;
 
-  ListBase dropboxes;
+  ListBaseT<wmDropBox> dropboxes;
   short spaceid, regionid;
   char idname[KMAP_MAX_NAME];
 };
 
-ListBase *WM_dropboxmap_find(const char *idname, int spaceid, int regionid)
+ListBaseT<wmDropBox> *WM_dropboxmap_find(const char *idname, int spaceid, int regionid)
 {
   LISTBASE_FOREACH (wmDropBoxMap *, dm, &dropboxes) {
     if (dm->spaceid == spaceid && dm->regionid == regionid) {
@@ -110,7 +111,7 @@ ListBase *WM_dropboxmap_find(const char *idname, int spaceid, int regionid)
   return &dm->dropboxes;
 }
 
-wmDropBox *WM_dropbox_add(ListBase *lb,
+wmDropBox *WM_dropbox_add(ListBaseT<wmDropBox> *lb,
                           const char *idname,
                           bool (*poll)(bContext *C, wmDrag *drag, const wmEvent *event),
                           void (*copy)(bContext *C, wmDrag *drag, wmDropBox *drop),
@@ -440,7 +441,7 @@ void WM_drag_free(wmDrag *drag)
   MEM_delete(drag);
 }
 
-void WM_drag_free_list(ListBase *lb)
+void WM_drag_free_list(ListBaseT<wmDrag> *lb)
 {
   while (wmDrag *drag = static_cast<wmDrag *>(BLI_pophead(lb))) {
     WM_drag_free(drag);
@@ -459,7 +460,7 @@ static std::string dropbox_tooltip(bContext *C, wmDrag *drag, const int xy[2], w
 }
 
 static wmDropBox *dropbox_active(bContext *C,
-                                 ListBase *handlers,
+                                 ListBaseT<wmEventHandler> *handlers,
                                  wmDrag *drag,
                                  const wmEvent *event)
 {
@@ -671,7 +672,7 @@ ID *WM_drag_get_local_ID_from_event(const wmEvent *event, short idcode)
     return nullptr;
   }
 
-  ListBase *lb = static_cast<ListBase *>(event->customdata);
+  ListBaseT<wmDrag> *lb = static_cast<ListBaseT<wmDrag> *>(event->customdata);
   return WM_drag_get_local_ID(static_cast<const wmDrag *>(lb->first), idcode);
 }
 
@@ -852,7 +853,7 @@ void WM_drag_add_asset_list_item(wmDrag *drag,
   BLI_addtail(&drag->asset_items, drag_asset);
 }
 
-const ListBase *WM_drag_asset_list_get(const wmDrag *drag)
+const ListBaseT<wmDragAssetListItem> *WM_drag_asset_list_get(const wmDrag *drag)
 {
   if (drag->type != WM_DRAG_ASSET_LIST) {
     return nullptr;
@@ -871,7 +872,7 @@ std::optional<bool> wm_drag_asset_path_exists(const wmDrag *drag)
     return BLI_is_file(asset_drag->asset->full_library_path().c_str());
   }
 
-  if (const ListBase *asset_drags = WM_drag_asset_list_get(drag)) {
+  if (const ListBaseT<wmDragAssetListItem> *asset_drags = WM_drag_asset_list_get(drag)) {
     LISTBASE_FOREACH (wmDragAssetListItem *, asset_item, asset_drags) {
       if (!asset_item->is_external ||
           BLI_is_file(asset_item->asset_data.external_info->asset->full_library_path().c_str()))

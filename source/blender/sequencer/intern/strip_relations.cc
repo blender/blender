@@ -198,7 +198,9 @@ void relations_invalidate_compositor_modifiers(const Main *bmain, const bNodeTre
   }
 }
 
-static void invalidate_movieclip_strips(Scene *scene, MovieClip *clip_target, ListBase *seqbase)
+static void invalidate_movieclip_strips(Scene *scene,
+                                        MovieClip *clip_target,
+                                        ListBaseT<Strip> *seqbase)
 {
   for (Strip *strip = static_cast<Strip *>(seqbase->first); strip != nullptr; strip = strip->next)
   {
@@ -223,7 +225,7 @@ void relations_invalidate_movieclip_strips(Main *bmain, MovieClip *clip_target)
   }
 }
 
-void relations_free_imbuf(Scene *scene, ListBase *seqbase, bool for_render)
+void relations_free_imbuf(Scene *scene, ListBaseT<Strip> *seqbase, bool for_render)
 {
   if (scene->ed == nullptr) {
     return;
@@ -255,7 +257,7 @@ void relations_free_imbuf(Scene *scene, ListBase *seqbase, bool for_render)
 }
 
 static void sequencer_all_free_anim_ibufs(const Scene *scene,
-                                          ListBase *seqbase,
+                                          ListBaseT<Strip> *seqbase,
                                           int timeline_frame,
                                           const int frame_range[2])
 {
@@ -297,7 +299,7 @@ void relations_free_all_anim_ibufs(Scene *scene, int timeline_frame)
   sequencer_all_free_anim_ibufs(scene, &ed->seqbase, timeline_frame, frame_range);
 }
 
-static Strip *sequencer_check_scene_recursion(Scene *scene, ListBase *seqbase)
+static Strip *sequencer_check_scene_recursion(Scene *scene, ListBaseT<Strip> *seqbase)
 {
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
     if (strip->type == STRIP_TYPE_SCENE && strip->scene == scene) {
@@ -415,7 +417,7 @@ void relations_check_uids_unique_and_report(const Scene *scene)
   foreach_strip(&scene->ed->seqbase, get_uids_cb, &used_uids);
 }
 
-bool exists_in_seqbase(const Strip *strip, const ListBase *seqbase)
+bool exists_in_seqbase(const Strip *strip, const ListBaseT<Strip> *seqbase)
 {
   LISTBASE_FOREACH (Strip *, strip_test, seqbase) {
     if (strip_test->type == STRIP_TYPE_META && exists_in_seqbase(strip, &strip_test->seqbase)) {

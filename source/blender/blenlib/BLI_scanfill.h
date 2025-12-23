@@ -13,11 +13,13 @@
 #include <stdbool.h>
 
 struct ScanFillVert;
+struct ScanFillEdge;
+struct ScanFillFace;
 
 typedef struct ScanFillContext {
-  ListBase fillvertbase;
-  ListBase filledgebase;
-  ListBase fillfacebase;
+  ListBaseT<ScanFillVert> fillvertbase;
+  ListBaseT<ScanFillEdge> filledgebase;
+  ListBaseT<ScanFillFace> fillfacebase;
 
   /* increment this value before adding each curve to skip having to calculate
    * 'poly_nr' for edges and verts (which can take approx half scan-fill time) */
@@ -114,5 +116,5 @@ void BLI_scanfill_end_arena(ScanFillContext *sf_ctx, struct MemArena *arena);
  * \return false if no changes were made.
  */
 bool BLI_scanfill_calc_self_isect(ScanFillContext *sf_ctx,
-                                  ListBase *remvertbase,
-                                  ListBase *remedgebase);
+                                  ListBaseT<ScanFillVert> *remvertbase,
+                                  ListBaseT<ScanFillEdge> *remedgebase);

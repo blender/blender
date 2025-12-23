@@ -678,7 +678,7 @@ static void v3d_editvertex_buts(
     BPoint *bp;
     BezTriple *bezt;
     int a;
-    ListBase *nurbs = BKE_curve_editNurbs_get(cu);
+    ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
     StructRNA *seltype = nullptr;
     void *selp = nullptr;
 
@@ -1469,7 +1469,7 @@ static void v3d_editvertex_buts(
       BPoint *bp;
       BezTriple *bezt;
       int a;
-      ListBase *nurbs = BKE_curve_editNurbs_get(cu);
+      ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
       const float scale_w = compute_scale_factor(ve_median->weight, median->weight);
 
       LISTBASE_FOREACH (Nurb *, nu, nurbs) {
@@ -1766,7 +1766,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
 
     vgroup_validmap = BKE_object_defgroup_subset_from_select_type(
         ob, subset_type, &vgroup_tot, &subset_count);
-    const ListBase *defbase = BKE_object_defgroup_list(ob);
+    const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
     const int vgroup_num = BLI_listbase_count(defbase);
     tfp->vertex_weights.resize(vgroup_num);
 

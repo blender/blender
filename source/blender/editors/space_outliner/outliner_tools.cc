@@ -623,7 +623,7 @@ static void outliner_do_libdata_operation_selection_set(bContext *C,
                                                         ReportList *reports,
                                                         Scene *scene,
                                                         SpaceOutliner *space_outliner,
-                                                        const ListBase &subtree,
+                                                        const ListBaseT<TreeElement> &subtree,
                                                         const bool has_parent_selected,
                                                         outliner_operation_fn operation_fn,
                                                         eOutlinerLibOpSelectionSet selection_set)
@@ -631,7 +631,7 @@ static void outliner_do_libdata_operation_selection_set(bContext *C,
   LISTBASE_FOREACH_MUTABLE (TreeElement *, element, &subtree) {
     /* Get needed data out in case element gets freed. */
     TreeStoreElem *tselem = TREESTORE(element);
-    const ListBase subtree = element->subtree;
+    const ListBaseT<TreeElement> subtree = element->subtree;
 
     const bool is_selected = outliner_do_libdata_operation_selection_set_element(
         C, reports, scene, element, tselem, has_parent_selected, operation_fn, selection_set);
@@ -662,7 +662,7 @@ static void outliner_do_libdata_operation_selection_set(bContext *C,
                                                                   TSE_ACTIVE);
     if (active_element != nullptr) {
       TreeStoreElem *tselem = TREESTORE(active_element);
-      const ListBase subtree = active_element->subtree;
+      const ListBaseT<TreeElement> subtree = active_element->subtree;
 
       const bool is_selected = outliner_do_libdata_operation_selection_set_element(
           C, reports, scene, active_element, tselem, false, operation_fn, selection_set);
@@ -788,8 +788,11 @@ struct MergedSearchData {
   TreeElement *select_element;
 };
 
-static void merged_element_search_fn_recursive(
-    const ListBase *tree, short tselem_type, short type, const char *str, ui::SearchItems *items)
+static void merged_element_search_fn_recursive(const ListBaseT<TreeElement> *tree,
+                                               short tselem_type,
+                                               short type,
+                                               const char *str,
+                                               ui::SearchItems *items)
 {
   char name[64];
   int iconid;
@@ -1700,7 +1703,7 @@ void outliner_do_object_operation_ex(bContext *C,
                                      ReportList *reports,
                                      Scene *scene_act,
                                      SpaceOutliner *space_outliner,
-                                     ListBase *lb,
+                                     ListBaseT<TreeElement> *lb,
                                      outliner_operation_fn operation_fn,
                                      bool recurse_selected)
 {
@@ -1734,7 +1737,7 @@ void outliner_do_object_operation(bContext *C,
                                   ReportList *reports,
                                   Scene *scene_act,
                                   SpaceOutliner *space_outliner,
-                                  ListBase *lb,
+                                  ListBaseT<TreeElement> *lb,
                                   outliner_operation_fn operation_fn)
 {
   outliner_do_object_operation_ex(C, reports, scene_act, space_outliner, lb, operation_fn, true);
@@ -2278,7 +2281,7 @@ static void constraint_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/
     WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, ob);
   }
   else if (event == OL_CONSTRAINTOP_DELETE) {
-    ListBase *lb = nullptr;
+    ListBaseT<bConstraint> *lb = nullptr;
 
     if (TREESTORE(te->parent->parent)->type == TSE_POSE_CHANNEL) {
       lb = &((bPoseChannel *)te->parent->parent->directdata)->constraints;

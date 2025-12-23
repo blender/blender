@@ -90,7 +90,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
       /* If neither vertex groups nor envelopes are used, the modifier has no bone dependencies. */
       if ((amd->deformflag & ARM_DEF_VGROUP) != 0) {
         /* Enumerate groups that match existing bones. */
-        const ListBase *defbase = BKE_object_defgroup_list(ctx->object);
+        const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ctx->object);
         LISTBASE_FOREACH (bDeformGroup *, dg, defbase) {
           if (BKE_pose_channel_find_name(amd->object->pose, dg->name) != nullptr) {
             /* Can't check BONE_NO_DEFORM because it can be animated. */

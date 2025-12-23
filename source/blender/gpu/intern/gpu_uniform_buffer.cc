@@ -92,7 +92,7 @@ static int inputs_cmp(const void *a, const void *b)
  * Make sure we respect the expected alignment of UBOs.
  * mat4, vec4, pad vec3 as vec4, then vec2, then floats.
  */
-static void buffer_from_list_inputs_sort(ListBase *inputs)
+static void buffer_from_list_inputs_sort(ListBaseT<LinkData> *inputs)
 {
 /* Only support up to this type, if you want to extend it, make sure static void
  * inputs_sobuffer_size_compute *inputs) padding logic is correct for the new types. */
@@ -159,7 +159,7 @@ static void buffer_from_list_inputs_sort(ListBase *inputs)
 #undef MAX_UBO_GPU_TYPE
 }
 
-static inline size_t buffer_size_from_list(ListBase *inputs)
+static inline size_t buffer_size_from_list(ListBaseT<LinkData> *inputs)
 {
   size_t buffer_size = 0;
   LISTBASE_FOREACH (LinkData *, link, inputs) {
@@ -173,7 +173,7 @@ static inline size_t buffer_size_from_list(ListBase *inputs)
   return buffer_size;
 }
 
-static inline void buffer_fill_from_list(void *data, ListBase *inputs)
+static inline void buffer_fill_from_list(void *data, ListBaseT<LinkData> *inputs)
 {
   /* Now that we know the total ubo size we can start populating it. */
   float *offset = (float *)data;
@@ -208,7 +208,8 @@ blender::gpu::UniformBuf *GPU_uniformbuf_create_ex(size_t size, const void *data
   return ubo;
 }
 
-blender::gpu::UniformBuf *GPU_uniformbuf_create_from_list(ListBase *inputs, const char *name)
+blender::gpu::UniformBuf *GPU_uniformbuf_create_from_list(ListBaseT<LinkData> *inputs,
+                                                          const char *name)
 {
   /* There is no point on creating an UBO if there is no arguments. */
   if (BLI_listbase_is_empty(inputs)) {

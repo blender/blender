@@ -21,7 +21,7 @@
 
 #include "wm_surface.hh"
 
-static ListBase global_surface_list = {nullptr, nullptr};
+static ListBaseT<wmSurface> global_surface_list = {nullptr, nullptr};
 static wmSurface *g_drawable = nullptr;
 
 void wm_surfaces_iter(bContext *C, void (*cb)(bContext *C, wmSurface *))

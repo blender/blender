@@ -1605,7 +1605,7 @@ static void IDP_DirectLinkString(IDProperty *prop, BlendDataReader *reader)
 
 static void IDP_DirectLinkGroup(IDProperty *prop, BlendDataReader *reader)
 {
-  ListBase *lb = &prop->data.group;
+  ListBaseT<IDProperty> *lb = &prop->data.group;
   prop->data.children_map = nullptr;
 
   BLO_read_struct_list(reader, IDProperty, lb);

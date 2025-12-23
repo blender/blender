@@ -240,7 +240,7 @@ void AbstractTreeElement::uncollapse_by_default(TreeElement *legacy_te)
   }
 }
 
-TreeElement *AbstractTreeElement::add_element(ListBase *lb,
+TreeElement *AbstractTreeElement::add_element(ListBaseT<TreeElement> *lb,
                                               ID *owner_id,
                                               void *create_data,
                                               TreeElement *parent,

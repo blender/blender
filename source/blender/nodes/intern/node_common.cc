@@ -60,7 +60,7 @@ namespace node_interface = blender::bke::node_interface;
 /** \name Node Group
  * \{ */
 
-static bNodeSocket *find_matching_socket(ListBase &sockets, StringRef identifier)
+static bNodeSocket *find_matching_socket(ListBaseT<bNodeSocket> &sockets, StringRef identifier)
 {
   LISTBASE_FOREACH (bNodeSocket *, socket, &sockets) {
     if (socket->identifier == identifier) {

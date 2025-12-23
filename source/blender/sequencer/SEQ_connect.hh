@@ -9,13 +9,15 @@
  */
 
 #include "BLI_vector_set.hh"
+#include "DNA_listBase.h"
 
 struct Strip;
-struct ListBase;
+struct StripConnection;
 
 namespace blender::seq {
 
-void connections_duplicate(ListBase *connections_dst, ListBase *connections_src);
+void connections_duplicate(ListBaseT<StripConnection> *connections_dst,
+                           ListBaseT<StripConnection> *connections_src);
 
 /**
  * Disconnect the strip(s) from any connections with other strips. This function also

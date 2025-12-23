@@ -638,7 +638,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
         Curve *cu = static_cast<Curve *>(ob_iter->data);
         BezTriple *bezt;
         BPoint *bp;
-        ListBase *nurbs = BKE_curve_editNurbs_get(cu);
+        ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
 
         float mat_local[4][4];
         if (use_mat_local) {

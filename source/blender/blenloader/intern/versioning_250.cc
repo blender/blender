@@ -84,7 +84,7 @@
 #define U (*((const UserDef *)&U))
 
 /* 2.50 patch */
-static void area_add_header_region(ScrArea *area, ListBase *lb)
+static void area_add_header_region(ScrArea *area, ListBaseT<ARegion> *lb)
 {
   ARegion *region = BKE_area_region_new();
 
@@ -129,7 +129,7 @@ void sequencer_init_preview_region(ARegion *region)
   region->v2d.keeptot = V2D_KEEPTOT_FREE;
 }
 
-static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBase *lb)
+static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBaseT<ARegion> *lb)
 {
   ARegion *region;
 
@@ -431,14 +431,18 @@ static void do_versions_windowmanager_2_50(bScreen *screen)
   }
 }
 
-static void versions_gpencil_add_main(Main *bmain, ListBase *lb, ID *id, const char *name)
+static void versions_gpencil_add_main(Main *bmain,
+                                      ListBaseT<bGPdata> *lb,
+                                      ID *id,
+                                      const char *name)
 {
   BLI_addtail(lb, id);
   id->us = 1;
   id->flag = ID_FLAG_FAKEUSER;
   *((short *)id->name) = ID_GD_LEGACY;
 
-  BKE_id_new_name_validate(*bmain, *lb, *id, name, IDNewNameMode::RenameExistingNever, false);
+  BKE_id_new_name_validate(
+      *bmain, lb->cast<ID>(), *id, name, IDNewNameMode::RenameExistingNever, false);
   /* alphabetic insertion: is in BKE_id_new_name_validate */
 
   if ((id->tag & ID_TAG_TEMP_MAIN) == 0) {
@@ -511,7 +515,7 @@ static void do_version_mdef_250(Main *main)
   }
 }
 
-static void do_version_constraints_radians_degrees_250(ListBase *lb)
+static void do_version_constraints_radians_degrees_250(ListBaseT<bConstraint> *lb)
 {
   LISTBASE_FOREACH (bConstraint *, con, lb) {
     if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
@@ -660,7 +664,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (bmain->versionfile < 250) {
 #if 0
-    ListBase pidlist;
+    ListBaseT<PTCacheID> pidlist;
 #endif
 
     LISTBASE_FOREACH (bSound *, sound, &bmain->sounds) {
@@ -772,7 +776,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 250, 1)) {
 #if 0
-    ListBase pidlist;
+    ListBaseT<PTCacheID> pidlist;
 #endif
 
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
@@ -1142,7 +1146,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype != SPACE_SEQ) {
-            ListBase *regionbase;
+            ListBaseT<ARegion> *regionbase;
 
             if (sl == area->spacedata.first) {
               regionbase = &area->regionbase;
@@ -1172,7 +1176,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
             if (sl->spacetype == SPACE_SEQ) {
-              ListBase *regionbase;
+              ListBaseT<ARegion> *regionbase;
               SpaceSeq *sseq = (SpaceSeq *)sl;
 
               if (sl == area->spacedata.first) {
@@ -1293,7 +1297,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-          ListBase *regionbase;
+          ListBaseT<ARegion> *regionbase;
 
           if (sl == area->spacedata.first) {
             regionbase = &area->regionbase;
@@ -1351,7 +1355,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
             if (sl->spacetype == SPACE_SEQ) {
-              ListBase *regionbase;
+              ListBaseT<ARegion> *regionbase;
 
               if (sl == area->spacedata.first) {
                 regionbase = &area->regionbase;
@@ -1468,7 +1472,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_NODE) {
             SpaceNode *snode = (SpaceNode *)sl;
-            ListBase *regionbase;
+            ListBaseT<ARegion> *regionbase;
 
             if (sl == area->spacedata.first) {
               regionbase = &area->regionbase;

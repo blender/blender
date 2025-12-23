@@ -16,6 +16,7 @@ struct GHOST_TabletData;
 struct ScrArea;
 struct wmEvent;
 struct wmKeyMap;
+struct wmDropBox;
 struct wmKeyMapItem;
 
 namespace blender::wm {
@@ -137,7 +138,7 @@ struct wmEventHandler_Dropbox {
   wmEventHandler head;
 
   /** Never NULL. */
-  ListBase *dropboxes;
+  ListBaseT<wmDropBox> *dropboxes;
 };
 
 /* `wm_event_system.cc` */

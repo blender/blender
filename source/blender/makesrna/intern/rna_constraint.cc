@@ -420,7 +420,8 @@ static void rna_Constraint_name_set(PointerRNA *ptr, const char *value)
   /* make sure name is unique */
   if (ptr->owner_id) {
     Object *ob = (Object *)ptr->owner_id;
-    ListBase *list = blender::ed::object::constraint_list_from_constraint(ob, con, nullptr);
+    ListBaseT<bConstraint> *list = blender::ed::object::constraint_list_from_constraint(
+        ob, con, nullptr);
 
     /* if we have the list, check for unique name, otherwise give up */
     if (list) {
@@ -435,7 +436,8 @@ static void rna_Constraint_name_set(PointerRNA *ptr, const char *value)
 static std::optional<std::string> rna_Constraint_do_compute_path(Object *ob, bConstraint *con)
 {
   bPoseChannel *pchan;
-  ListBase *lb = blender::ed::object::constraint_list_from_constraint(ob, con, &pchan);
+  ListBaseT<bConstraint> *lb = blender::ed::object::constraint_list_from_constraint(
+      ob, con, &pchan);
 
   if (lb == nullptr) {
     printf("%s: internal error, constraint '%s' not found in object '%s'\n",
@@ -603,7 +605,7 @@ static const EnumPropertyItem *rna_Constraint_target_space_itemf(bContext * /*C*
                                                                  bool * /*r_free*/)
 {
   bConstraint *con = (bConstraint *)ptr->data;
-  ListBase targets = {nullptr, nullptr};
+  ListBaseT<bConstraintTarget> targets = {nullptr, nullptr};
   bConstraintTarget *ct;
 
   if (BKE_constraint_targets_get(con, &targets)) {

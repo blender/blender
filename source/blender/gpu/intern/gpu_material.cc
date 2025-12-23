@@ -131,7 +131,7 @@ struct GPUMaterial {
 GPUMaterialFromNodeTreeResult GPU_material_from_nodetree(
     Material *ma,
     bNodeTree *ntree,
-    ListBase *gpumaterials,
+    ListBaseT<LinkData> *gpumaterials,
     const char *name,
     eGPUMaterialEngine engine,
     uint64_t shader_uuid,
@@ -264,7 +264,7 @@ void GPU_material_free_single(GPUMaterial *material)
   MEM_delete(material);
 }
 
-void GPU_material_free(ListBase *gpumaterial)
+void GPU_material_free(ListBaseT<LinkData> *gpumaterial)
 {
   LISTBASE_FOREACH (LinkData *, link, gpumaterial) {
     GPUMaterial *material = static_cast<GPUMaterial *>(link->data);
@@ -383,7 +383,7 @@ void GPU_material_flag_set(GPUMaterial *mat, eGPUMaterialFlag flag)
   mat->flag |= flag;
 }
 
-void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBase *inputs)
+void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBaseT<LinkData> *inputs)
 {
   material->ubo = GPU_uniformbuf_create_from_list(inputs, material->name.c_str());
 }
@@ -393,12 +393,12 @@ blender::gpu::UniformBuf *GPU_material_uniform_buffer_get(GPUMaterial *material)
   return material->ubo;
 }
 
-ListBase GPU_material_attributes(const GPUMaterial *material)
+ListBaseT<GPUMaterialAttribute> GPU_material_attributes(const GPUMaterial *material)
 {
   return material->graph.attributes;
 }
 
-ListBase GPU_material_textures(GPUMaterial *material)
+ListBaseT<GPUMaterialTexture> GPU_material_textures(GPUMaterial *material)
 {
   return material->graph.textures;
 }
@@ -409,9 +409,9 @@ const GPUUniformAttrList *GPU_material_uniform_attributes(const GPUMaterial *mat
   return attrs->count > 0 ? attrs : nullptr;
 }
 
-const ListBase *GPU_material_layer_attributes(const GPUMaterial *material)
+const ListBaseT<GPULayerAttr> *GPU_material_layer_attributes(const GPUMaterial *material)
 {
-  const ListBase *attrs = &material->graph.layer_attrs;
+  const ListBaseT<GPULayerAttr> *attrs = &material->graph.layer_attrs;
   return !BLI_listbase_is_empty(attrs) ? attrs : nullptr;
 }
 

@@ -105,7 +105,7 @@ void render_result_free(RenderResult *rr)
   MEM_freeN(rr);
 }
 
-void render_result_free_list(ListBase *lb, RenderResult *rr)
+void render_result_free_list(ListBaseT<RenderResult> *lb, RenderResult *rr)
 {
   RenderResult *rrnext;
 
@@ -909,7 +909,7 @@ bool render_result_exr_file_read_path(RenderResult *rr,
     return false;
   }
 
-  ListBase layers = (rr) ? rr->layers : ListBase{rl_single, rl_single};
+  ListBaseT<RenderLayer> layers = (rr) ? rr->layers : ListBaseT<RenderLayer>{rl_single, rl_single};
   const int expected_rectx = (rr) ? rr->rectx : rl_single->rectx;
   const int expected_recty = (rr) ? rr->recty : rl_single->recty;
   bool found_channels = false;

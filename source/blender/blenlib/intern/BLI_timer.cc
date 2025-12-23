@@ -26,7 +26,7 @@ struct TimedFunction {
 };
 
 struct TimerContainer {
-  ListBase funcs;
+  ListBaseT<TimedFunction> funcs;
 };
 
 static TimerContainer GlobalTimer = {{nullptr}};

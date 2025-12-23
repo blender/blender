@@ -86,7 +86,7 @@ struct MultiresBakerJobData {
 /* data passing to multires-baker job */
 struct MultiresBakeJob {
   Scene *scene;
-  ListBase data;
+  ListBaseT<MultiresBakerJobData> data;
   /** Clear the images before baking */
   bool bake_clear;
   /** Margin size in pixels. */

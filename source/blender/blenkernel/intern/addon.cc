@@ -37,12 +37,12 @@ bAddon *BKE_addon_new()
   return addon;
 }
 
-bAddon *BKE_addon_find(const ListBase *addon_list, const char *module)
+bAddon *BKE_addon_find(const ListBaseT<bAddon> *addon_list, const char *module)
 {
   return static_cast<bAddon *>(BLI_findstring(addon_list, module, offsetof(bAddon, module)));
 }
 
-bAddon *BKE_addon_ensure(ListBase *addon_list, const char *module)
+bAddon *BKE_addon_ensure(ListBaseT<bAddon> *addon_list, const char *module)
 {
   bAddon *addon = BKE_addon_find(addon_list, module);
   if (addon == nullptr) {
@@ -53,7 +53,7 @@ bAddon *BKE_addon_ensure(ListBase *addon_list, const char *module)
   return addon;
 }
 
-bool BKE_addon_remove_safe(ListBase *addon_list, const char *module)
+bool BKE_addon_remove_safe(ListBaseT<bAddon> *addon_list, const char *module)
 {
   bAddon *addon = static_cast<bAddon *>(
       BLI_findstring(addon_list, module, offsetof(bAddon, module)));

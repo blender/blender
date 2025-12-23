@@ -49,7 +49,7 @@ static CLG_LogRef LOG = {"undo.curve"};
 namespace {
 
 struct UndoCurve {
-  ListBase nubase;
+  ListBaseT<Nurb> nubase;
   int actvert;
   CVKeyIndexMap *undoIndex;
 
@@ -61,7 +61,7 @@ struct UndoCurve {
    *
    * With the introduction of slotted Actions, a decision had to be made to either port this
    * behavior or remove it. The latter was chosen. For more information, see #135585. */
-  ListBase drivers;
+  ListBaseT<FCurve> drivers;
 
   int actnu;
   int flag;
@@ -78,8 +78,8 @@ struct UndoCurve {
 
 static void undocurve_to_editcurve(Main *bmain, UndoCurve *ucu, Curve *cu, short *r_shapenr)
 {
-  ListBase *undobase = &ucu->nubase;
-  ListBase *editbase = BKE_curve_editNurbs_get(cu);
+  ListBaseT<Nurb> *undobase = &ucu->nubase;
+  ListBaseT<Nurb> *editbase = BKE_curve_editNurbs_get(cu);
   EditNurb *editnurb = cu->editnurb;
   AnimData *ad = BKE_animdata_from_id(&cu->id);
 
@@ -116,7 +116,7 @@ static void undocurve_to_editcurve(Main *bmain, UndoCurve *ucu, Curve *cu, short
 static void undocurve_from_editcurve(UndoCurve *ucu, Curve *cu, const short shapenr)
 {
   BLI_assert(BLI_array_is_zeroed(ucu, 1));
-  ListBase *nubase = BKE_curve_editNurbs_get(cu);
+  ListBaseT<Nurb> *nubase = BKE_curve_editNurbs_get(cu);
   EditNurb *editnurb = cu->editnurb, tmpEditnurb;
   AnimData *ad = BKE_animdata_from_id(&cu->id);
 

@@ -26,9 +26,9 @@ bool outliner_shows_mode_column(const SpaceOutliner &space_outliner)
 
 bool outliner_has_element_warnings(const SpaceOutliner &space_outliner)
 {
-  std::function<bool(const ListBase &)> recursive_fn;
+  std::function<bool(const ListBaseT<TreeElement> &)> recursive_fn;
 
-  recursive_fn = [&](const ListBase &lb) {
+  recursive_fn = [&](const ListBaseT<TreeElement> &lb) {
     LISTBASE_FOREACH (const TreeElement *, te, &lb) {
       if (te->abstract_element && !te->abstract_element->get_warning().is_empty()) {
         return true;

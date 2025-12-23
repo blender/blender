@@ -14,10 +14,12 @@
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
+#include "DNA_listBase.h"
+
 struct FontBLF;
 struct GlyphBLF;
 struct GlyphCacheBLF;
-struct ListBase;
+struct Nurb;
 struct ResultBLF;
 struct rcti;
 struct rctf;
@@ -211,7 +213,7 @@ GlyphBLF *blf_glyph_ensure_icon(
  */
 bool blf_character_to_curves(FontBLF *font,
                              unsigned int unicode,
-                             ListBase *nurbsbase,
+                             ListBaseT<Nurb> *nurbsbase,
                              const float scale,
                              bool use_fallback,
                              float *r_advance);

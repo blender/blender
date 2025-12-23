@@ -143,7 +143,7 @@ TreeTraversalAction outliner_collect_selected_objects(TreeElement *te, void *cus
 
 }  // namespace blender::ed::outliner
 
-void ED_outliner_selected_objects_get(const bContext *C, ListBase *objects)
+void ED_outliner_selected_objects_get(const bContext *C, ListBaseT<LinkData> *objects)
 {
   using namespace blender::ed::outliner;
 

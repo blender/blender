@@ -61,14 +61,14 @@ static void displist_elem_free(DispList *dl)
   }
 }
 
-void BKE_displist_free(ListBase *lb)
+void BKE_displist_free(ListBaseT<DispList> *lb)
 {
   while (DispList *dl = (DispList *)BLI_pophead(lb)) {
     displist_elem_free(dl);
   }
 }
 
-DispList *BKE_displist_find(ListBase *lb, int type)
+DispList *BKE_displist_find(ListBaseT<DispList> *lb, int type)
 {
   LISTBASE_FOREACH (DispList *, dl, lb) {
     if (dl->type == type) {
@@ -115,9 +115,9 @@ bool BKE_displist_surfindex_get(
 #endif
 
 static void curve_to_displist(const Curve *cu,
-                              const ListBase *nubase,
+                              const ListBaseT<Nurb> *nubase,
                               const bool for_render,
-                              ListBase *r_dispbase)
+                              ListBaseT<DispList> *r_dispbase)
 {
   const bool editmode = (!for_render && (cu->editnurb || cu->editfont));
 
@@ -251,8 +251,8 @@ static void curve_to_displist(const Curve *cu,
   }
 }
 
-void BKE_displist_fill(const ListBase *dispbase,
-                       ListBase *to,
+void BKE_displist_fill(const ListBaseT<DispList> *dispbase,
+                       ListBaseT<DispList> *to,
                        const float normal_proj[3],
                        const bool flip_normal)
 {
@@ -370,10 +370,10 @@ void BKE_displist_fill(const ListBase *dispbase,
   /* do not free polys, needed for wireframe display */
 }
 
-static void bevels_to_filledpoly(const Curve *cu, ListBase *dispbase)
+static void bevels_to_filledpoly(const Curve *cu, ListBaseT<DispList> *dispbase)
 {
-  ListBase front = {nullptr, nullptr};
-  ListBase back = {nullptr, nullptr};
+  ListBaseT<DispList> front = {nullptr, nullptr};
+  ListBaseT<DispList> back = {nullptr, nullptr};
 
   LISTBASE_FOREACH (const DispList *, dl, dispbase) {
     if (dl->type == DL_SURF) {
@@ -430,7 +430,7 @@ static void bevels_to_filledpoly(const Curve *cu, ListBase *dispbase)
   BKE_displist_fill(dispbase, dispbase, z_up, false);
 }
 
-static void curve_to_filledpoly(const Curve *cu, ListBase *dispbase)
+static void curve_to_filledpoly(const Curve *cu, ListBaseT<DispList> *dispbase)
 {
   if (!CU_DO_2DFILL(cu)) {
     return;
@@ -552,8 +552,8 @@ static ModifierData *curve_get_tessellate_point(const Scene *scene,
 void BKE_curve_calc_modifiers_pre(Depsgraph *depsgraph,
                                   const Scene *scene,
                                   Object *ob,
-                                  ListBase *source_nurb,
-                                  ListBase *target_nurb,
+                                  ListBaseT<Nurb> *source_nurb,
+                                  ListBaseT<Nurb> *target_nurb,
                                   const bool for_render)
 {
   const Curve *cu = (const Curve *)ob->data;
@@ -682,7 +682,7 @@ static bool do_curve_implicit_mesh_conversion(const Curve *curve,
 static blender::bke::GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
                                                            const Scene *scene,
                                                            Object *ob,
-                                                           const ListBase *dispbase,
+                                                           const ListBaseT<DispList> *dispbase,
                                                            const bool for_render)
 {
   const Curve *cu = (const Curve *)ob->data;
@@ -793,12 +793,12 @@ static blender::bke::GeometrySet evaluate_surface_object(Depsgraph *depsgraph,
                                                          const Scene *scene,
                                                          Object *ob,
                                                          const bool for_render,
-                                                         ListBase *r_dispbase)
+                                                         ListBaseT<DispList> *r_dispbase)
 {
   BLI_assert(ob->type == OB_SURF);
   const Curve *cu = (const Curve *)ob->data;
 
-  ListBase *deformed_nurbs = &ob->runtime->curve_cache->deformed_nurbs;
+  ListBaseT<Nurb> *deformed_nurbs = &ob->runtime->curve_cache->deformed_nurbs;
 
   if (!for_render && cu->editnurb) {
     BKE_nurbList_duplicate(deformed_nurbs, BKE_curve_editNurbs_get_for_read(cu));
@@ -943,7 +943,7 @@ static void rotateBevelPiece(const Curve *cu,
 static void fillBevelCap(const Nurb *nu,
                          const DispList *dlb,
                          const float *prev_fp,
-                         ListBase *dispbase)
+                         ListBaseT<DispList> *dispbase)
 {
   DispList *dl = MEM_callocN<DispList>(__func__);
   dl->verts = MEM_malloc_arrayN<float>(3 * size_t(dlb->nr), __func__);
@@ -1102,12 +1102,12 @@ static blender::bke::GeometrySet evaluate_curve_type_object(Depsgraph *depsgraph
                                                             const Scene *scene,
                                                             Object *ob,
                                                             const bool for_render,
-                                                            ListBase *r_dispbase)
+                                                            ListBaseT<DispList> *r_dispbase)
 {
   BLI_assert(ELEM(ob->type, OB_CURVES_LEGACY, OB_FONT));
   const Curve *cu = (const Curve *)ob->data;
 
-  ListBase *deformed_nurbs = &ob->runtime->curve_cache->deformed_nurbs;
+  ListBaseT<Nurb> *deformed_nurbs = &ob->runtime->curve_cache->deformed_nurbs;
 
   if (ob->type == OB_FONT) {
     BKE_vfont_to_curve_nubase(ob, FO_EDIT, deformed_nurbs);
@@ -1127,7 +1127,7 @@ static blender::bke::GeometrySet evaluate_curve_type_object(Depsgraph *depsgraph
   }
 
   /* If curve has no bevel will return nothing */
-  ListBase dlbev = BKE_curve_bevel_make(cu);
+  ListBaseT<DispList> dlbev = BKE_curve_bevel_make(cu);
 
   /* no bevel or extrude, and no width correction? */
   if (BLI_listbase_is_empty(&dlbev) && cu->offset == 1.0f) {
@@ -1177,8 +1177,8 @@ static blender::bke::GeometrySet evaluate_curve_type_object(Depsgraph *depsgraph
         }
       }
       else {
-        ListBase bottom_capbase = {nullptr, nullptr};
-        ListBase top_capbase = {nullptr, nullptr};
+        ListBaseT<DispList> bottom_capbase = {nullptr, nullptr};
+        ListBaseT<DispList> top_capbase = {nullptr, nullptr};
         float bottom_no[3] = {0.0f};
         float top_no[3] = {0.0f};
         float first_blend = 0.0f, last_blend = 0.0f;
@@ -1333,7 +1333,7 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
   const Curve &original_curve = *static_cast<const Curve *>(ob->data);
 
   ob->runtime->curve_cache = MEM_callocN<CurveCache>(__func__);
-  ListBase *dispbase = &ob->runtime->curve_cache->disp;
+  ListBaseT<DispList> *dispbase = &ob->runtime->curve_cache->disp;
 
   if (ob->type == OB_SURF) {
     blender::bke::GeometrySet geometry = evaluate_surface_object(
@@ -1372,7 +1372,7 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
   }
 }
 
-void BKE_displist_minmax(const ListBase *dispbase, float min[3], float max[3])
+void BKE_displist_minmax(const ListBaseT<DispList> *dispbase, float min[3], float max[3])
 {
   bool empty = true;
 

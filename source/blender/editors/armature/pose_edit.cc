@@ -509,7 +509,7 @@ static wmOperatorStatus pose_flip_names_exec(bContext *C, wmOperator *op)
 
   FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob) {
     bArmature *arm = static_cast<bArmature *>(ob->data);
-    ListBase bones_names = {nullptr};
+    ListBaseT<LinkData> bones_names = {nullptr};
 
     FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN (ob, pchan) {
       BLI_addtail(&bones_names, BLI_genericNodeN(pchan->name));

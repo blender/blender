@@ -56,7 +56,7 @@ bDeformGroup *BKE_object_defgroup_new(Object *ob, const StringRef name)
 
   name.copy_utf8_truncated(defgroup->name);
 
-  ListBase *defbase = BKE_object_defgroup_list_mutable(ob);
+  ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list_mutable(ob);
 
   BLI_addtail(defbase, defgroup);
   BKE_object_defgroup_unique_name(defgroup, ob);
@@ -71,7 +71,8 @@ bDeformGroup *BKE_object_defgroup_new(Object *ob, const StringRef name)
   return defgroup;
 }
 
-void BKE_defgroup_copy_list(ListBase *outbase, const ListBase *inbase)
+void BKE_defgroup_copy_list(ListBaseT<bDeformGroup> *outbase,
+                            const ListBaseT<bDeformGroup> *inbase)
 {
   BLI_listbase_clear(outbase);
   LISTBASE_FOREACH (const bDeformGroup *, defgroup, inbase) {
@@ -468,7 +469,7 @@ bool BKE_object_supports_vertex_groups(const Object *ob)
   return BKE_id_supports_vertex_groups(id);
 }
 
-const ListBase *BKE_id_defgroup_list_get(const ID *id)
+const ListBaseT<bDeformGroup> *BKE_id_defgroup_list_get(const ID *id)
 {
   switch (GS(id->name)) {
     case ID_ME: {
@@ -518,10 +519,10 @@ static const int *object_defgroup_active_index_get_p(const Object *ob)
   return nullptr;
 }
 
-ListBase *BKE_id_defgroup_list_get_mutable(ID *id)
+ListBaseT<bDeformGroup> *BKE_id_defgroup_list_get_mutable(ID *id)
 {
   /* Cast away const just for the accessor. */
-  return (ListBase *)BKE_id_defgroup_list_get(id);
+  return const_cast<ListBaseT<bDeformGroup> *>(BKE_id_defgroup_list_get(id));
 }
 
 bDeformGroup *BKE_object_defgroup_find_name(const Object *ob, const StringRef name)
@@ -529,7 +530,7 @@ bDeformGroup *BKE_object_defgroup_find_name(const Object *ob, const StringRef na
   if (name.is_empty()) {
     return nullptr;
   }
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
   LISTBASE_FOREACH (bDeformGroup *, group, defbase) {
     if (name == group->name) {
       return group;
@@ -538,7 +539,7 @@ bDeformGroup *BKE_object_defgroup_find_name(const Object *ob, const StringRef na
   return nullptr;
 }
 
-int BKE_defgroup_name_index(const ListBase *defbase, const StringRef name)
+int BKE_defgroup_name_index(const ListBaseT<bDeformGroup> *defbase, const StringRef name)
 {
   int index;
   if (!BKE_defgroup_listbase_name_find(defbase, name, &index, nullptr)) {
@@ -552,7 +553,7 @@ int BKE_id_defgroup_name_index(const ID *id, const StringRef name)
   return BKE_defgroup_name_index(BKE_id_defgroup_list_get(id), name);
 }
 
-bool BKE_defgroup_listbase_name_find(const ListBase *defbase,
+bool BKE_defgroup_listbase_name_find(const ListBaseT<bDeformGroup> *defbase,
                                      const StringRef name,
                                      int *r_index,
                                      bDeformGroup **r_group)
@@ -583,7 +584,7 @@ bool BKE_id_defgroup_name_find(const ID *id,
   return BKE_defgroup_listbase_name_find(BKE_id_defgroup_list_get(id), name, r_index, r_group);
 }
 
-const ListBase *BKE_object_defgroup_list(const Object *ob)
+const ListBaseT<bDeformGroup> *BKE_object_defgroup_list(const Object *ob)
 {
   BLI_assert(BKE_object_supports_vertex_groups(ob));
   return BKE_id_defgroup_list_get((const ID *)ob->data);
@@ -594,7 +595,7 @@ int BKE_object_defgroup_name_index(const Object *ob, const StringRef name)
   return BKE_id_defgroup_name_index((ID *)ob->data, name);
 }
 
-ListBase *BKE_object_defgroup_list_mutable(Object *ob)
+ListBaseT<bDeformGroup> *BKE_object_defgroup_list_mutable(Object *ob)
 {
   BLI_assert(BKE_object_supports_vertex_groups(ob));
   return BKE_id_defgroup_list_get_mutable((ID *)ob->data);
@@ -622,7 +623,7 @@ static int *object_defgroup_unlocked_flip_map_ex(const Object *ob,
                                                  const bool use_only_unlocked,
                                                  int *r_flip_map_num)
 {
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
   const int defbase_num = BLI_listbase_count(defbase);
   *r_flip_map_num = defbase_num;
 
@@ -682,7 +683,7 @@ int *BKE_object_defgroup_flip_map_single(const Object *ob,
                                          const int defgroup,
                                          int *r_flip_map_num)
 {
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
   const int defbase_num = BLI_listbase_count(defbase);
   *r_flip_map_num = defbase_num;
 
@@ -714,7 +715,7 @@ int *BKE_object_defgroup_flip_map_single(const Object *ob,
 
 int BKE_object_defgroup_flip_index(const Object *ob, int index, const bool use_default)
 {
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
   bDeformGroup *dg = static_cast<bDeformGroup *>(BLI_findlink(defbase, index));
   int flip_index = -1;
 
@@ -737,7 +738,7 @@ struct DeformGroupUniqueNameData {
 
 static bool defgroup_find_name_dupe(const StringRef name, bDeformGroup *dg, Object *ob)
 {
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
 
   LISTBASE_FOREACH (bDeformGroup *, curdef, defbase) {
     if (dg != curdef) {
@@ -1274,8 +1275,8 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(
 {
   int idx_src;
   int idx_dst;
-  const ListBase *src_list = &mesh_src.vertex_group_names;
-  ListBase *dst_defbase = &mesh_dst.vertex_group_names;
+  const ListBaseT<bDeformGroup> *src_list = &mesh_src.vertex_group_names;
+  ListBaseT<bDeformGroup> *dst_defbase = &mesh_dst.vertex_group_names;
 
   const int tot_dst = BLI_listbase_count(dst_defbase);
 
@@ -1415,7 +1416,7 @@ bool data_transfer_layersmapping_vgroups(blender::Vector<CustomDataTransferLayer
    * (we always create a data_dst, though).
    */
 
-  const ListBase *src_defbase = BKE_object_defgroup_list(ob_src);
+  const ListBaseT<bDeformGroup> *src_defbase = BKE_object_defgroup_list(ob_src);
   if (BLI_listbase_is_empty(src_defbase)) {
     if (use_delete) {
       BKE_object_defgroup_remove_all(ob_dst);
@@ -1442,7 +1443,7 @@ bool data_transfer_layersmapping_vgroups(blender::Vector<CustomDataTransferLayer
     if (tolayers >= 0) {
       /* NOTE: in this case we assume layer exists! */
       idx_dst = tolayers;
-      const ListBase *dst_defbase = BKE_object_defgroup_list(ob_dst);
+      const ListBaseT<bDeformGroup> *dst_defbase = BKE_object_defgroup_list(ob_dst);
       BLI_assert(idx_dst < BLI_listbase_count(dst_defbase));
       UNUSED_VARS_NDEBUG(dst_defbase);
     }
@@ -1591,7 +1592,7 @@ void BKE_defvert_weight_to_rgb(float r_rgb[3], const float weight)
 /** \name .blend file I/O
  * \{ */
 
-void BKE_defbase_blend_write(BlendWriter *writer, const ListBase *defbase)
+void BKE_defbase_blend_write(BlendWriter *writer, const ListBaseT<bDeformGroup> *defbase)
 {
   LISTBASE_FOREACH (bDeformGroup *, defgroup, defbase) {
     writer->write_struct(defgroup);

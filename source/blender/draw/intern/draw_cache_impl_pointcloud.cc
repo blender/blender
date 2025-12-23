@@ -311,7 +311,7 @@ gpu::Batch **pointcloud_surface_shaded_get(PointCloud *pointcloud,
   VectorSet<std::string> attrs_needed;
 
   for (GPUMaterial *gpu_material : Span<GPUMaterial *>(gpu_materials, mat_len)) {
-    ListBase gpu_attrs = GPU_material_attributes(gpu_material);
+    ListBaseT<GPUMaterialAttribute> gpu_attrs = GPU_material_attributes(gpu_material);
     LISTBASE_FOREACH (GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
       const StringRef name = gpu_attr->name;
       if (!attributes.contains(name)) {

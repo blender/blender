@@ -580,13 +580,13 @@ blender::Vector<Object *> BKE_view_layer_array_from_objects_in_mode_unique_data(
 Object *BKE_view_layer_active_object_get(const ViewLayer *view_layer);
 Object *BKE_view_layer_edit_object_get(const ViewLayer *view_layer);
 
-ListBase *BKE_view_layer_object_bases_get(ViewLayer *view_layer);
+ListBaseT<Base> *BKE_view_layer_object_bases_get(ViewLayer *view_layer);
 /**
  * Same as the above, but does not assert that the viewlayer is synced.
  *
  * \warning Use with _extreme_ care, as it means the data returned by this call may not be valid.
  */
-ListBase *BKE_view_layer_object_bases_unsynced_get(ViewLayer *view_layer);
+ListBaseT<Base> *BKE_view_layer_object_bases_unsynced_get(ViewLayer *view_layer);
 
 Base *BKE_view_layer_active_base_get(ViewLayer *view_layer);
 

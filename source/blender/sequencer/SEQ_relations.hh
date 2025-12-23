@@ -10,9 +10,10 @@
 
 #include <cstddef>
 
+#include "DNA_listBase.h"
+
 #include "BLI_enum_flags.hh"
 
-struct ListBase;
 struct Main;
 struct MovieClip;
 struct ReportList;
@@ -35,7 +36,7 @@ bool relations_check_scene_recursion(Scene *scene, ReportList *reports);
  * Check if "strip_main" (indirectly) uses strip "strip".
  */
 bool relations_render_loop_check(Strip *strip_main, Strip *strip);
-void relations_free_imbuf(Scene *scene, ListBase *seqbase, bool for_render);
+void relations_free_imbuf(Scene *scene, ListBaseT<Strip> *seqbase, bool for_render);
 
 /**
  * Invalidates various caches related to a given strip:
@@ -109,6 +110,6 @@ void final_image_cache_iterate(Scene *scene,
 size_t source_image_cache_calc_memory_size(const Scene *scene);
 size_t final_image_cache_calc_memory_size(const Scene *scene);
 
-bool exists_in_seqbase(const Strip *strip, const ListBase *seqbase);
+bool exists_in_seqbase(const Strip *strip, const ListBaseT<Strip> *seqbase);
 
 }  // namespace blender::seq

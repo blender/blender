@@ -263,7 +263,7 @@ static void ui_imageuser_pass_menu(bContext * /*C*/, blender::ui::Layout *layout
 
   nr = (rl == nullptr) ? 1 : 0;
 
-  ListBase added_passes;
+  ListBaseT<LinkData> added_passes;
   BLI_listbase_clear(&added_passes);
 
   /* rendered results don't have a Combined pass */

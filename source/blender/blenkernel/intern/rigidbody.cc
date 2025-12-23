@@ -1868,10 +1868,10 @@ struct KinematicSubstepData {
   float new_scale[3];
 };
 
-static ListBase rigidbody_create_substep_data(RigidBodyWorld *rbw)
+static ListBaseT<LinkData> rigidbody_create_substep_data(RigidBodyWorld *rbw)
 {
   /* Objects that we want to update substep location/rotation for. */
-  ListBase substep_targets = {nullptr, nullptr};
+  ListBaseT<LinkData> substep_targets = {nullptr, nullptr};
 
   FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (rbw->group, ob) {
     RigidBodyOb *rbo = ob->rigidbody_object;
@@ -1912,7 +1912,8 @@ static ListBase rigidbody_create_substep_data(RigidBodyWorld *rbw)
   return substep_targets;
 }
 
-static void rigidbody_update_kinematic_obj_substep(ListBase *substep_targets, float interp_fac)
+static void rigidbody_update_kinematic_obj_substep(ListBaseT<LinkData> *substep_targets,
+                                                   float interp_fac)
 {
   LISTBASE_FOREACH (LinkData *, link, substep_targets) {
     KinematicSubstepData *data = static_cast<KinematicSubstepData *>(link->data);
@@ -1963,7 +1964,7 @@ static void rigidbody_update_external_forces(Depsgraph *depsgraph,
     {
       EffectorWeights *effector_weights = rbw->effector_weights;
       EffectedPoint epoint;
-      ListBase *effectors;
+      ListBaseT<EffectorCache> *effectors;
 
       /* get effectors present in the group specified by effector_weights */
       effectors = BKE_effectors_create(depsgraph, ob, nullptr, effector_weights, false);
@@ -2014,7 +2015,7 @@ static void rigidbody_update_external_forces(Depsgraph *depsgraph,
   FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 }
 
-static void rigidbody_free_substep_data(ListBase *substep_targets)
+static void rigidbody_free_substep_data(ListBaseT<LinkData> *substep_targets)
 {
   LISTBASE_FOREACH (LinkData *, link, substep_targets) {
     KinematicSubstepData *data = static_cast<KinematicSubstepData *>(link->data);
@@ -2261,7 +2262,7 @@ void BKE_rigidbody_do_simulation(Depsgraph *depsgraph, Scene *scene, float ctime
 
     const float substep = timestep / rbw->substeps_per_frame;
 
-    ListBase kinematic_substep_targets = rigidbody_create_substep_data(rbw);
+    ListBaseT<LinkData> kinematic_substep_targets = rigidbody_create_substep_data(rbw);
 
     const float interp_step = 1.0f / rbw->substeps_per_frame;
     float cur_interp_val = interp_step;

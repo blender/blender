@@ -3733,7 +3733,7 @@ static void keylist_from_graph_editor(bContext &C, AnimKeylist &keylist)
     return;
   }
 
-  ListBase anim_data = blender::ed::graph::get_editable_fcurves(ac);
+  ListBaseT<bAnimListElem> anim_data = blender::ed::graph::get_editable_fcurves(ac);
 
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     FCurve *fcu = static_cast<FCurve *>(ale->key_data);
@@ -7156,7 +7156,7 @@ static wmOperatorStatus space_workspace_cycle_invoke(bContext *C,
   const eScreenCycle direction = eScreenCycle(RNA_enum_get(op->ptr, "direction"));
   WorkSpace *workspace_src = WM_window_get_active_workspace(win);
 
-  Vector<ID *> ordered = BKE_id_ordered_list(&bmain->workspaces);
+  Vector<ID *> ordered = BKE_id_ordered_list(&bmain->workspaces.cast<ID>());
   if (ordered.size() == 1) {
     return OPERATOR_CANCELLED;
   }
@@ -7354,7 +7354,7 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
   WM_keymap_ensure(keyconf, "Frames", SPACE_EMPTY, RGN_TYPE_WINDOW);
 
   /* dropbox for entire window */
-  ListBase *lb = WM_dropboxmap_find("Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
+  ListBaseT<wmDropBox> *lb = WM_dropboxmap_find("Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_dropbox_add(
       lb, "WM_OT_drop_blend_file", blend_file_drop_poll, blend_file_drop_copy, nullptr, nullptr);
   WM_dropbox_add(lb,

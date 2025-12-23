@@ -261,7 +261,7 @@ static void animchan_sync_gplayer(bAnimListElem *ale)
 void ANIM_sync_animchannels_to_data(const bContext *C)
 {
   bAnimContext ac;
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   bActionGroup *active_agrp = nullptr;
@@ -353,7 +353,7 @@ void ANIM_sync_animchannels_to_data(const bContext *C)
   ANIM_animdata_freelist(&anim_data);
 }
 
-void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data)
+void ANIM_animdata_update(bAnimContext *ac, ListBaseT<bAnimListElem> *anim_data)
 {
   LISTBASE_FOREACH (bAnimListElem *, ale, anim_data) {
     if (ale->type == ANIMTYPE_GPLAYER) {
@@ -460,7 +460,7 @@ void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data)
   }
 }
 
-void ANIM_animdata_freelist(ListBase *anim_data)
+void ANIM_animdata_freelist(ListBaseT<bAnimListElem> *anim_data)
 {
 #ifndef NDEBUG
   bAnimListElem *ale, *ale_next;
@@ -504,7 +504,7 @@ void ANIM_deselect_keys_in_animation_editors(bContext *C)
       if (!ANIM_animdata_get_context(C, &ac)) {
         continue;
       }
-      ListBase anim_data = {nullptr, nullptr};
+      ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
       eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FCURVESONLY);
       ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
       LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {

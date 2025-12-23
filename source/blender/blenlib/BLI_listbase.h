@@ -78,9 +78,8 @@ void *BLI_listbase_findafter_string_ptr(Link *link, const char *id, int offset);
  * Finds the first element of listbase which contains the specified pointer value
  * at the specified offset, returning NULL if not found.
  */
-void *BLI_findptr(const struct ListBase *listbase,
-                  const void *ptr,
-                  int offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+void *BLI_findptr(const ListBase *listbase, const void *ptr, int offset) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(1);
 /**
  * Finds the first element of listbase which contains the specified bytes
  * at the specified offset, returning NULL if not found.

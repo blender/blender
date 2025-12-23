@@ -62,7 +62,7 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C, Object *ob, Li
   }
 
   if (mesh_eval) {
-    ListBase nurbslist = {nullptr, nullptr};
+    ListBaseT<Nurb> nurbslist = {nullptr, nullptr};
 
     BKE_mesh_to_curve_nurblist(mesh_eval, &nurbslist, 0); /* wire */
     BKE_mesh_to_curve_nurblist(mesh_eval, &nurbslist, 1); /* boundary */

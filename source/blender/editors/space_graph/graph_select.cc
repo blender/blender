@@ -90,7 +90,7 @@ static bool fcurve_handle_sel_check(SpaceGraph *sipo, BezTriple *bezt)
 
 /* check if the given vertex is within bounds or not */
 /* TODO: should we return if we hit something? */
-static void nearest_fcurve_vert_store(ListBase *matches,
+static void nearest_fcurve_vert_store(ListBaseT<tNearestVertInfo> *matches,
                                       View2D *v2d,
                                       FCurve *fcu,
                                       eAnim_ChannelType ctype,
@@ -157,9 +157,11 @@ static void nearest_fcurve_vert_store(ListBase *matches,
 }
 
 /* helper for find_nearest_fcurve_vert() - build the list of nearest matches */
-static void get_nearest_fcurve_verts_list(bAnimContext *ac, const int mval[2], ListBase *matches)
+static void get_nearest_fcurve_verts_list(bAnimContext *ac,
+                                          const int mval[2],
+                                          ListBaseT<tNearestVertInfo> *matches)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   SpaceGraph *sipo = (SpaceGraph *)ac->sl;
@@ -255,7 +257,7 @@ static void get_nearest_fcurve_verts_list(bAnimContext *ac, const int mval[2], L
 }
 
 /* helper for find_nearest_fcurve_vert() - get the best match to use */
-static tNearestVertInfo *get_best_nearest_fcurve_vert(ListBase *matches)
+static tNearestVertInfo *get_best_nearest_fcurve_vert(ListBaseT<tNearestVertInfo> *matches)
 {
   /* abort if list is empty */
   if (BLI_listbase_is_empty(matches)) {
@@ -322,7 +324,7 @@ static tNearestVertInfo *get_best_nearest_fcurve_vert(ListBase *matches)
  */
 static tNearestVertInfo *find_nearest_fcurve_vert(bAnimContext *ac, const int mval[2])
 {
-  ListBase matches = {nullptr, nullptr};
+  ListBaseT<tNearestVertInfo> matches = {nullptr, nullptr};
   tNearestVertInfo *nvi;
 
   /* step 1: get the nearest verts */
@@ -350,7 +352,7 @@ static tNearestVertInfo *find_nearest_fcurve_vert(bAnimContext *ac, const int mv
 
 void deselect_graph_keys(bAnimContext *ac, bool test, eEditKeyframes_Select sel, bool do_channels)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   KeyframeEditData ked = {{nullptr}};
@@ -526,9 +528,9 @@ static int initialize_animdata_selection_filter()
   return filter;
 }
 
-static ListBase initialize_box_select_anim_data(const int filter, bAnimContext *ac)
+static ListBaseT<bAnimListElem> initialize_box_select_anim_data(const int filter, bAnimContext *ac)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   ANIM_animdata_filter(
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
   return anim_data;
@@ -601,7 +603,7 @@ static bool box_select_graphkeys(bAnimContext *ac,
 {
   const rctf rectf = initialize_box_select_coords(ac, rectf_view);
   const int filter = initialize_animdata_selection_filter();
-  ListBase anim_data = initialize_box_select_anim_data(filter, ac);
+  ListBaseT<bAnimListElem> anim_data = initialize_box_select_anim_data(filter, ac);
   rctf scaled_rectf;
   KeyframeEditData ked;
   int mapping_flag;
@@ -759,7 +761,7 @@ static void box_select_graphcurves(bAnimContext *ac,
                                    void *data)
 {
   const int filter = initialize_animdata_selection_filter();
-  ListBase anim_data = initialize_box_select_anim_data(filter, ac);
+  ListBaseT<bAnimListElem> anim_data = initialize_box_select_anim_data(filter, ac);
   rctf scaled_rectf;
   KeyframeEditData ked;
   int mapping_flag;
@@ -1171,7 +1173,7 @@ static const EnumPropertyItem prop_column_select_types[] = {
  * `action_select.cc` should de-duplicate. */
 static void markers_selectkeys_between(bAnimContext *ac)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   KeyframeEditFunc ok_cb, select_cb;
@@ -1212,7 +1214,7 @@ static void markers_selectkeys_between(bAnimContext *ac)
 /* Selects all visible keyframes in the same frames as the specified elements */
 static void columnselect_graph_keys(bAnimContext *ac, short mode)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   Scene *scene = ac->scene;
@@ -1249,7 +1251,7 @@ static void columnselect_graph_keys(bAnimContext *ac, short mode)
       break;
 
     case GRAPHKEYS_COLUMNSEL_MARKERS_COLUMN: /* list of selected markers */
-      ED_markers_make_cfra_list(ac->markers, &ked.list, true);
+      ED_markers_make_cfra_list(ac->markers, static_cast<ListBaseT<CfraElem> *>(&ked.list), true);
       break;
 
     default: /* invalid option */
@@ -1344,7 +1346,7 @@ static wmOperatorStatus graphkeys_select_linked_exec(bContext *C, wmOperator * /
 {
   bAnimContext ac;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   KeyframeEditFunc ok_cb = ANIM_editkeyframes_ok(BEZT_OK_SELECTED);
@@ -1404,7 +1406,7 @@ void GRAPH_OT_select_linked(wmOperatorType *ot)
 /* Common code to perform selection */
 static void select_moreless_graph_keys(bAnimContext *ac, short mode)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   KeyframeEditData ked;
@@ -1536,7 +1538,7 @@ static void graphkeys_select_leftright(bAnimContext *ac,
                                        short leftright,
                                        eEditKeyframes_Select select_mode)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   KeyframeEditFunc ok_cb, select_cb;
@@ -1874,7 +1876,7 @@ static wmOperatorStatus graphkeys_mselect_column(bAnimContext *ac,
                                                  eEditKeyframes_Select select_mode,
                                                  bool wait_to_deselect_others)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
   bool run_modal = false;
 
@@ -2083,7 +2085,7 @@ static void graphkeys_select_key_handles(
     const enum eGraphKey_SelectKeyHandles_Action key_action,
     const enum eGraphKey_SelectKeyHandles_Action right_handle_action)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE |
                                     ANIMFILTER_FCURVESONLY | ANIMFILTER_NODUPLIS);

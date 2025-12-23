@@ -55,7 +55,7 @@ bool transform_test_overlap(const Scene *scene, Strip *strip1, Strip *strip2)
            (strip1->left_handle() >= strip2->right_handle(scene))) == 0);
 }
 
-bool transform_test_overlap(const Scene *scene, ListBase *seqbasep, Strip *test)
+bool transform_test_overlap(const Scene *scene, ListBaseT<Strip> *seqbasep, Strip *test)
 {
   Strip *strip;
 
@@ -101,7 +101,7 @@ void transform_translate_strip(Scene *evil_scene, Strip *strip, int delta)
   time_update_meta_strip_range(evil_scene, lookup_meta_by_strip(evil_scene->ed, strip));
 }
 
-bool transform_seqbase_shuffle_ex(ListBase *seqbasep,
+bool transform_seqbase_shuffle_ex(ListBaseT<Strip> *seqbasep,
                                   Strip *test,
                                   Scene *evil_scene,
                                   int channel_delta)
@@ -111,7 +111,7 @@ bool transform_seqbase_shuffle_ex(ListBase *seqbasep,
 
   strip_channel_set(test, test->channel + channel_delta);
 
-  const ListBase *channels = channels_displayed_get(editing_get(evil_scene));
+  const ListBaseT<SeqTimelineChannel> *channels = channels_displayed_get(editing_get(evil_scene));
   SeqTimelineChannel *channel = channel_get_by_index(channels, test->channel);
 
   bool use_fallback_translation = false;
@@ -150,7 +150,7 @@ bool transform_seqbase_shuffle_ex(ListBase *seqbasep,
   return true;
 }
 
-bool transform_seqbase_shuffle(ListBase *seqbasep, Strip *test, Scene *evil_scene)
+bool transform_seqbase_shuffle(ListBaseT<Strip> *seqbasep, Strip *test, Scene *evil_scene)
 {
   return transform_seqbase_shuffle_ex(seqbasep, test, evil_scene, 1);
 }
@@ -168,7 +168,7 @@ static bool shuffle_strip_test_overlap(const Scene *scene,
 
 static int shuffle_strip_time_offset_get(const Scene *scene,
                                          Span<Strip *> strips_to_shuffle,
-                                         ListBase *seqbasep,
+                                         ListBaseT<Strip> *seqbasep,
                                          char dir)
 {
   int offset = 0;
@@ -204,9 +204,9 @@ static int shuffle_strip_time_offset_get(const Scene *scene,
 }
 
 bool transform_seqbase_shuffle_time(Span<Strip *> strips_to_shuffle,
-                                    ListBase *seqbasep,
+                                    ListBaseT<Strip> *seqbasep,
                                     Scene *evil_scene,
-                                    ListBase *markers,
+                                    ListBaseT<TimeMarker> *markers,
                                     const bool use_sync_markers)
 {
   VectorSet<Strip *> empty_set;
@@ -216,9 +216,9 @@ bool transform_seqbase_shuffle_time(Span<Strip *> strips_to_shuffle,
 
 bool transform_seqbase_shuffle_time(Span<Strip *> strips_to_shuffle,
                                     Span<Strip *> time_dependent_strips,
-                                    ListBase *seqbasep,
+                                    ListBaseT<Strip> *seqbasep,
                                     Scene *evil_scene,
-                                    ListBase *markers,
+                                    ListBaseT<TimeMarker> *markers,
                                     const bool use_sync_markers)
 {
   int offset_l = shuffle_strip_time_offset_get(evil_scene, strips_to_shuffle, seqbasep, 'L');
@@ -263,7 +263,7 @@ static VectorSet<Strip *> extract_standalone_strips(Span<Strip *> transformed_st
 }
 
 /* Query strips positioned after left edge of transformed strips bound-box. */
-static VectorSet<Strip *> query_right_side_strips(ListBase *seqbase,
+static VectorSet<Strip *> query_right_side_strips(ListBaseT<Strip> *seqbase,
                                                   Span<Strip *> transformed_strips,
                                                   Span<Strip *> time_dependent_strips)
 {
@@ -293,12 +293,12 @@ static VectorSet<Strip *> query_right_side_strips(ListBase *seqbase,
 /* Offset all strips positioned after left edge of transformed strips bound-box by amount equal
  * to overlap of transformed strips. */
 static void strip_transform_handle_expand_to_fit(Scene *scene,
-                                                 ListBase *seqbasep,
+                                                 ListBaseT<Strip> *seqbasep,
                                                  Span<Strip *> transformed_strips,
                                                  Span<Strip *> time_dependent_strips,
                                                  bool use_sync_markers)
 {
-  ListBase *markers = &scene->markers;
+  ListBaseT<TimeMarker> *markers = &scene->markers;
 
   VectorSet right_side_strips = query_right_side_strips(
       seqbasep, transformed_strips, time_dependent_strips);
@@ -324,7 +324,7 @@ static void strip_transform_handle_expand_to_fit(Scene *scene,
 }
 
 static VectorSet<Strip *> query_overwrite_targets(const Scene *scene,
-                                                  ListBase *seqbasep,
+                                                  ListBaseT<Strip> *seqbasep,
                                                   Span<Strip *> transformed_strips)
 {
   VectorSet<Strip *> overwrite_targets = query_unselected_strips(seqbasep);
@@ -386,7 +386,7 @@ static eOvelapDescrition overlap_description_get(const Scene *scene,
 
 /* Split strip in 3 parts, remove middle part and fit transformed inside. */
 static void strip_transform_handle_overwrite_split(Scene *scene,
-                                                   ListBase *seqbasep,
+                                                   ListBaseT<Strip> *seqbasep,
                                                    const Strip *transformed,
                                                    Strip *target)
 {
@@ -419,7 +419,7 @@ static void strip_transform_handle_overwrite_split(Scene *scene,
 /* Trim strips by adjusting handle position.
  * This is bit more complicated in case overlap happens on effect. */
 static void strip_transform_handle_overwrite_trim(Scene *scene,
-                                                  ListBase *seqbasep,
+                                                  ListBaseT<Strip> *seqbasep,
                                                   const Strip *transformed,
                                                   Strip *target,
                                                   const eOvelapDescrition overlap)
@@ -447,13 +447,13 @@ static void strip_transform_handle_overwrite_trim(Scene *scene,
 }
 
 static void strip_transform_handle_overwrite(Scene *scene,
-                                             ListBase *seqbasep,
+                                             ListBaseT<Strip> *seqbasep,
                                              Span<Strip *> transformed_strips)
 {
   VectorSet targets = query_overwrite_targets(scene, seqbasep, transformed_strips);
   VectorSet<Strip *> strips_to_delete;
 
-  const ListBase *channels = channels_displayed_get(editing_get(scene));
+  const ListBaseT<SeqTimelineChannel> *channels = channels_displayed_get(editing_get(scene));
   for (Strip *target : targets) {
     for (Strip *transformed : transformed_strips) {
       if (transformed->channel != target->channel) {
@@ -489,12 +489,12 @@ static void strip_transform_handle_overwrite(Scene *scene,
 }
 
 static void strip_transform_handle_overlap_shuffle(Scene *scene,
-                                                   ListBase *seqbasep,
+                                                   ListBaseT<Strip> *seqbasep,
                                                    Span<Strip *> transformed_strips,
                                                    Span<Strip *> time_dependent_strips,
                                                    bool use_sync_markers)
 {
-  ListBase *markers = &scene->markers;
+  ListBaseT<TimeMarker> *markers = &scene->markers;
 
   /* Shuffle non strips with no effects attached. */
   VectorSet standalone_strips = extract_standalone_strips(transformed_strips);
@@ -503,7 +503,7 @@ static void strip_transform_handle_overlap_shuffle(Scene *scene,
 }
 
 void transform_handle_overlap(Scene *scene,
-                              ListBase *seqbasep,
+                              ListBaseT<Strip> *seqbasep,
                               Span<Strip *> transformed_strips,
                               bool use_sync_markers)
 {
@@ -512,7 +512,7 @@ void transform_handle_overlap(Scene *scene,
 }
 
 void transform_handle_overlap(Scene *scene,
-                              ListBase *seqbasep,
+                              ListBaseT<Strip> *seqbasep,
                               Span<Strip *> transformed_strips,
                               Span<Strip *> time_dependent_strips,
                               bool use_sync_markers)
@@ -544,7 +544,7 @@ void transform_handle_overlap(Scene *scene,
 }
 
 void transform_offset_after_frame(Scene *scene,
-                                  ListBase *seqbase,
+                                  ListBaseT<Strip> *seqbase,
                                   const int delta,
                                   const int timeline_frame)
 {
@@ -569,7 +569,7 @@ void strip_channel_set(Strip *strip, int channel)
   strip->channel = math::clamp(channel, 1, MAX_CHANNELS);
 }
 
-bool transform_is_locked(const ListBase *channels, const Strip *strip)
+bool transform_is_locked(const ListBaseT<SeqTimelineChannel> *channels, const Strip *strip)
 {
   const SeqTimelineChannel *channel = channel_get_by_index(channels, strip->channel);
   return strip->flag & SEQ_LOCK ||

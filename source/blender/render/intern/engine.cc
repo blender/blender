@@ -54,7 +54,7 @@
 
 /* Render Engine Types */
 
-ListBase R_engines = {nullptr, nullptr};
+ListBaseT<RenderEngineType> R_engines = {nullptr, nullptr};
 
 static CLG_LogRef LOG = {"render"};
 

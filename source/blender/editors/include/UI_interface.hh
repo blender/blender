@@ -201,7 +201,7 @@ bool drop_target_apply_drop(bContext &C,
                             const ARegion &region,
                             const wmEvent &event,
                             const DropTargetInterface &drop_target,
-                            const ListBase &drags);
+                            const ListBaseT<wmDrag> &drags);
 /**
  * Call #DropTargetInterface::drop_tooltip() and return the result as newly allocated C string
  * (unless the result is empty, returns null then). Needs freeing with MEM_freeN().

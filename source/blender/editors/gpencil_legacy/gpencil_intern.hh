@@ -33,7 +33,6 @@ struct wmWindow;
 struct Depsgraph;
 struct Object;
 struct ScrArea;
-struct ListBase;
 struct bGPDlayer;
 
 struct EnumPropertyItem;

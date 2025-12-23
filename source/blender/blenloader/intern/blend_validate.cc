@@ -160,7 +160,7 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
 
 bool BLO_main_validate_shapekeys(Main *bmain, ReportList *reports)
 {
-  ListBase *lb;
+  ListBaseT<ID> *lb;
   ID *id;
   bool is_valid = true;
 

@@ -92,7 +92,7 @@ bUserMenu *ED_screen_user_menu_ensure(bContext *C)
 /** \name Menu Item
  * \{ */
 
-bUserMenuItem_Op *ED_screen_user_menu_item_find_operator(ListBase *lb,
+bUserMenuItem_Op *ED_screen_user_menu_item_find_operator(ListBaseT<bUserMenuItem> *lb,
                                                          const wmOperatorType *ot,
                                                          IDProperty *prop,
                                                          const char *op_prop_enum,
@@ -116,7 +116,8 @@ bUserMenuItem_Op *ED_screen_user_menu_item_find_operator(ListBase *lb,
   return nullptr;
 }
 
-bUserMenuItem_Menu *ED_screen_user_menu_item_find_menu(ListBase *lb, const MenuType *mt)
+bUserMenuItem_Menu *ED_screen_user_menu_item_find_menu(ListBaseT<bUserMenuItem> *lb,
+                                                       const MenuType *mt)
 {
   LISTBASE_FOREACH (bUserMenuItem *, umi, lb) {
     if (umi->type == USER_MENU_TYPE_MENU) {
@@ -129,7 +130,7 @@ bUserMenuItem_Menu *ED_screen_user_menu_item_find_menu(ListBase *lb, const MenuT
   return nullptr;
 }
 
-bUserMenuItem_Prop *ED_screen_user_menu_item_find_prop(ListBase *lb,
+bUserMenuItem_Prop *ED_screen_user_menu_item_find_prop(ListBaseT<bUserMenuItem> *lb,
                                                        const char *context_data_path,
                                                        const char *prop_id,
                                                        int prop_index)
@@ -147,7 +148,7 @@ bUserMenuItem_Prop *ED_screen_user_menu_item_find_prop(ListBase *lb,
   return nullptr;
 }
 
-void ED_screen_user_menu_item_add_operator(ListBase *lb,
+void ED_screen_user_menu_item_add_operator(ListBaseT<bUserMenuItem> *lb,
                                            const char *ui_name,
                                            const wmOperatorType *ot,
                                            const IDProperty *prop,
@@ -165,7 +166,9 @@ void ED_screen_user_menu_item_add_operator(ListBase *lb,
   umi_op->prop = prop ? IDP_CopyProperty(prop) : nullptr;
 }
 
-void ED_screen_user_menu_item_add_menu(ListBase *lb, const char *ui_name, const MenuType *mt)
+void ED_screen_user_menu_item_add_menu(ListBaseT<bUserMenuItem> *lb,
+                                       const char *ui_name,
+                                       const MenuType *mt)
 {
   bUserMenuItem_Menu *umi_mt = (bUserMenuItem_Menu *)BKE_blender_user_menu_item_add(
       lb, USER_MENU_TYPE_MENU);
@@ -175,7 +178,7 @@ void ED_screen_user_menu_item_add_menu(ListBase *lb, const char *ui_name, const 
   STRNCPY_UTF8(umi_mt->mt_idname, mt->idname);
 }
 
-void ED_screen_user_menu_item_add_prop(ListBase *lb,
+void ED_screen_user_menu_item_add_prop(ListBaseT<bUserMenuItem> *lb,
                                        const char *ui_name,
                                        const char *context_data_path,
                                        const char *prop_id,
@@ -189,7 +192,7 @@ void ED_screen_user_menu_item_add_prop(ListBase *lb,
   umi_pr->prop_index = prop_index;
 }
 
-void ED_screen_user_menu_item_remove(ListBase *lb, bUserMenuItem *umi)
+void ED_screen_user_menu_item_remove(ListBaseT<bUserMenuItem> *lb, bUserMenuItem *umi)
 {
   BLI_remlink(lb, umi);
   BKE_blender_user_menu_item_free(umi);

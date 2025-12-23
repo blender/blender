@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include "DNA_listBase.h"
+
 #include "BLI_index_mask.hh"
 
 #include "ED_grease_pencil.hh"
@@ -17,8 +19,8 @@
 
 struct BMEditMesh;
 struct BMesh;
+struct bConstraint;
 struct BezTriple;
-struct ListBase;
 struct Object;
 struct TransData;
 struct TransDataCurveHandleFlags;
@@ -172,7 +174,7 @@ void transform_around_single_fallback(TransInfo *t);
  * These particular constraints benefit from this, but others don't, hence
  * this semi-hack ;-)    - Aligorith
  */
-bool constraints_list_needinv(TransInfo *t, ListBase *list);
+bool constraints_list_needinv(TransInfo *t, ListBaseT<bConstraint> *list);
 void calc_distanceCurveVerts(TransData *head, TransData *tail, bool cyclic);
 /**
  * Utility function for getting the handle data from bezier's.

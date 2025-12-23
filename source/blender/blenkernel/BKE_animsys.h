@@ -8,6 +8,8 @@
  * \ingroup bke
  */
 
+#include "DNA_listBase.h"
+
 #include "BLI_bit_vector.hh"
 #include "BLI_span.hh"
 #include "BLI_sys_types.h" /* for bool */
@@ -23,12 +25,12 @@ struct ID;
 struct KS_Path;
 struct KeyingSet;
 struct LibraryForeachIDData;
-struct ListBase;
 struct Main;
 struct NlaKeyframingContext;
 struct PathResolvedRNA;
 struct PointerRNA;
 struct PropertyRNA;
+struct TimeMarker;
 struct bAction;
 struct bActionGroup;
 
@@ -56,8 +58,11 @@ AnimationEvalContext BKE_animsys_eval_context_construct_at(
  * Used to create a new 'custom' KeyingSet for the user,
  * that will be automatically added to the stack.
  */
-struct KeyingSet *BKE_keyingset_add(
-    struct ListBase *list, const char idname[], const char name[], short flag, short keyingflag);
+struct KeyingSet *BKE_keyingset_add(ListBaseT<KeyingSet> *list,
+                                    const char idname[],
+                                    const char name[],
+                                    short flag,
+                                    short keyingflag);
 
 /**
  * Add a path to a KeyingSet. Nothing is returned for now.
@@ -83,14 +88,14 @@ struct KS_Path *BKE_keyingset_find_path(struct KeyingSet *ks,
                                         int group_mode);
 
 /** Copy all KeyingSets in the given list. */
-void BKE_keyingsets_copy(struct ListBase *newlist, const struct ListBase *list);
+void BKE_keyingsets_copy(ListBaseT<KeyingSet> *newlist, const ListBaseT<KeyingSet> *list);
 
 /**
  * Process the ID pointers inside a scene's keying-sets, in.
  * see `BKE_lib_query.hh` for details.
  */
 void BKE_keyingsets_foreach_id(struct LibraryForeachIDData *data,
-                               const struct ListBase *keyingsets);
+                               const ListBaseT<KeyingSet> *keyingsets);
 
 /** Free the given Keying Set path. */
 void BKE_keyingset_free_path(struct KeyingSet *ks, struct KS_Path *ksp);
@@ -99,10 +104,10 @@ void BKE_keyingset_free_path(struct KeyingSet *ks, struct KS_Path *ksp);
 void BKE_keyingset_free_paths(struct KeyingSet *ks);
 
 /** Free all the KeyingSets in the given list. */
-void BKE_keyingsets_free(struct ListBase *list);
+void BKE_keyingsets_free(ListBaseT<KeyingSet> *list);
 
-void BKE_keyingsets_blend_write(struct BlendWriter *writer, struct ListBase *list);
-void BKE_keyingsets_blend_read_data(struct BlendDataReader *reader, struct ListBase *list);
+void BKE_keyingsets_blend_write(struct BlendWriter *writer, ListBaseT<KeyingSet> *list);
+void BKE_keyingsets_blend_read_data(struct BlendDataReader *reader, ListBaseT<KeyingSet> *list);
 
 /* ************************************* */
 /* Path Fixing API */
@@ -256,7 +261,7 @@ typedef struct NlaKeyframingContext NlaKeyframingContext;
  * \return Keyframing context, or NULL if not necessary.
  */
 struct NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(
-    struct ListBase *cache,
+    ListBaseT<NlaKeyframingContext> *cache,
     struct PointerRNA *ptr,
     struct AnimData *adt,
     const struct AnimationEvalContext *anim_eval_context);
@@ -287,7 +292,7 @@ void BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context,
 /**
  * Free all cached contexts from the list.
  */
-void BKE_animsys_free_nla_keyframing_context_cache(struct ListBase *cache);
+void BKE_animsys_free_nla_keyframing_context_cache(ListBaseT<NlaKeyframingContext> *cache);
 
 /* ************************************* */
 /* Evaluation API */
@@ -392,8 +397,8 @@ void BKE_animsys_update_driver_array(struct ID *id);
 
 /* ************************************* */
 
-void BKE_time_markers_blend_write(BlendWriter *writer, ListBase /* TimeMarker */ &markers);
-void BKE_time_markers_blend_read(BlendDataReader *reader, ListBase /* TimeMarker */ &markers);
+void BKE_time_markers_blend_write(BlendWriter *writer, ListBaseT<TimeMarker> &markers);
+void BKE_time_markers_blend_read(BlendDataReader *reader, ListBaseT<TimeMarker> &markers);
 
 /**
  * Copy a list of time markers.
@@ -402,6 +407,6 @@ void BKE_time_markers_blend_read(BlendDataReader *reader, ListBase /* TimeMarker
  *
  * \param flag: ID copy flags. Corresponds to the `flag` parameter of `BKE_id_copy_ex()`.
  */
-void BKE_copy_time_markers(ListBase /* TimeMarker */ &markers_dst,
-                           const ListBase /* TimeMarker */ &markers_src,
+void BKE_copy_time_markers(ListBaseT<TimeMarker> &markers_dst,
+                           const ListBaseT<TimeMarker> &markers_src,
                            int flag);

@@ -48,8 +48,8 @@ static ImBuf *do_multicam(const RenderData *context,
   if (!ed || state->strips_rendering_seqbase.contains(strip)) {
     return nullptr;
   }
-  ListBase *seqbasep = get_seqbase_by_strip(context->scene, strip);
-  ListBase *channels = get_channels_by_strip(ed, strip);
+  ListBaseT<Strip> *seqbasep = get_seqbase_by_strip(context->scene, strip);
+  ListBaseT<SeqTimelineChannel> *channels = get_channels_by_strip(ed, strip);
   if (!seqbasep) {
     return nullptr;
   }

@@ -60,6 +60,8 @@
  * - it puts timer to sleep (or removes?)
  */
 
+struct ThreadSlot;
+
 struct wmJob {
   wmJob *next, *prev;
 
@@ -129,7 +131,7 @@ struct wmJob {
   void (*run_free)(void *);
 
   /** We use BLI_threads api, but per job only 1 thread runs. */
-  ListBase threads;
+  ListBaseT<ThreadSlot> threads;
 
   double start_time;
 

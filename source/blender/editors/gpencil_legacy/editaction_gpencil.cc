@@ -64,7 +64,7 @@ bool ED_gpencil_layer_frames_looper(bGPDlayer *gpl,
 /* ****************************************** */
 /* Data Conversion Tools */
 
-void ED_gpencil_layer_make_cfra_list(bGPDlayer *gpl, ListBase *elems, bool onlysel)
+void ED_gpencil_layer_make_cfra_list(bGPDlayer *gpl, ListBaseT<CfraElem> *elems, bool onlysel)
 {
   CfraElem *ce;
 
@@ -297,7 +297,7 @@ void ED_gpencil_layer_frames_keytype_set(bGPDlayer *gpl, short type)
  */
 
 /* globals for copy/paste data (like for other copy/paste buffers) */
-static ListBase gpencil_anim_copybuf = {nullptr, nullptr};
+static ListBaseT<bGPDlayer> gpencil_anim_copybuf = {nullptr, nullptr};
 static int gpencil_anim_copy_firstframe = 999999999;
 static int gpencil_anim_copy_lastframe = -999999999;
 static int gpencil_anim_copy_cfra = 0;
@@ -314,7 +314,7 @@ void ED_gpencil_anim_copybuf_free()
 
 bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   Scene *scene = ac->scene;
@@ -334,7 +334,7 @@ bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac)
       continue;
     }
 
-    ListBase copied_frames = {nullptr, nullptr};
+    ListBaseT<bGPDframe> copied_frames = {nullptr, nullptr};
     bGPDlayer *gpl = (bGPDlayer *)ale->data;
 
     /* loop over frames, and copy only selected frames */
@@ -377,7 +377,7 @@ bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac)
 
 bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   Scene *scene = ac->scene;

@@ -73,7 +73,7 @@ static void bevel_quarter_fill(const Curve *curve,
 }
 
 static void curve_bevel_make_extrude_and_fill(const Curve *cu,
-                                              ListBase *disp,
+                                              ListBaseT<DispList> *disp,
                                               const bool use_extrude,
                                               const CurveBevelFillType fill_type)
 {
@@ -182,7 +182,7 @@ static void curve_bevel_make_extrude_and_fill(const Curve *cu,
   }
 }
 
-static void curve_bevel_make_full_circle(const Curve *cu, ListBase *disp)
+static void curve_bevel_make_full_circle(const Curve *cu, ListBaseT<DispList> *disp)
 {
   const int nr = 4 + 2 * cu->bevresol;
 
@@ -207,7 +207,7 @@ static void curve_bevel_make_full_circle(const Curve *cu, ListBase *disp)
   }
 }
 
-static void curve_bevel_make_only_extrude(const Curve *cu, ListBase *disp)
+static void curve_bevel_make_only_extrude(const Curve *cu, ListBaseT<DispList> *disp)
 {
   DispList *dl = MEM_callocN<DispList>(__func__);
   dl->verts = MEM_malloc_arrayN<float>(3 * 2, __func__);
@@ -224,7 +224,7 @@ static void curve_bevel_make_only_extrude(const Curve *cu, ListBase *disp)
   fp[5] = cu->extrude;
 }
 
-static void curve_bevel_make_from_object(const Curve *cu, ListBase *disp)
+static void curve_bevel_make_from_object(const Curve *cu, ListBaseT<DispList> *disp)
 {
   if (cu->bevobj == nullptr) {
     return;
@@ -235,7 +235,7 @@ static void curve_bevel_make_from_object(const Curve *cu, ListBase *disp)
 
   Curve *bevcu = static_cast<Curve *>(cu->bevobj->data);
   if (bevcu->extrude == 0.0f && bevcu->bevel_radius == 0.0f) {
-    ListBase bevdisp = {nullptr, nullptr};
+    ListBaseT<DispList> bevdisp = {nullptr, nullptr};
     float facx = cu->bevobj->scale[0];
     float facy = cu->bevobj->scale[1];
 
@@ -276,9 +276,9 @@ static void curve_bevel_make_from_object(const Curve *cu, ListBase *disp)
   }
 }
 
-ListBase BKE_curve_bevel_make(const Curve *curve)
+ListBaseT<DispList> BKE_curve_bevel_make(const Curve *curve)
 {
-  ListBase bevel_shape = {nullptr, nullptr};
+  ListBaseT<DispList> bevel_shape = {nullptr, nullptr};
 
   if (curve->bevel_mode == CU_BEV_MODE_OBJECT) {
     if (curve->bevobj != nullptr) {

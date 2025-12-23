@@ -2564,7 +2564,7 @@ static bNodeSocket *find_socket_by_key(bNode &node,
                                        const eNodeSocketInOut in_out,
                                        const blender::StringRef key)
 {
-  ListBase *sockets = in_out == SOCK_IN ? &node.inputs : &node.outputs;
+  ListBaseT<bNodeSocket> *sockets = in_out == SOCK_IN ? &node.inputs : &node.outputs;
   if (allow_identifier_lookup(node)) {
     LISTBASE_FOREACH (bNodeSocket *, socket, sockets) {
       if (socket->is_available()) {

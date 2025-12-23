@@ -234,7 +234,7 @@ static short ob_keyframes_loop(KeyframeEditData *ked,
                                FcuEditFunc fcu_cb)
 {
   bAnimContext ac = {nullptr};
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
   int ret = 0;
 
@@ -289,7 +289,7 @@ static short scene_keyframes_loop(KeyframeEditData *ked,
                                   FcuEditFunc fcu_cb)
 {
   bAnimContext ac = {nullptr};
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
   int ret = 0;
 
@@ -339,7 +339,7 @@ static short summary_keyframes_loop(KeyframeEditData *ked,
                                     KeyframeEditFunc key_cb,
                                     FcuEditFunc fcu_cb)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter, ret_code = 0;
 
   /* sanity check */
@@ -475,7 +475,7 @@ void ANIM_animdata_keyframe_callback(bAnimContext *ac,
                                      eAnimFilter_Flags filter,
                                      KeyframeEditFunc callback_fn)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   ANIM_animdata_filter(
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
@@ -498,7 +498,7 @@ void ANIM_animdata_keyframe_callback(bAnimContext *ac,
 
 void ANIM_editkeyframes_refresh(bAnimContext *ac)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   /* filter animation data */
@@ -897,7 +897,9 @@ static short snap_bezier_nearmarker(KeyframeEditData *ked, BezTriple *bezt)
 {
   if (bezt->f2 & SELECT) {
     BKE_fcurve_keyframe_move_time_with_handles(
-        bezt, float(ED_markers_find_nearest_marker_time(&ked->list, bezt->vec[1][0])));
+        bezt,
+        float(ED_markers_find_nearest_marker_time(static_cast<ListBaseT<TimeMarker> *>(&ked->list),
+                                                  bezt->vec[1][0])));
   }
   return 0;
 }

@@ -1222,7 +1222,7 @@ static void hair_collision(void *__restrict userdata,
   }
 }
 
-static void add_collision_object(ListBase *relations,
+static void add_collision_object(ListBaseT<CollisionRelation> *relations,
                                  Object *ob,
                                  int level,
                                  const ModifierType modifier_type)
@@ -1250,9 +1250,9 @@ static void add_collision_object(ListBase *relations,
   }
 }
 
-ListBase *BKE_collision_relations_create(Depsgraph *depsgraph,
-                                         Collection *collection,
-                                         uint modifier_type)
+ListBaseT<CollisionRelation> *BKE_collision_relations_create(Depsgraph *depsgraph,
+                                                             Collection *collection,
+                                                             uint modifier_type)
 {
   const Scene *scene = DEG_get_input_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
@@ -1260,7 +1260,7 @@ ListBase *BKE_collision_relations_create(Depsgraph *depsgraph,
   const bool for_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
   const int base_flag = (for_render) ? BASE_ENABLED_RENDER : BASE_ENABLED_VIEWPORT;
 
-  ListBase *relations = MEM_callocN<ListBase>(__func__);
+  ListBaseT<CollisionRelation> *relations = MEM_callocN<ListBaseT<CollisionRelation>>(__func__);
 
   for (; base; base = base->next) {
     if (base->flag & base_flag) {
@@ -1271,7 +1271,7 @@ ListBase *BKE_collision_relations_create(Depsgraph *depsgraph,
   return relations;
 }
 
-void BKE_collision_relations_free(ListBase *relations)
+void BKE_collision_relations_free(ListBaseT<CollisionRelation> *relations)
 {
   if (relations) {
     BLI_freelistN(relations);
@@ -1285,7 +1285,8 @@ Object **BKE_collision_objects_create(Depsgraph *depsgraph,
                                       uint *numcollobj,
                                       uint modifier_type)
 {
-  ListBase *relations = DEG_get_collision_relations(depsgraph, collection, modifier_type);
+  ListBaseT<CollisionRelation> *relations = DEG_get_collision_relations(
+      depsgraph, collection, modifier_type);
 
   if (!relations) {
     *numcollobj = 0;
@@ -1326,11 +1327,13 @@ void BKE_collision_objects_free(Object **objects)
   }
 }
 
-ListBase *BKE_collider_cache_create(Depsgraph *depsgraph, Object *self, Collection *collection)
+ListBaseT<ColliderCache> *BKE_collider_cache_create(Depsgraph *depsgraph,
+                                                    Object *self,
+                                                    Collection *collection)
 {
-  ListBase *relations = DEG_get_collision_relations(
+  ListBaseT<CollisionRelation> *relations = DEG_get_collision_relations(
       depsgraph, collection, eModifierType_Collision);
-  ListBase *cache = nullptr;
+  ListBaseT<ColliderCache> *cache = nullptr;
 
   if (!relations) {
     return nullptr;
@@ -1348,7 +1351,7 @@ ListBase *BKE_collider_cache_create(Depsgraph *depsgraph, Object *self, Collecti
         ob, eModifierType_Collision);
     if (cmd && cmd->bvhtree) {
       if (cache == nullptr) {
-        cache = MEM_callocN<ListBase>(__func__);
+        cache = MEM_callocN<ListBaseT<ColliderCache>>(__func__);
       }
 
       ColliderCache *col = MEM_callocN<ColliderCache>(__func__);
@@ -1363,7 +1366,7 @@ ListBase *BKE_collider_cache_create(Depsgraph *depsgraph, Object *self, Collecti
   return cache;
 }
 
-void BKE_collider_cache_free(ListBase **colliders)
+void BKE_collider_cache_free(ListBaseT<ColliderCache> **colliders)
 {
   if (*colliders) {
     BLI_freelistN(*colliders);

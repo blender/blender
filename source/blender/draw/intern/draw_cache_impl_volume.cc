@@ -44,7 +44,7 @@ static void volume_batch_cache_clear(Volume *volume);
 
 struct VolumeBatchCache {
   /* 3D textures */
-  ListBase grids;
+  ListBaseT<DRWVolumeGrid> grids;
 
   /* Wireframe */
   struct {

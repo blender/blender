@@ -5,6 +5,7 @@
 #include "GEO_join_geometries.hh"
 #include "GEO_realize_instances.hh"
 
+#include "DNA_listBase.h"
 #include "DNA_object_types.h"
 
 #include "BLI_array_utils.hh"
@@ -1611,7 +1612,7 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
                                     domain_to_range,
                                     dst_attribute_writers);
 }
-static void copy_vertex_group_name(ListBase *dst_deform_group,
+static void copy_vertex_group_name(ListBaseT<bDeformGroup> *dst_deform_group,
                                    const OrderedAttributes &ordered_attributes,
                                    const bDeformGroup &src_deform_group)
 {

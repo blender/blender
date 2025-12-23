@@ -116,7 +116,7 @@ void ED_region_panels(const bContext *C, ARegion *region);
  */
 void ED_region_panels_layout_ex(const bContext *C,
                                 ARegion *region,
-                                ListBase *paneltypes,
+                                ListBaseT<PanelType> *paneltypes,
                                 blender::wm::OpCallContext op_context,
                                 const char *contexts[],
                                 const char *category_override);
@@ -126,7 +126,7 @@ void ED_region_panels_layout_ex(const bContext *C,
  */
 bool ED_region_property_search(const bContext *C,
                                ARegion *region,
-                               ListBase *paneltypes,
+                               ListBaseT<PanelType> *paneltypes,
                                const char *contexts[],
                                const char *category_override);
 
@@ -666,31 +666,34 @@ bUserMenu *ED_screen_user_menu_ensure(bContext *C);
  * \param op_prop_enum: name of an operator property when the operator is called with an enum (to
  * be an empty string otherwise)
  */
-bUserMenuItem_Op *ED_screen_user_menu_item_find_operator(ListBase *lb,
+bUserMenuItem_Op *ED_screen_user_menu_item_find_operator(ListBaseT<bUserMenuItem> *lb,
                                                          const wmOperatorType *ot,
                                                          IDProperty *prop,
                                                          const char *op_prop_enum,
                                                          blender::wm::OpCallContext opcontext);
-bUserMenuItem_Menu *ED_screen_user_menu_item_find_menu(ListBase *lb, const MenuType *mt);
-bUserMenuItem_Prop *ED_screen_user_menu_item_find_prop(ListBase *lb,
+bUserMenuItem_Menu *ED_screen_user_menu_item_find_menu(ListBaseT<bUserMenuItem> *lb,
+                                                       const MenuType *mt);
+bUserMenuItem_Prop *ED_screen_user_menu_item_find_prop(ListBaseT<bUserMenuItem> *lb,
                                                        const char *context_data_path,
                                                        const char *prop_id,
                                                        int prop_index);
 
-void ED_screen_user_menu_item_add_operator(ListBase *lb,
+void ED_screen_user_menu_item_add_operator(ListBaseT<bUserMenuItem> *lb,
                                            const char *ui_name,
                                            const wmOperatorType *ot,
                                            const IDProperty *prop,
                                            const char *op_prop_enum,
                                            blender::wm::OpCallContext opcontext);
-void ED_screen_user_menu_item_add_menu(ListBase *lb, const char *ui_name, const MenuType *mt);
-void ED_screen_user_menu_item_add_prop(ListBase *lb,
+void ED_screen_user_menu_item_add_menu(ListBaseT<bUserMenuItem> *lb,
+                                       const char *ui_name,
+                                       const MenuType *mt);
+void ED_screen_user_menu_item_add_prop(ListBaseT<bUserMenuItem> *lb,
                                        const char *ui_name,
                                        const char *context_data_path,
                                        const char *prop_id,
                                        int prop_index);
 
-void ED_screen_user_menu_item_remove(ListBase *lb, bUserMenuItem *umi);
+void ED_screen_user_menu_item_remove(ListBaseT<bUserMenuItem> *lb, bUserMenuItem *umi);
 void ED_screen_user_menu_register();
 
 /* Cache display helpers */

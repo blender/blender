@@ -371,8 +371,8 @@ const Strip *get_scene_strip_for_time_sync(const Scene *sequencer_scene)
   if (!ed) {
     return nullptr;
   }
-  ListBase *seqbase = seq::active_seqbase_get(ed);
-  const ListBase *channels = seq::channels_displayed_get(ed);
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
+  const ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
   VectorSet<Strip *> query_strips = seq::query_strips_recursive_at_frame(
       sequencer_scene, seqbase, sequencer_scene->r.cfra);
   /* Ignore effect strips, sound strips and muted strips. */
@@ -570,7 +570,7 @@ static wmOperatorStatus sequencer_snap_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_sequencer_scene(C);
 
   Editing *ed = seq::editing_get(scene);
-  const ListBase *channels = seq::channels_displayed_get(ed);
+  const ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
   int snap_frame;
 
   snap_frame = RNA_int_get(op->ptr, "frame");
@@ -810,7 +810,8 @@ static SlipData *slip_data_init(bContext *C, const wmOperator *op, const wmEvent
     strips = seq::query_selected_strips(ed->current_strips());
   }
 
-  const ListBase *channels = seq::channels_displayed_get(seq::editing_get(scene));
+  const ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(
+      seq::editing_get(scene));
   strips.remove_if([&](Strip *strip) {
     return (seq::transform_single_image_check(strip) || seq::transform_is_locked(channels, strip));
   });
@@ -1354,7 +1355,7 @@ static wmOperatorStatus sequencer_connect_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
-  ListBase *active_seqbase = seq::active_seqbase_get(ed);
+  ListBaseT<Strip> *active_seqbase = seq::active_seqbase_get(ed);
 
   VectorSet<Strip *> selected = seq::query_selected_strips(active_seqbase);
 
@@ -1398,7 +1399,7 @@ static wmOperatorStatus sequencer_disconnect_exec(bContext *C, wmOperator * /*op
 {
   Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
-  ListBase *active_seqbase = seq::active_seqbase_get(ed);
+  ListBaseT<Strip> *active_seqbase = seq::active_seqbase_get(ed);
 
   VectorSet<Strip *> selected = seq::query_selected_strips(active_seqbase);
 
@@ -1610,7 +1611,7 @@ static wmOperatorStatus sequencer_reassign_inputs_exec(bContext *C, wmOperator *
   input1->left_handle_set(scene, input1->left_handle());
 
   Editing *ed = seq::editing_get(scene);
-  ListBase *active_seqbase = seq::active_seqbase_get(ed);
+  ListBaseT<Strip> *active_seqbase = seq::active_seqbase_get(ed);
   if (seq::transform_test_overlap(scene, active_seqbase, active_strip)) {
     seq::transform_seqbase_shuffle(active_seqbase, active_strip, scene);
   }
@@ -1971,7 +1972,7 @@ static wmOperatorStatus sequencer_box_blade_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
-  ListBase *channels = seq::channels_displayed_get(ed);
+  ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
 
   scene->ed->runtime.flag &= ~SEQ_SHOW_TRANSFORM_PREVIEW;
 
@@ -2222,7 +2223,7 @@ void SEQUENCER_OT_box_blade(wmOperatorType *ot)
 /** \name Duplicate Strips Operator
  * \{ */
 
-static void sequencer_report_duplicates(wmOperator *op, ListBase *duplicated_strips)
+static void sequencer_report_duplicates(wmOperator *op, ListBaseT<Strip> *duplicated_strips)
 {
   blender::Set<Scene *> scenes;
   blender::Set<MovieClip *> movieclips;
@@ -2302,7 +2303,7 @@ static wmOperatorStatus sequencer_add_duplicate_exec(bContext *C, wmOperator *op
   }
 
   Strip *active_strip = seq::select_active_get(scene);
-  ListBase duplicated_strips = {nullptr, nullptr};
+  ListBaseT<Strip> duplicated_strips = {nullptr, nullptr};
 
   /* Special case for duplicating strips in preview: Do not duplicate sound strips,muted
    * strips and strips that do not intersect the current frame */
@@ -2340,7 +2341,7 @@ static wmOperatorStatus sequencer_add_duplicate_exec(bContext *C, wmOperator *op
   seq::AnimationBackup animation_backup = {{nullptr}};
   seq::animation_backup_original(scene, &animation_backup);
 
-  ListBase *seqbase = seq::active_seqbase_get(seq::editing_get(scene));
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(seq::editing_get(scene));
   Strip *strip_last = static_cast<Strip *>(seqbase->last);
 
   /* Rely on the `duplicated_strips` list being added at the end.
@@ -2427,7 +2428,7 @@ static wmOperatorStatus sequencer_delete_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_sequencer_scene(C);
-  ListBase *seqbasep = seq::active_seqbase_get(seq::editing_get(scene));
+  ListBaseT<Strip> *seqbasep = seq::active_seqbase_get(seq::editing_get(scene));
   const bool delete_data = RNA_boolean_get(op->ptr, "delete_data");
 
   if (sequencer_view_has_preview_poll(C) && !sequencer_view_preview_only_poll(C)) {
@@ -2459,7 +2460,7 @@ static wmOperatorStatus sequencer_delete_exec(bContext *C, wmOperator *op)
 static wmOperatorStatus sequencer_delete_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
-  ListBase *markers = &scene->markers;
+  ListBaseT<TimeMarker> *markers = &scene->markers;
 
   if (!BLI_listbase_is_empty(markers)) {
     ARegion *region = CTX_wm_region(C);
@@ -2510,7 +2511,8 @@ static wmOperatorStatus sequencer_offset_clear_exec(bContext *C, wmOperator * /*
   Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
   Strip *strip;
-  const ListBase *channels = seq::channels_displayed_get(seq::editing_get(scene));
+  const ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(
+      seq::editing_get(scene));
 
   /* For effects, try to find a replacement input. */
   for (strip = static_cast<Strip *>(ed->current_strips()->first); strip;
@@ -2573,7 +2575,7 @@ static wmOperatorStatus sequencer_separate_images_exec(bContext *C, wmOperator *
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
-  ListBase *seqbase = seq::active_seqbase_get(ed);
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
 
   Strip *strip, *strip_new;
   StripElem *se, *se_new;
@@ -2743,7 +2745,7 @@ static wmOperatorStatus sequencer_meta_make_exec(bContext *C, wmOperator * /*op*
   Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
   Strip *active_strip = seq::select_active_get(scene);
-  ListBase *active_seqbase = seq::active_seqbase_get(ed);
+  ListBaseT<Strip> *active_seqbase = seq::active_seqbase_get(ed);
 
   VectorSet<Strip *> selected = seq::query_selected_strips(active_seqbase);
 
@@ -2774,8 +2776,8 @@ static wmOperatorStatus sequencer_meta_make_exec(bContext *C, wmOperator * /*op*
     meta_end_frame = max_ii(strip->right_handle(scene), meta_end_frame);
   }
 
-  ListBase *channels_cur = seq::channels_displayed_get(ed);
-  ListBase *channels_meta = &strip_meta->channels;
+  ListBaseT<SeqTimelineChannel> *channels_cur = seq::channels_displayed_get(ed);
+  ListBaseT<SeqTimelineChannel> *channels_meta = &strip_meta->channels;
   for (int i = channel_min; i <= channel_max; i++) {
     SeqTimelineChannel *channel_cur = seq::channel_get_by_index(channels_cur, i);
     SeqTimelineChannel *channel_meta = seq::channel_get_by_index(channels_meta, i);
@@ -2843,7 +2845,7 @@ static wmOperatorStatus sequencer_meta_separate_exec(bContext *C, wmOperator * /
   BLI_movelisttolist(ed->current_strips(), &active_strip->seqbase);
   BLI_listbase_clear(&active_strip->seqbase);
 
-  ListBase *active_seqbase = seq::active_seqbase_get(ed);
+  ListBaseT<Strip> *active_seqbase = seq::active_seqbase_get(ed);
   seq::edit_flag_for_removal(scene, active_seqbase, active_strip);
   seq::edit_remove_flagged_strips(scene, active_seqbase);
 
@@ -3034,7 +3036,7 @@ static wmOperatorStatus sequencer_swap_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
   Strip *active_strip = seq::select_active_get(scene);
-  ListBase *seqbase = seq::active_seqbase_get(ed);
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
   Strip *strip;
   int side = RNA_enum_get(op->ptr, "side");
 
@@ -3058,7 +3060,8 @@ static wmOperatorStatus sequencer_swap_exec(bContext *C, wmOperator *op)
       return OPERATOR_CANCELLED;
     }
 
-    const ListBase *channels = seq::channels_displayed_get(seq::editing_get(scene));
+    const ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(
+        seq::editing_get(scene));
     if (seq::transform_is_locked(channels, strip) ||
         seq::transform_is_locked(channels, active_strip))
     {
@@ -3659,7 +3662,7 @@ static wmOperatorStatus sequencer_export_subtitles_invoke(bContext *C,
 }
 
 struct Seq_get_text_cb_data {
-  ListBase *text_seq;
+  ListBaseT<Strip> *text_seq;
   Scene *scene;
 };
 
@@ -3667,7 +3670,7 @@ static bool strip_get_text_strip_cb(Strip *strip, void *user_data)
 {
   Seq_get_text_cb_data *cd = (Seq_get_text_cb_data *)user_data;
   Editing *ed = seq::editing_get(cd->scene);
-  ListBase *channels = seq::channels_displayed_get(ed);
+  ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
   /* Only text strips that are not muted and don't end with negative frame. */
   if ((strip->type == STRIP_TYPE_TEXT) && !seq::render_is_muted(channels, strip) &&
       (strip->right_handle(cd->scene) > cd->scene->r.sfra))
@@ -3686,7 +3689,7 @@ static wmOperatorStatus sequencer_export_subtitles_exec(bContext *C, wmOperator 
   Scene *scene = CTX_data_sequencer_scene(C);
   Strip *strip, *strip_next;
   Editing *ed = seq::editing_get(scene);
-  ListBase text_seq = {nullptr};
+  ListBaseT<Strip> text_seq = {nullptr};
   int iter = 1; /* Sequence numbers in `.srt` files are 1-indexed. */
   FILE *file;
   char filepath[FILE_MAX];

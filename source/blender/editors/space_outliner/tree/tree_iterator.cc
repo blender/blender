@@ -21,11 +21,11 @@ void all(const SpaceOutliner &space_outliner, const VisitorFn visitor)
   all_open(space_outliner, space_outliner.tree, visitor);
 }
 
-void all(const ListBase &subtree, const VisitorFn visitor)
+void all(const ListBaseT<TreeElement> &subtree, const VisitorFn visitor)
 {
   LISTBASE_FOREACH_MUTABLE (TreeElement *, element, &subtree) {
     /* Get needed data out in case element gets freed. */
-    const ListBase subtree = element->subtree;
+    const ListBaseT<TreeElement> subtree = element->subtree;
 
     visitor(element);
     /* Don't access element from now on, it may be freed. */
@@ -40,13 +40,13 @@ void all_open(const SpaceOutliner &space_outliner, const VisitorFn visitor)
 }
 
 void all_open(const SpaceOutliner &space_outliner,
-              const ListBase &subtree,
+              const ListBaseT<TreeElement> &subtree,
               const VisitorFn visitor)
 {
   LISTBASE_FOREACH_MUTABLE (TreeElement *, element, &subtree) {
     /* Get needed data out in case element gets freed. */
     const TreeStoreElem *tselem = TREESTORE(element);
-    const ListBase subtree = element->subtree;
+    const ListBaseT<TreeElement> subtree = element->subtree;
 
     visitor(element);
     /* Don't access element from now on, it may be freed. Note that the open/collapsed state may

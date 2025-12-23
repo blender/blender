@@ -214,7 +214,7 @@ static std::string drop_import_file_tooltip(bContext *C,
 
 void ED_dropbox_drop_import_file()
 {
-  ListBase *lb = WM_dropboxmap_find("Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
+  ListBaseT<wmDropBox> *lb = WM_dropboxmap_find("Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_dropbox_add(lb,
                  "WM_OT_drop_import_file",
                  drop_import_file_poll,

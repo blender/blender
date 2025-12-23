@@ -79,8 +79,9 @@ static void wm_uilisttype_unlink_from_region(const uiListType *ult, ARegion *reg
 static void wm_uilisttype_unlink_from_area(const uiListType *ult, ScrArea *area)
 {
   LISTBASE_FOREACH (SpaceLink *, space_link, &area->spacedata) {
-    ListBase *regionbase = (space_link == area->spacedata.first) ? &area->regionbase :
-                                                                   &space_link->regionbase;
+    ListBaseT<ARegion> *regionbase = (space_link == area->spacedata.first) ?
+                                         &area->regionbase :
+                                         &space_link->regionbase;
     LISTBASE_FOREACH (ARegion *, region, regionbase) {
       wm_uilisttype_unlink_from_region(ult, region);
     }

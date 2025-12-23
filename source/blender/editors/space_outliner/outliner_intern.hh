@@ -26,7 +26,6 @@ struct Collection;
 struct EditBone;
 struct ID;
 struct LayerCollection;
-struct ListBase;
 struct Main;
 struct Object;
 struct Scene;
@@ -114,7 +113,7 @@ struct TreeElement {
    */
   std::unique_ptr<AbstractTreeElement> abstract_element;
 
-  ListBase subtree;
+  ListBaseT<TreeElement> subtree;
   int xs, ys;                /* Do selection. */
   TreeStoreElem *store_elem; /* Element in tree store. */
   TreeElementFlag flag;      /* Flag for non-saved stuff. */
@@ -266,7 +265,7 @@ enum TreeItemSelectAction {
 
 /* `outliner_tree.cc` */
 
-void outliner_free_tree(ListBase *tree);
+void outliner_free_tree(ListBaseT<TreeElement> *tree);
 void outliner_cleanup_tree(SpaceOutliner *space_outliner);
 /**
  * Free \a element and its sub-tree and remove its link in \a parent_subtree.
@@ -274,7 +273,7 @@ void outliner_cleanup_tree(SpaceOutliner *space_outliner);
  * \note Does not remove the #TreeStoreElem of \a element!
  * \param parent_subtree: Sub-tree of the parent element, so the list containing \a element.
  */
-void outliner_free_tree_element(TreeElement *element, ListBase *parent_subtree);
+void outliner_free_tree_element(TreeElement *element, ListBaseT<TreeElement> *parent_subtree);
 
 /**
  * Main entry point for building the tree data-structure that the outliner represents.
@@ -293,7 +292,7 @@ TreeElement *outliner_add_collection_recursive(SpaceOutliner *space_outliner,
 bool outliner_requires_rebuild_on_select_or_active_change(const SpaceOutliner *space_outliner);
 
 struct IDsSelectedData {
-  ListBase selected_array;
+  ListBaseT<LinkData> selected_array;
 };
 
 TreeTraversalAction outliner_collect_selected_collections(TreeElement *te, void *customdata);
@@ -403,25 +402,25 @@ void outliner_do_object_operation_ex(bContext *C,
                                      ReportList *reports,
                                      Scene *scene,
                                      SpaceOutliner *space_outliner,
-                                     ListBase *lb,
+                                     ListBaseT<TreeElement> *lb,
                                      outliner_operation_fn operation_fn,
                                      bool recurse_selected);
 void outliner_do_object_operation(bContext *C,
                                   ReportList *reports,
                                   Scene *scene,
                                   SpaceOutliner *space_outliner,
-                                  ListBase *lb,
+                                  ListBaseT<TreeElement> *lb,
                                   outliner_operation_fn operation_fn);
 
-int outliner_flag_is_any_test(ListBase *lb, short flag, int curlevel);
+int outliner_flag_is_any_test(ListBaseT<TreeElement> *lb, short flag, int curlevel);
 /**
  * Set or unset \a flag for all outliner elements in \a lb and sub-trees.
  * \return if any flag was modified.
  */
 bool outliner_flag_set(const SpaceOutliner &space_outliner, short flag, short set);
-bool outliner_flag_set(const ListBase &lb, short flag, short set);
+bool outliner_flag_set(const ListBaseT<TreeElement> &lb, short flag, short set);
 bool outliner_flag_flip(const SpaceOutliner &space_outliner, short flag);
-bool outliner_flag_flip(const ListBase &lb, short flag);
+bool outliner_flag_flip(const ListBaseT<TreeElement> &lb, short flag);
 
 void item_rename_fn(bContext *C,
                     ReportList *reports,
@@ -600,7 +599,7 @@ void outliner_viewcontext_init(const bContext *C, TreeViewContext *tvc);
  * \note Recursive
  */
 TreeElement *outliner_find_item_at_y(const SpaceOutliner *space_outliner,
-                                     const ListBase *tree,
+                                     const ListBaseT<TreeElement> *tree,
                                      float view_co_y);
 /**
  * Collapsed items can show their children as click-able icons. This function tries to find
@@ -616,22 +615,23 @@ TreeElement *outliner_find_item_at_x_in_row(const SpaceOutliner *space_outliner,
 /**
  * Find specific item from the trees-tore.
  */
-TreeElement *outliner_find_tree_element(ListBase *lb, const TreeStoreElem *store_elem);
+TreeElement *outliner_find_tree_element(ListBaseT<TreeElement> *lb,
+                                        const TreeStoreElem *store_elem);
 /**
  * Find parent element of te.
  */
-TreeElement *outliner_find_parent_element(ListBase *lb,
+TreeElement *outliner_find_parent_element(ListBaseT<TreeElement> *lb,
                                           TreeElement *parent_te,
                                           const TreeElement *child_te);
 /**
  * Find tree-store that refers to given ID.
  */
 TreeElement *outliner_find_id(SpaceOutliner *space_outliner,
-                              ListBase *lb,
+                              ListBaseT<TreeElement> *lb,
                               const ID *id,
                               TreeElementFlag exclude_flags);
-TreeElement *outliner_find_posechannel(ListBase *lb, const bPoseChannel *pchan);
-TreeElement *outliner_find_editbone(ListBase *lb, const EditBone *ebone);
+TreeElement *outliner_find_posechannel(ListBaseT<TreeElement> *lb, const bPoseChannel *pchan);
+TreeElement *outliner_find_editbone(ListBaseT<TreeElement> *lb, const EditBone *ebone);
 TreeElement *outliner_search_back_te(TreeElement *te, short idcode);
 ID *outliner_search_back(TreeElement *te, short idcode);
 /**
@@ -643,7 +643,7 @@ ID *outliner_search_back(TreeElement *te, short idcode);
  * \param func: Custom callback to execute for each visited item.
  */
 bool outliner_tree_traverse(const SpaceOutliner *space_outliner,
-                            ListBase *tree,
+                            ListBaseT<TreeElement> *tree,
                             int filter_te_flag,
                             int filter_tselem_flag,
                             TreeTraversalFunc func,
@@ -652,7 +652,7 @@ float outliner_right_columns_width(const SpaceOutliner *space_outliner);
 /**
  * Find first tree element in tree with matching tree-store flag.
  */
-TreeElement *outliner_find_element_with_flag(const ListBase *lb, short flag);
+TreeElement *outliner_find_element_with_flag(const ListBaseT<TreeElement> *lb, short flag);
 /**
  * Find if element is visible in the outliner tree, i.e. if all of its parents are expanded.
  * Doesn't check if the item is in view-bounds, for that use #outliner_is_element_in_view().

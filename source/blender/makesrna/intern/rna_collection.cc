@@ -66,7 +66,7 @@ BLI_STATIC_ASSERT(ARRAY_SIZE(rna_enum_collection_color_items) - 2 == COLLECTION_
 static void rna_Collection_all_objects_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   Collection *collection = (Collection *)ptr->data;
-  ListBase collection_objects = BKE_collection_object_cache_get(collection);
+  ListBaseT<Base> collection_objects = BKE_collection_object_cache_get(collection);
   rna_iterator_listbase_begin(iter, ptr, &collection_objects, nullptr);
 }
 

@@ -58,14 +58,14 @@ struct UndoLattice {
   MDeformVert *dvert;
   int shapenr;
   char vgroup[/*MAX_VGROUP_NAME*/ 64];
-  ListBase vertex_group_names;
+  ListBaseT<bDeformGroup> vertex_group_names;
   int vertex_group_active_index;
   size_t undo_size;
 };
 
 static void undolatt_to_editlatt(UndoLattice *ult,
                                  EditLatt *editlatt,
-                                 ListBase *vertex_group_names,
+                                 ListBaseT<bDeformGroup> *vertex_group_names,
                                  int *vertex_group_active_index)
 {
   const int len_src = ult->pntsu * ult->pntsv * ult->pntsw;
@@ -113,7 +113,7 @@ static void undolatt_to_editlatt(UndoLattice *ult,
 
 static void *undolatt_from_editlatt(UndoLattice *ult,
                                     EditLatt *editlatt,
-                                    const ListBase *vertex_group_names,
+                                    const ListBaseT<bDeformGroup> *vertex_group_names,
                                     int vertex_group_active_index)
 {
   BLI_assert(BLI_array_is_zeroed(ult, 1));

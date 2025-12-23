@@ -266,7 +266,7 @@ struct GPUPickState {
     SubRectStride sub_rect;
 
     /** List of #DepthBufCache, sized of 'src.clip_rect'. */
-    ListBase bufs;
+    ListBaseT<DepthBufCache> bufs;
   } cache;
 
   /** Picking methods. */

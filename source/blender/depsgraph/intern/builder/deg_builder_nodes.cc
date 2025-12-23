@@ -1270,7 +1270,7 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
   build_animdata_drivers(id, adt);
 }
 
-void DepsgraphNodeBuilder::build_animdata_nlastrip_targets(ListBase *strips)
+void DepsgraphNodeBuilder::build_animdata_nlastrip_targets(ListBaseT<NlaStrip> *strips)
 {
   LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     if (strip->act != nullptr) {
@@ -1892,7 +1892,7 @@ void DepsgraphNodeBuilder::build_armature(bArmature *armature)
   build_armature_bone_collections(armature->collections_span());
 }
 
-void DepsgraphNodeBuilder::build_armature_bones(ListBase *bones)
+void DepsgraphNodeBuilder::build_armature_bones(ListBaseT<Bone> *bones)
 {
   LISTBASE_FOREACH (Bone *, bone, bones) {
     build_idproperties(bone->prop);

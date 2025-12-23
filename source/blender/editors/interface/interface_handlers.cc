@@ -834,7 +834,7 @@ static void ui_color_snap_hue(const enum eSnapType snap, float *r_hue)
 /** \name Button Apply/Revert
  * \{ */
 
-static ListBase UIAfterFuncs = {nullptr, nullptr};
+static ListBaseT<AfterFunc> UIAfterFuncs = {nullptr, nullptr};
 
 static AfterFunc *ui_afterfunc_new()
 {
@@ -1105,7 +1105,7 @@ static void ui_apply_but_autokey(bContext *C, Button *but)
 static void ui_apply_but_funcs_after(bContext *C)
 {
   /* Copy to avoid recursive calls. */
-  ListBase funcs = UIAfterFuncs;
+  ListBaseT<AfterFunc> funcs = UIAfterFuncs;
   BLI_listbase_clear(&UIAfterFuncs);
 
   LISTBASE_FOREACH_MUTABLE (AfterFunc *, afterf, &funcs) {
@@ -12332,20 +12332,23 @@ static void ui_popup_handler_remove(bContext *C, void *userdata)
   ui_apply_but_funcs_after(C);
 }
 
-void region_handlers_add(ListBase *handlers)
+void region_handlers_add(ListBaseT<wmEventHandler> *handlers)
 {
   WM_event_remove_ui_handler(handlers, region_handler, region_handler_remove, nullptr, false);
   WM_event_add_ui_handler(
       nullptr, handlers, region_handler, region_handler_remove, nullptr, eWM_EventHandlerFlag(0));
 }
 
-void popup_handlers_add(bContext *C, ListBase *handlers, PopupBlockHandle *popup, const char flag)
+void popup_handlers_add(bContext *C,
+                        ListBaseT<wmEventHandler> *handlers,
+                        PopupBlockHandle *popup,
+                        const char flag)
 {
   WM_event_add_ui_handler(
       C, handlers, ui_popup_handler, ui_popup_handler_remove, popup, eWM_EventHandlerFlag(flag));
 }
 
-void popup_handlers_remove(ListBase *handlers, PopupBlockHandle *popup)
+void popup_handlers_remove(ListBaseT<wmEventHandler> *handlers, PopupBlockHandle *popup)
 {
   LISTBASE_FOREACH (wmEventHandler *, handler_base, handlers) {
     if (handler_base->type == WM_HANDLER_TYPE_UI) {
@@ -12372,7 +12375,7 @@ void popup_handlers_remove(ListBase *handlers, PopupBlockHandle *popup)
   WM_event_remove_ui_handler(handlers, ui_popup_handler, ui_popup_handler_remove, popup, false);
 }
 
-void popup_handlers_remove_all(bContext *C, ListBase *handlers)
+void popup_handlers_remove_all(bContext *C, ListBaseT<wmEventHandler> *handlers)
 {
   WM_event_free_ui_handler_all(C, handlers, ui_popup_handler, ui_popup_handler_remove);
 }

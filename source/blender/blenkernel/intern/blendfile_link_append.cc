@@ -2034,7 +2034,7 @@ static void blendfile_relocate_postprocess_cleanup(BlendfileLinkAppendContext &l
   ids_to_delete.clear();
 
   /* Get rid of no more used libraries... */
-  ListBase *libraries = which_libbase(&bmain, ID_LI);
+  ListBaseT<ID> *libraries = which_libbase(&bmain, ID_LI);
   LISTBASE_FOREACH (ID *, id_iter, libraries) {
     ids_to_delete.add(id_iter);
   }

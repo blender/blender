@@ -53,6 +53,7 @@
 #include "BLI_endian_defines.h"
 #include "BLI_fileops.h"
 #include "BLI_ghash.h"
+#include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_memarena.h"
 #include "BLI_set.hh"
@@ -392,7 +393,7 @@ void blo_join_main(Main *bmain)
   bmain->split_mains.reset();
 }
 
-static void split_libdata(ListBase *lb_src,
+static void split_libdata(ListBaseT<ID> *lb_src,
                           blender::Vector<Main *> &lib_main_array,
                           const bool do_split_packed_ids)
 {
@@ -403,7 +404,7 @@ static void split_libdata(ListBase *lb_src,
       if (uint(id->lib->runtime->temp_index) < lib_main_array.size()) {
         Main *mainvar = lib_main_array[id->lib->runtime->temp_index];
         BLI_assert(mainvar->curlib == id->lib);
-        ListBase *lb_dst = which_libbase(mainvar, GS(id->name));
+        ListBaseT<ID> *lb_dst = which_libbase(mainvar, GS(id->name));
         BLI_remlink(lb_src, id);
         BLI_addtail(lb_dst, id);
       }
@@ -950,7 +951,7 @@ static int *read_file_thumbnail(FileData *fd)
  */
 static void long_id_names_ensure_unique_id_names(Main *bmain)
 {
-  ListBase *lb_iter;
+  ListBaseT<ID> *lb_iter;
   /* Using a set is needed, to avoid renaming names when there is no collision, and deal with IDs
    * being moved around in their list when renamed. A simple set is enough, since here only local
    * IDs are processed. */
@@ -1623,7 +1624,7 @@ void blo_cache_storage_init(FileData *fd, Main *bmain)
     fd->cache_storage->cache_map = BLI_ghash_new(
         BKE_idtype_cache_key_hash, BKE_idtype_cache_key_cmp, __func__);
 
-    ListBase *lb;
+    ListBaseT<ID> *lb;
     FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb) {
       ID *id = static_cast<ID *>(lb->first);
       if (id == nullptr) {
@@ -1653,7 +1654,7 @@ void blo_cache_storage_init(FileData *fd, Main *bmain)
 void blo_cache_storage_old_bmain_clear(FileData *fd, Main *bmain_old)
 {
   if (fd->cache_storage != nullptr) {
-    ListBase *lb;
+    ListBaseT<ID> *lb;
     FOREACH_MAIN_LISTBASE_BEGIN (bmain_old, lb) {
       ID *id = static_cast<ID *>(lb->first);
       if (id == nullptr) {
@@ -2641,7 +2642,7 @@ static ID *create_placeholder(Main *mainvar,
                               const int tag,
                               const bool was_liboverride)
 {
-  ListBase *lb = which_libbase(mainvar, idcode);
+  ListBaseT<ID> *lb = which_libbase(mainvar, idcode);
   ID *ph_id = BKE_libblock_alloc_notest(idcode);
   BKE_libblock_runtime_ensure(*ph_id);
 
@@ -2888,7 +2889,7 @@ static void read_undo_reuse_noundo_local_ids(FileData *fd)
       continue;
     }
 
-    ListBase *new_lb = which_libbase(new_bmain, id_type->id_code);
+    ListBaseT<ID> *new_lb = which_libbase(new_bmain, id_type->id_code);
     BLI_assert(BLI_listbase_is_empty(new_lb));
     BLI_movelisttolist(new_lb, lbarray[i]);
 
@@ -3067,8 +3068,8 @@ static void read_undo_libraries_cleanup_unused_ids(FileData *fd)
       CLOG_DEBUG(&LOG_UNDO, "Unused linked ID '%s' will be discarded", unused_id->name);
 
       const short idcode = GS(unused_id->name);
-      ListBase *new_lb = which_libbase(lib_bmain, idcode);
-      ListBase *old_lb = which_libbase(old_bmain, idcode);
+      ListBaseT<ID> *new_lb = which_libbase(lib_bmain, idcode);
+      ListBaseT<ID> *old_lb = which_libbase(old_bmain, idcode);
       BLI_remlink(new_lb, unused_id);
       unused_id->lib = nullptr;
       BKE_main_idmap_remove_id(fd->new_idmap_uid, unused_id);
@@ -3158,8 +3159,8 @@ static void read_libblock_undo_restore_identical(
 
   const short idcode = GS(id_old->name);
   Main *old_bmain = fd->old_bmain;
-  ListBase *old_lb = which_libbase(old_bmain, idcode);
-  ListBase *new_lb = which_libbase(main, idcode);
+  ListBaseT<ID> *old_lb = which_libbase(old_bmain, idcode);
+  ListBaseT<ID> *new_lb = which_libbase(main, idcode);
   BLI_remlink(old_lb, id_old);
   BLI_addtail(new_lb, id_old);
 
@@ -3216,8 +3217,8 @@ static void read_libblock_undo_restore_at_old_address(FileData *fd, Main *main, 
   const short idcode = GS(id->name);
 
   Main *old_bmain = fd->old_bmain;
-  ListBase *old_lb = which_libbase(old_bmain, idcode);
-  ListBase *new_lb = which_libbase(main, idcode);
+  ListBaseT<ID> *old_lb = which_libbase(old_bmain, idcode);
+  ListBaseT<ID> *new_lb = which_libbase(main, idcode);
   BLI_remlink(old_lb, id_old);
   BLI_remlink(new_lb, id);
 
@@ -3428,7 +3429,7 @@ static BHead *read_libblock(FileData *fd,
 
   /* Determine ID type and add to main database list. */
   const short idcode = GS(id->name);
-  ListBase *lb = which_libbase(main, idcode);
+  ListBaseT<ID> *lb = which_libbase(main, idcode);
   if (lb == nullptr) {
     /* Unknown ID type. */
     CLOG_WARN(&LOG, "Unknown id code '%c%c'", (idcode & 0xff), (idcode >> 8));
@@ -4326,7 +4327,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
                                                     0);
 #ifndef NDEBUG
         MainListsArray lbarray = BKE_main_lists_get(*bmain);
-        for (ListBase *lb_array : lbarray) {
+        for (ListBaseT<ID> *lb_array : lbarray) {
           LISTBASE_FOREACH_MUTABLE (ID *, id, lb_array) {
             BLI_assert_msg((id->runtime->readfile_data->tags.is_link_placeholder ==
                             contains_link_placeholder),
@@ -5120,7 +5121,7 @@ static ID *link_named_part(
 
       if (id) {
         /* sort by name in list */
-        ListBase *lb = which_libbase(mainl, idcode);
+        ListBaseT<ID> *lb = which_libbase(mainl, idcode);
         id_sort_by_name(lb, id, nullptr);
       }
     }

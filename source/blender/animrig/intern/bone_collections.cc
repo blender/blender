@@ -996,7 +996,7 @@ void ANIM_armature_bonecoll_reconstruct(bArmature *armature)
 }
 
 static bool any_bone_collection_visible(const bArmature *armature,
-                                        const ListBase /*BoneCollectionRef*/ *collection_refs)
+                                        const ListBaseT<BoneCollectionReference> *collection_refs)
 {
   /* Special case: Hide bone when solo is active and it doesn't belong to any collection, see:
    * #137090. */
@@ -1049,7 +1049,7 @@ void ANIM_armature_bonecoll_assign_active(const bArmature *armature, EditBone *e
   ANIM_armature_bonecoll_assign_editbone(armature->runtime.active_collection, ebone);
 }
 
-static bool bcoll_list_contains(const ListBase /*BoneCollectionRef*/ *collection_refs,
+static bool bcoll_list_contains(const ListBaseT<BoneCollectionReference> *collection_refs,
                                 const BoneCollection *bcoll)
 {
   LISTBASE_FOREACH (const BoneCollectionReference *, bcoll_ref, collection_refs) {

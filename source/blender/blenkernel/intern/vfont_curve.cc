@@ -298,7 +298,7 @@ static VChar *vfont_char_find_or_placeholder(const VFontData *vfd,
  * as the `ul_prev_nu` in future calls to this function.
  */
 static Nurb *build_underline(const Curve &cu,
-                             ListBase *nubase,
+                             ListBaseT<Nurb> *nubase,
                              const rctf *rect,
                              const float yofs,
                              const float rotate,
@@ -372,7 +372,7 @@ static Nurb *build_underline(const Curve &cu,
 }
 
 static void vfont_char_build_impl(const Curve &cu,
-                                  ListBase *nubase,
+                                  ListBaseT<Nurb> *nubase,
                                   const VChar *che,
                                   const CharInfo *info,
                                   const bool is_smallcaps,
@@ -486,7 +486,7 @@ static void vfont_char_build_impl(const Curve &cu,
 }
 
 void BKE_vfont_char_build(const Curve &cu,
-                          ListBase *nubase,
+                          ListBaseT<Nurb> *nubase,
                           uint charcode,
                           const CharInfo *info,
                           const bool is_smallcaps,
@@ -670,7 +670,7 @@ static bool vfont_to_curve(Object *ob,
                            const eEditFontMode mode,
                            VFontToCurveIter &iter_data,
                            VFontCursor_Params *cursor_params,
-                           ListBase *r_nubase,
+                           ListBaseT<Nurb> *r_nubase,
                            const char32_t **r_text,
                            int *r_text_len,
                            bool *r_text_free,
@@ -1841,7 +1841,7 @@ static bool vfont_to_curve(Object *ob,
 bool BKE_vfont_to_curve_ex(Object *ob,
                            const Curve &cu,
                            const eEditFontMode mode,
-                           ListBase *r_nubase,
+                           ListBaseT<Nurb> *r_nubase,
                            const char32_t **r_text,
                            int *r_text_len,
                            bool *r_text_free,
@@ -1875,7 +1875,7 @@ bool BKE_vfont_to_curve_ex(Object *ob,
 int BKE_vfont_cursor_to_text_index(Object *ob, const blender::float2 &cursor_location)
 {
   Curve &cu = *(Curve *)ob->data;
-  ListBase *r_nubase = &cu.nurb;
+  ListBaseT<Nurb> *r_nubase = &cu.nurb;
 
   /* TODO: iterating to calculate the scale can be avoided. */
   VFontToCurveIter data = {};
@@ -1909,7 +1909,7 @@ int BKE_vfont_cursor_to_text_index(Object *ob, const blender::float2 &cursor_loc
 #undef FONT_TO_CURVE_SCALE_ITERATIONS
 #undef FONT_TO_CURVE_SCALE_THRESHOLD
 
-bool BKE_vfont_to_curve_nubase(Object *ob, const eEditFontMode mode, ListBase *r_nubase)
+bool BKE_vfont_to_curve_nubase(Object *ob, const eEditFontMode mode, ListBaseT<Nurb> *r_nubase)
 {
   BLI_assert(ob->type == OB_FONT);
   const Curve &cu = *static_cast<const Curve *>(ob->data);

@@ -550,7 +550,7 @@ bArmature *BKE_armature_from_object(Object *ob)
   return nullptr;
 }
 
-int BKE_armature_bonelist_count(const ListBase *lb)
+int BKE_armature_bonelist_count(const ListBaseT<Bone> *lb)
 {
   int i = 0;
   LISTBASE_FOREACH (Bone *, bone, lb) {
@@ -560,7 +560,7 @@ int BKE_armature_bonelist_count(const ListBase *lb)
   return i;
 }
 
-void BKE_armature_bonelist_free(ListBase *lb, const bool do_id_user)
+void BKE_armature_bonelist_free(ListBaseT<Bone> *lb, const bool do_id_user)
 {
   LISTBASE_FOREACH (Bone *, bone, lb) {
     if (bone->prop) {
@@ -576,7 +576,7 @@ void BKE_armature_bonelist_free(ListBase *lb, const bool do_id_user)
   BLI_freelistN(lb);
 }
 
-void BKE_armature_editbonelist_free(ListBase *lb, const bool do_id_user)
+void BKE_armature_editbonelist_free(ListBaseT<EditBone> *lb, const bool do_id_user)
 {
   LISTBASE_FOREACH_MUTABLE (EditBone *, edit_bone, lb) {
     if (edit_bone->prop) {
@@ -690,7 +690,7 @@ void BKE_armature_copy_bone_transforms(bArmature *armature_dst, const bArmature 
  * \{ */
 
 /** Helper for #ED_armature_transform */
-static void armature_transform_recurse(ListBase *bonebase,
+static void armature_transform_recurse(ListBaseT<Bone> *bonebase,
                                        const float mat[4][4],
                                        const bool do_props,
                                        /* Cached from 'mat'. */
@@ -792,7 +792,7 @@ void BKE_armature_transform(bArmature *arm, const float mat[4][4], const bool do
  * Using fast #GHash lookups when available.
  * \{ */
 
-static Bone *get_named_bone_bonechildren(ListBase *lb, const char *name)
+static Bone *get_named_bone_bonechildren(ListBaseT<Bone> *lb, const char *name)
 {
   LISTBASE_FOREACH (Bone *, curBone, lb) {
     if (STREQ(curBone->name, name)) {
@@ -821,7 +821,7 @@ Bone *BKE_armature_find_bone_name(bArmature *arm, const char *name)
   return get_named_bone_bonechildren(&arm->bonebase, name);
 }
 
-static void armature_bone_from_name_insert_recursive(GHash *bone_hash, ListBase *lb)
+static void armature_bone_from_name_insert_recursive(GHash *bone_hash, ListBaseT<Bone> *lb)
 {
   LISTBASE_FOREACH (Bone *, bone, lb) {
     BLI_ghash_insert(bone_hash, bone->name, bone);

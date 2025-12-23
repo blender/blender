@@ -302,7 +302,7 @@ EditBone *add_points_bone(Object *obedit, float head[3], float tail[3])
   return ebo;
 }
 
-static void pre_edit_bone_duplicate(ListBase *editbones)
+static void pre_edit_bone_duplicate(ListBaseT<EditBone> *editbones)
 {
   /* clear temp */
   ED_armature_ebone_listbase_temp_clear(editbones);
@@ -331,7 +331,7 @@ static bPoseChannel *pchan_duplicate_map(
   return pchan_dst;
 }
 
-static void post_edit_bone_duplicate(ListBase *editbones, Object *ob)
+static void post_edit_bone_duplicate(ListBaseT<EditBone> *editbones, Object *ob)
 {
   if (ob->pose == nullptr) {
     return;
@@ -395,13 +395,13 @@ static void update_duplicate_subtarget(EditBone *dup_bone,
   }
 
   EditBone *oldtarget, *newtarget;
-  ListBase *conlist = &pchan->constraints;
+  ListBaseT<bConstraint> *conlist = &pchan->constraints;
   char name_flipped[MAX_ID_NAME - 2];
   LISTBASE_FOREACH (bConstraint *, curcon, conlist) {
     /* does this constraint have a subtarget in
      * this armature?
      */
-    ListBase targets = {nullptr, nullptr};
+    ListBaseT<bConstraintTarget> targets = {nullptr, nullptr};
 
     if (!BKE_constraint_targets_get(curcon, &targets)) {
       continue;
@@ -903,7 +903,7 @@ static void update_duplicate_constraint_settings(EditBone *dup_bone,
    * subtarget they point to has also been duplicated.
    */
   bPoseChannel *pchan;
-  ListBase *conlist;
+  ListBaseT<bConstraint> *conlist;
 
   if ((pchan = BKE_pose_channel_ensure(ob->pose, dup_bone->name)) == nullptr ||
       (conlist = &pchan->constraints) == nullptr)
@@ -996,7 +996,7 @@ static void mirror_bone_collection_assignments(bArmature &armature,
 {
   BLI_assert_msg(armature.edbo != nullptr, "Expecting the armature to be in edit mode");
   char name_flip[64];
-  /* Avoiding modification of the ListBase in the iteration. */
+  /* Avoiding modification of the ListBaseT in the iteration. */
   blender::Vector<BoneCollection *> unassign_collections;
   blender::Vector<BoneCollection *> assign_collections;
 
@@ -1069,8 +1069,11 @@ void ED_armature_ebone_copy(EditBone *dest, const EditBone *source)
   BLI_duplicatelist(&dest->bone_collections, &dest->bone_collections);
 }
 
-EditBone *duplicateEditBoneObjects(
-    EditBone *cur_bone, const char *name, ListBase *editbones, Object *src_ob, Object *dst_ob)
+EditBone *duplicateEditBoneObjects(EditBone *cur_bone,
+                                   const char *name,
+                                   ListBaseT<EditBone> *editbones,
+                                   Object *src_ob,
+                                   Object *dst_ob)
 {
   EditBone *e_bone = MEM_new_for_free<EditBone>("addup_editbone");
 
@@ -1092,7 +1095,10 @@ EditBone *duplicateEditBoneObjects(
   return e_bone;
 }
 
-EditBone *duplicateEditBone(EditBone *cur_bone, const char *name, ListBase *editbones, Object *ob)
+EditBone *duplicateEditBone(EditBone *cur_bone,
+                            const char *name,
+                            ListBaseT<EditBone> *editbones,
+                            Object *ob)
 {
   return duplicateEditBoneObjects(cur_bone, name, editbones, ob, ob);
 }
@@ -1938,7 +1944,7 @@ static wmOperatorStatus armature_subdivide_exec(bContext *C, wmOperator *op)
      * (N-1) bones of that length, which can then be done in any order. Then the code below can be
      * integrated into the code above.
      */
-    ListBase new_bones;
+    ListBaseT<EditBone> new_bones;
     new_bones.first = last_bone_before_cutting->next;
     new_bones.last = static_cast<EditBone *>(arm->edbo->last);
     LISTBASE_FOREACH_BACKWARD (EditBone *, newbone, &new_bones) {

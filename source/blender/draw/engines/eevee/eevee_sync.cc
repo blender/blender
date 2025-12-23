@@ -354,7 +354,8 @@ void SyncModule::sync_volume(Object *ob, ObjectHandle &ob_handle, const ObjectRe
 
   /* Do not render the object if there is no attribute used in the volume.
    * This mimic Cycles behavior (see #124061). */
-  ListBase attr_list = GPU_material_attributes(material.volume_material.gpumat);
+  ListBaseT<GPUMaterialAttribute> attr_list = GPU_material_attributes(
+      material.volume_material.gpumat);
   if (BLI_listbase_is_empty(&attr_list)) {
     return;
   }

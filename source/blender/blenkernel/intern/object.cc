@@ -507,7 +507,7 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
-static void object_foreach_path_pointcache(ListBase *ptcache_list,
+static void object_foreach_path_pointcache(ListBaseT<PointCache> *ptcache_list,
                                            BPathForeachPathData *bpath_data)
 {
   for (PointCache *cache = (PointCache *)ptcache_list->first; cache != nullptr;
@@ -981,7 +981,7 @@ static void object_lib_override_apply_post(ID *id_dst, ID *id_src)
   Object *object_dst = (Object *)id_dst;
   Object *object_src = (Object *)id_src;
 
-  ListBase pidlist_dst, pidlist_src;
+  ListBaseT<PTCacheID> pidlist_dst, pidlist_src;
   BKE_ptcache_ids_from_object(&pidlist_dst, object_dst, nullptr, 0);
   BKE_ptcache_ids_from_object(&pidlist_src, object_src, nullptr, 0);
 
@@ -2318,7 +2318,7 @@ static void copy_object_pose(Object *obn, const Object *ob, const int flag)
      *     BKE_library_remap stuff, but...
      *     the flush_constraint_targets callback am not sure about, so will delay that for now. */
     LISTBASE_FOREACH (bConstraint *, con, &chan->constraints) {
-      ListBase targets = {nullptr, nullptr};
+      ListBaseT<bConstraintTarget> targets = {nullptr, nullptr};
 
       if (BKE_constraint_targets_get(con, &targets)) {
         LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
@@ -3122,7 +3122,7 @@ static void give_parvert(const Object *par, int nr, float vec[3], const bool use
     }
   }
   else if (ELEM(par->type, OB_CURVES_LEGACY, OB_SURF)) {
-    ListBase *nurb;
+    ListBaseT<Nurb> *nurb;
 
     /* It is possible that a cycle in the dependency graph was resolved in a way that caused this
      * object to be evaluated before its dependencies. In this case the curve cache may be null. */
@@ -4315,7 +4315,7 @@ int BKE_object_insert_ptcache(Object *ob)
   return i;
 }
 
-static int pc_findindex(ListBase *listbase, int index)
+static int pc_findindex(ListBaseT<LinkData> *listbase, int index)
 {
   int number = 0;
 
@@ -4425,7 +4425,7 @@ static KeyBlock *insert_curvekey(Main *bmain, Object *ob, const char *name, cons
   Curve *cu = (Curve *)ob->data;
   Key *key = cu->key;
   KeyBlock *kb;
-  ListBase *lb = BKE_curve_nurbs_get(cu);
+  ListBaseT<Nurb> *lb = BKE_curve_nurbs_get(cu);
   int newkey = 0;
 
   if (key == nullptr) {
@@ -5170,7 +5170,7 @@ blender::KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
  */
 static void object_cacheIgnoreClear(Object *ob, const bool state)
 {
-  ListBase pidlist;
+  ListBaseT<PTCacheID> pidlist;
   BKE_ptcache_ids_from_object(&pidlist, ob, nullptr, 0);
 
   LISTBASE_FOREACH (PTCacheID *, pid, &pidlist) {
@@ -5252,7 +5252,7 @@ static bool object_modifier_recurse_for_update_subframe(const ObjectModifierUpda
 
     /* also update constraint targets */
     LISTBASE_FOREACH (bConstraint *, con, &ob->constraints) {
-      ListBase targets = {nullptr, nullptr};
+      ListBaseT<bConstraintTarget> targets = {nullptr, nullptr};
 
       if (BKE_constraint_targets_get(con, &targets)) {
         LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {

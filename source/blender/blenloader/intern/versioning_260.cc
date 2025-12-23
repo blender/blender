@@ -250,7 +250,7 @@ static void do_versions_nodetree_socket_use_flags_2_62(bNodeTree *ntree)
 }
 
 /* find unique path */
-static bool unique_path_unique_check(ListBase *lb,
+static bool unique_path_unique_check(ListBaseT<bNodeSocket> *lb,
                                      bNodeSocket *sock,
                                      const blender::StringRef name)
 {
@@ -265,7 +265,7 @@ static bool unique_path_unique_check(ListBase *lb,
   return false;
 }
 
-static void ntreeCompositOutputFileUniquePath(ListBase *list,
+static void ntreeCompositOutputFileUniquePath(ListBaseT<bNodeSocket> *list,
                                               bNodeSocket *sock,
                                               const char defname[],
                                               char delim)
@@ -286,7 +286,7 @@ static void ntreeCompositOutputFileUniquePath(ListBase *list,
 }
 
 /* find unique EXR layer */
-static bool unique_layer_unique_check(ListBase *lb,
+static bool unique_layer_unique_check(ListBaseT<bNodeSocket> *lb,
                                       bNodeSocket *sock,
                                       const blender::StringRef name)
 {
@@ -301,7 +301,7 @@ static bool unique_layer_unique_check(ListBase *lb,
   return false;
 }
 
-static void ntreeCompositOutputFileUniqueLayer(ListBase *list,
+static void ntreeCompositOutputFileUniqueLayer(ListBaseT<bNodeSocket> *list,
                                                bNodeSocket *sock,
                                                const char defname[],
                                                char delim)
@@ -1216,8 +1216,8 @@ static bNodeSocket *version_make_socket_stub(const char *idname,
 /* Same as node_add_static_node but does not rely on node typeinfo. */
 static bNode *version_add_group_in_out_node(bNodeTree *ntree, const int type)
 {
-  ListBase *ntree_socket_list = nullptr;
-  ListBase *node_socket_list = nullptr;
+  ListBaseT<bNodeSocket> *ntree_socket_list = nullptr;
+  ListBaseT<bNodeSocket> *node_socket_list = nullptr;
   eNodeSocketInOut socket_in_out = SOCK_IN;
 
   bNode *node = MEM_new_for_free<bNode>("new node");
@@ -2832,9 +2832,10 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
         const MovieTracking *tracking = &clip->tracking;
         LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
-          const ListBase *tracksbase = (tracking_object->flag & TRACKING_OBJECT_CAMERA) ?
-                                           &tracking->tracks_legacy :
-                                           &tracking_object->tracks;
+          const ListBaseT<MovieTrackingTrack> *tracksbase = (tracking_object->flag &
+                                                             TRACKING_OBJECT_CAMERA) ?
+                                                                &tracking->tracks_legacy :
+                                                                &tracking_object->tracks;
           LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
             track->weight = 1.0f;
           }
@@ -2994,7 +2995,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, space_link, &area->spacedata) {
           if (space_link->spacetype == SPACE_IMAGE) {
-            ListBase *lb;
+            ListBaseT<ARegion> *lb;
 
             if (space_link == area->spacedata.first) {
               lb = &area->regionbase;

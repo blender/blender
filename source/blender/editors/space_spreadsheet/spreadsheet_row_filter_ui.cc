@@ -286,7 +286,7 @@ static void spreadsheet_row_filters_layout(const bContext *C, Panel *panel)
   ARegion *region = CTX_wm_region(C);
   bScreen *screen = CTX_wm_screen(C);
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
-  ListBase *row_filters = &sspreadsheet->row_filters;
+  ListBaseT<SpreadsheetRowFilter> *row_filters = &sspreadsheet->row_filters;
 
   if (!(sspreadsheet->filter_flag & SPREADSHEET_FILTER_ENABLE)) {
     layout.active_set(false);
@@ -333,7 +333,7 @@ static void spreadsheet_row_filters_layout(const bContext *C, Panel *panel)
 static void filter_reorder(bContext *C, Panel *panel, int new_index)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
-  ListBase *row_filters = &sspreadsheet->row_filters;
+  ListBaseT<SpreadsheetRowFilter> *row_filters = &sspreadsheet->row_filters;
   PointerRNA *filter_ptr = ui::panel_custom_data_get(panel);
   SpreadsheetRowFilter *filter = (SpreadsheetRowFilter *)filter_ptr->data;
 

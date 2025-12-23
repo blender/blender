@@ -87,7 +87,7 @@ static void constraint_ops_extra_draw(bContext *C, Layout *layout, void *con_v)
                    ICON_TRIA_DOWN,
                    wm::OpCallContext::InvokeDefault,
                    UI_ITEM_NONE);
-  ListBase *constraint_list = blender::ed::object::constraint_list_from_constraint(
+  ListBaseT<bConstraint> *constraint_list = blender::ed::object::constraint_list_from_constraint(
       ob, con, nullptr);
   RNA_int_set(&op_ptr, "index", BLI_listbase_count(constraint_list) - 1);
   if (!con->next) {
@@ -263,7 +263,7 @@ void template_constraints(Layout * /*layout*/, bContext *C, bool use_bone_constr
   ARegion *region = CTX_wm_region(C);
 
   Object *ob = blender::ed::object::context_active_object(C);
-  ListBase *constraints = {nullptr};
+  ListBaseT<bConstraint> *constraints = {nullptr};
   if (use_bone_constraints) {
     constraints = blender::ed::object::pose_constraint_list(C);
   }

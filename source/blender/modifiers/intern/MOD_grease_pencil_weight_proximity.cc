@@ -137,7 +137,7 @@ static float get_distance_factor(float3 target_pos,
 }
 
 static bool target_vertex_group_available(const StringRefNull name,
-                                          const ListBase &vertex_group_names)
+                                          const ListBaseT<bDeformGroup> &vertex_group_names)
 {
   const int def_nr = BKE_defgroup_name_index(&vertex_group_names, name);
   if (def_nr < 0) {

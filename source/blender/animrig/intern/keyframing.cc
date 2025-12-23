@@ -424,7 +424,7 @@ static float nla_time_remap(float time,
                             PointerRNA *id_ptr,
                             AnimData *adt,
                             bAction *act,
-                            ListBase *nla_cache,
+                            ListBaseT<NlaKeyframingContext> *nla_cache,
                             NlaKeyframingContext **r_nla_context)
 {
   if (adt && adt->action == act) {
@@ -838,7 +838,7 @@ CombinedKeyingResult insert_keyframes(Main *bmain,
   key_settings.keyframe_type = key_type;
 
   /* NOTE: keyframing functions can deal with the nla_context being a nullptr. */
-  ListBase nla_cache = {nullptr, nullptr};
+  ListBaseT<NlaKeyframingContext> nla_cache = {nullptr, nullptr};
   NlaKeyframingContext *nla_context = nullptr;
   const float nla_frame = nla_time_remap(scene_frame.value_or(anim_eval_context.eval_time),
                                          &anim_eval_context,

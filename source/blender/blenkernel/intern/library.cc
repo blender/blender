@@ -281,7 +281,7 @@ static void rebuild_hierarchy_best_parent_find(Main *bmain,
 
   Library *best_parent_lib = nullptr;
   bool do_break = false;
-  ListBase *lb;
+  ListBaseT<ID> *lb;
   ID *id_iter;
   FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb) {
     FOREACH_MAIN_LISTBASE_ID_BEGIN (lb, id_iter) {
@@ -483,7 +483,7 @@ void BKE_library_main_rebuild_hierarchy(Main *bmain)
   BKE_main_relations_free(bmain);
 }
 
-Library *blender::bke::library::search_filepath_abs(ListBase *libraries,
+Library *blender::bke::library::search_filepath_abs(ListBaseT<Library> *libraries,
                                                     blender::StringRef filepath_abs)
 {
   LISTBASE_FOREACH (Library *, lib_iter, libraries) {

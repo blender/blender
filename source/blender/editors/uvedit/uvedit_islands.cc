@@ -108,7 +108,7 @@ static bool uvedit_is_face_affected_for_calc_uv_islands(const Scene *scene,
 
 int bm_mesh_calc_uv_islands(const Scene *scene,
                             BMesh *bm,
-                            ListBase *island_list,
+                            ListBaseT<FaceIsland> *island_list,
                             const bool only_selected_faces,
                             const bool only_selected_uvs,
                             const bool use_seams,

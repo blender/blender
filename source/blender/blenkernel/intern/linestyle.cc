@@ -183,7 +183,8 @@ static void linestyle_foreach_working_space_color(ID *id,
   fn.single(&linestyle->r);
 }
 
-static void write_linestyle_color_modifiers(BlendWriter *writer, ListBase *modifiers)
+static void write_linestyle_color_modifiers(BlendWriter *writer,
+                                            ListBaseT<LineStyleModifier> *modifiers)
 {
   LISTBASE_FOREACH (LineStyleModifier *, m, modifiers) {
     int struct_nr;
@@ -247,7 +248,8 @@ static void write_linestyle_color_modifiers(BlendWriter *writer, ListBase *modif
   }
 }
 
-static void write_linestyle_alpha_modifiers(BlendWriter *writer, ListBase *modifiers)
+static void write_linestyle_alpha_modifiers(BlendWriter *writer,
+                                            ListBaseT<LineStyleModifier> *modifiers)
 {
   LISTBASE_FOREACH (LineStyleModifier *, m, modifiers) {
     int struct_nr;
@@ -313,7 +315,8 @@ static void write_linestyle_alpha_modifiers(BlendWriter *writer, ListBase *modif
   }
 }
 
-static void write_linestyle_thickness_modifiers(BlendWriter *writer, ListBase *modifiers)
+static void write_linestyle_thickness_modifiers(BlendWriter *writer,
+                                                ListBaseT<LineStyleModifier> *modifiers)
 {
   LISTBASE_FOREACH (LineStyleModifier *, m, modifiers) {
     int struct_nr;
@@ -380,7 +383,8 @@ static void write_linestyle_thickness_modifiers(BlendWriter *writer, ListBase *m
   }
 }
 
-static void write_linestyle_geometry_modifiers(BlendWriter *writer, ListBase *modifiers)
+static void write_linestyle_geometry_modifiers(BlendWriter *writer,
+                                               ListBaseT<LineStyleModifier> *modifiers)
 {
   LISTBASE_FOREACH (LineStyleModifier *, m, modifiers) {
     int struct_nr;
@@ -728,7 +732,7 @@ static LineStyleModifier *new_modifier(const char *name, int type, size_t size)
   return m;
 }
 
-static void add_to_modifier_list(ListBase *lb, LineStyleModifier *m)
+static void add_to_modifier_list(ListBaseT<LineStyleModifier> *lb, LineStyleModifier *m)
 {
   BLI_addtail(lb, (void *)m);
   BLI_uniquename(
@@ -1824,7 +1828,8 @@ bool BKE_linestyle_geometry_modifier_move(FreestyleLineStyle *linestyle,
   return BLI_listbase_link_move(&linestyle->geometry_modifiers, modifier, direction);
 }
 
-void BKE_linestyle_modifier_list_color_ramps(FreestyleLineStyle *linestyle, ListBase *listbase)
+void BKE_linestyle_modifier_list_color_ramps(FreestyleLineStyle *linestyle,
+                                             ListBaseT<LinkData> *listbase)
 {
   ColorBand *color_ramp;
   LinkData *link;

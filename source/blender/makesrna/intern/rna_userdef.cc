@@ -1001,7 +1001,7 @@ static void rna_userdef_autosave_update(Main *bmain, Scene *scene, PointerRNA *p
 
 static bAddon *rna_userdef_addon_new()
 {
-  ListBase *addons_list = &U.addons;
+  ListBaseT<bAddon> *addons_list = &U.addons;
   bAddon *addon = BKE_addon_new();
   BLI_addtail(addons_list, addon);
   USERDEF_TAG_DIRTY;
@@ -1010,7 +1010,7 @@ static bAddon *rna_userdef_addon_new()
 
 static void rna_userdef_addon_remove(ReportList *reports, PointerRNA *addon_ptr)
 {
-  ListBase *addons_list = &U.addons;
+  ListBaseT<bAddon> *addons_list = &U.addons;
   bAddon *addon = static_cast<bAddon *>(addon_ptr->data);
   if (BLI_findindex(addons_list, addon) == -1) {
     BKE_report(reports, RPT_ERROR, "Add-on is no longer valid");

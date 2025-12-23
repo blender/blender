@@ -94,7 +94,7 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
     }
 
     /* Count total of vertices, check identical as in 2nd loop for making transdata! */
-    ListBase *nurbs = BKE_curve_editNurbs_get(cu);
+    ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
     LISTBASE_FOREACH (Nurb *, nu, nurbs) {
       if (nu->type == CU_BEZIER) {
         for (a = 0, bezt = nu->bezt; a < nu->pntsu; a++, bezt++) {
@@ -179,7 +179,7 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
     pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
     TransData *td = tc->data;
-    ListBase *nurbs = BKE_curve_editNurbs_get(cu);
+    ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
     LISTBASE_FOREACH (Nurb *, nu, nurbs) {
       TransData *head, *tail;
       head = tail = td;
@@ -409,7 +409,7 @@ static void recalcData_curve(TransInfo *t)
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     Curve *cu = static_cast<Curve *>(tc->obedit->data);
-    ListBase *nurbs = BKE_curve_editNurbs_get(cu);
+    ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
     Nurb *nu = static_cast<Nurb *>(nurbs->first);
 
     DEG_id_tag_update(static_cast<ID *>(tc->obedit->data), ID_RECALC_GEOMETRY);

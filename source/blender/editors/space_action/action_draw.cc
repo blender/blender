@@ -56,7 +56,7 @@ using namespace blender;
 void draw_channel_names(bContext *C,
                         bAnimContext *ac,
                         ARegion *region,
-                        const ListBase /*bAnimListElem*/ &anim_data)
+                        const ListBaseT<bAnimListElem> &anim_data)
 {
   bAnimListElem *ale;
   View2D *v2d = &region->v2d;
@@ -119,7 +119,7 @@ void draw_channel_names(bContext *C,
 #define EXTRA_SCROLL_PAD 100.0f
 
 /* Draw manually set intended playback frame ranges for actions. */
-static void draw_channel_action_ranges(ListBase *anim_data, View2D *v2d)
+static void draw_channel_action_ranges(ListBaseT<bAnimListElem> *anim_data, View2D *v2d)
 {
   /* Variables for coalescing the Y region of one action. */
   bAction *cur_action = nullptr;
@@ -169,7 +169,10 @@ static void draw_channel_action_ranges(ListBase *anim_data, View2D *v2d)
   }
 }
 
-static void draw_backdrops(bAnimContext *ac, ListBase &anim_data, View2D *v2d, uint pos)
+static void draw_backdrops(bAnimContext *ac,
+                           ListBaseT<bAnimListElem> &anim_data,
+                           View2D *v2d,
+                           uint pos)
 {
   uchar col1[4], col2[4];
   uchar col1a[4], col2a[4];
@@ -314,7 +317,7 @@ static void draw_backdrops(bAnimContext *ac, ListBase &anim_data, View2D *v2d, u
 static void draw_keyframes(bAnimContext *ac,
                            View2D *v2d,
                            SpaceAction *saction,
-                           ListBase &anim_data)
+                           const ListBaseT<bAnimListElem> &anim_data)
 {
   /* Draw keyframes
    * 1) Only channels that are visible in the Action Editor get drawn/evaluated.
@@ -471,7 +474,7 @@ static void draw_keyframes(bAnimContext *ac,
 void draw_channel_strips(bAnimContext *ac,
                          SpaceAction *saction,
                          ARegion *region,
-                         ListBase *anim_data)
+                         ListBaseT<bAnimListElem> *anim_data)
 {
   View2D *v2d = &region->v2d;
 
@@ -840,7 +843,7 @@ void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Sce
     return;
   }
 
-  ListBase pidlist;
+  ListBaseT<PTCacheID> pidlist;
   BKE_ptcache_ids_from_object(&pidlist, const_cast<Object *>(ob), const_cast<Scene *>(scene), 0);
 
   uint pos_id = GPU_vertformat_attr_add(

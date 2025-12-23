@@ -189,6 +189,8 @@ bool ED_image_save_all_modified(const bContext *C, ReportList *reports);
 
 /* `image_sequence.cc` */
 
+struct ImageFrame;
+
 struct ImageFrameRange {
   ImageFrameRange *next, *prev;
 
@@ -205,10 +207,10 @@ struct ImageFrameRange {
 
   /* UDIM tiles. */
   bool udims_detected;
-  ListBase udim_tiles;
+  ListBaseT<LinkData> udim_tiles;
 
   /* Temporary data. */
-  ListBase frames; /* ImageFrame. */
+  ListBaseT<ImageFrame> frames;
 };
 
 struct ImageFrame {
@@ -225,10 +227,10 @@ struct ImageFrame {
  * Note that `blendfile_path` may equal `root_path`, otherwise `root_path` may be set
  * to a libraries absolute file-path.
  */
-ListBase ED_image_filesel_detect_sequences(blender::StringRefNull blendfile_path,
-                                           blender::StringRefNull root_path,
-                                           wmOperator *op,
-                                           bool detect_udim);
+ListBaseT<ImageFrameRange> ED_image_filesel_detect_sequences(blender::StringRefNull blendfile_path,
+                                                             blender::StringRefNull root_path,
+                                                             wmOperator *op,
+                                                             bool detect_udim);
 
 bool ED_image_tools_paint_poll(bContext *C);
 void ED_paint_cursor_start(Paint *paint, bool (*poll)(bContext *C));

@@ -247,7 +247,7 @@ struct ViewLayer {
   struct Base *basact = nullptr;
 
   /** A view layer has one top level layer collection, because a scene has only one top level
-   * collection. The layer_collections list always contains a single element. ListBase is
+   * collection. The layer_collections list always contains a single element. ListBaseT is
    * convenient when applying functions to all layer collections recursively. */
   ListBaseT<LayerCollection> layer_collections = {nullptr, nullptr};
   LayerCollection *active_collection = nullptr;

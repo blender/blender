@@ -316,7 +316,7 @@ bool BKE_where_on_path(const Object *ob,
   }
   //}
 
-  const ListBase *nurbs = BKE_curve_editNurbs_get(cu);
+  const ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
   if (!nurbs) {
     nurbs = &cu->nurb;
   }

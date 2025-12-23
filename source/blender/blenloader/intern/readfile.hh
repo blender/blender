@@ -33,6 +33,7 @@ struct BlendfileLinkAppendContext;
 struct BlendFileReadParams;
 struct BlendFileReadReport;
 struct BLOCacheStorage;
+struct BHeadN;
 struct BHeadSort;
 struct DNA_ReconstructInfo;
 struct IDNameLib_Map;
@@ -78,7 +79,7 @@ ENUM_OPERATORS(eFileDataFlag)
  */
 struct FileData {
   /** Linked list of BHeadN's. */
-  ListBase bhead_list = {};
+  ListBaseT<BHeadN> bhead_list = {};
   enum eFileDataFlag flags = eFileDataFlag(0);
   bool is_eof = false;
   BlenderHeader blender_header = {};

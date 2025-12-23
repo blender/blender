@@ -190,7 +190,7 @@ struct BPyPropStore {
  * Maintain a list of Python defined properties, so the GC can visit them,
  * and so they can be cleared on exit.
  */
-static ListBase g_bpy_prop_store_list = {nullptr, nullptr};
+static ListBaseT<BPyPropStore> g_bpy_prop_store_list = {nullptr, nullptr};
 
 static BPyPropStore *bpy_prop_py_data_ensure(PropertyRNA *prop)
 {

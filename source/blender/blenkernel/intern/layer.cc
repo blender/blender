@@ -74,7 +74,8 @@ static void object_bases_iterator_next(BLI_Iterator *iter, const int flag);
 /** \name Layer Collections and Bases
  * \{ */
 
-static LayerCollection *layer_collection_add(ListBase *lb_parent, Collection *collection)
+static LayerCollection *layer_collection_add(ListBaseT<LayerCollection> *lb_parent,
+                                             Collection *collection)
 {
   LayerCollection *lc = MEM_new_for_free<LayerCollection>("Collection Base");
   lc->collection = collection;
@@ -299,7 +300,8 @@ void BKE_view_layer_selected_objects_tag(const Scene *scene, ViewLayer *view_lay
   }
 }
 
-static bool find_scene_collection_in_scene_collections(ListBase *lb, const LayerCollection *lc)
+static bool find_scene_collection_in_scene_collections(ListBaseT<LayerCollection> *lb,
+                                                       const LayerCollection *lc)
 {
   LISTBASE_FOREACH (LayerCollection *, lcn, lb) {
     if (lcn == lc) {
@@ -416,8 +418,8 @@ void BKE_view_layer_base_select_and_set_active(ViewLayer *view_layer, Base *selb
 
 static void layer_aov_copy_data(ViewLayer *view_layer_dst,
                                 const ViewLayer *view_layer_src,
-                                ListBase *aovs_dst,
-                                const ListBase *aovs_src)
+                                ListBaseT<ViewLayerAOV> *aovs_dst,
+                                const ListBaseT<ViewLayerAOV> *aovs_src)
 {
   BLI_duplicatelist(aovs_dst, aovs_src);
 
@@ -437,8 +439,8 @@ static void layer_aov_copy_data(ViewLayer *view_layer_dst,
 
 static void layer_lightgroup_copy_data(ViewLayer *view_layer_dst,
                                        const ViewLayer *view_layer_src,
-                                       ListBase *lightgroups_dst,
-                                       const ListBase *lightgroups_src)
+                                       ListBaseT<ViewLayerLightgroup> *lightgroups_dst,
+                                       const ListBaseT<ViewLayerLightgroup> *lightgroups_src)
 {
   if (lightgroups_src != nullptr) {
     BLI_duplicatelist(lightgroups_dst, lightgroups_src);
@@ -461,8 +463,8 @@ static void layer_lightgroup_copy_data(ViewLayer *view_layer_dst,
 
 static void layer_collections_copy_data(ViewLayer *view_layer_dst,
                                         const ViewLayer *view_layer_src,
-                                        ListBase *layer_collections_dst,
-                                        const ListBase *layer_collections_src)
+                                        ListBaseT<LayerCollection> *layer_collections_dst,
+                                        const ListBaseT<LayerCollection> *layer_collections_src)
 {
   BLI_duplicatelist(layer_collections_dst, layer_collections_src);
 
@@ -592,7 +594,9 @@ void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, con
 /**
  * Recursively get the collection for a given index
  */
-static LayerCollection *collection_from_index(ListBase *lb, const int number, int *i)
+static LayerCollection *collection_from_index(ListBaseT<LayerCollection> *lb,
+                                              const int number,
+                                              int *i)
 {
   LISTBASE_FOREACH (LayerCollection *, lc, lb) {
     if (*i == number) {
@@ -688,7 +692,7 @@ LayerCollection *BKE_layer_collection_activate_parent(ViewLayer *view_layer, Lay
 /**
  * Recursively get the count of collections
  */
-static int collection_count(const ListBase *lb)
+static int collection_count(const ListBaseT<LayerCollection> *lb)
 {
   int i = 0;
   LISTBASE_FOREACH (const LayerCollection *, lc, lb) {
@@ -705,7 +709,7 @@ int BKE_layer_collection_count(const ViewLayer *view_layer)
 /**
  * Recursively get the index for a given collection
  */
-static int index_from_collection(ListBase *lb, const LayerCollection *lc, int *i)
+static int index_from_collection(ListBaseT<LayerCollection> *lb, const LayerCollection *lc, int *i)
 {
   LISTBASE_FOREACH (LayerCollection *, lcol, lb) {
     if (lcol == lc) {
@@ -802,7 +806,7 @@ struct LayerCollectionResync {
   /* Hierarchical relationships in the old, existing ViewLayer state (except for newly created
    * layers). */
   LayerCollectionResync *parent_layer_resync;
-  ListBase children_layer_resync;
+  ListBaseT<LayerCollectionResync> children_layer_resync;
 
   /* This layer still points to a valid collection. */
   bool is_usable;
@@ -1033,7 +1037,7 @@ bool BKE_main_view_layers_synced_ensure(const Main *bmain)
 
 static void layer_collection_objects_sync(ViewLayer *view_layer,
                                           LayerCollection *layer,
-                                          ListBase *r_lb_new_object_bases,
+                                          ListBaseT<Base> *r_lb_new_object_bases,
                                           const short collection_restrict,
                                           const short layer_restrict,
                                           const ushort local_collections_bits)
@@ -1104,7 +1108,7 @@ static void layer_collection_objects_sync(ViewLayer *view_layer,
 static void layer_collection_sync(ViewLayer *view_layer,
                                   LayerCollectionResync *layer_resync,
                                   BLI_mempool *layer_resync_mempool,
-                                  ListBase *r_lb_new_object_bases,
+                                  ListBaseT<Base> *r_lb_new_object_bases,
                                   const short parent_layer_flag,
                                   const short parent_collection_restrict,
                                   const short parent_layer_restrict,
@@ -2403,7 +2407,7 @@ void BKE_layer_eval_view_layer_indexed(Depsgraph *depsgraph, Scene *scene, int v
 /** \name Blend File I/O
  * \{ */
 
-static void write_layer_collections(BlendWriter *writer, ListBase *lb)
+static void write_layer_collections(BlendWriter *writer, ListBaseT<LayerCollection> *lb)
 {
   LISTBASE_FOREACH (LayerCollection *, lc, lb) {
     writer->write_struct(lc);
@@ -2443,7 +2447,7 @@ void BKE_view_layer_blend_write(BlendWriter *writer, const Scene *scene, ViewLay
 
 static void direct_link_layer_collections(BlendDataReader *reader,
                                           ViewLayer *view_layer,
-                                          ListBase *lb,
+                                          ListBaseT<LayerCollection> *lb,
                                           bool master,
                                           bool &active_collection_found)
 {

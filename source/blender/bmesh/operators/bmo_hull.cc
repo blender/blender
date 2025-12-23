@@ -155,11 +155,11 @@ static void hull_output_triangles(BMesh *bm, BLI_mempool *hull_triangles)
 /***************************** Final Edges ****************************/
 
 struct HullFinalEdges {
-  blender::Map<BMVert *, ListBase *> *edges;
+  blender::Map<BMVert *, ListBaseT<LinkData> *> *edges;
   BLI_mempool *base_pool, *link_pool;
 };
 
-static LinkData *final_edges_find_link(ListBase *adj, BMVert *v)
+static LinkData *final_edges_find_link(ListBaseT<LinkData> *adj, BMVert *v)
 {
   LISTBASE_FOREACH (LinkData *, link, adj) {
     if (link->data == v) {
@@ -172,7 +172,7 @@ static LinkData *final_edges_find_link(ListBase *adj, BMVert *v)
 
 static int hull_final_edges_lookup(HullFinalEdges *final_edges, BMVert *v1, BMVert *v2)
 {
-  ListBase *adj;
+  ListBaseT<LinkData> *adj;
 
   /* Use lower vertex pointer for hash key */
   if (v1 > v2) {
@@ -193,8 +193,9 @@ static HullFinalEdges *hull_final_edges(BLI_mempool *hull_triangles)
   HullFinalEdges *final_edges;
 
   final_edges = MEM_callocN<HullFinalEdges>("HullFinalEdges");
-  final_edges->edges = MEM_new<blender::Map<BMVert *, ListBase *>>("final edges map");
-  final_edges->base_pool = BLI_mempool_create(sizeof(ListBase), 0, 128, BLI_MEMPOOL_NOP);
+  final_edges->edges = MEM_new<blender::Map<BMVert *, ListBaseT<LinkData> *>>("final edges map");
+  final_edges->base_pool = BLI_mempool_create(
+      sizeof(ListBaseT<LinkData>), 0, 128, BLI_MEMPOOL_NOP);
   final_edges->link_pool = BLI_mempool_create(sizeof(LinkData), 0, 128, BLI_MEMPOOL_NOP);
 
   BLI_mempool_iter iter;
@@ -214,8 +215,8 @@ static HullFinalEdges *hull_final_edges(BLI_mempool *hull_triangles)
         std::swap(v1, v2);
       }
 
-      ListBase *adj = final_edges->edges->lookup_or_add_cb(v1, [&]() {
-        return static_cast<ListBase *>(BLI_mempool_calloc(final_edges->base_pool));
+      ListBaseT<LinkData> *adj = final_edges->edges->lookup_or_add_cb(v1, [&]() {
+        return static_cast<ListBaseT<LinkData> *>(BLI_mempool_calloc(final_edges->base_pool));
       });
 
       if (!final_edges_find_link(adj, v2)) {

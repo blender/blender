@@ -221,7 +221,7 @@ void BKE_modifier_remove_from_list(Object *ob, ModifierData *md)
   BLI_remlink(&ob->modifiers, md);
 }
 
-void BKE_modifier_unique_name(ListBase *modifiers, ModifierData *md)
+void BKE_modifier_unique_name(ListBaseT<ModifierData> *modifiers, ModifierData *md)
 {
   if (modifiers && md) {
     const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
@@ -1112,7 +1112,9 @@ bool BKE_modifiers_persistent_uids_are_valid(const Object &object)
   return true;
 }
 
-void BKE_modifier_blend_write(BlendWriter *writer, const ID *id_owner, ListBase *modbase)
+void BKE_modifier_blend_write(BlendWriter *writer,
+                              const ID *id_owner,
+                              ListBaseT<ModifierData> *modbase)
 {
   if (modbase == nullptr) {
     return;
@@ -1238,7 +1240,7 @@ static void modifier_ensure_type(FluidModifierData *fluid_modifier_data, int typ
  */
 static ModifierData *modifier_replace_with_fluid(BlendDataReader *reader,
                                                  Object *object,
-                                                 ListBase *modifiers,
+                                                 ListBaseT<ModifierData> *modifiers,
                                                  ModifierData *old_modifier_data)
 {
   ModifierData *new_modifier_data = BKE_modifier_new(eModifierType_Fluid);
@@ -1333,7 +1335,7 @@ static ModifierData *modifier_replace_with_fluid(BlendDataReader *reader,
   return new_modifier_data;
 }
 
-void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object *ob)
+void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBaseT<ModifierData> *lb, Object *ob)
 {
   BLO_read_struct_list(reader, ModifierData, lb);
 

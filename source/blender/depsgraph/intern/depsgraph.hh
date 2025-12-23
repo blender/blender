@@ -178,8 +178,9 @@ struct Depsgraph {
 
   /* Cached list of colliders/effectors for collections and the scene
    * created along with relations, for fast lookup during evaluation. */
-  Map<const ID *, ListBase *> *physics_relations_effector;
-  Map<const ID *, ListBase *> *physics_relations_collision[DEG_PHYSICS_COLLISION_NUM];
+  Map<const ID *, ListBaseT<EffectorRelation> *> *physics_relations_effector;
+  Map<const ID *, ListBaseT<CollisionRelation> *>
+      *physics_relations_collision[DEG_PHYSICS_COLLISION_NUM];
 
   light_linking::Cache light_linking_cache;
 

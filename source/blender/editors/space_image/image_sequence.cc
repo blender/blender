@@ -29,7 +29,9 @@
  *
  * The output is a list of frame ranges, each containing a list of frames with matching names.
  */
-static void image_sequence_get_frame_ranges(wmOperator *op, ListBase *ranges, bool *r_was_relative)
+static void image_sequence_get_frame_ranges(wmOperator *op,
+                                            ListBaseT<ImageFrameRange> *ranges,
+                                            bool *r_was_relative)
 {
   char dir[FILE_MAXDIR];
   const bool do_frame_range = RNA_boolean_get(op->ptr, "use_sequence_detection");
@@ -141,12 +143,12 @@ static void image_detect_frame_range(ImageFrameRange *range, const bool detect_u
   }
 }
 
-ListBase ED_image_filesel_detect_sequences(blender::StringRefNull blendfile_path,
-                                           blender::StringRefNull root_path,
-                                           wmOperator *op,
-                                           const bool detect_udim)
+ListBaseT<ImageFrameRange> ED_image_filesel_detect_sequences(blender::StringRefNull blendfile_path,
+                                                             blender::StringRefNull root_path,
+                                                             wmOperator *op,
+                                                             const bool detect_udim)
 {
-  ListBase ranges;
+  ListBaseT<ImageFrameRange> ranges;
   BLI_listbase_clear(&ranges);
 
   bool was_relative = false;

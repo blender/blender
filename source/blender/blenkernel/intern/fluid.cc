@@ -3062,7 +3062,7 @@ static void update_flowsfluids(Depsgraph *depsgraph,
 struct UpdateEffectorsData {
   Scene *scene;
   FluidDomainSettings *fds;
-  ListBase *effectors;
+  ListBaseT<EffectorCache> *effectors;
 
   float *density;
   float *fuel;
@@ -3147,7 +3147,7 @@ static void update_effectors_task_cb(void *__restrict userdata,
 static void update_effectors(
     Depsgraph *depsgraph, Scene *scene, Object *ob, FluidDomainSettings *fds, float /*dt*/)
 {
-  ListBase *effectors;
+  ListBaseT<EffectorCache> *effectors;
   /* make sure smoke flow influence is 0.0f */
   fds->effector_weights->weight[PFIELD_FLUIDFLOW] = 0.0f;
   effectors = BKE_effectors_create(depsgraph, ob, nullptr, fds->effector_weights, false);

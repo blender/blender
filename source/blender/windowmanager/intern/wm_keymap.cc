@@ -166,7 +166,7 @@ static void wm_keymap_item_properties_update_ot(wmKeyMapItem *kmi, const bool ke
   }
 }
 
-static void wm_keymap_item_properties_update_ot_from_list(ListBase *km_lb,
+static void wm_keymap_item_properties_update_ot_from_list(ListBaseT<wmKeyMap> *km_lb,
                                                           const bool keep_properties)
 {
   LISTBASE_FOREACH (wmKeyMap *, km, km_lb) {
@@ -742,7 +742,7 @@ static void wm_keymap_patch(wmKeyMap *km, wmKeyMap *diff_km)
   }
 }
 
-static wmKeyMap *wm_keymap_patch_update(ListBase *lb,
+static wmKeyMap *wm_keymap_patch_update(ListBaseT<wmKeyMap> *lb,
                                         wmKeyMap *defaultmap,
                                         wmKeyMap *addonmap,
                                         wmKeyMap *usermap)
@@ -808,7 +808,7 @@ static wmKeyMap *wm_keymap_patch_update(ListBase *lb,
   return km;
 }
 
-static void wm_keymap_diff_update(ListBase *lb,
+static void wm_keymap_diff_update(ListBaseT<wmKeyMap> *lb,
                                   wmKeyMap *defaultmap,
                                   wmKeyMap *addonmap,
                                   wmKeyMap *km)
@@ -863,7 +863,10 @@ static void wm_keymap_diff_update(ListBase *lb,
  * - Gets freed in `wm.cc`.
  * \{ */
 
-wmKeyMap *WM_keymap_list_find(ListBase *lb, const char *idname, int spaceid, int regionid)
+wmKeyMap *WM_keymap_list_find(ListBaseT<wmKeyMap> *lb,
+                              const char *idname,
+                              int spaceid,
+                              int regionid)
 {
   LISTBASE_FOREACH (wmKeyMap *, km, lb) {
     if (km->spaceid == spaceid && km->regionid == regionid) {
@@ -876,7 +879,7 @@ wmKeyMap *WM_keymap_list_find(ListBase *lb, const char *idname, int spaceid, int
   return nullptr;
 }
 
-wmKeyMap *WM_keymap_list_find_spaceid_or_empty(ListBase *lb,
+wmKeyMap *WM_keymap_list_find_spaceid_or_empty(ListBaseT<wmKeyMap> *lb,
                                                const char *idname,
                                                int spaceid,
                                                int regionid)
@@ -1388,7 +1391,7 @@ static wmKeyMapItem *wm_keymap_item_find_in_keymap(wmKeyMap *keymap,
 static wmKeyMapItem *wm_keymap_item_find_handlers(const bContext *C,
                                                   wmWindowManager *wm,
                                                   wmWindow *win,
-                                                  ListBase *handlers,
+                                                  ListBaseT<wmEventHandler> *handlers,
                                                   const char *opname,
                                                   blender::wm::OpCallContext /*opcontext*/,
                                                   const IDProperty *properties,

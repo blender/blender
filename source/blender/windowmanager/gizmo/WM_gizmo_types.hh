@@ -404,7 +404,7 @@ struct wmGizmoType {
   /** RNA integration. */
   ExtensionRNA rna_ext;
 
-  ListBase target_property_defs;
+  ListBaseT<wmGizmoPropertyType> target_property_defs;
   int target_property_defs_len;
 };
 
@@ -478,7 +478,7 @@ struct wmGizmoGroup {
   wmGizmoGroup *next, *prev;
 
   wmGizmoGroupType *type;
-  ListBase gizmos;
+  ListBaseT<wmGizmo> gizmos;
 
   wmGizmoMap *parent_gzmap;
 

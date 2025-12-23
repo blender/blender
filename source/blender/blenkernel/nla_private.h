@@ -138,7 +138,7 @@ typedef struct NlaEvalSnapshot {
 
 /** Set of all channels covered by NLA. */
 typedef struct NlaEvalData {
-  ListBase channels;
+  ListBaseT<NlaEvalChannel> channels;
 
   /* Mapping of paths and NlaEvalChannelKeys to channels. */
   GHash *path_hash;
@@ -166,7 +166,7 @@ typedef struct NlaKeyframingContext {
   NlaStrip action_track_strip;
 
   /* Strips above tweaked strip. */
-  ListBase upper_estrips;
+  ListBaseT<NlaEvalStrip> upper_estrips;
   /* Evaluated NLA stack below the tweak strip. */
   NlaEvalData lower_eval_data;
 } NlaKeyframingContext;
@@ -189,8 +189,8 @@ float nlastrip_get_frame(NlaStrip *strip, float cframe, short mode);
 /**
  * Gets the strip active at the current time for a list of strips for evaluation purposes.
  */
-NlaEvalStrip *nlastrips_ctime_get_strip(ListBase *list,
-                                        ListBase *strips,
+NlaEvalStrip *nlastrips_ctime_get_strip(ListBaseT<NlaEvalStrip> *list,
+                                        ListBaseT<NlaStrip> *strips,
                                         short index,
                                         const struct AnimationEvalContext *anim_eval_context,
                                         bool flush_to_original);
@@ -215,7 +215,7 @@ enum eNlaStripEvaluate_Mode {
 void nlastrip_evaluate(const int evaluation_mode,
                        PointerRNA *ptr,
                        NlaEvalData *channels,
-                       ListBase *modifiers,
+                       ListBaseT<FModifier> *modifiers,
                        NlaEvalStrip *nes,
                        NlaEvalSnapshot *snapshot,
                        const struct AnimationEvalContext *anim_eval_context,
@@ -282,7 +282,7 @@ void nlasnapshot_blend_get_inverted_lower_snapshot(NlaEvalData *eval_data,
 
 void nlasnapshot_blend_strip(PointerRNA *ptr,
                              NlaEvalData *channels,
-                             ListBase *modifiers,
+                             ListBaseT<FModifier> *modifiers,
                              NlaEvalStrip *nes,
                              NlaEvalSnapshot *snapshot,
                              const struct AnimationEvalContext *anim_eval_context,
@@ -291,14 +291,14 @@ void nlasnapshot_blend_strip(PointerRNA *ptr,
 void nlasnapshot_blend_strip_get_inverted_lower_snapshot(
     PointerRNA *ptr,
     NlaEvalData *channels,
-    ListBase *modifiers,
+    ListBaseT<FModifier> *modifiers,
     NlaEvalStrip *nes,
     NlaEvalSnapshot *snapshot,
     const struct AnimationEvalContext *anim_eval_context);
 
 void nlasnapshot_blend_strip_no_blend(PointerRNA *ptr,
                                       NlaEvalData *channels,
-                                      ListBase *modifiers,
+                                      ListBaseT<FModifier> *modifiers,
                                       NlaEvalStrip *nes,
                                       NlaEvalSnapshot *snapshot,
                                       const struct AnimationEvalContext *anim_eval_context);

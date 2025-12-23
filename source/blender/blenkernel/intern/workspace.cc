@@ -10,6 +10,8 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "DNA_listBase.h"
+
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
@@ -28,6 +30,7 @@
 #include "BKE_viewer_path.hh"
 #include "BKE_workspace.hh"
 
+#include "DNA_listBase.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
@@ -280,7 +283,7 @@ static WorkSpaceLayout *workspace_layout_find_exec(const WorkSpace *workspace,
       BLI_findptr(&workspace->layouts, screen, offsetof(WorkSpaceLayout, screen)));
 }
 
-static void workspace_relation_add(ListBase *relation_list,
+static void workspace_relation_add(ListBaseT<WorkSpaceDataRelation> *relation_list,
                                    void *parent,
                                    const int parentid,
                                    void *data)
@@ -292,13 +295,14 @@ static void workspace_relation_add(ListBase *relation_list,
   /* add to head, if we switch back to it soon we find it faster. */
   BLI_addhead(relation_list, relation);
 }
-static void workspace_relation_remove(ListBase *relation_list, WorkSpaceDataRelation *relation)
+static void workspace_relation_remove(ListBaseT<WorkSpaceDataRelation> *relation_list,
+                                      WorkSpaceDataRelation *relation)
 {
   BLI_remlink(relation_list, relation);
   MEM_freeN(relation);
 }
 
-static void workspace_relation_ensure_updated(ListBase *relation_list,
+static void workspace_relation_ensure_updated(ListBaseT<WorkSpaceDataRelation> *relation_list,
                                               void *parent,
                                               const int parentid,
                                               void *data)
@@ -318,8 +322,8 @@ static void workspace_relation_ensure_updated(ListBase *relation_list,
   }
 }
 
-static void *workspace_relation_get_data_matching_parent(const ListBase *relation_list,
-                                                         const void *parent)
+static void *workspace_relation_get_data_matching_parent(
+    const ListBaseT<WorkSpaceDataRelation> *relation_list, const void *parent)
 {
   WorkSpaceDataRelation *relation = static_cast<WorkSpaceDataRelation *>(
       BLI_findptr(relation_list, parent, offsetof(WorkSpaceDataRelation, parent)));
@@ -478,7 +482,7 @@ void BKE_workspace_layout_remove(Main *bmain, WorkSpace *workspace, WorkSpaceLay
   BLI_freelinkN(&workspace->layouts, layout);
 }
 
-void BKE_workspace_relations_free(ListBase *relation_list)
+void BKE_workspace_relations_free(ListBaseT<WorkSpaceDataRelation> *relation_list)
 {
   for (WorkSpaceDataRelation *
            relation = static_cast<WorkSpaceDataRelation *>(relation_list->first),
@@ -617,7 +621,7 @@ bool BKE_workspace_owner_id_check(const WorkSpace *workspace, const char *owner_
 
 void BKE_workspace_id_tag_all_visible(Main *bmain, int tag)
 {
-  BKE_main_id_tag_listbase(&bmain->workspaces, tag, false);
+  BKE_main_id_tag_listbase(&bmain->workspaces.cast<ID>(), tag, false);
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     WorkSpace *workspace = BKE_workspace_active_get(win->workspace_hook);

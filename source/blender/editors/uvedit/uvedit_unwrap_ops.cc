@@ -1484,7 +1484,7 @@ static void uvedit_pack_islands_multi(const Scene *scene,
       only_selected_faces = false;
       only_selected_uvs = false;
     }
-    ListBase island_list = {nullptr};
+    ListBaseT<FaceIsland> island_list = {nullptr};
     bm_mesh_calc_uv_islands(scene,
                             bm,
                             &island_list,

@@ -43,7 +43,7 @@ void template_strip_modifiers(Layout * /*layout*/, bContext *C)
   }
   Strip *active_strip = seq::select_active_get(sequencer_scene);
   BLI_assert(active_strip != nullptr);
-  ListBase *modifiers = &active_strip->modifiers;
+  ListBaseT<StripModifierData> *modifiers = &active_strip->modifiers;
 
   const bool panels_match = panel_list_matches_data(region, modifiers, strip_modifier_panel_id);
 

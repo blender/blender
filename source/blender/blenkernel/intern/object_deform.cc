@@ -142,7 +142,7 @@ bool BKE_object_defgroup_clear(Object *ob, bDeformGroup *dg, const bool use_sele
   using namespace blender;
   using namespace blender::bke;
   MDeformVert *dv;
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
   const int def_nr = BLI_findindex(defbase, dg);
   bool changed = false;
 
@@ -214,7 +214,7 @@ bool BKE_object_defgroup_clear_all(Object *ob, const bool use_selection)
 {
   bool changed = false;
 
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
 
   LISTBASE_FOREACH (bDeformGroup *, dg, defbase) {
     if (BKE_object_defgroup_clear(ob, dg, use_selection)) {
@@ -253,7 +253,7 @@ static void object_defgroup_remove_common(Object *ob, bDeformGroup *dg, const in
   object_defgroup_remove_update_users(ob, def_nr + 1);
 
   /* Remove the group */
-  ListBase *defbase = BKE_object_defgroup_list_mutable(ob);
+  ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list_mutable(ob);
 
   BLI_freelinkN(defbase, dg);
 
@@ -288,7 +288,7 @@ static void object_defgroup_remove_object_mode(Object *ob, bDeformGroup *dg)
 {
   MDeformVert *dvert_array = nullptr;
   int dvert_tot = 0;
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
 
   const int def_nr = BLI_findindex(defbase, dg);
 
@@ -321,7 +321,7 @@ static void object_defgroup_remove_object_mode(Object *ob, bDeformGroup *dg)
 static void object_defgroup_remove_edit_mode(Object *ob, bDeformGroup *dg)
 {
   int i;
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
   const int def_nr = BLI_findindex(defbase, dg);
 
   BLI_assert(def_nr != -1);
@@ -393,7 +393,7 @@ void BKE_object_defgroup_remove(Object *ob, bDeformGroup *defgroup)
 
 void BKE_object_defgroup_remove_all_ex(Object *ob, bool only_unlocked)
 {
-  ListBase *defbase = BKE_object_defgroup_list_mutable(ob);
+  ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list_mutable(ob);
 
   bDeformGroup *dg = (bDeformGroup *)defbase->first;
   const bool edit_mode = BKE_object_is_in_editmode_vgroup(ob);
@@ -440,8 +440,8 @@ void BKE_object_defgroup_remove_all(Object *ob)
 
 int *BKE_object_defgroup_index_map_create(Object *ob_src, Object *ob_dst, int *r_map_len)
 {
-  const ListBase *src_defbase = BKE_object_defgroup_list(ob_src);
-  const ListBase *dst_defbase = BKE_object_defgroup_list(ob_dst);
+  const ListBaseT<bDeformGroup> *src_defbase = BKE_object_defgroup_list(ob_src);
+  const ListBaseT<bDeformGroup> *dst_defbase = BKE_object_defgroup_list(ob_dst);
 
   /* Build src to merged mapping of vgroup indices. */
   if (BLI_listbase_is_empty(src_defbase) || BLI_listbase_is_empty(dst_defbase)) {
@@ -544,7 +544,7 @@ bool *BKE_object_defgroup_lock_flags_get(Object *ob, const int defbase_tot)
 {
   bool is_locked = false;
   int i;
-  ListBase *defbase = BKE_object_defgroup_list_mutable(ob);
+  ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list_mutable(ob);
   bool *lock_flags = MEM_malloc_arrayN<bool>(size_t(defbase_tot), "defflags");
   bDeformGroup *defgroup;
 
@@ -569,7 +569,7 @@ bool *BKE_object_defgroup_validmap_get(Object *ob, const int defbase_tot)
   bool *defgroup_validmap;
   GHash *gh;
   int i, step1 = 1;
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
   VirtualModifierData virtual_modifier_data;
 
   if (BLI_listbase_is_empty(defbase)) {
@@ -639,7 +639,7 @@ bool *BKE_object_defgroup_selected_get(Object *ob, int defbase_tot, int *r_dg_fl
   Object *armob = BKE_object_pose_armature_get(ob);
   (*r_dg_flags_sel_tot) = 0;
 
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
 
   if (armob) {
     bPose *pose = armob->pose;
@@ -741,7 +741,7 @@ void BKE_object_defgroup_mirror_selection(Object *ob,
                                           bool *dg_flags_sel,
                                           int *r_dg_flags_sel_tot)
 {
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
 
   bDeformGroup *defgroup;
   uint i;

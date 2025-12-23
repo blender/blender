@@ -74,7 +74,7 @@ enum eAction_TransformFlags {
 
 static eAction_TransformFlags get_item_transform_flags_and_fcurves(Object &ob,
                                                                    bPoseChannel &pchan,
-                                                                   ListBase &r_curves)
+                                                                   ListBaseT<LinkData> &r_curves)
 {
   if (!ob.adt || !ob.adt->action) {
     return eAction_TransformFlags(0);
@@ -165,9 +165,11 @@ static eAction_TransformFlags get_item_transform_flags_and_fcurves(Object &ob,
 }
 
 /* helper for poseAnim_mapping_get() -> get the relevant F-Curves per PoseChannel */
-static void fcurves_to_pchan_links_get(ListBase &pfLinks, Object &ob, bPoseChannel &pchan)
+static void fcurves_to_pchan_links_get(ListBaseT<tPChanFCurveLink> &pfLinks,
+                                       Object &ob,
+                                       bPoseChannel &pchan)
 {
-  ListBase curves = {nullptr, nullptr};
+  ListBaseT<LinkData> curves = {nullptr, nullptr};
   const eAction_TransformFlags transFlags = get_item_transform_flags_and_fcurves(
       ob, pchan, curves);
 
@@ -243,7 +245,7 @@ Object *poseAnim_object_get(Object *ob_)
   return nullptr;
 }
 
-void poseAnim_mapping_get(bContext *C, ListBase *pfLinks)
+void poseAnim_mapping_get(bContext *C, ListBaseT<tPChanFCurveLink> *pfLinks)
 {
   BLI_assert(pfLinks != nullptr);
   /* For each Pose-Channel which gets affected, get the F-Curves for that channel
@@ -299,7 +301,7 @@ void poseAnim_mapping_get(bContext *C, ListBase *pfLinks)
   }
 }
 
-void poseAnim_mapping_free(ListBase *pfLinks)
+void poseAnim_mapping_free(ListBaseT<tPChanFCurveLink> *pfLinks)
 {
   tPChanFCurveLink *pfl, *pfln = nullptr;
 
@@ -336,7 +338,7 @@ void poseAnim_mapping_refresh(bContext *C, Scene * /*scene*/, Object *ob)
   }
 }
 
-void poseAnim_mapping_reset(ListBase *pfLinks)
+void poseAnim_mapping_reset(ListBaseT<tPChanFCurveLink> *pfLinks)
 {
   /* iterate over each pose-channel affected, restoring all channels to their original values */
   LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pfLinks) {
@@ -373,7 +375,10 @@ void poseAnim_mapping_reset(ListBase *pfLinks)
   }
 }
 
-void poseAnim_mapping_autoKeyframe(bContext *C, Scene *scene, ListBase *pfLinks, float cframe)
+void poseAnim_mapping_autoKeyframe(bContext *C,
+                                   Scene *scene,
+                                   ListBaseT<tPChanFCurveLink> *pfLinks,
+                                   float cframe)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);
@@ -441,7 +446,9 @@ void poseAnim_mapping_autoKeyframe(bContext *C, Scene *scene, ListBase *pfLinks,
 
 /* ------------------------- */
 
-LinkData *poseAnim_mapping_getNextFCurve(ListBase *fcuLinks, LinkData *prev, const char *path)
+LinkData *poseAnim_mapping_getNextFCurve(ListBaseT<LinkData> *fcuLinks,
+                                         LinkData *prev,
+                                         const char *path)
 {
   LinkData *first = static_cast<LinkData *>((prev)     ? prev->next :
                                             (fcuLinks) ? fcuLinks->first :

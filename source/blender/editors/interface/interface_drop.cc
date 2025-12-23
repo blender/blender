@@ -27,7 +27,7 @@ bool drop_target_apply_drop(bContext &C,
                             const ARegion &region,
                             const wmEvent &event,
                             const DropTargetInterface &drop_target,
-                            const ListBase &drags)
+                            const ListBaseT<wmDrag> &drags)
 {
   const char *disabled_hint_dummy = nullptr;
   LISTBASE_FOREACH (const wmDrag *, drag, &drags) {

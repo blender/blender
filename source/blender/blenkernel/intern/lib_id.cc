@@ -895,7 +895,7 @@ void BKE_id_move_to_same_lib(Main &bmain, ID &id, const ID &owner_id)
   id.lib = owner_id.lib;
   id.tag |= ID_TAG_INDIRECT;
 
-  ListBase &lb = *which_libbase(&bmain, GS(id.name));
+  ListBaseT<ID> &lb = *which_libbase(&bmain, GS(id.name));
   BKE_id_new_name_validate(
       bmain, lb, id, BKE_id_name(id), IDNewNameMode::RenameExistingNever, true);
 }
@@ -1152,7 +1152,7 @@ void BKE_libblock_management_main_add(Main *bmain, void *idv)
     }
   }
 
-  ListBase *lb = which_libbase(bmain, GS(id->name));
+  ListBaseT<ID> *lb = which_libbase(bmain, GS(id->name));
   BKE_main_lock(bmain);
   BLI_addtail(lb, id);
   /* We need to allow adding extra datablocks into libraries too, e.g. to support generating new
@@ -1177,7 +1177,7 @@ void BKE_libblock_management_main_remove(Main *bmain, void *idv)
 
   /* For now, allow userrefcounting IDs to get out of Main - can be handy in some cases... */
 
-  ListBase *lb = which_libbase(bmain, GS(id->name));
+  ListBaseT<ID> *lb = which_libbase(bmain, GS(id->name));
   BKE_main_lock(bmain);
   BLI_remlink(lb, id);
   BKE_main_namemap_remove_id(*bmain, *id);
@@ -1211,7 +1211,7 @@ void BKE_libblock_management_usercounts_clear(Main *bmain, void *idv)
   id->tag |= ID_TAG_NO_USER_REFCOUNT;
 }
 
-void BKE_main_id_tag_listbase(ListBase *lb, const int tag, const bool value)
+void BKE_main_id_tag_listbase(ListBaseT<ID> *lb, const int tag, const bool value)
 {
   ID *id;
   if (value) {
@@ -1229,7 +1229,7 @@ void BKE_main_id_tag_listbase(ListBase *lb, const int tag, const bool value)
 
 void BKE_main_id_tag_idcode(Main *mainvar, const short type, const int tag, const bool value)
 {
-  ListBase *lb = which_libbase(mainvar, type);
+  ListBaseT<ID> *lb = which_libbase(mainvar, type);
 
   BKE_main_id_tag_listbase(lb, tag, value);
 }
@@ -1243,7 +1243,7 @@ void BKE_main_id_tag_all(Main *mainvar, const int tag, const bool value)
   }
 }
 
-void BKE_main_id_flag_listbase(ListBase *lb, const int flag, const bool value)
+void BKE_main_id_flag_listbase(ListBaseT<ID> *lb, const int flag, const bool value)
 {
   ID *id;
   if (value) {
@@ -1268,7 +1268,7 @@ void BKE_main_id_flag_all(Main *bmain, const int flag, const bool value)
   }
 }
 
-void BKE_main_id_repair_duplicate_names_listbase(Main *bmain, ListBase *lb)
+void BKE_main_id_repair_duplicate_names_listbase(Main *bmain, ListBaseT<ID> *lb)
 {
   int lb_len = 0;
   LISTBASE_FOREACH (ID *, id, lb) {
@@ -1317,10 +1317,10 @@ void BKE_main_lib_objects_recalc_all(Main *bmain)
 
 /* *********** ALLOC AND FREE *****************
  *
- * BKE_libblock_free(ListBase *lb, ID *id )
+ * BKE_libblock_free(ListBaseT<ID> *lb, ID *id )
  * provide a list-basis and data-block, but only ID is read
  *
- * void *BKE_libblock_alloc(ListBase *lb, type, name)
+ * void *BKE_libblock_alloc(ListBaseT<ID> *lb, type, name)
  * inserts in list and returns a new ID
  *
  * **************************** */
@@ -1394,7 +1394,7 @@ void *BKE_libblock_alloc_in_lib(Main *bmain,
       /* Note that 2.8x versioning has tested not to cause conflicts. Node trees are
        * skipped in this check to allow adding a geometry node tree for versioning. */
       BLI_assert(bmain->is_locked_for_linking == false || ELEM(type, ID_WS, ID_GR, ID_NT));
-      ListBase *lb = which_libbase(bmain, type);
+      ListBaseT<ID> *lb = which_libbase(bmain, type);
 
       /* This is important in "read-file do-version after lib-link" context mainly, but is a good
        * behavior for consistency in general: ID created for a Main should get that main's current
@@ -1724,7 +1724,7 @@ ID *BKE_libblock_find_name(Main *bmain,
                            const char *name,
                            const std::optional<Library *> lib)
 {
-  const ListBase *lb = which_libbase(bmain, type);
+  const ListBaseT<ID> *lb = which_libbase(bmain, type);
   BLI_assert(lb != nullptr);
 
   ID *id = static_cast<ID *>(BLI_findstring(lb, name, offsetof(ID, name) + 2));
@@ -1739,7 +1739,7 @@ ID *BKE_libblock_find_name(Main *bmain,
 
 ID *BKE_libblock_find_session_uid(Main *bmain, const short type, const uint32_t session_uid)
 {
-  const ListBase *lb = which_libbase(bmain, type);
+  const ListBaseT<ID> *lb = which_libbase(bmain, type);
   BLI_assert(lb != nullptr);
   LISTBASE_FOREACH (ID *, id, lb) {
     if (id->session_uid == session_uid) {
@@ -1784,7 +1784,7 @@ ID *BKE_libblock_find_name_and_library_filepath(Main *bmain,
   const bool is_linked = (lib_filepath_abs && lib_filepath_abs[0] != '\0');
   Library *library = nullptr;
   if (is_linked) {
-    const ListBase *lb = which_libbase(bmain, ID_LI);
+    const ListBaseT<ID> *lb = which_libbase(bmain, ID_LI);
     LISTBASE_FOREACH (ID *, id_iter, lb) {
       Library *lib_iter = reinterpret_cast<Library *>(id_iter);
       if (STREQ(lib_iter->runtime->filepath_abs, lib_filepath_abs)) {
@@ -1799,7 +1799,7 @@ ID *BKE_libblock_find_name_and_library_filepath(Main *bmain,
   return BKE_libblock_find_name(bmain, type, name, library);
 }
 
-void id_sort_by_name(ListBase *lb, ID *id, ID *id_sorting_hint)
+void id_sort_by_name(ListBaseT<ID> *lb, ID *id, ID *id_sorting_hint)
 {
 #define ID_SORT_STEP_SIZE 512
 
@@ -1913,7 +1913,7 @@ void id_sort_by_name(ListBase *lb, ID *id, ID *id_sorting_hint)
 }
 
 IDNewNameResult BKE_id_new_name_validate(Main &bmain,
-                                         ListBase &lb,
+                                         ListBaseT<ID> &lb,
                                          ID &id,
                                          const char *newname,
                                          IDNewNameMode mode,
@@ -2387,7 +2387,7 @@ IDNewNameResult BKE_libblock_rename(Main &bmain,
     return {IDNewNameResult::Action::UNCHANGED, nullptr};
   }
   BKE_main_namemap_remove_id(bmain, id);
-  ListBase &lb = *which_libbase(&bmain, GS(id.name));
+  ListBaseT<ID> &lb = *which_libbase(&bmain, GS(id.name));
   IDNewNameResult result = BKE_id_new_name_validate(bmain, lb, id, name.c_str(), mode, true);
   if (!ELEM(result.action,
             IDNewNameResult::Action::UNCHANGED,
@@ -2582,7 +2582,7 @@ static bool id_order_compare(ID *a, ID *b)
   return strcmp(a->name, b->name) < 0;
 }
 
-Vector<ID *> BKE_id_ordered_list(const ListBase *lb)
+Vector<ID *> BKE_id_ordered_list(const ListBaseT<ID> *lb)
 {
   Vector<ID *> ordered;
 
@@ -2601,7 +2601,7 @@ Vector<ID *> BKE_id_ordered_list(const ListBase *lb)
   return ordered;
 }
 
-void BKE_id_reorder(const ListBase *lb, ID *id, ID *relative, bool after)
+void BKE_id_reorder(const ListBaseT<ID> *lb, ID *id, ID *relative, bool after)
 {
   int *id_order = id_order_get(id);
   int relative_order;

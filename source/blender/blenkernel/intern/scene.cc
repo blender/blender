@@ -764,7 +764,7 @@ static void scene_foreach_toolsettings(LibraryForeachIDData *data,
 #undef BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_FUNCTION_CALL
 
 static void scene_foreach_layer_collection(LibraryForeachIDData *data,
-                                           ListBase *lb,
+                                           ListBaseT<LayerCollection> *lb,
                                            const bool is_master)
 {
   const int data_flags = BKE_lib_query_foreachid_process_flags_get(data);
@@ -1290,7 +1290,7 @@ static void direct_link_paint_helper(BlendDataReader *reader, const Scene *scene
   }
 }
 
-static void link_recurs_seq(BlendDataReader *reader, ListBase *lb)
+static void link_recurs_seq(BlendDataReader *reader, ListBaseT<Strip> *lb)
 {
   BLO_read_struct_list(reader, Strip, lb);
 
@@ -2200,7 +2200,7 @@ int BKE_scene_base_iter_next(
             (*scene) = (*scene)->set;
             ViewLayer *view_layer_set = BKE_view_layer_default_render(*scene);
             BKE_view_layer_synced_ensure(*scene, view_layer_set);
-            ListBase *object_bases = BKE_view_layer_object_bases_get(view_layer_set);
+            ListBaseT<Base> *object_bases = BKE_view_layer_object_bases_get(view_layer_set);
             if (object_bases->first) {
               *base = static_cast<Base *>(object_bases->first);
               *ob = (*base)->object;
@@ -2223,7 +2223,7 @@ int BKE_scene_base_iter_next(
                 (*scene) = (*scene)->set;
                 ViewLayer *view_layer_set = BKE_view_layer_default_render(*scene);
                 BKE_view_layer_synced_ensure(*scene, view_layer_set);
-                ListBase *object_bases = BKE_view_layer_object_bases_get(view_layer_set);
+                ListBaseT<Base> *object_bases = BKE_view_layer_object_bases_get(view_layer_set);
                 if (object_bases->first) {
                   *base = static_cast<Base *>(object_bases->first);
                   *ob = (*base)->object;
@@ -2375,7 +2375,7 @@ bool BKE_scene_camera_switch_update(Scene *scene)
 
 const char *BKE_scene_find_marker_name(const Scene *scene, int frame)
 {
-  const ListBase *markers = &scene->markers;
+  const ListBaseT<TimeMarker> *markers = &scene->markers;
   const TimeMarker *m1, *m2;
 
   /* search through markers for match */
@@ -2886,7 +2886,7 @@ Base *_setlooper_base_step(Scene **sce_iter, ViewLayer *view_layer, Base *base)
     /* First time looping, return the scenes first base. */
     /* For the first loop we should get the layer from workspace when available. */
     BKE_view_layer_synced_ensure(*sce_iter, view_layer);
-    ListBase *object_bases = BKE_view_layer_object_bases_get(view_layer);
+    ListBaseT<Base> *object_bases = BKE_view_layer_object_bases_get(view_layer);
     if (object_bases->first) {
       return static_cast<Base *>(object_bases->first);
     }

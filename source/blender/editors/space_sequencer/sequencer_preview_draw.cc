@@ -1373,7 +1373,7 @@ static void preview_draw_all_image_overlays(const bContext *C,
     return;
   }
 
-  ListBase *channels = seq::channels_displayed_get(&editing);
+  ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(&editing);
   VectorSet strips = seq::query_rendered_strips(
       scene, channels, editing.current_strips(), timeline_frame, 0);
   Strip *active_seq = seq::select_active_get(scene);

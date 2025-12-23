@@ -116,7 +116,7 @@ static void nla_action_draw_keyframes(
   immUnbindProgram();
 
   /* Count keys before drawing. */
-  const ListBase *keys = ED_keylist_listbase(keylist);
+  const ListBaseT<ActKeyColumn> *keys = ED_keylist_listbase(keylist);
   uint key_len = BLI_listbase_count(keys);
 
   if (key_len > 0) {
@@ -705,10 +705,10 @@ static void nla_draw_strip_frames_text(
  * Note that this also includes tracks that might only be
  * visible because of their extendmode.
  */
-static ListBase get_visible_nla_strips(NlaTrack *nlt, View2D *v2d)
+static ListBaseT<NlaStrip> get_visible_nla_strips(NlaTrack *nlt, View2D *v2d)
 {
   if (BLI_listbase_is_empty(&nlt->strips)) {
-    ListBase empty = {nullptr, nullptr};
+    ListBaseT<NlaStrip> empty = {nullptr, nullptr};
     return empty;
   }
 
@@ -781,7 +781,7 @@ static ListBase get_visible_nla_strips(NlaTrack *nlt, View2D *v2d)
     }
   }
 
-  ListBase visible_strips = {first, last};
+  ListBaseT<NlaStrip> visible_strips = {first, last};
   return visible_strips;
 }
 
@@ -792,7 +792,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
   const float text_margin_x = (8 * UI_SCALE_FAC) * pixelx;
 
   /* build list of tracks to draw */
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
                               ANIMFILTER_LIST_CHANNELS | ANIMFILTER_FCURVESONLY);
   size_t items = ANIM_animdata_filter(
@@ -825,7 +825,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
         case ANIMTYPE_NLATRACK: {
           AnimData *adt = ale->adt;
           NlaTrack *nlt = static_cast<NlaTrack *>(ale->data);
-          ListBase visible_nla_strips = get_visible_nla_strips(nlt, v2d);
+          ListBaseT<NlaStrip> visible_nla_strips = get_visible_nla_strips(nlt, v2d);
 
           /* Draw each visible strip in the track. */
           LISTBASE_FOREACH (NlaStrip *, strip, &visible_nla_strips) {
@@ -975,7 +975,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
 void draw_nla_track_list(const bContext *C,
                          bAnimContext *ac,
                          ARegion *region,
-                         const ListBase /*bAnimListElem*/ &anim_data)
+                         const ListBaseT<bAnimListElem> &anim_data)
 {
 
   SpaceNla *snla = reinterpret_cast<SpaceNla *>(ac->sl);

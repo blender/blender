@@ -237,7 +237,9 @@ void node_data_from_gpu_stack(bNodeStack *ns, GPUNodeStack *gs)
   ns->sockettype = gs->sockettype;
 }
 
-static void gpu_stack_from_data_list(GPUNodeStack *gs, ListBase *sockets, bNodeStack **ns)
+static void gpu_stack_from_data_list(GPUNodeStack *gs,
+                                     ListBaseT<bNodeSocket> *sockets,
+                                     bNodeStack **ns)
 {
   int i;
   LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, sockets, i) {
@@ -247,7 +249,9 @@ static void gpu_stack_from_data_list(GPUNodeStack *gs, ListBase *sockets, bNodeS
   gs[i].end = true;
 }
 
-static void data_from_gpu_stack_list(ListBase *sockets, bNodeStack **ns, GPUNodeStack *gs)
+static void data_from_gpu_stack_list(ListBaseT<bNodeSocket> *sockets,
+                                     bNodeStack **ns,
+                                     GPUNodeStack *gs)
 {
   int i = 0;
   LISTBASE_FOREACH (bNodeSocket *, socket, sockets) {

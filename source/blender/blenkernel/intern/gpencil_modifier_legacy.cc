@@ -390,7 +390,9 @@ void BKE_gpencil_modifiers_foreach_ID_link(Object *ob,
   }
 }
 
-void BKE_gpencil_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object *ob)
+void BKE_gpencil_modifier_blend_read_data(BlendDataReader *reader,
+                                          ListBaseT<GpencilModifierData> *lb,
+                                          Object *ob)
 {
   BLO_read_struct_list(reader, GpencilModifierData, lb);
 

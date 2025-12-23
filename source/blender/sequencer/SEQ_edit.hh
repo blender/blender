@@ -4,12 +4,13 @@
 
 #pragma once
 
+#include "DNA_listBase.h"
+
 /** \file
  * \ingroup sequencer
  */
 
 struct Editing;
-struct ListBase;
 struct Main;
 struct Scene;
 struct Strip;
@@ -26,9 +27,9 @@ bool edit_strip_swap(Scene *scene, Strip *strip_a, Strip *strip_b, const char **
  * \param dst_seqbase: Target seqbase
  */
 bool edit_move_strip_to_seqbase(Scene *scene,
-                                ListBase *seqbase,
+                                ListBaseT<Strip> *seqbase,
                                 Strip *strip,
-                                ListBase *dst_seqbase);
+                                ListBaseT<Strip> *dst_seqbase);
 /**
  * Move strip to meta-strip.
  *
@@ -44,11 +45,11 @@ bool edit_move_strip_to_meta(Scene *scene,
 /**
  * Flag strip and its users (effects) for removal.
  */
-void edit_flag_for_removal(Scene *scene, ListBase *seqbase, Strip *strip);
+void edit_flag_for_removal(Scene *scene, ListBaseT<Strip> *seqbase, Strip *strip);
 /**
  * Remove all flagged strips, return true if strip is removed.
  */
-void edit_remove_flagged_strips(Scene *scene, ListBase *seqbase);
+void edit_remove_flagged_strips(Scene *scene, ListBaseT<Strip> *seqbase);
 void edit_update_muting(Editing *ed);
 
 enum eSplitMethod {
@@ -66,7 +67,7 @@ enum eSplitMethod {
  */
 Strip *edit_strip_split(Main *bmain,
                         Scene *scene,
-                        ListBase *seqbase,
+                        ListBaseT<Strip> *seqbase,
                         Strip *strip,
                         int timeline_frame,
                         eSplitMethod method,
@@ -76,12 +77,15 @@ Strip *edit_strip_split(Main *bmain,
  * Find gap after initial_frame and move strips on right side to close the gap
  *
  * \param scene: Scene in which strips are located
- * \param seqbase: ListBase in which strips are located
+ * \param seqbase: List in which strips are located
  * \param initial_frame: frame on timeline from where gaps are searched for
  * \param remove_all_gaps: remove all gaps instead of one gap
  * \return true if gap is removed, otherwise false
  */
-bool edit_remove_gaps(Scene *scene, ListBase *seqbase, int initial_frame, bool remove_all_gaps);
+bool edit_remove_gaps(Scene *scene,
+                      ListBaseT<Strip> *seqbase,
+                      int initial_frame,
+                      bool remove_all_gaps);
 void edit_strip_name_set(Scene *scene, Strip *strip, const char *new_name);
 
 }  // namespace blender::seq

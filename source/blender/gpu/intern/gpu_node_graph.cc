@@ -467,7 +467,7 @@ static GPUUniformAttr *gpu_node_graph_add_uniform_attribute(GPUNodeGraph *graph,
 static GPULayerAttr *gpu_node_graph_add_layer_attribute(GPUNodeGraph *graph, const char *name)
 {
   /* Find existing attribute. */
-  ListBase *attrs = &graph->layer_attrs;
+  ListBaseT<GPULayerAttr> *attrs = &graph->layer_attrs;
   GPULayerAttr *attr = static_cast<GPULayerAttr *>(attrs->first);
 
   for (; attr; attr = attr->next) {
@@ -913,7 +913,7 @@ bool GPU_stack_link_zone(GPUMaterial *material,
 
 /* Node Graph */
 
-static void gpu_inputs_free(ListBase *inputs)
+static void gpu_inputs_free(ListBaseT<GPUInput> *inputs)
 {
   LISTBASE_FOREACH (GPUInput *, input, inputs) {
     switch (input->source) {

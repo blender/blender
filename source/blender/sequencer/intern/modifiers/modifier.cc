@@ -600,7 +600,7 @@ void foreach_strip_modifier_id(Strip *strip, const FunctionRef<void(ID *)> fn)
 /** \name .blend File I/O
  * \{ */
 
-void modifier_blend_write(BlendWriter *writer, ListBase *modbase)
+void modifier_blend_write(BlendWriter *writer, ListBaseT<StripModifierData> *modbase)
 {
   LISTBASE_FOREACH (StripModifierData *, smd, modbase) {
     const StripModifierTypeInfo *smti = modifier_type_info_get(smd->type);
@@ -617,7 +617,7 @@ void modifier_blend_write(BlendWriter *writer, ListBase *modbase)
   }
 }
 
-void modifier_blend_read_data(BlendDataReader *reader, ListBase *lb)
+void modifier_blend_read_data(BlendDataReader *reader, ListBaseT<StripModifierData> *lb)
 {
   BLO_read_struct_list(reader, StripModifierData, lb);
 

@@ -80,7 +80,7 @@ void ED_drivers_editor_init(bContext *C, ScrArea *area)
 
 bAnimListElem *get_active_fcurve_channel(bAnimContext *ac)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ACTIVE |
                 ANIMFILTER_FCURVESONLY);
   size_t items = ANIM_animdata_filter(
@@ -112,7 +112,7 @@ bAnimListElem *get_active_fcurve_channel(bAnimContext *ac)
 bool graphop_visible_keyframes_poll(bContext *C)
 {
   bAnimContext ac;
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   ScrArea *area = CTX_wm_area(C);
   size_t items;
   int filter;
@@ -164,7 +164,7 @@ bool graphop_visible_keyframes_poll(bContext *C)
 bool graphop_editable_keyframes_poll(bContext *C)
 {
   bAnimContext ac;
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   ScrArea *area = CTX_wm_area(C);
   size_t items;
   int filter;
@@ -270,7 +270,7 @@ bool graphop_active_editable_fcurve_ctx_poll(bContext *C)
 bool graphop_selected_fcurve_poll(bContext *C)
 {
   bAnimContext ac;
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   ScrArea *area = CTX_wm_area(C);
   size_t items;
   int filter;

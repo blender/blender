@@ -65,7 +65,7 @@ bool nla_panel_context(const bContext *C,
                        PointerRNA *strip_ptr)
 {
   bAnimContext ac;
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   short found = 0; /* not bool, since we need to indicate "found but not ideal" status */
 
   /* For now, only draw if we could init the anim-context info

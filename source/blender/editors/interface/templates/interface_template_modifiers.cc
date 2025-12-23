@@ -35,7 +35,7 @@ void template_modifiers(Layout * /*layout*/, bContext *C)
   ARegion *region = CTX_wm_region(C);
 
   Object *ob = blender::ed::object::context_active_object(C);
-  ListBase *modifiers = &ob->modifiers;
+  ListBaseT<ModifierData> *modifiers = &ob->modifiers;
 
   const bool panels_match = panel_list_matches_data(region, modifiers, modifier_panel_id);
 

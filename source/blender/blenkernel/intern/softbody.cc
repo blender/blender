@@ -119,7 +119,7 @@ struct SB_thread_context {
   float timenow;
   int ifirst;
   int ilast;
-  ListBase *effectors;
+  ListBaseT<EffectorCache> *effectors;
   int do_deflector;
   float fieldfactor;
   float windfactor;
@@ -1383,8 +1383,12 @@ static int sb_detect_edge_collisionCached(const float edge_v1[3],
   return deflected;
 }
 
-static void _scan_for_ext_spring_forces(
-    Scene *scene, Object *ob, float timenow, int ifirst, int ilast, ListBase *effectors)
+static void _scan_for_ext_spring_forces(Scene *scene,
+                                        Object *ob,
+                                        float timenow,
+                                        int ifirst,
+                                        int ilast,
+                                        ListBaseT<EffectorCache> *effectors)
 {
   SoftBody *sb = ob->soft;
   int a;
@@ -1474,7 +1478,7 @@ static void sb_sfesf_threads_run(Depsgraph *depsgraph,
                                  int *ptr_to_break_func(void))
 {
   UNUSED_VARS(ptr_to_break_func);
-  ListBase threads;
+  ListBaseT<ThreadSlot> threads;
   SB_thread_context *sb_threads;
   int i, totthread, left, dec;
 
@@ -1482,7 +1486,7 @@ static void sb_sfesf_threads_run(Depsgraph *depsgraph,
    * or even be UI option sb->spawn_cf_threads_nopts */
   int lowsprings = 100;
 
-  ListBase *effectors = BKE_effectors_create(
+  ListBaseT<EffectorCache> *effectors = BKE_effectors_create(
       depsgraph, ob, nullptr, ob->soft->effector_weights, false);
 
   /* figure the number of threads while preventing pretty pointless threading overhead */
@@ -1900,7 +1904,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene,
                                                    int ifirst,
                                                    int ilast,
                                                    int *ptr_to_break_func(void),
-                                                   ListBase *effectors,
+                                                   ListBaseT<EffectorCache> *effectors,
                                                    int do_deflector,
                                                    float fieldfactor,
                                                    float windfactor)
@@ -2140,13 +2144,13 @@ static void sb_cf_threads_run(Scene *scene,
                               float timenow,
                               int totpoint,
                               int *ptr_to_break_func(void),
-                              ListBase *effectors,
+                              ListBaseT<EffectorCache> *effectors,
                               int do_deflector,
                               float fieldfactor,
                               float windfactor)
 {
   UNUSED_VARS(ptr_to_break_func);
-  ListBase threads;
+  ListBaseT<ThreadSlot> threads;
   SB_thread_context *sb_threads;
   int i, totthread, left, dec;
 
@@ -2236,7 +2240,8 @@ static void softbody_calc_forces(
   }
 
   /* After spring scan because it uses effectors too. */
-  ListBase *effectors = BKE_effectors_create(depsgraph, ob, nullptr, sb->effector_weights, false);
+  ListBaseT<EffectorCache> *effectors = BKE_effectors_create(
+      depsgraph, ob, nullptr, sb->effector_weights, false);
 
   if (do_deflector) {
     float defforce[3];

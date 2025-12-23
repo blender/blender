@@ -22,7 +22,9 @@
 
 namespace blender::seq {
 
-static bool strip_for_each_recursive(ListBase *seqbase, ForEachFunc callback, void *user_data)
+static bool strip_for_each_recursive(ListBaseT<Strip> *seqbase,
+                                     ForEachFunc callback,
+                                     void *user_data)
 {
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
     if (!callback(strip, user_data)) {
@@ -38,7 +40,8 @@ static bool strip_for_each_recursive(ListBase *seqbase, ForEachFunc callback, vo
   return true;
 }
 
-static bool strip_for_each_recursive(ListBase *seqbase, FunctionRef<bool(Strip *)> callback)
+static bool strip_for_each_recursive(ListBaseT<Strip> *seqbase,
+                                     FunctionRef<bool(Strip *)> callback)
 {
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
     if (!callback(strip)) {
@@ -54,22 +57,22 @@ static bool strip_for_each_recursive(ListBase *seqbase, FunctionRef<bool(Strip *
   return true;
 }
 
-void foreach_strip(ListBase *seqbase, ForEachFunc callback, void *user_data)
+void foreach_strip(ListBaseT<Strip> *seqbase, ForEachFunc callback, void *user_data)
 {
   strip_for_each_recursive(seqbase, callback, user_data);
 }
 
-void foreach_strip(ListBase *seqbase, FunctionRef<bool(Strip *)> callback)
+void foreach_strip(ListBaseT<Strip> *seqbase, FunctionRef<bool(Strip *)> callback)
 {
   strip_for_each_recursive(seqbase, callback);
 }
 
 VectorSet<Strip *> query_by_reference(Strip *strip_reference,
                                       const Scene *scene,
-                                      ListBase *seqbase,
+                                      ListBaseT<Strip> *seqbase,
                                       void strip_query_func(const Scene *scene,
                                                             Strip *strip_reference,
-                                                            ListBase *seqbase,
+                                                            ListBaseT<Strip> *seqbase,
                                                             VectorSet<Strip *> &strips))
 {
   VectorSet<Strip *> strips;
@@ -78,11 +81,11 @@ VectorSet<Strip *> query_by_reference(Strip *strip_reference,
 }
 
 void iterator_set_expand(const Scene *scene,
-                         ListBase *seqbase,
+                         ListBaseT<Strip> *seqbase,
                          VectorSet<Strip *> &strips,
                          void strip_query_func(const Scene *scene,
                                                Strip *strip_reference,
-                                               ListBase *seqbase,
+                                               ListBaseT<Strip> *seqbase,
                                                VectorSet<Strip *> &strips))
 {
   /* Collect expanded results for each sequence in provided VectorSet. */
@@ -96,7 +99,7 @@ void iterator_set_expand(const Scene *scene,
   strips.add_multiple(query_matches);
 }
 
-static void query_all_strips_recursive(const ListBase *seqbase, VectorSet<Strip *> &strips)
+static void query_all_strips_recursive(const ListBaseT<Strip> *seqbase, VectorSet<Strip *> &strips)
 {
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
     if (strip->type == STRIP_TYPE_META) {
@@ -106,7 +109,7 @@ static void query_all_strips_recursive(const ListBase *seqbase, VectorSet<Strip 
   }
 }
 
-VectorSet<Strip *> query_all_strips_recursive(const ListBase *seqbase)
+VectorSet<Strip *> query_all_strips_recursive(const ListBaseT<Strip> *seqbase)
 {
   VectorSet<Strip *> strips;
   query_all_strips_recursive(seqbase, strips);
@@ -114,7 +117,7 @@ VectorSet<Strip *> query_all_strips_recursive(const ListBase *seqbase)
 }
 
 static void query_strips_recursive_at_frame(const Scene *scene,
-                                            const ListBase *seqbase,
+                                            const ListBaseT<Strip> *seqbase,
                                             const int timeline_frame,
                                             VectorSet<Strip *> &strips)
 {
@@ -130,7 +133,7 @@ static void query_strips_recursive_at_frame(const Scene *scene,
 }
 
 VectorSet<Strip *> query_strips_recursive_at_frame(const Scene *scene,
-                                                   const ListBase *seqbase,
+                                                   const ListBaseT<Strip> *seqbase,
                                                    const int timeline_frame)
 {
   VectorSet<Strip *> strips;
@@ -138,7 +141,7 @@ VectorSet<Strip *> query_strips_recursive_at_frame(const Scene *scene,
   return strips;
 }
 
-VectorSet<Strip *> query_all_strips(ListBase *seqbase)
+VectorSet<Strip *> query_all_strips(ListBaseT<Strip> *seqbase)
 {
   VectorSet<Strip *> strips;
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
@@ -147,7 +150,7 @@ VectorSet<Strip *> query_all_strips(ListBase *seqbase)
   return strips;
 }
 
-VectorSet<Strip *> query_selected_strips(ListBase *seqbase)
+VectorSet<Strip *> query_selected_strips(ListBaseT<Strip> *seqbase)
 {
   VectorSet<Strip *> strips;
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
@@ -159,7 +162,7 @@ VectorSet<Strip *> query_selected_strips(ListBase *seqbase)
 }
 
 static VectorSet<Strip *> query_strips_at_frame(const Scene *scene,
-                                                ListBase *seqbase,
+                                                ListBaseT<Strip> *seqbase,
                                                 const int timeline_frame)
 {
   VectorSet<Strip *> strips;
@@ -210,7 +213,8 @@ bool must_render_strip(const VectorSet<Strip *> &strip_stack, Strip *target_stri
 }
 
 /* Remove strips we don't want to render from VectorSet. */
-static void collection_filter_rendered_strips(VectorSet<Strip *> &strip_stack, ListBase *channels)
+static void collection_filter_rendered_strips(VectorSet<Strip *> &strip_stack,
+                                              ListBaseT<SeqTimelineChannel> *channels)
 {
   /* Remove sound strips and muted strips from VectorSet, because these are not rendered.
    * Function #must_render_strip() don't have to check for these strips anymore. */
@@ -222,8 +226,8 @@ static void collection_filter_rendered_strips(VectorSet<Strip *> &strip_stack, L
 }
 
 VectorSet<Strip *> query_rendered_strips(const Scene *scene,
-                                         ListBase *channels,
-                                         ListBase *seqbase,
+                                         ListBaseT<SeqTimelineChannel> *channels,
+                                         ListBaseT<Strip> *seqbase,
                                          const int timeline_frame,
                                          const int displayed_channel)
 {
@@ -236,8 +240,8 @@ VectorSet<Strip *> query_rendered_strips(const Scene *scene,
 }
 
 Vector<Strip *> query_rendered_strips_sorted(const Scene *scene,
-                                             ListBase *channels,
-                                             ListBase *seqbase,
+                                             ListBaseT<SeqTimelineChannel> *channels,
+                                             ListBaseT<Strip> *seqbase,
                                              const int timeline_frame,
                                              const int chanshown)
 {
@@ -251,7 +255,7 @@ Vector<Strip *> query_rendered_strips_sorted(const Scene *scene,
   return strips_vec;
 }
 
-VectorSet<Strip *> query_unselected_strips(ListBase *seqbase)
+VectorSet<Strip *> query_unselected_strips(ListBaseT<Strip> *seqbase)
 {
   VectorSet<Strip *> strips;
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
@@ -265,7 +269,7 @@ VectorSet<Strip *> query_unselected_strips(ListBase *seqbase)
 
 void query_strip_effect_chain(const Scene *scene,
                               Strip *reference_strip,
-                              ListBase *seqbase,
+                              ListBaseT<Strip> *seqbase,
                               VectorSet<Strip *> &r_strips)
 {
   if (r_strips.contains(reference_strip)) {
@@ -294,7 +298,7 @@ void query_strip_effect_chain(const Scene *scene,
 
 void query_strip_connected_and_effect_chain(const Scene *scene,
                                             Strip *reference_strip,
-                                            ListBase *seqbase,
+                                            ListBaseT<Strip> *seqbase,
                                             VectorSet<Strip *> &r_strips)
 {
 

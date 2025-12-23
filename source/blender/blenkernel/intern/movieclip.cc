@@ -162,7 +162,7 @@ static void movie_clip_foreach_path(ID *id, BPathForeachPathData *bpath_data)
       bpath_data, movie_clip->filepath, sizeof(movie_clip->filepath));
 }
 
-static void write_movieTracks(BlendWriter *writer, ListBase *tracks)
+static void write_movieTracks(BlendWriter *writer, ListBaseT<MovieTrackingTrack> *tracks)
 {
   MovieTrackingTrack *track;
 
@@ -178,7 +178,8 @@ static void write_movieTracks(BlendWriter *writer, ListBase *tracks)
   }
 }
 
-static void write_moviePlaneTracks(BlendWriter *writer, ListBase *plane_tracks_base)
+static void write_moviePlaneTracks(BlendWriter *writer,
+                                   ListBaseT<MovieTrackingPlaneTrack> *plane_tracks_base)
 {
   LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, plane_tracks_base) {
     writer->write_struct(plane_track);
@@ -227,7 +228,8 @@ static void direct_link_movieReconstruction(BlendDataReader *reader,
       reader, MovieReconstructedCamera, reconstruction->camnr, &reconstruction->cameras);
 }
 
-static void direct_link_movieTracks(BlendDataReader *reader, ListBase *tracksbase)
+static void direct_link_movieTracks(BlendDataReader *reader,
+                                    ListBaseT<MovieTrackingTrack> *tracksbase)
 {
   BLO_read_struct_list(reader, MovieTrackingTrack, tracksbase);
 
@@ -236,7 +238,8 @@ static void direct_link_movieTracks(BlendDataReader *reader, ListBase *tracksbas
   }
 }
 
-static void direct_link_moviePlaneTracks(BlendDataReader *reader, ListBase *plane_tracks_base)
+static void direct_link_moviePlaneTracks(BlendDataReader *reader,
+                                         ListBaseT<MovieTrackingPlaneTrack> *plane_tracks_base)
 {
   BLO_read_struct_list(reader, MovieTrackingPlaneTrack, plane_tracks_base);
 

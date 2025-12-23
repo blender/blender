@@ -18,6 +18,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_listBase.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -3769,7 +3770,7 @@ void block_listen(const Block *block, const wmRegionListenerParams *listener_par
   block_views_listen(block, listener_params);
 }
 
-void blocklist_update_window_matrix(const bContext *C, const ListBase *lb)
+void blocklist_update_window_matrix(const bContext *C, const ListBaseT<Block> *lb)
 {
   ARegion *region = CTX_wm_region(C);
   wmWindow *window = CTX_wm_window(C);
@@ -3781,7 +3782,7 @@ void blocklist_update_window_matrix(const bContext *C, const ListBase *lb)
   }
 }
 
-void blocklist_update_view_for_buttons(const bContext *C, const ListBase *lb)
+void blocklist_update_view_for_buttons(const bContext *C, const ListBaseT<Block> *lb)
 {
   LISTBASE_FOREACH (Block *, block, lb) {
     if (block->active) {
@@ -3790,7 +3791,7 @@ void blocklist_update_view_for_buttons(const bContext *C, const ListBase *lb)
   }
 }
 
-void blocklist_draw(const bContext *C, const ListBase *lb)
+void blocklist_draw(const bContext *C, const ListBaseT<Block> *lb)
 {
   LISTBASE_FOREACH (Block *, block, lb) {
     if (block->active) {
@@ -3801,7 +3802,7 @@ void blocklist_draw(const bContext *C, const ListBase *lb)
 
 void blocklist_free(const bContext *C, ARegion *region)
 {
-  ListBase *lb = &region->runtime->uiblocks;
+  ListBaseT<Block> *lb = &region->runtime->uiblocks;
   while (Block *block = static_cast<Block *>(BLI_pophead(lb))) {
     block_free(C, block);
   }
@@ -3810,7 +3811,7 @@ void blocklist_free(const bContext *C, ARegion *region)
 
 void blocklist_free_inactive(const bContext *C, ARegion *region)
 {
-  ListBase *lb = &region->runtime->uiblocks;
+  ListBaseT<Block> *lb = &region->runtime->uiblocks;
 
   LISTBASE_FOREACH_MUTABLE (Block *, block, lb) {
     if (!block->handle) {
@@ -3830,7 +3831,7 @@ void blocklist_free_inactive(const bContext *C, ARegion *region)
 
 void block_region_set(Block *block, ARegion *region)
 {
-  ListBase *lb = &region->runtime->uiblocks;
+  ListBaseT<Block> *lb = &region->runtime->uiblocks;
   Block *oldblock = nullptr;
 
   /* each listbase only has one block with this name, free block
@@ -5878,7 +5879,7 @@ void button_operator_set_never_call(Button *but)
 
 /* cruft to make Block and Button private */
 
-int blocklist_min_y_get(ListBase *lb)
+int blocklist_min_y_get(ListBaseT<Block> *lb)
 {
   int min = 0;
 

@@ -2817,7 +2817,7 @@ void BKE_psys_collision_neartest_cb(void *userdata,
 static int collision_detect(ParticleData *pa,
                             ParticleCollision *col,
                             BVHTreeRayHit *hit,
-                            ListBase *colliders)
+                            ListBaseT<ColliderCache> *colliders)
 {
   const int raycast_flag = BVH_RAYCAST_DEFAULT & ~BVH_RAYCAST_WATERTIGHT;
   float ray_dir[3];

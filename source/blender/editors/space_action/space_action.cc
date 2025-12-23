@@ -221,7 +221,7 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
     region->v2d.scroll &= ~V2D_SCROLL_BOTTOM;
   }
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   const bool has_anim_context = ANIM_animdata_get_context(C, &ac);
   if (has_anim_context) {
     /* Build list of channels to draw. */
@@ -354,7 +354,7 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
 
   View2D *v2d = &region->v2d;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   /* Build list of channels to draw. */
   const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
                                     ANIMFILTER_LIST_CHANNELS);

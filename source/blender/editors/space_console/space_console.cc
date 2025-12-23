@@ -107,7 +107,7 @@ static SpaceLink *console_duplicate(SpaceLink *sl)
 static void console_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
-  ListBase *lb;
+  ListBaseT<wmDropBox> *lb;
 
   const float prev_y_min = region->v2d.cur.ymin; /* so re-sizing keeps the cursor visible */
 
@@ -193,7 +193,7 @@ static void console_drop_string_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *
 /* this region dropbox definition */
 static void console_dropboxes()
 {
-  ListBase *lb = WM_dropboxmap_find("Console", SPACE_CONSOLE, RGN_TYPE_WINDOW);
+  ListBaseT<wmDropBox> *lb = WM_dropboxmap_find("Console", SPACE_CONSOLE, RGN_TYPE_WINDOW);
 
   WM_dropbox_add(
       lb, "CONSOLE_OT_insert", console_drop_id_poll, console_drop_id_copy, nullptr, nullptr);

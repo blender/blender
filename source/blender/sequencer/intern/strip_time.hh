@@ -4,13 +4,14 @@
 
 #pragma once
 
+#include "DNA_listBase.h"
+
 #include "BLI_span.hh"
 
 /** \file
  * \ingroup sequencer
  */
 
-struct ListBase;
 struct Scene;
 struct Strip;
 
@@ -29,12 +30,12 @@ struct GapInfo {
  * Find first gap between strips after initial_frame and describe it by filling data of r_gap_info
  *
  * \param scene: Scene in which strips are located.
- * \param seqbase: ListBase in which strips are located.
+ * \param seqbase: List in which strips are located.
  * \param initial_frame: frame on timeline from where gaps are searched for.
  * \param r_gap_info: data structure describing gap, that will be filled in by this function.
  */
 void seq_time_gap_info_get(const Scene *scene,
-                           ListBase *seqbase,
+                           ListBaseT<Strip> *seqbase,
                            int initial_frame,
                            GapInfo *r_gap_info);
 void strip_time_effect_range_set(const Scene *scene, Strip *strip);

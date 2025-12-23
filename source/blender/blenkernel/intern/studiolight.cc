@@ -36,7 +36,7 @@
 using blender::float4;
 
 /* Statics */
-static ListBase studiolights;
+static ListBaseT<StudioLight> studiolights;
 static int last_studiolight_id = 0;
 #define STUDIOLIGHT_PASSNAME_DIFFUSE "diffuse"
 #define STUDIOLIGHT_PASSNAME_SPECULAR "specular"
@@ -936,7 +936,7 @@ StudioLight *BKE_studiolight_findindex(int index, int flag)
   return BKE_studiolight_find_default(flag);
 }
 
-ListBase *BKE_studiolight_listbase()
+ListBaseT<StudioLight> *BKE_studiolight_listbase()
 {
   return &studiolights;
 }

@@ -1264,7 +1264,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del,
   BMFace *f, *f_new;
 #ifdef USE_BMESH_HOLES
   BMLoopList *lst;
-  ListBase holes = {nullptr, nullptr};
+  ListBaseT<BMLoopList> holes = {nullptr, nullptr};
 #endif
   BMLoop *l_iter;
   BMLoop *l_first;
@@ -1509,7 +1509,7 @@ BMFace *bmesh_kernel_split_face_make_edge(BMesh *bm,
                                           BMLoop *l_v2,
                                           BMLoop **r_l,
 #ifdef USE_BMESH_HOLES
-                                          ListBase *holes,
+                                          ListBaseT<BMLoopList> *holes,
 #endif
                                           BMEdge *e_example,
                                           const bool no_double)

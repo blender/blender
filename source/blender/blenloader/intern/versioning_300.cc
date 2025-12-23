@@ -291,7 +291,7 @@ static void do_versions_idproperty_bones_recursive(Bone *bone)
   }
 }
 
-static void do_versions_idproperty_seq_recursive(ListBase *seqbase)
+static void do_versions_idproperty_seq_recursive(ListBaseT<Strip> *seqbase)
 {
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
     version_idproperty_ui_data(strip->prop);
@@ -368,9 +368,9 @@ static void do_versions_idproperty_ui_data(Main *bmain)
 
 static void sort_linked_ids(Main *bmain)
 {
-  ListBase *lb;
+  ListBaseT<ID> *lb;
   FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb) {
-    ListBase temp_list;
+    ListBaseT<ID> temp_list;
     BLI_listbase_clear(&temp_list);
     LISTBASE_FOREACH_MUTABLE (ID *, id, lb) {
       if (ID_IS_LINKED(id)) {
@@ -387,7 +387,7 @@ static void sort_linked_ids(Main *bmain)
 static void assert_sorted_ids(Main *bmain)
 {
 #ifndef NDEBUG
-  ListBase *lb;
+  ListBaseT<ID> *lb;
   FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb) {
     ID *id_prev = nullptr;
     LISTBASE_FOREACH (ID *, id, lb) {
@@ -407,7 +407,7 @@ static void move_vertex_group_names_to_object_data(Main *bmain)
 {
   LISTBASE_FOREACH (Object *, object, &bmain->objects) {
     if (ELEM(object->type, OB_MESH, OB_LATTICE, OB_GPENCIL_LEGACY)) {
-      ListBase *new_defbase = BKE_object_defgroup_list_mutable(object);
+      ListBaseT<bDeformGroup> *new_defbase = BKE_object_defgroup_list_mutable(object);
 
       /* Choose the longest vertex group name list among all linked duplicates. */
       if (BLI_listbase_count(&object->defbase) < BLI_listbase_count(new_defbase)) {
@@ -423,7 +423,8 @@ static void move_vertex_group_names_to_object_data(Main *bmain)
   }
 }
 
-static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const ListBase *seqbase)
+static void do_versions_sequencer_speed_effect_recursive(Scene *scene,
+                                                         const ListBaseT<Strip> *seqbase)
 {
   /* Old SpeedControlVars->flags. */
 #define STRIP_SPEED_INTEGRATE (1 << 0)
@@ -634,7 +635,7 @@ static bNodeTree *add_realize_node_tree(Main *bmain)
   return node_tree;
 }
 
-static void strip_speed_factor_fix_rna_path(Strip *strip, ListBase *fcurves)
+static void strip_speed_factor_fix_rna_path(Strip *strip, ListBaseT<FCurve> *fcurves)
 {
   char name_esc[(sizeof(strip->name) - 2) * 2];
   BLI_str_escape(name_esc, strip->name + 2, sizeof(name_esc));
@@ -1287,8 +1288,8 @@ void do_versions_after_linking_300(FileData * /*fd*/, Main *bmain)
             continue;
           }
           SpaceSeq *sseq = (SpaceSeq *)sl;
-          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                 &sl->regionbase;
+          ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                           &sl->regionbase;
           sseq->flag |= SEQ_CLAMP_VIEW;
 
           if (ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW)) {
@@ -1336,7 +1337,7 @@ void do_versions_after_linking_300(FileData * /*fd*/, Main *bmain)
           }
 
           const bool is_first_space = sl == area->spacedata.first;
-          ListBase *regionbase = is_first_space ? &area->regionbase : &sl->regionbase;
+          ListBaseT<ARegion> *regionbase = is_first_space ? &area->regionbase : &sl->regionbase;
           ARegion *region = BKE_region_find_in_listbase_by_type(regionbase, RGN_TYPE_UI);
           if (region == nullptr) {
             continue;
@@ -1452,7 +1453,7 @@ static void do_version_bbone_len_scale_fcurve_fix(FCurve *fcu)
   replace_bbone_len_scale_rnapath(&fcu->rna_path, &fcu->array_index);
 }
 
-static void do_version_bones_bbone_len_scale(ListBase *lb)
+static void do_version_bones_bbone_len_scale(ListBaseT<Bone> *lb)
 {
   LISTBASE_FOREACH (Bone *, bone, lb) {
     if (bone->flag & BONE_ADD_PARENT_END_ROLL) {
@@ -1466,7 +1467,7 @@ static void do_version_bones_bbone_len_scale(ListBase *lb)
   }
 }
 
-static void do_version_constraints_spline_ik_joint_bindings(ListBase *lb)
+static void do_version_constraints_spline_ik_joint_bindings(ListBaseT<bConstraint> *lb)
 {
   /* Binding array data could be freed without properly resetting its size data. */
   LISTBASE_FOREACH (bConstraint *, con, lb) {
@@ -1666,7 +1667,7 @@ static void correct_bone_roll_value(const float head[3],
 }
 
 /* Update the armature Bone roll fields for bones very close to -Y direction. */
-static void do_version_bones_roll(ListBase *lb)
+static void do_version_bones_roll(ListBaseT<Bone> *lb)
 {
   LISTBASE_FOREACH (Bone *, bone, lb) {
     /* Parent-relative orientation (used for posing). */
@@ -1793,7 +1794,7 @@ static bool version_seq_fix_broken_sound_strips(Strip *strip, void * /*user_data
  */
 
 static void version_liboverride_rnacollections_insertion_object_constraints(
-    ListBase *constraints, IDOverrideLibraryProperty *op)
+    ListBaseT<bConstraint> *constraints, IDOverrideLibraryProperty *op)
 {
   LISTBASE_FOREACH_MUTABLE (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
     if (opop->operation != LIBOVERRIDE_OP_INSERT_AFTER) {
@@ -1986,7 +1987,8 @@ static void version_fix_image_format_copy(Main *bmain, ImageFormatData *format)
  */
 static void version_ensure_missing_regions(ScrArea *area, SpaceLink *sl)
 {
-  ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
+  ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                   &sl->regionbase;
 
   switch (sl->spacetype) {
     case SPACE_FILE: {
@@ -2174,8 +2176,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_SPREADSHEET) {
-            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                   &sl->regionbase;
+            ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                             &sl->regionbase;
             ARegion *new_sidebar = do_versions_add_region_if_not_found(
                 regionbase, RGN_TYPE_UI, "sidebar for spreadsheet", RGN_TYPE_FOOTER);
             if (new_sidebar != nullptr) {
@@ -2259,8 +2261,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_SPREADSHEET) {
-            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                   &sl->regionbase;
+            ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                             &sl->regionbase;
             ARegion *spreadsheet_dataset_region = do_versions_add_region_if_not_found(
                 regionbase, RGN_TYPE_CHANNELS, "spreadsheet dataset region", RGN_TYPE_FOOTER);
 
@@ -2454,7 +2456,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
   /* Font names were copied directly into ID names, see: #90417. */
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 300, 16)) {
-    ListBase *lb = which_libbase(bmain, ID_VF);
+    ListBaseT<ID> *lb = which_libbase(bmain, ID_VF);
     BKE_main_id_repair_duplicate_names_listbase(bmain, lb);
   }
 
@@ -2703,8 +2705,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_SEQ) {
-            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                   &sl->regionbase;
+            ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                             &sl->regionbase;
             LISTBASE_FOREACH (ARegion *, region, regionbase) {
               if (region->regiontype == RGN_TYPE_WINDOW) {
                 region->v2d.min[1] = 4.0f;
@@ -2793,8 +2795,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           switch (sl->spacetype) {
             case SPACE_SEQ: {
-              ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                     &sl->regionbase;
+              ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                               &sl->regionbase;
               LISTBASE_FOREACH (ARegion *, region, regionbase) {
                 if (region->regiontype == RGN_TYPE_WINDOW) {
                   region->v2d.max[1] = blender::seq::MAX_CHANNELS;
@@ -2813,8 +2815,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                 &sl->regionbase;
+          ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                           &sl->regionbase;
           ARegion *region_tool = nullptr, *region_head = nullptr;
           int region_tool_index = -1, region_head_index = -1, i;
           LISTBASE_FOREACH_INDEX (ARegion *, region, regionbase, i) {
@@ -3033,8 +3035,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_SEQ) {
-            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                   &sl->regionbase;
+            ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                             &sl->regionbase;
             LISTBASE_FOREACH (ARegion *, region, regionbase) {
               if (region->regiontype == RGN_TYPE_WINDOW) {
                 region->v2d.min[1] = 1.0f;
@@ -3050,8 +3052,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_NODE) {
-            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                   &sl->regionbase;
+            ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                             &sl->regionbase;
             LISTBASE_FOREACH (ARegion *, region, regionbase) {
               if (region->regiontype == RGN_TYPE_WINDOW) {
                 region->v2d.minzoom = std::min(region->v2d.minzoom, 0.05f);
@@ -3142,8 +3144,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_SPREADSHEET) {
-            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                   &sl->regionbase;
+            ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                             &sl->regionbase;
             LISTBASE_FOREACH (ARegion *, region, regionbase) {
               if (region->regiontype == RGN_TYPE_CHANNELS) {
                 region->regiontype = RGN_TYPE_TOOLS;
@@ -3397,8 +3399,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
             continue;
           }
 
-          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                 &sl->regionbase;
+          ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                           &sl->regionbase;
           ARegion *region = BKE_region_find_in_listbase_by_type(regionbase, RGN_TYPE_CHANNELS);
           if (!region) {
             /* Find sequencer tools region. */
@@ -3729,8 +3731,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
             continue;
           }
 
-          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                 &sl->regionbase;
+          ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                           &sl->regionbase;
           ARegion *channels_region = BKE_region_find_in_listbase_by_type(regionbase,
                                                                          RGN_TYPE_CHANNELS);
           if (channels_region) {
@@ -3859,8 +3861,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                 &sl->regionbase;
+          ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                           &sl->regionbase;
           if (sl->spacetype == SPACE_SEQ) {
             LISTBASE_FOREACH (ARegion *, region, regionbase) {
               if (region->regiontype == RGN_TYPE_TOOLS) {
@@ -4118,8 +4120,9 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
           /* Ensure expected region state. Previously this was modified to hide/unhide regions. */
 
-          const ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                       &sl->regionbase;
+          const ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ?
+                                                     &area->regionbase :
+                                                     &sl->regionbase;
           if (sl->spacetype == SPACE_SEQ) {
             ARegion *region_main = BKE_region_find_in_listbase_by_type(regionbase,
                                                                        RGN_TYPE_WINDOW);
@@ -4238,8 +4241,9 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           /* #107870: Movie Clip Editor hangs in "Clip" view */
           if (sl->spacetype == SPACE_CLIP) {
-            const ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                         &sl->regionbase;
+            const ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ?
+                                                       &area->regionbase :
+                                                       &sl->regionbase;
             ARegion *region_main = BKE_region_find_in_listbase_by_type(regionbase,
                                                                        RGN_TYPE_WINDOW);
             region_main->flag &= ~RGN_FLAG_HIDDEN;

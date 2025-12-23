@@ -131,7 +131,7 @@ static bool panel_type_context_poll(ARegion *region,
 /** \name Local Functions
  * \{ */
 
-static bool panel_active_animation_changed(ListBase *lb,
+static bool panel_active_animation_changed(ListBaseT<Panel> *lb,
                                            Panel **r_panel_animation,
                                            bool *r_no_animation)
 {
@@ -225,7 +225,9 @@ static bool panels_need_realign(const ScrArea *area, ARegion *region, Panel **r_
 /** \name Functions for Instanced Panels
  * \{ */
 
-static Panel *panel_add_instanced(ListBase *panels, PanelType *panel_type, PointerRNA *custom_data)
+static Panel *panel_add_instanced(ListBaseT<Panel> *panels,
+                                  PanelType *panel_type,
+                                  PointerRNA *custom_data)
 {
   Panel *panel = BKE_panel_new(panel_type);
 
@@ -257,7 +259,7 @@ static Panel *panel_add_instanced(ListBase *panels, PanelType *panel_type, Point
 
 Panel *panel_add_instanced(const bContext *C,
                            ARegion *region,
-                           ListBase *panels,
+                           ListBaseT<Panel> *panels,
                            const char *panel_idname,
                            PointerRNA *custom_data)
 {
@@ -293,7 +295,7 @@ void list_panel_unique_str(Panel *panel, char *r_name)
  * \note The only panels that should need to be deleted at runtime are panels with the
  * #PANEL_TYPE_INSTANCED flag set.
  */
-static void panel_delete(ARegion *region, ListBase *panels, Panel *panel)
+static void panel_delete(ARegion *region, ListBaseT<Panel> *panels, Panel *panel)
 {
   /* Recursively delete children. */
   LISTBASE_FOREACH_MUTABLE (Panel *, child, &panel->children) {
@@ -662,7 +664,7 @@ static bool panel_type_context_poll(ARegion *region,
   return false;
 }
 
-Panel *panel_find_by_type(ListBase *lb, const PanelType *pt)
+Panel *panel_find_by_type(ListBaseT<Panel> *lb, const PanelType *pt)
 {
   const char *idname = pt->idname;
 
@@ -675,7 +677,7 @@ Panel *panel_find_by_type(ListBase *lb, const PanelType *pt)
 }
 
 Panel *panel_begin(
-    ARegion *region, ListBase *lb, Block *block, PanelType *pt, Panel *panel, bool *r_open)
+    ARegion *region, ListBaseT<Panel> *lb, Block *block, PanelType *pt, Panel *panel, bool *r_open)
 {
   Panel *panel_last;
   const char *drawname = CTX_IFACE_(pt->translation_context, pt->label);
@@ -1923,7 +1925,7 @@ static void ui_do_animate(bContext *C, Panel *panel)
   }
 }
 
-static void panels_layout_begin_clear_flags(ListBase *lb)
+static void panels_layout_begin_clear_flags(ListBaseT<Panel> *lb)
 {
   LISTBASE_FOREACH (Panel *, panel, lb) {
     /* Flags to copy over to the next layout pass. */
@@ -2370,7 +2372,7 @@ PanelCategoryStack *panel_category_active_find(ARegion *region, const char *idna
 
 static void ui_panel_category_active_set(ARegion *region, const char *idname, bool fallback)
 {
-  ListBase *lb = &region->panels_category_active;
+  ListBaseT<PanelCategoryStack> *lb = &region->panels_category_active;
   PanelCategoryStack *pc_act = panel_category_active_find(region, idname);
 
   if (pc_act) {

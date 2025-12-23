@@ -746,7 +746,7 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     bArmature *arm = static_cast<bArmature *>(tc->obedit->data);
-    ListBase *edbo = arm->edbo;
+    ListBaseT<EditBone> *edbo = arm->edbo;
     bool mirror = ((arm->flag & ARM_MIRROR_EDIT) != 0);
     int total_mirrored = 0;
 
@@ -807,7 +807,7 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
     }
 
     bArmature *arm = static_cast<bArmature *>(tc->obedit->data);
-    ListBase *edbo = arm->edbo;
+    ListBaseT<EditBone> *edbo = arm->edbo;
     TransData *td, *td_old;
     float mtx[3][3], smtx[3][3], bonemat[3][3];
     bool mirror = ((arm->flag & ARM_MIRROR_EDIT) != 0);
@@ -1041,7 +1041,7 @@ static void recalcData_edit_armature(TransInfo *t)
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     bArmature *arm = static_cast<bArmature *>(tc->obedit->data);
-    ListBase *edbo = arm->edbo;
+    ListBaseT<EditBone> *edbo = arm->edbo;
     EditBone *ebo, *ebo_parent;
     TransData *td = tc->data;
     int i;

@@ -357,7 +357,7 @@ static wmOperatorStatus material_slot_assign_exec(bContext *C, wmOperator * /*op
       }
     }
     else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
-      ListBase *nurbs = BKE_curve_editNurbs_get((Curve *)ob->data);
+      ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get((Curve *)ob->data);
 
       if (nurbs) {
         LISTBASE_FOREACH (Nurb *, nu, nurbs) {
@@ -441,7 +441,7 @@ static wmOperatorStatus material_slot_de_select(bContext *C, bool select)
       }
     }
     else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
-      ListBase *nurbs = BKE_curve_editNurbs_get((Curve *)ob->data);
+      ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get((Curve *)ob->data);
       BPoint *bp;
       BezTriple *bezt;
       int a;
@@ -2789,7 +2789,7 @@ static int paste_material_nodetree_ids_relink_or_clear(LibraryIDLinkCallbackData
     if (cb_data->cb_flag & IDWALK_CB_USER) {
       id_us_min(*id_p);
     }
-    ListBase *lb = which_libbase(bmain, GS((*id_p)->name));
+    ListBaseT<ID> *lb = which_libbase(bmain, GS((*id_p)->name));
     ID *id_local = static_cast<ID *>(
         BLI_findstring(lb, (*id_p)->name + 2, offsetof(ID, name) + 2));
     *id_p = id_local;

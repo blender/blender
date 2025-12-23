@@ -256,7 +256,8 @@ bNode *ntreeShaderOutputNode(bNodeTree *ntree, int target)
 }
 
 /* Find socket with a specified identifier. */
-static bNodeSocket *ntree_shader_node_find_socket(ListBase *sockets, const char *identifier)
+static bNodeSocket *ntree_shader_node_find_socket(ListBaseT<bNodeSocket> *sockets,
+                                                  const char *identifier)
 {
   LISTBASE_FOREACH (bNodeSocket *, sock, sockets) {
     if (STREQ(sock->identifier, identifier)) {
@@ -1040,7 +1041,8 @@ bNodeTreeExec *ntreeShaderBeginExecTree_internal(bNodeExecContext *context,
   bNodeTreeExec *exec = ntree_exec_begin(context, ntree, parent_key);
 
   /* allocate the thread stack listbase array */
-  exec->threadstack = MEM_calloc_arrayN<ListBase>(BLENDER_MAX_THREADS, "thread stack array");
+  exec->threadstack = MEM_calloc_arrayN<ListBaseT<bNodeThreadStack>>(BLENDER_MAX_THREADS,
+                                                                     "thread stack array");
 
   LISTBASE_FOREACH (bNode *, node, &exec->nodetree->nodes) {
     node->runtime->need_exec = 1;

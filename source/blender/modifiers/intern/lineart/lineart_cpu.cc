@@ -1964,7 +1964,7 @@ static LineartEdgeNeighbor *lineart_build_edge_neighbor(Mesh *mesh, int total_ed
 
 static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
                                          LineartData *la_data,
-                                         ListBase *shadow_elns)
+                                         ListBaseT<LineartElementLinkNode> *shadow_elns)
 {
   using namespace blender;
   Mesh *mesh = ob_info->original_me;
@@ -2521,7 +2521,7 @@ void lineart_main_load_geometries(Depsgraph *depsgraph,
                                   LineartData *ld,
                                   bool allow_duplicates,
                                   bool do_shadow_casting,
-                                  ListBase *shadow_elns,
+                                  ListBaseT<LineartElementLinkNode> *shadow_elns,
                                   blender::Set<const Object *> *included_objects)
 {
   double proj[4][4], view[4][4], result[4][4];
@@ -5034,7 +5034,8 @@ bool MOD_lineart_compute_feature_lines_v3(Depsgraph *depsgraph,
 
   LineartData *shadow_rb = nullptr;
   LineartElementLinkNode *shadow_veln, *shadow_eeln;
-  ListBase *shadow_elns = ld->conf.shadow_selection ? &lc->shadow_elns : nullptr;
+  ListBaseT<LineartElementLinkNode> *shadow_elns = ld->conf.shadow_selection ? &lc->shadow_elns :
+                                                                               nullptr;
   bool shadow_generated = lineart_main_try_generate_shadow_v3(depsgraph,
                                                               scene,
                                                               ld,
@@ -5430,7 +5431,7 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
     }
 
     if (!src_dvert.is_empty()) {
-      const ListBase *deflist = &src_mesh->vertex_group_names;
+      const ListBaseT<bDeformGroup> *deflist = &src_mesh->vertex_group_names;
       int group_index = 0;
       LISTBASE_FOREACH_INDEX (bDeformGroup *, defgroup, deflist, group_index) {
         if (StringRef(defgroup->name).startswith(source_vgname)) {

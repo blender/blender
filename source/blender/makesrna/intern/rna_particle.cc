@@ -1208,7 +1208,7 @@ static void psys_vg_name_get__internal(PointerRNA *ptr, char *value, int index)
 {
   Object *ob = (Object *)ptr->owner_id;
   ParticleSystem *psys = (ParticleSystem *)ptr->data;
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
 
   if (psys->vgroup[index] > 0) {
     bDeformGroup *defGroup = static_cast<bDeformGroup *>(
@@ -1228,7 +1228,7 @@ static int psys_vg_name_len__internal(PointerRNA *ptr, int index)
   ParticleSystem *psys = (ParticleSystem *)ptr->data;
 
   if (psys->vgroup[index] > 0) {
-    const ListBase *defbase = BKE_object_defgroup_list(ob);
+    const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
     bDeformGroup *defGroup = static_cast<bDeformGroup *>(
         BLI_findlink(defbase, psys->vgroup[index] - 1));
 

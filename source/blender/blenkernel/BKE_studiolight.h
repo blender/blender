@@ -10,6 +10,8 @@
  * Studio lighting for the 3dview
  */
 
+#include "DNA_listBase.h"
+
 #include "BLI_sys_types.h"
 
 #include "BLI_path_utils.hh"
@@ -99,7 +101,7 @@ struct StudioLight *BKE_studiolight_find(const char *name, int flag);
 struct StudioLight *BKE_studiolight_findindex(int index, int flag);
 struct StudioLight *BKE_studiolight_find_default(int flag);
 void BKE_studiolight_preview(uint *icon_buffer, StudioLight *sl, int icon_id_type);
-struct ListBase *BKE_studiolight_listbase(void);
+ListBaseT<StudioLight> *BKE_studiolight_listbase(void);
 /**
  * Ensure state of studio-lights.
  */

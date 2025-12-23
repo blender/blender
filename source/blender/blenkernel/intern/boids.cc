@@ -78,7 +78,7 @@ static bool rule_goal_avoid(BoidRule *rule, BoidBrainData *bbd, BoidValues *val,
   BoidSettings *boids = bbd->part->boids;
   BoidParticle *bpa = pa->boid;
   EffectedPoint epoint;
-  ListBase *effectors = bbd->sim->psys->effectors;
+  ListBaseT<EffectorCache> *effectors = bbd->sim->psys->effectors;
   EffectorCache *eff = nullptr;
   EffectorCache temp_eff;
   EffectorData efd, cur_efd;

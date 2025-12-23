@@ -267,8 +267,8 @@ static bool gizmo2d_calc_bounds(const bContext *C, float *r_center, float *r_min
   else if (area->spacetype == SPACE_SEQ) {
     Scene *scene = CTX_data_scene(C);
     Editing *ed = seq::editing_get(scene);
-    ListBase *seqbase = seq::active_seqbase_get(ed);
-    ListBase *channels = seq::channels_displayed_get(ed);
+    ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
+    ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
     VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
     strips.remove_if([&](Strip *strip) { return (strip->flag & SEQ_SELECT) == 0; });
     int selected_strips = strips.size();
@@ -321,8 +321,8 @@ static int gizmo2d_calc_transform_orientation(const bContext *C)
 
   Scene *scene = CTX_data_scene(C);
   Editing *ed = seq::editing_get(scene);
-  ListBase *seqbase = seq::active_seqbase_get(ed);
-  ListBase *channels = seq::channels_displayed_get(ed);
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
+  ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
   VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
   strips.remove_if([&](Strip *strip) { return (strip->flag & SEQ_SELECT) == 0; });
 
@@ -343,8 +343,8 @@ static float gizmo2d_calc_rotation(const bContext *C)
 
   Scene *scene = CTX_data_scene(C);
   Editing *ed = seq::editing_get(scene);
-  ListBase *seqbase = seq::active_seqbase_get(ed);
-  ListBase *channels = seq::channels_displayed_get(ed);
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
+  ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
   VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
   strips.remove_if([&](Strip *strip) { return (strip->flag & SEQ_SELECT) == 0; });
 
@@ -365,8 +365,8 @@ static bool seq_get_strip_pivot_median(const Scene *scene, float r_pivot[2])
   zero_v2(r_pivot);
 
   Editing *ed = seq::editing_get(scene);
-  ListBase *seqbase = seq::active_seqbase_get(ed);
-  ListBase *channels = seq::channels_displayed_get(ed);
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
+  ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
   VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
   strips.remove_if([&](Strip *strip) { return (strip->flag & SEQ_SELECT) == 0; });
   bool has_select = !strips.is_empty();
@@ -412,8 +412,8 @@ static bool gizmo2d_calc_transform_pivot(const bContext *C, float r_pivot[2])
       copy_v2_v2(r_pivot, cursor_pixel);
 
       Editing *ed = seq::editing_get(scene);
-      ListBase *seqbase = seq::active_seqbase_get(ed);
-      ListBase *channels = seq::channels_displayed_get(ed);
+      ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
+      ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
       VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
       strips.remove_if([&](Strip *strip) { return (strip->flag & SEQ_SELECT) == 0; });
       has_select = !strips.is_empty();

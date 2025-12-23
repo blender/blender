@@ -618,7 +618,9 @@ static void versioning_replace_splitviewer(bNodeTree *ntree)
 }
 
 static void version_socket_identifier_suffixes_for_dynamic_types(
-    ListBase sockets, const char *separator, const std::optional<int> total = std::nullopt)
+    const ListBaseT<bNodeSocket> &sockets,
+    const char *separator,
+    const std::optional<int> total = std::nullopt)
 {
   int index = 0;
   LISTBASE_FOREACH (bNodeSocket *, socket, &sockets) {
@@ -918,8 +920,9 @@ void blo_do_versions_410(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-          const ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                       &sl->regionbase;
+          const ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ?
+                                                     &area->regionbase :
+                                                     &sl->regionbase;
           LISTBASE_FOREACH (ARegion *, region, regionbase) {
             if (region->regiontype != RGN_TYPE_ASSET_SHELF_HEADER) {
               continue;

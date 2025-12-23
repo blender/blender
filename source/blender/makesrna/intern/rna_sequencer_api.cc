@@ -84,7 +84,7 @@ static Strip *rna_Strip_split(ID *id,
                               bool ignore_connections)
 {
   Scene *scene = (Scene *)id;
-  ListBase *seqbase = blender::seq::get_seqbase_by_strip(scene, strip);
+  ListBaseT<Strip> *seqbase = blender::seq::get_seqbase_by_strip(scene, strip);
 
   const char *error_msg = nullptr;
   Strip *strip_split = blender::seq::edit_strip_split(bmain,
@@ -115,7 +115,7 @@ static Strip *rna_Strip_parent_meta(ID *id, Strip *strip_self)
 }
 
 static Strip *rna_Strips_new_clip(ID *id,
-                                  ListBase *seqbase,
+                                  ListBaseT<Strip> *seqbase,
                                   Main *bmain,
                                   const char *name,
                                   MovieClip *clip,
@@ -158,7 +158,7 @@ static Strip *rna_Strips_meta_new_clip(ID *id,
 }
 
 static Strip *rna_Strips_new_mask(ID *id,
-                                  ListBase *seqbase,
+                                  ListBaseT<Strip> *seqbase,
                                   Main *bmain,
                                   const char *name,
                                   Mask *mask,
@@ -190,7 +190,7 @@ static Strip *rna_Strips_meta_new_mask(
 }
 
 static Strip *rna_Strips_new_scene(ID *id,
-                                   ListBase *seqbase,
+                                   ListBaseT<Strip> *seqbase,
                                    Main *bmain,
                                    const char *name,
                                    Scene *sce_strip,
@@ -233,7 +233,7 @@ static Strip *rna_Strips_meta_new_scene(ID *id,
 }
 
 static Strip *rna_Strips_new_image(ID *id,
-                                   ListBase *seqbase,
+                                   ListBaseT<Strip> *seqbase,
                                    Main *bmain,
                                    ReportList *reports,
                                    const char *name,
@@ -304,7 +304,7 @@ static Strip *rna_Strips_meta_new_image(ID *id,
 }
 
 static Strip *rna_Strips_new_movie(ID *id,
-                                   ListBase *seqbase,
+                                   ListBaseT<Strip> *seqbase,
                                    Main *bmain,
                                    ReportList *reports,
                                    const char *name,
@@ -378,7 +378,7 @@ static Strip *rna_Strips_meta_new_movie(ID *id,
 
 #  ifdef WITH_AUDASPACE
 static Strip *rna_Strips_new_sound(ID *id,
-                                   ListBase *seqbase,
+                                   ListBaseT<Strip> *seqbase,
                                    Main *bmain,
                                    ReportList *reports,
                                    const char *name,
@@ -405,7 +405,7 @@ static Strip *rna_Strips_new_sound(ID *id,
 }
 #  else  /* WITH_AUDASPACE */
 static Strip *rna_Strips_new_sound(ID * /*id*/,
-                                   ListBase * /*seqbase*/,
+                                   ListBaseT<Strip> * /*seqbase*/,
                                    Main * /*bmain*/,
                                    ReportList *reports,
                                    const char * /*name*/,
@@ -447,7 +447,7 @@ static Strip *rna_Strips_meta_new_sound(ID *id,
  * Possibility to create an empty meta to avoid plenty of meta toggling
  * Created meta have a length equal to 1, must be set through the API. */
 static Strip *rna_Strips_new_meta(
-    ID *id, ListBase *seqbase, const char *name, int channel, int frame_start)
+    ID *id, ListBaseT<Strip> *seqbase, const char *name, int channel, int frame_start)
 {
   Scene *scene = (Scene *)id;
   blender::seq::LoadData load_data;
@@ -470,7 +470,7 @@ static Strip *rna_Strips_meta_new_meta(
 }
 
 static Strip *rna_Strips_new_effect(ID *id,
-                                    ListBase *seqbase,
+                                    ListBaseT<Strip> *seqbase,
                                     ReportList *reports,
                                     const char *name,
                                     int type,
@@ -557,7 +557,7 @@ static Strip *rna_Strips_meta_new_effect(ID *id,
 }
 
 static void rna_Strips_remove(
-    ID *id, ListBase *seqbase, Main *bmain, ReportList *reports, PointerRNA *strip_ptr)
+    ID *id, ListBaseT<Strip> *seqbase, Main *bmain, ReportList *reports, PointerRNA *strip_ptr)
 {
   Strip *strip = static_cast<Strip *>(strip_ptr->data);
   Scene *scene = (Scene *)id;

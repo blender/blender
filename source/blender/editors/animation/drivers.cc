@@ -662,7 +662,7 @@ bool ANIM_paste_driver(
 /* Driver Management API - Copy/Paste Driver Variables */
 
 /* Copy/Paste Buffer for Driver Variables... */
-static ListBase driver_vars_copybuf = {nullptr, nullptr};
+static ListBaseT<DriverVar> driver_vars_copybuf = {nullptr, nullptr};
 
 void ANIM_driver_vars_copybuf_free()
 {
@@ -712,7 +712,7 @@ bool ANIM_driver_vars_copy(ReportList *reports, FCurve *fcu)
 bool ANIM_driver_vars_paste(ReportList *reports, FCurve *fcu, bool replace)
 {
   ChannelDriver *driver = (fcu) ? fcu->driver : nullptr;
-  ListBase tmp_list = {nullptr, nullptr};
+  ListBaseT<DriverVar> tmp_list = {nullptr, nullptr};
 
   /* sanity checks */
   if (BLI_listbase_is_empty(&driver_vars_copybuf)) {

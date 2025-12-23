@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
+#include "DNA_listBase.h"
+
 #include "BLI_math_vector_types.hh"
 #include "BLI_sys_types.h"
 
@@ -12,10 +14,10 @@
 
 struct CharInfo;
 struct Curve;
-struct ListBase;
 struct Main;
 struct Object;
 struct VFont;
+struct Nurb;
 
 struct CharTrans {
   blender::float2 offset;
@@ -137,7 +139,7 @@ int BKE_vfont_cursor_to_text_index(Object *ob, const blender::float2 &cursor_loc
  */
 bool BKE_vfont_to_curve(Object *ob, eEditFontMode mode);
 void BKE_vfont_char_build(const Curve &cu,
-                          ListBase *nubase,
+                          ListBaseT<Nurb> *nubase,
                           unsigned int charcode,
                           const CharInfo *info,
                           bool is_smallcaps,
@@ -149,12 +151,12 @@ void BKE_vfont_char_build(const Curve &cu,
 bool BKE_vfont_to_curve_ex(Object *ob,
                            const Curve &cu,
                            eEditFontMode mode,
-                           ListBase *r_nubase,
+                           ListBaseT<Nurb> *r_nubase,
                            const char32_t **r_text,
                            int *r_text_len,
                            bool *r_text_free,
                            CharTrans **r_chartransdata,
                            float *r_font_size_eval);
-bool BKE_vfont_to_curve_nubase(Object *ob, eEditFontMode mode, ListBase *r_nubase);
+bool BKE_vfont_to_curve_nubase(Object *ob, eEditFontMode mode, ListBaseT<Nurb> *r_nubase);
 
 /** \} */

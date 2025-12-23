@@ -131,7 +131,7 @@ void retiming_data_clear(Strip *strip)
 
 static void retiming_key_overlap(Scene *scene, Strip *strip)
 {
-  ListBase *seqbase = active_seqbase_get(editing_get(scene));
+  ListBaseT<Strip> *seqbase = active_seqbase_get(editing_get(scene));
   VectorSet<Strip *> strips;
   VectorSet<Strip *> dependant;
   dependant.add(strip);

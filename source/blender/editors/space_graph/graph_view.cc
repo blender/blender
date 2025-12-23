@@ -50,7 +50,7 @@ void get_graph_keyframe_extents(bAnimContext *ac,
 {
   Scene *scene = ac->scene;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   /* Get data to filter, from Dope-sheet. */
@@ -381,7 +381,7 @@ void GRAPH_OT_view_frame(wmOperatorType *ot)
 static void create_ghost_curves(bAnimContext *ac, int start, int end)
 {
   SpaceGraph *sipo = (SpaceGraph *)ac->sl;
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   /* Free existing ghost curves. */

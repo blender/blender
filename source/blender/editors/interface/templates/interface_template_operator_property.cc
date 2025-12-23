@@ -407,7 +407,7 @@ static void draw_exporter_item(uiList * /*ui_list*/,
 void template_collection_exporters(Layout *layout, bContext *C)
 {
   Collection *collection = CTX_data_collection(C);
-  ListBase *exporters = &collection->exporters;
+  ListBaseT<CollectionExport> *exporters = &collection->exporters;
   const int index = collection->active_exporter_index;
 
   /* Register the exporter list type on first use. */

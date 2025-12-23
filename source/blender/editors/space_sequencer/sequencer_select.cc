@@ -118,8 +118,8 @@ VectorSet<Strip *> all_strips_from_context(bContext *C)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
-  ListBase *seqbase = seq::active_seqbase_get(ed);
-  ListBase *channels = seq::channels_displayed_get(ed);
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
+  ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
 
   const bool is_preview = sequencer_view_has_preview_poll(C);
   if (is_preview) {
@@ -133,8 +133,8 @@ VectorSet<Strip *> selected_strips_from_context(bContext *C)
 {
   const Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
-  ListBase *seqbase = seq::active_seqbase_get(ed);
-  ListBase *channels = seq::channels_displayed_get(ed);
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
+  ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
 
   const bool is_preview = sequencer_view_has_preview_poll(C);
 
@@ -173,7 +173,7 @@ static void select_surrounding_handles(Scene *scene, Strip *test) /* XXX BRING B
 }
 
 /* Used for mouse selection in #SEQUENCER_OT_select. */
-static void select_active_side(ListBase *seqbase, int sel_side, int channel, int frame)
+static void select_active_side(ListBaseT<Strip> *seqbase, int sel_side, int channel, int frame)
 {
 
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
@@ -201,7 +201,7 @@ static void select_active_side(ListBase *seqbase, int sel_side, int channel, int
 }
 
 /* Used for mouse selection in #SEQUENCER_OT_select_side. */
-static void select_active_side_range(ListBase *seqbase,
+static void select_active_side_range(ListBaseT<Strip> *seqbase,
                                      const int sel_side,
                                      const int frame_ranges[seq::MAX_CHANNELS],
                                      const int frame_ignore)
@@ -239,7 +239,7 @@ static void select_linked_time_strip(const Scene *scene,
                                      const Strip *strip_source,
                                      const eStripHandle handle_clicked)
 {
-  ListBase *seqbase = seq::active_seqbase_get(scene->ed);
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(scene->ed);
   int source_left = strip_source->left_handle();
   int source_right = strip_source->right_handle(scene);
 
@@ -694,8 +694,8 @@ static Strip *strip_select_from_preview(
 {
   Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
-  ListBase *seqbase = seq::active_seqbase_get(ed);
-  ListBase *channels = seq::channels_displayed_get(ed);
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
+  ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
   SpaceSeq *sseq = CTX_wm_space_seq(C);
   View2D *v2d = ui::view2d_fromcontext(C);
 
@@ -719,7 +719,7 @@ static Strip *strip_select_from_preview(
 
   SeqSelect_Link *slink_active = nullptr;
   Strip *strip_active = seq::select_active_get(scene);
-  ListBase strips_ordered = {nullptr};
+  ListBaseT<SeqSelect_Link> strips_ordered = {nullptr};
   for (Strip *strip : strips) {
     bool isect = false;
     float center_dist_sq_test = 0.0f;
@@ -974,7 +974,7 @@ bool can_select_handle(const Scene *scene, const Strip *strip, const View2D *v2d
   }
 
   Editing *ed = seq::editing_get(scene);
-  const ListBase *channels = seq::channels_displayed_get(ed);
+  const ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
   if (seq::transform_is_locked(channels, strip)) {
     return false;
   }
@@ -2092,8 +2092,8 @@ static void seq_box_select_strip_from_preview(const bContext *C,
 {
   Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
-  ListBase *seqbase = seq::active_seqbase_get(ed);
-  ListBase *channels = seq::channels_displayed_get(ed);
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
+  ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
   SpaceSeq *sseq = CTX_wm_space_seq(C);
 
   VectorSet strips = seq::query_rendered_strips(
@@ -2376,8 +2376,8 @@ static bool do_lasso_select_preview(bContext *C,
   rcti rect;
   BLI_lasso_boundbox(&rect, mcoords);
 
-  ListBase *seqbase = seq::active_seqbase_get(ed);
-  ListBase *channels = seq::channels_displayed_get(ed);
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
+  ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
   SpaceSeq *sseq = CTX_wm_space_seq(C);
 
   VectorSet strips = seq::query_rendered_strips(
@@ -2482,8 +2482,8 @@ static void seq_circle_select_strip_from_preview(bContext *C,
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = seq::editing_get(scene);
-  ListBase *seqbase = seq::active_seqbase_get(ed);
-  ListBase *channels = seq::channels_displayed_get(ed);
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
+  ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
   SpaceSeq *sseq = CTX_wm_space_seq(C);
 
   VectorSet strips = seq::query_rendered_strips(
@@ -2672,7 +2672,7 @@ static const EnumPropertyItem sequencer_prop_select_grouped_types[] = {
 #define STRIP_CHANNEL_CHECK(_strip, _chan) ELEM((_chan), 0, (_strip)->channel)
 
 static bool select_grouped_type(Span<Strip *> strips,
-                                ListBase * /*seqbase*/,
+                                ListBaseT<Strip> * /*seqbase*/,
                                 Strip *act_strip,
                                 const int channel)
 {
@@ -2689,7 +2689,7 @@ static bool select_grouped_type(Span<Strip *> strips,
 }
 
 static bool select_grouped_type_basic(Span<Strip *> strips,
-                                      ListBase * /*seqbase*/,
+                                      ListBaseT<Strip> * /*seqbase*/,
                                       Strip *act_strip,
                                       const int channel)
 {
@@ -2709,7 +2709,7 @@ static bool select_grouped_type_basic(Span<Strip *> strips,
 }
 
 static bool select_grouped_type_effect(Span<Strip *> strips,
-                                       ListBase * /*seqbase*/,
+                                       ListBaseT<Strip> * /*seqbase*/,
                                        Strip *act_strip,
                                        const int channel)
 {
@@ -2729,7 +2729,7 @@ static bool select_grouped_type_effect(Span<Strip *> strips,
 }
 
 static bool select_grouped_data(Span<Strip *> strips,
-                                ListBase * /*seqbase*/,
+                                ListBaseT<Strip> * /*seqbase*/,
                                 Strip *act_strip,
                                 const int channel)
 {
@@ -2788,7 +2788,7 @@ static bool select_grouped_data(Span<Strip *> strips,
 }
 
 static bool select_grouped_effect(Span<Strip *> strips,
-                                  ListBase * /*seqbase*/,
+                                  ListBaseT<Strip> * /*seqbase*/,
                                   Strip *act_strip,
                                   const int channel)
 {
@@ -2820,7 +2820,7 @@ static bool select_grouped_effect(Span<Strip *> strips,
 
 static bool select_grouped_time_overlap(const Scene *scene,
                                         Span<Strip *> strips,
-                                        ListBase * /*seqbase*/,
+                                        ListBaseT<Strip> * /*seqbase*/,
                                         Strip *act_strip)
 {
   bool changed = false;
@@ -2840,7 +2840,7 @@ static bool select_grouped_time_overlap(const Scene *scene,
 /* Query strips that are in lower channel and intersect in time with strip_reference. */
 static void query_lower_channel_strips(const Scene *scene,
                                        Strip *strip_reference,
-                                       ListBase *seqbase,
+                                       ListBaseT<Strip> *seqbase,
                                        VectorSet<Strip *> &strips)
 {
   LISTBASE_FOREACH (Strip *, strip_test, seqbase) {
@@ -2860,7 +2860,7 @@ static void query_lower_channel_strips(const Scene *scene,
  * effect chains of these strips. */
 static bool select_grouped_effect_link(const Scene *scene,
                                        VectorSet<Strip *> strips,
-                                       ListBase *seqbase,
+                                       ListBaseT<Strip> *seqbase,
                                        Strip * /*act_strip*/,
                                        const int /*channel*/)
 {
@@ -2889,7 +2889,7 @@ static bool select_grouped_effect_link(const Scene *scene,
 static wmOperatorStatus sequencer_select_grouped_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
-  ListBase *seqbase = seq::active_seqbase_get(seq::editing_get(scene));
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(seq::editing_get(scene));
   Strip *act_strip = seq::select_active_get(scene);
 
   const bool is_preview = sequencer_view_has_preview_poll(C);

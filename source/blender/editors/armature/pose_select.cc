@@ -670,7 +670,7 @@ static wmOperatorStatus pose_select_constraint_target_exec(bContext *C, wmOperat
   CTX_DATA_BEGIN (C, bPoseChannel *, pchan, visible_pose_bones) {
     if (pchan->flag & POSE_SELECTED) {
       LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
-        ListBase targets = {nullptr, nullptr};
+        ListBaseT<bConstraintTarget> targets = {nullptr, nullptr};
         if (BKE_constraint_targets_get(con, &targets)) {
           LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
             Object *ob = ct->tar;

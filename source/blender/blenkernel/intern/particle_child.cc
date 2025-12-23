@@ -285,7 +285,7 @@ static bool check_path_length(int k,
 }
 
 void psys_apply_child_modifiers(ParticleThreadContext *ctx,
-                                ListBase * /*modifiers*/,
+                                ListBaseT<ModifierData> * /*modifiers*/,
                                 ChildParticle *cpa,
                                 ParticleTexture *ptex,
                                 const float orco[3],

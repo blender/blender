@@ -529,14 +529,14 @@ TrackingPick ed_tracking_pick_closest(const TrackPickOptions *options,
 
 /********************** mouse select operator *********************/
 
-void ed_tracking_deselect_all_tracks(ListBase *tracks_base)
+void ed_tracking_deselect_all_tracks(ListBaseT<MovieTrackingTrack> *tracks_base)
 {
   LISTBASE_FOREACH (MovieTrackingTrack *, track, tracks_base) {
     BKE_tracking_track_flag_clear(track, TRACK_AREA_ALL, SELECT);
   }
 }
 
-void ed_tracking_deselect_all_plane_tracks(ListBase *plane_tracks_base)
+void ed_tracking_deselect_all_plane_tracks(ListBaseT<MovieTrackingPlaneTrack> *plane_tracks_base)
 {
   LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, plane_tracks_base) {
     plane_track->flag &= ~SELECT;

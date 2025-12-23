@@ -15,7 +15,6 @@
 
 struct Depsgraph;
 struct ID;
-struct ListBase;
 struct Object;
 struct ParticleSystem;
 struct Scene;

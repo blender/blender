@@ -79,7 +79,7 @@ static void wm_xr_session_create_cb()
 
 static void wm_xr_session_controller_data_free(wmXrSessionState *state)
 {
-  ListBase *lb = &state->controllers;
+  ListBaseT<wmXrController> *lb = &state->controllers;
   while (wmXrController *c = static_cast<wmXrController *>(BLI_pophead(lb))) {
     if (c->model) {
       GPU_batch_discard(c->model);
@@ -819,7 +819,7 @@ BLI_INLINE bool test_vec2f_state(const float state[2], float threshold, eXrAxisF
   return (len_v2(state) > threshold);
 }
 
-static bool wm_xr_session_modal_action_test(const ListBase *active_modal_actions,
+static bool wm_xr_session_modal_action_test(const ListBaseT<LinkData> *active_modal_actions,
                                             const wmXrAction *action,
                                             bool *r_found)
 {
@@ -847,7 +847,7 @@ static bool wm_xr_session_modal_action_test(const ListBase *active_modal_actions
   return true;
 }
 
-static void wm_xr_session_modal_action_test_add(ListBase *active_modal_actions,
+static void wm_xr_session_modal_action_test_add(ListBaseT<LinkData> *active_modal_actions,
                                                 const wmXrAction *action)
 {
   bool found;
@@ -858,7 +858,7 @@ static void wm_xr_session_modal_action_test_add(ListBase *active_modal_actions,
   }
 }
 
-static void wm_xr_session_modal_action_remove(ListBase *active_modal_actions,
+static void wm_xr_session_modal_action_remove(ListBaseT<LinkData> *active_modal_actions,
                                               const wmXrAction *action)
 {
   LISTBASE_FOREACH (LinkData *, ld, active_modal_actions) {
@@ -869,9 +869,10 @@ static void wm_xr_session_modal_action_remove(ListBase *active_modal_actions,
   }
 }
 
-static wmXrHapticAction *wm_xr_session_haptic_action_find(ListBase *active_haptic_actions,
-                                                          const wmXrAction *action,
-                                                          const char *subaction_path)
+static wmXrHapticAction *wm_xr_session_haptic_action_find(
+    ListBaseT<wmXrHapticAction> *active_haptic_actions,
+    const wmXrAction *action,
+    const char *subaction_path)
 {
   LISTBASE_FOREACH (wmXrHapticAction *, ha, active_haptic_actions) {
     if ((action == ha->action) && (subaction_path == ha->subaction_path)) {
@@ -881,7 +882,7 @@ static wmXrHapticAction *wm_xr_session_haptic_action_find(ListBase *active_hapti
   return nullptr;
 }
 
-static void wm_xr_session_haptic_action_add(ListBase *active_haptic_actions,
+static void wm_xr_session_haptic_action_add(ListBaseT<wmXrHapticAction> *active_haptic_actions,
                                             const wmXrAction *action,
                                             const char *subaction_path,
                                             int64_t time_now)
@@ -901,7 +902,7 @@ static void wm_xr_session_haptic_action_add(ListBase *active_haptic_actions,
   }
 }
 
-static void wm_xr_session_haptic_action_remove(ListBase *active_haptic_actions,
+static void wm_xr_session_haptic_action_remove(ListBaseT<wmXrHapticAction> *active_haptic_actions,
                                                const wmXrAction *action)
 {
   LISTBASE_FOREACH (wmXrHapticAction *, ha, active_haptic_actions) {
@@ -912,7 +913,8 @@ static void wm_xr_session_haptic_action_remove(ListBase *active_haptic_actions,
   }
 }
 
-static void wm_xr_session_haptic_timers_check(ListBase *active_haptic_actions, int64_t time_now)
+static void wm_xr_session_haptic_timers_check(ListBaseT<wmXrHapticAction> *active_haptic_actions,
+                                              int64_t time_now)
 {
   LISTBASE_FOREACH_MUTABLE (wmXrHapticAction *, ha, active_haptic_actions) {
     if (time_now - ha->time_start >= ha->action->haptic_duration) {
@@ -921,16 +923,17 @@ static void wm_xr_session_haptic_timers_check(ListBase *active_haptic_actions, i
   }
 }
 
-static void wm_xr_session_action_states_interpret(wmXrData *xr,
-                                                  const char *action_set_name,
-                                                  wmXrAction *action,
-                                                  uint subaction_idx,
-                                                  ListBase *active_modal_actions,
-                                                  ListBase *active_haptic_actions,
-                                                  int64_t time_now,
-                                                  bool modal,
-                                                  bool haptic,
-                                                  short *r_val)
+static void wm_xr_session_action_states_interpret(
+    wmXrData *xr,
+    const char *action_set_name,
+    wmXrAction *action,
+    uint subaction_idx,
+    ListBaseT<LinkData> *active_modal_actions,
+    ListBaseT<wmXrHapticAction> *active_haptic_actions,
+    int64_t time_now,
+    bool modal,
+    bool haptic,
+    short *r_val)
 {
   const char *haptic_subaction_path = ((action->haptic_flag & XR_HAPTIC_MATCHUSERPATHS) != 0) ?
                                           action->subaction_paths[subaction_idx] :
@@ -1215,8 +1218,8 @@ static void wm_xr_session_events_dispatch(wmXrData *xr,
 
   const int64_t time_now = int64_t(BLI_time_now_seconds() * 1000);
 
-  ListBase *active_modal_actions = &action_set->active_modal_actions;
-  ListBase *active_haptic_actions = &action_set->active_haptic_actions;
+  ListBaseT<LinkData> *active_modal_actions = &action_set->active_modal_actions;
+  ListBaseT<wmXrHapticAction> *active_haptic_actions = &action_set->active_haptic_actions;
 
   wmXrAction **actions = MEM_calloc_arrayN<wmXrAction *>(count, __func__);
 
@@ -1356,7 +1359,7 @@ void wm_xr_session_controller_data_populate(const wmXrAction *grip_action,
   UNUSED_VARS(aim_action); /* Only used for asserts. */
 
   wmXrSessionState *state = &xr->runtime->session_state;
-  ListBase *controllers = &state->controllers;
+  ListBaseT<wmXrController> *controllers = &state->controllers;
 
   BLI_assert(grip_action->count_subaction_paths == aim_action->count_subaction_paths);
   const uint count = grip_action->count_subaction_paths;
@@ -1537,7 +1540,7 @@ bool wm_xr_session_surface_offscreen_ensure(wmXrSurfaceData *surface_data,
 static void wm_xr_session_surface_free_data(wmSurface *surface)
 {
   wmXrSurfaceData *data = static_cast<wmXrSurfaceData *>(surface->customdata);
-  ListBase *lb = &data->viewports;
+  ListBaseT<wmXrViewportPair> *lb = &data->viewports;
 
   while (wmXrViewportPair *vp = static_cast<wmXrViewportPair *>(BLI_pophead(lb))) {
     if (vp->viewport) {

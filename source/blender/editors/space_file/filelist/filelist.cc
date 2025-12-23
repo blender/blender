@@ -2143,7 +2143,9 @@ static char *current_relpath_append(const FileListReadJob *job_params, const cha
 }
 
 #ifdef WIN32
-static int filelist_add_userfonts_regpath(HKEY hKeyParent, LPCSTR subkeyName, ListBase *entries)
+static int filelist_add_userfonts_regpath(HKEY hKeyParent,
+                                          LPCSTR subkeyName,
+                                          ListBaseT<FileListInternEntry> *entries)
 {
   int font_num = 0;
   HKEY key = 0;
@@ -2208,7 +2210,7 @@ static int filelist_add_userfonts_regpath(HKEY hKeyParent, LPCSTR subkeyName, Li
   return font_num;
 }
 
-static int filelist_add_userfonts(ListBase *entries)
+static int filelist_add_userfonts(ListBaseT<FileListInternEntry> *entries)
 {
   return filelist_add_userfonts_regpath(
       HKEY_CURRENT_USER, "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Fonts", entries);
@@ -2218,7 +2220,7 @@ static int filelist_add_userfonts(ListBase *entries)
 
 static int filelist_readjob_list_dir(FileListReadJob *job_params,
                                      const char *root,
-                                     ListBase *entries,
+                                     ListBaseT<FileListInternEntry> *entries,
                                      const char *filter_glob,
                                      const bool do_lib,
                                      const char *main_filepath,
@@ -2352,7 +2354,7 @@ static FileListInternEntry *filelist_readjob_list_lib_group_create(
  *           this requires redesigning things on the caller side for proper ownership management.
  */
 static void filelist_readjob_list_lib_add_datablock(FileListReadJob *job_params,
-                                                    ListBase *entries,
+                                                    ListBaseT<FileListInternEntry> *entries,
                                                     BLODataBlockInfo *datablock_info,
                                                     const bool prefix_relpath_with_group_name,
                                                     const int idcode,
@@ -2398,7 +2400,7 @@ static void filelist_readjob_list_lib_add_datablock(FileListReadJob *job_params,
 }
 
 static void filelist_readjob_list_lib_add_datablocks(FileListReadJob *job_params,
-                                                     ListBase *entries,
+                                                     ListBaseT<FileListInternEntry> *entries,
                                                      LinkNode *datablock_infos,
                                                      const bool prefix_relpath_with_group_name,
                                                      const int idcode,
@@ -2413,7 +2415,7 @@ static void filelist_readjob_list_lib_add_datablocks(FileListReadJob *job_params
 
 static void filelist_readjob_list_lib_add_from_indexer_entries(
     FileListReadJob *job_params,
-    ListBase *entries,
+    ListBaseT<FileListInternEntry> *entries,
     const FileIndexerEntries *indexer_entries,
     const bool prefix_relpath_with_group_name)
 {
@@ -2451,7 +2453,7 @@ struct FileIndexer {
 };
 
 static int filelist_readjob_list_lib_populate_from_index(FileListReadJob *job_params,
-                                                         ListBase *entries,
+                                                         ListBaseT<FileListInternEntry> *entries,
                                                          const ListLibOptions options,
                                                          const int read_from_index,
                                                          const FileIndexerEntries *indexer_entries)
@@ -2474,7 +2476,7 @@ static int filelist_readjob_list_lib_populate_from_index(FileListReadJob *job_pa
  */
 static std::optional<int> filelist_readjob_list_lib(FileListReadJob *job_params,
                                                     const char *root,
-                                                    ListBase *entries,
+                                                    ListBaseT<FileListInternEntry> *entries,
                                                     const ListLibOptions options,
                                                     FileIndexer *indexer_runtime)
 {
@@ -2600,7 +2602,7 @@ static void filelist_readjob_main_recursive(Main *bmain, FileList *filelist)
 {
   ID *id;
   FileDirEntry *files, *firstlib = nullptr;
-  ListBase *lb;
+  ListBaseT<ID> *lb;
   int a, fake, idcode, ok, totlib, totbl;
 
   // filelist->type = FILE_MAIN; /* XXX TODO: add modes to file-browser */
@@ -2769,7 +2771,7 @@ static void filelist_readjob_main_recursive(Main *bmain, FileList *filelist)
  * \return True if new entries were added to the file list.
  */
 static bool filelist_readjob_append_entries(FileListReadJob *job_params,
-                                            ListBase *from_entries,
+                                            ListBaseT<FileListInternEntry> *from_entries,
                                             int from_entries_num)
 {
   BLI_assert(BLI_listbase_count(from_entries) == from_entries_num);
@@ -2829,7 +2831,7 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
                                                      float *progress)
 {
   FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
-  ListBase entries = {nullptr};
+  ListBaseT<FileListInternEntry> entries = {nullptr};
   BLI_Stack *todo_dirs;
   TodoDir *td_dir;
   char dir[FILE_MAX_LIBEXTRA];
@@ -3038,7 +3040,7 @@ static void filelist_readjob_main_assets_add_items(FileListReadJob *job_params,
   FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
 
   FileListInternEntry *entry;
-  ListBase tmp_entries = {nullptr};
+  ListBaseT<FileListInternEntry> tmp_entries = {nullptr};
   ID *id_iter;
   int entries_num = 0;
 
@@ -3279,7 +3281,7 @@ static void filelist_readjob_update(void *flrjv)
 {
   FileListReadJob *flrj = static_cast<FileListReadJob *>(flrjv);
   FileListIntern *fl_intern = &flrj->filelist->filelist_intern;
-  ListBase new_entries = {nullptr};
+  ListBaseT<FileListInternEntry> new_entries = {nullptr};
   int entries_num, new_entries_num = 0;
 
   BLI_movelisttolist(&new_entries, &fl_intern->entries);

@@ -1365,7 +1365,7 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject * /*self*/, PyObject *po
   bool is_2d = true;
 
   /* Display #ListBase. */
-  ListBase dispbase = {nullptr, nullptr};
+  ListBaseT<DispList> dispbase = {nullptr, nullptr};
   DispList *dl;
   float *fp; /* Pointer to the array of malloced dl->verts to set the points from the vectors. */
   int totpoints = 0;

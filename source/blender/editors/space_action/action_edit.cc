@@ -97,7 +97,7 @@ static bool act_markers_make_local_poll(bContext *C)
 
 static wmOperatorStatus act_markers_make_local_exec(bContext *C, wmOperator * /*op*/)
 {
-  ListBase *markers = ED_context_get_markers(C);
+  ListBaseT<TimeMarker> *markers = ED_context_get_markers(C);
   bAction *act = ANIM_active_action_from_area(
       CTX_data_scene(C), CTX_data_view_layer(C), CTX_wm_area(C));
 
@@ -155,7 +155,7 @@ void ACTION_OT_markers_make_local(wmOperatorType *ot)
 /* Get the min/max keyframes. */
 static bool get_keyframe_extents(bAnimContext *ac, float *min, float *max, const short onlySel)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter;
   bool found = false;
 
@@ -321,7 +321,7 @@ void ACTION_OT_previewrange_set(wmOperatorType *ot)
  */
 static bool actkeys_channels_get_selected_extents(bAnimContext *ac, float *r_min, float *r_max)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   bAnimListElem *ale;
   eAnimFilter_Flags filter;
 
@@ -517,7 +517,7 @@ void ACTION_OT_view_frame(wmOperatorType *ot)
 
 static bool copy_action_keys(bAnimContext *ac)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter;
 
   /* filter data */
@@ -553,7 +553,7 @@ static eKeyPasteError paste_action_keys(bAnimContext *ac,
    * - Copied from one slot, paste into multiple: duplicate into each slot.
    * - Otherwise: match slots by name. */
   {
-    ListBase anim_data = {nullptr, nullptr};
+    ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
     const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
                                      ANIMFILTER_LIST_CHANNELS | ANIMFILTER_NODUPLIS |
                                      ANIMFILTER_SEL;
@@ -572,7 +572,7 @@ static eKeyPasteError paste_action_keys(bAnimContext *ac,
    * - Second time, we loosen things up if nothing was found the first time, allowing
    *   users to just paste keyframes back into the original curve again #31670.
    */
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   {
     const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
                                      ANIMFILTER_FOREDIT | ANIMFILTER_FCURVESONLY |
@@ -910,7 +910,7 @@ static void insert_fcurve_key(bAnimContext *ac,
 /* this function is responsible for inserting new keyframes */
 static void insert_action_keys(bAnimContext *ac, short mode)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter;
 
   Scene *scene = ac->scene;
@@ -1031,7 +1031,7 @@ void ACTION_OT_keyframe_insert(wmOperatorType *ot)
 
 static bool duplicate_action_keys(bAnimContext *ac)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter;
   bool changed = false;
 
@@ -1115,7 +1115,7 @@ void ACTION_OT_duplicate(wmOperatorType *ot)
 
 static bool delete_action_keys(bAnimContext *ac)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter;
   bool changed_final = false;
 
@@ -1228,7 +1228,7 @@ void ACTION_OT_delete(wmOperatorType *ot)
 
 static void clean_action_keys(bAnimContext *ac, float thresh, bool clean_chan)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter;
 
   /* filter data */
@@ -1314,7 +1314,7 @@ void ACTION_OT_clean(wmOperatorType *ot)
 /* Evaluates the curves between each selected keyframe on each frame, and keys the value. */
 static void bake_action_keys(bAnimContext *ac)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter;
 
   /* filter data */
@@ -1412,7 +1412,7 @@ static const EnumPropertyItem prop_actkeys_expo_types[] = {
 /* this function is responsible for setting extrapolation mode for keyframes */
 static void setexpo_action_keys(bAnimContext *ac, short mode)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter;
 
   /* filter data */
@@ -1629,7 +1629,7 @@ void ACTION_OT_easing_type(wmOperatorType *ot)
 /* this function is responsible for setting handle-type of selected keyframes */
 static void sethandles_action_keys(bAnimContext *ac, short mode)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter;
 
   KeyframeEditFunc edit_cb = ANIM_editkeyframes_handles(mode);
@@ -1717,7 +1717,7 @@ void ACTION_OT_handle_type(wmOperatorType *ot)
 /* this function is responsible for setting keyframe type for keyframes */
 static void setkeytype_action_keys(bAnimContext *ac, eBezTriple_KeyframeType mode)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter;
   KeyframeEditFunc set_cb = ANIM_editkeyframes_keytype(mode);
 
@@ -1822,7 +1822,7 @@ static bool actkeys_framejump_poll(bContext *C)
 static wmOperatorStatus actkeys_framejump_exec(bContext *C, wmOperator * /*op*/)
 {
   bAnimContext ac;
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter;
   KeyframeEditData ked = {{nullptr}};
 
@@ -1946,7 +1946,7 @@ static const EnumPropertyItem prop_actkeys_snap_types[] = {
 /* this function is responsible for snapping keyframes to frame-times */
 static void snap_action_keys(bAnimContext *ac, short mode)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter;
 
   KeyframeEditData ked = {{nullptr}};
@@ -2078,7 +2078,7 @@ static const EnumPropertyItem prop_actkeys_mirror_types[] = {
 /* this function is responsible for mirroring keyframes */
 static void mirror_action_keys(bAnimContext *ac, short mode)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter;
 
   KeyframeEditData ked = {{nullptr}};

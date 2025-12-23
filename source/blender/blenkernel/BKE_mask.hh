@@ -8,6 +8,7 @@
  * \ingroup bke
  */
 
+#include "DNA_listBase.h"
 #include "DNA_mask_types.h"
 
 #ifndef SELECT
@@ -18,7 +19,6 @@ struct BezTriple;
 struct Depsgraph;
 struct Image;
 struct ImageUser;
-struct ListBase;
 struct Main;
 struct MovieClip;
 struct MovieClipUser;
@@ -53,9 +53,9 @@ void BKE_mask_layer_remove(Mask *mask, MaskLayer *masklay);
 /** \brief Free all animation keys for a mask layer. */
 void BKE_mask_layer_free_shapes(MaskLayer *masklay);
 void BKE_mask_layer_free(MaskLayer *masklay);
-void BKE_mask_layer_free_list(ListBase *masklayers);
+void BKE_mask_layer_free_list(ListBaseT<MaskLayer> *masklayers);
 void BKE_mask_spline_free(MaskSpline *spline);
-void BKE_mask_spline_free_list(ListBase *splines);
+void BKE_mask_spline_free_list(ListBaseT<MaskSpline> *splines);
 MaskSpline *BKE_mask_spline_copy(const MaskSpline *spline);
 void BKE_mask_point_free(MaskSplinePoint *point);
 
@@ -66,7 +66,8 @@ void BKE_mask_layer_rename(Mask *mask,
                            const char *newname);
 
 MaskLayer *BKE_mask_layer_copy(const MaskLayer *masklay);
-void BKE_mask_layer_copy_list(ListBase *masklayers_new, const ListBase *masklayers);
+void BKE_mask_layer_copy_list(ListBaseT<MaskLayer> *masklayers_new,
+                              const ListBaseT<MaskLayer> *masklayers);
 
 struct MaskLayerShapeElem {
   float point[3][2];

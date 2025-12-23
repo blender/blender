@@ -8,17 +8,18 @@
  * \ingroup sequencer
  */
 
+#include "DNA_listBase.h"
+
 #include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
-#include "BLI_vector.hh"
 
 struct Depsgraph;
 struct ImBuf;
 struct LinkNode;
-struct ListBase;
 struct Mask;
-struct Scene;
 struct RenderData;
+struct Scene;
+struct SeqTimelineChannel;
 struct Strip;
 
 namespace blender::seq {
@@ -44,8 +45,8 @@ ImBuf *seq_render_give_ibuf_seqbase(const RenderData *context,
                                     SeqRenderState *state,
                                     float timeline_frame,
                                     int chan_shown,
-                                    ListBase *channels,
-                                    ListBase *seqbasep);
+                                    ListBaseT<SeqTimelineChannel> *channels,
+                                    ListBaseT<Strip> *seqbasep);
 void seq_imbuf_to_sequencer_space(const Scene *scene, ImBuf *ibuf, bool make_float);
 ImBuf *seq_render_strip(const RenderData *context,
                         SeqRenderState *state,

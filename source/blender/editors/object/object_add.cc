@@ -2531,7 +2531,7 @@ static wmOperatorStatus object_delete_exec(bContext *C, wmOperator *op)
   }
 
   /* delete has to handle all open scenes */
-  BKE_main_id_tag_listbase(&bmain->scenes, ID_TAG_DOIT, true);
+  BKE_main_id_tag_listbase(&bmain->scenes.cast<ID>(), ID_TAG_DOIT, true);
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     scene = WM_window_get_active_scene(win);
 

@@ -263,7 +263,7 @@ static void strip_convert_transform_crop(const Scene *scene,
 }
 
 static void strip_convert_transform_crop_lb(const Scene *scene,
-                                            const ListBase *lb,
+                                            const ListBaseT<Strip> *lb,
                                             const eSpaceSeq_Proxy_RenderSize render_size)
 {
 
@@ -349,7 +349,7 @@ static void strip_convert_transform_crop_2(const Scene *scene,
 }
 
 static void strip_convert_transform_crop_lb_2(const Scene *scene,
-                                              const ListBase *lb,
+                                              const ListBaseT<Strip> *lb,
                                               const eSpaceSeq_Proxy_RenderSize render_size)
 {
 
@@ -383,7 +383,7 @@ static void seq_update_meta_disp_range(Scene *scene)
     ms->parent_strip->right_handle_set(scene, ms->disp_range[1]);
 
     /* Recalculate effects using meta strip. */
-    ListBase *old_seqbasep = ms->old_strip ? &ms->old_strip->seqbase : &ed->seqbase;
+    ListBaseT<Strip> *old_seqbasep = ms->old_strip ? &ms->old_strip->seqbase : &ed->seqbase;
     LISTBASE_FOREACH (Strip *, strip, old_seqbasep) {
       if (strip->input2) {
         strip->start = strip->startdisp = max_ii(strip->input1->startdisp,
@@ -840,7 +840,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     {
       short id_codes[] = {ID_BR, ID_PAL};
       for (int i = 0; i < ARRAY_SIZE(id_codes); i++) {
-        ListBase *lb = which_libbase(bmain, id_codes[i]);
+        ListBaseT<ID> *lb = which_libbase(bmain, id_codes[i]);
         BKE_main_id_repair_duplicate_names_listbase(bmain, lb);
       }
     }
@@ -1831,8 +1831,8 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_SPREADSHEET) {
-            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                   &sl->regionbase;
+            ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                             &sl->regionbase;
             ARegion *new_footer = do_versions_add_region_if_not_found(
                 regionbase, RGN_TYPE_FOOTER, "footer for spreadsheet", RGN_TYPE_HEADER);
             if (new_footer != nullptr) {
@@ -1889,7 +1889,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     /* The CU_2D flag has been removed. */
     LISTBASE_FOREACH (Curve *, cu, &bmain->curves) {
 #define CU_2D (1 << 3)
-      ListBase *nurbs = BKE_curve_nurbs_get(cu);
+      ListBaseT<Nurb> *nurbs = BKE_curve_nurbs_get(cu);
       bool is_2d = true;
 
       LISTBASE_FOREACH (Nurb *, nu, nurbs) {

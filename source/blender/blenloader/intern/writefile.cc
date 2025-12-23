@@ -98,6 +98,7 @@
 #include "BLI_endian_defines.h"
 #include "BLI_fileops.hh"
 #include "BLI_implicit_sharing.hh"
+#include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_math_matrix.h"
 #include "BLI_multi_value_map.hh"
@@ -221,17 +222,21 @@ bool RawWriteWrap::write(const void *buf, size_t buf_len)
   return ::write(file_handle, buf, buf_len) == buf_len;
 }
 
+struct ThreadSlot;
+
 class ZstdWriteWrap : public WriteWrap {
+  struct ZstdWriteBlockTask;
+
   WriteWrap &base_wrap;
 
-  ListBase threadpool = {};
-  ListBase tasks = {};
+  ListBaseT<ThreadSlot> threadpool = {};
+  ListBaseT<ZstdWriteBlockTask> tasks = {};
   ThreadMutex mutex = {};
   ThreadCondition condition = {};
   int next_frame = 0;
   int num_frames = 0;
 
-  ListBase frames = {};
+  ListBaseT<ZstdFrame> frames = {};
 
   bool write_error = false;
 
@@ -243,7 +248,6 @@ class ZstdWriteWrap : public WriteWrap {
   bool write(const void *buf, size_t buf_len) override;
 
  private:
-  struct ZstdWriteBlockTask;
   void write_task(ZstdWriteBlockTask *task);
   void write_u32_le(uint32_t val);
   void write_seekable_frames();

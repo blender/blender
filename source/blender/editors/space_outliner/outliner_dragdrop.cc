@@ -436,7 +436,7 @@ static wmOperatorStatus parent_drop_invoke(bContext *C, wmOperator *op, const wm
     return OPERATOR_CANCELLED;
   }
 
-  ListBase *lb = static_cast<ListBase *>(event->customdata);
+  ListBaseT<wmDrag> *lb = static_cast<ListBaseT<wmDrag> *>(event->customdata);
   wmDrag *drag = static_cast<wmDrag *>(lb->first);
 
   parent_drop_set_parents(C,
@@ -519,7 +519,7 @@ static wmOperatorStatus parent_clear_invoke(bContext *C, wmOperator * /*op*/, co
     return OPERATOR_CANCELLED;
   }
 
-  ListBase *lb = static_cast<ListBase *>(event->customdata);
+  ListBaseT<wmDrag> *lb = static_cast<ListBaseT<wmDrag> *>(event->customdata);
   wmDrag *drag = static_cast<wmDrag *>(lb->first);
 
   LISTBASE_FOREACH (wmDragID *, drag_id, &drag->ids) {
@@ -941,7 +941,7 @@ static void datastack_drop_link(bContext *C, StackDropData *drop_data)
       object::modifier_link(C, ob_dst, drop_data->ob_parent);
       break;
     case TSE_CONSTRAINT_BASE: {
-      ListBase *src;
+      ListBaseT<bConstraint> *src;
 
       if (drop_data->pchan_parent) {
         src = &drop_data->pchan_parent->constraints;
@@ -950,7 +950,7 @@ static void datastack_drop_link(bContext *C, StackDropData *drop_data)
         src = &drop_data->ob_parent->constraints;
       }
 
-      ListBase *dst;
+      ListBaseT<bConstraint> *dst;
       if (tselem->type == TSE_POSE_CHANNEL) {
         bPoseChannel *pchan = (bPoseChannel *)drop_data->drop_te->directdata;
         dst = &pchan->constraints;
@@ -1063,7 +1063,7 @@ static wmOperatorStatus datastack_drop_invoke(bContext *C, wmOperator *op, const
     return OPERATOR_CANCELLED;
   }
 
-  ListBase *lb = static_cast<ListBase *>(event->customdata);
+  ListBaseT<wmDrag> *lb = static_cast<ListBaseT<wmDrag> *>(event->customdata);
   wmDrag *drag = static_cast<wmDrag *>(lb->first);
   StackDropData *drop_data = static_cast<StackDropData *>(drag->poin);
 
@@ -1304,7 +1304,7 @@ static wmOperatorStatus collection_drop_invoke(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  ListBase *lb = static_cast<ListBase *>(event->customdata);
+  ListBaseT<wmDrag> *lb = static_cast<ListBaseT<wmDrag> *>(event->customdata);
   wmDrag *drag = static_cast<wmDrag *>(lb->first);
 
   CollectionDrop data;
@@ -1589,7 +1589,7 @@ void OUTLINER_OT_item_drag_drop(wmOperatorType *ot)
 
 void outliner_dropboxes()
 {
-  ListBase *lb = WM_dropboxmap_find("Outliner", SPACE_OUTLINER, RGN_TYPE_WINDOW);
+  ListBaseT<wmDropBox> *lb = WM_dropboxmap_find("Outliner", SPACE_OUTLINER, RGN_TYPE_WINDOW);
 
   WM_dropbox_add(lb, "OUTLINER_OT_parent_drop", parent_drop_poll, nullptr, nullptr, nullptr);
   WM_dropbox_add(lb, "OUTLINER_OT_parent_clear", parent_clear_poll, nullptr, nullptr, nullptr);

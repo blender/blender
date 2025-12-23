@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "DNA_listBase.h"
+
 #include "BLI_function_ref.hh"
 #include "BLI_vector_list.hh"
 
@@ -23,7 +25,6 @@ struct BMVert;
 struct BMesh;
 struct Image;
 struct ImageUser;
-struct ListBase;
 struct Main;
 struct Object;
 struct Scene;
@@ -379,7 +380,7 @@ struct FaceIsland {
  */
 int bm_mesh_calc_uv_islands(const Scene *scene,
                             BMesh *bm,
-                            ListBase *island_list,
+                            ListBaseT<FaceIsland> *island_list,
                             const bool only_selected_faces,
                             const bool only_selected_uvs,
                             const bool use_seams,

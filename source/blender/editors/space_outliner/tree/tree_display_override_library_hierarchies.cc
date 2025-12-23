@@ -35,9 +35,10 @@ TreeDisplayOverrideLibraryHierarchies::TreeDisplayOverrideLibraryHierarchies(
 {
 }
 
-ListBase TreeDisplayOverrideLibraryHierarchies::build_tree(const TreeSourceData &source_data)
+ListBaseT<TreeElement> TreeDisplayOverrideLibraryHierarchies::build_tree(
+    const TreeSourceData &source_data)
 {
-  ListBase tree = {nullptr};
+  ListBaseT<TreeElement> tree = {nullptr};
 
   /* First step: Build "Current File" hierarchy. */
   TreeElement *current_file_te = AbstractTreeDisplay::add_element(
@@ -123,10 +124,10 @@ class OverrideIDHierarchyBuilder {
                                         TreeElement &te_to_expand);
 };
 
-ListBase TreeDisplayOverrideLibraryHierarchies::build_hierarchy_for_lib_or_main(
+ListBaseT<TreeElement> TreeDisplayOverrideLibraryHierarchies::build_hierarchy_for_lib_or_main(
     Main *bmain, TreeElement &parent_te, Library *lib)
 {
-  ListBase tree = {nullptr};
+  ListBaseT<TreeElement> tree = {nullptr};
 
   /* Ensure #Main.relations contains the latest mapping of relations. Must be freed before
    * returning. */

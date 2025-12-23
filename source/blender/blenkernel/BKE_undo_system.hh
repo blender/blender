@@ -48,7 +48,7 @@ UNDO_REF_ID_TYPE(Image);
 UNDO_REF_ID_TYPE(PaintCurve);
 
 struct UndoStack {
-  ListBase steps;
+  ListBaseT<UndoStep> steps;
   UndoStep *step_active;
   /**
    * The last memfile state read, used so we can be sure the names from the

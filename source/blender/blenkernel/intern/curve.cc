@@ -417,7 +417,7 @@ Curve *BKE_curve_add(Main *bmain, const char *name, int type)
   return cu;
 }
 
-ListBase *BKE_curve_editNurbs_get(Curve *cu)
+ListBaseT<Nurb> *BKE_curve_editNurbs_get(Curve *cu)
 {
   if (cu->editnurb) {
     return &cu->editnurb->nurbs;
@@ -426,7 +426,7 @@ ListBase *BKE_curve_editNurbs_get(Curve *cu)
   return nullptr;
 }
 
-const ListBase *BKE_curve_editNurbs_get_for_read(const Curve *cu)
+const ListBaseT<Nurb> *BKE_curve_editNurbs_get_for_read(const Curve *cu)
 {
   if (cu->editnurb) {
     return &cu->editnurb->nurbs;
@@ -437,7 +437,7 @@ const ListBase *BKE_curve_editNurbs_get_for_read(const Curve *cu)
 
 void BKE_curve_dimension_update(Curve *cu)
 {
-  ListBase *nurbs = BKE_curve_nurbs_get(cu);
+  ListBaseT<Nurb> *nurbs = BKE_curve_nurbs_get(cu);
   bool is_2d = CU_IS_2D(cu);
 
   LISTBASE_FOREACH (Nurb *, nu, nurbs) {
@@ -509,7 +509,7 @@ void BKE_curve_texspace_ensure(Curve *cu)
   }
 }
 
-bool BKE_nurbList_index_get_co(ListBase *nurb, const int index, float r_co[3])
+bool BKE_nurbList_index_get_co(ListBaseT<Nurb> *nurb, const int index, float r_co[3])
 {
   int tot = 0;
 
@@ -535,7 +535,7 @@ bool BKE_nurbList_index_get_co(ListBase *nurb, const int index, float r_co[3])
   return false;
 }
 
-int BKE_nurbList_verts_count(const ListBase *nurb)
+int BKE_nurbList_verts_count(const ListBaseT<Nurb> *nurb)
 {
   int tot = 0;
 
@@ -551,7 +551,7 @@ int BKE_nurbList_verts_count(const ListBase *nurb)
   return tot;
 }
 
-int BKE_nurbList_verts_count_without_handles(const ListBase *nurb)
+int BKE_nurbList_verts_count_without_handles(const ListBaseT<Nurb> *nurb)
 {
   int tot = 0;
 
@@ -595,7 +595,7 @@ void BKE_nurb_free(Nurb *nu)
   MEM_freeN(nu);
 }
 
-void BKE_nurbList_free(ListBase *lb)
+void BKE_nurbList_free(ListBaseT<Nurb> *lb)
 {
   if (lb == nullptr) {
     return;
@@ -672,7 +672,7 @@ Nurb *BKE_nurb_copy(Nurb *src, int pntsu, int pntsv)
   return newnu;
 }
 
-void BKE_nurbList_duplicate(ListBase *lb1, const ListBase *lb2)
+void BKE_nurbList_duplicate(ListBaseT<Nurb> *lb1, const ListBaseT<Nurb> *lb2)
 {
   BKE_nurbList_free(lb1);
 
@@ -2514,7 +2514,7 @@ static void bevlist_firstlast_direction_calc_from_bpoint(const Nurb *nu, BevList
   }
 }
 
-void BKE_curve_bevelList_free(ListBase *bev)
+void BKE_curve_bevelList_free(ListBaseT<BevList> *bev)
 {
   LISTBASE_FOREACH_MUTABLE (BevList *, bl, bev) {
     if (bl->seglen != nullptr) {
@@ -2532,7 +2532,7 @@ void BKE_curve_bevelList_free(ListBase *bev)
   BLI_listbase_clear(bev);
 }
 
-void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_render)
+void BKE_curve_bevelList_make(Object *ob, const ListBaseT<Nurb> *nurbs, const bool for_render)
 {
   /* - Convert all curves to polys, with indication of resolution and flags for double-vertices.
    * - Possibly; do a smart vertex removal (in case #Nurb).
@@ -2554,7 +2554,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_
   int *segbevcount;
   bool do_tilt, do_radius, do_weight;
   bool is_editmode = false;
-  ListBase *bev;
+  ListBaseT<BevList> *bev;
 
   /* segbevcount also requires seglen. */
   const bool need_seglen = ELEM(
@@ -4183,14 +4183,14 @@ void BKE_nurb_handles_autocalc(Nurb *nu, uint8_t flag)
   BKE_nurb_handles_calc(nu);
 }
 
-void BKE_nurbList_handles_autocalc(ListBase *editnurb, uint8_t flag)
+void BKE_nurbList_handles_autocalc(ListBaseT<Nurb> *editnurb, uint8_t flag)
 {
   LISTBASE_FOREACH (Nurb *, nu, editnurb) {
     BKE_nurb_handles_autocalc(nu, flag);
   }
 }
 
-void BKE_nurbList_handles_set(ListBase *editnurb,
+void BKE_nurbList_handles_set(ListBaseT<Nurb> *editnurb,
                               eNurbHandleTest_Mode handle_mode,
                               const char code)
 {
@@ -4281,7 +4281,7 @@ void BKE_nurbList_handles_set(ListBase *editnurb,
   }
 }
 
-void BKE_nurbList_handles_recalculate(ListBase *editnurb,
+void BKE_nurbList_handles_recalculate(ListBaseT<Nurb> *editnurb,
                                       const bool calc_length,
                                       const uint8_t flag)
 {
@@ -4338,7 +4338,7 @@ void BKE_nurbList_handles_recalculate(ListBase *editnurb,
   }
 }
 
-void BKE_nurbList_flag_set(ListBase *editnurb, uint8_t flag, bool set)
+void BKE_nurbList_flag_set(ListBaseT<Nurb> *editnurb, uint8_t flag, bool set)
 {
   BezTriple *bezt;
   BPoint *bp;
@@ -4373,7 +4373,7 @@ void BKE_nurbList_flag_set(ListBase *editnurb, uint8_t flag, bool set)
   }
 }
 
-bool BKE_nurbList_flag_set_from_flag(ListBase *editnurb, uint8_t from_flag, uint8_t flag)
+bool BKE_nurbList_flag_set_from_flag(ListBaseT<Nurb> *editnurb, uint8_t from_flag, uint8_t flag)
 {
   bool changed = false;
 
@@ -4527,7 +4527,7 @@ void BKE_nurb_direction_switch(Nurb *nu)
   }
 }
 
-void BKE_curve_nurbs_vert_coords_get(const ListBase *lb, MutableSpan<float3> vert_coords)
+void BKE_curve_nurbs_vert_coords_get(const ListBaseT<Nurb> *lb, MutableSpan<float3> vert_coords)
 {
   int index = 0;
   LISTBASE_FOREACH (const Nurb *, nu, lb) {
@@ -4552,14 +4552,14 @@ void BKE_curve_nurbs_vert_coords_get(const ListBase *lb, MutableSpan<float3> ver
   }
 }
 
-Array<float3> BKE_curve_nurbs_vert_coords_alloc(const ListBase *lb)
+Array<float3> BKE_curve_nurbs_vert_coords_alloc(const ListBaseT<Nurb> *lb)
 {
   Array<float3> vert_coords(BKE_nurbList_verts_count(lb));
   BKE_curve_nurbs_vert_coords_get(lb, vert_coords);
   return vert_coords;
 }
 
-void BKE_curve_nurbs_vert_coords_apply_with_mat4(ListBase *lb,
+void BKE_curve_nurbs_vert_coords_apply_with_mat4(ListBaseT<Nurb> *lb,
                                                  const Span<float3> vert_coords,
                                                  const float4x4 &transform,
                                                  const bool constrain_2d)
@@ -4595,7 +4595,7 @@ void BKE_curve_nurbs_vert_coords_apply_with_mat4(ListBase *lb,
   }
 }
 
-void BKE_curve_nurbs_vert_coords_apply(ListBase *lb,
+void BKE_curve_nurbs_vert_coords_apply(ListBaseT<Nurb> *lb,
                                        const Span<float3> vert_coords,
                                        const bool constrain_2d)
 {
@@ -4630,7 +4630,7 @@ void BKE_curve_nurbs_vert_coords_apply(ListBase *lb,
   }
 }
 
-Array<float3> BKE_curve_nurbs_key_vert_coords_alloc(const ListBase *lb, const float *key)
+Array<float3> BKE_curve_nurbs_key_vert_coords_alloc(const ListBaseT<Nurb> *lb, const float *key)
 {
   Array<float3> vert_coords(BKE_nurbList_verts_count(lb));
 
@@ -4662,7 +4662,7 @@ Array<float3> BKE_curve_nurbs_key_vert_coords_alloc(const ListBase *lb, const fl
   return vert_coords;
 }
 
-void BKE_curve_nurbs_key_vert_tilts_apply(ListBase *lb, const float *key)
+void BKE_curve_nurbs_key_vert_tilts_apply(ListBaseT<Nurb> *lb, const float *key)
 {
   LISTBASE_FOREACH (Nurb *, nu, lb) {
     if (nu->type == CU_BEZIER) {
@@ -4955,7 +4955,7 @@ bool BKE_nurb_type_convert(Nurb *nu,
   return true;
 }
 
-ListBase *BKE_curve_nurbs_get(Curve *cu)
+ListBaseT<Nurb> *BKE_curve_nurbs_get(Curve *cu)
 {
   if (cu->editnurb) {
     return BKE_curve_editNurbs_get(cu);
@@ -4964,7 +4964,7 @@ ListBase *BKE_curve_nurbs_get(Curve *cu)
   return &cu->nurb;
 }
 
-const ListBase *BKE_curve_nurbs_get_for_read(const Curve *cu)
+const ListBaseT<Nurb> *BKE_curve_nurbs_get_for_read(const Curve *cu)
 {
   if (cu->editnurb) {
     return BKE_curve_editNurbs_get_for_read(cu);
@@ -4980,14 +4980,14 @@ void BKE_curve_nurb_active_set(Curve *cu, const Nurb *nu)
   }
   else {
     BLI_assert(!nu->hide);
-    ListBase *nurbs = BKE_curve_editNurbs_get(cu);
+    ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
     cu->actnu = BLI_findindex(nurbs, nu);
   }
 }
 
 Nurb *BKE_curve_nurb_active_get(Curve *cu)
 {
-  ListBase *nurbs = BKE_curve_editNurbs_get(cu);
+  ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
   return (Nurb *)BLI_findlink(nurbs, cu->actnu);
 }
 
@@ -5034,7 +5034,7 @@ bool BKE_curve_nurb_vert_active_get(Curve *cu, Nurb **r_nu, void **r_vert)
   void *vert = nullptr;
 
   if (cu->actvert != CU_ACT_NONE) {
-    ListBase *nurbs = BKE_curve_editNurbs_get(cu);
+    ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
     nu = (Nurb *)BLI_findlink(nurbs, cu->actnu);
 
     if (nu) {
@@ -5080,8 +5080,8 @@ void BKE_curve_nurb_vert_active_validate(Curve *cu)
   }
 }
 
-static std::optional<blender::Bounds<blender::float3>> calc_nurblist_bounds(const ListBase *nurbs,
-                                                                            const bool use_radius)
+static std::optional<blender::Bounds<blender::float3>> calc_nurblist_bounds(
+    const ListBaseT<Nurb> *nurbs, const bool use_radius)
 {
   if (BLI_listbase_is_empty(nurbs)) {
     return std::nullopt;
@@ -5096,7 +5096,7 @@ static std::optional<blender::Bounds<blender::float3>> calc_nurblist_bounds(cons
 
 std::optional<blender::Bounds<blender::float3>> BKE_curve_minmax(const Curve *cu, bool use_radius)
 {
-  const ListBase *nurb_lb = BKE_curve_nurbs_get_for_read(cu);
+  const ListBaseT<Nurb> *nurb_lb = BKE_curve_nurbs_get_for_read(cu);
   const bool is_font = BLI_listbase_is_empty(nurb_lb) && (cu->len != 0);
   /* For font curves we generate temp list of splines.
    *
@@ -5104,7 +5104,7 @@ std::optional<blender::Bounds<blender::float3>> BKE_curve_minmax(const Curve *cu
    * often, and it's the only way to get meaningful bounds for fonts.
    */
   if (is_font) {
-    ListBase temp_nurb_lb{};
+    ListBaseT<Nurb> temp_nurb_lb{};
     BKE_vfont_to_curve_ex(
         nullptr, *cu, FO_EDIT, &temp_nurb_lb, nullptr, nullptr, nullptr, nullptr, nullptr);
     BLI_SCOPED_DEFER([&]() { BKE_nurbList_free(&temp_nurb_lb); });
@@ -5116,7 +5116,7 @@ std::optional<blender::Bounds<blender::float3>> BKE_curve_minmax(const Curve *cu
 
 bool BKE_curve_center_median(Curve *cu, float cent[3])
 {
-  ListBase *nurb_lb = BKE_curve_nurbs_get(cu);
+  ListBaseT<Nurb> *nurb_lb = BKE_curve_nurbs_get(cu);
   int total = 0;
 
   zero_v3(cent);
@@ -5231,7 +5231,7 @@ void BKE_curve_transform(Curve *cu, const float mat[4][4], const bool do_keys, c
 
 void BKE_curve_translate(Curve *cu, const float offset[3], const bool do_keys)
 {
-  ListBase *nurb_lb = BKE_curve_nurbs_get(cu);
+  ListBaseT<Nurb> *nurb_lb = BKE_curve_nurbs_get(cu);
 
   LISTBASE_FOREACH (Nurb *, nu, nurb_lb) {
     if (nu->type == CU_BEZIER) {
@@ -5392,7 +5392,7 @@ void BKE_curve_material_remap(Curve *cu, const uint *remap, uint remap_len)
     }
   }
   else {
-    ListBase *nurbs = BKE_curve_editNurbs_get(cu);
+    ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
 
     if (nurbs) {
       LISTBASE_FOREACH (Nurb *, nu, nurbs) {

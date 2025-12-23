@@ -11,6 +11,7 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_span.hh"
 
+#include "DNA_listBase.h"
 #include "DNA_windowmanager_enums.h"
 
 struct Base;
@@ -18,7 +19,6 @@ struct Bone;
 struct Depsgraph;
 struct EditBone;
 struct GPUSelectResult;
-struct ListBase;
 struct Main;
 struct Mesh;
 struct MeshDeformModifierData;
@@ -94,7 +94,7 @@ void ED_armature_transform(bArmature *arm, const float mat[4][4], bool do_props)
  * Ensure the bone name is unique.
  * If bone is already in list, pass it as argument to ignore it.
  */
-void ED_armature_ebone_unique_name(ListBase *ebones, char *name, EditBone *bone);
+void ED_armature_ebone_unique_name(ListBaseT<EditBone> *ebones, char *name, EditBone *bone);
 
 /**
  * Bone Rename (called by UI for renaming a bone).
@@ -117,7 +117,7 @@ void ED_armature_bone_rename(Main *bmain,
  */
 void ED_armature_bones_flip_names(Main *bmain,
                                   bArmature *arm,
-                                  ListBase *bones_names,
+                                  ListBaseT<LinkData> *bones_names,
                                   bool do_strip_numbers);
 
 /* `armature_ops.cc` */
@@ -199,7 +199,7 @@ void ED_armature_undosys_type(UndoType *ut);
 /* `armature_utils.cc` */
 
 /** Sync selection to parent for connected children. */
-void ED_armature_edit_sync_selection(ListBase *edbo);
+void ED_armature_edit_sync_selection(ListBaseT<EditBone> *edbo);
 /**
  * \param clear_connected: When false caller is responsible for keeping the flag in a valid state.
  */
@@ -222,11 +222,11 @@ void ED_armature_ebone_from_mat4(EditBone *ebone, const float mat[4][4]);
 /**
  * Return a pointer to the bone of the given name
  */
-EditBone *ED_armature_ebone_find_name(const ListBase *edbo, const char *name);
+EditBone *ED_armature_ebone_find_name(const ListBaseT<EditBone> *edbo, const char *name);
 /**
  * \see #BKE_pose_channel_get_mirrored (pose-mode, matching function)
  */
-EditBone *ED_armature_ebone_get_mirrored(const ListBase *edbo, EditBone *ebo);
+EditBone *ED_armature_ebone_get_mirrored(const ListBaseT<EditBone> *edbo, EditBone *ebo);
 void ED_armature_ebone_transform_mirror_update(bArmature *arm, EditBone *ebo, bool check_select);
 /**
  * If edit-bone (partial) selected, copy data.
@@ -238,13 +238,15 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm);
 /** Put armature in edit-mode. */
 void ED_armature_to_edit(bArmature *arm);
 void ED_armature_edit_free(bArmature *arm);
-void ED_armature_ebone_listbase_temp_clear(ListBase *lb);
+void ED_armature_ebone_listbase_temp_clear(ListBaseT<EditBone> *lb);
 
 /**
  * Free list of bones and their properties.
  */
-void ED_armature_ebone_listbase_free(ListBase *lb, bool do_id_user);
-void ED_armature_ebone_listbase_copy(ListBase *lb_dst, ListBase *lb_src, bool do_id_user);
+void ED_armature_ebone_listbase_free(ListBaseT<EditBone> *lb, bool do_id_user);
+void ED_armature_ebone_listbase_copy(ListBaseT<EditBone> *lb_dst,
+                                     ListBaseT<EditBone> *lb_src,
+                                     bool do_id_user);
 
 int ED_armature_ebone_selectflag_get(const EditBone *ebone);
 void ED_armature_ebone_selectflag_set(EditBone *ebone, int flag);

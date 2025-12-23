@@ -101,8 +101,11 @@ wmKeyMapItem *WM_keymap_add_item_copy(wmKeyMap *keymap, const wmKeyMapItem *kmi_
 void WM_keymap_remove_item(wmKeyMap *keymap, wmKeyMapItem *kmi);
 std::optional<std::string> WM_keymap_item_to_string(const wmKeyMapItem *kmi, bool compact);
 
-wmKeyMap *WM_keymap_list_find(ListBase *lb, const char *idname, int spaceid, int regionid);
-wmKeyMap *WM_keymap_list_find_spaceid_or_empty(ListBase *lb,
+wmKeyMap *WM_keymap_list_find(ListBaseT<wmKeyMap> *lb,
+                              const char *idname,
+                              int spaceid,
+                              int regionid);
+wmKeyMap *WM_keymap_list_find_spaceid_or_empty(ListBaseT<wmKeyMap> *lb,
                                                const char *idname,
                                                int spaceid,
                                                int regionid);

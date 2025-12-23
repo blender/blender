@@ -63,7 +63,7 @@ bool operator==(const CachedImageKey &a, const CachedImageKey &b)
 static RenderLayer *get_render_layer(const RenderResult *render_result,
                                      const ImageUser &image_user)
 {
-  const ListBase *layers = &render_result->layers;
+  const ListBaseT<RenderLayer> *layers = &render_result->layers;
   return static_cast<RenderLayer *>(BLI_findlink(layers, image_user.layer));
 }
 
@@ -103,7 +103,7 @@ static int get_view_index(const Context &context,
     return 0;
   }
 
-  const ListBase *views = &render_result->views;
+  const ListBaseT<RenderView> *views = &render_result->views;
   /* There is only one view and its index is 0. */
   if (BLI_listbase_count_at_most(views, 2) < 2) {
     return 0;

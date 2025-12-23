@@ -663,7 +663,7 @@ static bool lineart_chain_fix_ambiguous_segments(LineartEdgeChain *ec,
 void MOD_lineart_chain_split_for_fixed_occlusion(LineartData *ld)
 {
   LineartEdgeChainItem *eci, *next_eci;
-  ListBase swap = {nullptr};
+  ListBaseT<void> swap = {nullptr};
 
   swap.first = ld->chains.first;
   swap.last = ld->chains.last;
@@ -937,7 +937,7 @@ void MOD_lineart_chain_connect(LineartData *ld)
   int reverse_main, loop_id;
   uint8_t occlusion, material_mask_bits, isec_mask;
   uint32_t shadow_mask;
-  ListBase swap = {nullptr};
+  ListBaseT<void> swap = {nullptr};
 
   if (ld->conf.chaining_image_threshold < 0.0001) {
     return;
@@ -1084,7 +1084,8 @@ void MOD_lineart_chain_clear_picked_flag(LineartCache *lc)
   }
 }
 
-LineartElementLinkNode *lineart_find_matching_eln_obj(ListBase *elns, Object *ob)
+LineartElementLinkNode *lineart_find_matching_eln_obj(ListBaseT<LineartElementLinkNode> *elns,
+                                                      Object *ob)
 {
   LISTBASE_FOREACH (LineartElementLinkNode *, eln, elns) {
     if (eln->object_ref == ob) {
@@ -1239,7 +1240,7 @@ void MOD_lineart_chain_clip_at_border(LineartData *ld)
 {
   LineartEdgeChainItem *eci, *next_eci, *prev_eci, *new_eci;
   bool is_inside, new_inside;
-  ListBase swap = {nullptr};
+  ListBaseT<void> swap = {nullptr};
   swap.first = ld->chains.first;
   swap.last = ld->chains.last;
 
@@ -1303,7 +1304,7 @@ void MOD_lineart_chain_clip_at_border(LineartData *ld)
 void MOD_lineart_chain_split_angle(LineartData *ld, float angle_threshold_rad)
 {
   LineartEdgeChainItem *eci, *next_eci, *prev_eci;
-  ListBase swap = {nullptr};
+  ListBaseT<void> swap = {nullptr};
 
   swap.first = ld->chains.first;
   swap.last = ld->chains.last;

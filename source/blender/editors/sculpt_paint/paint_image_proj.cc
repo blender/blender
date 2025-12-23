@@ -267,6 +267,8 @@ struct LoopSeamData {
   float corner_dist_sq[2];
 };
 
+struct VertSeam;
+
 /* Main projection painting struct passed to all projection painting functions */
 struct ProjPaintState {
   View3D *v3d;
@@ -436,7 +438,7 @@ struct ProjPaintState {
   /** Only needed for when seam_bleed_px is enabled, use to find UV seams. */
   LinkNode **vertFaces;
   /** Seams per vert, to find adjacent seams. */
-  ListBase *vertSeams;
+  ListBaseT<VertSeam> *vertSeams;
 #endif
 
   SpinLock *tile_lock;
@@ -1220,7 +1222,7 @@ static VertSeam *find_adjacent_seam(const ProjPaintState *ps,
                                     uint vert_index,
                                     VertSeam **r_seam)
 {
-  ListBase *vert_seams = &ps->vertSeams[vert_index];
+  ListBaseT<VertSeam> *vert_seams = &ps->vertSeams[vert_index];
   VertSeam *seam = static_cast<VertSeam *>(vert_seams->first);
   VertSeam *adjacent = nullptr;
 
@@ -1421,7 +1423,7 @@ static void insert_seam_vert_array(const ProjPaintState *ps,
 
   for (uint i = 0; i < 2; i++) {
     const int vert = ps->corner_verts_eval[tri[fidx[i]]];
-    ListBase *list = &ps->vertSeams[vert];
+    ListBaseT<VertSeam> *list = &ps->vertSeams[vert];
     VertSeam *item = static_cast<VertSeam *>(list->first);
 
     while (item && item->angle < vseam[i].angle) {
@@ -3949,7 +3951,7 @@ static void proj_paint_state_seam_bleed_init(ProjPaintState *ps)
     ps->faceSeamFlags = MEM_calloc_arrayN<ushort>(ps->corner_tris_eval.size(), __func__);
     ps->faceWindingFlags = MEM_calloc_arrayN<char>(ps->corner_tris_eval.size(), __func__);
     ps->loopSeamData = MEM_malloc_arrayN<LoopSeamData>(ps->totloop_eval, "paint-loopSeamUVs");
-    ps->vertSeams = MEM_calloc_arrayN<ListBase>(ps->totvert_eval, "paint-vertSeams");
+    ps->vertSeams = MEM_calloc_arrayN<ListBaseT<VertSeam>>(ps->totvert_eval, "paint-vertSeams");
   }
 }
 #endif
@@ -4342,7 +4344,7 @@ struct PrepareImageEntry {
 
 static void project_paint_build_proj_ima(ProjPaintState *ps,
                                          MemArena *arena,
-                                         ListBase *used_images)
+                                         ListBaseT<PrepareImageEntry> *used_images)
 {
   ProjPaintImage *projIma;
   PrepareImageEntry *entry;
@@ -4390,7 +4392,7 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
   const bke::AttributeAccessor attributes = ps->mesh_eval->attributes();
   const StringRef active_uv_name = ps->mesh_eval->active_uv_map_name();
   /* Image Vars - keep track of images we have used */
-  ListBase used_images = {nullptr};
+  ListBaseT<PrepareImageEntry> used_images = {nullptr};
 
   Image *tpage_last = nullptr, *tpage;
   TexPaintSlot *slot_last = nullptr;

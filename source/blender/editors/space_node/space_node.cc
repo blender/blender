@@ -922,7 +922,7 @@ static void node_cursor(wmWindow *win, ScrArea *area, ARegion *region)
 static void node_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
-  ListBase *lb;
+  ListBaseT<wmDropBox> *lb;
 
   view2d_region_reinit(&region->v2d, ui::V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
@@ -1240,7 +1240,7 @@ static std::string node_panel_drop_tooltip(bContext * /*C*/,
 /* this region dropbox definition */
 static void node_dropboxes()
 {
-  ListBase *lb = WM_dropboxmap_find("Node Editor", SPACE_NODE, RGN_TYPE_WINDOW);
+  ListBaseT<wmDropBox> *lb = WM_dropboxmap_find("Node Editor", SPACE_NODE, RGN_TYPE_WINDOW);
 
   WM_dropbox_add(lb,
                  "NODE_OT_add_object",

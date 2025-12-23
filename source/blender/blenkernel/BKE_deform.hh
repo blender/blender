@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "DNA_listBase.h"
 #include "DNA_meshdata_types.h"
 
 #include "BLI_math_vector_types.hh"
@@ -21,7 +22,6 @@
 struct BlendDataReader;
 struct BlendWriter;
 struct ID;
-struct ListBase;
 struct MDeformVert;
 struct MDeformWeight;
 struct Object;
@@ -29,8 +29,8 @@ struct bDeformGroup;
 
 bool BKE_id_supports_vertex_groups(const ID *id);
 bool BKE_object_supports_vertex_groups(const Object *ob);
-const ListBase *BKE_object_defgroup_list(const Object *ob);
-ListBase *BKE_object_defgroup_list_mutable(Object *ob);
+const ListBaseT<bDeformGroup> *BKE_object_defgroup_list(const Object *ob);
+ListBaseT<bDeformGroup> *BKE_object_defgroup_list_mutable(Object *ob);
 
 int BKE_object_defgroup_count(const Object *ob);
 /**
@@ -45,13 +45,13 @@ void BKE_object_defgroup_active_index_set(Object *ob, int new_index);
 /**
  * Return the ID's vertex group names.
  * Supports Mesh (ME), Lattice (LT), and GreasePencil (GD) IDs.
- * \return ListBase of bDeformGroup pointers.
+ * \return ListBaseT of bDeformGroup pointers.
  */
-const ListBase *BKE_id_defgroup_list_get(const ID *id);
-ListBase *BKE_id_defgroup_list_get_mutable(ID *id);
-int BKE_defgroup_name_index(const ListBase *defbase, blender::StringRef name);
+const ListBaseT<bDeformGroup> *BKE_id_defgroup_list_get(const ID *id);
+ListBaseT<bDeformGroup> *BKE_id_defgroup_list_get_mutable(ID *id);
+int BKE_defgroup_name_index(const ListBaseT<bDeformGroup> *defbase, blender::StringRef name);
 int BKE_id_defgroup_name_index(const ID *id, blender::StringRef name);
-bool BKE_defgroup_listbase_name_find(const ListBase *defbase,
+bool BKE_defgroup_listbase_name_find(const ListBaseT<bDeformGroup> *defbase,
                                      blender::StringRef name,
                                      int *r_index,
                                      bDeformGroup **r_group);
@@ -61,7 +61,8 @@ bool BKE_id_defgroup_name_find(const ID *id,
                                bDeformGroup **r_group);
 
 bDeformGroup *BKE_object_defgroup_new(Object *ob, blender::StringRef name);
-void BKE_defgroup_copy_list(ListBase *outbase, const ListBase *inbase);
+void BKE_defgroup_copy_list(ListBaseT<bDeformGroup> *outbase,
+                            const ListBaseT<bDeformGroup> *inbase);
 bDeformGroup *BKE_defgroup_duplicate(const bDeformGroup *ingroup);
 bDeformGroup *BKE_object_defgroup_find_name(const Object *ob, blender::StringRef name);
 /**
@@ -337,7 +338,7 @@ void BKE_defvert_weight_to_rgb(float r_rgb[3], float weight);
 
 void BKE_defvert_blend_write(BlendWriter *writer, int count, const MDeformVert *dvlist);
 void BKE_defvert_blend_read(BlendDataReader *reader, int count, MDeformVert *mdverts);
-void BKE_defbase_blend_write(BlendWriter *writer, const ListBase *defbase);
+void BKE_defbase_blend_write(BlendWriter *writer, const ListBaseT<bDeformGroup> *defbase);
 
 namespace blender::bke {
 

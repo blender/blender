@@ -76,7 +76,7 @@ struct AnimKeylist {
 
   /* Before initializing the runtime, the key_columns list base is used to quickly add columns.
    * Contains `ActKeyColumn`. Should not be used after runtime is initialized. */
-  ListBase /*ActKeyColumn*/ key_columns;
+  ListBaseT<ActKeyColumn> key_columns;
   /* Last accessed column in the key_columns list base. Inserting columns are typically done in
    * order. The last accessed column is used as starting point to search for a location to add or
    * update the next column. */
@@ -88,7 +88,7 @@ struct AnimKeylist {
     blender::Array<ActKeyColumn> key_columns;
     /* Wrapper around runtime.key_columns so it can still be accessed as a ListBase.
      * Elements are owned by `runtime.key_columns`. */
-    ListBase /*ActKeyColumn*/ list_wrapper;
+    ListBaseT<ActKeyColumn> list_wrapper;
   } runtime;
 
   AnimKeylist()
@@ -342,7 +342,7 @@ bool ED_keylist_is_empty(const AnimKeylist *keylist)
   return keylist->column_len == 0;
 }
 
-const ListBase *ED_keylist_listbase(const AnimKeylist *keylist)
+const ListBaseT<ActKeyColumn> *ED_keylist_listbase(const AnimKeylist *keylist)
 {
   if (keylist->is_runtime_initialized) {
     return &keylist->runtime.list_wrapper;
@@ -1027,7 +1027,7 @@ void summary_to_keylist(bAnimContext *ac,
     return;
   }
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   /* Get F-Curves to take keyframes from. */
   const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE;
@@ -1096,7 +1096,7 @@ void action_slot_summary_to_keylist(bAnimContext *ac,
     return;
   }
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   /* Get F-Curves to take keyframes from. */
   const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE;
@@ -1126,7 +1126,7 @@ void scene_to_keylist(bDopeSheet *ads,
                       blender::float2 range)
 {
   bAnimContext ac = {nullptr};
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   bAnimListElem dummy_chan = {nullptr};
 
@@ -1171,7 +1171,7 @@ void ob_to_keylist(bDopeSheet *ads,
                    blender::float2 range)
 {
   bAnimContext ac = {nullptr};
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   bAnimListElem dummy_chan = {nullptr};
   Base dummy_base = {nullptr};
@@ -1235,7 +1235,7 @@ void cachefile_to_keylist(bDopeSheet *ads,
   ac.filters.flag2 = eDopeSheet_FilterFlag2(ads->filterflag2);
 
   /* Get F-Curves to take keyframes from. */
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FCURVESONLY;
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 

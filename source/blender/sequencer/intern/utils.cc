@@ -57,7 +57,7 @@ struct StripUniqueInfo {
   int match;
 };
 
-static void seqbase_unique_name(ListBase *seqbasep, StripUniqueInfo *sui)
+static void seqbase_unique_name(ListBaseT<Strip> *seqbasep, StripUniqueInfo *sui)
 {
   LISTBASE_FOREACH (Strip *, strip, seqbasep) {
     if ((sui->strip != strip) && STREQ(sui->name_dest, strip->name + 2)) {
@@ -77,14 +77,13 @@ static bool seqbase_unique_name_recursive_fn(Strip *strip, void *arg_pt)
   return true;
 }
 
-void strip_unique_name_set(Scene *scene, ListBase *seqbasep, Strip *strip)
+void strip_unique_name_set(Scene *scene, ListBaseT<Strip> *seqbasep, Strip *strip)
 {
   StripUniqueInfo sui;
   char *dot;
   sui.strip = strip;
   STRNCPY(sui.name_src, strip->name + 2);
-  STRNCPY(sui.name_dest, strip->name + 2);
-
+  STRNCPY(sui.name_dest, sui.name_src);
   sui.count = 1;
   sui.match = 1; /* assume the worst to start the loop */
 
@@ -175,9 +174,11 @@ const char *strip_give_name(const Strip *strip)
   return name;
 }
 
-ListBase *get_seqbase_from_strip(Strip *strip, ListBase **r_channels, int *r_offset)
+ListBaseT<Strip> *get_seqbase_from_strip(Strip *strip,
+                                         ListBaseT<SeqTimelineChannel> **r_channels,
+                                         int *r_offset)
 {
-  ListBase *seqbase = nullptr;
+  ListBaseT<Strip> *seqbase = nullptr;
 
   switch (strip->type) {
     case STRIP_TYPE_META: {
@@ -329,7 +330,7 @@ const Strip *strip_topmost_get(const Scene *scene, int frame)
     return nullptr;
   }
 
-  ListBase *channels = channels_displayed_get(ed);
+  ListBaseT<SeqTimelineChannel> *channels = channels_displayed_get(ed);
   const Strip *best_strip = nullptr;
   int best_channel = -1;
 
@@ -356,10 +357,10 @@ const Strip *strip_topmost_get(const Scene *scene, int frame)
   return best_strip;
 }
 
-ListBase *get_seqbase_by_strip(const Scene *scene, Strip *strip)
+ListBaseT<Strip> *get_seqbase_by_strip(const Scene *scene, Strip *strip)
 {
   Editing *ed = editing_get(scene);
-  ListBase *main_seqbase = &ed->seqbase;
+  ListBaseT<Strip> *main_seqbase = &ed->seqbase;
   Strip *strip_meta = lookup_meta_by_strip(ed, strip);
 
   if (strip_meta != nullptr) {
@@ -371,7 +372,7 @@ ListBase *get_seqbase_by_strip(const Scene *scene, Strip *strip)
   return nullptr;
 }
 
-Strip *strip_from_strip_elem(ListBase *seqbase, StripElem *se)
+Strip *strip_from_strip_elem(ListBaseT<Strip> *seqbase, StripElem *se)
 {
   Strip *istrip;
 
@@ -391,7 +392,7 @@ Strip *strip_from_strip_elem(ListBase *seqbase, StripElem *se)
   return istrip;
 }
 
-Strip *get_strip_by_name(ListBase *seqbase, const char *name, bool recursive)
+Strip *get_strip_by_name(ListBaseT<Strip> *seqbase, const char *name, bool recursive)
 {
   LISTBASE_FOREACH (Strip *, istrip, seqbase) {
     if (STREQ(name, istrip->name + 2)) {

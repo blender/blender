@@ -21,9 +21,11 @@
  * these are ifdef'd because they use more memory and can't be saved in DNA currently */
 // #define USE_BMESH_HOLES
 
+struct BMEditSelection;
 struct BMEdge;
 struct BMFace;
 struct BMLoop;
+struct BMOpError;
 struct BMVert;
 struct BMesh;
 
@@ -276,7 +278,7 @@ struct BMFace {
 #ifdef USE_BMESH_HOLES
   /** Total boundaries, is one plus the number of holes in the face. */
   int totbounds;
-  ListBase loops;
+  ListBaseT<BMLoop> loops;
 #else
   BMLoop *l_first;
 #endif
@@ -407,7 +409,7 @@ struct BMesh {
   int shapenr = 0;
 
   int totflags = 0;
-  ListBase selected = {};
+  ListBaseT<BMEditSelection> selected = {};
 
   /**
    * The active face.
@@ -420,7 +422,7 @@ struct BMesh {
   BMFace *act_face = nullptr;
 
   /** List of #BMOpError, used for operator error handling. */
-  ListBase errorstack = {};
+  ListBaseT<BMOpError> errorstack = {};
 
   /**
    * Keep a single reference to the Python instance of this #BMesh (if any exists).

@@ -255,7 +255,7 @@ static int do_step_cloth(
   /* simulate 1 frame forward */
   ClothVertex *verts = nullptr;
   Cloth *cloth;
-  ListBase *effectors = nullptr;
+  ListBaseT<EffectorCache> *effectors = nullptr;
   uint i = 0;
   int ret = 0;
   bool vert_mass_changed = false;

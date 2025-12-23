@@ -12,7 +12,6 @@
 
 #include "ANIM_action.hh"
 
-struct ListBase;
 struct Scene;
 struct Strip;
 struct SeqAnimationBackup;
@@ -32,10 +31,10 @@ struct AnimationBackup {
    * fcurves that animate the Scene that the sequence belongs to), just for
    * legacy and layered actions, respectively. Therefore only one or the other
    * should ever have data stored in them, never both. */
-  ListBase curves;
+  ListBaseT<FCurve> curves;
   blender::animrig::Channelbag channelbag;
 
-  ListBase drivers;
+  ListBaseT<FCurve> drivers;
 };
 /**
  * Move all F-Curves and drivers from `scene` to `backup`.

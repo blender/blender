@@ -131,8 +131,11 @@ KS_Path *BKE_keyingset_find_path(KeyingSet *ks,
 
 /* Defining Tools --------------------------- */
 
-KeyingSet *BKE_keyingset_add(
-    ListBase *list, const char idname[], const char name[], short flag, short keyingflag)
+KeyingSet *BKE_keyingset_add(ListBaseT<KeyingSet> *list,
+                             const char idname[],
+                             const char name[],
+                             short flag,
+                             short keyingflag)
 {
   KeyingSet *ks;
 
@@ -240,7 +243,7 @@ void BKE_keyingset_free_path(KeyingSet *ks, KS_Path *ksp)
   BLI_freelinkN(&ks->paths, ksp);
 }
 
-void BKE_keyingsets_copy(ListBase *newlist, const ListBase *list)
+void BKE_keyingsets_copy(ListBaseT<KeyingSet> *newlist, const ListBaseT<KeyingSet> *list)
 {
   BLI_duplicatelist(newlist, list);
 
@@ -253,7 +256,7 @@ void BKE_keyingsets_copy(ListBase *newlist, const ListBase *list)
   }
 }
 
-void BKE_keyingsets_foreach_id(LibraryForeachIDData *data, const ListBase *keyingsets)
+void BKE_keyingsets_foreach_id(LibraryForeachIDData *data, const ListBaseT<KeyingSet> *keyingsets)
 {
   LISTBASE_FOREACH (KeyingSet *, ksn, keyingsets) {
     LISTBASE_FOREACH (KS_Path *, kspn, &ksn->paths) {
@@ -280,7 +283,7 @@ void BKE_keyingset_free_paths(KeyingSet *ks)
   }
 }
 
-void BKE_keyingsets_free(ListBase *list)
+void BKE_keyingsets_free(ListBaseT<KeyingSet> *list)
 {
   KeyingSet *ks, *ksn;
 
@@ -299,7 +302,7 @@ void BKE_keyingsets_free(ListBase *list)
   }
 }
 
-void BKE_keyingsets_blend_write(BlendWriter *writer, ListBase *list)
+void BKE_keyingsets_blend_write(BlendWriter *writer, ListBaseT<KeyingSet> *list)
 {
   LISTBASE_FOREACH (KeyingSet *, ks, list) {
     /* KeyingSet */
@@ -317,7 +320,7 @@ void BKE_keyingsets_blend_write(BlendWriter *writer, ListBase *list)
   }
 }
 
-void BKE_keyingsets_blend_read_data(BlendDataReader *reader, ListBase *list)
+void BKE_keyingsets_blend_read_data(BlendDataReader *reader, ListBaseT<KeyingSet> *list)
 {
   LISTBASE_FOREACH (KeyingSet *, ks, list) {
     /* paths */
@@ -996,8 +999,8 @@ static void nlastrip_evaluate_controls(NlaStrip *strip,
   }
 }
 
-NlaEvalStrip *nlastrips_ctime_get_strip(ListBase *list,
-                                        ListBase *strips,
+NlaEvalStrip *nlastrips_ctime_get_strip(ListBaseT<NlaEvalStrip> *list,
+                                        ListBaseT<NlaStrip> *strips,
                                         short index,
                                         const AnimationEvalContext *anim_eval_context,
                                         const bool flush_to_original)
@@ -1147,12 +1150,12 @@ NlaEvalStrip *nlastrips_ctime_get_strip(ListBase *list,
 }
 
 static NlaEvalStrip *nlastrips_ctime_get_strip_single(
-    ListBase *dst_list,
+    ListBaseT<NlaEvalStrip> *dst_list,
     NlaStrip *single_strip,
     const AnimationEvalContext *anim_eval_context,
     const bool flush_to_original)
 {
-  ListBase single_tracks_list;
+  ListBaseT<NlaStrip> single_tracks_list;
   single_tracks_list.first = single_tracks_list.last = single_strip;
 
   return nlastrips_ctime_get_strip(
@@ -2554,7 +2557,9 @@ static void nlaevalchan_blendOrCombine_get_inverted_lower_evalchan(
  * should we generalize these for BLI_listbase.h interface? */
 
 /* Temporarily join two lists of modifiers together, storing the result in a third list */
-static void nlaeval_fmodifiers_join_stacks(ListBase *result, ListBase *list1, ListBase *list2)
+static void nlaeval_fmodifiers_join_stacks(ListBaseT<FModifier> *result,
+                                           ListBaseT<FModifier> *list1,
+                                           ListBaseT<FModifier> *list2)
 {
   FModifier *fcm1, *fcm2;
 
@@ -2587,7 +2592,8 @@ static void nlaeval_fmodifiers_join_stacks(ListBase *result, ListBase *list1, Li
 }
 
 /* Split two temporary lists of modifiers */
-static void nlaeval_fmodifiers_split_stacks(ListBase *list1, ListBase *list2)
+static void nlaeval_fmodifiers_split_stacks(ListBaseT<FModifier> *list1,
+                                            ListBaseT<FModifier> *list2)
 {
   FModifier *fcm1, *fcm2;
 
@@ -2613,7 +2619,7 @@ static void nlaeval_fmodifiers_split_stacks(ListBase *list1, ListBase *list2)
 /** Fills \a r_snapshot with the \a action's evaluated fcurve values with modifiers applied. */
 static void nlasnapshot_from_action(PointerRNA *ptr,
                                     NlaEvalData *channels,
-                                    ListBase *modifiers,
+                                    ListBaseT<FModifier> *modifiers,
                                     bAction *action,
                                     const animrig::slot_handle_t slot_handle,
                                     const float evaltime,
@@ -2665,7 +2671,7 @@ static void nlasnapshot_from_action(PointerRNA *ptr,
 static void nlastrip_evaluate_actionclip(const int evaluation_mode,
                                          PointerRNA *ptr,
                                          NlaEvalData *channels,
-                                         ListBase *modifiers,
+                                         ListBaseT<FModifier> *modifiers,
                                          NlaEvalStrip *nes,
                                          NlaEvalSnapshot *snapshot)
 {
@@ -2682,7 +2688,7 @@ static void nlastrip_evaluate_actionclip(const int evaluation_mode,
     return;
   }
 
-  ListBase tmp_modifiers = {nullptr, nullptr};
+  ListBaseT<FModifier> tmp_modifiers = {nullptr, nullptr};
 
   /* join this strip's modifiers to the parent's modifiers (own modifiers first) */
   nlaeval_fmodifiers_join_stacks(&tmp_modifiers, &strip->modifiers, modifiers);
@@ -2746,13 +2752,13 @@ static void nlastrip_evaluate_actionclip(const int evaluation_mode,
 static void nlastrip_evaluate_transition(const int evaluation_mode,
                                          PointerRNA *ptr,
                                          NlaEvalData *channels,
-                                         ListBase *modifiers,
+                                         ListBaseT<FModifier> *modifiers,
                                          NlaEvalStrip *nes,
                                          NlaEvalSnapshot *snapshot,
                                          const AnimationEvalContext *anim_eval_context,
                                          const bool flush_to_original)
 {
-  ListBase tmp_modifiers = {nullptr, nullptr};
+  ListBaseT<FModifier> tmp_modifiers = {nullptr, nullptr};
   NlaEvalSnapshot snapshot1, snapshot2;
   NlaEvalStrip tmp_nes;
   NlaStrip *s1, *s2;
@@ -2899,13 +2905,13 @@ static void nlastrip_evaluate_transition(const int evaluation_mode,
 static void nlastrip_evaluate_meta(const int evaluation_mode,
                                    PointerRNA *ptr,
                                    NlaEvalData *channels,
-                                   ListBase *modifiers,
+                                   ListBaseT<FModifier> *modifiers,
                                    NlaEvalStrip *nes,
                                    NlaEvalSnapshot *snapshot,
                                    const AnimationEvalContext *anim_eval_context,
                                    const bool flush_to_original)
 {
-  ListBase tmp_modifiers = {nullptr, nullptr};
+  ListBaseT<FModifier> tmp_modifiers = {nullptr, nullptr};
   NlaStrip *strip = nes->strip;
   NlaEvalStrip *tmp_nes;
   float evaltime;
@@ -2965,7 +2971,7 @@ static void nlastrip_evaluate_meta(const int evaluation_mode,
 void nlastrip_evaluate(const int evaluation_mode,
                        PointerRNA *ptr,
                        NlaEvalData *channels,
-                       ListBase *modifiers,
+                       ListBaseT<FModifier> *modifiers,
                        NlaEvalStrip *nes,
                        NlaEvalSnapshot *snapshot,
                        const AnimationEvalContext *anim_eval_context,
@@ -3021,7 +3027,7 @@ void nlastrip_evaluate(const int evaluation_mode,
 
 void nlasnapshot_blend_strip(PointerRNA *ptr,
                              NlaEvalData *channels,
-                             ListBase *modifiers,
+                             ListBaseT<FModifier> *modifiers,
                              NlaEvalStrip *nes,
                              NlaEvalSnapshot *snapshot,
                              const AnimationEvalContext *anim_eval_context,
@@ -3040,7 +3046,7 @@ void nlasnapshot_blend_strip(PointerRNA *ptr,
 void nlasnapshot_blend_strip_get_inverted_lower_snapshot(
     PointerRNA *ptr,
     NlaEvalData *channels,
-    ListBase *modifiers,
+    ListBaseT<FModifier> *modifiers,
     NlaEvalStrip *nes,
     NlaEvalSnapshot *snapshot,
     const AnimationEvalContext *anim_eval_context)
@@ -3057,7 +3063,7 @@ void nlasnapshot_blend_strip_get_inverted_lower_snapshot(
 
 void nlasnapshot_blend_strip_no_blend(PointerRNA *ptr,
                                       NlaEvalData *channels,
-                                      ListBase *modifiers,
+                                      ListBaseT<FModifier> *modifiers,
                                       NlaEvalStrip *nes,
                                       NlaEvalSnapshot *snapshot,
                                       const AnimationEvalContext *anim_eval_context)
@@ -3148,7 +3154,7 @@ static void nla_eval_domain_action(PointerRNA *ptr,
 
 static void nla_eval_domain_strips(PointerRNA *ptr,
                                    NlaEvalData *channels,
-                                   ListBase *strips,
+                                   ListBaseT<NlaStrip> *strips,
                                    ActionAndSlotSet &touched_actions)
 {
   LISTBASE_FOREACH (NlaStrip *, strip, strips) {
@@ -3358,7 +3364,7 @@ static bool animsys_evaluate_nla_for_flush(NlaEvalData *echannels,
   NlaTrack *nlt;
   short track_index = 0;
   bool has_strips = false;
-  ListBase estrips = {nullptr, nullptr};
+  ListBaseT<NlaEvalStrip> estrips = {nullptr, nullptr};
   NlaEvalStrip *nes;
 
   NlaStrip tweak_strip;
@@ -3440,8 +3446,8 @@ static void animsys_evaluate_nla_for_keyframing(PointerRNA *ptr,
   short track_index = 0;
   bool has_strips = false;
 
-  ListBase *upper_estrips = &r_context->upper_estrips;
-  ListBase lower_estrips = {nullptr, nullptr};
+  ListBaseT<NlaEvalStrip> *upper_estrips = &r_context->upper_estrips;
+  ListBaseT<NlaEvalStrip> lower_estrips = {nullptr, nullptr};
   NlaEvalStrip *nes;
 
   NlaTrack *tweaked_track = nlatrack_find_tweaked(adt);
@@ -3688,7 +3694,10 @@ void nlasnapshot_blend_get_inverted_lower_snapshot(NlaEvalData *eval_data,
 /* ---------------------- */
 
 NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(
-    ListBase *cache, PointerRNA *ptr, AnimData *adt, const AnimationEvalContext *anim_eval_context)
+    ListBaseT<NlaKeyframingContext> *cache,
+    PointerRNA *ptr,
+    AnimData *adt,
+    const AnimationEvalContext *anim_eval_context)
 {
   /* The PointerRNA needs to point to an ID because animsys_evaluate_nla_for_keyframing uses
    * F-Curve paths to resolve properties. Since F-Curve paths are always relative to the ID this
@@ -3854,7 +3863,7 @@ void BKE_animsys_nla_remap_keyframe_values(NlaKeyframingContext *context,
   nlaeval_snapshot_free_data(&blended_snapshot);
 }
 
-void BKE_animsys_free_nla_keyframing_context_cache(ListBase *cache)
+void BKE_animsys_free_nla_keyframing_context_cache(ListBaseT<NlaKeyframingContext> *cache)
 {
   LISTBASE_FOREACH (NlaKeyframingContext *, ctx, cache) {
     MEM_SAFE_FREE(ctx->eval_strip);
@@ -4273,7 +4282,7 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph, ID *id, int driver_index, FCu
   }
 }
 
-void BKE_time_markers_blend_write(BlendWriter *writer, ListBase /* TimeMarker */ &markers)
+void BKE_time_markers_blend_write(BlendWriter *writer, ListBaseT<TimeMarker> &markers)
 {
   LISTBASE_FOREACH (TimeMarker *, marker, &markers) {
     writer->write_struct(marker);
@@ -4284,7 +4293,7 @@ void BKE_time_markers_blend_write(BlendWriter *writer, ListBase /* TimeMarker */
   }
 }
 
-void BKE_time_markers_blend_read(BlendDataReader *reader, ListBase /* TimeMarker */ &markers)
+void BKE_time_markers_blend_read(BlendDataReader *reader, ListBaseT<TimeMarker> &markers)
 {
   BLO_read_struct_list(reader, TimeMarker, &markers);
   LISTBASE_FOREACH (TimeMarker *, marker, &markers) {
@@ -4293,9 +4302,9 @@ void BKE_time_markers_blend_read(BlendDataReader *reader, ListBase /* TimeMarker
   }
 }
 
-void BKE_copy_time_markers(ListBase /* TimeMarker */ &markers_dst,
-                           const ListBase /* TimeMarker */ &markers_src,
-                           const int flag)
+void BKE_copy_time_markers(ListBaseT<TimeMarker> &markers_dst,
+                           const ListBaseT<TimeMarker> &markers_src,
+                           int flag)
 {
   BLI_duplicatelist(&markers_dst, &markers_src);
   LISTBASE_FOREACH (TimeMarker *, marker, &markers_dst) {

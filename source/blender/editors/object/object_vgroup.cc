@@ -406,8 +406,8 @@ bool vgroup_array_copy(Object *ob, Object *ob_from)
   int dvert_tot_from;
   int dvert_tot;
   int i;
-  ListBase *defbase_dst = BKE_object_defgroup_list_mutable(ob);
-  const ListBase *defbase_src = BKE_object_defgroup_list(ob_from);
+  ListBaseT<bDeformGroup> *defbase_dst = BKE_object_defgroup_list_mutable(ob);
+  const ListBaseT<bDeformGroup> *defbase_src = BKE_object_defgroup_list(ob_from);
 
   int defbase_tot_from = BLI_listbase_count(defbase_src);
   int defbase_tot = BLI_listbase_count(defbase_dst);
@@ -917,7 +917,7 @@ void vgroup_vert_add(Object *ob, bDeformGroup *dg, int vertnum, float weight, in
   /* add the vert to the deform group with the
    * specified assign mode
    */
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
   const int def_nr = BLI_findindex(defbase, dg);
 
   MDeformVert *dv = nullptr;
@@ -948,7 +948,7 @@ void vgroup_vert_remove(Object *ob, bDeformGroup *dg, int vertnum)
 
   /* TODO(@ideasman42): This is slow in a loop, better pass def_nr directly,
    * but leave for later. */
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
   const int def_nr = BLI_findindex(defbase, dg);
 
   if (def_nr != -1) {
@@ -1025,7 +1025,7 @@ static float get_vert_def_nr(Object *ob, const int def_nr, const int vertnum)
 
 float vgroup_vert_weight(Object *ob, bDeformGroup *dg, int vertnum)
 {
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
   const int def_nr = BLI_findindex(defbase, dg);
 
   if (def_nr == -1) {
@@ -1063,7 +1063,7 @@ static void vgroup_grease_pencil_select_verts(const Scene &scene,
   Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, *grease_pencil);
   for (MutableDrawingInfo &info : drawings) {
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
-    ListBase &vertex_group_names = curves.vertex_group_names;
+    ListBaseT<bDeformGroup> &vertex_group_names = curves.vertex_group_names;
 
     const int def_nr = BKE_defgroup_name_index(&vertex_group_names, def_group->name);
     if (def_nr < 0) {
@@ -1125,7 +1125,7 @@ static void vgroup_select_verts(const ToolSettings &tool_settings,
 {
   const int def_nr = BKE_object_defgroup_active_index_get(ob) - 1;
 
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
   const bDeformGroup *def_group = static_cast<bDeformGroup *>(BLI_findlink(defbase, def_nr));
   if (!def_group) {
     return;
@@ -1220,7 +1220,7 @@ static void vgroup_duplicate(Object *ob)
   MDeformVert **dvert_array = nullptr;
   int i, idg, icdg, dvert_tot = 0;
 
-  ListBase *defbase = BKE_object_defgroup_list_mutable(ob);
+  ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list_mutable(ob);
 
   dg = static_cast<bDeformGroup *>(
       BLI_findlink(defbase, BKE_object_defgroup_active_index_get(ob) - 1));
@@ -1273,7 +1273,7 @@ static bool vgroup_normalize(Object *ob)
 
   const bool use_vert_sel = vertex_group_use_vert_sel(ob);
 
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
   if (!BLI_findlink(defbase, def_nr)) {
     return false;
   }
@@ -1558,7 +1558,7 @@ static void vgroup_lock_all(Object *ob, int action, int mask)
   if (mask != VGROUP_MASK_ALL) {
     selected = vgroup_selected_get(ob);
   }
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
 
   if (action == VGROUP_TOGGLE) {
     action = VGROUP_LOCK;
@@ -2164,7 +2164,7 @@ void vgroup_mirror(Object *ob,
 
   *r_totmirr = *r_totfail = 0;
 
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
 
   if ((mirror_weights == false && flip_vgroups == false) ||
       (BLI_findlink(defbase, def_nr) == nullptr))
@@ -2362,7 +2362,7 @@ cleanup:
 
 static void vgroup_delete_active(Object *ob)
 {
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
   bDeformGroup *dg = static_cast<bDeformGroup *>(
       BLI_findlink(defbase, BKE_object_defgroup_active_index_get(ob) - 1));
   if (!dg) {
@@ -2377,7 +2377,7 @@ static void vgroup_assign_verts(Object *ob, Scene &scene, const float weight)
 {
   const int def_nr = BKE_object_defgroup_active_index_get(ob) - 1;
 
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
   if (!BLI_findlink(defbase, def_nr)) {
     return;
   }
@@ -2509,7 +2509,7 @@ static bool vertex_group_poll_ex(bContext *C, Object *ob)
     return false;
   }
 
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
   if (BLI_listbase_is_empty(defbase)) {
     CTX_wm_operator_poll_msg_set(C, "Object has no vertex groups");
     return false;
@@ -2605,7 +2605,7 @@ static bool vertex_group_vert_select_unlocked_poll(bContext *C)
 
   const int def_nr = BKE_object_defgroup_active_index_get(ob);
   if (def_nr != 0) {
-    const ListBase *defbase = BKE_object_defgroup_list(ob);
+    const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
     const bDeformGroup *dg = static_cast<const bDeformGroup *>(BLI_findlink(defbase, def_nr - 1));
     if (dg && (dg->flag & DG_LOCK_WEIGHT)) {
       CTX_wm_operator_poll_msg_set(C, "The active vertex group is locked");
@@ -2706,7 +2706,7 @@ static void grease_pencil_clear_from_all_vgroup(Scene &scene,
                                                 const bool all_drawings = false,
                                                 const bool only_unlocked = false)
 {
-  const ListBase *defbase = BKE_object_defgroup_list(&ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(&ob);
 
   bDeformGroup *dg = static_cast<bDeformGroup *>(defbase->first);
   while (dg) {
@@ -2730,7 +2730,7 @@ static wmOperatorStatus vertex_group_remove_exec(bContext *C, wmOperator *op)
       grease_pencil_clear_from_all_vgroup(scene, *ob, false, true, only_unlocked);
     }
     else {
-      const ListBase *defbase = BKE_object_defgroup_list(ob);
+      const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
       bDeformGroup *dg = static_cast<bDeformGroup *>(
           BLI_findlink(defbase, BKE_object_defgroup_active_index_get(ob) - 1));
 
@@ -2888,7 +2888,7 @@ static wmOperatorStatus vertex_group_remove_from_exec(bContext *C, wmOperator *o
     }
   }
   else {
-    const ListBase *defbase = BKE_object_defgroup_list(ob);
+    const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
     bDeformGroup *dg = static_cast<bDeformGroup *>(
         BLI_findlink(defbase, BKE_object_defgroup_active_index_get(ob) - 1));
     if (dg == nullptr) {
@@ -3832,7 +3832,7 @@ static const EnumPropertyItem *vgroup_itemf(bContext *C,
     return rna_enum_dummy_NULL_items;
   }
 
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
   for (a = 0, def = static_cast<bDeformGroup *>(defbase->first); def; def = def->next, a++) {
     tmp.value = a;
     tmp.icon = ICON_GROUP_VERTEX;
@@ -3882,7 +3882,7 @@ void OBJECT_OT_vertex_group_set_active(wmOperatorType *ot)
  * with the order of vgroups then call vgroup_do_remap after */
 static char *vgroup_init_remap(Object *ob)
 {
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
   int defbase_tot = BLI_listbase_count(defbase);
   char *name_array = static_cast<char *>(
       MEM_mallocN(MAX_VGROUP_NAME * sizeof(char) * defbase_tot, "sort vgroups"));
@@ -3901,7 +3901,7 @@ static wmOperatorStatus vgroup_do_remap(Object *ob, const char *name_array, wmOp
 {
   MDeformVert *dvert = nullptr;
   const bDeformGroup *def;
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
   int defbase_tot = BLI_listbase_count(defbase);
 
   /* Needs a dummy index at the start. */
@@ -3991,7 +3991,7 @@ static int vgroup_sort_name(const void *def_a_ptr, const void *def_b_ptr)
  * Sorts the weight groups according to the bone hierarchy of the
  * associated armature (similar to how bones are ordered in the Outliner)
  */
-static void vgroup_sort_bone_hierarchy(Object *ob, ListBase *bonebase)
+static void vgroup_sort_bone_hierarchy(Object *ob, ListBaseT<Bone> *bonebase)
 {
   if (bonebase == nullptr) {
     Object *armobj = BKE_modifiers_is_deformed_by_armature(ob);
@@ -4000,7 +4000,7 @@ static void vgroup_sort_bone_hierarchy(Object *ob, ListBase *bonebase)
       bonebase = &armature->bonebase;
     }
   }
-  ListBase *defbase = BKE_object_defgroup_list_mutable(ob);
+  ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list_mutable(ob);
 
   if (bonebase != nullptr) {
     LISTBASE_FOREACH_BACKWARD (Bone *, bone, bonebase) {
@@ -4030,7 +4030,7 @@ static wmOperatorStatus vertex_group_sort_exec(bContext *C, wmOperator *op)
   /* Init remapping. */
   name_array = vgroup_init_remap(ob);
 
-  ListBase *defbase = BKE_object_defgroup_list_mutable(ob);
+  ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list_mutable(ob);
 
   /* Sort vgroup names. */
   switch (sort_type) {
@@ -4093,7 +4093,7 @@ static wmOperatorStatus vgroup_move_exec(bContext *C, wmOperator *op)
   int dir = RNA_enum_get(op->ptr, "direction");
   wmOperatorStatus ret = OPERATOR_FINISHED;
 
-  ListBase *defbase = BKE_object_defgroup_list_mutable(ob);
+  ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list_mutable(ob);
 
   def = static_cast<bDeformGroup *>(
       BLI_findlink(defbase, BKE_object_defgroup_active_index_get(ob) - 1));
@@ -4218,7 +4218,7 @@ static void vgroup_copy_active_to_sel_single(Object *ob, const int def_nr)
 
 static bool check_vertex_group_accessible(wmOperator *op, Object *ob, int def_nr)
 {
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
   bDeformGroup *dg = static_cast<bDeformGroup *>(BLI_findlink(defbase, def_nr));
 
   if (!dg) {

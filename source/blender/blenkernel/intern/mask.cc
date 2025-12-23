@@ -214,7 +214,7 @@ IDTypeInfo IDType_ID_MSK = {
 };
 
 struct MaskClipboard {
-  ListBase splines;
+  ListBaseT<MaskSpline> splines;
   blender::Map<ID *, std::string> id_hash;
 };
 
@@ -404,7 +404,8 @@ MaskLayer *BKE_mask_layer_copy(const MaskLayer *masklay)
   return masklay_new;
 }
 
-void BKE_mask_layer_copy_list(ListBase *masklayers_new, const ListBase *masklayers)
+void BKE_mask_layer_copy_list(ListBaseT<MaskLayer> *masklayers_new,
+                              const ListBaseT<MaskLayer> *masklayers)
 {
   LISTBASE_FOREACH (MaskLayer *, layer, masklayers) {
     MaskLayer *layer_new = BKE_mask_layer_copy(layer);
@@ -1014,7 +1015,7 @@ void BKE_mask_spline_free(MaskSpline *spline)
   MEM_freeN(spline);
 }
 
-void BKE_mask_spline_free_list(ListBase *splines)
+void BKE_mask_spline_free_list(ListBaseT<MaskSpline> *splines)
 {
   MaskSpline *spline = static_cast<MaskSpline *>(splines->first);
   while (spline) {
@@ -1107,7 +1108,7 @@ void BKE_mask_layer_free(MaskLayer *masklay)
   MEM_freeN(masklay);
 }
 
-void BKE_mask_layer_free_list(ListBase *masklayers)
+void BKE_mask_layer_free_list(ListBaseT<MaskLayer> *masklayers)
 {
   MaskLayer *masklay = static_cast<MaskLayer *>(masklayers->first);
 
@@ -1985,7 +1986,7 @@ void BKE_mask_clipboard_paste_to_layer(Main *bmain, MaskLayer *mask_layer)
       MaskSplinePoint *point = &spline_new->points[i];
       if (point->parent.id) {
         const blender::StringRefNull id_name = mask_clipboard.id_hash.lookup(point->parent.id);
-        ListBase *listbase = which_libbase(bmain, GS(id_name.c_str()));
+        ListBaseT<ID> *listbase = which_libbase(bmain, GS(id_name.c_str()));
         point->parent.id = static_cast<ID *>(
             BLI_findstring(listbase, id_name.c_str() + 2, offsetof(ID, name) + 2));
       }

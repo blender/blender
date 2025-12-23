@@ -111,7 +111,7 @@ static void get_knots(std::vector<float> &knots, const int num_knots, float *nu_
 void ABCNurbsWriter::do_write(HierarchyContext &context)
 {
   Curve *curve = static_cast<Curve *>(context.object->data);
-  ListBase *nulb;
+  ListBaseT<Nurb> *nulb;
 
   if (context.object->runtime->curve_cache->deformed_nurbs.first != nullptr) {
     nulb = &context.object->runtime->curve_cache->deformed_nurbs;

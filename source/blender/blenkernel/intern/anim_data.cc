@@ -489,7 +489,7 @@ void BKE_animdata_merge_copy(
 
   /* duplicate NLA data */
   if (src->nla_tracks.first) {
-    ListBase tracks = {nullptr, nullptr};
+    ListBaseT<NlaTrack> tracks = {nullptr, nullptr};
 
     BKE_nla_tracks_copy(bmain, &tracks, &src->nla_tracks, 0);
     BLI_movelisttolist(&dst->nla_tracks, &tracks);
@@ -497,7 +497,7 @@ void BKE_animdata_merge_copy(
 
   /* duplicate drivers (F-Curves) */
   if (src->drivers.first) {
-    ListBase drivers = {nullptr, nullptr};
+    ListBaseT<FCurve> drivers = {nullptr, nullptr};
 
     BKE_fcurves_copy(&drivers, &src->drivers);
 
@@ -917,7 +917,7 @@ static bool drivers_path_rename_fix(ID *owner_id,
                                     const char *newName,
                                     const char *oldKey,
                                     const char *newKey,
-                                    ListBase *curves,
+                                    ListBaseT<FCurve> *curves,
                                     bool verify_paths)
 {
   bool is_changed = false;
@@ -969,7 +969,7 @@ static bool nlastrips_path_rename_fix(ID *owner_id,
                                       const char *newName,
                                       const char *oldKey,
                                       const char *newKey,
-                                      ListBase *strips,
+                                      ListBaseT<NlaStrip> *strips,
                                       bool verify_paths)
 {
   bool is_changed = false;
@@ -1181,7 +1181,7 @@ void BKE_animdata_fix_paths_rename(ID *owner_id,
 /* Remove FCurves with Prefix  -------------------------------------- */
 
 /** Remove F-Curves from the listbase when their RNA path starts with `prefix`. */
-static bool fcurves_path_remove_from_listbase(const char *prefix, ListBase *curves)
+static bool fcurves_path_remove_from_listbase(const char *prefix, ListBaseT<FCurve> *curves)
 {
   FCurve *fcu, *fcn;
   bool any_removed = false;
@@ -1205,7 +1205,7 @@ static bool fcurves_path_remove_from_listbase(const char *prefix, ListBase *curv
 }
 
 /* Check RNA-Paths for a list of F-Curves */
-static bool nlastrips_path_remove_fix(const char *prefix, ListBase *strips)
+static bool nlastrips_path_remove_fix(const char *prefix, ListBaseT<NlaStrip> *strips)
 {
   bool any_removed = false;
 
@@ -1295,7 +1295,9 @@ static bool fcurves_apply_cb(ID *id, Span<FCurve *> fcurves, const IDFCurveCallb
   }
   return true;
 }
-static bool fcurves_listbase_apply_cb(ID *id, ListBase *fcurves, const IDFCurveCallback func)
+static bool fcurves_listbase_apply_cb(ID *id,
+                                      ListBaseT<FCurve> *fcurves,
+                                      const IDFCurveCallback func)
 {
   LISTBASE_FOREACH (FCurve *, fcu, fcurves) {
     if (!func(id, fcu)) {
@@ -1306,7 +1308,9 @@ static bool fcurves_listbase_apply_cb(ID *id, ListBase *fcurves, const IDFCurveC
 }
 
 /* Helper for adt_apply_all_fcurves_cb() - Recursively go through each NLA strip */
-static bool nlastrips_apply_all_curves_cb(ID *id, ListBase *strips, const IDFCurveCallback func)
+static bool nlastrips_apply_all_curves_cb(ID *id,
+                                          ListBaseT<NlaStrip> *strips,
+                                          const IDFCurveCallback func)
 {
   /* This function is used (via `BKE_fcurves_id_cb()`) by the versioning system.
    * As such, legacy Actions should always be expected here. */

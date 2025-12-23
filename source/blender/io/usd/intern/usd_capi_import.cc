@@ -63,7 +63,8 @@ static USDStageReader *stage_reader_from_handle(CacheArchiveHandle *handle)
   return reinterpret_cast<USDStageReader *>(handle);
 }
 
-static bool gather_objects_paths(const pxr::UsdPrim &object, ListBase *object_paths)
+static bool gather_objects_paths(const pxr::UsdPrim &object,
+                                 ListBaseT<CacheObjectPath> *object_paths)
 {
   if (!object.IsValid()) {
     return false;
@@ -571,7 +572,7 @@ void USD_CacheReader_free(CacheReader *reader)
 
 CacheArchiveHandle *USD_create_handle(Main * /*bmain*/,
                                       const char *filepath,
-                                      ListBase *object_paths)
+                                      ListBaseT<CacheObjectPath> *object_paths)
 {
   pxr::UsdStageRefPtr stage = pxr::UsdStage::Open(filepath);
 

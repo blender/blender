@@ -808,7 +808,7 @@ static wmOperatorStatus outliner_id_remap_exec(bContext *C, wmOperator *op)
 
 static bool outliner_id_remap_find_tree_element(bContext *C,
                                                 wmOperator *op,
-                                                ListBase *tree,
+                                                ListBaseT<TreeElement> *tree,
                                                 const float y)
 {
   LISTBASE_FOREACH (TreeElement *, te, tree) {
@@ -938,7 +938,7 @@ void id_remap_fn(bContext *C,
  * \{ */
 
 static int outliner_id_copy_tag(SpaceOutliner *space_outliner,
-                                ListBase *tree,
+                                ListBaseT<TreeElement> *tree,
                                 blender::bke::blendfile::PartialWriteContext &copybuffer,
                                 ReportList *reports)
 {
@@ -1313,7 +1313,7 @@ void lib_reload_fn(bContext *C,
 /** \name Apply Settings Utilities
  * \{ */
 
-static int outliner_count_levels(ListBase *lb, const int curlevel)
+static int outliner_count_levels(ListBaseT<TreeElement> *lb, const int curlevel)
 {
   int level = curlevel;
 
@@ -1324,7 +1324,7 @@ static int outliner_count_levels(ListBase *lb, const int curlevel)
   return level;
 }
 
-int outliner_flag_is_any_test(ListBase *lb, short flag, const int curlevel)
+int outliner_flag_is_any_test(ListBaseT<TreeElement> *lb, short flag, const int curlevel)
 {
   LISTBASE_FOREACH (TreeElement *, te, lb) {
     TreeStoreElem *tselem = TREESTORE(te);
@@ -1345,7 +1345,7 @@ bool outliner_flag_set(const SpaceOutliner &space_outliner, const short flag, co
   return outliner_flag_set(space_outliner.tree, flag, set);
 }
 
-bool outliner_flag_set(const ListBase &lb, const short flag, const short set)
+bool outliner_flag_set(const ListBaseT<TreeElement> &lb, const short flag, const short set)
 {
   bool changed = false;
 
@@ -1372,7 +1372,7 @@ bool outliner_flag_flip(const SpaceOutliner &space_outliner, const short flag)
   return outliner_flag_flip(space_outliner.tree, flag);
 }
 
-bool outliner_flag_flip(const ListBase &lb, const short flag)
+bool outliner_flag_flip(const ListBaseT<TreeElement> &lb, const short flag)
 {
   bool changed = false;
 
@@ -1720,7 +1720,7 @@ void OUTLINER_OT_scroll_page(wmOperatorType *ot)
  * \{ */
 
 /* helper function for Show/Hide one level operator */
-static void outliner_openclose_level(ListBase *lb, int curlevel, int level, int open)
+static void outliner_openclose_level(ListBaseT<TreeElement> *lb, int curlevel, int level, int open)
 {
   LISTBASE_FOREACH (TreeElement *, te, lb) {
     TreeStoreElem *tselem = TREESTORE(te);
@@ -1797,7 +1797,7 @@ void OUTLINER_OT_show_one_level(wmOperatorType *ot)
  * Helper function for #tree_element_shwo_hierarchy() -
  * recursively checks whether subtrees have any objects.
  */
-static int subtree_has_objects(ListBase *lb)
+static int subtree_has_objects(ListBaseT<TreeElement> *lb)
 {
   LISTBASE_FOREACH (TreeElement *, te, lb) {
     TreeStoreElem *tselem = TREESTORE(te);
@@ -1908,7 +1908,7 @@ static void tree_element_to_path(TreeElement *te,
                                  short *flag,
                                  short * /*groupmode*/)
 {
-  ListBase hierarchy = {nullptr, nullptr};
+  ListBaseT<LinkData> hierarchy = {nullptr, nullptr};
   char *newpath = nullptr;
 
   /* optimize tricks:

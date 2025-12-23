@@ -853,7 +853,7 @@ static const DriverVarTypeInfo *get_dvar_typeinfo(int type)
 /** \name Driver API
  * \{ */
 
-void driver_free_variable(ListBase *variables, DriverVar *dvar)
+void driver_free_variable(ListBaseT<DriverVar> *variables, DriverVar *dvar)
 {
   /* Sanity checks. */
   if (dvar == nullptr) {
@@ -886,7 +886,7 @@ void driver_free_variable_ex(ChannelDriver *driver, DriverVar *dvar)
   BKE_driver_invalidate_expression(driver, false, true);
 }
 
-void driver_variables_copy(ListBase *dst_vars, const ListBase *src_vars)
+void driver_variables_copy(ListBaseT<DriverVar> *dst_vars, const ListBaseT<DriverVar> *src_vars)
 {
   BLI_assert(BLI_listbase_is_empty(dst_vars));
   BLI_duplicatelist(dst_vars, src_vars);
@@ -1003,7 +1003,7 @@ void driver_variable_name_validate(DriverVar *dvar)
 
 void driver_variable_unique_name(DriverVar *dvar)
 {
-  ListBase variables = BLI_listbase_from_link((Link *)dvar);
+  ListBaseT<DriverVar> variables = {dvar, dvar};
   BLI_uniquename(&variables, dvar, dvar->name, '_', offsetof(DriverVar, name), sizeof(dvar->name));
 }
 

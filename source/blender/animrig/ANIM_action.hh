@@ -1750,7 +1750,7 @@ Vector<FCurve *> fcurves_in_span_filtered(Span<FCurve *> fcurves,
  * Return the F-Curves in the given listbase for which `predicate` returns
  * true.
  */
-Vector<FCurve *> fcurves_in_listbase_filtered(ListBase /* FCurve * */ fcurves,
+Vector<FCurve *> fcurves_in_listbase_filtered(ListBaseT<FCurve> fcurves,
                                               FunctionRef<bool(const FCurve &fcurve)> predicate);
 
 /**

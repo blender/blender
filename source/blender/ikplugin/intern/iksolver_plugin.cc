@@ -34,7 +34,7 @@
 
 /* ********************** THE IK SOLVER ******************* */
 
-static void find_ik_constraints(ListBase *constraints,
+static void find_ik_constraints(ListBaseT<bConstraint> *constraints,
                                 blender::Vector<bConstraint *> &ik_constraints)
 {
   LISTBASE_FOREACH (bConstraint *, con, constraints) {

@@ -69,7 +69,7 @@ void rebuild_slot_user_cache(Main &bmain)
   };
 
   /* Loop over all IDs to cache their slot usage. */
-  ListBase *ids_of_idtype;
+  ListBaseT<ID> *ids_of_idtype;
   ID *id;
   FOREACH_MAIN_LISTBASE_BEGIN (&bmain, ids_of_idtype) {
     /* Check whether this ID type can be animated. If not, just skip all IDs of this type. */

@@ -62,7 +62,7 @@
 
 void ED_nla_postop_refresh(bAnimContext *ac)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_ANIMDATA | ANIMFILTER_FOREDIT |
                               ANIMFILTER_FCURVESONLY);
 
@@ -103,7 +103,7 @@ static wmOperatorStatus nlaedit_enable_tweakmode_exec(bContext *C, wmOperator *o
 {
   bAnimContext ac;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   const bool do_solo = RNA_boolean_get(op->ptr, "isolate_action");
   const bool use_upper_stack_evaluation = RNA_boolean_get(op->ptr, "use_upper_stack_evaluation");
@@ -219,7 +219,7 @@ void NLA_OT_tweakmode_enter(wmOperatorType *ot)
 
 bool nlaedit_disable_tweakmode(bAnimContext *ac, bool do_solo)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   /* get a list of the AnimData blocks being shown in the NLA */
   eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_ANIMDATA |
@@ -324,7 +324,7 @@ void NLA_OT_tweakmode_exit(wmOperatorType *ot)
 /* Get the min/max strip extents */
 static void get_nlastrip_extents(bAnimContext *ac, float *min, float *max, const bool only_sel)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   bool found_bounds = false;
 
   /* get data to filter */
@@ -437,7 +437,7 @@ void NLA_OT_previewrange_set(wmOperatorType *ot)
  */
 static bool nla_tracks_get_selected_extents(bAnimContext *ac, float *r_min, float *r_max)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   SpaceNla *snla = reinterpret_cast<SpaceNla *>(ac->sl);
   /* NOTE: not bool, since we want prioritize individual tracks over expanders. */
@@ -616,7 +616,7 @@ void NLA_OT_view_frame(wmOperatorType *ot)
  * \{ */
 
 /* Get a list of the editable tracks being shown in the NLA. */
-static int nlaedit_get_editable_tracks(bAnimContext *ac, ListBase *anim_data)
+static int nlaedit_get_editable_tracks(bAnimContext *ac, ListBaseT<bAnimListElem> *anim_data)
 {
   const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_ACTIVE |
                                     ANIMFILTER_FOREDIT | ANIMFILTER_FCURVESONLY);
@@ -633,7 +633,7 @@ static wmOperatorStatus nlaedit_add_actionclip_invoke(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   const size_t items = nlaedit_get_editable_tracks(&ac, &anim_data);
 
   if (items == 0) {
@@ -653,7 +653,7 @@ static wmOperatorStatus nlaedit_add_actionclip_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   bAnimContext ac;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   /* get editor data */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
@@ -780,7 +780,7 @@ static wmOperatorStatus nlaedit_add_transition_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   bool done = false;
 
@@ -908,7 +908,7 @@ static wmOperatorStatus nlaedit_add_sound_exec(bContext *C, wmOperator * /*op*/)
   Main *bmain = CTX_data_main(C);
   bAnimContext ac;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   /* get editor data */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
@@ -1000,7 +1000,7 @@ static wmOperatorStatus nlaedit_add_meta_exec(bContext *C, wmOperator * /*op*/)
 {
   bAnimContext ac;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   /* get editor data */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
@@ -1074,7 +1074,7 @@ static wmOperatorStatus nlaedit_remove_meta_exec(bContext *C, wmOperator * /*op*
 {
   bAnimContext ac;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   /* get editor data */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
@@ -1140,7 +1140,7 @@ static wmOperatorStatus nlaedit_duplicate_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   bool linked = RNA_boolean_get(op->ptr, "linked");
   bool done = false;
@@ -1261,7 +1261,7 @@ static wmOperatorStatus nlaedit_delete_exec(bContext *C, wmOperator * /*op*/)
 {
   bAnimContext ac;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   /* get editor data */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
@@ -1429,7 +1429,7 @@ static wmOperatorStatus nlaedit_split_exec(bContext *C, wmOperator * /*op*/)
 {
   bAnimContext ac;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   /* get editor data */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
@@ -1516,7 +1516,7 @@ static wmOperatorStatus nlaedit_toggle_mute_exec(bContext *C, wmOperator * /*op*
 {
   bAnimContext ac;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   /* get editor data */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
@@ -1583,7 +1583,7 @@ static wmOperatorStatus nlaedit_swap_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   /* get editor data */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
@@ -1772,7 +1772,7 @@ static wmOperatorStatus nlaedit_move_up_exec(bContext *C, wmOperator * /*op*/)
 {
   bAnimContext ac;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   /* get editor data */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
@@ -1863,7 +1863,7 @@ static wmOperatorStatus nlaedit_move_down_exec(bContext *C, wmOperator * /*op*/)
 {
   bAnimContext ac;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   /* get editor data */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
@@ -1954,7 +1954,7 @@ static wmOperatorStatus nlaedit_sync_actlen_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   const bool active_only = RNA_boolean_get(op->ptr, "active");
 
   /* get editor data */
@@ -2047,7 +2047,7 @@ static wmOperatorStatus nlaedit_make_single_user_exec(bContext *C, wmOperator * 
   Main *bmain = CTX_data_main(C);
   bAnimContext ac;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   bool copied = false;
 
   /* get editor data */
@@ -2169,7 +2169,7 @@ static wmOperatorStatus nlaedit_apply_scale_exec(bContext *C, wmOperator * /*op*
   Main *bmain = CTX_data_main(C);
   bAnimContext ac;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   bool copied = false;
 
   KeyframeEditData ked = {{nullptr}};
@@ -2292,7 +2292,7 @@ static wmOperatorStatus nlaedit_clear_scale_exec(bContext *C, wmOperator * /*op*
 {
   bAnimContext ac;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   /* get editor data */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
@@ -2369,7 +2369,7 @@ static wmOperatorStatus nlaedit_snap_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   Scene *scene;
   int mode = RNA_enum_get(op->ptr, "type");
@@ -2393,7 +2393,7 @@ static wmOperatorStatus nlaedit_snap_exec(bContext *C, wmOperator *op)
 
   /* since we may add tracks, perform this in reverse order */
   LISTBASE_FOREACH_BACKWARD (bAnimListElem *, ale, &anim_data) {
-    ListBase tmp_strips = {nullptr, nullptr};
+    ListBaseT<NlaStrip> tmp_strips = {nullptr, nullptr};
     AnimData *adt = ale->adt;
     NlaTrack *nlt = static_cast<NlaTrack *>(ale->data);
     NlaStrip *stripn;
@@ -2563,7 +2563,7 @@ static wmOperatorStatus nla_fmodifier_add_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   FModifier *fcm;
   int type = RNA_enum_get(op->ptr, "type");
@@ -2675,7 +2675,7 @@ void NLA_OT_fmodifier_add(wmOperatorType *ot)
 static wmOperatorStatus nla_fmodifier_copy_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   bool ok = false;
 
   /* get editor data */
@@ -2752,7 +2752,7 @@ void NLA_OT_fmodifier_copy(wmOperatorType *ot)
 static wmOperatorStatus nla_fmodifier_paste_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int ok = 0;
 
   const bool active_only = RNA_boolean_get(op->ptr, "only_active");

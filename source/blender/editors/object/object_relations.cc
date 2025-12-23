@@ -167,7 +167,7 @@ static wmOperatorStatus vertex_parent_set_exec(bContext *C, wmOperator *op)
     }
   }
   else if (ELEM(obedit->type, OB_SURF, OB_CURVES_LEGACY)) {
-    ListBase *editnurb = object_editcurve_get(obedit);
+    ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
     int curr_index = 0;
     for (Nurb *nu = static_cast<Nurb *>(editnurb->first); nu != nullptr; nu = nu->next) {
       if (nu->type == CU_BEZIER) {
@@ -2212,7 +2212,7 @@ static bool make_local_all__instance_indirect_unused(Main *bmain,
   return changed;
 }
 
-static void make_local_animdata_tag_strips(ListBase *strips)
+static void make_local_animdata_tag_strips(ListBaseT<NlaStrip> *strips)
 {
   LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     if (strip->act) {

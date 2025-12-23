@@ -195,7 +195,7 @@ static void mesh_cd_calc_used_gpu_layers(const Object &object,
     if (gpumat == nullptr) {
       continue;
     }
-    ListBase gpu_attrs = GPU_material_attributes(gpumat);
+    ListBaseT<GPUMaterialAttribute> gpu_attrs = GPU_material_attributes(gpumat);
     LISTBASE_FOREACH (GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
 
       if (gpu_attr->is_default_color) {

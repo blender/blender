@@ -264,7 +264,7 @@ PassType *volume_sub_pass_implementation(PassType &ps,
                                          Object *ob,
                                          GPUMaterial *gpu_material)
 {
-  ListBase attr_list = GPU_material_attributes(gpu_material);
+  ListBaseT<GPUMaterialAttribute> attr_list = GPU_material_attributes(gpu_material);
   ListBaseWrapper<GPUMaterialAttribute> attrs(attr_list);
   if (ob == nullptr) {
     return volume_world_grids_init(ps, attrs);

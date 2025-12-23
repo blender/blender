@@ -86,7 +86,7 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
     transformed_strips.add(strip);
   }
 
-  ListBase *seqbasep = seq::active_seqbase_get(ed);
+  ListBaseT<Strip> *seqbasep = seq::active_seqbase_get(ed);
   seq::iterator_set_expand(scene, seqbasep, transformed_strips, seq::query_strip_effect_chain);
 
   VectorSet<Strip *> dependant;

@@ -126,7 +126,7 @@ struct AutoTrackContext {
 
   /* Tracking results which are to be synchronized from the AutoTrack context to the Blender's
    * DNA to make the results visible for users. */
-  ListBase results_to_sync;
+  ListBaseT<AutoTrackTrackingResult> results_to_sync;
   int synchronized_scene_frame;
 
   SpinLock spin_lock;
@@ -621,7 +621,7 @@ void BKE_autotrack_context_start(AutoTrackContext *context)
 /* NOTE: This is a TLS in a sense that this struct is never accessed from multiple threads, and
  * that threads are re-using the struct as much as possible. */
 struct AutoTrackTLS {
-  ListBase results; /* Elements of `AutoTrackTrackingResult`. */
+  ListBaseT<AutoTrackTrackingResult> results;
 };
 
 static void autotrack_context_step_cb(void *__restrict userdata,
@@ -761,7 +761,7 @@ void BKE_autotrack_context_sync(AutoTrackContext *context)
   const int frame_delta = context->is_backwards ? -1 : 1;
 
   BLI_spin_lock(&context->spin_lock);
-  ListBase results_to_sync = context->results_to_sync;
+  ListBaseT<AutoTrackTrackingResult> results_to_sync = context->results_to_sync;
   BLI_listbase_clear(&context->results_to_sync);
   BLI_spin_unlock(&context->spin_lock);
 

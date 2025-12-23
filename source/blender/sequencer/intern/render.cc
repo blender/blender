@@ -82,8 +82,8 @@ namespace blender::seq {
 
 static ImBuf *seq_render_strip_stack(const RenderData *context,
                                      SeqRenderState *state,
-                                     ListBase *channels,
-                                     ListBase *seqbasep,
+                                     ListBaseT<SeqTimelineChannel> *channels,
+                                     ListBaseT<Strip> *seqbasep,
                                      float timeline_frame,
                                      int chanshown);
 
@@ -1629,8 +1629,8 @@ static ImBuf *do_render_strip_seqbase(const RenderData *context,
                                       float frame_index)
 {
   ImBuf *ibuf = nullptr;
-  ListBase *seqbase = nullptr;
-  ListBase *channels = nullptr;
+  ListBaseT<Strip> *seqbase = nullptr;
+  ListBaseT<SeqTimelineChannel> *channels = nullptr;
   int offset;
 
   seqbase = get_seqbase_from_strip(strip, &channels, &offset);
@@ -1852,8 +1852,8 @@ static bool is_opaque_alpha_over(const Strip *strip)
 
 static ImBuf *seq_render_strip_stack(const RenderData *context,
                                      SeqRenderState *state,
-                                     ListBase *channels,
-                                     ListBase *seqbasep,
+                                     ListBaseT<SeqTimelineChannel> *channels,
+                                     ListBaseT<Strip> *seqbasep,
                                      float timeline_frame,
                                      int chanshown)
 {
@@ -1980,8 +1980,8 @@ ImBuf *render_give_ibuf(const RenderData *context, float timeline_frame, int cha
 {
   Scene *scene = context->scene;
   Editing *ed = editing_get(scene);
-  ListBase *seqbasep;
-  ListBase *channels;
+  ListBaseT<Strip> *seqbasep;
+  ListBaseT<SeqTimelineChannel> *channels;
 
   if (ed == nullptr) {
     return nullptr;
@@ -2047,8 +2047,8 @@ ImBuf *seq_render_give_ibuf_seqbase(const RenderData *context,
                                     SeqRenderState *state,
                                     float timeline_frame,
                                     int chan_shown,
-                                    ListBase *channels,
-                                    ListBase *seqbasep)
+                                    ListBaseT<SeqTimelineChannel> *channels,
+                                    ListBaseT<Strip> *seqbasep)
 {
 
   return seq_render_strip_stack(context, state, channels, seqbasep, timeline_frame, chan_shown);
@@ -2064,7 +2064,7 @@ ImBuf *render_give_ibuf_direct(const RenderData *context, float timeline_frame, 
   return ibuf;
 }
 
-bool render_is_muted(const ListBase *channels, const Strip *strip)
+bool render_is_muted(const ListBaseT<SeqTimelineChannel> *channels, const Strip *strip)
 {
   SeqTimelineChannel *channel = channel_get_by_index(channels, strip->channel);
   return strip->flag & SEQ_MUTE || channel_is_muted(channel);

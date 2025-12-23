@@ -72,7 +72,7 @@ struct Report {
 };
 
 struct ReportList {
-  ListBase list;
+  ListBaseT<Report> list;
   /** #eReportType. */
   int printlevel;
   /** #eReportType. */

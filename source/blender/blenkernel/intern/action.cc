@@ -383,7 +383,7 @@ static void write_slots(BlendWriter *writer, Span<animrig::Slot *> slots)
 /**
  * Create a listbase from a Span of channel groups.
  *
- * \note this does NOT transfer ownership of the pointers. The ListBase should
+ * \note this does NOT transfer ownership of the pointers. The ListBaseT should
  * not be freed, but given to
  * `action_blend_write_clear_legacy_channel_groups_listbase()` below.
  *
@@ -396,7 +396,7 @@ static void write_slots(BlendWriter *writer, Span<animrig::Slot *> slots)
  *     the Action ID, which is a shallow copy of the actual ID data from Main.
  */
 static void action_blend_write_make_legacy_channel_groups_listbase(
-    ListBase &listbase, const Span<bActionGroup *> channel_groups)
+    ListBaseT<bActionGroup> &listbase, const Span<bActionGroup *> channel_groups)
 {
   if (channel_groups.is_empty()) {
     BLI_listbase_clear(&listbase);
@@ -429,7 +429,8 @@ static void action_blend_write_make_legacy_channel_groups_listbase(
   listbase.last = channel_groups[last_index];
 }
 
-static void action_blend_write_clear_legacy_channel_groups_listbase(ListBase &listbase)
+static void action_blend_write_clear_legacy_channel_groups_listbase(
+    ListBaseT<bActionGroup> &listbase)
 {
   LISTBASE_FOREACH_MUTABLE (bActionGroup *, group, &listbase) {
     group->prev = nullptr;
@@ -443,7 +444,7 @@ static void action_blend_write_clear_legacy_channel_groups_listbase(ListBase &li
 /**
  * Create a listbase from a Span of F-Curves.
  *
- * \note this does NOT transfer ownership of the pointers. The ListBase should not be freed,
+ * \note this does NOT transfer ownership of the pointers. The ListBaseT should not be freed,
  * but given to `action_blend_write_clear_legacy_fcurves_listbase()` below.
  *
  * \warning This code is modifying actual '`Main`' data in-place, which is
@@ -454,7 +455,7 @@ static void action_blend_write_clear_legacy_channel_groups_listbase(ListBase &li
  *   - The `action.curves` listbase modification is safe/valid, as this is a member of
  *     the Action ID, which is a shallow copy of the actual ID data from Main.
  */
-static void action_blend_write_make_legacy_fcurves_listbase(ListBase &listbase,
+static void action_blend_write_make_legacy_fcurves_listbase(ListBaseT<FCurve> &listbase,
                                                             const Span<FCurve *> fcurves)
 {
   if (fcurves.is_empty()) {
@@ -473,7 +474,7 @@ static void action_blend_write_make_legacy_fcurves_listbase(ListBase &listbase,
   listbase.last = fcurves[last_index];
 }
 
-static void action_blend_write_clear_legacy_fcurves_listbase(ListBase &listbase)
+static void action_blend_write_clear_legacy_fcurves_listbase(ListBaseT<FCurve> &listbase)
 {
   LISTBASE_FOREACH_MUTABLE (FCurve *, fcurve, &listbase) {
     fcurve->prev = nullptr;
@@ -546,7 +547,7 @@ static void action_blend_write(BlendWriter *writer, ID *id, const void *id_addre
      *
      * Note that the FCurves themselves have been written as part of the layered
      * animation writing code called above. Writing them again as part of the
-     * handling of the legacy `action.fcurves` ListBase would corrupt the
+     * handling of the legacy `action.fcurves` ListBaseT would corrupt the
      * blend-file by generating two `BHead` `DATA` blocks with the same old
      * address for the same ID.
      */
@@ -992,7 +993,7 @@ void BKE_action_groups_reconstruct(bAction *act)
   }
 
   /* Sort the channels into the group lists, destroying the act->curves list. */
-  ListBase ungrouped = {nullptr, nullptr};
+  ListBaseT<FCurve> ungrouped = {nullptr, nullptr};
 
   LISTBASE_FOREACH_MUTABLE (FCurve *, fcurve, &act->curves) {
     if (fcurve->grp) {
@@ -1010,7 +1011,7 @@ void BKE_action_groups_reconstruct(bAction *act)
 
   LISTBASE_FOREACH (bActionGroup *, group, &act->groups) {
     /* Copy the list header to preserve the pointers in the group. */
-    ListBase tmp = group->channels;
+    ListBaseT<FCurve> tmp = group->channels;
     BLI_movelisttolist(&act->curves, &tmp);
   }
 
@@ -1493,7 +1494,7 @@ void BKE_pose_channels_remove(Object *ob,
       else {
         /* Maybe something the bone references is being removed instead? */
         LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
-          ListBase targets = {nullptr, nullptr};
+          ListBaseT<bConstraintTarget> targets = {nullptr, nullptr};
           if (BKE_constraint_targets_get(con, &targets)) {
             LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
               if (ct->tar == ob) {

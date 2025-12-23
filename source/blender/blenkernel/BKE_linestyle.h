@@ -81,7 +81,8 @@ bool BKE_linestyle_geometry_modifier_move(FreestyleLineStyle *linestyle,
                                           LineStyleModifier *modifier,
                                           int direction);
 
-void BKE_linestyle_modifier_list_color_ramps(FreestyleLineStyle *linestyle, ListBase *listbase);
+void BKE_linestyle_modifier_list_color_ramps(FreestyleLineStyle *linestyle,
+                                             ListBaseT<LinkData> *listbase);
 std::optional<std::string> BKE_linestyle_path_to_color_ramp(FreestyleLineStyle *linestyle,
                                                             const struct ColorBand *color_ramp);
 

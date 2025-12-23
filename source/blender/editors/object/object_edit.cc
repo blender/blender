@@ -118,7 +118,7 @@ namespace blender::ed::object {
 static CLG_LogRef LOG = {"object.edit"};
 
 /* prototypes */
-static ListBase selected_objects_get(bContext *C);
+static ListBaseT<LinkData> selected_objects_get(bContext *C);
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
@@ -791,7 +791,7 @@ bool editmode_exit_ex(Main *bmain, Scene *scene, Object *obedit, int flag)
   /* `free_data` only false now on file saves and render. */
   if (free_data) {
     /* flag object caches as outdated */
-    ListBase pidlist;
+    ListBaseT<PTCacheID> pidlist;
     BKE_ptcache_ids_from_object(&pidlist, obedit, scene, 0);
     LISTBASE_FOREACH (PTCacheID *, pid, &pidlist) {
       /* particles don't need reset on geometry change */
@@ -1276,7 +1276,7 @@ static eAnimvizCalcRange object_path_convert_range(eObjectPathCalcRange range)
 
 void motion_paths_recalc_selected(bContext *C, Scene *scene, eObjectPathCalcRange range)
 {
-  ListBase selected_objects = {nullptr, nullptr};
+  ListBaseT<LinkData> selected_objects = {nullptr, nullptr};
   CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
     BLI_addtail(&selected_objects, BLI_genericNodeN(ob));
   }
@@ -1289,7 +1289,7 @@ void motion_paths_recalc_selected(bContext *C, Scene *scene, eObjectPathCalcRang
 
 void motion_paths_recalc_visible(bContext *C, Scene *scene, eObjectPathCalcRange range)
 {
-  ListBase visible_objects = {nullptr, nullptr};
+  ListBaseT<LinkData> visible_objects = {nullptr, nullptr};
   CTX_DATA_BEGIN (C, Object *, ob, visible_objects) {
     BLI_addtail(&visible_objects, BLI_genericNodeN(ob));
   }
@@ -1313,7 +1313,7 @@ static bool has_pose_motion_paths(Object *ob)
 void motion_paths_recalc(bContext *C,
                          Scene *scene,
                          eObjectPathCalcRange range,
-                         ListBase *ld_objects)
+                         ListBaseT<LinkData> *ld_objects)
 {
   /* Transform doesn't always have context available to do update. */
   if (C == nullptr) {
@@ -2226,9 +2226,9 @@ void OBJECT_OT_mode_set_with_submode(wmOperatorType *ot)
 /** \name Object Link/Move to Collection Operator
  * \{ */
 
-static ListBase selected_objects_get(bContext *C)
+static ListBaseT<LinkData> selected_objects_get(bContext *C)
 {
-  ListBase objects = {nullptr};
+  ListBaseT<LinkData> objects = {nullptr};
 
   if (CTX_wm_space_outliner(C) != nullptr) {
     ED_outliner_selected_objects_get(C, &objects);
@@ -2278,7 +2278,7 @@ static wmOperatorStatus move_to_collection_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  ListBase objects = selected_objects_get(C);
+  ListBaseT<LinkData> objects = selected_objects_get(C);
 
   if (is_new) {
     char new_collection_name[MAX_ID_NAME - 2];
@@ -2363,7 +2363,7 @@ static wmOperatorStatus move_to_collection_invoke(bContext *C,
                                                   wmOperator *op,
                                                   const wmEvent * /*event*/)
 {
-  ListBase objects = selected_objects_get(C);
+  ListBaseT<LinkData> objects = selected_objects_get(C);
   if (BLI_listbase_is_empty(&objects)) {
     BKE_report(op->reports, RPT_ERROR, "No objects selected");
     return OPERATOR_CANCELLED;

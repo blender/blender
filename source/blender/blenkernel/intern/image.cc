@@ -121,7 +121,8 @@ static CLG_LogRef LOG = {"image"};
 
 static void image_init(Image *ima, short source, short type);
 static void image_free_packedfiles(Image *ima);
-static void copy_image_packedfiles(ListBase *lb_dst, const ListBase *lb_src);
+static void copy_image_packedfiles(ListBaseT<ImagePackedFile> *lb_dst,
+                                   const ListBaseT<ImagePackedFile> *lb_src);
 
 /* -------------------------------------------------------------------- */
 /** \name Image #IDTypeInfo API
@@ -711,7 +712,8 @@ static void image_remove_ibuf(Image *ima, int index, int entry)
   imagecache_remove(ima, index);
 }
 
-static void copy_image_packedfiles(ListBase *lb_dst, const ListBase *lb_src)
+static void copy_image_packedfiles(ListBaseT<ImagePackedFile> *lb_dst,
+                                   const ListBaseT<ImagePackedFile> *lb_src)
 {
   const ImagePackedFile *imapf_src;
 
@@ -1691,7 +1693,7 @@ struct StampData {
    *
    * NOTE: This fields are not stamped onto the image. At least for now.
    */
-  ListBase custom_fields;
+  ListBaseT<StampDataCustomField> custom_fields;
 };
 #undef STAMP_NAME_SIZE
 
@@ -2817,13 +2819,13 @@ static void image_walk_ntree_all_users(
 
 static void image_walk_gpu_materials(
     ID *id,
-    ListBase *gpu_materials,
+    ListBaseT<LinkData> *gpu_materials,
     void *customdata,
     void callback(Image *ima, ID *iuser_id, ImageUser *iuser, void *customdata))
 {
   LISTBASE_FOREACH (LinkData *, link, gpu_materials) {
     GPUMaterial *gpu_material = (GPUMaterial *)link->data;
-    ListBase textures = GPU_material_textures(gpu_material);
+    ListBaseT<GPUMaterialTexture> textures = GPU_material_textures(gpu_material);
     LISTBASE_FOREACH (GPUMaterialTexture *, gpu_material_texture, &textures) {
       if (gpu_material_texture->iuser_available) {
         callback(gpu_material_texture->ima, id, &gpu_material_texture->iuser, customdata);
@@ -3198,7 +3200,7 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
       }
 
       if (ima->source == IMA_SRC_TILED) {
-        ListBase new_tiles = {nullptr, nullptr};
+        ListBaseT<LinkData> new_tiles = {nullptr, nullptr};
         int new_start, new_range;
 
         char filepath[FILE_MAX];
@@ -3330,7 +3332,10 @@ int BKE_image_get_tile_label(const Image *ima,
   return BLI_snprintf_rlen(label, label_maxncpy, "%d", tile->tile_number);
 }
 
-bool BKE_image_get_tile_info(char *filepath, ListBase *tiles, int *r_tile_start, int *r_tile_range)
+bool BKE_image_get_tile_info(char *filepath,
+                             ListBaseT<LinkData> *tiles,
+                             int *r_tile_start,
+                             int *r_tile_range)
 {
   char filename[FILE_MAXFILE], dirname[FILE_MAXDIR];
   BLI_path_split_dir_file(filepath, dirname, sizeof(dirname), filename, sizeof(filename));
@@ -4876,7 +4881,7 @@ struct ImagePoolItem {
 };
 
 struct ImagePool {
-  ListBase image_buffers = {};
+  ListBaseT<ImagePoolItem> image_buffers = {};
   BLI_mempool *memory_pool = nullptr;
   blender::Mutex mutex;
 };

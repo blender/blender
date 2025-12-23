@@ -85,8 +85,8 @@ bool ED_view3d_area_user_region(const ScrArea *area, const View3D *v3d, ARegion 
   RegionView3D *rv3d = nullptr;
   ARegion *region_unlock_user = nullptr;
   ARegion *region_unlock = nullptr;
-  const ListBase *region_list = (v3d == area->spacedata.first) ? &area->regionbase :
-                                                                 &v3d->regionbase;
+  const ListBaseT<ARegion> *region_list = (v3d == area->spacedata.first) ? &area->regionbase :
+                                                                           &v3d->regionbase;
 
   BLI_assert(v3d->spacetype == SPACE_VIEW3D);
 
@@ -326,7 +326,7 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 /* add handlers, stuff you only do once or on area/region changes */
 static void view3d_main_region_init(wmWindowManager *wm, ARegion *region)
 {
-  ListBase *lb;
+  ListBaseT<wmDropBox> *lb;
   wmKeyMap *keymap;
 
   /* object ops. */
@@ -1249,7 +1249,7 @@ void ED_view3d_buttons_region_layout_ex(const bContext *C,
       break;
   }
 
-  ListBase *paneltypes = &region->runtime->type->paneltypes;
+  ListBaseT<PanelType> *paneltypes = &region->runtime->type->paneltypes;
 
   /* Allow drawing 3D view toolbar from non 3D view space type. */
   if (category_override != nullptr) {
@@ -1502,8 +1502,8 @@ static void view3d_id_remap_v3d(ScrArea *area,
       ID_REMAP_RESULT_SOURCE_UNASSIGNED)
   {
     /* 3D view might be inactive, in that case needs to use slink->regionbase */
-    ListBase *regionbase = (slink == area->spacedata.first) ? &area->regionbase :
-                                                              &slink->regionbase;
+    ListBaseT<ARegion> *regionbase = (slink == area->spacedata.first) ? &area->regionbase :
+                                                                        &slink->regionbase;
     LISTBASE_FOREACH (ARegion *, region, regionbase) {
       if (region->regiontype == RGN_TYPE_WINDOW) {
         RegionView3D *rv3d = is_local ? ((RegionView3D *)region->regiondata)->localvd :

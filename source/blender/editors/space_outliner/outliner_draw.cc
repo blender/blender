@@ -93,7 +93,7 @@ namespace blender::ed::outliner {
  * \{ */
 
 static void outliner_tree_dimensions_impl(SpaceOutliner *space_outliner,
-                                          ListBase *lb,
+                                          ListBaseT<TreeElement> *lb,
                                           int *width,
                                           int *height)
 {
@@ -1120,7 +1120,7 @@ static void outliner_draw_restrictbuts(ui::Block *block,
                                        ViewLayer *view_layer,
                                        ARegion *region,
                                        SpaceOutliner *space_outliner,
-                                       ListBase *lb,
+                                       ListBaseT<TreeElement> *lb,
                                        RestrictPropertiesActive props_active_parent)
 {
   /* Get RNA properties (once for speed). */
@@ -1885,7 +1885,7 @@ static void outliner_draw_userbuts(ui::Block *block,
 static void outliner_draw_overrides_rna_buts(ui::Block *block,
                                              const ARegion *region,
                                              const SpaceOutliner *space_outliner,
-                                             const ListBase *lb,
+                                             const ListBaseT<TreeElement> *lb,
                                              const int x)
 {
   const float pad_x = 2.0f * UI_SCALE_FAC;
@@ -1989,7 +1989,7 @@ static void outliner_draw_overrides_restrictbuts(Main *bmain,
                                                  ui::Block *block,
                                                  const ARegion *region,
                                                  const SpaceOutliner *space_outliner,
-                                                 const ListBase *lb,
+                                                 const ListBaseT<TreeElement> *lb,
                                                  const int x)
 {
   LISTBASE_FOREACH (const TreeElement *, te, lb) {
@@ -3082,7 +3082,7 @@ static void outliner_draw_iconrow(ui::Block *block,
                                   const uiFontStyle *fstyle,
                                   const TreeViewContext &tvc,
                                   SpaceOutliner *space_outliner,
-                                  ListBase *lb,
+                                  ListBaseT<TreeElement> *lb,
                                   int level,
                                   int xmax,
                                   int *offsx,
@@ -3516,7 +3516,7 @@ static void outliner_draw_tree_element(ui::Block *block,
   }
 }
 
-static bool subtree_contains_object(ListBase *lb)
+static bool subtree_contains_object(ListBaseT<TreeElement> *lb)
 {
   LISTBASE_FOREACH (TreeElement *, te, lb) {
     TreeStoreElem *tselem = TREESTORE(te);
@@ -3546,7 +3546,7 @@ static void outliner_draw_hierarchy_line(
 
 static void outliner_draw_hierarchy_lines_recursive(uint pos,
                                                     SpaceOutliner *space_outliner,
-                                                    ListBase *lb,
+                                                    ListBaseT<TreeElement> *lb,
                                                     const TreeViewContext &tvc,
                                                     int startx,
                                                     const uchar col[4],
@@ -3620,7 +3620,7 @@ static void outliner_draw_hierarchy_lines_recursive(uint pos,
 }
 
 static void outliner_draw_hierarchy_lines(SpaceOutliner *space_outliner,
-                                          ListBase *lb,
+                                          ListBaseT<TreeElement> *lb,
                                           const TreeViewContext &tvc,
                                           int startx,
                                           int *starty)
@@ -3650,7 +3650,7 @@ static void outliner_draw_hierarchy_lines(SpaceOutliner *space_outliner,
 
 static void outliner_draw_struct_marks(ARegion *region,
                                        SpaceOutliner *space_outliner,
-                                       ListBase *lb,
+                                       ListBaseT<TreeElement> *lb,
                                        int *starty)
 {
   LISTBASE_FOREACH (TreeElement *, te, lb) {

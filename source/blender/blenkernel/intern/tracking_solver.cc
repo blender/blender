@@ -62,7 +62,10 @@ struct ReconstructProgressData {
 };
 
 /* Create new libmv Tracks structure from blender's tracks list. */
-static libmv_Tracks *libmv_tracks_new(MovieClip *clip, ListBase *tracksbase, int width, int height)
+static libmv_Tracks *libmv_tracks_new(MovieClip *clip,
+                                      ListBaseT<MovieTrackingTrack> *tracksbase,
+                                      int width,
+                                      int height)
 {
   int tracknr = 0;
   MovieTrackingTrack *track;
@@ -518,7 +521,7 @@ bool BKE_tracking_reconstruction_finish(MovieReconstructContext *context, MovieT
   return true;
 }
 
-static void tracking_scale_reconstruction(ListBase *tracksbase,
+static void tracking_scale_reconstruction(ListBaseT<MovieTrackingTrack> *tracksbase,
                                           MovieTrackingReconstruction *reconstruction,
                                           const float scale[3])
 {

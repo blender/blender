@@ -646,7 +646,8 @@ static void add_image_editor_asset_shelf(Main &bmain)
           continue;
         }
 
-        ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
+        ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                         &sl->regionbase;
 
         if (ARegion *new_shelf_region = do_versions_add_region_if_not_found(
                 regionbase, RGN_TYPE_ASSET_SHELF, __func__, RGN_TYPE_TOOL_HEADER))

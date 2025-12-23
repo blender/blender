@@ -278,9 +278,9 @@ static bool find_fcurve_segment(FCurve *fcu,
   return in_segment;
 }
 
-ListBase find_fcurve_segments(FCurve *fcu)
+ListBaseT<FCurveSegment> find_fcurve_segments(FCurve *fcu)
 {
-  ListBase segments = {nullptr, nullptr};
+  ListBaseT<FCurveSegment> segments = {nullptr, nullptr};
 
   /* Ignore baked curves. */
   if (!fcu->bezt) {
@@ -1105,7 +1105,7 @@ bool decimate_fcurve(bAnimListElem *ale, float remove_ratio, float error_sq_max)
     fcu->bezt[i].f2 &= ~BEZT_FLAG_TEMP_TAG;
   }
 
-  ListBase segments = find_fcurve_segments(fcu);
+  ListBaseT<FCurveSegment> segments = find_fcurve_segments(fcu);
   LISTBASE_FOREACH (FCurveSegment *, segment, &segments) {
     decimate_fcurve_segment(
         fcu, segment->start_index, segment->length, remove_ratio, error_sq_max);
@@ -1485,7 +1485,7 @@ class SlotMapper {
 
 }  // namespace
 
-bool copy_animedit_keys(bAnimContext *ac, ListBase *anim_data)
+bool copy_animedit_keys(bAnimContext *ac, ListBaseT<bAnimListElem> *anim_data)
 {
   using namespace blender::ed::animation;
   using namespace blender::animrig;
@@ -2115,7 +2115,7 @@ static float paste_get_y_offset(const bAnimContext *ac,
 }
 
 eKeyPasteError paste_animedit_keys(bAnimContext *ac,
-                                   ListBase *anim_data,
+                                   ListBaseT<bAnimListElem> *anim_data,
                                    const KeyframePasteContext &paste_context)
 {
   using namespace blender::ed::animation;

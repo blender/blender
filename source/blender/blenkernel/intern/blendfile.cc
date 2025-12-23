@@ -335,8 +335,8 @@ static bool reuse_bmain_move_id(ReuseOldBMainData *reuse_data,
 
   Main *new_bmain = reuse_data->new_bmain;
   Main *old_bmain = reuse_data->old_bmain;
-  ListBase *new_lb = which_libbase(new_bmain, GS(id->name));
-  ListBase *old_lb = which_libbase(old_bmain, GS(id->name));
+  ListBaseT<ID> *new_lb = which_libbase(new_bmain, GS(id->name));
+  ListBaseT<ID> *old_lb = which_libbase(old_bmain, GS(id->name));
 
   if (reuse_existing) {
     /* A 'new' version of the same data may already exist in new_bmain, in the rare case
@@ -516,7 +516,7 @@ static void reuse_editable_asset_bmain_data_for_blendfile(ReuseOldBMainData *reu
 
   id::IDRemapper &remapper = reuse_bmain_data_remapper_ensure(reuse_data);
 
-  ListBase *old_lb = which_libbase(old_bmain, idcode);
+  ListBaseT<ID> *old_lb = which_libbase(old_bmain, idcode);
   ID *old_id_iter;
 
   FOREACH_MAIN_LISTBASE_ID_BEGIN (old_lb, old_id_iter) {
@@ -587,8 +587,8 @@ static void swap_old_bmain_data_for_blendfile(ReuseOldBMainData *reuse_data, con
   Main *new_bmain = reuse_data->new_bmain;
   Main *old_bmain = reuse_data->old_bmain;
 
-  ListBase *new_lb = which_libbase(new_bmain, id_code);
-  ListBase *old_lb = which_libbase(old_bmain, id_code);
+  ListBaseT<ID> *new_lb = which_libbase(new_bmain, id_code);
+  ListBaseT<ID> *old_lb = which_libbase(old_bmain, id_code);
 
   id::IDRemapper &remapper = reuse_bmain_data_remapper_ensure(reuse_data);
 
@@ -659,8 +659,8 @@ static void swap_wm_data_for_blendfile(ReuseOldBMainData *reuse_data, const bool
 {
   Main *old_bmain = reuse_data->old_bmain;
   Main *new_bmain = reuse_data->new_bmain;
-  ListBase *old_wm_list = &old_bmain->wm;
-  ListBase *new_wm_list = &new_bmain->wm;
+  ListBaseT<wmWindowManager> *old_wm_list = &old_bmain->wm;
+  ListBaseT<wmWindowManager> *new_wm_list = &new_bmain->wm;
 
   /* Currently there should never be more than one WM in a main. */
   BLI_assert(BLI_listbase_count_at_most(new_wm_list, 2) <= 1);
@@ -741,7 +741,7 @@ static void swap_old_bmain_data_dependencies_process(ReuseOldBMainData *reuse_da
                                                      const short id_code)
 {
   Main *new_bmain = reuse_data->new_bmain;
-  ListBase *new_lb = which_libbase(new_bmain, id_code);
+  ListBaseT<ID> *new_lb = which_libbase(new_bmain, id_code);
 
   BLI_assert(reuse_data->id_map != nullptr);
 
@@ -872,7 +872,8 @@ static void view3d_data_consistency_ensure(wmWindow *win, Scene *scene, ViewLaye
       v3d->local_view_uid = 0;
 
       /* Region-base storage is different depending on whether the space is active or not. */
-      ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
+      ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                       &sl->regionbase;
       LISTBASE_FOREACH (ARegion *, region, regionbase) {
         if (region->regiontype != RGN_TYPE_WINDOW) {
           continue;
@@ -1417,7 +1418,7 @@ BlendFileData *BKE_blendfile_read_from_memfile(Main *bmain,
 void BKE_blendfile_read_make_empty(bContext *C)
 {
   Main *bmain = CTX_data_main(C);
-  ListBase *lb;
+  ListBaseT<ID> *lb;
   ID *id;
 
   FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb) {

@@ -27,7 +27,7 @@ namespace blender::animrig {
  * TODO: extend the callback with a `bool` return value to indicate whether the
  * loop should continue or stop.
  */
-template<typename CB> static void ANIM_armature_foreach_bone(ListBase /*Bone*/ *bones, CB callback)
+template<typename CB> static void ANIM_armature_foreach_bone(ListBaseT<Bone> *bones, CB callback)
 {
   for (Bone *bone : blender::ListBaseWrapper<Bone>(bones)) {
     callback(bone);
@@ -44,7 +44,7 @@ template<typename CB> static void ANIM_armature_foreach_bone(ListBase /*Bone*/ *
  * loop should continue or stop.
  */
 template<typename CB>
-static void ANIM_armature_foreach_bone(const ListBase /*Bone*/ *bones, CB callback)
+static void ANIM_armature_foreach_bone(const ListBaseT<Bone> *bones, CB callback)
 {
   for (const Bone *bone : blender::ConstListBaseWrapper<Bone>(bones)) {
     callback(bone);

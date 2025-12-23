@@ -68,7 +68,7 @@ static void curve_batch_cache_clear(Curve *cu);
 /* ---------------------------------------------------------------------- */
 /* Curve Interface, direct access to basic data. */
 
-static void curve_render_overlay_verts_edges_len_get(ListBase *lb,
+static void curve_render_overlay_verts_edges_len_get(ListBaseT<Nurb> *lb,
                                                      int *r_vert_len,
                                                      int *r_edge_len)
 {
@@ -112,7 +112,7 @@ static void curve_eval_render_wire_verts_edges_len_get(const bke::CurvesGeometry
   }
 }
 
-static int curve_render_normal_len_get(const ListBase *lb, const CurveCache *ob_curve_cache)
+static int curve_render_normal_len_get(const ListBaseT<Nurb> *lb, const CurveCache *ob_curve_cache)
 {
   int normal_len = 0;
   const BevList *bl;
@@ -170,7 +170,7 @@ struct CurveRenderData {
   const Curves *curve_eval;
 
   /* borrow from 'Curve' */
-  ListBase *nurbs;
+  ListBaseT<Nurb> *nurbs;
 
   /* edit, index in nurb list */
   int actnu;
@@ -200,7 +200,7 @@ static CurveRenderData *curve_render_data_create(Curve *cu,
 {
   CurveRenderData *rdata = (CurveRenderData *)MEM_callocN(sizeof(*rdata), __func__);
   rdata->types = types;
-  ListBase *nurbs;
+  ListBaseT<Nurb> *nurbs;
 
   rdata->actnu = cu->actnu;
   rdata->actvert = cu->actvert;
@@ -367,7 +367,7 @@ static void curve_batch_cache_init(Curve *cu)
   }
 
 #if 0
-  ListBase *nurbs;
+  ListBaseT<Nurb> *nurbs;
   if (cu->editnurb) {
     EditNurb *editnurb = cu->editnurb;
     nurbs = &editnurb->nurbs;

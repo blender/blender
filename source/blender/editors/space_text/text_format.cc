@@ -167,7 +167,7 @@ void text_format_fill_ascii(const char **str_p, char **fmt_p, const char type, c
 }
 
 /* *** Registration *** */
-static ListBase tft_lb = {nullptr, nullptr};
+static ListBaseT<TextFormatType> tft_lb = {nullptr, nullptr};
 void ED_text_format_register(TextFormatType *tft)
 {
   BLI_addtail(&tft_lb, tft);

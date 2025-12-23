@@ -86,7 +86,7 @@ void ShaderOperation::bind_material_resources(gpu::Shader *shader)
   }
 
   /* Bind color band textures needed by curve and ramp nodes. */
-  ListBase textures = GPU_material_textures(material_);
+  ListBaseT<GPUMaterialTexture> textures = GPU_material_textures(material_);
   LISTBASE_FOREACH (GPUMaterialTexture *, texture, &textures) {
     if (texture->colorband) {
       const int texture_image_unit = GPU_shader_get_sampler_binding(shader, texture->sampler_name);
@@ -99,7 +99,7 @@ void ShaderOperation::bind_inputs(gpu::Shader *shader)
 {
   /* Attributes represents the inputs of the operation and their names match those of the inputs of
    * the operation as well as the corresponding texture samples in the shader. */
-  ListBase attributes = GPU_material_attributes(material_);
+  ListBaseT<GPUMaterialAttribute> attributes = GPU_material_attributes(material_);
   LISTBASE_FOREACH (GPUMaterialAttribute *, attribute, &attributes) {
     get_input(attribute->name).bind_as_texture(shader, attribute->name);
   }
@@ -846,7 +846,7 @@ std::string ShaderOperation::generate_code_for_inputs(GPUMaterial *material,
                                                       ShaderCreateInfo &shader_create_info)
 {
   /* The attributes of the GPU material represents the inputs of the operation. */
-  ListBase attributes = GPU_material_attributes(material);
+  ListBaseT<GPUMaterialAttribute> attributes = GPU_material_attributes(material);
 
   if (BLI_listbase_is_empty(&attributes)) {
     return "";
@@ -857,7 +857,7 @@ std::string ShaderOperation::generate_code_for_inputs(GPUMaterial *material,
   /* Add a texture sampler for each of the inputs with the same name as the attribute, we start
    * counting the sampler slot location from the number of textures in the material, since some
    * sampler slots may be reserved for things like color band textures. */
-  const ListBase textures = GPU_material_textures(material);
+  const ListBaseT<GPUMaterialTexture> textures = GPU_material_textures(material);
   int input_slot_location = BLI_listbase_count(&textures);
   LISTBASE_FOREACH (GPUMaterialAttribute *, attribute, &attributes) {
     const InputDescriptor &input_descriptor = get_input_descriptor(attribute->name);

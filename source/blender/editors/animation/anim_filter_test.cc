@@ -118,7 +118,7 @@ TEST_F(ActionFilterTest, slots_expanded_or_not)
     slot_suzanne.set_expanded(false);
 
     /* This should produce 2 slots and no FCurves. */
-    ListBase anim_data = {nullptr, nullptr};
+    ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
     eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
                                 ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS |
                                 ANIMFILTER_LIST_CHANNELS);
@@ -155,7 +155,7 @@ TEST_F(ActionFilterTest, slots_expanded_or_not)
     slot_suzanne.set_expanded(false);
 
     /* This should produce 2 slots and 2 FCurves. */
-    ListBase anim_data = {nullptr, nullptr};
+    ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
     eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
                                 ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS |
                                 ANIMFILTER_LIST_CHANNELS);
@@ -202,7 +202,7 @@ TEST_F(ActionFilterTest, slots_expanded_or_not)
     fcu_cube_loc_y->flag |= FCURVE_SELECTED;
 
     /* This should produce 1 slot and 1 FCurve. */
-    ListBase anim_data = {nullptr, nullptr};
+    ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
     eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
                                 ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS |
                                 ANIMFILTER_LIST_CHANNELS);
@@ -272,7 +272,7 @@ TEST_F(ActionFilterTest, layered_action_active_fcurves)
 
   {
     /* This should produce just the active F-Curve. */
-    ListBase anim_data = {nullptr, nullptr};
+    ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
     eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
                                 ANIMFILTER_FCURVESONLY | ANIMFILTER_ACTIVE);
     const int num_entries = ANIM_animdata_filter(

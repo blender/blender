@@ -31,7 +31,7 @@ struct FolderList {
   char *foldername;
 };
 
-void folderlist_popdir(ListBase *folderlist, char *dir)
+void folderlist_popdir(ListBaseT<FolderList> *folderlist, char *dir)
 {
   const char *prev_dir;
   FolderList *folder;
@@ -51,7 +51,7 @@ void folderlist_popdir(ListBase *folderlist, char *dir)
   /* Delete the folder next or use set-directory directly before PREVIOUS OP. */
 }
 
-void folderlist_pushdir(ListBase *folderlist, const char *dir)
+void folderlist_pushdir(ListBaseT<FolderList> *folderlist, const char *dir)
 {
   if (!dir[0]) {
     return;
@@ -75,7 +75,7 @@ void folderlist_pushdir(ListBase *folderlist, const char *dir)
   BLI_addtail(folderlist, folder);
 }
 
-const char *folderlist_peeklastdir(ListBase *folderlist)
+const char *folderlist_peeklastdir(ListBaseT<FolderList> *folderlist)
 {
   FolderList *folder;
 
@@ -108,7 +108,7 @@ bool folderlist_clear_next(SpaceFile *sfile)
   return true;
 }
 
-void folderlist_free(ListBase *folderlist)
+void folderlist_free(ListBaseT<FolderList> *folderlist)
 {
   if (folderlist) {
     LISTBASE_FOREACH_MUTABLE (FolderList *, folder, folderlist) {

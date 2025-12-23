@@ -60,7 +60,7 @@ static VectorSet<Strip *> query_snap_sources_timeline(
 {
   VectorSet<Strip *> snap_sources;
 
-  ListBase *seqbase = seq::active_seqbase_get(seq::editing_get(scene));
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(seq::editing_get(scene));
   snap_sources = seq::query_selected_strips(seqbase);
 
   /* Add strips owned by retiming keys to exclude these from targets */
@@ -76,7 +76,7 @@ static VectorSet<Strip *> query_snap_sources_preview(const Scene *scene)
   VectorSet<Strip *> snap_sources;
 
   Editing *ed = seq::editing_get(scene);
-  ListBase *channels = seq::channels_displayed_get(ed);
+  ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
 
   snap_sources = seq::query_rendered_strips(
       scene, channels, ed->current_strips(), scene->r.cfra, 0);
@@ -184,7 +184,7 @@ static void points_build_sources_preview_origin(const Scene *scene,
 /* Add effect strips directly or indirectly connected to `strip_reference` to `collection`. */
 static void query_strip_effects_fn(const Scene *scene,
                                    Strip *strip_reference,
-                                   ListBase *seqbase,
+                                   ListBaseT<Strip> *seqbase,
                                    VectorSet<Strip *> &strips)
 {
   if (strips.contains(strip_reference)) {
@@ -205,8 +205,8 @@ static VectorSet<Strip *> query_snap_targets_timeline(Scene *scene,
                                                       const bool exclude_selected)
 {
   Editing *ed = seq::editing_get(scene);
-  ListBase *seqbase = seq::active_seqbase_get(ed);
-  ListBase *channels = seq::channels_displayed_get(ed);
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
+  ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
   const short snap_flag = seq::tool_settings_snap_flag_get(scene);
 
   /* Effects will always change position with strip to which they are connected and they don't
@@ -251,7 +251,7 @@ static VectorSet<Strip *> query_snap_targets_preview(const TransInfo *t)
   }
 
   Editing *ed = seq::editing_get(scene);
-  ListBase *channels = seq::channels_displayed_get(ed);
+  ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
 
   snap_targets = seq::query_rendered_strips(
       scene, channels, ed->current_strips(), scene->r.cfra, 0);

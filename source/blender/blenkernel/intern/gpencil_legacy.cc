@@ -402,7 +402,7 @@ void BKE_gpencil_free_layer_masks(bGPDlayer *gpl)
     BLI_freelinkN(&gpl->mask_layers, mask);
   }
 }
-void BKE_gpencil_free_layers(ListBase *list)
+void BKE_gpencil_free_layers(ListBaseT<bGPDlayer> *list)
 {
   bGPDlayer *gpl_next;
 
@@ -425,7 +425,7 @@ void BKE_gpencil_free_layers(ListBase *list)
   }
 }
 
-void BKE_gpencil_free_legacy_palette_data(ListBase *list)
+void BKE_gpencil_free_legacy_palette_data(ListBaseT<bGPDpalette> *list)
 {
   LISTBASE_FOREACH_MUTABLE (bGPDpalette *, palette, list) {
     BLI_freelistN(&palette->colors);

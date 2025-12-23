@@ -8,6 +8,8 @@
  */
 
 #include "BLI_compiler_attrs.h"
+#include "DNA_listBase.h"
+
 #include "DNA_shader_fx_types.h" /* Needed for all enum type definitions. */
 
 #include "BKE_lib_query.hh" /* For LibraryForeachIDCallbackFlag enum. */
@@ -17,7 +19,6 @@ struct BlendDataReader;
 struct BlendWriter;
 struct ID;
 struct IDTypeForeachColorFunctionCallback;
-struct ListBase;
 struct ModifierUpdateDepsgraphContext;
 struct Object;
 struct ShaderFxData;
@@ -155,7 +156,7 @@ void BKE_shaderfx_free(ShaderFxData *fx);
 /**
  * Check unique name.
  */
-void BKE_shaderfx_unique_name(ListBase *shaders, ShaderFxData *fx);
+void BKE_shaderfx_unique_name(ListBaseT<ShaderFxData> *shaders, ShaderFxData *fx);
 bool BKE_shaderfx_depends_ontime(ShaderFxData *fx);
 /**
  * Check whether given shaderfx is not local (i.e. from linked data) when the object is a library
@@ -169,7 +170,7 @@ ShaderFxData *BKE_shaderfx_findby_name(Object *ob, const char *name);
 void BKE_shaderfx_copydata_generic(const ShaderFxData *fx_src, ShaderFxData *fx_dst);
 void BKE_shaderfx_copydata(ShaderFxData *fx, ShaderFxData *target);
 void BKE_shaderfx_copydata_ex(ShaderFxData *fx, ShaderFxData *target, int flag);
-void BKE_shaderfx_copy(ListBase *dst, const ListBase *src);
+void BKE_shaderfx_copy(ListBaseT<ShaderFxData> *dst, const ListBaseT<ShaderFxData> *src);
 void BKE_shaderfx_foreach_ID_link(Object *ob, ShaderFxIDWalkFunc walk, void *user_data);
 
 /**
@@ -177,5 +178,7 @@ void BKE_shaderfx_foreach_ID_link(Object *ob, ShaderFxIDWalkFunc walk, void *use
  */
 bool BKE_shaderfx_has_gpencil(const Object *ob);
 
-void BKE_shaderfx_blend_write(BlendWriter *writer, ListBase *fxbase);
-void BKE_shaderfx_blend_read_data(BlendDataReader *reader, ListBase *lb, Object *ob);
+void BKE_shaderfx_blend_write(BlendWriter *writer, ListBaseT<ShaderFxData> *fxbase);
+void BKE_shaderfx_blend_read_data(BlendDataReader *reader,
+                                  ListBaseT<ShaderFxData> *lb,
+                                  Object *ob);

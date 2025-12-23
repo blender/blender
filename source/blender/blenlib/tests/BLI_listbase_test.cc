@@ -69,7 +69,7 @@ static int char_switch(char *string, char ch_src, char ch_dst)
 
 TEST(listbase, FindLinkOrIndex)
 {
-  ListBase lb;
+  ListBaseT<Link> lb;
   void *link1 = MEM_callocN<Link>("link1");
   void *link2 = MEM_callocN<Link>("link2");
 
@@ -122,7 +122,7 @@ TEST(listbase, FindLinkFromStringOrPointer)
   const size_t name_offset = offsetof(TestLink, name);
   const size_t ptr_offset = offsetof(TestLink, ptr);
 
-  ListBase lb;
+  ListBaseT<TestLink> lb;
   TestLink *link1 = MEM_callocN<TestLink>("link1");
   STRNCPY(link1->name, link1_name);
   link1->ptr = link1_ptr;
@@ -191,8 +191,8 @@ TEST(listbase, FromLink)
 
 TEST(listbase, SplitAfter)
 {
-  ListBase lb;
-  ListBase split_after_lb;
+  ListBaseT<Link> lb;
+  ListBaseT<Link> split_after_lb;
   void *link1 = MEM_callocN<Link>("link1");
   void *link2 = MEM_callocN<Link>("link2");
 
@@ -424,7 +424,7 @@ static int testsort_listbase_str_cmp_reverse(const void *a, const void *b)
 }
 
 /* check array and listbase compare */
-static bool testsort_listbase_array_str_cmp(ListBase *lb, char **arr, int arr_num)
+static bool testsort_listbase_array_str_cmp(ListBaseT<LinkData> *lb, char **arr, int arr_num)
 {
   LinkData *link_step;
   int i;
@@ -444,7 +444,7 @@ static bool testsort_listbase_array_str_cmp(ListBase *lb, char **arr, int arr_nu
 }
 
 /* assumes nodes are allocated in-order */
-static bool testsort_listbase_sort_is_stable(ListBase *lb, bool forward)
+static bool testsort_listbase_sort_is_stable(ListBaseT<LinkData> *lb, bool forward)
 {
   LinkData *link_step;
 
@@ -468,7 +468,7 @@ TEST(listbase, Sort)
   char **words_arr; /* qsort for comparison */
   int i;
   char *w_step;
-  ListBase words_lb;
+  ListBaseT<LinkData> words_lb;
   LinkData *words_linkdata_arr;
 
   /* delimit words */

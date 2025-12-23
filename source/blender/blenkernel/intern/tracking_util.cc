@@ -86,8 +86,8 @@ void tracks_map_insert(TracksMap *map, MovieTrackingTrack *track)
 void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
 {
   MovieTrackingTrack *track;
-  ListBase tracks = {nullptr, nullptr}, new_tracks = {nullptr, nullptr};
-  ListBase *old_tracks;
+  ListBaseT<MovieTrackingTrack> tracks = {nullptr, nullptr}, new_tracks = {nullptr, nullptr};
+  ListBaseT<MovieTrackingTrack> *old_tracks;
 
   MovieTrackingObject *tracking_object = BKE_tracking_object_get_named(tracking, map->object_name);
   if (!tracking_object) {

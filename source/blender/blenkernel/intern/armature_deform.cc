@@ -302,7 +302,7 @@ struct ArmatureDeformParams {
 static ArmatureDeformParams get_armature_deform_params(
     const Object &ob_arm,
     const Object &ob_target,
-    const ListBase *defbase,
+    const ListBaseT<bDeformGroup> *defbase,
     MutableSpan<float3> vert_coords,
     std::optional<Span<float3>> vert_coords_prev,
     std::optional<MutableSpan<float3x3>> vert_deform_mats,
@@ -492,7 +492,7 @@ static void armature_vert_task_with_dvert(const ArmatureDeformParams &deform_par
 
 static void armature_deform_coords(const Object &ob_arm,
                                    const Object &ob_target,
-                                   const ListBase *defbase,
+                                   const ListBaseT<bDeformGroup> *defbase,
                                    const MutableSpan<float3> vert_coords,
                                    const std::optional<MutableSpan<float3x3>> vert_deform_mats,
                                    const int deformflag,
@@ -556,7 +556,7 @@ static void armature_vert_task_editmesh(void *__restrict userdata,
 
 static void armature_deform_editmesh(const Object &ob_arm,
                                      const Object &ob_target,
-                                     const ListBase *defbase,
+                                     const ListBaseT<bDeformGroup> *defbase,
                                      const MutableSpan<float3> vert_coords,
                                      const std::optional<MutableSpan<float3x3>> vert_deform_mats,
                                      const int deformflag,
@@ -618,7 +618,7 @@ static bool verify_armature_deform_valid(const Object &ob_arm)
 void BKE_armature_deform_coords_with_curves(
     const Object &ob_arm,
     const Object &ob_target,
-    const ListBase *defbase,
+    const ListBaseT<bDeformGroup> *defbase,
     blender::MutableSpan<blender::float3> vert_coords,
     std::optional<blender::Span<blender::float3>> vert_coords_prev,
     std::optional<blender::MutableSpan<blender::float3x3>> vert_deform_mats,
@@ -667,7 +667,7 @@ void BKE_armature_deform_coords_with_mesh(
   /* Note armature modifier on legacy curves calls this, so vertex groups are not guaranteed to
    * exist. */
   const ID *id_target = static_cast<const ID *>(ob_target.data);
-  const ListBase *defbase = nullptr;
+  const ListBaseT<bDeformGroup> *defbase = nullptr;
   if (me_target) {
     /* Use the vertex groups from the evaluated mesh that is being deformed. */
     defbase = BKE_id_defgroup_list_get(&me_target->id);
@@ -725,7 +725,8 @@ void BKE_armature_deform_coords_with_editmesh(
     return;
   }
 
-  const ListBase *defbase = BKE_id_defgroup_list_get(static_cast<const ID *>(ob_target.data));
+  const ListBaseT<bDeformGroup> *defbase = BKE_id_defgroup_list_get(
+      static_cast<const ID *>(ob_target.data));
   const int cd_dvert_offset = CustomData_get_offset(&em_target.bm->vdata, CD_MDEFORMVERT);
   bke::armature_deform_editmesh(ob_arm,
                                 ob_target,

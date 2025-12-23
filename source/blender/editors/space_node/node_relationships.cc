@@ -63,7 +63,7 @@ struct NodeInsertOfsData {
 
 namespace blender::ed::space_node {
 
-static void clear_picking_highlight(ListBase *links)
+static void clear_picking_highlight(ListBaseT<bNodeLink> *links)
 {
   LISTBASE_FOREACH (bNodeLink *, link, links) {
     link->flag &= ~NODE_LINK_TEMP_HIGHLIGHT;
@@ -2824,7 +2824,7 @@ static int get_main_socket_priority(const bNodeSocket *socket)
 
 bNodeSocket *get_main_socket(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out)
 {
-  ListBase *sockets = (in_out == SOCK_IN) ? &node.inputs : &node.outputs;
+  ListBaseT<bNodeSocket> *sockets = (in_out == SOCK_IN) ? &node.inputs : &node.outputs;
 
   /* Try to get the main socket based on the socket declaration. */
   bke::node_declaration_ensure(ntree, node);

@@ -67,7 +67,7 @@ bool sequencer_retiming_mode_is_active(const bContext *C)
 /** \name Retiming Data Show
  * \{ */
 
-static void sequencer_retiming_data_show_selection(ListBase *seqbase)
+static void sequencer_retiming_data_show_selection(ListBaseT<Strip> *seqbase)
 {
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
     if ((strip->flag & SEQ_SELECT) == 0) {
@@ -80,7 +80,7 @@ static void sequencer_retiming_data_show_selection(ListBase *seqbase)
   }
 }
 
-static void sequencer_retiming_data_hide_selection(ListBase *seqbase)
+static void sequencer_retiming_data_hide_selection(ListBaseT<Strip> *seqbase)
 {
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
     if ((strip->flag & SEQ_SELECT) == 0) {
@@ -93,7 +93,7 @@ static void sequencer_retiming_data_hide_selection(ListBase *seqbase)
   }
 }
 
-static void sequencer_retiming_data_hide_all(ListBase *seqbase)
+static void sequencer_retiming_data_hide_all(ListBaseT<Strip> *seqbase)
 {
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
     strip->flag &= ~SEQ_SHOW_RETIMING;
@@ -604,7 +604,7 @@ static wmOperatorStatus sequencer_retiming_key_delete_invoke(bContext *C,
                                                              const wmEvent *event)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
-  ListBase *markers = &scene->markers;
+  ListBaseT<TimeMarker> *markers = &scene->markers;
 
   if (!BLI_listbase_is_empty(markers)) {
     ARegion *region = CTX_wm_region(C);
@@ -685,7 +685,7 @@ static wmOperatorStatus strip_speed_set_exec(bContext *C, const wmOperator *op)
     seq::retiming_key_speed_set(
         scene, strip, key, RNA_float_get(op->ptr, "speed") / 100.0f, false);
 
-    ListBase *seqbase = seq::active_seqbase_get(seq::editing_get(scene));
+    ListBaseT<Strip> *seqbase = seq::active_seqbase_get(seq::editing_get(scene));
     if (seq::transform_test_overlap(scene, seqbase, strip)) {
       seq::transform_seqbase_shuffle(seqbase, strip, scene);
     }
@@ -702,7 +702,7 @@ static wmOperatorStatus segment_speed_set_exec(const bContext *C,
                                                Map<SeqRetimingKey *, Strip *> selection)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
-  ListBase *seqbase = seq::active_seqbase_get(seq::editing_get(scene));
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(seq::editing_get(scene));
 
   for (auto item : selection.items()) {
     seq::retiming_key_speed_set(scene,

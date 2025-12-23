@@ -44,13 +44,13 @@ static CLG_LogRef LOG = {"undo.mball"};
  * \{ */
 
 struct UndoMBall {
-  ListBase editelems;
+  ListBaseT<MetaElem> editelems;
   int lastelem_index;
   size_t undo_size;
 };
 
-/* free all MetaElems from ListBase */
-static void freeMetaElemlist(ListBase *lb)
+/* free all MetaElems from ListBaseT */
+static void freeMetaElemlist(ListBaseT<MetaElem> *lb)
 {
   if (lb == nullptr) {
     return;
@@ -83,10 +83,10 @@ static void *editmball_from_undomball(UndoMBall *umb, MetaBall *mb)
 {
   BLI_assert(BLI_array_is_zeroed(umb, 1));
 
-  /* allocate memory for undo ListBase */
+  /* allocate memory for undo ListBaseT */
   umb->lastelem_index = -1;
 
-  /* copy contents of current ListBase to the undo ListBase */
+  /* copy contents of current ListBaseT to the undo ListBaseT */
   int index = 0;
   for (MetaElem *ml_edit = static_cast<MetaElem *>(mb->editelems->first); ml_edit;
        ml_edit = ml_edit->next, index += 1)
@@ -102,7 +102,7 @@ static void *editmball_from_undomball(UndoMBall *umb, MetaBall *mb)
   return umb;
 }
 
-/* free undo ListBase of MetaElems */
+/* free undo ListBaseT of MetaElems */
 static void undomball_free_data(UndoMBall *umb)
 {
   freeMetaElemlist(&umb->editelems);

@@ -5056,9 +5056,8 @@ static void remap_material_indices(bke::greasepencil::Drawing &drawing,
   material_writer.finish();
 }
 
-static Map<StringRefNull, StringRefNull> add_vertex_groups(Object &object,
-                                                           GreasePencil &grease_pencil,
-                                                           const ListBase &vertex_group_names)
+static Map<StringRefNull, StringRefNull> add_vertex_groups(
+    Object &object, GreasePencil &grease_pencil, const ListBaseT<bDeformGroup> &vertex_group_names)
 {
   Map<StringRefNull, StringRefNull> vertex_group_map;
   LISTBASE_FOREACH (bDeformGroup *, dg, &vertex_group_names) {
