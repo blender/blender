@@ -253,6 +253,17 @@ static bool are_ids_from_different_mains_matching(Main *bmain_1, ID *id_1, Main 
     return true;
   }
 
+  /* Linked packed IDs only match with other packed IDs, and only if their deephashes are
+   * identical. */
+  if (ID_IS_PACKED(id_1) && ID_IS_PACKED(id_2)) {
+    BLI_assert_msg(false, "No packed ID should be passed to this function currently.");
+    return (id_1->deep_hash == id_2->deep_hash);
+  }
+  if (ID_IS_PACKED(id_1) || ID_IS_PACKED(id_2)) {
+    BLI_assert_msg(false, "No packed ID should be passed to this function currently.");
+    return false;
+  }
+
   if (id_1->lib && id_2->lib) {
     if (id_1->lib == id_2->lib) {
       return true;
@@ -291,19 +302,20 @@ static void main_merge_add_id_to_move(Main *bmain_dst,
                                       const bool is_library,
                                       MainMergeReport &reports)
 {
-  const bool is_id_src_linked(id_src->lib);
+  const bool is_id_src_linked = ID_IS_LINKED(id_src);
   bool is_id_src_from_bmain_dst = false;
   if (is_id_src_linked) {
     BLI_assert(!is_library);
-    UNUSED_VARS_NDEBUG(is_library);
+    Library *ref_src_library = ID_IS_PACKED(id_src) ? id_src->lib->archive_parent_library :
+                                                      id_src->lib;
+    BLI_assert((ref_src_library->flag & LIBRARY_FLAG_IS_ARCHIVE) == 0);
     blender::Vector<ID *> id_src_lib_dst = id_map_dst.lookup_default(
-        id_src->lib->runtime->filepath_abs, {});
+        ref_src_library->runtime->filepath_abs, {});
     /* The current library of the source ID would be remapped to null, which means that it comes
      * from the destination Main. */
     is_id_src_from_bmain_dst = !id_src_lib_dst.is_empty() && !id_src_lib_dst[0];
   }
-  std::cout << id_src->name << " is linked from dst Main: " << is_id_src_from_bmain_dst << "\n";
-  std::cout.flush();
+  CLOG_DEBUG(&LOG, "ID '%s' is linked from dst Main: %d", id_src->name, is_id_src_from_bmain_dst);
 
   if (is_id_src_from_bmain_dst) {
     /* Do not move an ID supposed to be from `bmain_dst` (used as library in `bmain_src`) into
@@ -311,15 +323,29 @@ static void main_merge_add_id_to_move(Main *bmain_dst,
      * e.g. in case `bmain_dst` has been updated since it file was loaded as library in
      * `bmain_src`. */
     CLOG_WARN(&LOG,
-              "ID '%s' defined in source Main as linked from destination Main (file '%s') not "
-              "found in given destination Main",
+              "ID '%s' defined in source Main as linked from destination Main (file '%s'), but "
+              "not found in given destination Main, will be skipped",
               id_src->name,
               bmain_dst->filepath);
     id_remapper.add(id_src, nullptr);
     reports.num_unknown_ids++;
   }
   else {
-    ids_to_move.append(id_src);
+    if (is_library) {
+      /* Archive libraries are never moved.
+       * When moved, regular libraries need to see their vector of owned archive libraries cleared,
+       * since these will remain in the source Main. */
+      Library *lib_src = blender::id_cast<Library *>(id_src);
+      BLI_assert((lib_src->flag & LIBRARY_FLAG_IS_ARCHIVE) == 0);
+      lib_src->runtime->archived_libraries.clear();
+      /* Libraries should be added to destination Main before any other ID, to ensure that
+       * potential packed IDs can find the required owner 'regular' library for their archive
+       * library containers. */
+      ids_to_move.prepend(id_src);
+    }
+    else {
+      ids_to_move.append(id_src);
+    }
   }
 }
 
@@ -328,14 +354,28 @@ void BKE_main_merge(Main *bmain_dst, Main **r_bmain_src, MainMergeReport &report
   Main *bmain_src = *r_bmain_src;
   /* NOTE: Dedicated mapping type is needed here, to handle properly the library cases. */
   blender::Map<std::string, blender::Vector<ID *>> id_map_dst;
+  /* Packed IDs are only matched by their deep hashes, and can only match with other packed IDS, so
+   * they have their own dedicated mapping. */
+  blender::Map<IDHash, ID *> id_packed_map_dst;
   ID *id_iter_dst, *id_iter_src;
   FOREACH_MAIN_ID_BEGIN (bmain_dst, id_iter_dst) {
     if (GS(id_iter_dst->name) == ID_LI) {
       /* Libraries need specific handling, as we want to check them by their filepath, not the IDs
        * themselves. */
       Library *lib_dst = reinterpret_cast<Library *>(id_iter_dst);
+      if (lib_dst->flag & LIBRARY_FLAG_IS_ARCHIVE) {
+        /* Archive libraries are never merged per-se, since they are only 'namespace' containers
+         * for packed linked data. Existing matching archive libraries will be re-used for packed
+         * IDs in the destination Main, or new ones will be created as needed. */
+        BLI_assert(lib_dst->archive_parent_library);
+        continue;
+      }
       BLI_assert(!id_map_dst.contains(lib_dst->runtime->filepath_abs));
       id_map_dst.add(lib_dst->runtime->filepath_abs, {id_iter_dst});
+    }
+    else if (ID_IS_PACKED(id_iter_dst)) {
+      BLI_assert(!id_packed_map_dst.contains(id_iter_dst->deep_hash));
+      id_packed_map_dst.add_new(id_iter_dst->deep_hash, id_iter_dst);
     }
     else {
       id_map_dst.lookup_or_add(id_iter_dst->name, {}).append(id_iter_dst);
@@ -355,44 +395,70 @@ void BKE_main_merge(Main *bmain_dst, Main **r_bmain_src, MainMergeReport &report
 
   FOREACH_MAIN_ID_BEGIN (bmain_src, id_iter_src) {
     const bool is_library = GS(id_iter_src->name) == ID_LI;
+    const bool is_packed = ID_IS_PACKED(id_iter_src);
+    BLI_assert(!is_packed || !is_library);
+    BLI_assert(!is_library || !ID_IS_LINKED(id_iter_src));
+    BLI_assert(!is_packed || ID_IS_LINKED(id_iter_src));
 
-    blender::Vector<ID *> ids_dst = id_map_dst.lookup_default(
-        is_library ? reinterpret_cast<Library *>(id_iter_src)->runtime->filepath_abs :
-                     id_iter_src->name,
-        {});
     if (is_library) {
-      BLI_assert(ids_dst.size() <= 1);
-    }
-    if (ids_dst.is_empty()) {
-      main_merge_add_id_to_move(
-          bmain_dst, id_map_dst, id_iter_src, id_remapper, ids_to_move, is_library, reports);
-      continue;
-    }
-
-    bool src_has_match_in_dst = false;
-    for (ID *id_iter_dst : ids_dst) {
-      if (are_ids_from_different_mains_matching(bmain_dst, id_iter_dst, bmain_src, id_iter_src)) {
-        /* There should only ever be one potential match, never more. */
-        BLI_assert(!src_has_match_in_dst);
-        if (!src_has_match_in_dst) {
-          if (is_library) {
-            id_remapper_libraries.add(id_iter_src, id_iter_dst);
-            reports.num_remapped_libraries++;
-          }
-          else {
-            id_remapper.add(id_iter_src, id_iter_dst);
-            reports.num_remapped_ids++;
-          }
-          src_has_match_in_dst = true;
-        }
-#ifdef NDEBUG /* In DEBUG builds, keep looping to ensure there is only one match. */
-        break;
-#endif
+      Library *lib_src = reinterpret_cast<Library *>(id_iter_src);
+      if (lib_src->flag & LIBRARY_FLAG_IS_ARCHIVE) {
+        BLI_assert(lib_src->archive_parent_library);
+        continue;
       }
     }
-    if (!src_has_match_in_dst) {
-      main_merge_add_id_to_move(
-          bmain_dst, id_map_dst, id_iter_src, id_remapper, ids_to_move, is_library, reports);
+
+    if (is_packed) {
+      ID *id_packed_dst = id_packed_map_dst.lookup_default(id_iter_src->deep_hash, nullptr);
+      if (id_packed_dst) {
+        id_remapper.add(id_iter_src, id_packed_dst);
+        reports.num_remapped_ids++;
+      }
+      else {
+        main_merge_add_id_to_move(
+            bmain_dst, id_map_dst, id_iter_src, id_remapper, ids_to_move, is_library, reports);
+      }
+    }
+    else {
+      blender::Vector<ID *> ids_dst = id_map_dst.lookup_default(
+          is_library ? reinterpret_cast<Library *>(id_iter_src)->runtime->filepath_abs :
+                       id_iter_src->name,
+          {});
+      if (is_library) {
+        BLI_assert(ids_dst.size() <= 1);
+      }
+      if (ids_dst.is_empty()) {
+        main_merge_add_id_to_move(
+            bmain_dst, id_map_dst, id_iter_src, id_remapper, ids_to_move, is_library, reports);
+        continue;
+      }
+
+      bool src_has_match_in_dst = false;
+      for (ID *id_iter_dst : ids_dst) {
+        if (are_ids_from_different_mains_matching(bmain_dst, id_iter_dst, bmain_src, id_iter_src))
+        {
+          /* There should only ever be one potential match, never more. */
+          BLI_assert(!src_has_match_in_dst);
+          if (!src_has_match_in_dst) {
+            if (is_library) {
+              id_remapper_libraries.add(id_iter_src, id_iter_dst);
+              reports.num_remapped_libraries++;
+            }
+            else {
+              id_remapper.add(id_iter_src, id_iter_dst);
+              reports.num_remapped_ids++;
+            }
+            src_has_match_in_dst = true;
+          }
+#ifdef NDEBUG /* In DEBUG builds, keep looping to ensure there is only one match. */
+          break;
+#endif
+        }
+      }
+      if (!src_has_match_in_dst) {
+        main_merge_add_id_to_move(
+            bmain_dst, id_map_dst, id_iter_src, id_remapper, ids_to_move, is_library, reports);
+      }
     }
   }
   FOREACH_MAIN_ID_END;
@@ -419,6 +485,12 @@ void BKE_main_merge(Main *bmain_dst, Main **r_bmain_src, MainMergeReport &report
 
   for (ID *id_iter_src : ids_to_move) {
     BKE_libblock_management_main_remove(bmain_src, id_iter_src);
+    if (ID_IS_PACKED(id_iter_src)) {
+      /* Set the packed ID's library back to the regular library, so that the call to
+       * #BKE_libblock_management_main_add() later in that function can select or create a suitable
+       * archive library for it in `bmain_dst`. */
+      id_iter_src->lib = id_iter_src->lib->archive_parent_library;
+    }
     /* Libraries need to be remapped:
      *  - _After_ removing IDs from the old source Main, to ensure that they get properly removed
      *    from the expected namemap.

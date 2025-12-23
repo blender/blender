@@ -14,6 +14,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
+#include "BKE_main_namemap.hh"
 
 #include "DNA_ID.h"
 #include "DNA_collection_types.h"
@@ -283,6 +284,106 @@ TEST_F(BMainMergeTest, linked_data)
   EXPECT_EQ(1, reports.num_unknown_ids);
   EXPECT_EQ(1, reports.num_remapped_ids);
   EXPECT_EQ(1, reports.num_remapped_libraries);
+  EXPECT_EQ(nullptr, bmain_src);
+}
+
+TEST_F(BMainMergeTest, link_lib_packed)
+{
+  constexpr char LIB_PATH[] = ABS_ROOT "tmp" SEP_STR "lib" SEP_STR "lib.blend";
+  bool is_archive_lib_new = false;
+
+  auto create_packed_object = [&is_archive_lib_new](Main &bmain,
+                                                    Library &owner_lib,
+                                                    blender::StringRefNull ob_name,
+                                                    IDHash ob_deep_hash) -> Object * {
+    Object *ob_packed = BKE_id_new_in_lib<Object>(&bmain, &owner_lib, ob_name.c_str());
+    ob_packed->id.deep_hash = ob_deep_hash;
+    Library *archive_lib = blender::bke::library::ensure_archive_library(
+        bmain, ob_packed->id, owner_lib, ob_packed->id.deep_hash, is_archive_lib_new);
+    BKE_main_namemap_remove_id(bmain, ob_packed->id);
+    ob_packed->id.lib = archive_lib;
+    ob_packed->id.flag |= ID_FLAG_LINKED_AND_PACKED;
+    BKE_main_namemap_get_unique_name(bmain, ob_packed->id, BKE_id_name(ob_packed->id));
+    return ob_packed;
+  };
+
+  /* Three packed IDs in source Main, two with same names, one with different name, leading to two
+   * different archive libraries. */
+  Library *lib_src = BKE_id_new<Library>(bmain_src, LIB_PATH);
+  BKE_library_filepath_set(bmain_src, lib_src, LIB_PATH);
+
+  Object *ob_src_linked = BKE_id_new_in_lib<Object>(bmain_src, lib_src, "Ob_linked");
+
+  Object *ob_src_packed = create_packed_object(*bmain_src, *lib_src, "Ob_packed", {1});
+  EXPECT_TRUE(is_archive_lib_new);
+  Object *ob_src_packed_same_name = create_packed_object(*bmain_src, *lib_src, "Ob_packed", {2});
+  EXPECT_TRUE(is_archive_lib_new);
+  Object *ob_src_packed_diff_name = create_packed_object(
+      *bmain_src, *lib_src, "Ob_packed_second_name", {3});
+  EXPECT_FALSE(is_archive_lib_new);
+
+  /* Two packed IDs in destination Main before the merge, with same names as the two first in
+   * source Main, one sharing the same deep_hash (so being identical data), the second with another
+   * deep hash. */
+  Library *lib_dst = BKE_id_new<Library>(bmain_dst, LIB_PATH);
+  BKE_library_filepath_set(bmain_dst, lib_dst, LIB_PATH);
+
+  Object *ob_dst_packed = create_packed_object(*bmain_dst, *lib_dst, "Ob_packed", {1});
+  EXPECT_TRUE(is_archive_lib_new);
+  Object *ob_dst_packed_same_name = create_packed_object(*bmain_dst, *lib_dst, "Ob_packed", {4});
+  EXPECT_TRUE(is_archive_lib_new);
+
+  MainMergeReport reports = {};
+  BKE_main_merge(bmain_dst, &bmain_src, reports);
+
+  /* Part of the packed IDs in `bmain_src` already existed in `bmain_dst`, so these are re-used.
+   * The others are moved over, which will also create a new archive library in `bmain_dst`. */
+  EXPECT_EQ(4, BLI_listbase_count(&bmain_dst->libraries));
+  EXPECT_TRUE((static_cast<Library *>(BLI_findlink(&bmain_dst->libraries, 0))->flag &
+               LIBRARY_FLAG_IS_ARCHIVE) == 0);
+  EXPECT_EQ(static_cast<Library *>(BLI_findlink(&bmain_dst->libraries, 0)), lib_dst);
+  EXPECT_TRUE((static_cast<Library *>(BLI_findlink(&bmain_dst->libraries, 1))->flag &
+               LIBRARY_FLAG_IS_ARCHIVE) != 0);
+  EXPECT_EQ(static_cast<Library *>(BLI_findlink(&bmain_dst->libraries, 1))->archive_parent_library,
+            lib_dst);
+  EXPECT_TRUE((static_cast<Library *>(BLI_findlink(&bmain_dst->libraries, 2))->flag &
+               LIBRARY_FLAG_IS_ARCHIVE) != 0);
+  EXPECT_EQ(static_cast<Library *>(BLI_findlink(&bmain_dst->libraries, 2))->archive_parent_library,
+            lib_dst);
+  EXPECT_TRUE((static_cast<Library *>(BLI_findlink(&bmain_dst->libraries, 3))->flag &
+               LIBRARY_FLAG_IS_ARCHIVE) != 0);
+  EXPECT_EQ(static_cast<Library *>(BLI_findlink(&bmain_dst->libraries, 3))->archive_parent_library,
+            lib_dst);
+
+  EXPECT_EQ(5, BLI_listbase_count(&bmain_dst->objects));
+  /* ob_src_packed is identical to ob_dst_packed (same deep hash), so it has been discarded. */
+  UNUSED_VARS(ob_src_packed);
+  EXPECT_EQ(ob_dst_packed, BLI_findlink(&bmain_dst->objects, 0));
+  EXPECT_TRUE(ID_IS_PACKED(&ob_dst_packed->id));
+  /* ob_src_packed_diff_name has no name collision with any other packed objects, so it is added to
+   * the first archive library in bmain_dst, and therefore is the second object. */
+  EXPECT_EQ(ob_src_packed_diff_name->id.lib, ob_dst_packed->id.lib);
+  EXPECT_EQ(ob_src_packed_diff_name, BLI_findlink(&bmain_dst->objects, 1));
+  EXPECT_TRUE(ID_IS_PACKED(&ob_src_packed_diff_name->id));
+  /* ob_dst_packed_same_name was the second packed ID in bmain_dst, requiring its own archive
+   * library, so it is now third. */
+  EXPECT_EQ(ob_dst_packed_same_name, BLI_findlink(&bmain_dst->objects, 2));
+  EXPECT_TRUE(ID_IS_PACKED(&ob_dst_packed_same_name->id));
+  /* ob_src_linked is added to the first, regular existing lib_dst library in bmain_dst, as it
+   * matches its original source library in bmain_src. Since it's the first ID for lib_dst in
+   * bmain_dst, it is added after all packed IDs belonging to the first two archive libraries
+   * pre-existing in bmain_dst. */
+  EXPECT_EQ(ob_src_linked->id.lib, static_cast<Library *>(BLI_findlink(&bmain_dst->libraries, 0)));
+  EXPECT_EQ(ob_src_linked, BLI_findlink(&bmain_dst->objects, 3));
+  EXPECT_FALSE(ID_IS_PACKED(&ob_src_linked->id));
+  /* ob_src_packed_same_name name conflicts with ob_dst_packed and ob_dst_packed_same_name names,
+   * so it is added in a new archive library by the merge operation. This makes it the last object,
+   * using the last library, in bmain_dst. */
+  EXPECT_EQ(ob_src_packed_same_name->id.lib,
+            static_cast<Library *>(BLI_findlink(&bmain_dst->libraries, 3)));
+  EXPECT_EQ(ob_src_packed_same_name, BLI_findlink(&bmain_dst->objects, 4));
+  EXPECT_TRUE(ID_IS_PACKED(&ob_src_packed_same_name->id));
+
   EXPECT_EQ(nullptr, bmain_src);
 }
 

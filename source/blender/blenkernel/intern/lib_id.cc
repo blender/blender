@@ -1140,6 +1140,18 @@ void BKE_libblock_management_main_add(Main *bmain, void *idv)
     BKE_library_foreach_ID_link(bmain, id, libblock_management_us_plus, nullptr, IDWALK_NOP);
   }
 
+  if (ID_IS_PACKED(id)) {
+    BLI_assert(ID_IS_LINKED(id));
+    if ((id->lib->flag & LIBRARY_FLAG_IS_ARCHIVE) == 0) {
+      /* If the packed ID is currently using a regular library, find or create a suitable archive
+       * one, and assign it to the id before adding it to the Main. */
+      bool is_new_;
+      Library *archive_lib = blender::bke::library::ensure_archive_library(
+          *bmain, *id, *id->lib, id->deep_hash, is_new_);
+      id->lib = archive_lib;
+    }
+  }
+
   ListBase *lb = which_libbase(bmain, GS(id->name));
   BKE_main_lock(bmain);
   BLI_addtail(lb, id);
