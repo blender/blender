@@ -123,7 +123,7 @@ class ConvertToDisplayOperation : public NodeOperation {
 
   void execute_gpu()
   {
-    const NodeConvertToDisplay &nctd = node_storage(bnode());
+    const NodeConvertToDisplay &nctd = node_storage(node());
 
     OCIOToDisplayShader &ocio_shader = context().cache_manager().ocio_to_display_shaders.get(
         context(), nctd.display_settings, nctd.view_settings, do_inverse());
@@ -154,7 +154,7 @@ class ConvertToDisplayOperation : public NodeOperation {
 
   void execute_cpu()
   {
-    const NodeConvertToDisplay &nctd = node_storage(bnode());
+    const NodeConvertToDisplay &nctd = node_storage(node());
     ColormanageProcessor *color_processor = IMB_colormanagement_display_processor_new(
         &nctd.view_settings, &nctd.display_settings, DISPLAY_SPACE_VIDEO_OUTPUT, do_inverse());
 
@@ -179,7 +179,7 @@ class ConvertToDisplayOperation : public NodeOperation {
 
   void execute_single()
   {
-    const NodeConvertToDisplay &nctd = node_storage(bnode());
+    const NodeConvertToDisplay &nctd = node_storage(node());
     ColormanageProcessor *color_processor = IMB_colormanagement_display_processor_new(
         &nctd.view_settings, &nctd.display_settings, DISPLAY_SPACE_VIDEO_OUTPUT, do_inverse());
 

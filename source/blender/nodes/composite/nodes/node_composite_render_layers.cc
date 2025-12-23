@@ -282,8 +282,8 @@ class RenderLayerOperation : public NodeOperation {
 
   void execute() override
   {
-    const Scene *scene = reinterpret_cast<const Scene *>(this->bnode().id);
-    const int view_layer = this->bnode().custom1;
+    const Scene *scene = reinterpret_cast<const Scene *>(this->node().id);
+    const int view_layer = this->node().custom1;
 
     Result &image_result = this->get_result("Image");
     Result &alpha_result = this->get_result("Alpha");
@@ -299,7 +299,7 @@ class RenderLayerOperation : public NodeOperation {
       }
     }
 
-    for (const bNodeSocket *output : this->node()->output_sockets()) {
+    for (const bNodeSocket *output : this->node().output_sockets()) {
       if (!is_socket_available(output)) {
         continue;
       }

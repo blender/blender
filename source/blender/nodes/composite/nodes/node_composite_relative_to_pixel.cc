@@ -399,12 +399,12 @@ class RelativeToPixelOperation : public NodeOperation {
 
   CMPNodeRelativeToPixelDataType get_data_type()
   {
-    return CMPNodeRelativeToPixelDataType(this->bnode().custom1);
+    return CMPNodeRelativeToPixelDataType(this->node().custom1);
   }
 
   CMPNodeRelativeToPixelReferenceDimension get_reference_dimension()
   {
-    return CMPNodeRelativeToPixelReferenceDimension(this->bnode().custom2);
+    return CMPNodeRelativeToPixelReferenceDimension(this->node().custom2);
   }
 };
 

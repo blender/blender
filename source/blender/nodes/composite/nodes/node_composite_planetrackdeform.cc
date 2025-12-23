@@ -397,14 +397,14 @@ class PlaneTrackDeformOperation : public NodeOperation {
     }
 
     MovieTrackingObject *tracking_object = BKE_tracking_object_get_named(
-        &movie_clip->tracking, node_storage(bnode()).tracking_object);
+        &movie_clip->tracking, node_storage(node()).tracking_object);
 
     if (!tracking_object) {
       return nullptr;
     }
 
     return BKE_tracking_object_find_plane_track_with_name(tracking_object,
-                                                          node_storage(bnode()).plane_track_name);
+                                                          node_storage(node()).plane_track_name);
   }
 
   int2 get_movie_clip_size()
@@ -437,7 +437,7 @@ class PlaneTrackDeformOperation : public NodeOperation {
 
   MovieClip *get_movie_clip()
   {
-    return reinterpret_cast<MovieClip *>(bnode().id);
+    return reinterpret_cast<MovieClip *>(node().id);
   }
 };
 

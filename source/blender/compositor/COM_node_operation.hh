@@ -52,11 +52,8 @@ class NodeOperation : public Operation {
   /* Compute a node preview using the result returned from the get_preview_result method. */
   void compute_preview() override;
 
-  /* Returns a reference to the derived node that this operation represents. */
-  const DNode &node() const;
-
   /* Returns a reference to the node that this operation represents. */
-  const bNode &bnode() const;
+  const bNode &node() const;
 
   /* Returns true if the output identified by the given identifier is needed and should be
    * computed, otherwise returns false. */

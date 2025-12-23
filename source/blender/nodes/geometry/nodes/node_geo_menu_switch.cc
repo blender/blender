@@ -450,7 +450,7 @@ class MenuSwitchOperation : public NodeOperation {
   {
     Result &value_output = this->get_result("Output");
     const MenuValue menu_identifier = this->get_input("Menu").get_single_value<MenuValue>();
-    const NodeEnumDefinition &enum_definition = node_storage(bnode()).enum_definition;
+    const NodeEnumDefinition &enum_definition = node_storage(node()).enum_definition;
     bool found_item = false;
 
     for (const int i : IndexRange(enum_definition.items_num)) {

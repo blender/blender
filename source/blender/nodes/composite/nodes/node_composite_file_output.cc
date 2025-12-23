@@ -449,7 +449,7 @@ class FileOutputOperation : public NodeOperation {
 
   void execute_single_layer()
   {
-    const NodeCompositorFileOutput &storage = node_storage(this->bnode());
+    const NodeCompositorFileOutput &storage = node_storage(this->node());
     for (const int i : IndexRange(storage.items_count)) {
       const NodeCompositorFileOutputItem &item = storage.items[i];
       const std::string identifier = FileOutputItemsAccessor::socket_identifier_for_item(item);
@@ -465,10 +465,10 @@ class FileOutputOperation : public NodeOperation {
        * be stored in views. An exception to this is stereo images, which needs to have the same
        * structure as non-EXR images. */
       const auto &format = item.override_node_format ? item.format :
-                                                       node_storage(this->bnode()).format;
+                                                       node_storage(this->node()).format;
       const bool save_as_render = item.override_node_format ?
                                       item.save_as_render :
-                                      node_storage(this->bnode()).save_as_render;
+                                      node_storage(this->node()).save_as_render;
       const bool is_exr = format.imtype == R_IMF_IMTYPE_OPENEXR;
       const int views_count = BKE_scene_multiview_num_views_get(
           &this->context().get_render_data());
@@ -540,7 +540,7 @@ class FileOutputOperation : public NodeOperation {
       return;
     }
 
-    const ImageFormatData format = node_storage(this->bnode()).format;
+    const ImageFormatData format = node_storage(this->node()).format;
     const bool store_views_in_single_file = this->is_multi_view_exr();
     const char *view = this->context().get_view_name().data();
 
@@ -562,7 +562,7 @@ class FileOutputOperation : public NodeOperation {
     const char *pass_view = store_views_in_single_file ? view : "";
     file_output.add_view(pass_view);
 
-    const NodeCompositorFileOutput &storage = node_storage(bnode());
+    const NodeCompositorFileOutput &storage = node_storage(node());
     for (const int i : IndexRange(storage.items_count)) {
       const NodeCompositorFileOutputItem &item = storage.items[i];
       const std::string identifier = FileOutputItemsAccessor::socket_identifier_for_item(item);
@@ -792,7 +792,7 @@ class FileOutputOperation : public NodeOperation {
         this->context().get_frame_number(),
         format,
         this->context().get_scene(),
-        this->bnode(),
+        this->node(),
         this->is_animation_render(),
         r_image_path);
 
@@ -806,18 +806,18 @@ class FileOutputOperation : public NodeOperation {
 
   bool is_multi_layer()
   {
-    return node_storage(this->bnode()).format.imtype == R_IMF_IMTYPE_MULTILAYER;
+    return node_storage(this->node()).format.imtype == R_IMF_IMTYPE_MULTILAYER;
   }
 
   StringRefNull get_file_name()
   {
-    const char *file_name = node_storage(this->bnode()).file_name;
+    const char *file_name = node_storage(this->node()).file_name;
     return file_name ? file_name : "";
   }
 
   StringRefNull get_directory()
   {
-    return node_storage(this->bnode()).directory;
+    return node_storage(this->node()).directory;
   }
 
   /* If true, save views in a multi-view EXR file, otherwise, save each view in its own file. */
@@ -827,7 +827,7 @@ class FileOutputOperation : public NodeOperation {
       return false;
     }
 
-    return node_storage(this->bnode()).format.views_format == R_IMF_VIEWS_MULTIVIEW;
+    return node_storage(this->node()).format.views_format == R_IMF_VIEWS_MULTIVIEW;
   }
 
   bool is_multi_view_scene()

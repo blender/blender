@@ -90,7 +90,7 @@ class TimeCurveOperation : public NodeOperation {
 
   const CurveMapping *get_curve_mapping()
   {
-    return static_cast<const CurveMapping *>(bnode().storage);
+    return static_cast<const CurveMapping *>(node().storage);
   }
 };
 

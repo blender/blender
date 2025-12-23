@@ -180,7 +180,7 @@ class MaskOperation : public NodeOperation {
 
   Mask *get_mask()
   {
-    return reinterpret_cast<Mask *>(this->bnode().id);
+    return reinterpret_cast<Mask *>(this->node().id);
   }
 };
 

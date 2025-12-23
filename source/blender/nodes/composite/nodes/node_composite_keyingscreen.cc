@@ -126,7 +126,7 @@ class KeyingScreenOperation : public NodeOperation {
     MovieTracking *movie_tracking = &movie_clip->tracking;
 
     MovieTrackingObject *movie_tracking_object = BKE_tracking_object_get_named(
-        movie_tracking, node_storage(bnode()).tracking_object);
+        movie_tracking, node_storage(node()).tracking_object);
     if (movie_tracking_object) {
       return movie_tracking_object;
     }
@@ -164,7 +164,7 @@ class KeyingScreenOperation : public NodeOperation {
 
   MovieClip *get_movie_clip()
   {
-    return reinterpret_cast<MovieClip *>(bnode().id);
+    return reinterpret_cast<MovieClip *>(node().id);
   }
 };
 

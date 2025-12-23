@@ -22,7 +22,7 @@ class UndefinedNodeOperation : public NodeOperation {
 
   void execute() override
   {
-    for (const bNodeSocket *output : this->node()->output_sockets()) {
+    for (const bNodeSocket *output : this->node().output_sockets()) {
       if (!is_socket_available(output)) {
         continue;
       }

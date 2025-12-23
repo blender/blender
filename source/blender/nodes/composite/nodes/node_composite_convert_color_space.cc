@@ -83,8 +83,8 @@ class ConvertColorSpaceOperation : public NodeOperation {
 
   void execute_gpu()
   {
-    const char *source = node_storage(bnode()).from_color_space;
-    const char *target = node_storage(bnode()).to_color_space;
+    const char *source = node_storage(node()).from_color_space;
+    const char *target = node_storage(node()).to_color_space;
 
     OCIOColorSpaceConversionShader &ocio_shader =
         context().cache_manager().ocio_color_space_conversion_shaders.get(
@@ -116,8 +116,8 @@ class ConvertColorSpaceOperation : public NodeOperation {
 
   void execute_cpu()
   {
-    const char *source = node_storage(bnode()).from_color_space;
-    const char *target = node_storage(bnode()).to_color_space;
+    const char *source = node_storage(node()).from_color_space;
+    const char *target = node_storage(node()).to_color_space;
     ColormanageProcessor *color_processor = IMB_colormanagement_colorspace_processor_new(source,
                                                                                          target);
 
@@ -142,8 +142,8 @@ class ConvertColorSpaceOperation : public NodeOperation {
 
   void execute_single()
   {
-    const char *source = node_storage(bnode()).from_color_space;
-    const char *target = node_storage(bnode()).to_color_space;
+    const char *source = node_storage(node()).from_color_space;
+    const char *target = node_storage(node()).to_color_space;
     ColormanageProcessor *color_processor = IMB_colormanagement_colorspace_processor_new(source,
                                                                                          target);
 
@@ -160,8 +160,8 @@ class ConvertColorSpaceOperation : public NodeOperation {
 
   bool is_identity()
   {
-    const char *source = node_storage(bnode()).from_color_space;
-    const char *target = node_storage(bnode()).to_color_space;
+    const char *source = node_storage(node()).from_color_space;
+    const char *target = node_storage(node()).to_color_space;
 
     if (STREQ(source, target)) {
       return true;

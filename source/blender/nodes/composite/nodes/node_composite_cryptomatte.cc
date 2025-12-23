@@ -565,7 +565,7 @@ class BaseCryptoMatteOperation : public NodeOperation {
   Vector<float> get_identifiers()
   {
     Vector<float> identifiers;
-    LISTBASE_FOREACH (CryptomatteEntry *, cryptomatte_entry, &node_storage(bnode()).entries) {
+    LISTBASE_FOREACH (CryptomatteEntry *, cryptomatte_entry, &node_storage(node()).entries) {
       identifiers.append(cryptomatte_entry->encoded_hash);
     }
     return identifiers;
@@ -836,7 +836,7 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
   std::string get_type_name()
   {
     char type_name[MAX_NAME];
-    ntreeCompositCryptomatteLayerPrefix(&bnode(), type_name, sizeof(type_name));
+    ntreeCompositCryptomatteLayerPrefix(&node(), type_name, sizeof(type_name));
     return std::string(type_name);
   }
 
@@ -899,7 +899,7 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
     BLI_assert(image);
 
     /* Compute the effective frame number of the image if it was animated. */
-    ImageUser image_user_for_frame = node_storage(bnode()).iuser;
+    ImageUser image_user_for_frame = node_storage(node()).iuser;
     BKE_image_user_frame_calc(image, &image_user_for_frame, this->context().get_frame_number());
 
     return image_user_for_frame;
@@ -908,18 +908,18 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
   Scene *get_scene()
   {
     BLI_assert(get_source() == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER);
-    return reinterpret_cast<Scene *>(bnode().id);
+    return reinterpret_cast<Scene *>(node().id);
   }
 
   Image *get_image()
   {
     BLI_assert(get_source() == CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE);
-    return reinterpret_cast<Image *>(bnode().id);
+    return reinterpret_cast<Image *>(node().id);
   }
 
   CMPNodeCryptomatteSource get_source()
   {
-    return static_cast<CMPNodeCryptomatteSource>(bnode().custom1);
+    return static_cast<CMPNodeCryptomatteSource>(node().custom1);
   }
 };
 
@@ -1030,7 +1030,7 @@ class LegacyCryptoMatteOperation : public BaseCryptoMatteOperation {
   {
     Vector<Result> layers;
     /* Add all valid results of all inputs except the first input, which is the input image. */
-    for (const bNodeSocket *input_socket : bnode().input_sockets().drop_front(1)) {
+    for (const bNodeSocket *input_socket : node().input_sockets().drop_front(1)) {
       if (!is_socket_available(input_socket)) {
         continue;
       }

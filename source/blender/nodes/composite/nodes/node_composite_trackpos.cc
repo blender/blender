@@ -298,13 +298,13 @@ class TrackPositionOperation : public NodeOperation {
     MovieTracking *movie_tracking = &movie_clip->tracking;
 
     MovieTrackingObject *movie_tracking_object = BKE_tracking_object_get_named(
-        movie_tracking, node_storage(bnode()).tracking_object);
+        movie_tracking, node_storage(node()).tracking_object);
     if (!movie_tracking_object) {
       return nullptr;
     }
 
     return BKE_tracking_object_find_track_with_name(movie_tracking_object,
-                                                    node_storage(bnode()).track_name);
+                                                    node_storage(node()).track_name);
   }
 
   /* Get the size of the movie clip at the evaluation frame. This is constant for all frames in
@@ -353,7 +353,7 @@ class TrackPositionOperation : public NodeOperation {
 
   MovieClip *get_movie_clip()
   {
-    return (MovieClip *)bnode().id;
+    return (MovieClip *)node().id;
   }
 };
 

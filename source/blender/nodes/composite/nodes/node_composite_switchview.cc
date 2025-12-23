@@ -64,13 +64,13 @@ class SwitchViewOperation : public NodeOperation {
     Result &result = get_result("Image");
 
     /* A context that is not multi view, pass the first input through as a fallback. */
-    if (context().get_view_name().is_empty()) {
-      const Result &input = get_input(node().input(0)->identifier);
+    if (this->context().get_view_name().is_empty()) {
+      const Result &input = this->get_input(this->node().input_socket(0).identifier);
       result.share_data(input);
       return;
     }
 
-    const Result &input = get_input(context().get_view_name());
+    const Result &input = this->get_input(this->context().get_view_name());
     result.share_data(input);
   }
 };

@@ -414,7 +414,7 @@ class IndexSwitchOperation : public NodeOperation {
   {
     Result &output = this->get_result("Output");
     const int index = this->get_input("Index").get_single_value_default<int>();
-    const NodeIndexSwitch &storage = node_storage(bnode());
+    const NodeIndexSwitch &storage = node_storage(node());
 
     if (!IndexRange(storage.items_num).contains(index)) {
       output.allocate_invalid();

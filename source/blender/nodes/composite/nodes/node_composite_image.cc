@@ -233,7 +233,7 @@ class ImageOperation : public NodeOperation {
 
   void execute() override
   {
-    for (const bNodeSocket *output : this->node()->output_sockets()) {
+    for (const bNodeSocket *output : this->node().output_sockets()) {
       if (!is_socket_available(output)) {
         continue;
       }
@@ -310,12 +310,12 @@ class ImageOperation : public NodeOperation {
 
   Image *get_image()
   {
-    return reinterpret_cast<Image *>(bnode().id);
+    return reinterpret_cast<Image *>(node().id);
   }
 
   ImageUser *get_image_user()
   {
-    return static_cast<ImageUser *>(bnode().storage);
+    return static_cast<ImageUser *>(node().storage);
   }
 };
 
