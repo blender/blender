@@ -125,8 +125,10 @@ static void node_declare_multi_layer(NodeDeclarationBuilder &b,
     declare_pass(b, *pass);
 
     /* If the image does not have an alpha pass add an extra alpha pass that is generated based on
-     * the combined pass. */
-    if (!has_alpha_pass && StringRef(pass->name) == RE_PASSNAME_COMBINED) {
+     * the combined pass, if the combined pass is an RGBA pass. */
+    if (!has_alpha_pass && StringRef(pass->name) == RE_PASSNAME_COMBINED && pass->channels == 4 &&
+        StringRef(pass->chan_id) == "RGBA")
+    {
       b.add_output<decl::Float>("Alpha").structure_type(StructureType::Dynamic);
     }
   }
