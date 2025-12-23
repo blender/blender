@@ -63,6 +63,17 @@ template<typename T> struct ListBaseT : public ListBase {
     /* Don't use `this->last` because this iterator has to point to one-past-the-end. */
     return ListBaseTIterator<T>{nullptr};
   }
+
+  /* Cast for opaque types and C style subclasses. */
+  template<typename OtherT> const ListBaseT<OtherT> &cast() const
+  {
+    return *reinterpret_cast<const ListBaseT<OtherT> *>(this);
+  }
+
+  template<typename OtherT> ListBaseT<OtherT> &cast()
+  {
+    return *reinterpret_cast<ListBaseT<OtherT> *>(this);
+  }
 };
 
 #endif
