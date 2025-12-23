@@ -58,6 +58,7 @@ Depsgraph::Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluati
       is_evaluating(false),
       is_render_pipeline_depsgraph(false),
       use_editors_update(false),
+      physics_relations_effector(nullptr),
       update_count(0),
       sync_writeback(DEG_EVALUATE_SYNC_WRITEBACK_NO)
 {
@@ -65,7 +66,7 @@ Depsgraph::Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluati
   memset(id_type_updated, 0, sizeof(id_type_updated));
   memset(id_type_updated_backup, 0, sizeof(id_type_updated_backup));
   memset(id_type_exist, 0, sizeof(id_type_exist));
-  memset(physics_relations, 0, sizeof(physics_relations));
+  memset(physics_relations_collision, 0, sizeof(physics_relations_collision));
 
   add_time_source();
 }

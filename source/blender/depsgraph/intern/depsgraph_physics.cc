@@ -33,7 +33,7 @@ namespace deg = blender::deg;
 
 /*************************** Evaluation Query API *****************************/
 
-static ePhysicsRelationType modifier_to_relation_type(uint modifier_type)
+static ePhysicsCollisionType modifier_to_collision_type(uint modifier_type)
 {
   switch (modifier_type) {
     case eModifierType_Collision:
@@ -45,7 +45,7 @@ static ePhysicsRelationType modifier_to_relation_type(uint modifier_type)
   }
 
   BLI_assert_msg(0, "Unknown collision modifier type");
-  return DEG_PHYSICS_RELATIONS_NUM;
+  return DEG_PHYSICS_COLLISION_NUM;
 }
 /* Get ID from an ID type object, in a safe manner. This means that object can be nullptr,
  * in which case the function returns nullptr.
@@ -61,7 +61,7 @@ template<class T> static ID *object_id_safe(T *object)
 ListBase *DEG_get_effector_relations(const Depsgraph *graph, Collection *collection)
 {
   const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(graph);
-  blender::Map<const ID *, ListBase *> *hash = deg_graph->physics_relations[DEG_PHYSICS_EFFECTOR];
+  blender::Map<const ID *, ListBase *> *hash = deg_graph->physics_relations_effector;
   if (hash == nullptr) {
     return nullptr;
   }
@@ -76,8 +76,8 @@ ListBase *DEG_get_collision_relations(const Depsgraph *graph,
                                       uint modifier_type)
 {
   const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(graph);
-  const ePhysicsRelationType type = modifier_to_relation_type(modifier_type);
-  blender::Map<const ID *, ListBase *> *hash = deg_graph->physics_relations[type];
+  const ePhysicsCollisionType type = modifier_to_collision_type(modifier_type);
+  blender::Map<const ID *, ListBase *> *hash = deg_graph->physics_relations_collision[type];
   if (hash == nullptr) {
     return nullptr;
   }
@@ -249,10 +249,10 @@ namespace blender::deg {
 
 ListBase *build_effector_relations(Depsgraph *graph, Collection *collection)
 {
-  Map<const ID *, ListBase *> *hash = graph->physics_relations[DEG_PHYSICS_EFFECTOR];
+  Map<const ID *, ListBase *> *hash = graph->physics_relations_effector;
   if (hash == nullptr) {
-    graph->physics_relations[DEG_PHYSICS_EFFECTOR] = new Map<const ID *, ListBase *>();
-    hash = graph->physics_relations[DEG_PHYSICS_EFFECTOR];
+    graph->physics_relations_effector = new Map<const ID *, ListBase *>();
+    hash = graph->physics_relations_effector;
   }
   /* If collection is nullptr still use it as a key.
    * In this case the BKE_effector_relations_create() will create relates for all bases in the
@@ -267,11 +267,11 @@ ListBase *build_effector_relations(Depsgraph *graph, Collection *collection)
 
 ListBase *build_collision_relations(Depsgraph *graph, Collection *collection, uint modifier_type)
 {
-  const ePhysicsRelationType type = modifier_to_relation_type(modifier_type);
-  Map<const ID *, ListBase *> *hash = graph->physics_relations[type];
+  const ePhysicsCollisionType type = modifier_to_collision_type(modifier_type);
+  Map<const ID *, ListBase *> *hash = graph->physics_relations_collision[type];
   if (hash == nullptr) {
-    graph->physics_relations[type] = new Map<const ID *, ListBase *>();
-    hash = graph->physics_relations[type];
+    graph->physics_relations_collision[type] = new Map<const ID *, ListBase *>();
+    hash = graph->physics_relations_collision[type];
   }
   /* If collection is nullptr still use it as a key.
    * In this case the BKE_collision_relations_create() will create relates for all bases in the
@@ -286,29 +286,22 @@ ListBase *build_collision_relations(Depsgraph *graph, Collection *collection, ui
 
 void clear_physics_relations(Depsgraph *graph)
 {
-  for (int i = 0; i < DEG_PHYSICS_RELATIONS_NUM; i++) {
-    Map<const ID *, ListBase *> *hash = graph->physics_relations[i];
-    if (hash) {
-      const ePhysicsRelationType type = (ePhysicsRelationType)i;
+  if (graph->physics_relations_effector) {
+    for (ListBase *list : graph->physics_relations_effector->values()) {
+      BKE_effector_relations_free(list);
+    }
+    delete graph->physics_relations_effector;
+    graph->physics_relations_effector = nullptr;
+  }
 
-      switch (type) {
-        case DEG_PHYSICS_EFFECTOR:
-          for (ListBase *list : hash->values()) {
-            BKE_effector_relations_free(list);
-          }
-          break;
-        case DEG_PHYSICS_COLLISION:
-        case DEG_PHYSICS_SMOKE_COLLISION:
-        case DEG_PHYSICS_DYNAMIC_BRUSH:
-          for (ListBase *list : hash->values()) {
-            BKE_collision_relations_free(list);
-          }
-          break;
-        case DEG_PHYSICS_RELATIONS_NUM:
-          break;
+  for (int i = 0; i < DEG_PHYSICS_COLLISION_NUM; i++) {
+    Map<const ID *, ListBase *> *hash = graph->physics_relations_collision[i];
+    if (hash) {
+      for (ListBase *list : hash->values()) {
+        BKE_collision_relations_free(list);
       }
       delete hash;
-      graph->physics_relations[i] = nullptr;
+      graph->physics_relations_collision[i] = nullptr;
     }
   }
 }

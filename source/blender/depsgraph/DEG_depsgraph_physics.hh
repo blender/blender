@@ -20,12 +20,11 @@ struct ListBase;
 struct ModifierData;
 struct Object;
 
-enum ePhysicsRelationType {
-  DEG_PHYSICS_EFFECTOR = 0,
-  DEG_PHYSICS_COLLISION = 1,
-  DEG_PHYSICS_SMOKE_COLLISION = 2,
-  DEG_PHYSICS_DYNAMIC_BRUSH = 3,
-  DEG_PHYSICS_RELATIONS_NUM = 4,
+enum ePhysicsCollisionType {
+  DEG_PHYSICS_COLLISION = 0,
+  DEG_PHYSICS_SMOKE_COLLISION = 1,
+  DEG_PHYSICS_DYNAMIC_BRUSH = 2,
+  DEG_PHYSICS_COLLISION_NUM = 3,
 };
 
 /* Get collision/effector relations from collection or entire scene. These
