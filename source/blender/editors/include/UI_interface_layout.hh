@@ -972,7 +972,7 @@ void uiItemLDrag(Layout *layout, PointerRNA *ptr, StringRef name, int icon);
 /**
  * Evaluate layout items as a Python dictionary.
  */
-const char *UI_layout_introspect(Layout *layout);
+std::string layout_introspect(Layout *layout);
 
 /**
  * Helpers to add a big icon and create a split layout for alert popups.
