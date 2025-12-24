@@ -706,7 +706,7 @@ const char *ED_info_statusbar_string_ex(Main *bmain,
 {
   char formatted_mem[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE];
   size_t ofs = 0;
-  static char info[256];
+  static char info[384];
   int len = sizeof(info);
 
   info[0] = '\0';
@@ -749,7 +749,7 @@ const char *ED_info_statusbar_string_ex(Main *bmain,
     }
     uintptr_t mem_in_use = MEM_get_memory_in_use();
     BLI_str_format_byte_unit(formatted_mem, mem_in_use, false);
-    ofs += BLI_snprintf_utf8_rlen(info + ofs, len, IFACE_("Memory: %s"), formatted_mem);
+    ofs += BLI_snprintf_utf8_rlen(info + ofs, len - ofs, IFACE_("Memory: %s"), formatted_mem);
   }
 
   /* GPU VRAM status. */
