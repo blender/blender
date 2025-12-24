@@ -770,7 +770,7 @@ inline void kdtree_range_search_cb(const KDTree<CoordT> *tree,
       dist_sq = math::distance_squared(node->co, co);
       if (dist_sq <= range_sq) {
         if (search_cb(user_data, node->index, node->co, dist_sq) == false) {
-          goto finally;
+          break;
         }
       }
 
@@ -787,7 +787,6 @@ inline void kdtree_range_search_cb(const KDTree<CoordT> *tree,
     }
   }
 
-finally:
   if (stack != stack_default) {
     MEM_freeN(stack);
   }
