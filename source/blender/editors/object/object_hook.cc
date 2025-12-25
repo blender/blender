@@ -235,10 +235,10 @@ static int return_editcurve_indexar(Object *obedit,
   BezTriple *bezt;
   int *index, a, nr, indexar_num = 0;
 
-  LISTBASE_FOREACH (Nurb *, nu, editnurb) {
-    if (nu->type == CU_BEZIER) {
-      bezt = nu->bezt;
-      a = nu->pntsu;
+  for (Nurb &nu : *editnurb) {
+    if (nu.type == CU_BEZIER) {
+      bezt = nu.bezt;
+      a = nu.pntsu;
       while (a--) {
         if (bezt->f1 & SELECT) {
           indexar_num++;
@@ -253,8 +253,8 @@ static int return_editcurve_indexar(Object *obedit,
       }
     }
     else {
-      bp = nu->bp;
-      a = nu->pntsu * nu->pntsv;
+      bp = nu.bp;
+      a = nu.pntsu * nu.pntsv;
       while (a--) {
         if (bp->f1 & SELECT) {
           indexar_num++;
@@ -272,10 +272,10 @@ static int return_editcurve_indexar(Object *obedit,
   nr = 0;
   zero_v3(r_cent);
 
-  LISTBASE_FOREACH (Nurb *, nu, editnurb) {
-    if (nu->type == CU_BEZIER) {
-      bezt = nu->bezt;
-      a = nu->pntsu;
+  for (Nurb &nu : *editnurb) {
+    if (nu.type == CU_BEZIER) {
+      bezt = nu.bezt;
+      a = nu.pntsu;
       while (a--) {
         if (bezt->f1 & SELECT) {
           *index = nr;
@@ -299,8 +299,8 @@ static int return_editcurve_indexar(Object *obedit,
       }
     }
     else {
-      bp = nu->bp;
-      a = nu->pntsu * nu->pntsv;
+      bp = nu.bp;
+      a = nu.pntsu * nu.pntsv;
       while (a--) {
         if (bp->f1 & SELECT) {
           *index = nr;
@@ -370,10 +370,10 @@ static void select_editcurve_hook(Object *obedit, HookModifierData *hmd)
   BezTriple *bezt;
   int index = 0, a, nr = 0;
 
-  LISTBASE_FOREACH (Nurb *, nu, editnurb) {
-    if (nu->type == CU_BEZIER) {
-      bezt = nu->bezt;
-      a = nu->pntsu;
+  for (Nurb &nu : *editnurb) {
+    if (nu.type == CU_BEZIER) {
+      bezt = nu.bezt;
+      a = nu.pntsu;
       while (a--) {
         if (nr == hmd->indexar[index]) {
           bezt->f1 |= SELECT;
@@ -401,8 +401,8 @@ static void select_editcurve_hook(Object *obedit, HookModifierData *hmd)
       }
     }
     else {
-      bp = nu->bp;
-      a = nu->pntsu * nu->pntsv;
+      bp = nu.bp;
+      a = nu.pntsu * nu.pntsv;
       while (a--) {
         if (nr == hmd->indexar[index]) {
           bp->f1 |= SELECT;

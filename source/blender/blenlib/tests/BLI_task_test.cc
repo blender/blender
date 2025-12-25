@@ -219,8 +219,8 @@ TEST(task, MempoolIterTLS)
 
   /* Check that all elements are added into the list once. */
   int number_accum = 0;
-  LISTBASE_FOREACH (LinkData *, link, tls_data.accumulate_items) {
-    int *data = (int *)link->data;
+  for (LinkData &link : *tls_data.accumulate_items) {
+    int *data = (int *)link.data;
     number_accum += *data;
   }
   EXPECT_EQ(number_accum, (ITEMS_NUM * (ITEMS_NUM + 1)) / 2);

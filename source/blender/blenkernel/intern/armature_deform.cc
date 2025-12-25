@@ -328,9 +328,9 @@ static ArmatureDeformParams get_armature_deform_params(
      *
      * - Check whether keeping this consistent across frames gives speedup.
      */
-    int i;
-    LISTBASE_FOREACH_INDEX (bDeformGroup *, dg, defbase, i) {
-      bPoseChannel *pchan = BKE_pose_channel_find_name(ob_arm.pose, dg->name);
+
+    for (const auto [i, dg] : (defbase)->enumerate()) {
+      bPoseChannel *pchan = BKE_pose_channel_find_name(ob_arm.pose, dg.name);
       /* Exclude non-deforming bones. */
       deform_params.pose_channel_by_vertex_group[i] = (pchan &&
                                                        !(pchan->bone->flag & BONE_NO_DEFORM)) ?

@@ -341,36 +341,36 @@ void poseAnim_mapping_refresh(bContext *C, Scene * /*scene*/, Object *ob)
 void poseAnim_mapping_reset(ListBaseT<tPChanFCurveLink> *pfLinks)
 {
   /* iterate over each pose-channel affected, restoring all channels to their original values */
-  LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pfLinks) {
-    bPoseChannel *pchan = pfl->pchan;
+  for (tPChanFCurveLink &pfl : *pfLinks) {
+    bPoseChannel *pchan = pfl.pchan;
 
     /* just copy all the values over regardless of whether they changed or not */
-    copy_v3_v3(pchan->loc, pfl->oldloc);
-    copy_v3_v3(pchan->eul, pfl->oldrot);
-    copy_v3_v3(pchan->scale, pfl->oldscale);
-    copy_qt_qt(pchan->quat, pfl->oldquat);
-    copy_v3_v3(pchan->rotAxis, pfl->oldaxis);
-    pchan->rotAngle = pfl->oldangle;
+    copy_v3_v3(pchan->loc, pfl.oldloc);
+    copy_v3_v3(pchan->eul, pfl.oldrot);
+    copy_v3_v3(pchan->scale, pfl.oldscale);
+    copy_qt_qt(pchan->quat, pfl.oldquat);
+    copy_v3_v3(pchan->rotAxis, pfl.oldaxis);
+    pchan->rotAngle = pfl.oldangle;
 
     /* store current bbone values */
-    pchan->roll1 = pfl->roll1;
-    pchan->roll2 = pfl->roll2;
-    pchan->curve_in_x = pfl->curve_in_x;
-    pchan->curve_in_z = pfl->curve_in_z;
-    pchan->curve_out_x = pfl->curve_out_x;
-    pchan->curve_out_z = pfl->curve_out_z;
-    pchan->ease1 = pfl->ease1;
-    pchan->ease2 = pfl->ease2;
+    pchan->roll1 = pfl.roll1;
+    pchan->roll2 = pfl.roll2;
+    pchan->curve_in_x = pfl.curve_in_x;
+    pchan->curve_in_z = pfl.curve_in_z;
+    pchan->curve_out_x = pfl.curve_out_x;
+    pchan->curve_out_z = pfl.curve_out_z;
+    pchan->ease1 = pfl.ease1;
+    pchan->ease2 = pfl.ease2;
 
-    copy_v3_v3(pchan->scale_in, pfl->scale_in);
-    copy_v3_v3(pchan->scale_out, pfl->scale_out);
+    copy_v3_v3(pchan->scale_in, pfl.scale_in);
+    copy_v3_v3(pchan->scale_out, pfl.scale_out);
 
     /* just overwrite values of properties from the stored copies (there should be some) */
-    if (pfl->oldprops) {
-      IDP_SyncGroupValues(pfl->pchan->prop, pfl->oldprops);
+    if (pfl.oldprops) {
+      IDP_SyncGroupValues(pfl.pchan->prop, pfl.oldprops);
     }
-    if (pfl->old_system_properties) {
-      IDP_SyncGroupValues(pfl->pchan->system_properties, pfl->old_system_properties);
+    if (pfl.old_system_properties) {
+      IDP_SyncGroupValues(pfl.pchan->system_properties, pfl.old_system_properties);
     }
   }
 }
@@ -413,15 +413,15 @@ void poseAnim_mapping_autoKeyframe(bContext *C,
   /* XXX: here we already have the information about what transforms exist, though
    * it might be easier to just overwrite all using normal mechanisms
    */
-  LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pfLinks) {
-    bPoseChannel *pchan = pfl->pchan;
+  for (tPChanFCurveLink &pfl : *pfLinks) {
+    bPoseChannel *pchan = pfl.pchan;
 
-    if ((pfl->ob->id.tag & ID_TAG_DOIT) == 0) {
+    if ((pfl.ob->id.tag & ID_TAG_DOIT) == 0) {
       continue;
     }
 
     /* Add data-source override for the PoseChannel, to be used later. */
-    blender::animrig::relative_keyingset_add_source(sources, &pfl->ob->id, &RNA_PoseBone, pchan);
+    blender::animrig::relative_keyingset_add_source(sources, &pfl.ob->id, &RNA_PoseBone, pchan);
   }
 
   /* insert keyframes for all relevant bones in one go */

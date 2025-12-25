@@ -326,46 +326,46 @@ static void node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
   /* Add the nodes into the `ntree`. */
   Vector<bNode *> new_nodes;
   Map<int32_t, int32_t> node_identifier_map;
-  LISTBASE_FOREACH_MUTABLE (bNode *, node, &wgroup->nodes) {
-    new_nodes.append(node);
+  for (bNode &node : wgroup->nodes.items_mutable()) {
+    new_nodes.append(&node);
     /* Remove interface nodes.
      * This also removes remaining links to and from interface nodes.
      */
-    if (node->is_group_input() || node->is_group_output()) {
+    if (node.is_group_input() || node.is_group_output()) {
       /* We must delay removal since sockets will reference this node. see: #52092 */
-      nodes_delayed_free.append(node);
+      nodes_delayed_free.append(&node);
     }
 
     /* Keep track of this node's RNA "base" path (the part of the path identifying the node). */
-    const std::string old_basepath = node_basepath(*wgroup, *node);
+    const std::string old_basepath = node_basepath(*wgroup, node);
 
     /* migrate node */
-    BLI_remlink(&wgroup->nodes, node);
-    BLI_addtail(&ntree->nodes, node);
-    const int32_t old_identifier = node->identifier;
-    bke::node_unique_id(*ntree, *node);
-    bke::node_unique_name(*ntree, *node);
-    node_identifier_map.add(old_identifier, node->identifier);
+    BLI_remlink(&wgroup->nodes, &node);
+    BLI_addtail(&ntree->nodes, &node);
+    const int32_t old_identifier = node.identifier;
+    bke::node_unique_id(*ntree, node);
+    bke::node_unique_name(*ntree, node);
+    node_identifier_map.add(old_identifier, node.identifier);
 
-    BKE_ntree_update_tag_node_new(ntree, node);
+    BKE_ntree_update_tag_node_new(ntree, &node);
 
-    const std::string new_basepath = node_basepath(*ntree, *node);
+    const std::string new_basepath = node_basepath(*ntree, node);
     anim_basepaths.append({old_basepath, new_basepath});
 
-    node->location[0] += gnode->location[0];
-    node->location[1] += gnode->location[1];
+    node.location[0] += gnode->location[0];
+    node.location[1] += gnode->location[1];
 
-    node->flag |= NODE_SELECT;
+    node.flag |= NODE_SELECT;
   }
   wgroup->runtime->nodes_by_id.clear();
 
   bNodeLink *glinks_first = (bNodeLink *)ntree->links.last;
 
   /* Add internal links to the ntree */
-  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &wgroup->links) {
-    BLI_remlink(&wgroup->links, link);
-    BLI_addtail(&ntree->links, link);
-    BKE_ntree_update_tag_link_added(ntree, link);
+  for (bNodeLink &link : wgroup->links.items_mutable()) {
+    BLI_remlink(&wgroup->links, &link);
+    BLI_addtail(&ntree->links, &link);
+    BKE_ntree_update_tag_link_added(ntree, &link);
   }
 
   bNodeLink *glinks_last = (bNodeLink *)ntree->links.last;
@@ -565,28 +565,28 @@ static bool node_group_separate_selected(
   }
 
   /* add internal links to the ntree */
-  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ngroup.links) {
-    const bool fromselect = (link->fromnode && nodes_to_move.contains(link->fromnode));
-    const bool toselect = (link->tonode && nodes_to_move.contains(link->tonode));
+  for (bNodeLink &link : ngroup.links.items_mutable()) {
+    const bool fromselect = (link.fromnode && nodes_to_move.contains(link.fromnode));
+    const bool toselect = (link.tonode && nodes_to_move.contains(link.tonode));
 
     if (make_copy) {
       /* make a copy of internal links */
       if (fromselect && toselect) {
         bke::node_add_link(ntree,
-                           *node_map.lookup(link->fromnode),
-                           *socket_map.lookup(link->fromsock),
-                           *node_map.lookup(link->tonode),
-                           *socket_map.lookup(link->tosock));
+                           *node_map.lookup(link.fromnode),
+                           *socket_map.lookup(link.fromsock),
+                           *node_map.lookup(link.tonode),
+                           *socket_map.lookup(link.tosock));
       }
     }
     else {
       /* move valid links over, delete broken links */
       if (fromselect && toselect) {
-        BLI_remlink(&ngroup.links, link);
-        BLI_addtail(&ntree.links, link);
+        BLI_remlink(&ngroup.links, &link);
+        BLI_addtail(&ntree.links, &link);
       }
       else if (fromselect || toselect) {
-        bke::node_remove_link(&ngroup, *link);
+        bke::node_remove_link(&ngroup, link);
       }
     }
   }
@@ -1443,23 +1443,23 @@ static bNode *node_group_make_from_node_declaration(bContext &C,
   }
 
   /* Relink links from old to new node. */
-  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree.links) {
-    if (link->tonode == &src_node) {
-      if (bNodeSocket *new_to_socket = mapping.get_new_input(link->tosock, *gnode)) {
-        link->tonode = gnode;
-        link->tosock = new_to_socket;
+  for (bNodeLink &link : ntree.links.items_mutable()) {
+    if (link.tonode == &src_node) {
+      if (bNodeSocket *new_to_socket = mapping.get_new_input(link.tosock, *gnode)) {
+        link.tonode = gnode;
+        link.tosock = new_to_socket;
         continue;
       }
-      bke::node_remove_link(&ntree, *link);
+      bke::node_remove_link(&ntree, link);
       continue;
     }
-    if (link->fromnode == &src_node) {
-      if (bNodeSocket *new_from_socket = mapping.get_new_output(link->fromsock, *gnode)) {
-        link->fromnode = gnode;
-        link->fromsock = new_from_socket;
+    if (link.fromnode == &src_node) {
+      if (bNodeSocket *new_from_socket = mapping.get_new_output(link.fromsock, *gnode)) {
+        link.fromnode = gnode;
+        link.fromsock = new_from_socket;
         continue;
       }
-      bke::node_remove_link(&ntree, *link);
+      bke::node_remove_link(&ntree, link);
       continue;
     }
   }

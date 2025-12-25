@@ -405,8 +405,8 @@ static bool ui_tooltip_data_append_from_keymap(bContext *C, TooltipData &data, w
 {
   const int fields_len_init = data.fields.size();
 
-  LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
-    wmOperatorType *ot = WM_operatortype_find(kmi->idname, true);
+  for (wmKeyMapItem &kmi : keymap->items) {
+    wmOperatorType *ot = WM_operatortype_find(kmi.idname, true);
     if (!ot) {
       continue;
     }
@@ -419,7 +419,7 @@ static bool ui_tooltip_data_append_from_keymap(bContext *C, TooltipData &data, w
                            true);
 
     /* Shortcut. */
-    const std::string kmi_str = WM_keymap_item_to_string(kmi, false).value_or("None");
+    const std::string kmi_str = WM_keymap_item_to_string(&kmi, false).value_or("None");
     tooltip_text_field_add(data,
                            fmt::format(fmt::runtime(TIP_("Shortcut: {}")), kmi_str),
                            {},
@@ -428,7 +428,7 @@ static bool ui_tooltip_data_append_from_keymap(bContext *C, TooltipData &data, w
 
     /* Python. */
     if (U.flag & USER_TOOLTIPS_PYTHON) {
-      std::string str = ui_tooltip_text_python_from_op(C, ot, kmi->ptr);
+      std::string str = ui_tooltip_text_python_from_op(C, ot, kmi.ptr);
       tooltip_text_field_add(data,
                              fmt::format(fmt::runtime(TIP_("Python: {}")), str),
                              {},
@@ -650,12 +650,12 @@ static std::unique_ptr<TooltipData> ui_tooltip_data_from_tool(bContext *C,
         else if (BPY_run_string_as_intptr(C, expr_imports, expr, nullptr, &expr_result)) {
           if (expr_result != 0) {
             wmKeyMap *keymap = (wmKeyMap *)expr_result;
-            LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
-              if (STREQ(kmi->idname, but->optype->idname)) {
+            for (wmKeyMapItem &kmi : keymap->items) {
+              if (STREQ(kmi.idname, but->optype->idname)) {
                 char tool_id_test[MAX_NAME];
-                RNA_string_get(kmi->ptr, "name", tool_id_test);
+                RNA_string_get(kmi.ptr, "name", tool_id_test);
                 if (STREQ(tool_id, tool_id_test)) {
-                  std::string kmi_str = WM_keymap_item_to_string(kmi, false).value_or("");
+                  std::string kmi_str = WM_keymap_item_to_string(&kmi, false).value_or("");
                   shortcut = fmt::format("{}, {}", *shortcut_toolbar, kmi_str);
                   break;
                 }

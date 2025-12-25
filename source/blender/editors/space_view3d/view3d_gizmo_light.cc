@@ -253,8 +253,8 @@ static void WIDGETGROUP_light_spot_setup(const bContext *C, wmGizmoGroup *gzgrou
   }
 
   /* All gizmos must perform undo. */
-  LISTBASE_FOREACH (wmGizmo *, gz, &gzgroup->gizmos) {
-    WM_gizmo_set_flag(gz, WM_GIZMO_NEEDS_UNDO, true);
+  for (wmGizmo &gz : gzgroup->gizmos) {
+    WM_gizmo_set_flag(&gz, WM_GIZMO_NEEDS_UNDO, true);
   }
 }
 
@@ -385,8 +385,8 @@ static void WIDGETGROUP_light_point_setup(const bContext *C, wmGizmoGroup *gzgro
   WM_gizmo_target_property_def_func(gz, "matrix", &params);
 
   /* All gizmos must perform undo. */
-  LISTBASE_FOREACH (wmGizmo *, gz_iter, &gzgroup->gizmos) {
-    WM_gizmo_set_flag(gz_iter, WM_GIZMO_NEEDS_UNDO, true);
+  for (wmGizmo &gz_iter : gzgroup->gizmos) {
+    WM_gizmo_set_flag(&gz_iter, WM_GIZMO_NEEDS_UNDO, true);
   }
 }
 
@@ -520,8 +520,8 @@ static void WIDGETGROUP_light_area_setup(const bContext * /*C*/, wmGizmoGroup *g
   blender::ui::theme::get_color_3fv(TH_GIZMO_HI, gz->color_hi);
 
   /* All gizmos must perform undo. */
-  LISTBASE_FOREACH (wmGizmo *, gz_iter, &gzgroup->gizmos) {
-    WM_gizmo_set_flag(gz_iter, WM_GIZMO_NEEDS_UNDO, true);
+  for (wmGizmo &gz_iter : gzgroup->gizmos) {
+    WM_gizmo_set_flag(&gz_iter, WM_GIZMO_NEEDS_UNDO, true);
   }
 }
 

@@ -71,15 +71,15 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C, Object *ob, Li
         static_cast<RegionView3D *>(region->regiondata), ob);
 
     if (nurbslist.first) {
-      LISTBASE_FOREACH (Nurb *, nu, &nurbslist) {
-        if (nu->bp) {
+      for (Nurb &nu : nurbslist) {
+        if (nu.bp) {
           int a;
           BPoint *bp;
-          bool is_cyclic = (nu->flagu & CU_NURB_CYCLIC) != 0;
+          bool is_cyclic = (nu.flagu & CU_NURB_CYCLIC) != 0;
           float (*mval)[2] = static_cast<float (*)[2]>(
-              MEM_mallocN(sizeof(*mval) * (nu->pntsu + is_cyclic), __func__));
+              MEM_mallocN(sizeof(*mval) * (nu.pntsu + is_cyclic), __func__));
 
-          for (bp = nu->bp, a = 0; a < nu->pntsu; a++, bp++) {
+          for (bp = nu.bp, a = 0; a < nu.pntsu; a++, bp++) {
             copy_v2_v2(mval[a], ED_view3d_project_float_v2_m4(region, bp->vec, projmat));
           }
           if (is_cyclic) {

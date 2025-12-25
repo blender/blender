@@ -435,12 +435,12 @@ ImageSpec imb_create_write_spec(const WriteContext &ctx, int file_channels, Type
    */
 
   if (ctx.ibuf->metadata) {
-    LISTBASE_FOREACH (IDProperty *, prop, &ctx.ibuf->metadata->data.group) {
-      if (prop->type == IDP_STRING) {
+    for (IDProperty &prop : ctx.ibuf->metadata->data.group) {
+      if (prop.type == IDP_STRING) {
         /* If this property has a prefixed name (oiio:, tiff:, etc.) and it belongs to
          * oiio or a different format, then skip. */
-        if (char *colon = strchr(prop->name, ':')) {
-          std::string prefix(prop->name, colon);
+        if (char *colon = strchr(prop.name, ':')) {
+          std::string prefix(prop.name, colon);
           Strutil::to_lower(prefix);
           if (prefix == "oiio" ||
               (!STREQ(prefix.c_str(), ctx.file_format) && OIIO::is_imageio_format_name(prefix)))
@@ -450,7 +450,7 @@ ImageSpec imb_create_write_spec(const WriteContext &ctx, int file_channels, Type
           }
         }
 
-        file_spec.attribute(prop->name, IDP_string_get(prop));
+        file_spec.attribute(prop.name, IDP_string_get(&prop));
       }
     }
   }

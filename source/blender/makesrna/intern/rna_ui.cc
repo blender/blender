@@ -185,8 +185,8 @@ static void panel_type_clear_recursive(Panel *panel, const PanelType *type)
     panel->type = nullptr;
   }
 
-  LISTBASE_FOREACH (Panel *, child_panel, &panel->children) {
-    panel_type_clear_recursive(child_panel, type);
+  for (Panel &child_panel : panel->children) {
+    panel_type_clear_recursive(&child_panel, type);
   }
 }
 
@@ -213,23 +213,23 @@ static bool rna_Panel_unregister(Main *bmain, StructRNA *type)
 
   WM_paneltype_remove(pt);
 
-  LISTBASE_FOREACH (LinkData *, link, &pt->children) {
-    PanelType *child_pt = static_cast<PanelType *>(link->data);
+  for (LinkData &link : pt->children) {
+    PanelType *child_pt = static_cast<PanelType *>(link.data);
     child_pt->parent = nullptr;
   }
 
-  LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-        ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                         &sl->regionbase;
-        LISTBASE_FOREACH (ARegion *, region, regionbase) {
-          LISTBASE_FOREACH (Panel *, panel, &region->panels) {
-            panel_type_clear_recursive(panel, pt);
+  for (bScreen &screen : bmain->screens) {
+    for (ScrArea &area : screen.areabase) {
+      for (SpaceLink &sl : area.spacedata) {
+        ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first) ? &area.regionbase :
+                                                                         &sl.regionbase;
+        for (ARegion &region : *regionbase) {
+          for (Panel &panel : region.panels) {
+            panel_type_clear_recursive(&panel, pt);
           }
           /* The unregistered panel might have had a template that added instanced panels,
            * so remove them just in case. They can be re-added on redraw anyway. */
-          blender::ui::panels_free_instanced(nullptr, region);
+          blender::ui::panels_free_instanced(nullptr, &region);
         }
       }
     }

@@ -1337,11 +1337,11 @@ void export_deform_verts(const Mesh *mesh,
   Vector<int> joint_index;
 
   /* Build the index mapping. */
-  LISTBASE_FOREACH (const bDeformGroup *, def, &mesh->vertex_group_names) {
+  for (const bDeformGroup &def : mesh->vertex_group_names) {
     int bone_idx = -1;
     /* For now, n-squared search is acceptable. */
     for (int i = 0; i < bone_names.size(); ++i) {
-      if (bone_names[i] == def->name) {
+      if (bone_names[i] == def.name) {
         bone_idx = i;
         break;
       }

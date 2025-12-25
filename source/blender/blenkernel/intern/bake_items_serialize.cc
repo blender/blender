@@ -1116,8 +1116,8 @@ static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet
 
     if (!BLI_listbase_is_empty(&mesh.vertex_group_names)) {
       auto io_vertex_group_names = io_mesh->append_array("vertex_group_names");
-      LISTBASE_FOREACH (bDeformGroup *, defgroup, &mesh.vertex_group_names) {
-        io_vertex_group_names->append_str(defgroup->name);
+      for (bDeformGroup &defgroup : mesh.vertex_group_names) {
+        io_vertex_group_names->append_str(defgroup.name);
       }
     }
 

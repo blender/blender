@@ -534,8 +534,8 @@ void LayerTreeView::build_tree_node_recursive(TreeViewOrItem &parent, TreeNode &
   else if (node.is_group()) {
     LayerGroupViewItem &group_item = parent.add_tree_item<LayerGroupViewItem>(this->grease_pencil_,
                                                                               node.as_group());
-    LISTBASE_FOREACH_BACKWARD (GreasePencilLayerTreeNode *, node_, &node.as_group().children) {
-      build_tree_node_recursive(group_item, node_->wrap());
+    for (GreasePencilLayerTreeNode &node_ : node.as_group().children.items_reversed()) {
+      build_tree_node_recursive(group_item, node_.wrap());
     }
   }
 }
@@ -543,10 +543,10 @@ void LayerTreeView::build_tree_node_recursive(TreeViewOrItem &parent, TreeNode &
 void LayerTreeView::build_tree()
 {
   using namespace blender::bke::greasepencil;
-  LISTBASE_FOREACH_BACKWARD (
-      GreasePencilLayerTreeNode *, node, &this->grease_pencil_.root_group_ptr->children)
+  for (GreasePencilLayerTreeNode &node :
+       this->grease_pencil_.root_group_ptr->children.items_reversed())
   {
-    this->build_tree_node_recursive(*this, node->wrap());
+    this->build_tree_node_recursive(*this, node.wrap());
   }
 }
 }  // namespace greasepencil

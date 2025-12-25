@@ -1272,8 +1272,8 @@ void context_active_but_prop_get_filebrowser(const bContext *C,
     return;
   }
 
-  LISTBASE_FOREACH (Block *, block, &region->runtime->uiblocks) {
-    for (const std::unique_ptr<Button> &but : block->buttons) {
+  for (Block &block : region->runtime->uiblocks) {
+    for (const std::unique_ptr<Button> &but : block.buttons) {
       if (but && but->rnapoin.data) {
         if (RNA_property_type(but->rnaprop) == PROP_STRING) {
           prevbut = but.get();
@@ -3053,13 +3053,13 @@ void Layout::popover_group(
     return;
   }
 
-  LISTBASE_FOREACH (PanelType *, pt, &art->paneltypes) {
+  for (PanelType &pt : art->paneltypes) {
     /* Causes too many panels, check context. */
-    if (pt->parent_id[0] == '\0') {
-      if (/* (*context == '\0') || */ STREQ(pt->context, context)) {
-        if ((*category == '\0') || STREQ(pt->category, category)) {
-          if (pt->poll == nullptr || pt->poll(C, pt)) {
-            this->popover(C, pt, std::nullopt, ICON_NONE);
+    if (pt.parent_id[0] == '\0') {
+      if (/* (*context == '\0') || */ STREQ(pt.context, context)) {
+        if ((*category == '\0') || STREQ(pt.category, category)) {
+          if (pt.poll == nullptr || pt.poll(C, &pt)) {
+            this->popover(C, &pt, std::nullopt, ICON_NONE);
           }
         }
       }
@@ -5577,9 +5577,9 @@ void block_layout_set_current(Block *block, Layout *layout)
 
 void block_layout_free(Block *block)
 {
-  LISTBASE_FOREACH_MUTABLE (LayoutRoot *, root, &block->layouts) {
-    ui_layout_free(root->layout);
-    MEM_freeN(root);
+  for (LayoutRoot &root : block->layouts.items_mutable()) {
+    ui_layout_free(root.layout);
+    MEM_freeN(&root);
   }
 }
 
@@ -5590,13 +5590,13 @@ int2 block_layout_resolve(Block *block)
 
   block->curlayout = nullptr;
 
-  LISTBASE_FOREACH_MUTABLE (LayoutRoot *, root, &block->layouts) {
-    ui_layout_add_padding_button(root);
+  for (LayoutRoot &root : block->layouts.items_mutable()) {
+    ui_layout_add_padding_button(&root);
 
     /* nullptr in advance so we don't interfere when adding button */
-    block_size = ui_layout_end(block, root->layout);
-    ui_layout_free(root->layout);
-    MEM_freeN(root);
+    block_size = ui_layout_end(block, root.layout);
+    ui_layout_free(root.layout);
+    MEM_freeN(&root);
   }
 
   BLI_listbase_clear(&block->layouts);
@@ -5872,8 +5872,8 @@ static void ui_paneltype_draw_impl(bContext *C, PanelType *pt, Layout *layout, b
   BKE_panel_free(panel);
 
   /* Draw child panels. */
-  LISTBASE_FOREACH (LinkData *, link, &pt->children) {
-    PanelType *child_pt = static_cast<PanelType *>(link->data);
+  for (LinkData &link : pt->children) {
+    PanelType *child_pt = static_cast<PanelType *>(link.data);
 
     if (child_pt->poll == nullptr || child_pt->poll(C, child_pt)) {
       /* Add space if something was added to the layout. */

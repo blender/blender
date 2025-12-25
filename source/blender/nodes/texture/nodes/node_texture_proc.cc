@@ -70,11 +70,7 @@ static void texfn(
 
 static int count_outputs(bNode *node)
 {
-  int num = 0;
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-    num++;
-  }
-  return num;
+  return BLI_listbase_count(&node->outputs);
 }
 
 /* Boilerplate generators */

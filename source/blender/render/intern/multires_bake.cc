@@ -1487,10 +1487,10 @@ static void bake_images(MultiresBakeRender &bake,
                         MultiresBakeResult &result)
 {
   for (Image *image : bake.images) {
-    LISTBASE_FOREACH (ImageTile *, image_tile, &image->tiles) {
+    for (ImageTile &image_tile : image->tiles) {
       ImageUser iuser;
       BKE_imageuser_default(&iuser);
-      iuser.tile = image_tile->tile_number;
+      iuser.tile = image_tile.tile_number;
 
       ImBuf *ibuf = BKE_image_acquire_ibuf(image, &iuser, nullptr);
       if (ibuf && ibuf->x > 0 && ibuf->y > 0) {
@@ -1499,14 +1499,14 @@ static void bake_images(MultiresBakeRender &bake,
         BakedImBuf &baked_ibuf = result.baked_ibufs.last();
         baked_ibuf.image = image;
         baked_ibuf.ibuf = ibuf;
-        baked_ibuf.uv_offset = get_tile_uv(*image, *image_tile);
+        baked_ibuf.uv_offset = get_tile_uv(*image, image_tile);
 
         ExtraBuffers &extra_buffers = baked_ibuf.extra_buffers;
         extra_buffers.mask_buffer.reinitialize(int64_t(ibuf->y) * ibuf->x);
         extra_buffers.mask_buffer.fill(FILTER_MASK_NULL);
 
         bake_single_image(
-            bake, bake_level_mesh, subdiv_ccg, *image, *image_tile, *ibuf, extra_buffers, result);
+            bake, bake_level_mesh, subdiv_ccg, *image, image_tile, *ibuf, extra_buffers, result);
       }
     }
   }

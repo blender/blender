@@ -543,16 +543,16 @@ static bool v3d_cursor_is_snap_invert(SnapCursorDataIntern *data_intern, uint8_t
 
   const wmWindowManager *wm = static_cast<wmWindowManager *>(G.main->wm.first);
   wmKeyMap *keymap = WM_keymap_active(wm, data_intern->keymap);
-  LISTBASE_FOREACH (const wmKeyMapItem *, kmi, &keymap->items) {
-    if (kmi->flag & KMI_INACTIVE) {
+  for (const wmKeyMapItem &kmi : keymap->items) {
+    if (kmi.flag & KMI_INACTIVE) {
       continue;
     }
 
-    if (kmi->propvalue == snap_on) {
-      if ((ELEM(kmi->type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY) && (event_modifier & KM_CTRL)) ||
-          (ELEM(kmi->type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY) && (event_modifier & KM_SHIFT)) ||
-          (ELEM(kmi->type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY) && (event_modifier & KM_ALT)) ||
-          ((kmi->type == EVT_OSKEY) && (event_modifier & KM_OSKEY)))
+    if (kmi.propvalue == snap_on) {
+      if ((ELEM(kmi.type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY) && (event_modifier & KM_CTRL)) ||
+          (ELEM(kmi.type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY) && (event_modifier & KM_SHIFT)) ||
+          (ELEM(kmi.type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY) && (event_modifier & KM_ALT)) ||
+          ((kmi.type == EVT_OSKEY) && (event_modifier & KM_OSKEY)))
       {
         return true;
       }
@@ -598,8 +598,8 @@ static void v3d_cursor_snap_context_ensure(Scene *scene)
 static bool v3d_cursor_snap_calc_plane()
 {
   /* If any of the states require the plane, calculate the `plane_omat`. */
-  LISTBASE_FOREACH (SnapStateIntern *, state, &g_data_intern.state_intern) {
-    if (state->snap_state.draw_plane || state->snap_state.draw_box) {
+  for (SnapStateIntern &state : g_data_intern.state_intern) {
+    if (state.snap_state.draw_plane || state.snap_state.draw_box) {
       return true;
     }
   }

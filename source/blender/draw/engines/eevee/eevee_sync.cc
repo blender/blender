@@ -493,9 +493,9 @@ void foreach_hair_particle_handle(Instance &inst,
 {
   int sub_key = 1;
 
-  LISTBASE_FOREACH (ModifierData *, md, &ob_ref.object->modifiers) {
-    if (md->type == eModifierType_ParticleSystem) {
-      ParticleSystem *particle_sys = reinterpret_cast<ParticleSystemModifierData *>(md)->psys;
+  for (ModifierData &md : ob_ref.object->modifiers) {
+    if (md.type == eModifierType_ParticleSystem) {
+      ParticleSystem *particle_sys = reinterpret_cast<ParticleSystemModifierData *>(&md)->psys;
       ParticleSettings *part_settings = particle_sys->part;
       /* Only use the viewport drawing mode for material preview. */
       const int draw_as = (part_settings->draw_as == PART_DRAW_REND || !inst.is_viewport()) ?
@@ -511,7 +511,7 @@ void foreach_hair_particle_handle(Instance &inst,
       particle_sys_handle.object_key = ObjectKey(ob_ref, sub_key++);
       particle_sys_handle.recalc = particle_sys->recalc;
 
-      callback(particle_sys_handle, *md, *particle_sys);
+      callback(particle_sys_handle, md, *particle_sys);
     }
   }
 }

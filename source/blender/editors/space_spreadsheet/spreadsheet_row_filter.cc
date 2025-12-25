@@ -442,12 +442,12 @@ IndexMask spreadsheet_filter_rows(const SpaceSpreadsheet &sspreadsheet,
       columns.add(column.values->name(), column.values);
     }
 
-    LISTBASE_FOREACH (const SpreadsheetRowFilter *, row_filter, &sspreadsheet.row_filters) {
-      if (row_filter->flag & SPREADSHEET_ROW_FILTER_ENABLED) {
-        if (!columns.contains(row_filter->column_name)) {
+    for (const SpreadsheetRowFilter &row_filter : sspreadsheet.row_filters) {
+      if (row_filter.flag & SPREADSHEET_ROW_FILTER_ENABLED) {
+        if (!columns.contains(row_filter.column_name)) {
           continue;
         }
-        mask = apply_row_filter(*row_filter, columns, mask, mask_memory);
+        mask = apply_row_filter(row_filter, columns, mask, mask_memory);
       }
     }
   }

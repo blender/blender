@@ -226,17 +226,17 @@ Base *find_first_by_data_id(const Scene *scene, ViewLayer *view_layer, ID *id)
   Base *base_best = nullptr;
   int priority_best = 0;
 
-  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-    if (base->object && base->object->data == id) {
-      if (base->flag & BASE_SELECTED) {
-        return base;
+  for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+    if (base.object && base.object->data == id) {
+      if (base.flag & BASE_SELECTED) {
+        return &base;
       }
 
-      int priority_test = get_base_select_priority(base);
+      int priority_test = get_base_select_priority(&base);
 
       if (priority_test > priority_best) {
         priority_best = priority_test;
-        base_best = base;
+        base_best = &base;
       }
     }
   }
@@ -527,8 +527,8 @@ static bool object_select_all_by_particle(bContext *C, Object *ob)
   CTX_DATA_BEGIN (C, Base *, base, visible_bases) {
     if (((base->flag & BASE_SELECTED) == 0) && ((base->flag & BASE_SELECTABLE) != 0)) {
       /* Loop through other particles. */
-      LISTBASE_FOREACH (ParticleSystem *, psys, &base->object->particlesystem) {
-        if (psys->part == psys_act->part) {
+      for (ParticleSystem &psys : base->object->particlesystem) {
+        if (psys.part == psys_act->part) {
           base_select(base, BA_SELECT);
           changed = true;
           break;
@@ -855,9 +855,9 @@ static bool select_grouped_object_hooks(bContext *C, Object *ob)
   Base *base;
   HookModifierData *hmd;
 
-  LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-    if (md->type == eModifierType_Hook) {
-      hmd = (HookModifierData *)md;
+  for (ModifierData &md : ob->modifiers) {
+    if (md.type == eModifierType_Hook) {
+      hmd = (HookModifierData *)&md;
       if (hmd->object) {
         BKE_view_layer_synced_ensure(scene, view_layer);
         base = BKE_view_layer_base_find(view_layer, hmd->object);
@@ -983,9 +983,9 @@ static bool select_grouped_keyingset(bContext *C, Object * /*ob*/, ReportList *r
     if ((base->flag & BASE_SELECTED) == 0) {
       /* This is the slow way... we could end up with > 500 items here,
        * with none matching, but end up doing this on 1000 objects. */
-      LISTBASE_FOREACH (KS_Path *, ksp, &ks->paths) {
+      for (KS_Path &ksp : ks->paths) {
         /* if id matches, select then stop looping (match found) */
-        if (ksp->id == (ID *)base->object) {
+        if (ksp.id == (ID *)base->object) {
           base_select(base, BA_SELECT);
           changed = true;
           break;
@@ -1294,8 +1294,8 @@ static bool object_select_more_less(bContext *C, const bool select)
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
   BKE_view_layer_synced_ensure(scene, view_layer);
-  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-    Object *ob = base->object;
+  for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+    Object *ob = base.object;
     ob->flag &= ~OB_DONE;
     ob->id.tag &= ~ID_TAG_DOIT;
     /* parent may be in another scene */

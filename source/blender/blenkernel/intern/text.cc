@@ -123,11 +123,11 @@ static void text_copy_data(Main * /*bmain*/,
   text_dst->compiled = nullptr;
 
   /* Walk down, reconstructing. */
-  LISTBASE_FOREACH (TextLine *, line_src, &text_src->lines) {
+  for (TextLine &line_src : text_src->lines) {
     TextLine *line_dst = txt_line_malloc();
 
-    line_dst->line = BLI_strdupn(line_src->line, line_src->len);
-    line_dst->len = line_src->len;
+    line_dst->line = BLI_strdupn(line_src.line, line_src.len);
+    line_dst->len = line_src.len;
     line_dst->format = nullptr;
 
     BLI_addtail(&text_dst->lines, line_dst);
@@ -182,12 +182,12 @@ static void text_blend_write(BlendWriter *writer, ID *id, const void *id_address
 
   if (!(text->flags & TXT_ISEXT)) {
     /* Now write the text data, in two steps for optimization in the read-function. */
-    LISTBASE_FOREACH (TextLine *, tmp, &text->lines) {
-      writer->write_struct(tmp);
+    for (TextLine &tmp : text->lines) {
+      writer->write_struct(&tmp);
     }
 
-    LISTBASE_FOREACH (TextLine *, tmp, &text->lines) {
-      BLO_write_string(writer, tmp->line);
+    for (TextLine &tmp : text->lines) {
+      BLO_write_string(writer, tmp.line);
     }
   }
 }
@@ -211,13 +211,13 @@ static void text_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_struct(reader, TextLine, &text->curl);
   BLO_read_struct(reader, TextLine, &text->sell);
 
-  LISTBASE_FOREACH (TextLine *, ln, &text->lines) {
-    BLO_read_string(reader, &ln->line);
-    ln->format = nullptr;
+  for (TextLine &ln : text->lines) {
+    BLO_read_string(reader, &ln.line);
+    ln.format = nullptr;
 
-    if (ln->len != int(strlen(ln->line))) {
+    if (ln.len != int(strlen(ln.line))) {
       printf("Error loading text, line lengths differ\n");
-      ln->len = strlen(ln->line);
+      ln.len = strlen(ln.line);
     }
   }
 
@@ -1345,14 +1345,14 @@ void txt_sel_set(Text *text, int startl, int startc, int endl, int endc)
 char *txt_to_buf_for_undo(Text *text, size_t *r_buf_len)
 {
   int buf_len = 0;
-  LISTBASE_FOREACH (const TextLine *, l, &text->lines) {
-    buf_len += l->len + 1;
+  for (const TextLine &l : text->lines) {
+    buf_len += l.len + 1;
   }
   char *buf = MEM_malloc_arrayN<char>(size_t(buf_len), __func__);
   char *buf_step = buf;
-  LISTBASE_FOREACH (const TextLine *, l, &text->lines) {
-    memcpy(buf_step, l->line, l->len);
-    buf_step += l->len;
+  for (const TextLine &l : text->lines) {
+    memcpy(buf_step, l.line, l.len);
+    buf_step += l.len;
     *buf_step++ = '\n';
   }
   *r_buf_len = buf_len;
@@ -1432,17 +1432,17 @@ char *txt_to_buf(Text *text, size_t *r_buf_strlen)
   const bool has_data = !BLI_listbase_is_empty(&text->lines);
   /* Identical to #txt_to_buf_for_undo except that the string is nil terminated. */
   size_t buf_len = 0;
-  LISTBASE_FOREACH (const TextLine *, l, &text->lines) {
-    buf_len += l->len + 1;
+  for (const TextLine &l : text->lines) {
+    buf_len += l.len + 1;
   }
   if (has_data) {
     buf_len -= 1;
   }
   char *buf = MEM_malloc_arrayN<char>(buf_len + 1, __func__);
   char *buf_step = buf;
-  LISTBASE_FOREACH (const TextLine *, l, &text->lines) {
-    memcpy(buf_step, l->line, l->len);
-    buf_step += l->len;
+  for (const TextLine &l : text->lines) {
+    memcpy(buf_step, l.line, l.len);
+    buf_step += l.len;
     *buf_step++ = '\n';
   }
   /* Remove the trailing new-line so a round-trip doesn't add a newline:

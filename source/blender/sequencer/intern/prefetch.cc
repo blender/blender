@@ -132,13 +132,13 @@ static bool seq_prefetch_job_is_waiting(Scene *scene)
 
 static Strip *original_strip_get(const Strip *strip, ListBaseT<Strip> *seqbase)
 {
-  LISTBASE_FOREACH (Strip *, strip_orig, seqbase) {
-    if (STREQ(strip->name, strip_orig->name)) {
-      return strip_orig;
+  for (Strip &strip_orig : *seqbase) {
+    if (STREQ(strip->name, strip_orig.name)) {
+      return &strip_orig;
     }
 
-    if (strip_orig->type == STRIP_TYPE_META) {
-      Strip *match = original_strip_get(strip, &strip_orig->seqbase);
+    if (strip_orig.type == STRIP_TYPE_META) {
+      Strip *match = original_strip_get(strip, &strip_orig.seqbase);
       if (match != nullptr) {
         return match;
       }

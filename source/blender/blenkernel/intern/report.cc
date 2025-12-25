@@ -221,12 +221,12 @@ static void reports_prepend_impl(ReportList *reports, const char *prepend)
   std::scoped_lock lock(*reports->lock);
 
   const size_t prefix_len = strlen(prepend);
-  LISTBASE_FOREACH (Report *, report, &reports->list) {
-    char *message = BLI_string_joinN(prepend, report->message);
-    MEM_freeN(report->message);
-    report->message = message;
-    report->len += prefix_len;
-    BLI_assert(report->len == strlen(message));
+  for (Report &report : reports->list) {
+    char *message = BLI_string_joinN(prepend, report.message);
+    MEM_freeN(report.message);
+    report.message = message;
+    report.len += prefix_len;
+    BLI_assert(report.len == strlen(message));
   }
 }
 
@@ -305,9 +305,9 @@ char *BKE_reports_string(ReportList *reports, eReportType level)
   std::scoped_lock lock(*reports->lock);
 
   ds = BLI_dynstr_new();
-  LISTBASE_FOREACH (Report *, report, &reports->list) {
-    if (report->type >= level) {
-      BLI_dynstr_appendf(ds, "%s: %s\n", report->typestr, report->message);
+  for (Report &report : reports->list) {
+    if (report.type >= level) {
+      BLI_dynstr_appendf(ds, "%s: %s\n", report.typestr, report.message);
     }
   }
 
@@ -346,9 +346,9 @@ void BKE_reports_log(ReportList *reports, eReportType level, CLG_LogRef *log)
     return;
   }
 
-  LISTBASE_FOREACH (Report *, report, &reports->list) {
-    if (report->type >= level) {
-      BKE_report_log(eReportType(report->type), report->message, log);
+  for (Report &report : reports->list) {
+    if (report.type >= level) {
+      BKE_report_log(eReportType(report.type), report.message, log);
     }
   }
 }
@@ -371,9 +371,9 @@ Report *BKE_reports_last_displayable(ReportList *reports)
 {
   std::scoped_lock lock(*reports->lock);
 
-  LISTBASE_FOREACH_BACKWARD (Report *, report, &reports->list) {
-    if (ELEM(report->type, RPT_ERROR, RPT_WARNING, RPT_INFO)) {
-      return report;
+  for (Report &report : reports->list.items_reversed()) {
+    if (ELEM(report.type, RPT_ERROR, RPT_WARNING, RPT_INFO)) {
+      return &report;
     }
   }
 
@@ -385,8 +385,8 @@ bool BKE_reports_contain(ReportList *reports, eReportType level)
   if (reports != nullptr) {
     std::scoped_lock lock(*reports->lock);
 
-    LISTBASE_FOREACH (Report *, report, &reports->list) {
-      if (report->type >= level) {
+    for (Report &report : reports->list) {
+      if (report.type >= level) {
         return true;
       }
     }
@@ -402,8 +402,8 @@ bool BKE_report_write_file_fp(FILE *fp, ReportList *reports, const char *header)
 
   std::scoped_lock lock(*reports->lock);
 
-  LISTBASE_FOREACH (Report *, report, &reports->list) {
-    fprintf(fp, "%s  # %s\n", report->message, report->typestr);
+  for (Report &report : reports->list) {
+    fprintf(fp, "%s  # %s\n", report.message, report.typestr);
   }
 
   return true;

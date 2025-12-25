@@ -526,9 +526,9 @@ static void annotation_draw_strokes(const bGPDframe *gpf,
 {
   GPU_program_point_size(true);
 
-  LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
+  for (bGPDstroke &gps : gpf->strokes) {
     /* check if stroke can be drawn */
-    if (annotation_can_draw_stroke(gps, dflag) == false) {
+    if (annotation_can_draw_stroke(&gps, dflag) == false) {
       continue;
     }
 
@@ -545,13 +545,13 @@ static void annotation_draw_strokes(const bGPDframe *gpf,
       }
 
       /* 3D Lines - OpenGL primitives-based */
-      if (gps->totpoints == 1) {
+      if (gps.totpoints == 1) {
         annotation_draw_stroke_point(
-            gps->points, lthick, gps->flag, offsx, offsy, winx, winy, color);
+            gps.points, lthick, gps.flag, offsx, offsy, winx, winy, color);
       }
       else {
         annotation_draw_stroke_3d(
-            gps->points, gps->totpoints, lthick, color, gps->flag & GP_STROKE_CYCLIC);
+            gps.points, gps.totpoints, lthick, color, gps.flag & GP_STROKE_CYCLIC);
       }
 
       if (no_xray) {
@@ -562,13 +562,13 @@ static void annotation_draw_strokes(const bGPDframe *gpf,
     }
     else {
       /* 2D Strokes... */
-      if (gps->totpoints == 1) {
+      if (gps.totpoints == 1) {
         annotation_draw_stroke_point(
-            gps->points, lthick, gps->flag, offsx, offsy, winx, winy, color);
+            gps.points, lthick, gps.flag, offsx, offsy, winx, winy, color);
       }
       else {
         annotation_draw_stroke_2d(
-            gps->points, gps->totpoints, lthick, gps->flag, offsx, offsy, winx, winy, color);
+            gps.points, gps.totpoints, lthick, gps.flag, offsx, offsy, winx, winy, color);
       }
     }
   }
@@ -665,22 +665,22 @@ static void annotation_draw_data_layers(
 {
   float ink[4];
 
-  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+  for (bGPDlayer &gpl : gpd->layers) {
     /* verify never thickness is less than 1 */
-    CLAMP_MIN(gpl->thickness, 1.0f);
-    short lthick = gpl->thickness;
+    CLAMP_MIN(gpl.thickness, 1.0f);
+    short lthick = gpl.thickness;
 
     /* apply layer opacity */
-    copy_v3_v3(ink, gpl->color);
-    ink[3] = gpl->opacity;
+    copy_v3_v3(ink, gpl.color);
+    ink[3] = gpl.opacity;
 
     /* don't draw layer if hidden */
-    if (gpl->flag & GP_LAYER_HIDE) {
+    if (gpl.flag & GP_LAYER_HIDE) {
       continue;
     }
 
     /* get frame to draw */
-    bGPDframe *gpf = BKE_gpencil_layer_frame_get(gpl, cfra, GP_GETFRAME_USE_PREV);
+    bGPDframe *gpf = BKE_gpencil_layer_frame_get(&gpl, cfra, GP_GETFRAME_USE_PREV);
     if (gpf == nullptr) {
       continue;
     }
@@ -691,11 +691,11 @@ static void annotation_draw_data_layers(
      */
 
     /* xray... */
-    SET_FLAG_FROM_TEST(dflag, gpl->flag & GP_LAYER_NO_XRAY, GP_DRAWDATA_NO_XRAY);
+    SET_FLAG_FROM_TEST(dflag, gpl.flag & GP_LAYER_NO_XRAY, GP_DRAWDATA_NO_XRAY);
 
     /* Draw 'onionskins' (frame left + right) */
-    if (gpl->onion_flag & GP_LAYER_ONIONSKIN) {
-      annotation_draw_onionskins(gpl, gpf, offsx, offsy, winx, winy, dflag);
+    if (gpl.onion_flag & GP_LAYER_ONIONSKIN) {
+      annotation_draw_onionskins(&gpl, gpf, offsx, offsy, winx, winy, dflag);
     }
 
     /* draw the strokes already in active frame */
@@ -704,7 +704,7 @@ static void annotation_draw_data_layers(
     /* Check if may need to draw the active stroke cache, only if this layer is the active layer
      * that is being edited. (Stroke buffer is currently stored in gp-data)
      */
-    if ((gpl->flag & GP_LAYER_ACTIVE) && (gpf->flag & GP_FRAME_PAINT)) {
+    if ((gpl.flag & GP_LAYER_ACTIVE) && (gpf->flag & GP_FRAME_PAINT)) {
       /* Buffer stroke needs to be drawn with a different line-style
        * to help differentiate them from normal strokes.
        *

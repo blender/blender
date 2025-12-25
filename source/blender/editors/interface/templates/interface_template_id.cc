@@ -145,9 +145,9 @@ static void id_search_cb(const bContext *C,
   string_search::StringSearch<ID> search;
 
   /* ID listbase */
-  LISTBASE_FOREACH (ID *, id, lb) {
-    if (id_search_allows_id(template_ui, flag, id, str)) {
-      search.add(id->name + 2, id);
+  for (ID &id : *lb) {
+    if (id_search_allows_id(template_ui, flag, &id, str)) {
+      search.add(id.name + 2, &id);
     }
   }
 
@@ -176,12 +176,12 @@ static void id_search_cb_tagged(const bContext *C,
                                                   blender::string_search::MainWordsHeuristic::All};
 
   /* ID listbase */
-  LISTBASE_FOREACH (ID *, id, lb) {
-    if (id->tag & ID_TAG_DOIT) {
-      if (id_search_allows_id(template_ui, flag, id, str)) {
-        search.add(id->name + 2, id);
+  for (ID &id : *lb) {
+    if (id.tag & ID_TAG_DOIT) {
+      if (id_search_allows_id(template_ui, flag, &id, str)) {
+        search.add(id.name + 2, &id);
       }
-      id->tag &= ~ID_TAG_DOIT;
+      id.tag &= ~ID_TAG_DOIT;
     }
   }
 
@@ -440,20 +440,20 @@ ID *template_id_liboverride_hierarchy_make(
   {
     /* If we failed to find a valid 'active' collection so far for our override hierarchy, but do
      * have a valid 'active' object, try to find a collection from that object. */
-    LISTBASE_FOREACH (Collection *, collection_iter, &bmain->collections) {
-      if (ID_IS_LINKED(collection_iter) && collection_iter->id.lib != id->lib) {
+    for (Collection &collection_iter : bmain->collections) {
+      if (ID_IS_LINKED(&collection_iter) && collection_iter.id.lib != id->lib) {
         continue;
       }
-      if (!ID_IS_OVERRIDE_LIBRARY_REAL(collection_iter)) {
+      if (!ID_IS_OVERRIDE_LIBRARY_REAL(&collection_iter)) {
         continue;
       }
-      if (!BKE_collection_has_object_recursive(collection_iter, object_active)) {
+      if (!BKE_collection_has_object_recursive(&collection_iter, object_active)) {
         continue;
       }
       int parent_level_best = -1;
       Collection *collection_parent_best = nullptr;
       template_id_liboverride_hierarchy_collection_root_find_recursive(
-          collection_iter, 0, &collection_parent_best, &parent_level_best);
+          &collection_iter, 0, &collection_parent_best, &parent_level_best);
       collection_active = collection_parent_best;
       break;
     }

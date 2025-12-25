@@ -220,9 +220,9 @@ TEST_F(UsdExportTest, usd_export_rain_mesh)
   /*
    * Run the mesh comparison for all Meshes in the original scene.
    */
-  LISTBASE_FOREACH (Object *, object, &bfile->main->objects) {
-    const Mesh *mesh = static_cast<Mesh *>(object->data);
-    const StringRefNull object_name(object->id.name + 2);
+  for (Object &object : bfile->main->objects) {
+    const Mesh *mesh = static_cast<Mesh *>(object.data);
+    const StringRefNull object_name(object.id.name + 2);
 
     const pxr::SdfPath sdf_path("/" + pxr::TfMakeValidIdentifier(object_name.c_str()));
     pxr::UsdPrim prim = stage->GetPrimAtPath(sdf_path);

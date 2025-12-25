@@ -152,10 +152,10 @@ static bool object_deselect_all_visible(const Scene *scene, ViewLayer *view_laye
 {
   bool changed = false;
   BKE_view_layer_synced_ensure(scene, view_layer);
-  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-    if (base->flag & BASE_SELECTED) {
-      if (BASE_SELECTABLE(v3d, base)) {
-        blender::ed::object::base_select(base, blender::ed::object::BA_DESELECT);
+  for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+    if (base.flag & BASE_SELECTED) {
+      if (BASE_SELECTABLE(v3d, &base)) {
+        blender::ed::object::base_select(&base, blender::ed::object::BA_DESELECT);
         changed = true;
       }
     }
@@ -168,10 +168,10 @@ static bool object_deselect_all_except(const Scene *scene, ViewLayer *view_layer
 {
   bool changed = false;
   BKE_view_layer_synced_ensure(scene, view_layer);
-  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-    if (base->flag & BASE_SELECTED) {
-      if (b != base) {
-        blender::ed::object::base_select(base, blender::ed::object::BA_DESELECT);
+  for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+    if (base.flag & BASE_SELECTED) {
+      if (b != &base) {
+        blender::ed::object::base_select(&base, blender::ed::object::BA_DESELECT);
         changed = true;
       }
     }
@@ -578,11 +578,11 @@ static bool do_lasso_select_objects(const ViewContext *vc,
     changed |= object_deselect_all_visible(vc->scene, vc->view_layer, vc->v3d);
   }
   BKE_view_layer_synced_ensure(vc->scene, vc->view_layer);
-  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(vc->view_layer)) {
-    if (BASE_SELECTABLE(v3d, base)) { /* Use this to avoid unnecessary lasso look-ups. */
+  for (Base &base : *BKE_view_layer_object_bases_get(vc->view_layer)) {
+    if (BASE_SELECTABLE(v3d, &base)) { /* Use this to avoid unnecessary lasso look-ups. */
       float region_co[2];
-      const bool is_select = base->flag & BASE_SELECTED;
-      const bool is_inside = (ED_view3d_project_base(vc->region, base, region_co) ==
+      const bool is_select = base.flag & BASE_SELECTED;
+      const bool is_inside = (ED_view3d_project_base(vc->region, &base, region_co) ==
                               V3D_PROJ_RET_OK) &&
                              BLI_lasso_is_point_inside(mcoords,
                                                        int(region_co[0]),
@@ -591,7 +591,7 @@ static bool do_lasso_select_objects(const ViewContext *vc,
                                                        INT_MAX);
       const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
       if (sel_op_result != -1) {
-        blender::ed::object::base_select(base,
+        blender::ed::object::base_select(&base,
                                          sel_op_result ? blender::ed::object::BA_SELECT :
                                                          blender::ed::object::BA_DESELECT);
         changed = true;
@@ -614,8 +614,8 @@ static blender::Vector<Base *> do_pose_tag_select_op_prepare(const ViewContext *
   auto bases_tag_and_append_fn = [](blender::Vector<Base *> &bases, Base *base) {
     Object *ob = base->object;
     bArmature *arm = static_cast<bArmature *>(ob->data);
-    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-      pchan->runtime.flag &= ~POSE_RUNTIME_IN_SELECTION_AREA;
+    for (bPoseChannel &pchan : ob->pose->chanbase) {
+      pchan.runtime.flag &= ~POSE_RUNTIME_IN_SELECTION_AREA;
     }
     arm->id.tag |= ID_TAG_DOIT;
     ob->id.tag &= ~ID_TAG_DOIT;
@@ -665,14 +665,14 @@ static bool do_pose_tag_select_op_exec(blender::MutableSpan<Base *> bases, const
     bArmature *arm = static_cast<bArmature *>(ob_iter->data);
 
     bool changed = false;
-    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob_iter->pose->chanbase) {
-      Bone *bone = pchan->bone;
+    for (bPoseChannel &pchan : ob_iter->pose->chanbase) {
+      Bone *bone = pchan.bone;
       if ((bone->flag & BONE_UNSELECTABLE) == 0) {
-        const bool is_select = pchan->flag & POSE_SELECTED;
-        const bool is_inside = pchan->runtime.flag & POSE_RUNTIME_IN_SELECTION_AREA;
+        const bool is_select = pchan.flag & POSE_SELECTED;
+        const bool is_inside = pchan.runtime.flag & POSE_RUNTIME_IN_SELECTION_AREA;
         const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
         if (sel_op_result != -1) {
-          SET_FLAG_FROM_TEST(pchan->flag, sel_op_result, POSE_SELECTED);
+          SET_FLAG_FROM_TEST(pchan.flag, sel_op_result, POSE_SELECTED);
           if (sel_op_result == 0) {
             if (arm->act_bone == bone) {
               arm->act_bone = nullptr;
@@ -1808,9 +1808,8 @@ static bool object_mouse_select_menu(bContext *C,
 
   memset(object_mouse_select_menu_data, 0, sizeof(object_mouse_select_menu_data));
 
-  int i;
-  LISTBASE_FOREACH_INDEX (BaseRefWithDepth *, base_ref, &base_ref_list, i) {
-    Base *base = base_ref->base;
+  for (const auto [i, base_ref] : base_ref_list.enumerate()) {
+    Base *base = base_ref.base;
     Object *ob = base->object;
     const char *name = ob->id.name + 2;
 
@@ -2043,19 +2042,18 @@ static bool bone_mouse_select_menu(bContext *C,
   /* UI, full in static array values that we later use in an enum function */
   memset(object_mouse_select_menu_data, 0, sizeof(object_mouse_select_menu_data));
 
-  int i;
-  LISTBASE_FOREACH_INDEX (BoneRefWithDepth *, bone_ref, &bone_ref_list, i) {
+  for (const auto [i, bone_ref] : bone_ref_list.enumerate()) {
     char *name;
 
-    object_mouse_select_menu_data[i].base_ptr = bone_ref->base;
+    object_mouse_select_menu_data[i].base_ptr = bone_ref.base;
 
     if (is_editmode) {
-      EditBone *ebone = bone_ref->ebone;
+      EditBone *ebone = bone_ref.ebone;
       object_mouse_select_menu_data[i].item_ptr = static_cast<void *>(ebone);
       name = ebone->name;
     }
     else {
-      bPoseChannel *pchan = bone_ref->pchan;
+      bPoseChannel *pchan = bone_ref.pchan;
       object_mouse_select_menu_data[i].item_ptr = static_cast<void *>(pchan);
       name = pchan->name;
     }
@@ -2387,10 +2385,10 @@ static Base *mouse_select_eval_buffer(const ViewContext *vc,
   Base *basact = nullptr;
   if (found) {
     BKE_view_layer_synced_ensure(scene, view_layer);
-    LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-      if (has_bones ? BASE_VISIBLE(v3d, base) : BASE_SELECTABLE(v3d, base)) {
-        if (base->object->runtime->select_id == select_id) {
-          basact = base;
+    for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+      if (has_bones ? BASE_VISIBLE(v3d, &base) : BASE_SELECTABLE(v3d, &base)) {
+        if (base.object->runtime->select_id == select_id) {
+          basact = &base;
           break;
         }
       }
@@ -2512,9 +2510,9 @@ bool ED_view3d_is_object_under_cursor(bContext *C, const int mval[2])
 
 static void deselect_all_tracks(MovieTracking *tracking)
 {
-  LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
-    LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-      BKE_tracking_track_deselect(track, TRACK_AREA_ALL);
+  for (MovieTrackingObject &tracking_object : tracking->objects) {
+    for (MovieTrackingTrack &track : tracking_object.tracks) {
+      BKE_tracking_track_deselect(&track, TRACK_AREA_ALL);
     }
   }
 }
@@ -4330,8 +4328,8 @@ static bool do_object_box_select(bContext *C,
                                                                                  vc->obact);
   const int hits = view3d_gpu_select(vc, &buffer, rect, VIEW3D_SELECT_ALL, select_filter);
   BKE_view_layer_synced_ensure(vc->scene, vc->view_layer);
-  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(vc->view_layer)) {
-    base->object->id.tag &= ~ID_TAG_DOIT;
+  for (Base &base : *BKE_view_layer_object_bases_get(vc->view_layer)) {
+    base.object->id.tag &= ~ID_TAG_DOIT;
   }
 
   bool changed = false;
@@ -4348,12 +4346,12 @@ static bool do_object_box_select(bContext *C,
   }
 
   blender::Map<uint32_t, Base *> base_by_object_select_id;
-  LISTBASE_FOREACH (Base *, base, object_bases) {
-    if (BASE_SELECTABLE(v3d, base)) {
-      const uint32_t select_id = base->object->runtime->select_id;
+  for (Base &base : *object_bases) {
+    if (BASE_SELECTABLE(v3d, &base)) {
+      const uint32_t select_id = base.object->runtime->select_id;
       if ((select_id & 0x0000FFFF) != 0) {
         const uint hit_object = select_id & 0xFFFF;
-        base_by_object_select_id.add(hit_object, base);
+        base_by_object_select_id.add(hit_object, &base);
       }
     }
   }
@@ -5548,17 +5546,17 @@ static bool object_circle_select(const ViewContext *vc,
   const bool select = (sel_op != SEL_OP_SUB);
   const int select_flag = select ? BASE_SELECTED : 0;
   BKE_view_layer_synced_ensure(scene, view_layer);
-  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-    if (BASE_SELECTABLE(v3d, base) && ((base->flag & BASE_SELECTED) != select_flag)) {
+  for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+    if (BASE_SELECTABLE(v3d, &base) && ((base.flag & BASE_SELECTED) != select_flag)) {
       float screen_co[2];
       if (ED_view3d_project_float_global(vc->region,
-                                         base->object->object_to_world().location(),
+                                         base.object->object_to_world().location(),
                                          screen_co,
                                          V3D_PROJ_TEST_CLIP_DEFAULT) == V3D_PROJ_RET_OK)
       {
         if (len_squared_v2v2(mval_fl, screen_co) <= radius_squared) {
           blender::ed::object::base_select(
-              base, select ? blender::ed::object::BA_SELECT : blender::ed::object::BA_DESELECT);
+              &base, select ? blender::ed::object::BA_SELECT : blender::ed::object::BA_DESELECT);
           changed = true;
         }
       }

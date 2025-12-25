@@ -671,10 +671,10 @@ static bool supports_handle_ranges(DupliObject *dupli, Object *parent)
 
   if (ob_type == OB_MESH) {
     /* Hair drawing doesn't support handle ranges. */
-    LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
-      const int draw_as = (psys->part->draw_as == PART_DRAW_REND) ? psys->part->ren_as :
-                                                                    psys->part->draw_as;
-      if (draw_as == PART_DRAW_PATH && DRW_object_is_visible_psys_in_active_context(ob, psys)) {
+    for (ParticleSystem &psys : ob->particlesystem) {
+      const int draw_as = (psys.part->draw_as == PART_DRAW_REND) ? psys.part->ren_as :
+                                                                   psys.part->draw_as;
+      if (draw_as == PART_DRAW_PATH && DRW_object_is_visible_psys_in_active_context(ob, &psys)) {
         return false;
       }
     }
@@ -918,8 +918,8 @@ void DRW_cache_free_old_batches(Main *bmain)
   for (scene = static_cast<Scene *>(bmain->scenes.first); scene;
        scene = static_cast<Scene *>(scene->id.next))
   {
-    LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
-      Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer);
+    for (ViewLayer &view_layer : scene->view_layers) {
+      Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, &view_layer);
       if (depsgraph == nullptr) {
         continue;
       }

@@ -131,12 +131,12 @@ static void movie_clip_foreach_id(ID *id, LibraryForeachIDData *data)
 
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, movie_clip->gpd, IDWALK_CB_USER);
 
-  LISTBASE_FOREACH (MovieTrackingObject *, object, &tracking->objects) {
-    LISTBASE_FOREACH (MovieTrackingTrack *, track, &object->tracks) {
-      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, track->gpd, IDWALK_CB_USER);
+  for (MovieTrackingObject &object : tracking->objects) {
+    for (MovieTrackingTrack &track : object.tracks) {
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, track.gpd, IDWALK_CB_USER);
     }
-    LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &object->plane_tracks) {
-      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, plane_track->image, IDWALK_CB_USER);
+    for (MovieTrackingPlaneTrack &plane_track : object.plane_tracks) {
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, plane_track.image, IDWALK_CB_USER);
     }
   }
 }
@@ -181,12 +181,12 @@ static void write_movieTracks(BlendWriter *writer, ListBaseT<MovieTrackingTrack>
 static void write_moviePlaneTracks(BlendWriter *writer,
                                    ListBaseT<MovieTrackingPlaneTrack> *plane_tracks_base)
 {
-  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, plane_tracks_base) {
-    writer->write_struct(plane_track);
+  for (MovieTrackingPlaneTrack &plane_track : *plane_tracks_base) {
+    writer->write_struct(&plane_track);
 
-    BLO_write_pointer_array(writer, plane_track->point_tracksnr, plane_track->point_tracks);
+    BLO_write_pointer_array(writer, plane_track.point_tracksnr, plane_track.point_tracks);
     BLO_write_struct_array(
-        writer, MovieTrackingPlaneMarker, plane_track->markersnr, plane_track->markers);
+        writer, MovieTrackingPlaneMarker, plane_track.markersnr, plane_track.markers);
   }
 }
 
@@ -213,11 +213,11 @@ static void movieclip_blend_write(BlendWriter *writer, ID *id, const void *id_ad
   BLO_write_id_struct(writer, MovieClip, id_address, &clip->id);
   BKE_id_blend_write(writer, &clip->id);
 
-  LISTBASE_FOREACH (MovieTrackingObject *, object, &tracking->objects) {
-    writer->write_struct(object);
-    write_movieTracks(writer, &object->tracks);
-    write_moviePlaneTracks(writer, &object->plane_tracks);
-    write_movieReconstruction(writer, &object->reconstruction);
+  for (MovieTrackingObject &object : tracking->objects) {
+    writer->write_struct(&object);
+    write_movieTracks(writer, &object.tracks);
+    write_moviePlaneTracks(writer, &object.plane_tracks);
+    write_movieReconstruction(writer, &object.reconstruction);
   }
 }
 
@@ -233,8 +233,8 @@ static void direct_link_movieTracks(BlendDataReader *reader,
 {
   BLO_read_struct_list(reader, MovieTrackingTrack, tracksbase);
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
-    BLO_read_struct_array(reader, MovieTrackingMarker, track->markersnr, &track->markers);
+  for (MovieTrackingTrack &track : *tracksbase) {
+    BLO_read_struct_array(reader, MovieTrackingMarker, track.markersnr, &track.markers);
   }
 }
 
@@ -243,15 +243,14 @@ static void direct_link_moviePlaneTracks(BlendDataReader *reader,
 {
   BLO_read_struct_list(reader, MovieTrackingPlaneTrack, plane_tracks_base);
 
-  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, plane_tracks_base) {
-    BLO_read_pointer_array(
-        reader, plane_track->point_tracksnr, (void **)&plane_track->point_tracks);
-    for (int i = 0; i < plane_track->point_tracksnr; i++) {
-      BLO_read_struct(reader, MovieTrackingTrack, &plane_track->point_tracks[i]);
+  for (MovieTrackingPlaneTrack &plane_track : *plane_tracks_base) {
+    BLO_read_pointer_array(reader, plane_track.point_tracksnr, (void **)&plane_track.point_tracks);
+    for (int i = 0; i < plane_track.point_tracksnr; i++) {
+      BLO_read_struct(reader, MovieTrackingTrack, &plane_track.point_tracks[i]);
     }
 
     BLO_read_struct_array(
-        reader, MovieTrackingPlaneMarker, plane_track->markersnr, &plane_track->markers);
+        reader, MovieTrackingPlaneMarker, plane_track.markersnr, &plane_track.markers);
   }
 }
 
@@ -280,13 +279,13 @@ static void movieclip_blend_read_data(BlendDataReader *reader, ID *id)
 
   BLO_read_struct_list(reader, MovieTrackingObject, &tracking->objects);
 
-  LISTBASE_FOREACH (MovieTrackingObject *, object, &tracking->objects) {
-    direct_link_movieTracks(reader, &object->tracks);
-    direct_link_moviePlaneTracks(reader, &object->plane_tracks);
-    direct_link_movieReconstruction(reader, &object->reconstruction);
+  for (MovieTrackingObject &object : tracking->objects) {
+    direct_link_movieTracks(reader, &object.tracks);
+    direct_link_moviePlaneTracks(reader, &object.plane_tracks);
+    direct_link_movieReconstruction(reader, &object.reconstruction);
 
-    BLO_read_struct(reader, MovieTrackingTrack, &object->active_track);
-    BLO_read_struct(reader, MovieTrackingPlaneTrack, &object->active_plane_track);
+    BLO_read_struct(reader, MovieTrackingTrack, &object.active_track);
+    BLO_read_struct(reader, MovieTrackingPlaneTrack, &object.active_plane_track);
   }
 
   movie_clip_runtime_reset(clip);

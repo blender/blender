@@ -162,8 +162,8 @@ static void ensure_change_frame_keylist(bContext *C, FrameChangeModalData &op_da
     }
 
     ListBaseT<Strip> *seqbase = blender::seq::active_seqbase_get(blender::seq::editing_get(scene));
-    LISTBASE_FOREACH (Strip *, strip, seqbase) {
-      sequencer_strip_to_keylist(*strip, *op_data.keylist, *scene);
+    for (Strip &strip : *seqbase) {
+      sequencer_strip_to_keylist(strip, *op_data.keylist, *scene);
     }
     ED_keylist_prepare_for_direct_access(op_data.keylist);
     return;
@@ -196,22 +196,22 @@ static void ensure_change_frame_keylist(bContext *C, FrameChangeModalData &op_da
       break;
   }
 
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    switch (ale->datatype) {
+  for (bAnimListElem &ale : anim_data) {
+    switch (ale.datatype) {
       case ALE_FCURVE: {
-        FCurve *fcurve = static_cast<FCurve *>(ale->data);
-        fcurve_to_keylist(ale->adt, fcurve, op_data.keylist, 0, {-FLT_MAX, FLT_MAX}, true);
+        FCurve *fcurve = static_cast<FCurve *>(ale.data);
+        fcurve_to_keylist(ale.adt, fcurve, op_data.keylist, 0, {-FLT_MAX, FLT_MAX}, true);
         break;
       }
 
       case ALE_GPFRAME: {
-        gpl_to_keylist(nullptr, static_cast<bGPDlayer *>(ale->data), op_data.keylist);
+        gpl_to_keylist(nullptr, static_cast<bGPDlayer *>(ale.data), op_data.keylist);
         break;
       }
 
       case ALE_GREASE_PENCIL_CEL: {
         grease_pencil_cels_to_keylist(
-            ale->adt, static_cast<const GreasePencilLayer *>(ale->data), op_data.keylist, 0);
+            ale.adt, static_cast<const GreasePencilLayer *>(ale.data), op_data.keylist, 0);
         break;
       }
 
@@ -323,19 +323,19 @@ static void append_nla_strip_snap_target(bContext *C,
   float best_frame = FLT_MAX;
   float best_distance = FLT_MAX;
 
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    if (ale->type != ANIMTYPE_NLATRACK) {
+  for (bAnimListElem &ale : anim_data) {
+    if (ale.type != ANIMTYPE_NLATRACK) {
       continue;
     }
-    NlaTrack *track = static_cast<NlaTrack *>(ale->data);
-    LISTBASE_FOREACH (NlaStrip *, strip, &track->strips) {
-      if (abs(strip->start - timeline_frame) < best_distance) {
-        best_distance = abs(strip->start - timeline_frame);
-        best_frame = strip->start;
+    NlaTrack *track = static_cast<NlaTrack *>(ale.data);
+    for (NlaStrip &strip : track->strips) {
+      if (abs(strip.start - timeline_frame) < best_distance) {
+        best_distance = abs(strip.start - timeline_frame);
+        best_frame = strip.start;
       }
-      if (abs(strip->end - timeline_frame) < best_distance) {
-        best_distance = abs(strip->end - timeline_frame);
-        best_frame = strip->end;
+      if (abs(strip.end - timeline_frame) < best_distance) {
+        best_distance = abs(strip.end - timeline_frame);
+        best_frame = strip.end;
       }
     }
   }
@@ -1143,8 +1143,8 @@ static wmOperatorStatus debug_channel_list_exec(bContext *C, wmOperator * /*op*/
   printf("Animation Channel List:\n");
   printf("----------------------------------------------\n");
 
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    ANIM_channel_debug_print_info(ac, ale, 1);
+  for (bAnimListElem &ale : anim_data) {
+    ANIM_channel_debug_print_info(ac, &ale, 1);
   }
 
   printf("==============================================\n");

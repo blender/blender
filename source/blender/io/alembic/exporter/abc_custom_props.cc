@@ -40,8 +40,8 @@ void CustomPropertiesExporter::write_all(const IDProperty *group)
   BLI_assert(group->type == IDP_GROUP);
 
   /* Loop over the properties, just like IDP_foreach_property() does, but without the recursion. */
-  LISTBASE_FOREACH (IDProperty *, id_property, &group->data.group) {
-    write(id_property);
+  for (IDProperty &id_property : group->data.group) {
+    write(&id_property);
   }
 }
 

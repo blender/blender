@@ -499,22 +499,22 @@ void style_init()
     font_first->uifont_id = UIFONT_DEFAULT;
   }
 
-  LISTBASE_FOREACH (uiFont *, font, &U.uifonts) {
+  for (uiFont &font : U.uifonts) {
     const bool unique = false;
 
-    if (font->uifont_id == UIFONT_DEFAULT) {
-      font->blf_id = BLF_load_default(unique);
+    if (font.uifont_id == UIFONT_DEFAULT) {
+      font.blf_id = BLF_load_default(unique);
     }
     else {
-      font->blf_id = BLF_load(font->filepath);
-      if (font->blf_id == -1) {
-        font->blf_id = BLF_load_default(unique);
+      font.blf_id = BLF_load(font.filepath);
+      if (font.blf_id == -1) {
+        font.blf_id = BLF_load_default(unique);
       }
     }
 
-    BLF_default_set(font->blf_id);
+    BLF_default_set(font.blf_id);
 
-    if (font->blf_id == -1) {
+    if (font.blf_id == -1) {
       if (G.debug & G_DEBUG) {
         CLOG_WARN(&LOG, "%s: error, no fonts available", __func__);
       }
@@ -567,10 +567,10 @@ void style_init()
       }
     }
 
-    LISTBASE_FOREACH (uiFont *, font, &U.uifonts) {
-      if (font->blf_id != -1) {
-        BLF_disable(font->blf_id, flag_disable);
-        BLF_enable(font->blf_id, flag_enable);
+    for (uiFont &font : U.uifonts) {
+      if (font.blf_id != -1) {
+        BLF_disable(font.blf_id, flag_disable);
+        BLF_enable(font.blf_id, flag_enable);
       }
     }
     if (blf_mono_font != -1) {

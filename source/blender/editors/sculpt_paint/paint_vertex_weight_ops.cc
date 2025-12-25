@@ -369,13 +369,13 @@ static wmOperatorStatus weight_sample_group_invoke(bContext *C,
   wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_vertex_group_set_active", false);
   blender::wm::OpCallContext opcontext = blender::wm::OpCallContext::ExecDefault;
   layout.operator_context_set(opcontext);
-  int i = 0;
-  LISTBASE_FOREACH_INDEX (bDeformGroup *, dg, &mesh->vertex_group_names, i) {
+
+  for (const auto [i, dg] : mesh->vertex_group_names.enumerate()) {
     if (groups[i] == false) {
       continue;
     }
     PointerRNA op_ptr = layout.op(
-        ot, dg->name, ICON_NONE, blender::wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
+        ot, dg.name, ICON_NONE, blender::wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
     RNA_property_enum_set(&op_ptr, ot->prop, i);
   }
   popup_menu_end(C, pup);

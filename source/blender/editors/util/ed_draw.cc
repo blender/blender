@@ -459,16 +459,16 @@ tSlider *ED_slider_create(bContext *C)
 
   /* Add draw callback. Always in header. */
   if (slider->area) {
-    LISTBASE_FOREACH (ARegion *, region, &slider->area->regionbase) {
+    for (ARegion &region : slider->area->regionbase) {
       /* Keep logic in sync with ED_area_status_text. */
-      if (region->regiontype == RGN_TYPE_HEADER && region->runtime->visible) {
-        slider->region_header = region;
+      if (region.regiontype == RGN_TYPE_HEADER && region.runtime->visible) {
+        slider->region_header = &region;
         /* Hide the area menu bar contents, as the slider will be drawn on top. Only for the header
          * since the tool header is already empty in the center.*/
         ED_area_status_text(slider->area, "");
       }
-      else if (region->regiontype == RGN_TYPE_TOOL_HEADER && region->runtime->visible) {
-        slider->region_header = region;
+      else if (region.regiontype == RGN_TYPE_TOOL_HEADER && region.runtime->visible) {
+        slider->region_header = &region;
         break;
       }
     }

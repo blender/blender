@@ -986,24 +986,24 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
 
   /* Selection history */
   {
-    LISTBASE_FOREACH (BMEditSelection *, ese, &bm->selected) {
-      switch (ese->htype) {
+    for (BMEditSelection &ese : bm->selected) {
+      switch (ese.htype) {
         case BM_VERT:
           if (vptr_map) {
-            ese->ele = reinterpret_cast<BMElem *>(
-                vptr_map->lookup(reinterpret_cast<BMVert *>(ese->ele)));
+            ese.ele = reinterpret_cast<BMElem *>(
+                vptr_map->lookup(reinterpret_cast<BMVert *>(ese.ele)));
           }
           break;
         case BM_EDGE:
           if (eptr_map) {
-            ese->ele = reinterpret_cast<BMElem *>(
-                eptr_map->lookup(reinterpret_cast<BMEdge *>(ese->ele)));
+            ese.ele = reinterpret_cast<BMElem *>(
+                eptr_map->lookup(reinterpret_cast<BMEdge *>(ese.ele)));
           }
           break;
         case BM_FACE:
           if (fptr_map) {
-            ese->ele = reinterpret_cast<BMElem *>(
-                fptr_map->lookup(reinterpret_cast<BMFace *>(ese->ele)));
+            ese.ele = reinterpret_cast<BMElem *>(
+                fptr_map->lookup(reinterpret_cast<BMFace *>(ese.ele)));
           }
           break;
       }
@@ -1197,21 +1197,21 @@ void BM_mesh_rebuild(BMesh *bm,
     }
   }
 
-  LISTBASE_FOREACH (BMEditSelection *, ese, &bm->selected) {
-    switch (ese->htype) {
+  for (BMEditSelection &ese : bm->selected) {
+    switch (ese.htype) {
       case BM_VERT:
         if (remap & BM_VERT) {
-          ese->ele = (BMElem *)MAP_VERT(ese->ele);
+          ese.ele = (BMElem *)MAP_VERT(ese.ele);
         }
         break;
       case BM_EDGE:
         if (remap & BM_EDGE) {
-          ese->ele = (BMElem *)MAP_EDGE(ese->ele);
+          ese.ele = (BMElem *)MAP_EDGE(ese.ele);
         }
         break;
       case BM_FACE:
         if (remap & BM_FACE) {
-          ese->ele = (BMElem *)MAP_FACE(ese->ele);
+          ese.ele = (BMElem *)MAP_FACE(ese.ele);
         }
         break;
     }

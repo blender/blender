@@ -113,8 +113,8 @@ static void add_group_input_node_fn(nodes::LinkSearchOpParams &params)
   }
 
   /* Hide all existing inputs in the new group input node, to only display the new one. */
-  LISTBASE_FOREACH (bNodeSocket *, socket, &group_input.outputs) {
-    socket->flag |= SOCK_HIDDEN;
+  for (bNodeSocket &socket : group_input.outputs) {
+    socket.flag |= SOCK_HIDDEN;
   }
 
   bNodeSocket *socket = bke::node_find_socket(group_input, SOCK_OUT, socket_iface->identifier);
@@ -138,8 +138,8 @@ static void add_existing_group_input_fn(nodes::LinkSearchOpParams &params,
 
   bNode &group_input = params.add_node("NodeGroupInput");
 
-  LISTBASE_FOREACH (bNodeSocket *, socket, &group_input.outputs) {
-    socket->flag |= SOCK_HIDDEN;
+  for (bNodeSocket &socket : group_input.outputs) {
+    socket.flag |= SOCK_HIDDEN;
   }
 
   bNodeSocket *socket = bke::node_find_socket(group_input, SOCK_OUT, interface_socket.identifier);
@@ -173,11 +173,11 @@ static void search_link_ops_for_asset_metadata(const bNodeTree &node_tree,
 
   int weight = -1;
   Set<StringRef> socket_names;
-  LISTBASE_FOREACH (IDProperty *, socket_property, &sockets->data.group) {
-    if (socket_property->type != IDP_STRING) {
+  for (IDProperty &socket_property : sockets->data.group) {
+    if (socket_property.type != IDP_STRING) {
       continue;
     }
-    const char *socket_idname = IDP_string_get(socket_property);
+    const char *socket_idname = IDP_string_get(&socket_property);
     const bke::bNodeSocketType *socket_type = bke::node_socket_type_find(socket_idname);
     if (socket_type == nullptr) {
       continue;
@@ -190,17 +190,17 @@ static void search_link_ops_for_asset_metadata(const bNodeTree &node_tree,
     if (node_tree_type.validate_link && !node_tree_type.validate_link(from, to)) {
       continue;
     }
-    if (!socket_names.add(socket_property->name)) {
+    if (!socket_names.add(socket_property.name)) {
       /* See comment in #search_link_ops_for_declarations. */
       continue;
     }
 
     const StringRef asset_name = asset.get_name();
-    const StringRef socket_name = socket_property->name;
+    const StringRef socket_name = socket_property.name;
 
     search_link_ops.append(
         {asset_name + " " + UI_MENU_ARROW_SEP + socket_name,
-         [&asset, socket_property, in_out](nodes::LinkSearchOpParams &params) {
+         [&asset, &socket_property, in_out](nodes::LinkSearchOpParams &params) {
            Main &bmain = *CTX_data_main(&params.C);
 
            bNodeTree *group = reinterpret_cast<bNodeTree *>(
@@ -221,7 +221,7 @@ static void search_link_ops_for_asset_metadata(const bNodeTree &node_tree,
            nodes::update_node_declaration_and_sockets(params.node_tree, node);
 
            bNodeSocket *new_node_socket = bke::node_find_enabled_socket(
-               node, in_out, socket_property->name);
+               node, in_out, socket_property.name);
            if (new_node_socket != nullptr) {
              /* Rely on the way #node_add_link switches in/out if necessary. */
              bke::node_add_link(

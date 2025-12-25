@@ -230,8 +230,8 @@ static bool testbuffer_item_validate(TestBuffer *tb)
 
 static bool testbuffer_list_validate(const ListBaseT<TestBuffer> *lb)
 {
-  LISTBASE_FOREACH (TestBuffer *, tb, lb) {
-    if (!testbuffer_item_validate(tb)) {
+  for (TestBuffer &tb : *lb) {
+    if (!testbuffer_item_validate(&tb)) {
       return false;
     }
   }
@@ -241,8 +241,8 @@ static bool testbuffer_list_validate(const ListBaseT<TestBuffer> *lb)
 
 static void testbuffer_list_data_randomize(ListBaseT<TestBuffer> *lb, uint random_seed)
 {
-  LISTBASE_FOREACH (TestBuffer *, tb, lb) {
-    BLI_array_randomize((void *)tb->data, 1, tb->data_len, random_seed++);
+  for (TestBuffer &tb : *lb) {
+    BLI_array_randomize((void *)tb.data, 1, tb.data_len, random_seed++);
   }
 }
 
@@ -258,9 +258,9 @@ static void testbuffer_list_store_populate(BArrayStore *bs, ListBaseT<TestBuffer
 
 static void testbuffer_list_store_clear(BArrayStore *bs, ListBaseT<TestBuffer> *lb)
 {
-  LISTBASE_FOREACH (TestBuffer *, tb, lb) {
-    BLI_array_store_state_remove(bs, tb->state);
-    tb->state = nullptr;
+  for (TestBuffer &tb : *lb) {
+    BLI_array_store_state_remove(bs, tb.state);
+    tb.state = nullptr;
   }
 }
 

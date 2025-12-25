@@ -895,15 +895,15 @@ StudioLight *BKE_studiolight_find_default(int flag)
     default_name = STUDIOLIGHT_MATCAP_DEFAULT;
   }
 
-  LISTBASE_FOREACH (StudioLight *, sl, &studiolights) {
-    if ((sl->flag & flag) && STREQ(sl->name, default_name)) {
-      return sl;
+  for (StudioLight &sl : studiolights) {
+    if ((sl.flag & flag) && STREQ(sl.name, default_name)) {
+      return &sl;
     }
   }
 
-  LISTBASE_FOREACH (StudioLight *, sl, &studiolights) {
-    if (sl->flag & flag) {
-      return sl;
+  for (StudioLight &sl : studiolights) {
+    if (sl.flag & flag) {
+      return &sl;
     }
   }
   return nullptr;
@@ -911,10 +911,10 @@ StudioLight *BKE_studiolight_find_default(int flag)
 
 StudioLight *BKE_studiolight_find(const char *name, int flag)
 {
-  LISTBASE_FOREACH (StudioLight *, sl, &studiolights) {
-    if (STREQLEN(sl->name, name, FILE_MAXFILE)) {
-      if (sl->flag & flag) {
-        return sl;
+  for (StudioLight &sl : studiolights) {
+    if (STREQLEN(sl.name, name, FILE_MAXFILE)) {
+      if (sl.flag & flag) {
+        return &sl;
       }
 
       /* flags do not match, so use default */
@@ -927,18 +927,18 @@ StudioLight *BKE_studiolight_find(const char *name, int flag)
 
 StudioLight *BKE_studiolight_findindex(int index, int flag)
 {
-  LISTBASE_FOREACH (StudioLight *, sl, &studiolights) {
-    if (sl->index == index) {
-      return sl;
+  for (StudioLight &sl : studiolights) {
+    if (sl.index == index) {
+      return &sl;
     }
   }
   /* When not found, use the default studio light */
   return BKE_studiolight_find_default(flag);
 }
 
-ListBaseT<StudioLight> *BKE_studiolight_listbase()
+ListBaseT<StudioLight> &BKE_studiolight_listbase()
 {
-  return &studiolights;
+  return studiolights;
 }
 
 void BKE_studiolight_preview(uint *icon_buffer, StudioLight *sl, int icon_id_type)

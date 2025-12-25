@@ -52,11 +52,9 @@ bool DepsgraphRelationBuilder::build_layer_collection(LayerCollection *layer_col
 
   const ComponentKey collection_hierarchy_key{&collection->id, NodeType::HIERARCHY};
 
-  LISTBASE_FOREACH (
-      LayerCollection *, child_layer_collection, &layer_collection->layer_collections)
-  {
-    if (build_layer_collection(child_layer_collection)) {
-      Collection *child_collection = child_layer_collection->collection;
+  for (LayerCollection &child_layer_collection : layer_collection->layer_collections) {
+    if (build_layer_collection(&child_layer_collection)) {
+      Collection *child_collection = child_layer_collection.collection;
       const ComponentKey child_collection_hierarchy_key{&child_collection->id,
                                                         NodeType::HIERARCHY};
       add_relation(
@@ -71,9 +69,9 @@ void DepsgraphRelationBuilder::build_view_layer_collections(ViewLayer *view_laye
 {
   const ComponentKey scene_hierarchy_key{&scene_->id, NodeType::HIERARCHY};
 
-  LISTBASE_FOREACH (LayerCollection *, layer_collection, &view_layer->layer_collections) {
-    if (build_layer_collection(layer_collection)) {
-      Collection *collection = layer_collection->collection;
+  for (LayerCollection &layer_collection : view_layer->layer_collections) {
+    if (build_layer_collection(&layer_collection)) {
+      Collection *collection = layer_collection.collection;
       const ComponentKey collection_hierarchy_key{&collection->id, NodeType::HIERARCHY};
       add_relation(scene_hierarchy_key, collection_hierarchy_key, "Scene -> Collection hierarchy");
     }
@@ -101,9 +99,9 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene,
   /* NOTE: Nodes builder requires us to pass evaluated base because it's being
    * passed to the evaluation functions. During relations builder we only
    * do nullptr-pointer check of the base, so it's fine to pass original one. */
-  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-    if (need_pull_base_into_graph(base)) {
-      build_object_from_view_layer_base(base->object);
+  for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+    if (need_pull_base_into_graph(&base)) {
+      build_object_from_view_layer_base(base.object);
     }
   }
 
@@ -123,16 +121,16 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene,
     build_world(scene->world);
   }
   /* Cache file. */
-  LISTBASE_FOREACH (CacheFile *, cachefile, &bmain_->cachefiles) {
-    build_cachefile(cachefile);
+  for (CacheFile &cachefile : bmain_->cachefiles) {
+    build_cachefile(&cachefile);
   }
   /* Masks. */
-  LISTBASE_FOREACH (Mask *, mask, &bmain_->masks) {
-    build_mask(mask);
+  for (Mask &mask : bmain_->masks) {
+    build_mask(&mask);
   }
   /* Movie clips. */
-  LISTBASE_FOREACH (MovieClip *, clip, &bmain_->movieclips) {
-    build_movieclip(clip);
+  for (MovieClip &clip : bmain_->movieclips) {
+    build_movieclip(&clip);
   }
   /* Material override. */
   if (view_layer->mat_override != nullptr) {
@@ -143,8 +141,8 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene,
     build_world(view_layer->world_override);
   }
   /* Freestyle linesets. */
-  LISTBASE_FOREACH (FreestyleLineSet *, fls, &view_layer->freestyle_config.linesets) {
-    build_freestyle_lineset(fls);
+  for (FreestyleLineSet &fls : view_layer->freestyle_config.linesets) {
+    build_freestyle_lineset(&fls);
   }
   /* Scene parameters, compositor and such. */
   build_scene_compositor(scene);

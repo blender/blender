@@ -263,16 +263,16 @@ bool BKE_animdata_id_is_animated(const ID *id)
 
 void BKE_animdata_foreach_id(AnimData *adt, LibraryForeachIDData *data)
 {
-  LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
-    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, BKE_fcurve_foreach_id(fcu, data));
+  for (FCurve &fcu : adt->drivers) {
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, BKE_fcurve_foreach_id(&fcu, data));
   }
 
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, adt->action, IDWALK_CB_USER);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, adt->tmpact, IDWALK_CB_USER);
 
-  LISTBASE_FOREACH (NlaTrack *, nla_track, &adt->nla_tracks) {
-    LISTBASE_FOREACH (NlaStrip *, nla_strip, &nla_track->strips) {
-      BKE_nla_strip_foreach_id(nla_strip, data);
+  for (NlaTrack &nla_track : adt->nla_tracks) {
+    for (NlaStrip &nla_strip : nla_track.strips) {
+      BKE_nla_strip_foreach_id(&nla_strip, data);
     }
   }
 }
@@ -505,10 +505,10 @@ void BKE_animdata_merge_copy(
      * - This assumes that the src ID is being merged into the dst ID
      */
     if (fix_drivers) {
-      LISTBASE_FOREACH (FCurve *, fcu, &drivers) {
-        ChannelDriver *driver = fcu->driver;
-        LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
-          DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
+      for (FCurve &fcu : drivers) {
+        ChannelDriver *driver = fcu.driver;
+        for (DriverVar &dvar : driver->variables) {
+          DRIVER_TARGETS_USED_LOOPER_BEGIN (&dvar) {
             if (dtar->id == src_id) {
               dtar->id = dst_id;
             }
@@ -610,9 +610,9 @@ static bool animdata_copy_drivers_by_basepath(AnimData &src_adt,
                                               const StringRef dst_basepath)
 {
   bool result = false;
-  LISTBASE_FOREACH (const FCurve *, fcurve, &src_adt.drivers) {
-    if (animpath_matches_basepath(fcurve->rna_path, src_basepath)) {
-      FCurve *fcurve_copy = BKE_fcurve_copy(fcurve);
+  for (const FCurve &fcurve : src_adt.drivers) {
+    if (animpath_matches_basepath(fcurve.rna_path, src_basepath)) {
+      FCurve *fcurve_copy = BKE_fcurve_copy(&fcurve);
       animpath_update_basepath(fcurve_copy, src_basepath, dst_basepath);
       BLI_addtail(&dst_adt.drivers, fcurve_copy);
 
@@ -628,11 +628,11 @@ static bool animdata_move_drivers_by_basepath(AnimData &src_adt,
                                               const StringRef dst_basepath)
 {
   bool result = false;
-  LISTBASE_FOREACH_MUTABLE (FCurve *, fcurve, &src_adt.drivers) {
-    if (animpath_matches_basepath(fcurve->rna_path, src_basepath)) {
-      BLI_remlink(&src_adt.drivers, fcurve);
-      BLI_addtail(&dst_adt.drivers, fcurve);
-      animpath_update_basepath(fcurve, src_basepath, dst_basepath);
+  for (FCurve &fcurve : src_adt.drivers.items_mutable()) {
+    if (animpath_matches_basepath(fcurve.rna_path, src_basepath)) {
+      BLI_remlink(&src_adt.drivers, &fcurve);
+      BLI_addtail(&dst_adt.drivers, &fcurve);
+      animpath_update_basepath(&fcurve, src_basepath, dst_basepath);
 
       result = true;
     }
@@ -922,22 +922,22 @@ static bool drivers_path_rename_fix(ID *owner_id,
 {
   bool is_changed = false;
   /* We need to check every curve - drivers are F-Curves too. */
-  LISTBASE_FOREACH (FCurve *, fcu, curves) {
+  for (FCurve &fcu : *curves) {
     /* firstly, handle the F-Curve's own path */
-    if (fcu->rna_path != nullptr) {
-      const char *old_rna_path = fcu->rna_path;
-      fcu->rna_path = rna_path_rename_fix(
-          owner_id, prefix, oldKey, newKey, fcu->rna_path, verify_paths);
-      is_changed |= (fcu->rna_path != old_rna_path);
+    if (fcu.rna_path != nullptr) {
+      const char *old_rna_path = fcu.rna_path;
+      fcu.rna_path = rna_path_rename_fix(
+          owner_id, prefix, oldKey, newKey, fcu.rna_path, verify_paths);
+      is_changed |= (fcu.rna_path != old_rna_path);
     }
-    if (fcu->driver == nullptr) {
+    if (fcu.driver == nullptr) {
       continue;
     }
-    ChannelDriver *driver = fcu->driver;
+    ChannelDriver *driver = fcu.driver;
     /* driver variables */
-    LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
+    for (DriverVar &dvar : driver->variables) {
       /* only change the used targets, since the others will need fixing manually anyway */
-      DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
+      DRIVER_TARGETS_USED_LOOPER_BEGIN (&dvar) {
         /* rename RNA path */
         if (dtar->rna_path && dtar->id) {
           const char *old_rna_path = dtar->rna_path;
@@ -974,22 +974,22 @@ static bool nlastrips_path_rename_fix(ID *owner_id,
 {
   bool is_changed = false;
   /* Recursively check strips, fixing only actions. */
-  LISTBASE_FOREACH (NlaStrip *, strip, strips) {
+  for (NlaStrip &strip : *strips) {
     /* fix strip's action */
-    if (strip->act != nullptr) {
+    if (strip.act != nullptr) {
       const Vector<FCurve *> fcurves = blender::animrig::legacy::fcurves_for_action_slot(
-          strip->act, strip->action_slot_handle);
+          strip.act, strip.action_slot_handle);
       const bool is_changed_action = fcurves_path_rename_fix(
           owner_id, prefix, oldName, newName, oldKey, newKey, fcurves, verify_paths);
       if (is_changed_action) {
-        DEG_id_tag_update(&strip->act->id, ID_RECALC_ANIMATION);
+        DEG_id_tag_update(&strip.act->id, ID_RECALC_ANIMATION);
       }
       is_changed |= is_changed_action;
     }
     /* Ignore own F-Curves, since those are local. */
     /* Check sub-strips (if meta-strips). */
     is_changed |= nlastrips_path_rename_fix(
-        owner_id, prefix, oldName, newName, oldKey, newKey, &strip->strips, verify_paths);
+        owner_id, prefix, oldName, newName, oldKey, newKey, &strip.strips, verify_paths);
   }
   return is_changed;
 }
@@ -1165,9 +1165,9 @@ void BKE_animdata_fix_paths_rename(ID *owner_id,
   is_self_changed |= drivers_path_rename_fix(
       owner_id, ref_id, prefix, oldName, newName, oldN, newN, &adt->drivers, verify_paths);
   /* NLA Data - Animation Data for Strips */
-  LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
+  for (NlaTrack &nlt : adt->nla_tracks) {
     is_self_changed |= nlastrips_path_rename_fix(
-        owner_id, prefix, oldName, newName, oldN, newN, &nlt->strips, verify_paths);
+        owner_id, prefix, oldName, newName, oldN, newN, &nlt.strips, verify_paths);
   }
   /* Tag owner ID if it */
   if (is_self_changed) {
@@ -1210,15 +1210,15 @@ static bool nlastrips_path_remove_fix(const char *prefix, ListBaseT<NlaStrip> *s
   bool any_removed = false;
 
   /* recursively check strips, fixing only actions... */
-  LISTBASE_FOREACH (NlaStrip *, strip, strips) {
+  for (NlaStrip &strip : *strips) {
     /* fix strip's action */
-    if (strip->act) {
+    if (strip.act) {
       any_removed |= animrig::legacy::action_fcurves_remove(
-          *strip->act, strip->action_slot_handle, prefix);
+          *strip.act, strip.action_slot_handle, prefix);
     }
 
     /* Check sub-strips (if meta-strips). */
-    any_removed |= nlastrips_path_remove_fix(prefix, &strip->strips);
+    any_removed |= nlastrips_path_remove_fix(prefix, &strip.strips);
   }
 
   return any_removed;
@@ -1246,8 +1246,8 @@ bool BKE_animdata_fix_paths_remove(ID *id, const char *prefix)
   any_removed |= fcurves_path_remove_from_listbase(prefix, &adt->drivers);
 
   /* NLA strips. */
-  LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
-    any_removed |= nlastrips_path_remove_fix(prefix, &nlt->strips);
+  for (NlaTrack &nlt : adt->nla_tracks) {
+    any_removed |= nlastrips_path_remove_fix(prefix, &nlt.strips);
   }
 
   return any_removed;
@@ -1299,8 +1299,8 @@ static bool fcurves_listbase_apply_cb(ID *id,
                                       ListBaseT<FCurve> *fcurves,
                                       const IDFCurveCallback func)
 {
-  LISTBASE_FOREACH (FCurve *, fcu, fcurves) {
-    if (!func(id, fcu)) {
+  for (FCurve &fcu : *fcurves) {
+    if (!func(id, &fcu)) {
       return false;
     }
   }
@@ -1315,17 +1315,17 @@ static bool nlastrips_apply_all_curves_cb(ID *id,
   /* This function is used (via `BKE_fcurves_id_cb()`) by the versioning system.
    * As such, legacy Actions should always be expected here. */
 
-  LISTBASE_FOREACH (NlaStrip *, strip, strips) {
-    if (strip->act) {
+  for (NlaStrip &strip : *strips) {
+    if (strip.act) {
       const Vector<FCurve *> fcurves = blender::animrig::legacy::fcurves_for_action_slot(
-          strip->act, strip->action_slot_handle);
+          strip.act, strip.action_slot_handle);
       if (!fcurves_apply_cb(id, fcurves, func)) {
         return false;
       }
     }
 
     /* Check sub-strips (if meta-strips). */
-    if (!nlastrips_apply_all_curves_cb(id, &strip->strips, func)) {
+    if (!nlastrips_apply_all_curves_cb(id, &strip.strips, func)) {
       return false;
     }
   }
@@ -1370,11 +1370,11 @@ static bool adt_apply_all_fcurves_cb(ID *id, AnimData *adt, const IDFCurveCallba
   }
 
   /* NLA Data - Animation Data for Strips */
-  LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
-    if (!BKE_nlatrack_is_enabled(*adt, *nlt)) {
+  for (NlaTrack &nlt : adt->nla_tracks) {
+    if (!BKE_nlatrack_is_enabled(*adt, nlt)) {
       continue;
     }
-    if (!nlastrips_apply_all_curves_cb(id, &nlt->strips, func)) {
+    if (!nlastrips_apply_all_curves_cb(id, &nlt.strips, func)) {
       return false;
     }
   }
@@ -1424,10 +1424,10 @@ void BKE_animdata_blend_write(BlendWriter *writer, ID *id)
 
   /* write overrides */
   /* FIXME: are these needed? */
-  LISTBASE_FOREACH (AnimOverride *, aor, &adt->overrides) {
+  for (AnimOverride &aor : adt->overrides) {
     /* overrides consist of base data + rna_path */
-    writer->write_struct(aor);
-    BLO_write_string(writer, aor->rna_path);
+    writer->write_struct(&aor);
+    BLO_write_string(writer, aor.rna_path);
   }
 
   /* TODO: write the remaps (if they are needed). */

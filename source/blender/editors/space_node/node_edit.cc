@@ -256,12 +256,12 @@ static void compo_startjob(void *cjv, wmJobWorkerStatus *worker_status)
     COM_execute(cj->re, &scene->r, scene, ntree, "", nullptr, &cj->profiler, cj->needed_outputs);
   }
   else {
-    LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
-      if (BKE_scene_multiview_is_render_view_active(&scene->r, srv) == false) {
+    for (SceneRenderView &srv : scene->r.views) {
+      if (BKE_scene_multiview_is_render_view_active(&scene->r, &srv) == false) {
         continue;
       }
       COM_execute(
-          cj->re, &scene->r, scene, ntree, srv->name, nullptr, &cj->profiler, cj->needed_outputs);
+          cj->re, &scene->r, scene, ntree, srv.name, nullptr, &cj->profiler, cj->needed_outputs);
     }
   }
 
@@ -327,10 +327,10 @@ static blender::compositor::OutputTypes get_compositor_needed_outputs(const bCon
   blender::compositor::OutputTypes needed_outputs = blender::compositor::OutputTypes::None;
 
   wmWindowManager *window_manager = CTX_wm_manager(C);
-  LISTBASE_FOREACH (wmWindow *, window, &window_manager->windows) {
-    bScreen *screen = WM_window_get_active_screen(window);
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      SpaceLink *space_link = static_cast<SpaceLink *>(area->spacedata.first);
+  for (wmWindow &window : window_manager->windows) {
+    bScreen *screen = WM_window_get_active_screen(&window);
+    for (ScrArea &area : screen->areabase) {
+      SpaceLink *space_link = static_cast<SpaceLink *>(area.spacedata.first);
       if (!space_link || !ELEM(space_link->spacetype, SPACE_NODE, SPACE_IMAGE)) {
         continue;
       }
@@ -650,18 +650,18 @@ void ED_node_set_active(
 
     if (node->flag & NODE_ACTIVE_TEXTURE) {
       /* If active texture changed, free GLSL materials. */
-      LISTBASE_FOREACH (Material *, ma, &bmain->materials) {
-        if (ma->nodetree && blender::bke::node_tree_contains_tree(*ma->nodetree, *ntree)) {
-          GPU_material_free(&ma->gpumaterial);
+      for (Material &ma : bmain->materials) {
+        if (ma.nodetree && blender::bke::node_tree_contains_tree(*ma.nodetree, *ntree)) {
+          GPU_material_free(&ma.gpumaterial);
 
           /* Sync to active texpaint slot, otherwise we can end up painting on a different slot
            * than we are looking at. */
-          if (ma->texpaintslot) {
+          if (ma.texpaintslot) {
             if (node->id != nullptr && GS(node->id->name) == ID_IM) {
               Image *image = (Image *)node->id;
-              for (int i = 0; i < ma->tot_slots; i++) {
-                if (ma->texpaintslot[i].ima == image) {
-                  ma->paint_active_slot = i;
+              for (int i = 0; i < ma.tot_slots; i++) {
+                if (ma.texpaintslot[i].ima == image) {
+                  ma.paint_active_slot = i;
                 }
               }
             }
@@ -669,9 +669,9 @@ void ED_node_set_active(
         }
       }
 
-      LISTBASE_FOREACH (World *, wo, &bmain->worlds) {
-        if (wo->nodetree && blender::bke::node_tree_contains_tree(*wo->nodetree, *ntree)) {
-          GPU_material_free(&wo->gpumaterial);
+      for (World &wo : bmain->worlds) {
+        if (wo.nodetree && blender::bke::node_tree_contains_tree(*wo.nodetree, *ntree)) {
+          GPU_material_free(&wo.gpumaterial);
         }
       }
 
@@ -1028,13 +1028,13 @@ void NODE_OT_resize(wmOperatorType *ot)
 
 bool node_has_hidden_sockets(bNode *node)
 {
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    if (sock->flag & SOCK_HIDDEN) {
+  for (bNodeSocket &sock : node->inputs) {
+    if (sock.flag & SOCK_HIDDEN) {
       return true;
     }
   }
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-    if (sock->flag & SOCK_HIDDEN) {
+  for (bNodeSocket &sock : node->outputs) {
+    if (sock.flag & SOCK_HIDDEN) {
       return true;
     }
   }
@@ -1049,23 +1049,23 @@ void node_set_hidden_sockets(bNode *node, int set)
   }
 
   if (set == 0) {
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-      sock->flag &= ~SOCK_HIDDEN;
+    for (bNodeSocket &sock : node->inputs) {
+      sock.flag &= ~SOCK_HIDDEN;
     }
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-      sock->flag &= ~SOCK_HIDDEN;
+    for (bNodeSocket &sock : node->outputs) {
+      sock.flag &= ~SOCK_HIDDEN;
     }
   }
   else {
     /* Hide unused sockets. */
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-      if (sock->link == nullptr) {
-        sock->flag |= SOCK_HIDDEN;
+    for (bNodeSocket &sock : node->inputs) {
+      if (sock.link == nullptr) {
+        sock.flag |= SOCK_HIDDEN;
       }
     }
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-      if ((sock->flag & SOCK_IS_LINKED) == 0) {
-        sock->flag |= SOCK_HIDDEN;
+    for (bNodeSocket &sock : node->outputs) {
+      if ((sock.flag & SOCK_IS_LINKED) == 0) {
+        sock.flag |= SOCK_HIDDEN;
       }
     }
   }
@@ -1329,36 +1329,36 @@ static wmOperatorStatus node_duplicate_exec(bContext *C, wmOperator *op)
 
   /* Copy links between selected nodes. */
   bNodeLink *lastlink = (bNodeLink *)ntree->links.last;
-  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
+  for (bNodeLink &link : ntree->links) {
     /* This creates new links between copied nodes. If keep_inputs is set, also copies input links
      * from unselected (when fromnode is null)! */
-    if (link->tonode && (link->tonode->flag & NODE_SELECT) &&
-        (keep_inputs || (link->fromnode && (link->fromnode->flag & NODE_SELECT))))
+    if (link.tonode && (link.tonode->flag & NODE_SELECT) &&
+        (keep_inputs || (link.fromnode && (link.fromnode->flag & NODE_SELECT))))
     {
       bNodeLink *newlink = MEM_new_for_free<bNodeLink>("bNodeLink");
-      newlink->flag = link->flag;
-      newlink->tonode = node_map.lookup(link->tonode);
-      newlink->tosock = socket_map.lookup(link->tosock);
+      newlink->flag = link.flag;
+      newlink->tonode = node_map.lookup(link.tonode);
+      newlink->tosock = socket_map.lookup(link.tosock);
 
-      if (link->tosock->flag & SOCK_MULTI_INPUT) {
-        newlink->multi_input_sort_id = link->multi_input_sort_id;
+      if (link.tosock->flag & SOCK_MULTI_INPUT) {
+        newlink->multi_input_sort_id = link.multi_input_sort_id;
       }
 
-      if (link->fromnode && (link->fromnode->flag & NODE_SELECT)) {
-        newlink->fromnode = node_map.lookup(link->fromnode);
-        newlink->fromsock = socket_map.lookup(link->fromsock);
+      if (link.fromnode && (link.fromnode->flag & NODE_SELECT)) {
+        newlink->fromnode = node_map.lookup(link.fromnode);
+        newlink->fromsock = socket_map.lookup(link.fromsock);
       }
       else {
         /* Input node not copied, this keeps the original input linked. */
-        newlink->fromnode = link->fromnode;
-        newlink->fromsock = link->fromsock;
+        newlink->fromnode = link.fromnode;
+        newlink->fromsock = link.fromsock;
       }
 
       BLI_addtail(&ntree->links, newlink);
     }
 
     /* Make sure we don't copy new links again. */
-    if (link == lastlink) {
+    if (&link == lastlink) {
       break;
     }
   }
@@ -1445,8 +1445,8 @@ static wmOperatorStatus node_read_viewlayers_exec(bContext *C, wmOperator * /*op
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
   /* first tag scenes unread */
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    scene->id.tag |= ID_TAG_DOIT;
+  for (Scene &scene : bmain->scenes) {
+    scene.id.tag |= ID_TAG_DOIT;
   }
 
   for (bNode *node : edit_tree.all_nodes()) {
@@ -1987,9 +1987,9 @@ static wmOperatorStatus node_delete_exec(bContext *C, wmOperator * /*op*/)
   /* Delete paired nodes as well. */
   node_select_paired(*snode->edittree);
 
-  LISTBASE_FOREACH_MUTABLE (bNode *, node, &snode->edittree->nodes) {
-    if (node->flag & SELECT) {
-      bke::node_remove_node(bmain, *snode->edittree, *node, true);
+  for (bNode &node : snode->edittree->nodes.items_mutable()) {
+    if (node.flag & SELECT) {
+      bke::node_remove_node(bmain, *snode->edittree, node, true);
     }
   }
 
@@ -2030,10 +2030,10 @@ static wmOperatorStatus node_delete_reconnect_exec(bContext *C, wmOperator * /*o
   /* Delete paired nodes as well. */
   node_select_paired(*snode->edittree);
 
-  LISTBASE_FOREACH_MUTABLE (bNode *, node, &snode->edittree->nodes) {
-    if (node->flag & SELECT) {
-      blender::bke::node_internal_relink(*snode->edittree, *node);
-      bke::node_remove_node(bmain, *snode->edittree, *node, true);
+  for (bNode &node : snode->edittree->nodes.items_mutable()) {
+    if (node.flag & SELECT) {
+      blender::bke::node_internal_relink(*snode->edittree, node);
+      bke::node_remove_node(bmain, *snode->edittree, node, true);
 
       /* Since this node might have been animated, and that animation data been
        * deleted, a notifier call is necessary to redraw any animation editor. */

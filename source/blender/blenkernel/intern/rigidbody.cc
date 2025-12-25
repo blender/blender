@@ -1915,8 +1915,8 @@ static ListBaseT<LinkData> rigidbody_create_substep_data(RigidBodyWorld *rbw)
 static void rigidbody_update_kinematic_obj_substep(ListBaseT<LinkData> *substep_targets,
                                                    float interp_fac)
 {
-  LISTBASE_FOREACH (LinkData *, link, substep_targets) {
-    KinematicSubstepData *data = static_cast<KinematicSubstepData *>(link->data);
+  for (LinkData &link : *substep_targets) {
+    KinematicSubstepData *data = static_cast<KinematicSubstepData *>(link.data);
     RigidBodyOb *rbo = data->rbo;
 
     float loc[3], rot[4];
@@ -2017,8 +2017,8 @@ static void rigidbody_update_external_forces(Depsgraph *depsgraph,
 
 static void rigidbody_free_substep_data(ListBaseT<LinkData> *substep_targets)
 {
-  LISTBASE_FOREACH (LinkData *, link, substep_targets) {
-    KinematicSubstepData *data = static_cast<KinematicSubstepData *>(link->data);
+  for (LinkData &link : *substep_targets) {
+    KinematicSubstepData *data = static_cast<KinematicSubstepData *>(link.data);
     MEM_freeN(data);
   }
 
@@ -2476,8 +2476,8 @@ void BKE_rigidbody_object_copy(Main *bmain, Object *ob_dst, const Object *ob_src
 
   /* We have to ensure that duplicated object ends up in relevant rigidbody collections...
    * Otherwise duplicating the RB data itself is meaningless. */
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    RigidBodyWorld *rigidbody_world = scene->rigidbody_world;
+  for (Scene &scene : bmain->scenes) {
+    RigidBodyWorld *rigidbody_world = scene.rigidbody_world;
 
     if (rigidbody_world != nullptr) {
       bool need_objects_update = false;

@@ -487,8 +487,8 @@ bool BKE_object_material_slot_used(Object *object, short actcol)
     return false;
   }
 
-  LISTBASE_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
-    if (psys->part->omat == actcol) {
+  for (ParticleSystem &psys : object->particlesystem) {
+    if (psys.part->omat == actcol) {
       return true;
     }
   }
@@ -1499,9 +1499,9 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
 
 static bNode *nodetree_uv_node_recursive(bNode *node)
 {
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    if (sock->link) {
-      bNode *inode = sock->link->fromnode;
+  for (bNodeSocket &sock : node->inputs) {
+    if (sock.link) {
+      bNode *inode = sock.link->fromnode;
       if (inode->typeinfo->nclass == NODE_CLASS_INPUT &&
           inode->typeinfo->type_legacy == SH_NODE_UVMAP)
       {

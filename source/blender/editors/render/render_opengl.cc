@@ -227,17 +227,17 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
     }
 
     /* create all the views that are needed */
-    LISTBASE_FOREACH (SceneRenderView *, srv, &rd->views) {
-      if (BKE_scene_multiview_is_render_view_active(rd, srv) == false) {
+    for (SceneRenderView &srv : rd->views) {
+      if (BKE_scene_multiview_is_render_view_active(rd, &srv) == false) {
         continue;
       }
 
       rv = static_cast<RenderView *>(
-          BLI_findstring(&rr->views, srv->name, offsetof(SceneRenderView, name)));
+          BLI_findstring(&rr->views, srv.name, offsetof(SceneRenderView, name)));
 
       if (rv == nullptr) {
         rv = MEM_new_for_free<RenderView>("new opengl render view");
-        STRNCPY_UTF8(rv->name, srv->name);
+        STRNCPY_UTF8(rv->name, srv.name);
         BLI_addtail(&rr->views, rv);
       }
     }
@@ -569,12 +569,12 @@ static void gather_frames_to_render_for_grease_pencil(const OGLRender *oglrender
   int frame_start = PSFRA;
   int frame_end = PEFRA;
 
-  LISTBASE_FOREACH (const bGPDlayer *, gp_layer, &gp->layers) {
-    LISTBASE_FOREACH (const bGPDframe *, gp_frame, &gp_layer->frames) {
-      if (gp_frame->framenum < frame_start || gp_frame->framenum > frame_end) {
+  for (const bGPDlayer &gp_layer : gp->layers) {
+    for (const bGPDframe &gp_frame : gp_layer.frames) {
+      if (gp_frame.framenum < frame_start || gp_frame.framenum > frame_end) {
         continue;
       }
-      BLI_BITMAP_ENABLE(oglrender->render_frames, gp_frame->framenum - frame_start);
+      BLI_BITMAP_ENABLE(oglrender->render_frames, gp_frame.framenum - frame_start);
     }
   }
 }

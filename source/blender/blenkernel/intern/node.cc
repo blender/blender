@@ -166,14 +166,14 @@ static void ntree_copy_data(Main * /*bmain*/,
 
   dst_runtime.nodes_by_id.reserve(ntree_src->all_nodes().size());
   BLI_listbase_clear(&ntree_dst->nodes);
-  int i;
-  LISTBASE_FOREACH_INDEX (const bNode *, src_node, &ntree_src->nodes, i) {
+
+  for (const auto [i, src_node] : ntree_src->nodes.enumerate()) {
     /* Don't find a unique name for every node, since they should have valid names already. */
     bNode *new_node = node_copy_with_mapping(
-        ntree_dst, *src_node, flag_subdata, src_node->name, src_node->identifier, socket_map);
+        ntree_dst, src_node, flag_subdata, src_node.name, src_node.identifier, socket_map);
     /* Parent remapping below relies on persistent identifier between the old and new tree.
      * No changes should be needed to keep identifiers unique. */
-    BLI_assert(new_node->identifier == src_node->identifier);
+    BLI_assert(new_node->identifier == src_node.identifier);
     BLI_assert(ntree_dst->runtime->nodes_by_id.contains(new_node));
     new_node->runtime->index_in_tree = i;
   }
@@ -288,8 +288,8 @@ static void ntree_free_data(ID *id)
 
   /* Iterate backwards because this allows for more efficient node deletion while keeping
    * bNodeTreeRuntime::nodes_by_id valid. */
-  LISTBASE_FOREACH_BACKWARD_MUTABLE (bNode *, node, &ntree->nodes) {
-    node_free_node(ntree, *node);
+  for (bNode &node : ntree->nodes.items_reversed_mutable()) {
+    node_free_node(ntree, node);
   }
 
   ntree->tree_interface.free_data();
@@ -1808,27 +1808,27 @@ static void direct_link_node_socket(BlendDataReader *reader, const bNode *node, 
 static void remove_unsupported_sockets(ListBaseT<bNodeSocket> *sockets,
                                        ListBaseT<bNodeLink> *links)
 {
-  LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, sockets) {
-    if (is_node_socket_supported(sock)) {
+  for (bNodeSocket &sock : sockets->items_mutable()) {
+    if (is_node_socket_supported(&sock)) {
       continue;
     }
 
     /* First remove any link pointing to the socket. */
     if (links) {
-      LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, links) {
-        if (link->fromsock == sock || link->tosock == sock) {
-          BLI_remlink(links, link);
-          if (link->tosock) {
-            link->tosock->link = nullptr;
+      for (bNodeLink &link : links->items_mutable()) {
+        if (link.fromsock == &sock || link.tosock == &sock) {
+          BLI_remlink(links, &link);
+          if (link.tosock) {
+            link.tosock->link = nullptr;
           }
-          MEM_freeN(link);
+          MEM_freeN(&link);
         }
       }
     }
 
-    BLI_remlink(sockets, sock);
-    MEM_delete(sock->runtime);
-    MEM_freeN(sock);
+    BLI_remlink(sockets, &sock);
+    MEM_delete(sock.runtime);
+    MEM_freeN(&sock);
   }
 }
 
@@ -1974,33 +1974,33 @@ void node_tree_blend_read_data(BlendDataReader *reader, ID *owner_id, bNodeTree 
   BLO_read_string(reader, &ntree->description);
 
   BLO_read_struct_list(reader, bNode, &ntree->nodes);
-  int i;
-  LISTBASE_FOREACH_INDEX (bNode *, node, &ntree->nodes, i) {
-    node_update_idname_from_experimental(*node);
-    node->runtime = MEM_new<bNodeRuntime>(__func__);
-    node->typeinfo = nullptr;
-    node->runtime->index_in_tree = i;
+
+  for (const auto [i, node] : ntree->nodes.enumerate()) {
+    node_update_idname_from_experimental(node);
+    node.runtime = MEM_new<bNodeRuntime>(__func__);
+    node.typeinfo = nullptr;
+    node.runtime->index_in_tree = i;
 
     /* Create the `nodes_by_id` cache eagerly so it can be expected to be valid. Because
      * we create it here we also have to check for zero identifiers from previous versions. */
-    if (node->identifier == 0 || ntree->runtime->nodes_by_id.contains_as(node->identifier)) {
-      node_unique_id(*ntree, *node);
+    if (node.identifier == 0 || ntree->runtime->nodes_by_id.contains_as(node.identifier)) {
+      node_unique_id(*ntree, node);
     }
     else {
-      ntree->runtime->nodes_by_id.add_new(node);
+      ntree->runtime->nodes_by_id.add_new(&node);
     }
 
-    BLO_read_struct_list(reader, bNodeSocket, &node->inputs);
-    BLO_read_struct_list(reader, bNodeSocket, &node->outputs);
+    BLO_read_struct_list(reader, bNodeSocket, &node.inputs);
+    BLO_read_struct_list(reader, bNodeSocket, &node.outputs);
     BLO_read_struct_array(
-        reader, bNodePanelState, node->num_panel_states, &node->panel_states_array);
+        reader, bNodePanelState, node.num_panel_states, &node.panel_states_array);
 
-    BLO_read_struct(reader, IDProperty, &node->prop);
-    IDP_BlendDataRead(reader, &node->prop);
-    BLO_read_struct(reader, IDProperty, &node->system_properties);
-    IDP_BlendDataRead(reader, &node->system_properties);
+    BLO_read_struct(reader, IDProperty, &node.prop);
+    IDP_BlendDataRead(reader, &node.prop);
+    BLO_read_struct(reader, IDProperty, &node.system_properties);
+    IDP_BlendDataRead(reader, &node.system_properties);
 
-    node_blend_read_data_storage(reader, ntree, node);
+    node_blend_read_data_storage(reader, ntree, &node);
   }
   BLO_read_struct_list(reader, bNodeLink, &ntree->links);
   BLI_assert(ntree->all_nodes().size() == BLI_listbase_count(&ntree->nodes));
@@ -2009,22 +2009,22 @@ void node_tree_blend_read_data(BlendDataReader *reader, ID *owner_id, bNodeTree 
   for (bNode &node : ntree->nodes) {
     BLO_read_struct(reader, bNode, &node.parent);
 
-    LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &node.inputs) {
-      direct_link_node_socket(reader, &node, sock);
+    for (bNodeSocket &sock : node.inputs.items_mutable()) {
+      direct_link_node_socket(reader, &node, &sock);
     }
-    LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &node.outputs) {
-      direct_link_node_socket(reader, &node, sock);
+    for (bNodeSocket &sock : node.outputs.items_mutable()) {
+      direct_link_node_socket(reader, &node, &sock);
     }
   }
 
   /* Read legacy interface socket lists for versioning. */
   BLO_read_struct_list(reader, bNodeSocket, &ntree->inputs_legacy);
   BLO_read_struct_list(reader, bNodeSocket, &ntree->outputs_legacy);
-  LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &ntree->inputs_legacy) {
-    direct_link_node_socket(reader, nullptr, sock);
+  for (bNodeSocket &sock : ntree->inputs_legacy.items_mutable()) {
+    direct_link_node_socket(reader, nullptr, &sock);
   }
-  LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &ntree->outputs_legacy) {
-    direct_link_node_socket(reader, nullptr, sock);
+  for (bNodeSocket &sock : ntree->outputs_legacy.items_mutable()) {
+    direct_link_node_socket(reader, nullptr, &sock);
   }
 
   ntree->tree_interface.read_data(reader);
@@ -3481,9 +3481,9 @@ void node_remove_socket(bNodeTree &ntree, bNode &node, bNodeSocket &sock)
 
 void node_remove_socket_ex(bNodeTree &ntree, bNode &node, bNodeSocket &sock, const bool do_id_user)
 {
-  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree.links) {
-    if (link->fromsock == &sock || link->tosock == &sock) {
-      node_remove_link(&ntree, *link);
+  for (bNodeLink &link : ntree.links.items_mutable()) {
+    if (link.fromsock == &sock || link.tosock == &sock) {
+      node_remove_link(&ntree, link);
     }
   }
 
@@ -4121,9 +4121,9 @@ void node_link_set_mute(bNodeTree &ntree, bNodeLink &link, const bool muted)
 
 void node_remove_socket_links(bNodeTree &ntree, bNodeSocket &sock)
 {
-  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree.links) {
-    if (link->fromsock == &sock || link->tosock == &sock) {
-      node_remove_link(&ntree, *link);
+  for (bNodeLink &link : ntree.links.items_mutable()) {
+    if (link.fromsock == &sock || link.tosock == &sock) {
+      node_remove_link(&ntree, link);
     }
   }
 }
@@ -4164,49 +4164,49 @@ void node_internal_relink(bNodeTree &ntree, bNode &node)
   Vector<bNodeLink *> duplicate_links_to_remove;
 
   /* redirect downstream links */
-  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree.links) {
+  for (bNodeLink &link : ntree.links.items_mutable()) {
     /* do we have internal link? */
-    if (link->fromnode != &node) {
+    if (link.fromnode != &node) {
       continue;
     }
 
-    bNodeLink *internal_link = link->fromsock->link;
+    bNodeLink *internal_link = link.fromsock->link;
     bNodeLink *fromlink = internal_link ? internal_link->fromsock->link : nullptr;
 
     if (fromlink == nullptr) {
-      if (link->tosock->is_multi_input()) {
+      if (link.tosock->is_multi_input()) {
         adjust_multi_input_indices_after_removed_link(
-            &ntree, link->tosock, link->multi_input_sort_id);
+            &ntree, link.tosock, link.multi_input_sort_id);
       }
-      node_remove_link(&ntree, *link);
+      node_remove_link(&ntree, link);
       continue;
     }
 
-    if (link->tosock->is_multi_input()) {
+    if (link.tosock->is_multi_input()) {
       /* remove the link that would be the same as the relinked one */
-      LISTBASE_FOREACH_MUTABLE (bNodeLink *, link_to_compare, &ntree.links) {
-        if (link_to_compare->fromsock == fromlink->fromsock &&
-            link_to_compare->tosock == link->tosock)
+      for (bNodeLink &link_to_compare : ntree.links.items_mutable()) {
+        if (link_to_compare.fromsock == fromlink->fromsock &&
+            link_to_compare.tosock == link.tosock)
         {
           adjust_multi_input_indices_after_removed_link(
-              &ntree, link_to_compare->tosock, link_to_compare->multi_input_sort_id);
-          duplicate_links_to_remove.append_non_duplicates(link_to_compare);
+              &ntree, link_to_compare.tosock, link_to_compare.multi_input_sort_id);
+          duplicate_links_to_remove.append_non_duplicates(&link_to_compare);
         }
       }
     }
 
-    link->fromnode = fromlink->fromnode;
-    link->fromsock = fromlink->fromsock;
+    link.fromnode = fromlink->fromnode;
+    link.fromsock = fromlink->fromsock;
 
     /* if the up- or downstream link is invalid,
      * the replacement link will be invalid too.
      */
     if (!(fromlink->flag & NODE_LINK_VALID)) {
-      link->flag &= ~NODE_LINK_VALID;
+      link.flag &= ~NODE_LINK_VALID;
     }
 
     if (fromlink->flag & NODE_LINK_MUTED) {
-      link->flag |= NODE_LINK_MUTED;
+      link.flag |= NODE_LINK_MUTED;
     }
 
     BKE_ntree_update_tag_link_changed(&ntree);
@@ -4217,9 +4217,9 @@ void node_internal_relink(bNodeTree &ntree, bNode &node)
   }
 
   /* remove remaining upstream links */
-  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree.links) {
-    if (link->tonode == &node) {
-      node_remove_link(&ntree, *link);
+  for (bNodeLink &link : ntree.links.items_mutable()) {
+    if (link.tonode == &node) {
+      node_remove_link(&ntree, link);
     }
   }
 }
@@ -4505,24 +4505,24 @@ void node_preview_merge_tree(bNodeTree *to_ntree, bNodeTree *from_ntree, bool re
 
 void node_unlink_node(bNodeTree &ntree, bNode &node)
 {
-  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree.links) {
+  for (bNodeLink &link : ntree.links.items_mutable()) {
     ListBaseT<bNodeSocket> *lb = nullptr;
-    if (link->fromnode == &node) {
+    if (link.fromnode == &node) {
       lb = &node.outputs;
     }
-    else if (link->tonode == &node) {
+    else if (link.tonode == &node) {
       lb = &node.inputs;
     }
 
     if (lb) {
       /* Only bother adjusting if the socket is not on the node we're deleting. */
-      if (link->tonode != &node && link->tosock->is_multi_input()) {
+      if (link.tonode != &node && link.tosock->is_multi_input()) {
         adjust_multi_input_indices_after_removed_link(
-            &ntree, link->tosock, link->multi_input_sort_id);
+            &ntree, link.tosock, link.multi_input_sort_id);
       }
       for (const bNodeSocket &sock : *lb) {
-        if (link->fromsock == &sock || link->tosock == &sock) {
-          node_remove_link(&ntree, *link);
+        if (link.fromsock == &sock || link.tosock == &sock) {
+          node_remove_link(&ntree, link);
           break;
         }
       }
@@ -4543,10 +4543,10 @@ void node_rebuild_id_vector(bNodeTree &node_tree)
 {
   /* Rebuild nodes #VectorSet which must have the same order as the list. */
   node_tree.runtime->nodes_by_id.clear();
-  int i;
-  LISTBASE_FOREACH_INDEX (bNode *, node, &node_tree.nodes, i) {
-    node_tree.runtime->nodes_by_id.add_new(node);
-    node->runtime->index_in_tree = i;
+
+  for (const auto [i, node] : node_tree.nodes.enumerate()) {
+    node_tree.runtime->nodes_by_id.add_new(&node);
+    node.runtime->index_in_tree = i;
   }
 }
 
@@ -4580,15 +4580,15 @@ void node_free_node(bNodeTree *ntree, bNode &node)
     node.typeinfo->freefunc(&node);
   }
 
-  LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &node.inputs) {
+  for (bNodeSocket &sock : node.inputs.items_mutable()) {
     /* Remember, no ID user refcount management here! */
-    node_socket_free(sock, false);
-    MEM_freeN(sock);
+    node_socket_free(&sock, false);
+    MEM_freeN(&sock);
   }
-  LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &node.outputs) {
+  for (bNodeSocket &sock : node.outputs.items_mutable()) {
     /* Remember, no ID user refcount management here! */
-    node_socket_free(sock, false);
-    MEM_freeN(sock);
+    node_socket_free(&sock, false);
+    MEM_freeN(&sock);
   }
 
   MEM_SAFE_FREE(node.panel_states_array);
@@ -5020,10 +5020,10 @@ int node_socket_link_limit(const bNodeSocket &sock)
 static void update_socket_declarations(ListBaseT<bNodeSocket> *sockets,
                                        const Span<SocketDeclaration *> declarations)
 {
-  int index;
-  LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, sockets, index) {
+
+  for (const auto [index, socket] : (sockets)->enumerate()) {
     const SocketDeclaration &socket_decl = *declarations[index];
-    socket->runtime->declaration = &socket_decl;
+    socket.runtime->declaration = &socket_decl;
   }
 }
 

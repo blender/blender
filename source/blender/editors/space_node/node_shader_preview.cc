@@ -107,8 +107,8 @@ static std::optional<ComputeContextHash> get_compute_context_hash_for_node_edito
     const SpaceNode &snode)
 {
   Vector<const bNodeTreePath *> treepath;
-  LISTBASE_FOREACH (const bNodeTreePath *, item, &snode.treepath) {
-    treepath.append(item);
+  for (const bNodeTreePath &item : snode.treepath) {
+    treepath.append(&item);
   }
 
   if (treepath.is_empty()) {
@@ -222,19 +222,19 @@ static Scene *preview_prepare_scene(const Main *bmain,
   ED_preview_set_visibility(pr_main, scene_preview, view_layer, preview_type, PR_BUTS_RENDER);
 
   BKE_view_layer_synced_ensure(scene_preview, view_layer);
-  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-    if (base->object->id.name[2] == 'p') {
-      if (OB_TYPE_SUPPORT_MATERIAL(base->object->type)) {
+  for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+    if (base.object->id.name[2] == 'p') {
+      if (OB_TYPE_SUPPORT_MATERIAL(base.object->type)) {
         /* Don't use BKE_object_material_assign, it changed mat->id.us, which shows in the UI. */
-        Material ***matar = BKE_object_material_array_p(base->object);
-        int actcol = max_ii(base->object->actcol - 1, 0);
+        Material ***matar = BKE_object_material_array_p(base.object);
+        int actcol = max_ii(base.object->actcol - 1, 0);
 
-        if (matar && actcol < base->object->totcol) {
+        if (matar && actcol < base.object->totcol) {
           (*matar)[actcol] = mat_copy;
         }
       }
-      else if (base->object->type == OB_LAMP) {
-        base->flag |= BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT;
+      else if (base.object->type == OB_LAMP) {
+        base.flag |= BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT;
       }
     }
   }

@@ -413,13 +413,13 @@ void BoneCollectionTreeView::build_bcolls_with_selected_bones()
 
   /* Armature Edit mode. */
   if (armature_.edbo) {
-    LISTBASE_FOREACH (EditBone *, ebone, armature_.edbo) {
-      if ((ebone->flag & BONE_SELECTED) == 0) {
+    for (EditBone &ebone : *armature_.edbo) {
+      if ((ebone.flag & BONE_SELECTED) == 0) {
         continue;
       }
 
-      LISTBASE_FOREACH (BoneCollectionReference *, ref, &ebone->bone_collections) {
-        bcolls_with_selected_bones_.add(ref->bcoll);
+      for (BoneCollectionReference &ref : ebone.bone_collections) {
+        bcolls_with_selected_bones_.add(ref.bcoll);
       }
     }
     return;
@@ -431,8 +431,8 @@ void BoneCollectionTreeView::build_bcolls_with_selected_bones()
       return;
     }
 
-    LISTBASE_FOREACH (const BoneCollectionReference *, ref, &bone->runtime.collections) {
-      bcolls_with_selected_bones_.add(ref->bcoll);
+    for (const BoneCollectionReference &ref : bone->runtime.collections) {
+      bcolls_with_selected_bones_.add(ref.bcoll);
     }
   });
 }

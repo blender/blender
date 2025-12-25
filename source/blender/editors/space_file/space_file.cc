@@ -836,8 +836,8 @@ static void file_space_subtype_set(ScrArea *area, int value)
 {
   SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
   /* Force re-init. */
-  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    region->v2d.flag &= ~V2D_IS_INIT;
+  for (ARegion &region : area->regionbase) {
+    region.v2d.flag &= ~V2D_IS_INIT;
   }
   sfile->browse_mode = value;
 }

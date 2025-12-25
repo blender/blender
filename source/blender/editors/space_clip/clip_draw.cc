@@ -1491,10 +1491,10 @@ static void draw_tracking_tracks(SpaceClip *sc,
   GPU_matrix_scale_2f(width, height);
 
   /* Draw plane tracks */
-  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
-    if ((plane_track->flag & PLANE_TRACK_HIDDEN) == 0) {
+  for (MovieTrackingPlaneTrack &plane_track : tracking_object->plane_tracks) {
+    if ((plane_track.flag & PLANE_TRACK_HIDDEN) == 0) {
       draw_plane_track(
-          sc, scene, plane_track, framenr, plane_track == active_plane_track, width, height);
+          sc, scene, &plane_track, framenr, &plane_track == active_plane_track, width, height);
     }
   }
 
@@ -1502,14 +1502,14 @@ static void draw_tracking_tracks(SpaceClip *sc,
     int count = 0;
 
     /* count */
-    LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-      if (track->flag & TRACK_HIDDEN) {
+    for (MovieTrackingTrack &track : tracking_object->tracks) {
+      if (track.flag & TRACK_HIDDEN) {
         continue;
       }
 
-      const MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+      const MovieTrackingMarker *marker = BKE_tracking_marker_get(&track, framenr);
 
-      if (ED_space_clip_marker_is_visible(sc, tracking_object, track, marker)) {
+      if (ED_space_clip_marker_is_visible(sc, tracking_object, &track, marker)) {
         count++;
       }
     }
@@ -1519,17 +1519,17 @@ static void draw_tracking_tracks(SpaceClip *sc,
       marker_pos = MEM_calloc_arrayN<float>(2 * count, "draw_tracking_tracks marker_pos");
 
       fp = marker_pos;
-      LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-        if (track->flag & TRACK_HIDDEN) {
+      for (MovieTrackingTrack &track : tracking_object->tracks) {
+        if (track.flag & TRACK_HIDDEN) {
           continue;
         }
 
-        const MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+        const MovieTrackingMarker *marker = BKE_tracking_marker_get(&track, framenr);
 
-        if (ED_space_clip_marker_is_visible(sc, tracking_object, track, marker)) {
+        if (ED_space_clip_marker_is_visible(sc, tracking_object, &track, marker)) {
           ED_clip_point_undistorted_pos(sc, marker->pos, fp);
 
-          if (track == active_track) {
+          if (&track == active_track) {
             active_pos = fp;
           }
 
@@ -1540,9 +1540,9 @@ static void draw_tracking_tracks(SpaceClip *sc,
   }
 
   if (sc->flag & SC_SHOW_TRACK_PATH) {
-    LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-      if ((track->flag & TRACK_HIDDEN) == 0) {
-        draw_track_path(sc, clip, track);
+    for (MovieTrackingTrack &track : tracking_object->tracks) {
+      if ((track.flag & TRACK_HIDDEN) == 0) {
+        draw_track_path(sc, clip, &track);
       }
     }
   }
@@ -1552,20 +1552,20 @@ static void draw_tracking_tracks(SpaceClip *sc,
 
   /* markers outline and non-selected areas */
   fp = marker_pos;
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (track->flag & TRACK_HIDDEN) {
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    if (track.flag & TRACK_HIDDEN) {
       continue;
     }
 
-    const MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+    const MovieTrackingMarker *marker = BKE_tracking_marker_get(&track, framenr);
 
-    if (ED_space_clip_marker_is_visible(sc, tracking_object, track, marker)) {
+    if (ED_space_clip_marker_is_visible(sc, tracking_object, &track, marker)) {
       copy_v2_v2(cur_pos, fp ? fp : marker->pos);
 
-      draw_marker_outline(sc, track, marker, cur_pos, width, height, position);
-      draw_marker_areas(sc, track, marker, cur_pos, width, height, 0, 0, position);
-      draw_marker_slide_zones(sc, track, marker, cur_pos, 1, 0, 0, width, height, position);
-      draw_marker_slide_zones(sc, track, marker, cur_pos, 0, 0, 0, width, height, position);
+      draw_marker_outline(sc, &track, marker, cur_pos, width, height, position);
+      draw_marker_areas(sc, &track, marker, cur_pos, width, height, 0, 0, position);
+      draw_marker_slide_zones(sc, &track, marker, cur_pos, 1, 0, 0, width, height, position);
+      draw_marker_slide_zones(sc, &track, marker, cur_pos, 0, 0, 0, width, height, position);
 
       if (fp) {
         fp += 2;
@@ -1575,19 +1575,19 @@ static void draw_tracking_tracks(SpaceClip *sc,
 
   /* selected areas only, so selection wouldn't be overlapped by non-selected areas */
   fp = marker_pos;
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (track->flag & TRACK_HIDDEN) {
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    if (track.flag & TRACK_HIDDEN) {
       continue;
     }
-    const int act = track == active_track;
-    const MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+    const int act = &track == active_track;
+    const MovieTrackingMarker *marker = BKE_tracking_marker_get(&track, framenr);
 
-    if (ED_space_clip_marker_is_visible(sc, tracking_object, track, marker)) {
+    if (ED_space_clip_marker_is_visible(sc, tracking_object, &track, marker)) {
       if (!act) {
         copy_v2_v2(cur_pos, fp ? fp : marker->pos);
 
-        draw_marker_areas(sc, track, marker, cur_pos, width, height, 0, 1, position);
-        draw_marker_slide_zones(sc, track, marker, cur_pos, 0, 1, 0, width, height, position);
+        draw_marker_areas(sc, &track, marker, cur_pos, width, height, 0, 1, position);
+        draw_marker_slide_zones(sc, &track, marker, cur_pos, 0, 1, 0, width, height, position);
       }
 
       if (fp) {
@@ -1616,16 +1616,16 @@ static void draw_tracking_tracks(SpaceClip *sc,
 
     immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_COLOR);
     immUniform1f("size", 3.0f);
-    LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-      if (track->flag & TRACK_HIDDEN || (track->flag & TRACK_HAS_BUNDLE) == 0) {
+    for (MovieTrackingTrack &track : tracking_object->tracks) {
+      if (track.flag & TRACK_HIDDEN || (track.flag & TRACK_HAS_BUNDLE) == 0) {
         continue;
       }
 
-      const MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+      const MovieTrackingMarker *marker = BKE_tracking_marker_get(&track, framenr);
 
-      if (ED_space_clip_marker_is_visible(sc, tracking_object, track, marker)) {
+      if (ED_space_clip_marker_is_visible(sc, tracking_object, &track, marker)) {
         float npos[2];
-        copy_v3_v3(vec, track->bundle_pos);
+        copy_v3_v3(vec, track.bundle_pos);
         vec[3] = 1;
 
         mul_v4_m4v4(pos, mat, vec);
@@ -1636,8 +1636,8 @@ static void draw_tracking_tracks(SpaceClip *sc,
         BKE_tracking_distort_v2(tracking, width, height, pos, npos);
 
         if (npos[0] >= 0.0f && npos[1] >= 0.0f && npos[0] <= width && npos[1] <= height * aspy) {
-          vec[0] = (marker->pos[0] + track->offset[0]) * width;
-          vec[1] = (marker->pos[1] + track->offset[1]) * height * aspy;
+          vec[0] = (marker->pos[0] + track.offset[0]) * width;
+          vec[1] = (marker->pos[1] + track.offset[1]) * height * aspy;
 
           sub_v2_v2(vec, npos);
 
@@ -1666,19 +1666,19 @@ static void draw_tracking_tracks(SpaceClip *sc,
   if (sc->flag & SC_SHOW_NAMES) {
     /* scaling should be cleared before drawing texts, otherwise font would also be scaled */
     fp = marker_pos;
-    LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-      if (track->flag & TRACK_HIDDEN) {
+    for (MovieTrackingTrack &track : tracking_object->tracks) {
+      if (track.flag & TRACK_HIDDEN) {
         continue;
       }
 
-      const MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+      const MovieTrackingMarker *marker = BKE_tracking_marker_get(&track, framenr);
 
-      if (ED_space_clip_marker_is_visible(sc, tracking_object, track, marker)) {
-        const int act = track == active_track;
+      if (ED_space_clip_marker_is_visible(sc, tracking_object, &track, marker)) {
+        const int act = &track == active_track;
 
         copy_v2_v2(cur_pos, fp ? fp : marker->pos);
 
-        draw_marker_texts(sc, track, marker, cur_pos, act, width, height, zoomx, zoomy);
+        draw_marker_texts(sc, &track, marker, cur_pos, act, width, height, zoomx, zoomy);
 
         if (fp) {
           fp += 2;

@@ -139,8 +139,8 @@ bool graphop_visible_keyframes_poll(bContext *C)
     return found;
   }
 
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    const FCurve *fcu = (const FCurve *)ale->data;
+  for (bAnimListElem &ale : anim_data) {
+    const FCurve *fcu = (const FCurve *)ale.data;
 
     /* visible curves for selection must fulfill the following criteria:
      * - it has bezier keyframes
@@ -193,8 +193,8 @@ bool graphop_editable_keyframes_poll(bContext *C)
     return found;
   }
 
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    const FCurve *fcu = (const FCurve *)ale->data;
+  for (bAnimListElem &ale : anim_data) {
+    const FCurve *fcu = (const FCurve *)ale.data;
 
     /* editable curves must fulfill the following criteria:
      * - it has bezier keyframes

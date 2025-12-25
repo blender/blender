@@ -241,14 +241,14 @@ static wmGizmo *rna_GizmoProperties_find_operator(PointerRNA *ptr)
        screen = static_cast<bScreen *>(screen->id.next))
   {
     IDProperty *properties = static_cast<IDProperty *>(ptr->data);
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-        if (region->runtime->gizmo_map) {
-          wmGizmoMap *gzmap = region->runtime->gizmo_map;
-          LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, WM_gizmomap_group_list(gzmap)) {
-            LISTBASE_FOREACH (wmGizmo *, gz, &gzgroup->gizmos) {
-              if (gz->properties == properties) {
-                return gz;
+    for (ScrArea &area : screen->areabase) {
+      for (ARegion &region : area.regionbase) {
+        if (region.runtime->gizmo_map) {
+          wmGizmoMap *gzmap = region.runtime->gizmo_map;
+          for (wmGizmoGroup &gzgroup : *WM_gizmomap_group_list(gzmap)) {
+            for (wmGizmo &gz : gzgroup.gizmos) {
+              if (gz.properties == properties) {
+                return &gz;
               }
             }
           }

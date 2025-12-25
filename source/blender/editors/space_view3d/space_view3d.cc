@@ -90,14 +90,14 @@ bool ED_view3d_area_user_region(const ScrArea *area, const View3D *v3d, ARegion 
 
   BLI_assert(v3d->spacetype == SPACE_VIEW3D);
 
-  LISTBASE_FOREACH (ARegion *, region, region_list) {
+  for (ARegion &region : *region_list) {
     /* find the first unlocked rv3d */
-    if (region->regiondata && region->regiontype == RGN_TYPE_WINDOW) {
-      rv3d = static_cast<RegionView3D *>(region->regiondata);
+    if (region.regiondata && region.regiontype == RGN_TYPE_WINDOW) {
+      rv3d = static_cast<RegionView3D *>(region.regiondata);
       if ((rv3d->viewlock & RV3D_LOCK_ROTATION) == 0) {
-        region_unlock = region;
+        region_unlock = &region;
         if (ELEM(rv3d->persp, RV3D_PERSP, RV3D_CAMOB)) {
-          region_unlock_user = region;
+          region_unlock_user = &region;
           break;
         }
       }
@@ -179,9 +179,9 @@ void ED_view3d_shade_update(Main *bmain, View3D *v3d, ScrArea *area)
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
 
   if (v3d->shading.type != OB_RENDER) {
-    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-      if ((region->regiontype == RGN_TYPE_WINDOW) && region->regiondata) {
-        ED_view3d_stop_render_preview(wm, region);
+    for (ARegion &region : area->regionbase) {
+      if ((region.regiontype == RGN_TYPE_WINDOW) && region.regiondata) {
+        ED_view3d_stop_render_preview(wm, &region);
       }
     }
   }
@@ -1504,10 +1504,10 @@ static void view3d_id_remap_v3d(ScrArea *area,
     /* 3D view might be inactive, in that case needs to use slink->regionbase */
     ListBaseT<ARegion> *regionbase = (slink == area->spacedata.first) ? &area->regionbase :
                                                                         &slink->regionbase;
-    LISTBASE_FOREACH (ARegion *, region, regionbase) {
-      if (region->regiontype == RGN_TYPE_WINDOW) {
-        RegionView3D *rv3d = is_local ? ((RegionView3D *)region->regiondata)->localvd :
-                                        static_cast<RegionView3D *>(region->regiondata);
+    for (ARegion &region : *regionbase) {
+      if (region.regiontype == RGN_TYPE_WINDOW) {
+        RegionView3D *rv3d = is_local ? ((RegionView3D *)region.regiondata)->localvd :
+                                        static_cast<RegionView3D *>(region.regiondata);
         if (rv3d && (rv3d->persp == RV3D_CAMOB)) {
           rv3d->persp = RV3D_PERSP;
         }

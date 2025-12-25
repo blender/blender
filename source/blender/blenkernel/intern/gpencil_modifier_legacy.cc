@@ -396,25 +396,25 @@ void BKE_gpencil_modifier_blend_read_data(BlendDataReader *reader,
 {
   BLO_read_struct_list(reader, GpencilModifierData, lb);
 
-  LISTBASE_FOREACH (GpencilModifierData *, md, lb) {
-    md->error = nullptr;
+  for (GpencilModifierData &md : *lb) {
+    md.error = nullptr;
 
     /* if modifiers disappear, or for upward compatibility */
-    if (!gpencil_modifier_type_valid(md->type)) {
-      md->type = eModifierType_None;
+    if (!gpencil_modifier_type_valid(md.type)) {
+      md.type = eModifierType_None;
     }
 
     /* If linking from a library, clear 'local' library override flag. */
     if (ID_IS_LINKED(ob)) {
-      md->flag &= ~eGpencilModifierFlag_OverrideLibrary_Local;
+      md.flag &= ~eGpencilModifierFlag_OverrideLibrary_Local;
     }
 
-    if (md->type == eGpencilModifierType_Lattice) {
-      LatticeGpencilModifierData *gpmd = (LatticeGpencilModifierData *)md;
+    if (md.type == eGpencilModifierType_Lattice) {
+      LatticeGpencilModifierData *gpmd = (LatticeGpencilModifierData *)&md;
       gpmd->cache_data = nullptr;
     }
-    else if (md->type == eGpencilModifierType_Hook) {
-      HookGpencilModifierData *hmd = (HookGpencilModifierData *)md;
+    else if (md.type == eGpencilModifierType_Hook) {
+      HookGpencilModifierData *hmd = (HookGpencilModifierData *)&md;
 
       BLO_read_struct(reader, CurveMapping, &hmd->curfalloff);
       if (hmd->curfalloff) {
@@ -422,8 +422,8 @@ void BKE_gpencil_modifier_blend_read_data(BlendDataReader *reader,
         BKE_curvemapping_init(hmd->curfalloff);
       }
     }
-    else if (md->type == eGpencilModifierType_Noise) {
-      NoiseGpencilModifierData *gpmd = (NoiseGpencilModifierData *)md;
+    else if (md.type == eGpencilModifierType_Noise) {
+      NoiseGpencilModifierData *gpmd = (NoiseGpencilModifierData *)&md;
 
       BLO_read_struct(reader, CurveMapping, &gpmd->curve_intensity);
       if (gpmd->curve_intensity) {
@@ -432,8 +432,8 @@ void BKE_gpencil_modifier_blend_read_data(BlendDataReader *reader,
         BKE_curvemapping_init(gpmd->curve_intensity);
       }
     }
-    else if (md->type == eGpencilModifierType_Thick) {
-      ThickGpencilModifierData *gpmd = (ThickGpencilModifierData *)md;
+    else if (md.type == eGpencilModifierType_Thick) {
+      ThickGpencilModifierData *gpmd = (ThickGpencilModifierData *)&md;
 
       BLO_read_struct(reader, CurveMapping, &gpmd->curve_thickness);
       if (gpmd->curve_thickness) {
@@ -441,8 +441,8 @@ void BKE_gpencil_modifier_blend_read_data(BlendDataReader *reader,
         BKE_curvemapping_init(gpmd->curve_thickness);
       }
     }
-    else if (md->type == eGpencilModifierType_Tint) {
-      TintGpencilModifierData *gpmd = (TintGpencilModifierData *)md;
+    else if (md.type == eGpencilModifierType_Tint) {
+      TintGpencilModifierData *gpmd = (TintGpencilModifierData *)&md;
       BLO_read_struct(reader, ColorBand, &gpmd->colorband);
       BLO_read_struct(reader, CurveMapping, &gpmd->curve_intensity);
       if (gpmd->curve_intensity) {
@@ -450,48 +450,48 @@ void BKE_gpencil_modifier_blend_read_data(BlendDataReader *reader,
         BKE_curvemapping_init(gpmd->curve_intensity);
       }
     }
-    else if (md->type == eGpencilModifierType_Smooth) {
-      SmoothGpencilModifierData *gpmd = (SmoothGpencilModifierData *)md;
+    else if (md.type == eGpencilModifierType_Smooth) {
+      SmoothGpencilModifierData *gpmd = (SmoothGpencilModifierData *)&md;
       BLO_read_struct(reader, CurveMapping, &gpmd->curve_intensity);
       if (gpmd->curve_intensity) {
         BKE_curvemapping_blend_read(reader, gpmd->curve_intensity);
         BKE_curvemapping_init(gpmd->curve_intensity);
       }
     }
-    else if (md->type == eGpencilModifierType_Color) {
-      ColorGpencilModifierData *gpmd = (ColorGpencilModifierData *)md;
+    else if (md.type == eGpencilModifierType_Color) {
+      ColorGpencilModifierData *gpmd = (ColorGpencilModifierData *)&md;
       BLO_read_struct(reader, CurveMapping, &gpmd->curve_intensity);
       if (gpmd->curve_intensity) {
         BKE_curvemapping_blend_read(reader, gpmd->curve_intensity);
         BKE_curvemapping_init(gpmd->curve_intensity);
       }
     }
-    else if (md->type == eGpencilModifierType_Opacity) {
-      OpacityGpencilModifierData *gpmd = (OpacityGpencilModifierData *)md;
+    else if (md.type == eGpencilModifierType_Opacity) {
+      OpacityGpencilModifierData *gpmd = (OpacityGpencilModifierData *)&md;
       BLO_read_struct(reader, CurveMapping, &gpmd->curve_intensity);
       if (gpmd->curve_intensity) {
         BKE_curvemapping_blend_read(reader, gpmd->curve_intensity);
         BKE_curvemapping_init(gpmd->curve_intensity);
       }
     }
-    else if (md->type == eGpencilModifierType_Dash) {
-      DashGpencilModifierData *gpmd = (DashGpencilModifierData *)md;
+    else if (md.type == eGpencilModifierType_Dash) {
+      DashGpencilModifierData *gpmd = (DashGpencilModifierData *)&md;
       BLO_read_struct_array(
           reader, DashGpencilModifierSegment, gpmd->segments_len, &gpmd->segments);
       for (int i = 0; i < gpmd->segments_len; i++) {
         gpmd->segments[i].dmd = gpmd;
       }
     }
-    else if (md->type == eGpencilModifierType_Time) {
-      TimeGpencilModifierData *gpmd = (TimeGpencilModifierData *)md;
+    else if (md.type == eGpencilModifierType_Time) {
+      TimeGpencilModifierData *gpmd = (TimeGpencilModifierData *)&md;
       BLO_read_struct_array(
           reader, TimeGpencilModifierSegment, gpmd->segments_len, &gpmd->segments);
       for (int i = 0; i < gpmd->segments_len; i++) {
         gpmd->segments[i].gpmd = gpmd;
       }
     }
-    if (md->type == eGpencilModifierType_Shrinkwrap) {
-      ShrinkwrapGpencilModifierData *gpmd = (ShrinkwrapGpencilModifierData *)md;
+    if (md.type == eGpencilModifierType_Shrinkwrap) {
+      ShrinkwrapGpencilModifierData *gpmd = (ShrinkwrapGpencilModifierData *)&md;
       gpmd->cache_data = nullptr;
     }
   }

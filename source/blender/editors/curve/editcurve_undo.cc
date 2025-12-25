@@ -96,11 +96,11 @@ static void undocurve_to_editcurve(Main *bmain, UndoCurve *ucu, Curve *cu, short
   }
 
   /* Copy. */
-  LISTBASE_FOREACH (Nurb *, nu, undobase) {
-    Nurb *newnu = BKE_nurb_duplicate(nu);
+  for (Nurb &nu : *undobase) {
+    Nurb *newnu = BKE_nurb_duplicate(&nu);
 
     if (editnurb->keyindex) {
-      ED_curve_keyindex_update_nurb(editnurb, nu, newnu);
+      ED_curve_keyindex_update_nurb(editnurb, &nu, newnu);
     }
 
     BLI_addtail(editbase, newnu);
@@ -133,19 +133,19 @@ static void undocurve_from_editcurve(UndoCurve *ucu, Curve *cu, const short shap
   }
 
   /* Copy. */
-  LISTBASE_FOREACH (Nurb *, nu, nubase) {
-    Nurb *newnu = BKE_nurb_duplicate(nu);
+  for (Nurb &nu : *nubase) {
+    Nurb *newnu = BKE_nurb_duplicate(&nu);
 
     if (ucu->undoIndex) {
-      ED_curve_keyindex_update_nurb(&tmpEditnurb, nu, newnu);
+      ED_curve_keyindex_update_nurb(&tmpEditnurb, &nu, newnu);
     }
 
     BLI_addtail(&ucu->nubase, newnu);
 
-    ucu->undo_size += ((nu->bezt ? (sizeof(BezTriple) * nu->pntsu) : 0) +
-                       (nu->bp ? (sizeof(BPoint) * (nu->pntsu * nu->pntsv)) : 0) +
-                       (nu->knotsu ? (sizeof(float) * KNOTSU(nu)) : 0) +
-                       (nu->knotsv ? (sizeof(float) * KNOTSV(nu)) : 0) + sizeof(Nurb));
+    ucu->undo_size += ((nu.bezt ? (sizeof(BezTriple) * nu.pntsu) : 0) +
+                       (nu.bp ? (sizeof(BPoint) * (nu.pntsu * nu.pntsv)) : 0) +
+                       (nu.knotsu ? (sizeof(float) * KNOTSU(&nu)) : 0) +
+                       (nu.knotsv ? (sizeof(float) * KNOTSV(&nu)) : 0) + sizeof(Nurb));
   }
 
   ucu->actvert = cu->actvert;

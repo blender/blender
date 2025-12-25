@@ -28,9 +28,9 @@ bUserMenu *BKE_blender_user_menu_find(ListBaseT<bUserMenu> *lb,
                                       char space_type,
                                       const char *context)
 {
-  LISTBASE_FOREACH (bUserMenu *, um, lb) {
-    if ((space_type == um->space_type) && STREQ(context, um->context)) {
-      return um;
+  for (bUserMenu &um : *lb) {
+    if ((space_type == um.space_type) && STREQ(context, um.context)) {
+      return &um;
     }
   }
   return nullptr;

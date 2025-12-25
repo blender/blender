@@ -317,37 +317,37 @@ static void menu_types_add_from_keymap_items(bContext *C,
     if (handlers[handler_index] == nullptr) {
       continue;
     }
-    LISTBASE_FOREACH (wmEventHandler *, handler_base, handlers[handler_index]) {
+    for (wmEventHandler &handler_base : *handlers[handler_index]) {
       /* During this loop, UI handlers for nested menus can tag multiple handlers free. */
-      if (handler_base->flag & WM_HANDLER_DO_FREE) {
+      if (handler_base.flag & WM_HANDLER_DO_FREE) {
         continue;
       }
-      if (handler_base->type != WM_HANDLER_TYPE_KEYMAP) {
+      if (handler_base.type != WM_HANDLER_TYPE_KEYMAP) {
         continue;
       }
 
-      if (handler_base->poll == nullptr ||
-          handler_base->poll(win, area, region, win->runtime->eventstate))
+      if (handler_base.poll == nullptr ||
+          handler_base.poll(win, area, region, win->runtime->eventstate))
       {
-        wmEventHandler_Keymap *handler = (wmEventHandler_Keymap *)handler_base;
+        wmEventHandler_Keymap *handler = (wmEventHandler_Keymap *)&handler_base;
         wmEventHandler_KeymapResult km_result;
         WM_event_get_keymaps_from_handler(wm, win, handler, &km_result);
         for (int km_index = 0; km_index < km_result.keymaps_len; km_index++) {
           wmKeyMap *keymap = km_result.keymaps[km_index];
           if (keymap && WM_keymap_poll(C, keymap)) {
-            LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
-              if (kmi->flag & KMI_INACTIVE) {
+            for (wmKeyMapItem &kmi : keymap->items) {
+              if (kmi.flag & KMI_INACTIVE) {
                 continue;
               }
-              if (STR_ELEM(kmi->idname, "WM_OT_call_menu", "WM_OT_call_menu_pie")) {
+              if (STR_ELEM(kmi.idname, "WM_OT_call_menu", "WM_OT_call_menu_pie")) {
                 char menu_idname[MAX_NAME];
-                RNA_string_get(kmi->ptr, "name", menu_idname);
+                RNA_string_get(kmi.ptr, "name", menu_idname);
                 MenuType *mt = WM_menutype_find(menu_idname, false);
 
                 if (mt && menu_tagged.add(mt)) {
                   /* Unlikely, but possible this will be included twice. */
                   menu_stack.push({mt});
-                  menu_to_kmi.add(mt, kmi);
+                  menu_to_kmi.add(mt, &kmi);
                 }
               }
             }
@@ -528,10 +528,10 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
       }
     }
 
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+    for (ScrArea &area : screen->areabase) {
+      ARegion *region = BKE_area_find_region_type(&area, RGN_TYPE_WINDOW);
       if (region != nullptr) {
-        PointerRNA ptr = RNA_pointer_create_discrete(&screen->id, &RNA_Area, area);
+        PointerRNA ptr = RNA_pointer_create_discrete(&screen->id, &RNA_Area, &area);
         const int space_type_ui = RNA_property_enum_get(&ptr, prop_ui_type);
 
         const int space_type_ui_index = RNA_enum_from_value(space_type_ui_items, space_type_ui);
@@ -542,14 +542,14 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
         if (wm_contexts[space_type_ui_index].space_type_ui_index != -1) {
           ScrArea *area_best = wm_contexts[space_type_ui_index].area;
           const uint value_best = uint(area_best->winx) * uint(area_best->winy);
-          const uint value_test = uint(area->winx) * uint(area->winy);
+          const uint value_test = uint(area.winx) * uint(area.winy);
           if (value_best > value_test) {
             continue;
           }
         }
 
         wm_contexts[space_type_ui_index].space_type_ui_index = space_type_ui_index;
-        wm_contexts[space_type_ui_index].area = area;
+        wm_contexts[space_type_ui_index].area = &area;
         wm_contexts[space_type_ui_index].region = region;
       }
     }

@@ -433,18 +433,18 @@ struct ViewOpsData_Utility : ViewOpsData {
 
     wmKeyMap keymap_tmp = {};
 
-    LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
-      if (!STRPREFIX(kmi->idname, "VIEW3D")) {
+    for (wmKeyMapItem &kmi : keymap->items) {
+      if (!STRPREFIX(kmi.idname, "VIEW3D")) {
         continue;
       }
-      if (kmi->flag & KMI_INACTIVE) {
+      if (kmi.flag & KMI_INACTIVE) {
         continue;
       }
-      if (view3d_navigation_type_from_idname(kmi->idname) == nullptr) {
+      if (view3d_navigation_type_from_idname(kmi.idname) == nullptr) {
         continue;
       }
 
-      wmKeyMapItem *kmi_cpy = WM_keymap_add_item_copy(&keymap_tmp, kmi);
+      wmKeyMapItem *kmi_cpy = WM_keymap_add_item_copy(&keymap_tmp, &kmi);
       if (kmi_merge) {
         if (kmi_merge->shift == KM_MOD_HELD ||
             ELEM(kmi_merge->type, EVT_RIGHTSHIFTKEY, EVT_LEFTSHIFTKEY))
@@ -866,10 +866,10 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
     float3 select_center(0);
 
     zero_v3(select_center);
-    LISTBASE_FOREACH (const Base *, base_eval, BKE_view_layer_object_bases_get(view_layer_eval)) {
-      if (BASE_SELECTED(v3d, base_eval)) {
+    for (const Base &base_eval : *BKE_view_layer_object_bases_get(view_layer_eval)) {
+      if (BASE_SELECTED(v3d, &base_eval)) {
         /* Use the bounding-box if we can. */
-        const Object *ob_eval = base_eval->object;
+        const Object *ob_eval = base_eval.object;
 
         if (const std::optional<Bounds<float3>> bounds = BKE_object_boundbox_get(ob_eval)) {
           const float3 center = math::midpoint(bounds->min, bounds->max);
@@ -1147,18 +1147,18 @@ bool ED_view3d_navigation_do(bContext *C,
     }
   }
   else {
-    LISTBASE_FOREACH (wmKeyMapItem *, kmi, &vod_intern->keymap_items) {
-      if (!WM_event_match(event, kmi)) {
+    for (wmKeyMapItem &kmi : vod_intern->keymap_items) {
+      if (!WM_event_match(event, &kmi)) {
         continue;
       }
 
-      const ViewOpsType *nav_type = view3d_navigation_type_from_idname(kmi->idname);
+      const ViewOpsType *nav_type = view3d_navigation_type_from_idname(kmi.idname);
       if (nav_type->poll_fn && !nav_type->poll_fn(C)) {
         break;
       }
 
       op_return = view3d_navigation_invoke_generic(
-          C, vod, event, kmi->ptr, nav_type, depth_loc_override);
+          C, vod, event, kmi.ptr, nav_type, depth_loc_override);
 
       if (op_return == OPERATOR_RUNNING_MODAL) {
         vod_intern->is_modal_event = true;

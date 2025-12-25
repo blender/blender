@@ -205,8 +205,8 @@ void BKE_asset_metadata_write(BlendWriter *writer, AssetMetaData *asset_data)
   BLO_write_string(writer, asset_data->copyright);
   BLO_write_string(writer, asset_data->license);
 
-  LISTBASE_FOREACH (AssetTag *, tag, &asset_data->tags) {
-    writer->write_struct(tag);
+  for (AssetTag &tag : asset_data->tags) {
+    writer->write_struct(&tag);
   }
 }
 

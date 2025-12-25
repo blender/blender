@@ -70,9 +70,9 @@ void BKE_displist_free(ListBaseT<DispList> *lb)
 
 DispList *BKE_displist_find(ListBaseT<DispList> *lb, int type)
 {
-  LISTBASE_FOREACH (DispList *, dl, lb) {
-    if (dl->type == type) {
-      return dl;
+  for (DispList &dl : *lb) {
+    if (dl.type == type) {
+      return &dl;
     }
   }
 
@@ -121,24 +121,24 @@ static void curve_to_displist(const Curve *cu,
 {
   const bool editmode = (!for_render && (cu->editnurb || cu->editfont));
 
-  LISTBASE_FOREACH (Nurb *, nu, nubase) {
-    if (nu->hide != 0 && editmode) {
+  for (Nurb &nu : *nubase) {
+    if (nu.hide != 0 && editmode) {
       continue;
     }
-    if (!BKE_nurb_check_valid_u(nu)) {
+    if (!BKE_nurb_check_valid_u(&nu)) {
       continue;
     }
 
-    const int resolution = (for_render && cu->resolu_ren != 0) ? cu->resolu_ren : nu->resolu;
-    const bool is_cyclic = nu->flagu & CU_NURB_CYCLIC;
+    const int resolution = (for_render && cu->resolu_ren != 0) ? cu->resolu_ren : nu.resolu;
+    const bool is_cyclic = nu.flagu & CU_NURB_CYCLIC;
 
-    if (nu->type == CU_BEZIER) {
-      const BezTriple *bezt_first = &nu->bezt[0];
-      const BezTriple *bezt_last = &nu->bezt[nu->pntsu - 1];
+    if (nu.type == CU_BEZIER) {
+      const BezTriple *bezt_first = &nu.bezt[0];
+      const BezTriple *bezt_last = &nu.bezt[nu.pntsu - 1];
       int samples_len = 0;
-      for (int i = 1; i < nu->pntsu; i++) {
-        const BezTriple *prevbezt = &nu->bezt[i - 1];
-        const BezTriple *bezt = &nu->bezt[i];
+      for (int i = 1; i < nu.pntsu; i++) {
+        const BezTriple *prevbezt = &nu.bezt[i - 1];
+        const BezTriple *bezt = &nu.bezt[i];
         if (prevbezt->h2 == HD_VECT && bezt->h1 == HD_VECT) {
           samples_len++;
         }
@@ -171,15 +171,15 @@ static void curve_to_displist(const Curve *cu,
       BLI_addtail(r_dispbase, dl);
       dl->parts = 1;
       dl->nr = samples_len;
-      dl->col = nu->mat_nr;
-      dl->charidx = nu->charidx;
+      dl->col = nu.mat_nr;
+      dl->charidx = nu.charidx;
 
       dl->type = use_cyclic_sample ? DL_POLY : DL_SEGM;
 
       float *data = dl->verts;
-      for (int i = 1; i < nu->pntsu; i++) {
-        const BezTriple *prevbezt = &nu->bezt[i - 1];
-        const BezTriple *bezt = &nu->bezt[i];
+      for (int i = 1; i < nu.pntsu; i++) {
+        const BezTriple *prevbezt = &nu.bezt[i - 1];
+        const BezTriple *bezt = &nu.bezt[i];
 
         if (prevbezt->h2 == HD_VECT && bezt->h1 == HD_VECT) {
           copy_v3_v3(data, prevbezt->vec[1]);
@@ -218,33 +218,33 @@ static void curve_to_displist(const Curve *cu,
         copy_v3_v3(data, bezt_last->vec[1]);
       }
     }
-    else if (nu->type == CU_NURBS) {
-      const int len = (resolution * SEGMENTSU(nu));
+    else if (nu.type == CU_NURBS) {
+      const int len = (resolution * SEGMENTSU(&nu));
       DispList *dl = MEM_callocN<DispList>(__func__);
       dl->verts = MEM_malloc_arrayN<float>(3 * size_t(len), __func__);
       BLI_addtail(r_dispbase, dl);
       dl->parts = 1;
       dl->nr = len;
-      dl->col = nu->mat_nr;
-      dl->charidx = nu->charidx;
+      dl->col = nu.mat_nr;
+      dl->charidx = nu.charidx;
       dl->type = is_cyclic ? DL_POLY : DL_SEGM;
 
-      BKE_nurb_makeCurve(nu, dl->verts, nullptr, nullptr, nullptr, resolution, sizeof(float[3]));
+      BKE_nurb_makeCurve(&nu, dl->verts, nullptr, nullptr, nullptr, resolution, sizeof(float[3]));
     }
-    else if (nu->type == CU_POLY) {
-      const int len = nu->pntsu;
+    else if (nu.type == CU_POLY) {
+      const int len = nu.pntsu;
       DispList *dl = MEM_callocN<DispList>(__func__);
       dl->verts = MEM_malloc_arrayN<float>(3 * size_t(len), __func__);
       BLI_addtail(r_dispbase, dl);
       dl->parts = 1;
       dl->nr = len;
-      dl->col = nu->mat_nr;
-      dl->charidx = nu->charidx;
+      dl->col = nu.mat_nr;
+      dl->charidx = nu.charidx;
       dl->type = (is_cyclic && (dl->nr != 2)) ? DL_POLY : DL_SEGM;
 
       float (*coords)[3] = (float (*)[3])dl->verts;
       for (int i = 0; i < len; i++) {
-        const BPoint *bp = &nu->bp[i];
+        const BPoint *bp = &nu.bp[i];
         copy_v3_v3(coords[i], bp->vec);
       }
     }
@@ -281,13 +281,13 @@ void BKE_displist_fill(const ListBaseT<DispList> *dispbase,
     int totvert = 0;
     short dl_flag_accum = 0;
     short dl_rt_accum = 0;
-    LISTBASE_FOREACH (const DispList *, dl, dispbase) {
-      if (dl->type == DL_POLY) {
-        if (charidx < dl->charidx) {
+    for (const DispList &dl : *dispbase) {
+      if (dl.type == DL_POLY) {
+        if (charidx < dl.charidx) {
           should_continue = true;
         }
-        else if (charidx == dl->charidx) { /* character with needed index */
-          if (colnr == dl->col) {
+        else if (charidx == dl.charidx) { /* character with needed index */
+          if (colnr == dl.col) {
 
             sf_ctx.poly_nr++;
 
@@ -295,9 +295,9 @@ void BKE_displist_fill(const ListBaseT<DispList> *dispbase,
             ScanFillVert *sf_vert = nullptr;
             ScanFillVert *sf_vert_last = nullptr;
             ScanFillVert *sf_vert_new = nullptr;
-            for (int i = 0; i < dl->nr; i++) {
+            for (int i = 0; i < dl.nr; i++) {
               sf_vert_last = sf_vert;
-              sf_vert = BLI_scanfill_vert_add(&sf_ctx, &dl->verts[3 * i]);
+              sf_vert = BLI_scanfill_vert_add(&sf_ctx, &dl.verts[3 * i]);
               totvert++;
               if (sf_vert_last == nullptr) {
                 sf_vert_new = sf_vert;
@@ -311,14 +311,14 @@ void BKE_displist_fill(const ListBaseT<DispList> *dispbase,
               BLI_scanfill_edge_add(&sf_ctx, sf_vert, sf_vert_new);
             }
           }
-          else if (colnr < dl->col) {
+          else if (colnr < dl.col) {
             /* got poly with next material at current char */
             should_continue = true;
             nextcol = true;
           }
         }
-        dl_flag_accum |= dl->flag;
-        dl_rt_accum |= dl->rt;
+        dl_flag_accum |= dl.flag;
+        dl_rt_accum |= dl.rt;
       }
     }
 
@@ -336,18 +336,18 @@ void BKE_displist_fill(const ListBaseT<DispList> *dispbase,
       dlnew->verts = MEM_malloc_arrayN<float>(3 * size_t(totvert), __func__);
 
       /* vert data */
-      int i;
-      LISTBASE_FOREACH_INDEX (ScanFillVert *, sf_vert, &sf_ctx.fillvertbase, i) {
-        copy_v3_v3(&dlnew->verts[3 * i], sf_vert->co);
-        sf_vert->tmp.i = i; /* Index number. */
+
+      for (const auto [i, sf_vert] : sf_ctx.fillvertbase.enumerate()) {
+        copy_v3_v3(&dlnew->verts[3 * i], sf_vert.co);
+        sf_vert.tmp.i = i; /* Index number. */
       }
 
       /* index data */
       int *index = dlnew->index;
-      LISTBASE_FOREACH (ScanFillFace *, sf_tri, &sf_ctx.fillfacebase) {
-        index[0] = sf_tri->v1->tmp.i;
-        index[1] = flip_normal ? sf_tri->v3->tmp.i : sf_tri->v2->tmp.i;
-        index[2] = flip_normal ? sf_tri->v2->tmp.i : sf_tri->v3->tmp.i;
+      for (ScanFillFace &sf_tri : sf_ctx.fillfacebase) {
+        index[0] = sf_tri.v1->tmp.i;
+        index[1] = flip_normal ? sf_tri.v3->tmp.i : sf_tri.v2->tmp.i;
+        index[2] = flip_normal ? sf_tri.v2->tmp.i : sf_tri.v3->tmp.i;
         index += 3;
       }
 
@@ -375,45 +375,45 @@ static void bevels_to_filledpoly(const Curve *cu, ListBaseT<DispList> *dispbase)
   ListBaseT<DispList> front = {nullptr, nullptr};
   ListBaseT<DispList> back = {nullptr, nullptr};
 
-  LISTBASE_FOREACH (const DispList *, dl, dispbase) {
-    if (dl->type == DL_SURF) {
-      if ((dl->flag & DL_CYCL_V) && (dl->flag & DL_CYCL_U) == 0) {
-        if ((cu->flag & CU_BACK) && (dl->flag & DL_BACK_CURVE)) {
+  for (const DispList &dl : *dispbase) {
+    if (dl.type == DL_SURF) {
+      if ((dl.flag & DL_CYCL_V) && (dl.flag & DL_CYCL_U) == 0) {
+        if ((cu->flag & CU_BACK) && (dl.flag & DL_BACK_CURVE)) {
           DispList *dlnew = MEM_callocN<DispList>(__func__);
           BLI_addtail(&front, dlnew);
-          dlnew->verts = MEM_malloc_arrayN<float>(3 * size_t(dl->parts), __func__);
-          dlnew->nr = dl->parts;
+          dlnew->verts = MEM_malloc_arrayN<float>(3 * size_t(dl.parts), __func__);
+          dlnew->nr = dl.parts;
           dlnew->parts = 1;
           dlnew->type = DL_POLY;
           dlnew->flag = DL_BACK_CURVE;
-          dlnew->col = dl->col;
-          dlnew->charidx = dl->charidx;
+          dlnew->col = dl.col;
+          dlnew->charidx = dl.charidx;
 
-          const float *old_verts = dl->verts;
+          const float *old_verts = dl.verts;
           float *new_verts = dlnew->verts;
-          for (int i = 0; i < dl->parts; i++) {
+          for (int i = 0; i < dl.parts; i++) {
             copy_v3_v3(new_verts, old_verts);
             new_verts += 3;
-            old_verts += 3 * dl->nr;
+            old_verts += 3 * dl.nr;
           }
         }
-        if ((cu->flag & CU_FRONT) && (dl->flag & DL_FRONT_CURVE)) {
+        if ((cu->flag & CU_FRONT) && (dl.flag & DL_FRONT_CURVE)) {
           DispList *dlnew = MEM_callocN<DispList>(__func__);
           BLI_addtail(&back, dlnew);
-          dlnew->verts = MEM_malloc_arrayN<float>(3 * size_t(dl->parts), __func__);
-          dlnew->nr = dl->parts;
+          dlnew->verts = MEM_malloc_arrayN<float>(3 * size_t(dl.parts), __func__);
+          dlnew->nr = dl.parts;
           dlnew->parts = 1;
           dlnew->type = DL_POLY;
           dlnew->flag = DL_FRONT_CURVE;
-          dlnew->col = dl->col;
-          dlnew->charidx = dl->charidx;
+          dlnew->col = dl.col;
+          dlnew->charidx = dl.charidx;
 
-          const float *old_verts = dl->verts + 3 * (dl->nr - 1);
+          const float *old_verts = dl.verts + 3 * (dl.nr - 1);
           float *new_verts = dlnew->verts;
-          for (int i = 0; i < dl->parts; i++) {
+          for (int i = 0; i < dl.parts; i++) {
             copy_v3_v3(new_verts, old_verts);
             new_verts += 3;
-            old_verts += 3 * dl->nr;
+            old_verts += 3 * dl.nr;
           }
         }
       }
@@ -809,16 +809,16 @@ static blender::bke::GeometrySet evaluate_surface_object(Depsgraph *depsgraph,
 
   BKE_curve_calc_modifiers_pre(depsgraph, scene, ob, deformed_nurbs, deformed_nurbs, for_render);
 
-  LISTBASE_FOREACH (const Nurb *, nu, deformed_nurbs) {
-    if (!(for_render || nu->hide == 0) || !BKE_nurb_check_valid_uv(nu)) {
+  for (const Nurb &nu : *deformed_nurbs) {
+    if (!(for_render || nu.hide == 0) || !BKE_nurb_check_valid_uv(&nu)) {
       continue;
     }
 
-    const int resolu = (for_render && cu->resolu_ren) ? cu->resolu_ren : nu->resolu;
-    const int resolv = (for_render && cu->resolv_ren) ? cu->resolv_ren : nu->resolv;
+    const int resolu = (for_render && cu->resolu_ren) ? cu->resolu_ren : nu.resolu;
+    const int resolv = (for_render && cu->resolv_ren) ? cu->resolv_ren : nu.resolv;
 
-    if (nu->pntsv == 1) {
-      const int len = SEGMENTSU(nu) * resolu;
+    if (nu.pntsv == 1) {
+      const int len = SEGMENTSU(&nu) * resolu;
 
       DispList *dl = MEM_callocN<DispList>(__func__);
       dl->verts = MEM_malloc_arrayN<float>(3 * size_t(len), __func__);
@@ -826,44 +826,44 @@ static blender::bke::GeometrySet evaluate_surface_object(Depsgraph *depsgraph,
       BLI_addtail(r_dispbase, dl);
       dl->parts = 1;
       dl->nr = len;
-      dl->col = nu->mat_nr;
-      dl->charidx = nu->charidx;
-      dl->rt = nu->flag;
+      dl->col = nu.mat_nr;
+      dl->charidx = nu.charidx;
+      dl->rt = nu.flag;
 
       float *data = dl->verts;
-      if (nu->flagu & CU_NURB_CYCLIC) {
+      if (nu.flagu & CU_NURB_CYCLIC) {
         dl->type = DL_POLY;
       }
       else {
         dl->type = DL_SEGM;
       }
 
-      BKE_nurb_makeCurve(nu, data, nullptr, nullptr, nullptr, resolu, sizeof(float[3]));
+      BKE_nurb_makeCurve(&nu, data, nullptr, nullptr, nullptr, resolu, sizeof(float[3]));
     }
     else {
-      const int len = (nu->pntsu * resolu) * (nu->pntsv * resolv);
+      const int len = (nu.pntsu * resolu) * (nu.pntsv * resolv);
 
       DispList *dl = MEM_callocN<DispList>(__func__);
       dl->verts = MEM_malloc_arrayN<float>(3 * size_t(len), __func__);
       BLI_addtail(r_dispbase, dl);
 
-      dl->col = nu->mat_nr;
-      dl->charidx = nu->charidx;
-      dl->rt = nu->flag;
+      dl->col = nu.mat_nr;
+      dl->charidx = nu.charidx;
+      dl->rt = nu.flag;
 
       float *data = dl->verts;
       dl->type = DL_SURF;
 
-      dl->parts = (nu->pntsu * resolu); /* in reverse, because makeNurbfaces works that way */
-      dl->nr = (nu->pntsv * resolv);
-      if (nu->flagv & CU_NURB_CYCLIC) {
+      dl->parts = (nu.pntsu * resolu); /* in reverse, because makeNurbfaces works that way */
+      dl->nr = (nu.pntsv * resolv);
+      if (nu.flagv & CU_NURB_CYCLIC) {
         dl->flag |= DL_CYCL_U; /* reverse too! */
       }
-      if (nu->flagu & CU_NURB_CYCLIC) {
+      if (nu.flagu & CU_NURB_CYCLIC) {
         dl->flag |= DL_CYCL_V;
       }
 
-      BKE_nurb_makeFaces(nu, data, 0, resolu, resolv);
+      BKE_nurb_makeFaces(&nu, data, 0, resolu, resolv);
 
       /* gl array drawing: using indices */
       displist_surf_indices(dl);
@@ -1195,17 +1195,17 @@ static blender::bke::GeometrySet evaluate_curve_type_object(Depsgraph *depsgraph
           calc_bevfac_mapping(cu, bl, nu, &start, &first_blend, &steps, &last_blend);
         }
 
-        LISTBASE_FOREACH (DispList *, dlb, &dlbev) {
+        for (DispList &dlb : dlbev) {
           /* For each part of the bevel use a separate display-block. */
           DispList *dl = MEM_callocN<DispList>(__func__);
-          dl->verts = data = MEM_malloc_arrayN<float>(3 * size_t(dlb->nr) * size_t(steps),
+          dl->verts = data = MEM_malloc_arrayN<float>(3 * size_t(dlb.nr) * size_t(steps),
                                                       __func__);
           BLI_addtail(r_dispbase, dl);
 
           dl->type = DL_SURF;
 
-          dl->flag = dlb->flag & (DL_FRONT_CURVE | DL_BACK_CURVE);
-          if (dlb->type == DL_POLY) {
+          dl->flag = dlb.flag & (DL_FRONT_CURVE | DL_BACK_CURVE);
+          if (dlb.type == DL_POLY) {
             dl->flag |= DL_CYCL_U;
           }
           if ((bl->poly >= 0) && (steps > 2)) {
@@ -1213,7 +1213,7 @@ static blender::bke::GeometrySet evaluate_curve_type_object(Depsgraph *depsgraph
           }
 
           dl->parts = steps;
-          dl->nr = dlb->nr;
+          dl->nr = dlb.nr;
           dl->col = nu->mat_nr;
           dl->charidx = nu->charidx;
           dl->rt = nu->flag;
@@ -1269,28 +1269,28 @@ static blender::bke::GeometrySet evaluate_curve_type_object(Depsgraph *depsgraph
             /* rotate bevel piece and write in data */
             if ((a == 0) && (bevp != bevp_last)) {
               rotateBevelPiece(
-                  cu, bevp, bevp + 1, dlb, 1.0f - first_blend, widfac, radius_factor, &data);
+                  cu, bevp, bevp + 1, &dlb, 1.0f - first_blend, widfac, radius_factor, &data);
             }
             else if ((a == steps - 1) && (bevp != bevp_first)) {
               rotateBevelPiece(
-                  cu, bevp, bevp - 1, dlb, 1.0f - last_blend, widfac, radius_factor, &data);
+                  cu, bevp, bevp - 1, &dlb, 1.0f - last_blend, widfac, radius_factor, &data);
             }
             else {
-              rotateBevelPiece(cu, bevp, nullptr, dlb, 0.0f, widfac, radius_factor, &data);
+              rotateBevelPiece(cu, bevp, nullptr, &dlb, 0.0f, widfac, radius_factor, &data);
             }
 
             if ((cu->flag & CU_FILL_CAPS) && !(nu->flagu & CU_NURB_CYCLIC)) {
               if (a == 1) {
                 /* Can occur when the `bevp->vec` is NAN, see: #141612. */
                 if (len_squared_v3(bevp->dir) > 0.0f) {
-                  fillBevelCap(nu, dlb, cur_data - 3 * dlb->nr, &bottom_capbase);
+                  fillBevelCap(nu, &dlb, cur_data - 3 * dlb.nr, &bottom_capbase);
                   copy_v3_v3(bottom_no, bevp->dir);
                 }
               }
               if (a == steps - 1) {
                 /* Can occur when the `bevp->vec` is NAN, see: #141612. */
                 if (len_squared_v3(bevp->dir) > 0.0f) {
-                  fillBevelCap(nu, dlb, cur_data, &top_capbase);
+                  fillBevelCap(nu, &dlb, cur_data, &top_capbase);
                   negate_v3_v3(top_no, bevp->dir);
                 }
               }
@@ -1376,10 +1376,10 @@ void BKE_displist_minmax(const ListBaseT<DispList> *dispbase, float min[3], floa
 {
   bool empty = true;
 
-  LISTBASE_FOREACH (const DispList *, dl, dispbase) {
-    const int tot = dl->type == DL_INDEX3 ? dl->nr : dl->nr * dl->parts;
+  for (const DispList &dl : *dispbase) {
+    const int tot = dl.type == DL_INDEX3 ? dl.nr : dl.nr * dl.parts;
     for (const int i : IndexRange(tot)) {
-      minmax_v3v3_v3(min, max, &dl->verts[i * 3]);
+      minmax_v3v3_v3(min, max, &dl.verts[i * 3]);
     }
     if (tot != 0) {
       empty = false;

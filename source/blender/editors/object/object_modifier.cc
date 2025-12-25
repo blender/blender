@@ -238,8 +238,8 @@ ModifierData *modifier_add(
  * the modifier pointed to be 'exclude', otherwise returns false. */
 static bool object_has_modifier(const Object *ob, const ModifierData *exclude, ModifierType type)
 {
-  LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-    if ((md != exclude) && (md->type == type)) {
+  for (ModifierData &md : ob->modifiers) {
+    if ((&md != exclude) && (md.type == type)) {
       return true;
     }
   }
@@ -295,9 +295,9 @@ bool multires_update_totlevels(Object *ob, void *totlevel_v)
 {
   int totlevel = *((char *)totlevel_v);
 
-  LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-    if (md->type == eModifierType_Multires) {
-      multires_set_tot_level(ob, (MultiresModifierData *)md, totlevel);
+  for (ModifierData &md : ob->modifiers) {
+    if (md.type == eModifierType_Multires) {
+      multires_set_tot_level(ob, (MultiresModifierData *)&md, totlevel);
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     }
   }
@@ -734,28 +734,28 @@ static void add_shapekey_layers(Mesh &mesh_dest, const Mesh &mesh_src)
   if (!mesh_src.key) {
     return;
   }
-  int i;
-  LISTBASE_FOREACH_INDEX (const KeyBlock *, kb, &mesh_src.key->block, i) {
+
+  for (const auto [i, kb] : mesh_src.key->block.enumerate()) {
     void *array;
-    if (mesh_src.verts_num != kb->totelem) {
+    if (mesh_src.verts_num != kb.totelem) {
       CLOG_ERROR(&LOG,
                  "vertex size mismatch (Mesh '%s':%d != KeyBlock '%s':%d)",
                  mesh_src.id.name + 2,
                  mesh_src.verts_num,
-                 kb->name,
-                 kb->totelem);
+                 kb.name,
+                 kb.totelem);
       array = MEM_calloc_arrayN<float[3]>(mesh_src.verts_num, __func__);
     }
     else {
       array = MEM_malloc_arrayN<float[3]>(size_t(mesh_src.verts_num), __func__);
-      memcpy(array, kb->data, sizeof(float[3]) * size_t(mesh_src.verts_num));
+      memcpy(array, kb.data, sizeof(float[3]) * size_t(mesh_src.verts_num));
     }
 
     CustomData_add_layer_with_data(
         &mesh_dest.vert_data, CD_SHAPEKEY, array, mesh_dest.verts_num, nullptr);
     const int ci = CustomData_get_layer_index_n(&mesh_dest.vert_data, CD_SHAPEKEY, i);
 
-    mesh_dest.vert_data.layers[ci].uid = kb->uid;
+    mesh_dest.vert_data.layers[ci].uid = kb.uid;
   }
 }
 
@@ -1235,12 +1235,12 @@ static bool modifier_apply_obdata(ReportList *reports,
 
   /* lattice modifier can be applied to particle system too */
   if (ob->particlesystem.first) {
-    LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
-      if (psys->part->type != PART_HAIR) {
+    for (ParticleSystem &psys : ob->particlesystem) {
+      if (psys.part->type != PART_HAIR) {
         continue;
       }
 
-      psys_apply_hair_lattice(depsgraph, scene, ob, psys);
+      psys_apply_hair_lattice(depsgraph, scene, ob, &psys);
     }
   }
 
@@ -2476,8 +2476,8 @@ static wmOperatorStatus object_modifiers_copy_exec(bContext *C, wmOperator *op)
     if (object == active_object) {
       continue;
     }
-    LISTBASE_FOREACH (const ModifierData *, md, &active_object->modifiers) {
-      if (modifier_copy_to_object(bmain, scene, active_object, md, object, op->reports)) {
+    for (const ModifierData &md : active_object->modifiers) {
+      if (modifier_copy_to_object(bmain, scene, active_object, &md, object, op->reports)) {
         WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER | NA_ADDED, object);
       }
     }

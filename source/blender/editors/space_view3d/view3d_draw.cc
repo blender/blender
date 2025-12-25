@@ -2790,10 +2790,10 @@ void ED_view3d_screen_datamask(const Scene *scene,
   CustomData_MeshMasks_update(r_cddata_masks, &CD_MASK_BAREMESH);
 
   /* Check if we need UV or color data due to the view mode. */
-  LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
-    if (area->spacetype == SPACE_VIEW3D) {
+  for (const ScrArea &area : screen->areabase) {
+    if (area.spacetype == SPACE_VIEW3D) {
       ED_view3d_datamask(
-          scene, view_layer, static_cast<View3D *>(area->spacedata.first), r_cddata_masks);
+          scene, view_layer, static_cast<View3D *>(area.spacedata.first), r_cddata_masks);
     }
   }
 }

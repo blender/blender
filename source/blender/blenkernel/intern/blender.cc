@@ -297,19 +297,19 @@ static void userdef_free_keymaps(UserDef *userdef)
        km = km_next)
   {
     km_next = km->next;
-    LISTBASE_FOREACH (wmKeyMapDiffItem *, kmdi, &km->diff_items) {
-      if (kmdi->add_item) {
-        keymap_item_free(kmdi->add_item);
-        MEM_freeN(kmdi->add_item);
+    for (wmKeyMapDiffItem &kmdi : km->diff_items) {
+      if (kmdi.add_item) {
+        keymap_item_free(kmdi.add_item);
+        MEM_freeN(kmdi.add_item);
       }
-      if (kmdi->remove_item) {
-        keymap_item_free(kmdi->remove_item);
-        MEM_freeN(kmdi->remove_item);
+      if (kmdi.remove_item) {
+        keymap_item_free(kmdi.remove_item);
+        MEM_freeN(kmdi.remove_item);
       }
     }
 
-    LISTBASE_FOREACH (wmKeyMapItem *, kmi, &km->items) {
-      keymap_item_free(kmi);
+    for (wmKeyMapItem &kmi : km->items) {
+      keymap_item_free(&kmi);
     }
 
     BLI_freelistN(&km->diff_items);
@@ -369,8 +369,8 @@ void BKE_blender_userdef_data_free(UserDef *userdef, bool clear_fonts)
   userdef_free_addons(userdef);
 
   if (clear_fonts) {
-    LISTBASE_FOREACH (uiFont *, font, &userdef->uifonts) {
-      BLF_unload_id(font->blf_id);
+    for (uiFont &font : userdef->uifonts) {
+      BLF_unload_id(font.blf_id);
     }
     BLF_default_set(-1);
   }
@@ -379,16 +379,15 @@ void BKE_blender_userdef_data_free(UserDef *userdef, bool clear_fonts)
   BLI_freelistN(&userdef->script_directories);
   BLI_freelistN(&userdef->asset_libraries);
 
-  LISTBASE_FOREACH_MUTABLE (bUserExtensionRepo *, repo_ref, &userdef->extension_repos) {
-    MEM_SAFE_FREE(repo_ref->access_token);
-    MEM_freeN(repo_ref);
+  for (bUserExtensionRepo &repo_ref : userdef->extension_repos.items_mutable()) {
+    MEM_SAFE_FREE(repo_ref.access_token);
+    MEM_freeN(&repo_ref);
   }
   BLI_listbase_clear(&userdef->extension_repos);
 
-  LISTBASE_FOREACH_MUTABLE (bUserAssetShelfSettings *, settings, &userdef->asset_shelves_settings)
-  {
-    BKE_asset_catalog_path_list_free(settings->enabled_catalog_paths);
-    MEM_freeN(settings);
+  for (bUserAssetShelfSettings &settings : userdef->asset_shelves_settings.items_mutable()) {
+    BKE_asset_catalog_path_list_free(settings.enabled_catalog_paths);
+    MEM_freeN(&settings);
   }
   BLI_listbase_clear(&userdef->asset_shelves_settings);
 

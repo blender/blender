@@ -5398,14 +5398,12 @@ void PE_create_particle_edit(
       cache->free_edit = PE_free_ptcache_edit;
       edit->psys = nullptr;
 
-      LISTBASE_FOREACH (PTCacheMem *, pm, &cache->mem_cache) {
-        totframe++;
-      }
+      totframe += BLI_listbase_count(&cache->mem_cache);
 
-      LISTBASE_FOREACH (PTCacheMem *, pm, &cache->mem_cache) {
+      for (PTCacheMem &pm : cache->mem_cache) {
         LOOP_POINTS {
           void *cur[BPHYS_TOT_DATA];
-          if (BKE_ptcache_mem_pointers_seek(p, pm, cur) == 0) {
+          if (BKE_ptcache_mem_pointers_seek(p, &pm, cur) == 0) {
             continue;
           }
 
@@ -5420,7 +5418,7 @@ void PE_create_particle_edit(
           key->co = static_cast<float *>(cur[BPHYS_DATA_LOCATION]);
           key->vel = static_cast<float *>(cur[BPHYS_DATA_VELOCITY]);
           key->rot = static_cast<float *>(cur[BPHYS_DATA_ROTATION]);
-          key->ftime = float(pm->frame);
+          key->ftime = float(pm.frame);
           key->time = &key->ftime;
           BKE_ptcache_mem_pointers_incr(cur);
 

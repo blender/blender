@@ -126,8 +126,8 @@ bool any_bone_selected(const Span<const Object *> objects)
     if (!obj->pose) {
       continue;
     }
-    LISTBASE_FOREACH (bPoseChannel *, pose_bone, &obj->pose->chanbase) {
-      if (pose_bone->flag & POSE_SELECTED) {
+    for (bPoseChannel &pose_bone : obj->pose->chanbase) {
+      if (pose_bone.flag & POSE_SELECTED) {
         return true;
       }
     }

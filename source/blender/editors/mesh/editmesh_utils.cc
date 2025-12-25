@@ -1802,8 +1802,8 @@ void EDBM_update(Mesh *mesh, const EDBMUpdate_Params *params)
 
 #ifndef NDEBUG
   {
-    LISTBASE_FOREACH (BMEditSelection *, ese, &em->bm->selected) {
-      BLI_assert(BM_elem_flag_test(ese->ele, BM_ELEM_SELECT));
+    for (BMEditSelection &ese : em->bm->selected) {
+      BLI_assert(BM_elem_flag_test(ese.ele, BM_ELEM_SELECT));
     }
   }
 #endif

@@ -47,9 +47,9 @@ static void edbm_extrude_edge_exclude_mirror(
   /* If a mirror modifier with clipping is on, we need to adjust some
    * of the cases above to handle edges on the line of symmetry.
    */
-  LISTBASE_FOREACH (ModifierData *, md, &obedit->modifiers) {
-    if ((md->type == eModifierType_Mirror) && (md->mode & eModifierMode_Realtime)) {
-      MirrorModifierData *mmd = (MirrorModifierData *)md;
+  for (ModifierData &md : obedit->modifiers) {
+    if ((md.type == eModifierType_Mirror) && (md.mode & eModifierMode_Realtime)) {
+      MirrorModifierData *mmd = (MirrorModifierData *)&md;
 
       if (mmd->flag & MOD_MIR_CLIPPING) {
         BMIter iter;

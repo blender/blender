@@ -30,8 +30,8 @@ bool drop_target_apply_drop(bContext &C,
                             const ListBaseT<wmDrag> &drags)
 {
   const char *disabled_hint_dummy = nullptr;
-  LISTBASE_FOREACH (const wmDrag *, drag, &drags) {
-    if (!drop_target.can_drop(*drag, &disabled_hint_dummy)) {
+  for (const wmDrag &drag : drags) {
+    if (!drop_target.can_drop(drag, &disabled_hint_dummy)) {
       return false;
     }
 
@@ -41,7 +41,7 @@ bool drop_target_apply_drop(bContext &C,
       return false;
     }
 
-    const DragInfo drag_info{*drag, event, *drop_location};
+    const DragInfo drag_info{drag, event, *drop_location};
     return drop_target.on_drop(&C, drag_info);
   }
 

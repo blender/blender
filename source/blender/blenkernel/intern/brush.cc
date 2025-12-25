@@ -766,9 +766,9 @@ void BKE_brush_tag_unsaved_changes(Brush *brush)
 
 Brush *BKE_brush_first_search(Main *bmain, const eObjectMode ob_mode)
 {
-  LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-    if (brush->ob_mode & ob_mode) {
-      return brush;
+  for (Brush &brush : bmain->brushes) {
+    if (brush.ob_mode & ob_mode) {
+      return &brush;
     }
   }
   return nullptr;

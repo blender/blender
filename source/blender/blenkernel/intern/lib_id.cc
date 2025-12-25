@@ -1271,8 +1271,8 @@ void BKE_main_id_flag_all(Main *bmain, const int flag, const bool value)
 void BKE_main_id_repair_duplicate_names_listbase(Main *bmain, ListBaseT<ID> *lb)
 {
   int lb_len = 0;
-  LISTBASE_FOREACH (ID *, id, lb) {
-    if (!ID_IS_LINKED(id)) {
+  for (ID &id : *lb) {
+    if (!ID_IS_LINKED(&id)) {
       lb_len += 1;
     }
   }
@@ -1284,9 +1284,9 @@ void BKE_main_id_repair_duplicate_names_listbase(Main *bmain, ListBaseT<ID> *lb)
   ID **id_array = MEM_malloc_arrayN<ID *>(size_t(lb_len), __func__);
   blender::Set<blender::StringRef> name_set;
   int i = 0;
-  LISTBASE_FOREACH (ID *, id, lb) {
-    if (!ID_IS_LINKED(id)) {
-      id_array[i] = id;
+  for (ID &id : *lb) {
+    if (!ID_IS_LINKED(&id)) {
+      id_array[i] = &id;
       i++;
     }
   }
@@ -1741,9 +1741,9 @@ ID *BKE_libblock_find_session_uid(Main *bmain, const short type, const uint32_t 
 {
   const ListBaseT<ID> *lb = which_libbase(bmain, type);
   BLI_assert(lb != nullptr);
-  LISTBASE_FOREACH (ID *, id, lb) {
-    if (id->session_uid == session_uid) {
-      return id;
+  for (ID &id : *lb) {
+    if (id.session_uid == session_uid) {
+      return &id;
     }
   }
   return nullptr;
@@ -1785,8 +1785,8 @@ ID *BKE_libblock_find_name_and_library_filepath(Main *bmain,
   Library *library = nullptr;
   if (is_linked) {
     const ListBaseT<ID> *lb = which_libbase(bmain, ID_LI);
-    LISTBASE_FOREACH (ID *, id_iter, lb) {
-      Library *lib_iter = reinterpret_cast<Library *>(id_iter);
+    for (ID &id_iter : *lb) {
+      Library *lib_iter = reinterpret_cast<Library *>(&id_iter);
       if (STREQ(lib_iter->runtime->filepath_abs, lib_filepath_abs)) {
         library = lib_iter;
         break;
@@ -2586,8 +2586,8 @@ Vector<ID *> BKE_id_ordered_list(const ListBaseT<ID> *lb)
 {
   Vector<ID *> ordered;
 
-  LISTBASE_FOREACH (ID *, id, lb) {
-    ordered.append(id);
+  for (ID &id : *lb) {
+    ordered.append(&id);
   }
 
   std::sort(ordered.begin(), ordered.end(), id_order_compare);
@@ -2615,8 +2615,8 @@ void BKE_id_reorder(const ListBaseT<ID> *lb, ID *id, ID *relative, bool after)
 
   if (after) {
     /* Insert after. */
-    LISTBASE_FOREACH (ID *, other, lb) {
-      int *order = id_order_get(other);
+    for (ID &other : *lb) {
+      int *order = id_order_get(&other);
       if (*order > relative_order) {
         (*order)++;
       }
@@ -2626,8 +2626,8 @@ void BKE_id_reorder(const ListBaseT<ID> *lb, ID *id, ID *relative, bool after)
   }
   else {
     /* Insert before. */
-    LISTBASE_FOREACH (ID *, other, lb) {
-      int *order = id_order_get(other);
+    for (ID &other : *lb) {
+      int *order = id_order_get(&other);
       if (*order < relative_order) {
         (*order)--;
       }
@@ -2663,16 +2663,16 @@ void BKE_id_blend_write(BlendWriter *writer, ID *id)
     writer->write_struct(id->override_library);
 
     BLO_write_struct_list(writer, IDOverrideLibraryProperty, &id->override_library->properties);
-    LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &id->override_library->properties) {
-      BLO_write_string(writer, op->rna_path);
+    for (IDOverrideLibraryProperty &op : id->override_library->properties) {
+      BLO_write_string(writer, op.rna_path);
 
-      BLO_write_struct_list(writer, IDOverrideLibraryPropertyOperation, &op->operations);
-      LISTBASE_FOREACH (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
-        if (opop->subitem_reference_name) {
-          BLO_write_string(writer, opop->subitem_reference_name);
+      BLO_write_struct_list(writer, IDOverrideLibraryPropertyOperation, &op.operations);
+      for (IDOverrideLibraryPropertyOperation &opop : op.operations) {
+        if (opop.subitem_reference_name) {
+          BLO_write_string(writer, opop.subitem_reference_name);
         }
-        if (opop->subitem_local_name) {
-          BLO_write_string(writer, opop->subitem_local_name);
+        if (opop.subitem_local_name) {
+          BLO_write_string(writer, opop.subitem_local_name);
         }
       }
     }

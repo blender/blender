@@ -52,29 +52,29 @@ static bool sequencer_refresh_sound_length_recursive(Main *bmain,
 {
   bool changed = false;
 
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if (strip->type == STRIP_TYPE_META) {
-      if (sequencer_refresh_sound_length_recursive(bmain, scene, &strip->seqbase)) {
+  for (Strip &strip : *seqbase) {
+    if (strip.type == STRIP_TYPE_META) {
+      if (sequencer_refresh_sound_length_recursive(bmain, scene, &strip.seqbase)) {
         changed = true;
       }
     }
-    else if (strip->type == STRIP_TYPE_SOUND && strip->sound) {
+    else if (strip.type == STRIP_TYPE_SOUND && strip.sound) {
       SoundInfo info;
-      if (!BKE_sound_info_get(bmain, strip->sound, &info)) {
+      if (!BKE_sound_info_get(bmain, strip.sound, &info)) {
         continue;
       }
 
-      int old = strip->len;
+      int old = strip.len;
       float fac;
 
-      strip->len = std::max(
-          1, int(round((info.length - strip->sound->offset_time) * scene->frames_per_second())));
-      fac = float(strip->len) / float(old);
-      old = strip->startofs;
-      strip->startofs *= fac;
-      strip->endofs *= fac;
-      strip->start += (old -
-                       strip->startofs); /* So that visual/"real" start frame does not change! */
+      strip.len = std::max(
+          1, int(round((info.length - strip.sound->offset_time) * scene->frames_per_second())));
+      fac = float(strip.len) / float(old);
+      old = strip.startofs;
+      strip.startofs *= fac;
+      strip.endofs *= fac;
+      strip.start += (old -
+                      strip.startofs); /* So that visual/"real" start frame does not change! */
 
       changed = true;
     }
@@ -99,12 +99,12 @@ void sound_update_bounds_all(Scene *scene)
   Editing *ed = scene->ed;
 
   if (ed) {
-    LISTBASE_FOREACH (Strip *, strip, &ed->seqbase) {
-      if (strip->type == STRIP_TYPE_META) {
-        strip_update_sound_bounds_recursive(scene, strip);
+    for (Strip &strip : ed->seqbase) {
+      if (strip.type == STRIP_TYPE_META) {
+        strip_update_sound_bounds_recursive(scene, &strip);
       }
-      else if (ELEM(strip->type, STRIP_TYPE_SOUND, STRIP_TYPE_SCENE)) {
-        sound_update_bounds(scene, strip);
+      else if (ELEM(strip.type, STRIP_TYPE_SOUND, STRIP_TYPE_SCENE)) {
+        sound_update_bounds(scene, &strip);
       }
     }
   }
@@ -133,13 +133,13 @@ void sound_update_bounds(Scene *scene, Strip *strip)
 
 static void strip_update_sound_recursive(Scene *scene, ListBaseT<Strip> *seqbasep, bSound *sound)
 {
-  LISTBASE_FOREACH (Strip *, strip, seqbasep) {
-    if (strip->type == STRIP_TYPE_META) {
-      strip_update_sound_recursive(scene, &strip->seqbase, sound);
+  for (Strip &strip : *seqbasep) {
+    if (strip.type == STRIP_TYPE_META) {
+      strip_update_sound_recursive(scene, &strip.seqbase, sound);
     }
-    else if (strip->type == STRIP_TYPE_SOUND) {
-      if (strip->runtime->scene_sound && sound == strip->sound) {
-        BKE_sound_update_scene_sound(strip->runtime->scene_sound, sound);
+    else if (strip.type == STRIP_TYPE_SOUND) {
+      if (strip.runtime->scene_sound && sound == strip.sound) {
+        BKE_sound_update_scene_sound(strip.runtime->scene_sound, sound);
       }
     }
   }
@@ -249,9 +249,9 @@ void sound_equalizermodifier_init_data(StripModifierData *smd)
 void sound_equalizermodifier_free(StripModifierData *smd)
 {
   SoundEqualizerModifierData *semd = (SoundEqualizerModifierData *)smd;
-  LISTBASE_FOREACH_MUTABLE (EQCurveMappingData *, eqcmd, &semd->graphics) {
-    BKE_curvemapping_free_data(&eqcmd->curve_mapping);
-    MEM_freeN(eqcmd);
+  for (EQCurveMappingData &eqcmd : semd->graphics.items_mutable()) {
+    BKE_curvemapping_free_data(&eqcmd.curve_mapping);
+    MEM_freeN(&eqcmd);
   }
   BLI_listbase_clear(&semd->graphics);
   if (smd->runtime.last_buf) {
@@ -267,9 +267,9 @@ void sound_equalizermodifier_copy_data(StripModifierData *target, StripModifierD
 
   BLI_listbase_clear(&semd_target->graphics);
 
-  LISTBASE_FOREACH (EQCurveMappingData *, eqcmd, &semd->graphics) {
-    eqcmd_n = static_cast<EQCurveMappingData *>(MEM_dupallocN(eqcmd));
-    BKE_curvemapping_copy_data(&eqcmd_n->curve_mapping, &eqcmd->curve_mapping);
+  for (EQCurveMappingData &eqcmd : semd->graphics) {
+    eqcmd_n = static_cast<EQCurveMappingData *>(MEM_dupallocN(&eqcmd));
+    BKE_curvemapping_copy_data(&eqcmd_n->curve_mapping, &eqcmd.curve_mapping);
 
     eqcmd_n->next = eqcmd_n->prev = nullptr;
     BLI_addtail(&semd_target->graphics, eqcmd_n);
@@ -300,8 +300,8 @@ void *sound_equalizermodifier_recreator(Strip *strip,
   float interval = SOUND_EQUALIZER_DEFAULT_MAX_FREQ / float(SOUND_EQUALIZER_SIZE_DEFINITION);
 
   /* Visit all equalizer definitions. */
-  LISTBASE_FOREACH (EQCurveMappingData *, mapping, &semd->graphics) {
-    eq_mapping = &mapping->curve_mapping;
+  for (EQCurveMappingData &mapping : semd->graphics) {
+    eq_mapping = &mapping.curve_mapping;
     BKE_curvemapping_init(eq_mapping);
     cm = eq_mapping->cm;
     minX = eq_mapping->curr.xmin;

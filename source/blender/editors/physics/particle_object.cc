@@ -430,10 +430,10 @@ static wmOperatorStatus dupliob_move_up_exec(bContext *C, wmOperator * /*op*/)
   }
 
   part = psys->part;
-  LISTBASE_FOREACH (ParticleDupliWeight *, dw, &part->instance_weights) {
-    if (dw->flag & PART_DUPLIW_CURRENT && dw->prev) {
-      BLI_remlink(&part->instance_weights, dw);
-      BLI_insertlinkbefore(&part->instance_weights, dw->prev, dw);
+  for (ParticleDupliWeight &dw : part->instance_weights) {
+    if (dw.flag & PART_DUPLIW_CURRENT && dw.prev) {
+      BLI_remlink(&part->instance_weights, &dw);
+      BLI_insertlinkbefore(&part->instance_weights, dw.prev, &dw);
 
       DEG_id_tag_update(&part->id, ID_RECALC_GEOMETRY | ID_RECALC_PSYS_REDO);
       WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE, nullptr);
@@ -468,12 +468,13 @@ static wmOperatorStatus copy_particle_dupliob_exec(bContext *C, wmOperator * /*o
     return OPERATOR_CANCELLED;
   }
   part = psys->part;
-  LISTBASE_FOREACH (ParticleDupliWeight *, dw, &part->instance_weights) {
-    if (dw->flag & PART_DUPLIW_CURRENT) {
-      dw->flag &= ~PART_DUPLIW_CURRENT;
-      dw = static_cast<ParticleDupliWeight *>(MEM_dupallocN(dw));
-      dw->flag |= PART_DUPLIW_CURRENT;
-      BLI_addhead(&part->instance_weights, dw);
+  for (ParticleDupliWeight &dw : part->instance_weights) {
+    if (dw.flag & PART_DUPLIW_CURRENT) {
+      dw.flag &= ~PART_DUPLIW_CURRENT;
+
+      ParticleDupliWeight *new_dw = static_cast<ParticleDupliWeight *>(MEM_dupallocN(&dw));
+      new_dw->flag |= PART_DUPLIW_CURRENT;
+      BLI_addhead(&part->instance_weights, new_dw);
 
       DEG_id_tag_update(&part->id, ID_RECALC_GEOMETRY | ID_RECALC_PSYS_REDO);
       WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE, nullptr);
@@ -509,10 +510,10 @@ static wmOperatorStatus remove_particle_dupliob_exec(bContext *C, wmOperator * /
   }
 
   part = psys->part;
-  LISTBASE_FOREACH (ParticleDupliWeight *, dw, &part->instance_weights) {
-    if (dw->flag & PART_DUPLIW_CURRENT) {
-      BLI_remlink(&part->instance_weights, dw);
-      MEM_freeN(dw);
+  for (ParticleDupliWeight &dw : part->instance_weights) {
+    if (dw.flag & PART_DUPLIW_CURRENT) {
+      BLI_remlink(&part->instance_weights, &dw);
+      MEM_freeN(&dw);
       break;
     }
   }
@@ -555,10 +556,10 @@ static wmOperatorStatus dupliob_move_down_exec(bContext *C, wmOperator * /*op*/)
   }
 
   part = psys->part;
-  LISTBASE_FOREACH (ParticleDupliWeight *, dw, &part->instance_weights) {
-    if (dw->flag & PART_DUPLIW_CURRENT && dw->next) {
-      BLI_remlink(&part->instance_weights, dw);
-      BLI_insertlinkafter(&part->instance_weights, dw->next, dw);
+  for (ParticleDupliWeight &dw : part->instance_weights) {
+    if (dw.flag & PART_DUPLIW_CURRENT && dw.next) {
+      BLI_remlink(&part->instance_weights, &dw);
+      BLI_insertlinkafter(&part->instance_weights, dw.next, &dw);
 
       DEG_id_tag_update(&part->id, ID_RECALC_GEOMETRY | ID_RECALC_PSYS_REDO);
       WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE, nullptr);
@@ -650,8 +651,8 @@ static wmOperatorStatus disconnect_hair_exec(bContext *C, wmOperator *op)
   }
 
   if (all) {
-    LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
-      disconnect_hair(depsgraph, scene, ob, psys);
+    for (ParticleSystem &psys : ob->particlesystem) {
+      disconnect_hair(depsgraph, scene, ob, &psys);
     }
   }
   else {
@@ -946,8 +947,8 @@ static wmOperatorStatus connect_hair_exec(bContext *C, wmOperator *op)
   }
 
   if (all) {
-    LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
-      any_connected |= connect_hair(depsgraph, scene, ob, psys);
+    for (ParticleSystem &psys : ob->particlesystem) {
+      any_connected |= connect_hair(depsgraph, scene, ob, &psys);
     }
   }
   else {
@@ -1402,8 +1403,8 @@ static wmOperatorStatus particle_system_remove_all_exec(bContext *C, wmOperator 
   }
 
   const eObjectMode mode_orig = eObjectMode(ob->mode);
-  LISTBASE_FOREACH_MUTABLE (ParticleSystem *, psys, &ob->particlesystem) {
-    object_remove_particle_system(bmain, scene, ob, psys);
+  for (ParticleSystem &psys : ob->particlesystem.items_mutable()) {
+    object_remove_particle_system(bmain, scene, ob, &psys);
   }
 
   /* possible this isn't the active object

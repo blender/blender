@@ -50,14 +50,14 @@ void popup_translate(ARegion *region, const int mdiff[2])
   ED_region_tag_redraw(region);
 
   /* update blocks */
-  LISTBASE_FOREACH (Block *, block, &region->runtime->uiblocks) {
-    PopupBlockHandle *handle = block->handle;
+  for (Block &block : region->runtime->uiblocks) {
+    PopupBlockHandle *handle = block.handle;
     /* Make empty, will be initialized on next use, see #60608. */
     BLI_rctf_init(&handle->prev_block_rect, 0, 0, 0, 0);
 
-    LISTBASE_FOREACH (SafetyRect *, saferct, &block->saferct) {
-      BLI_rctf_translate(&saferct->parent, UNPACK2(mdiff));
-      BLI_rctf_translate(&saferct->safety, UNPACK2(mdiff));
+    for (SafetyRect &saferct : block.saferct) {
+      BLI_rctf_translate(&saferct.parent, UNPACK2(mdiff));
+      BLI_rctf_translate(&saferct.safety, UNPACK2(mdiff));
     }
   }
 }
@@ -423,8 +423,8 @@ static void block_region_refresh(const bContext *C, ARegion *region)
     ARegion *handle_ctx_region;
 
     region->runtime->do_draw &= ~RGN_REFRESH_UI;
-    LISTBASE_FOREACH_MUTABLE (Block *, block, &region->runtime->uiblocks) {
-      PopupBlockHandle *handle = block->handle;
+    for (Block &block : region->runtime->uiblocks.items_mutable()) {
+      PopupBlockHandle *handle = block.handle;
 
       if (handle->can_refresh) {
         handle_ctx_area = handle->ctx_area;
@@ -450,8 +450,8 @@ static void block_region_refresh(const bContext *C, ARegion *region)
 
 static void block_region_draw(const bContext *C, ARegion *region)
 {
-  LISTBASE_FOREACH (Block *, block, &region->runtime->uiblocks) {
-    block_draw(C, block);
+  for (Block &block : region->runtime->uiblocks) {
+    block_draw(C, &block);
   }
 }
 
@@ -564,10 +564,10 @@ static void ui_popup_block_remove(bContext *C, PopupBlockHandle *handle)
   /* There may actually be a different window active than the one showing the popup, so lookup real
    * one. */
   if (BLI_findindex(&screen->regionbase, handle->region) == -1) {
-    LISTBASE_FOREACH (wmWindow *, win_iter, &wm->windows) {
-      screen = WM_window_get_active_screen(win_iter);
+    for (wmWindow &win_iter : wm->windows) {
+      screen = WM_window_get_active_screen(&win_iter);
       if (BLI_findindex(&screen->regionbase, handle->region) != -1) {
-        win = win_iter;
+        win = &win_iter;
         break;
       }
     }
@@ -970,13 +970,13 @@ void popup_block_free(bContext *C, PopupBlockHandle *handle)
    * then close the popover too. We could extend this to other popup types too. */
   ARegion *region = handle->popup_create_vars.butregion;
   if (region != nullptr) {
-    LISTBASE_FOREACH (Block *, block, &region->runtime->uiblocks) {
-      if (block->handle && (block->flag & BLOCK_POPOVER) && (block->flag & BLOCK_KEEP_OPEN) == 0) {
-        PopupBlockHandle *menu = block->handle;
+    for (Block &block : region->runtime->uiblocks) {
+      if (block.handle && (block.flag & BLOCK_POPOVER) && (block.flag & BLOCK_KEEP_OPEN) == 0) {
+        PopupBlockHandle *menu = block.handle;
         menu->menuretval = RETURN_OK;
       }
 
-      if (block_is_menu(block)) {
+      if (block_is_menu(&block)) {
         is_submenu = true;
       }
     }

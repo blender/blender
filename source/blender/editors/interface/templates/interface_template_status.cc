@@ -300,11 +300,11 @@ void uiTemplateInputStatus(Layout *layout, bContext *C)
 
   if (region == nullptr) {
     /* Check if over an action zone. */
-    LISTBASE_FOREACH (ScrArea *, area_iter, &screen->areabase) {
-      LISTBASE_FOREACH (AZone *, az, &area_iter->actionzones) {
-        if (BLI_rcti_isect_pt_v(&az->rect, win->runtime->eventstate->xy)) {
-          region = az->region;
-          if (uiTemplateInputStatusAzone(&row, az, region)) {
+    for (ScrArea &area_iter : screen->areabase) {
+      for (AZone &az : area_iter.actionzones) {
+        if (BLI_rcti_isect_pt_v(&az.rect, win->runtime->eventstate->xy)) {
+          region = az.region;
+          if (uiTemplateInputStatusAzone(&row, &az, region)) {
             return;
           }
           break;
@@ -316,9 +316,9 @@ void uiTemplateInputStatus(Layout *layout, bContext *C)
   ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, win->runtime->eventstate->xy);
   if (!area) {
     /* Are we in a global area? */
-    LISTBASE_FOREACH (ScrArea *, global_area, &win->global_areas.areabase) {
-      if (BLI_rcti_isect_pt_v(&global_area->totrct, win->runtime->eventstate->xy)) {
-        area = global_area;
+    for (ScrArea &global_area : win->global_areas.areabase) {
+      if (BLI_rcti_isect_pt_v(&global_area.totrct, win->runtime->eventstate->xy)) {
+        area = &global_area;
         break;
       }
     }

@@ -928,9 +928,9 @@ void ED_text_to_object(bContext *C, const Text *text, const bool split_lines)
   }
 
   if (split_lines) {
-    LISTBASE_FOREACH (const TextLine *, line, &text->lines) {
+    for (const TextLine &line : text->lines) {
       /* skip lines with no text, but still make space for them */
-      if (line->line[0] == '\0') {
+      if (line.line[0] == '\0') {
         linenum++;
         continue;
       }
@@ -944,7 +944,7 @@ void ED_text_to_object(bContext *C, const Text *text, const bool split_lines)
         mul_mat3_m4_v3(rv3d->viewinv, offset);
       }
 
-      txt_add_object(C, line, 1, offset);
+      txt_add_object(C, &line, 1, offset);
 
       linenum++;
     }

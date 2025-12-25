@@ -771,13 +771,13 @@ static std::optional<Bounds<float3>> lattice_add_to_selected_collect_targets_and
   float inverse_orientation_matrix[3][3];
   invert_m3_m3_safe_ortho(inverse_orientation_matrix, orientation_matrix);
 
-  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
-    if (!BASE_SELECTED_EDITABLE(v3d, base) || !object_can_have_lattice_modifier(base->object)) {
+  for (Base &base : view_layer->object_bases) {
+    if (!BASE_SELECTED_EDITABLE(v3d, &base) || !object_can_have_lattice_modifier(base.object)) {
       continue;
     }
 
-    r_targets.append(base->object);
-    const Object *object_eval = DEG_get_evaluated(depsgraph, base->object);
+    r_targets.append(base.object);
+    const Object *object_eval = DEG_get_evaluated(depsgraph, base.object);
     if (object_eval && DEG_object_transform_is_evaluated(*object_eval)) {
       if (std::optional<Bounds<float3>> object_bounds = BKE_object_boundbox_get(object_eval)) {
         const float (*object_to_world_matrix)[4] = object_eval->object_to_world().ptr();
@@ -2532,8 +2532,8 @@ static wmOperatorStatus object_delete_exec(bContext *C, wmOperator *op)
 
   /* delete has to handle all open scenes */
   BKE_main_id_tag_listbase(&bmain->scenes.cast<ID>(), ID_TAG_DOIT, true);
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    scene = WM_window_get_active_scene(win);
+  for (wmWindow &win : wm->windows) {
+    scene = WM_window_get_active_scene(&win);
 
     if (scene->id.tag & ID_TAG_DOIT) {
       scene->id.tag &= ~ID_TAG_DOIT;
@@ -3057,13 +3057,13 @@ static void object_data_convert_curve_to_mesh(Main *bmain, Depsgraph *depsgraph,
    * - It's possible to have multiple curve objects selected which are sharing the same curve
    *   data-block. We don't want mesh to be created for every of those objects.
    * - This is how conversion worked for a long time. */
-  LISTBASE_FOREACH (Object *, other_object, &bmain->objects) {
-    if (other_object->data == curve) {
-      other_object->type = OB_MESH;
+  for (Object &other_object : bmain->objects) {
+    if (other_object.data == curve) {
+      other_object.type = OB_MESH;
 
-      id_us_min((ID *)other_object->data);
-      other_object->data = ob->data;
-      id_us_plus((ID *)other_object->data);
+      id_us_min((ID *)other_object.data);
+      other_object.data = ob->data;
+      id_us_plus((ID *)other_object.data);
     }
   }
 }
@@ -3893,8 +3893,8 @@ static Object *convert_font_to_curve_legacy_generic(Object *ob,
     }
   }
 
-  LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
-    nu->charidx = 0;
+  for (Nurb &nu : cu->nurb) {
+    nu.charidx = 0;
   }
 
   cu->flag &= ~CU_3D;
@@ -4604,9 +4604,9 @@ static void object_add_sync_rigid_body(Main *bmain, Object *object_src, Object *
    */
   /* XXX: is 2) really a good measure here? */
   if (object_src->rigidbody_object || object_src->rigidbody_constraint) {
-    LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
-      if (BKE_collection_has_object(collection, object_src)) {
-        BKE_collection_object_add(bmain, collection, object_new);
+    for (Collection &collection : bmain->collections) {
+      if (BKE_collection_has_object(&collection, object_src)) {
+        BKE_collection_object_add(bmain, &collection, object_new);
       }
     }
   }

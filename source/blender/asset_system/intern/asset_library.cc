@@ -165,15 +165,15 @@ void AS_asset_full_path_explode_from_weak_ref(const AssetWeakReference *asset_re
 
 static void update_import_method_for_user_libraries()
 {
-  LISTBASE_FOREACH (bUserAssetLibrary *, library, &U.asset_libraries) {
+  for (bUserAssetLibrary &library : U.asset_libraries) {
     if (U.experimental.no_data_block_packing) {
-      if (library->import_method == ASSET_IMPORT_PACK) {
-        library->import_method = ASSET_IMPORT_APPEND_REUSE;
+      if (library.import_method == ASSET_IMPORT_PACK) {
+        library.import_method = ASSET_IMPORT_APPEND_REUSE;
       }
     }
     else {
-      if (library->import_method == ASSET_IMPORT_APPEND_REUSE) {
-        library->import_method = ASSET_IMPORT_PACK;
+      if (library.import_method == ASSET_IMPORT_APPEND_REUSE) {
+        library.import_method = ASSET_IMPORT_PACK;
       }
     }
   }
@@ -181,13 +181,13 @@ static void update_import_method_for_user_libraries()
 
 static void update_import_method_for_asset_browsers(Main &bmain)
 {
-  LISTBASE_FOREACH (bScreen *, screen, &bmain.screens) {
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-        if (sl->spacetype != SPACE_FILE) {
+  for (bScreen &screen : bmain.screens) {
+    for (ScrArea &area : screen.areabase) {
+      for (SpaceLink &sl : area.spacedata) {
+        if (sl.spacetype != SPACE_FILE) {
           continue;
         }
-        SpaceFile *sfile = reinterpret_cast<SpaceFile *>(sl);
+        SpaceFile *sfile = reinterpret_cast<SpaceFile *>(&sl);
         if (!sfile->asset_params) {
           continue;
         }
@@ -435,9 +435,9 @@ Vector<AssetLibraryReference> all_valid_asset_library_refs()
     library_ref.type = ASSET_LIBRARY_ESSENTIALS;
     result.append(library_ref);
   }
-  int i;
-  LISTBASE_FOREACH_INDEX (const bUserAssetLibrary *, asset_library, &U.asset_libraries, i) {
-    if (!BLI_is_dir(asset_library->dirpath)) {
+
+  for (const auto [i, asset_library] : U.asset_libraries.enumerate()) {
+    if (!BLI_is_dir(asset_library.dirpath)) {
       continue;
     }
     AssetLibraryReference library_ref{};

@@ -567,9 +567,9 @@ static std::optional<std::string> rna_BoneColor_path_posebone(const PointerRNA *
   BLI_assert(GS(ptr->owner_id->name) == ID_OB);
   const Object *ob = reinterpret_cast<const Object *>(ptr->owner_id);
   bool found = false;
-  LISTBASE_FOREACH (bPoseChannel *, checkBone, &ob->pose->chanbase) {
-    if (&checkBone->color == ptr->data) {
-      BLI_assert_msg(checkBone == bone,
+  for (bPoseChannel &checkBone : ob->pose->chanbase) {
+    if (&checkBone.color == ptr->data) {
+      BLI_assert_msg(&checkBone == bone,
                      "pointer magic to find the pose bone failed (found the wrong bone)");
       found = true;
       break;
@@ -624,9 +624,9 @@ static std::optional<std::string> rna_BoneColor_path_editbone(const PointerRNA *
   const bArmature *arm = reinterpret_cast<const bArmature *>(ptr->owner_id);
 
   bool found = false;
-  LISTBASE_FOREACH (const EditBone *, checkBone, arm->edbo) {
-    if (&checkBone->color == ptr->data) {
-      BLI_assert_msg(checkBone == bone,
+  for (const EditBone &checkBone : *arm->edbo) {
+    if (&checkBone.color == ptr->data) {
+      BLI_assert_msg(&checkBone == bone,
                      "pointer magic to find the pose bone failed (found the wrong bone)");
       found = true;
       break;

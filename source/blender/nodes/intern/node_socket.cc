@@ -226,12 +226,12 @@ static void refresh_node_socket(bNodeTree &ntree,
       }
       else {
         /* Move links to new socket with same identifier. */
-        LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
-          if (link->fromsock == old_socket_with_same_identifier) {
-            link->fromsock = new_socket;
+        for (bNodeLink &link : ntree.links) {
+          if (link.fromsock == old_socket_with_same_identifier) {
+            link.fromsock = new_socket;
           }
-          else if (link->tosock == old_socket_with_same_identifier) {
-            link->tosock = new_socket;
+          else if (link.tosock == old_socket_with_same_identifier) {
+            link.tosock = new_socket;
           }
         }
         for (bNodeLink &internal_link : node.runtime->internal_links) {
@@ -382,21 +382,21 @@ static const char *get_current_socket_identifier_for_future_socket(
  */
 static void do_forward_compat_versioning(bNode &node, const NodeDeclaration &node_decl)
 {
-  LISTBASE_FOREACH (bNodeSocket *, socket, &node.inputs) {
-    if (socket->is_available()) {
+  for (bNodeSocket &socket : node.inputs) {
+    if (socket.is_available()) {
       if (const char *new_identifier = get_current_socket_identifier_for_future_socket(
-              node, *socket, node_decl.inputs))
+              node, socket, node_decl.inputs))
       {
-        STRNCPY_UTF8(socket->identifier, new_identifier);
+        STRNCPY_UTF8(socket.identifier, new_identifier);
       }
     }
   }
-  LISTBASE_FOREACH (bNodeSocket *, socket, &node.outputs) {
-    if (socket->is_available()) {
+  for (bNodeSocket &socket : node.outputs) {
+    if (socket.is_available()) {
       if (const char *new_identifier = get_current_socket_identifier_for_future_socket(
-              node, *socket, node_decl.outputs))
+              node, socket, node_decl.outputs))
       {
-        STRNCPY_UTF8(socket->identifier, new_identifier);
+        STRNCPY_UTF8(socket.identifier, new_identifier);
       }
     }
   }
@@ -435,13 +435,13 @@ static void refresh_node_sockets_and_panels(bNodeTree &ntree,
   }
 
   Vector<bNodeSocket *> old_inputs;
-  LISTBASE_FOREACH (bNodeSocket *, socket, &node.inputs) {
-    old_inputs.append(socket);
+  for (bNodeSocket &socket : node.inputs) {
+    old_inputs.append(&socket);
   }
 
   Vector<bNodeSocket *> old_outputs;
-  LISTBASE_FOREACH (bNodeSocket *, socket, &node.outputs) {
-    old_outputs.append(socket);
+  for (bNodeSocket &socket : node.outputs) {
+    old_outputs.append(&socket);
   }
 
   const bool hide_new_sockets = node.is_group_input() ? hide_new_group_input_sockets(node) : false;
@@ -477,14 +477,14 @@ static void refresh_node_sockets_and_panels(bNodeTree &ntree,
   }
 
   /* Destroy any remaining sockets that are no longer in the declaration. */
-  LISTBASE_FOREACH_MUTABLE (bNodeSocket *, old_socket, &node.inputs) {
-    if (!new_inputs.contains(old_socket)) {
-      blender::bke::node_remove_socket_ex(ntree, node, *old_socket, do_id_user);
+  for (bNodeSocket &old_socket : node.inputs.items_mutable()) {
+    if (!new_inputs.contains(&old_socket)) {
+      blender::bke::node_remove_socket_ex(ntree, node, old_socket, do_id_user);
     }
   }
-  LISTBASE_FOREACH_MUTABLE (bNodeSocket *, old_socket, &node.outputs) {
-    if (!new_outputs.contains(old_socket)) {
-      blender::bke::node_remove_socket_ex(ntree, node, *old_socket, do_id_user);
+  for (bNodeSocket &old_socket : node.outputs.items_mutable()) {
+    if (!new_outputs.contains(&old_socket)) {
+      blender::bke::node_remove_socket_ex(ntree, node, old_socket, do_id_user);
     }
   }
 

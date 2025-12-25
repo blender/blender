@@ -44,17 +44,17 @@ void channels_ensure(ListBaseT<SeqTimelineChannel> *channels)
 void channels_duplicate(ListBaseT<SeqTimelineChannel> *channels_dst,
                         ListBaseT<SeqTimelineChannel> *channels_src)
 {
-  LISTBASE_FOREACH (SeqTimelineChannel *, channel, channels_src) {
+  for (SeqTimelineChannel &channel : *channels_src) {
     SeqTimelineChannel *channel_duplicate = static_cast<SeqTimelineChannel *>(
-        MEM_dupallocN(channel));
+        MEM_dupallocN(&channel));
     BLI_addtail(channels_dst, channel_duplicate);
   }
 }
 
 void channels_free(ListBaseT<SeqTimelineChannel> *channels)
 {
-  LISTBASE_FOREACH_MUTABLE (SeqTimelineChannel *, channel, channels) {
-    MEM_freeN(channel);
+  for (SeqTimelineChannel &channel : channels->items_mutable()) {
+    MEM_freeN(&channel);
   }
 }
 

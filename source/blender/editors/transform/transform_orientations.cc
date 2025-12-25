@@ -594,21 +594,21 @@ static int armature_bone_transflags_update(Object &ob, bArmature *arm, ListBaseT
 {
   int total = 0;
 
-  LISTBASE_FOREACH (bPoseChannel *, pchan, lb) {
-    pchan->runtime.flag &= ~POSE_RUNTIME_TRANSFORM;
-    if (!ANIM_bone_in_visible_collection(arm, pchan->bone)) {
+  for (bPoseChannel &pchan : *lb) {
+    pchan.runtime.flag &= ~POSE_RUNTIME_TRANSFORM;
+    if (!ANIM_bone_in_visible_collection(arm, pchan.bone)) {
       continue;
     }
-    if (pchan->flag & POSE_SELECTED) {
-      pchan->runtime.flag |= POSE_RUNTIME_TRANSFORM;
+    if (pchan.flag & POSE_SELECTED) {
+      pchan.runtime.flag |= POSE_RUNTIME_TRANSFORM;
       total++;
     }
   }
 
   /* No transform on children if any parent bone is selected. */
-  LISTBASE_FOREACH (bPoseChannel *, pchan, lb) {
-    if (pchan->runtime.flag & POSE_RUNTIME_TRANSFORM) {
-      total -= bone_children_clear_transflag(*ob.pose, *pchan);
+  for (bPoseChannel &pchan : *lb) {
+    if (pchan.runtime.flag & POSE_RUNTIME_TRANSFORM) {
+      total -= bone_children_clear_transflag(*ob.pose, pchan);
     }
   }
   return total;
@@ -878,17 +878,17 @@ static uint bm_mesh_elems_select_get_n__internal(
   if (!BLI_listbase_is_empty(&bm->selected)) {
     /* Quick check. */
     i = 0;
-    LISTBASE_FOREACH_BACKWARD (BMEditSelection *, ese, &bm->selected) {
+    for (BMEditSelection &ese : bm->selected.items_reversed()) {
       /* Shouldn't need this check. */
-      if (BM_elem_flag_test(ese->ele, BM_ELEM_SELECT)) {
+      if (BM_elem_flag_test(ese.ele, BM_ELEM_SELECT)) {
 
         /* Only use contiguous selection. */
-        if (ese->htype != htype) {
+        if (ese.htype != htype) {
           i = 0;
           break;
         }
 
-        elems[i++] = ese->ele;
+        elems[i++] = ese.ele;
         if (n == i) {
           break;
         }
@@ -1347,9 +1347,9 @@ int getTransformOrientation_ex(const Scene *scene,
         ok = true;
       }
       else {
-        LISTBASE_FOREACH (MetaElem *, ml, mb->editelems) {
-          if (ml->flag & SELECT) {
-            quat_to_mat3(tmat, ml->quat);
+        for (MetaElem &ml : *mb->editelems) {
+          if (ml.flag & SELECT) {
+            quat_to_mat3(tmat, ml.quat);
             add_v3_v3(r_normal, tmat[2]);
             add_v3_v3(r_plane, tmat[1]);
             ok = true;
@@ -1384,19 +1384,19 @@ int getTransformOrientation_ex(const Scene *scene,
         zero_v3(fallback_normal);
         zero_v3(fallback_plane);
 
-        LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
-          if (blender::animrig::bone_is_visible(arm, ebone)) {
-            if (ebone->flag & BONE_SELECTED) {
-              ED_armature_ebone_to_mat3(ebone, tmat);
+        for (EditBone &ebone : *arm->edbo) {
+          if (blender::animrig::bone_is_visible(arm, &ebone)) {
+            if (ebone.flag & BONE_SELECTED) {
+              ED_armature_ebone_to_mat3(&ebone, tmat);
               add_v3_v3(r_normal, tmat[2]);
               add_v3_v3(r_plane, tmat[1]);
               ok = true;
             }
-            else if ((ok == false) && ((ebone->flag & BONE_TIPSEL) ||
-                                       ((ebone->flag & BONE_ROOTSEL) &&
-                                        (ebone->parent && ebone->flag & BONE_CONNECTED) == false)))
+            else if ((ok == false) && ((ebone.flag & BONE_TIPSEL) ||
+                                       ((ebone.flag & BONE_ROOTSEL) &&
+                                        (ebone.parent && ebone.flag & BONE_CONNECTED) == false)))
             {
-              ED_armature_ebone_to_mat3(ebone, tmat);
+              ED_armature_ebone_to_mat3(&ebone, tmat);
               add_v3_v3(fallback_normal, tmat[2]);
               add_v3_v3(fallback_plane, tmat[1]);
               fallback_ok = true;
@@ -1453,10 +1453,10 @@ int getTransformOrientation_ex(const Scene *scene,
       const int transformed_len = armature_bone_transflags_update(*ob, arm, &ob->pose->chanbase);
       if (transformed_len) {
         /* Use channels to get stats. */
-        LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-          if (pchan->runtime.flag & POSE_RUNTIME_TRANSFORM) {
+        for (bPoseChannel &pchan : ob->pose->chanbase) {
+          if (pchan.runtime.flag & POSE_RUNTIME_TRANSFORM) {
             float pose_mat[3][3];
-            BKE_pose_channel_transform_orientation(arm, pchan, pose_mat);
+            BKE_pose_channel_transform_orientation(arm, &pchan, pose_mat);
 
             add_v3_v3(r_normal, pose_mat[2]);
             add_v3_v3(r_plane, pose_mat[1]);

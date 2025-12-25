@@ -899,8 +899,8 @@ static void rna_all_grease_pencil_update(bContext *C, PointerRNA * /*ptr*/)
 {
   /* FIXME: We shouldn't have to tag all the Grease Pencil IDs for an update! */
   Main *bmain = CTX_data_main(C);
-  LISTBASE_FOREACH (GreasePencil *, grease_pencil, &bmain->grease_pencils) {
-    DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
+  for (GreasePencil &grease_pencil : bmain->grease_pencils) {
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
   }
   WM_main_add_notifier(NC_GPENCIL | NA_EDITED, nullptr);
 }
@@ -2104,9 +2104,9 @@ static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const bool *valu
 
     /* Update select mode in all the workspaces in mesh edit mode. */
     wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
-    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-      const Scene *scene = WM_window_get_active_scene(win);
-      ViewLayer *view_layer = WM_window_get_active_view_layer(win);
+    for (wmWindow &win : wm->windows) {
+      const Scene *scene = WM_window_get_active_scene(&win);
+      ViewLayer *view_layer = WM_window_get_active_view_layer(&win);
       if (view_layer) {
         BKE_view_layer_synced_ensure(scene, view_layer);
         Object *object = BKE_view_layer_active_object_get(view_layer);
@@ -2885,9 +2885,9 @@ static const EnumPropertyItem *rna_TransformOrientation_impl_itemf(Scene *scene,
   if (transform_orientations && (BLI_listbase_is_empty(transform_orientations) == false)) {
     RNA_enum_item_add_separator(&item, &totitem);
 
-    LISTBASE_FOREACH (TransformOrientation *, ts, transform_orientations) {
-      tmp.identifier = ts->name;
-      tmp.name = ts->name;
+    for (TransformOrientation &ts : *transform_orientations) {
+      tmp.identifier = ts.name;
+      tmp.name = ts.name;
       tmp.value = i++;
       RNA_enum_item_add(&item, &totitem, &tmp);
     }

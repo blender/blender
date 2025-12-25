@@ -148,8 +148,8 @@ static void strip_animation_duplicate(Strip *strip,
                                       AnimationBackup *src)
 {
   if (strip->type == STRIP_TYPE_META) {
-    LISTBASE_FOREACH (Strip *, meta_child, &strip->seqbase) {
-      strip_animation_duplicate(meta_child, dst, dst_slot_handle, src);
+    for (Strip &meta_child : strip->seqbase) {
+      strip_animation_duplicate(&meta_child, dst, dst_slot_handle, src);
     }
   }
 
@@ -188,8 +188,8 @@ static void strip_animation_duplicate(Strip *strip,
 static void strip_drivers_duplicate(Strip *strip, AnimData *dst, AnimationBackup *src)
 {
   if (strip->type == STRIP_TYPE_META) {
-    LISTBASE_FOREACH (Strip *, meta_child, &strip->seqbase) {
-      strip_drivers_duplicate(meta_child, dst, src);
+    for (Strip &meta_child : strip->seqbase) {
+      strip_drivers_duplicate(&meta_child, dst, src);
     }
   }
 

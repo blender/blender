@@ -197,8 +197,8 @@ void xform_skip_child_container_item_ensure_from_array(XFormObjectSkipChild_Cont
   Set<Object *> objects_in_transdata(Span(objects, objects_len));
   BKE_view_layer_synced_ensure(scene, view_layer);
   ListBaseT<Base> *object_bases = BKE_view_layer_object_bases_get(view_layer);
-  LISTBASE_FOREACH (Base *, base, object_bases) {
-    Object *ob = base->object;
+  for (Base &base : *object_bases) {
+    Object *ob = base.object;
     if (ob->parent != nullptr) {
       if (!objects_in_transdata.contains(ob)) {
         if (objects_in_transdata.contains(ob->parent)) {
@@ -227,8 +227,8 @@ void xform_skip_child_container_item_ensure_from_array(XFormObjectSkipChild_Cont
     }
   }
 
-  LISTBASE_FOREACH (Base *, base, object_bases) {
-    Object *ob = base->object;
+  for (Base &base : *object_bases) {
+    Object *ob = base.object;
 
     if (objects_in_transdata.contains(ob)) {
       /* pass. */

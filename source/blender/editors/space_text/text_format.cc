@@ -180,13 +180,13 @@ TextFormatType *ED_text_format_get(Text *text)
     if (text_ext) {
       text_ext++; /* Skip the `.`. */
       /* Check all text formats in the static list. */
-      LISTBASE_FOREACH (TextFormatType *, tft, &tft_lb) {
+      for (TextFormatType &tft : tft_lb) {
         /* All formats should have an ext, but just in case. */
         const char **ext;
-        for (ext = tft->ext; *ext; ext++) {
+        for (ext = tft.ext; *ext; ext++) {
           /* If extension matches text name, return the matching tft. */
           if (BLI_strcasecmp(text_ext, *ext) == 0) {
-            return tft;
+            return &tft;
           }
         }
       }
@@ -225,10 +225,10 @@ bool ED_text_is_syntax_highlight_supported(Text *text)
   }
 
   /* Check all text formats in the static list. */
-  LISTBASE_FOREACH (TextFormatType *, tft, &tft_lb) {
+  for (TextFormatType &tft : tft_lb) {
     /* All formats should have an ext, but just in case. */
     const char **ext;
-    for (ext = tft->ext; *ext; ext++) {
+    for (ext = tft.ext; *ext; ext++) {
       /* If extension matches text name, return the matching tft. */
       if (BLI_strcasecmp(text_ext, *ext) == 0) {
         return true;

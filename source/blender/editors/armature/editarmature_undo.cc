@@ -57,9 +57,9 @@ static void remap_ebone_bone_collection_references(
     ListBaseT<EditBone> *edit_bones,
     const blender::Map<BoneCollection *, BoneCollection *> &bcoll_map)
 {
-  LISTBASE_FOREACH (EditBone *, ebone, edit_bones) {
-    LISTBASE_FOREACH (BoneCollectionReference *, bcoll_ref, &ebone->bone_collections) {
-      bcoll_ref->bcoll = bcoll_map.lookup(bcoll_ref->bcoll);
+  for (EditBone &ebone : *edit_bones) {
+    for (BoneCollectionReference &bcoll_ref : ebone.bone_collections) {
+      bcoll_ref.bcoll = bcoll_map.lookup(bcoll_ref.bcoll);
     }
   }
 }
@@ -151,10 +151,10 @@ static void *undoarm_from_editarm(UndoArmature *uarm, bArmature *arm)
   /* Undo size.
    * TODO: include size of ID-properties. */
   uarm->undo_size = 0;
-  LISTBASE_FOREACH (EditBone *, ebone, &uarm->ebones) {
+  for (EditBone &ebone : uarm->ebones) {
     uarm->undo_size += sizeof(EditBone);
     uarm->undo_size += sizeof(BoneCollectionReference) *
-                       BLI_listbase_count(&ebone->bone_collections);
+                       BLI_listbase_count(&ebone.bone_collections);
   }
   /* Size of the bone collections + the size of the pointers to those
    * bone collections in the bone collection array. */

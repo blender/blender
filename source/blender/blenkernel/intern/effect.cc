@@ -221,15 +221,15 @@ ListBaseT<EffectorRelation> *BKE_effector_relations_create(Depsgraph *depsgraph,
       add_effector_relation(relations, ob, nullptr, ob->pd);
     }
 
-    LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
-      ParticleSettings *part = psys->part;
+    for (ParticleSystem &psys : ob->particlesystem) {
+      ParticleSettings *part = psys.part;
 
-      if (psys_check_enabled(ob, psys, for_render)) {
+      if (psys_check_enabled(ob, &psys, for_render)) {
         if (part->pd && part->pd->forcefield) {
-          add_effector_relation(relations, ob, psys, part->pd);
+          add_effector_relation(relations, ob, &psys, part->pd);
         }
         if (part->pd2 && part->pd2->forcefield) {
-          add_effector_relation(relations, ob, psys, part->pd2);
+          add_effector_relation(relations, ob, &psys, part->pd2);
         }
       }
     }
@@ -319,21 +319,21 @@ ListBaseT<EffectorCache> *BKE_effectors_create(Depsgraph *depsgraph,
     return nullptr;
   }
 
-  LISTBASE_FOREACH (EffectorRelation *, relation, relations) {
+  for (EffectorRelation &relation : *relations) {
     /* Get evaluated object. */
-    Object *ob = DEG_get_evaluated(depsgraph, relation->ob);
+    Object *ob = DEG_get_evaluated(depsgraph, relation.ob);
 
-    if (relation->psys) {
+    if (relation.psys) {
       /* Get evaluated particle system. */
       ParticleSystem *psys = static_cast<ParticleSystem *>(BLI_findstring(
-          &ob->particlesystem, relation->psys->name, offsetof(ParticleSystem, name)));
+          &ob->particlesystem, relation.psys->name, offsetof(ParticleSystem, name)));
       ParticleSettings *part = psys->part;
 
       if (psys == psys_src && (part->flag & PART_SELF_EFFECT) == 0) {
         continue;
       }
 
-      PartDeflect *pd = (relation->pd == relation->psys->part->pd) ? part->pd : part->pd2;
+      PartDeflect *pd = (relation.pd == relation.psys->part->pd) ? part->pd : part->pd2;
 
       if (!is_effector_relevant(pd, weights, use_rotation)) {
         continue;
@@ -363,12 +363,12 @@ ListBaseT<EffectorCache> *BKE_effectors_create(Depsgraph *depsgraph,
 void BKE_effectors_free(ListBaseT<EffectorCache> *lb)
 {
   if (lb) {
-    LISTBASE_FOREACH (EffectorCache *, eff, lb) {
-      if (eff->rng) {
-        BLI_rng_free(eff->rng);
+    for (EffectorCache &eff : *lb) {
+      if (eff.rng) {
+        BLI_rng_free(eff.rng);
       }
-      if (eff->guide_data) {
-        MEM_freeN(eff->guide_data);
+      if (eff.guide_data) {
+        MEM_freeN(eff.guide_data);
       }
     }
 
@@ -486,10 +486,10 @@ static float eff_calc_visibility(ListBaseT<ColliderCache> *colliders,
   len = normalize_v3(norm);
 
   /* check all collision objects */
-  LISTBASE_FOREACH (ColliderCache *, col, colls) {
-    CollisionModifierData *collmd = col->collmd;
+  for (ColliderCache &col : *colls) {
+    CollisionModifierData *collmd = col.collmd;
 
-    if (col->ob == eff->ob) {
+    if (col.ob == eff->ob) {
       continue;
     }
     if (collmd->bvhtree) {
@@ -508,7 +508,7 @@ static float eff_calc_visibility(ListBaseT<ColliderCache> *colliders,
                                   nullptr,
                                   raycast_flag) != -1)
       {
-        absorption = col->ob->pd->absorption;
+        absorption = col.ob->pd->absorption;
 
         /* visibility is only between 0 and 1, calculated from 1-absorption */
         visibility *= std::clamp(1.0f - absorption, 0.0f, 1.0f);
@@ -1149,26 +1149,26 @@ void BKE_effectors_apply(ListBaseT<EffectorCache> *effectors,
   /* Check for min distance here? (yes would be cool to add that, ton) */
 
   if (effectors) {
-    LISTBASE_FOREACH (EffectorCache *, eff, effectors) {
+    for (EffectorCache &eff : *effectors) {
       /* object effectors were fully checked to be OK to evaluate! */
 
-      get_effector_tot(eff, &efd, point, &tot, &p, &step);
+      get_effector_tot(&eff, &efd, point, &tot, &p, &step);
 
       for (; p < tot; p += step) {
-        if (get_effector_data(eff, &efd, point, 0)) {
-          efd.falloff = effector_falloff(eff, &efd, point, weights);
+        if (get_effector_data(&eff, &efd, point, 0)) {
+          efd.falloff = effector_falloff(&eff, &efd, point, weights);
 
           if (efd.falloff > 0.0f) {
-            efd.falloff *= eff_calc_visibility(colliders, eff, &efd, point);
+            efd.falloff *= eff_calc_visibility(colliders, &eff, &efd, point);
           }
           if (efd.falloff > 0.0f) {
             float out_force[3] = {0, 0, 0};
 
-            if (eff->pd->forcefield == PFIELD_TEXTURE) {
-              do_texture_effector(eff, &efd, point, out_force);
+            if (eff.pd->forcefield == PFIELD_TEXTURE) {
+              do_texture_effector(&eff, &efd, point, out_force);
             }
             else {
-              do_physical_effector(eff, &efd, point, out_force);
+              do_physical_effector(&eff, &efd, point, out_force);
 
               /* for softbody backward compatibility */
               if (point->flag & PE_WIND_AS_SPEED && impulse) {
@@ -1177,15 +1177,15 @@ void BKE_effectors_apply(ListBaseT<EffectorCache> *effectors,
             }
 
             if (wind_force) {
-              madd_v3_v3fl(force, out_force, 1.0f - eff->pd->f_wind_factor);
-              madd_v3_v3fl(wind_force, out_force, eff->pd->f_wind_factor);
+              madd_v3_v3fl(force, out_force, 1.0f - eff.pd->f_wind_factor);
+              madd_v3_v3fl(wind_force, out_force, eff.pd->f_wind_factor);
             }
             else {
               add_v3_v3(force, out_force);
             }
           }
         }
-        else if (eff->flag & PE_VELOCITY_TO_IMPULSE && impulse) {
+        else if (eff.flag & PE_VELOCITY_TO_IMPULSE && impulse) {
           /* special case for harmonic effector */
           add_v3_v3v3(impulse, impulse, efd.vel);
         }

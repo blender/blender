@@ -108,13 +108,13 @@ void animviz_build_motionpath_targets(Object *ob, blender::Vector<MPathTarget *>
   /* Bones. */
   if ((ob->pose) && (ob->pose->avs.recalc & ANIMVIZ_RECALC_PATHS)) {
     bArmature *arm = static_cast<bArmature *>(ob->data);
-    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-      if ((pchan->bone) && ANIM_bonecoll_is_visible_pchan(arm, pchan) && (pchan->mpath)) {
+    for (bPoseChannel &pchan : ob->pose->chanbase) {
+      if ((pchan.bone) && ANIM_bonecoll_is_visible_pchan(arm, &pchan) && (pchan.mpath)) {
         /* New target for bone. */
         mpt = MEM_callocN<MPathTarget>("MPathTarget PoseBone");
-        mpt->mpath = pchan->mpath;
+        mpt->mpath = pchan.mpath;
         mpt->ob = ob;
-        mpt->pchan = pchan;
+        mpt->pchan = &pchan;
         r_targets.append(mpt);
       }
     }

@@ -274,9 +274,9 @@ static void filelist_filter_and_sort_assets(FileList *filelist,
     const AssetMetaData *asset_data = filelist_file_internal_get_asset_data(file);
     if (asset_data) {
       std::string searchable_string = file->name;
-      LISTBASE_FOREACH (const AssetTag *, asset_tag, &asset_data->tags) {
+      for (const AssetTag &asset_tag : asset_data->tags) {
         searchable_string += " ";
-        searchable_string += asset_tag->name;
+        searchable_string += asset_tag.name;
       }
       search.add(searchable_string, file);
     }
@@ -333,9 +333,9 @@ void filelist_filter(FileList *filelist)
       MEM_mallocN(sizeof(*filtered_tmp) * size_t(num_files), __func__));
 
   /* Filter remap & count how many files are left after filter in a single loop. */
-  LISTBASE_FOREACH (FileListInternEntry *, file, &filelist->filelist_intern.entries) {
-    if (filelist->filter_fn(file, filelist->filelist.root, &filelist->filter_data)) {
-      filtered_tmp[num_filtered++] = file;
+  for (FileListInternEntry &file : filelist->filelist_intern.entries) {
+    if (filelist->filter_fn(&file, filelist->filelist.root, &filelist->filter_data)) {
+      filtered_tmp[num_filtered++] = &file;
     }
   }
 

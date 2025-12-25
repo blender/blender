@@ -61,9 +61,9 @@ static void do_version_mix_node_mix_mode_compositor(bNodeTree &node_tree, bNode 
 
   /* Find the link going into the inputs of the node. */
   bNodeLink *first_link = nullptr;
-  LISTBASE_FOREACH (bNodeLink *, link, &node_tree.links) {
-    if (link->tosock == first_input) {
-      first_link = link;
+  for (bNodeLink &link : node_tree.links) {
+    if (link.tosock == first_input) {
+      first_link = &link;
     }
   }
 
@@ -108,11 +108,11 @@ static void do_version_mix_node_mix_mode_compositor(bNodeTree &node_tree, bNode 
   version_node_add_link(
       node_tree, separate_node, separate_alpha_output, set_alpha_node, set_alpha_alpha_input);
 
-  LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &node_tree.links) {
-    if (link->fromsock == output && link->tonode != &set_alpha_node) {
+  for (bNodeLink &link : node_tree.links.items_reversed_mutable()) {
+    if (link.fromsock == output && link.tonode != &set_alpha_node) {
       version_node_add_link(
-          node_tree, set_alpha_node, set_alpha_output, *link->tonode, *link->tosock);
-      blender::bke::node_remove_link(&node_tree, *link);
+          node_tree, set_alpha_node, set_alpha_output, *link.tonode, *link.tosock);
+      blender::bke::node_remove_link(&node_tree, link);
     }
   }
 }
@@ -136,9 +136,9 @@ static void do_version_mix_node_mix_mode_geometry(bNodeTree &node_tree, bNode &n
 
   /* Find the link going into the inputs of the node. */
   bNodeLink *first_link = nullptr;
-  LISTBASE_FOREACH (bNodeLink *, link, &node_tree.links) {
-    if (link->tosock == first_input) {
-      first_link = link;
+  for (bNodeLink &link : node_tree.links) {
+    if (link.tosock == first_input) {
+      first_link = &link;
     }
   }
 
@@ -224,11 +224,11 @@ static void do_version_mix_node_mix_mode_geometry(bNodeTree &node_tree, bNode &n
                         combine_color_node,
                         combine_color_alpha_input);
 
-  LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &node_tree.links) {
-    if (link->fromsock == output && link->tonode != &separate_color_node) {
+  for (bNodeLink &link : node_tree.links.items_reversed_mutable()) {
+    if (link.fromsock == output && link.tonode != &separate_color_node) {
       version_node_add_link(
-          node_tree, combine_color_node, combine_color_output, *link->tonode, *link->tosock);
-      blender::bke::node_remove_link(&node_tree, *link);
+          node_tree, combine_color_node, combine_color_output, *link.tonode, *link.tosock);
+      blender::bke::node_remove_link(&node_tree, link);
     }
   }
 }
@@ -236,18 +236,18 @@ static void do_version_mix_node_mix_mode_geometry(bNodeTree &node_tree, bNode &n
 static void init_node_tool_operator_idnames(Main &bmain)
 {
   using namespace blender;
-  LISTBASE_FOREACH (bNodeTree *, group, &bmain.nodetrees) {
-    if (group->type != NTREE_GEOMETRY) {
+  for (bNodeTree &group : bmain.nodetrees) {
+    if (group.type != NTREE_GEOMETRY) {
       continue;
     }
-    if (!group->geometry_node_asset_traits) {
+    if (!group.geometry_node_asset_traits) {
       continue;
     }
-    if (group->geometry_node_asset_traits->node_tool_idname) {
+    if (group.geometry_node_asset_traits->node_tool_idname) {
       continue;
     }
     std::string name_str = "geometry.";
-    for (char c : StringRef(BKE_id_name(group->id))) {
+    for (char c : StringRef(BKE_id_name(group.id))) {
       c = tolower(c);
       if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_') {
         name_str.push_back(c);
@@ -259,43 +259,43 @@ static void init_node_tool_operator_idnames(Main &bmain)
         }
       }
     }
-    group->geometry_node_asset_traits->node_tool_idname = BLI_strdupn(name_str.c_str(),
-                                                                      name_str.size());
-    if (group->id.asset_data) {
+    group.geometry_node_asset_traits->node_tool_idname = BLI_strdupn(name_str.c_str(),
+                                                                     name_str.size());
+    if (group.id.asset_data) {
       auto property = bke::idprop::create(
-          "node_tool_idname", StringRefNull(group->geometry_node_asset_traits->node_tool_idname));
-      BKE_asset_metadata_idprop_ensure(group->id.asset_data, property.release());
+          "node_tool_idname", StringRefNull(group.geometry_node_asset_traits->node_tool_idname));
+      BKE_asset_metadata_idprop_ensure(group.id.asset_data, property.release());
     }
   }
 }
 
 static void version_realize_instances_to_curve_domain(Main &bmain)
 {
-  LISTBASE_FOREACH (bNodeTree *, node_tree, &bmain.nodetrees) {
-    if (node_tree->type != NTREE_GEOMETRY) {
+  for (bNodeTree &node_tree : bmain.nodetrees) {
+    if (node_tree.type != NTREE_GEOMETRY) {
       continue;
     }
-    LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-      if (node->type_legacy != GEO_NODE_REALIZE_INSTANCES) {
+    for (bNode &node : node_tree.nodes) {
+      if (node.type_legacy != GEO_NODE_REALIZE_INSTANCES) {
         continue;
       }
-      node->custom1 |= GEO_NODE_REALIZE_TO_POINT_DOMAIN;
+      node.custom1 |= GEO_NODE_REALIZE_TO_POINT_DOMAIN;
     }
   }
 }
 
 static void version_mesh_uv_map_strings(Main &bmain)
 {
-  LISTBASE_FOREACH (Mesh *, mesh, &bmain.meshes) {
-    const CustomData *data = &mesh->corner_data;
-    if (!mesh->active_uv_map_attribute) {
+  for (Mesh &mesh : bmain.meshes) {
+    const CustomData *data = &mesh.corner_data;
+    if (!mesh.active_uv_map_attribute) {
       if (const char *name = CustomData_get_active_layer_name(data, CD_PROP_FLOAT2)) {
-        mesh->active_uv_map_attribute = BLI_strdup(name);
+        mesh.active_uv_map_attribute = BLI_strdup(name);
       }
     }
-    if (!mesh->default_uv_map_attribute) {
+    if (!mesh.default_uv_map_attribute) {
       if (const char *name = CustomData_get_render_layer_name(data, CD_PROP_FLOAT2)) {
-        mesh->default_uv_map_attribute = BLI_strdup(name);
+        mesh.default_uv_map_attribute = BLI_strdup(name);
       }
     }
   }
@@ -303,8 +303,8 @@ static void version_mesh_uv_map_strings(Main &bmain)
 
 static void version_clear_unused_strip_flags(Main &bmain)
 {
-  LISTBASE_FOREACH (Scene *, scene, &bmain.scenes) {
-    Editing *ed = blender::seq::editing_get(scene);
+  for (Scene &scene : bmain.scenes) {
+    Editing *ed = blender::seq::editing_get(&scene);
     if (ed != nullptr) {
       blender::seq::foreach_strip(&ed->seqbase, [&](Strip *strip) {
         constexpr int flag_overlap = 1 << 3;
@@ -403,9 +403,9 @@ static void do_version_light_remove_use_nodes(Main *bmain, Light *light)
   }
 
   bNode *old_output = nullptr;
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (STREQ(node->idname, "ShaderNodeOutputLight") && (node->flag & NODE_DO_OUTPUT)) {
-      old_output = node;
+  for (bNode &node : ntree->nodes) {
+    if (STREQ(node.idname, "ShaderNodeOutputLight") && (node.flag & NODE_DO_OUTPUT)) {
+      old_output = &node;
       old_output->flag &= ~NODE_DO_OUTPUT;
     }
   }
@@ -456,11 +456,11 @@ void do_versions_after_linking_510(FileData * /*fd*/, Main *bmain)
    * time during versioning. Note that the invalid active viewer will just cause a harmless assert,
    * so this does not need to exist in previous releases. */
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 0)) {
-    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
-          if (space->spacetype == SPACE_NODE) {
-            SpaceNode *space_node = reinterpret_cast<SpaceNode *>(space);
+    for (bScreen &screen : bmain->screens) {
+      for (ScrArea &area : screen.areabase) {
+        for (SpaceLink &space : area.spacedata) {
+          if (space.spacetype == SPACE_NODE) {
+            SpaceNode *space_node = reinterpret_cast<SpaceNode *>(&space);
             bNodeTreePath *path = static_cast<bNodeTreePath *>(space_node->treepath.last);
             if (space_node->nodetree && path) {
               space_node->nodetree->active_viewer_key = path->parent_key;
@@ -488,16 +488,16 @@ void blo_do_versions_510(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 1)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == SH_NODE_MIX) {
-            do_version_mix_node_mix_mode_compositor(*node_tree, *node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == SH_NODE_MIX) {
+            do_version_mix_node_mix_mode_compositor(*node_tree, node);
           }
         }
       }
       else if (node_tree->type == NTREE_GEOMETRY) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == SH_NODE_MIX) {
-            do_version_mix_node_mix_mode_geometry(*node_tree, *node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == SH_NODE_MIX) {
+            do_version_mix_node_mix_mode_geometry(*node_tree, node);
           }
         }
       }
@@ -514,13 +514,13 @@ void blo_do_versions_510(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 8)) {
-    LISTBASE_FOREACH (Object *, obj, &bmain->objects) {
-      if (!obj->pose) {
+    for (Object &obj : bmain->objects) {
+      if (!obj.pose) {
         continue;
       }
-      LISTBASE_FOREACH (bPoseChannel *, pose_bone, &obj->pose->chanbase) {
+      for (bPoseChannel &pose_bone : obj.pose->chanbase) {
         /* Those flags were previously unused, so to be safe we clear them. */
-        pose_bone->flag &= ~(POSE_SELECTED_ROOT | POSE_SELECTED_TIP);
+        pose_bone.flag &= ~(POSE_SELECTED_ROOT | POSE_SELECTED_TIP);
       }
     }
   }
@@ -528,14 +528,14 @@ void blo_do_versions_510(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 9)) {
     init_node_tool_operator_idnames(*bmain);
 
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      scene->r.ffcodecdata.custom_constant_rate_factor = 23;
+    for (Scene &scene : bmain->scenes) {
+      scene.r.ffcodecdata.custom_constant_rate_factor = 23;
     }
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 10)) {
-    LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
-      wm->xr.session_settings.view_scale = 1.0f;
+    for (wmWindowManager &wm : bmain->wm) {
+      wm.xr.session_settings.view_scale = 1.0f;
     }
   }
 
@@ -551,13 +551,13 @@ void blo_do_versions_510(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 13)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_R_LAYERS) {
-            LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-              const char *new_pass_name = legacy_pass_name_to_new_name(socket->name);
-              STRNCPY(socket->name, new_pass_name);
-              const char *new_pass_identifier = legacy_pass_name_to_new_name(socket->identifier);
-              STRNCPY(socket->identifier, new_pass_identifier);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_R_LAYERS) {
+            for (bNodeSocket &socket : node.outputs) {
+              const char *new_pass_name = legacy_pass_name_to_new_name(socket.name);
+              STRNCPY(socket.name, new_pass_name);
+              const char *new_pass_identifier = legacy_pass_name_to_new_name(socket.identifier);
+              STRNCPY(socket.identifier, new_pass_identifier);
             }
           }
         }
@@ -567,11 +567,11 @@ void blo_do_versions_510(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 14)) {
-    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-          if (sl->spacetype == SPACE_IMAGE) {
-            SpaceImage *sima = reinterpret_cast<SpaceImage *>(sl);
+    for (bScreen &screen : bmain->screens) {
+      for (ScrArea &area : screen.areabase) {
+        for (SpaceLink &sl : area.spacedata) {
+          if (sl.spacetype == SPACE_IMAGE) {
+            SpaceImage *sima = reinterpret_cast<SpaceImage *>(&sl);
             sima->uv_edge_opacity = sima->uv_opacity;
           }
         }
@@ -580,11 +580,11 @@ void blo_do_versions_510(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 16)) {
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      if (scene->toolsettings) {
-        scene->toolsettings->anim_mirror_object = nullptr;
-        scene->toolsettings->anim_relative_object = nullptr;
-        scene->toolsettings->anim_mirror_bone[0] = '\0';
+    for (Scene &scene : bmain->scenes) {
+      if (scene.toolsettings) {
+        scene.toolsettings->anim_mirror_object = nullptr;
+        scene.toolsettings->anim_relative_object = nullptr;
+        scene.toolsettings->anim_mirror_bone[0] = '\0';
       }
     }
   }
@@ -594,12 +594,12 @@ void blo_do_versions_510(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
    * regardless of the version. */
   FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
     if (node_tree->type == NTREE_COMPOSIT) {
-      LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-        if (ELEM(node->type_legacy, CMP_NODE_IMAGE, CMP_NODE_R_LAYERS)) {
-          LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-            if (socket->storage) {
-              MEM_freeN(socket->storage);
-              socket->storage = nullptr;
+      for (bNode &node : node_tree->nodes) {
+        if (ELEM(node.type_legacy, CMP_NODE_IMAGE, CMP_NODE_R_LAYERS)) {
+          for (bNodeSocket &socket : node.outputs) {
+            if (socket.storage) {
+              MEM_freeN(socket.storage);
+              socket.storage = nullptr;
             }
           }
         }
@@ -609,8 +609,8 @@ void blo_do_versions_510(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   FOREACH_NODETREE_END;
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 15)) {
-    LISTBASE_FOREACH (Light *, light, &bmain->lights) {
-      do_version_light_remove_use_nodes(bmain, light);
+    for (Light &light : bmain->lights) {
+      do_version_light_remove_use_nodes(bmain, &light);
     }
   }
   /**

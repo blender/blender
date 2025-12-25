@@ -43,8 +43,8 @@ Set<std::string> get_bone_deformed_vertex_group_names(const Object &object)
   /* Get all vertex group names in the object. */
   const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(&object);
   Set<std::string> defgroups;
-  LISTBASE_FOREACH (bDeformGroup *, dg, defbase) {
-    defgroups.add(dg->name);
+  for (bDeformGroup &dg : *defbase) {
+    defgroups.add(dg.name);
   }
 
   /* Inspect all armature modifiers in the object. */
@@ -64,13 +64,13 @@ Set<std::string> get_bone_deformed_vertex_group_names(const Object &object)
     }
 
     bPose *pose = gamd->object->pose;
-    LISTBASE_FOREACH (bPoseChannel *, channel, &pose->chanbase) {
-      if (channel->bone->flag & BONE_NO_DEFORM) {
+    for (bPoseChannel &channel : pose->chanbase) {
+      if (channel.bone->flag & BONE_NO_DEFORM) {
         continue;
       }
       /* When a vertex group name matches the bone name, it is bone-deformed. */
-      if (defgroups.contains(channel->name)) {
-        bone_deformed_vgroups.add(channel->name);
+      if (defgroups.contains(channel.name)) {
+        bone_deformed_vgroups.add(channel.name);
       }
     }
   }
@@ -879,9 +879,9 @@ static wmOperatorStatus vertex_group_normalize_all_exec(bContext *C, wmOperator 
   /* Get the locked vertex groups in the object. */
   Set<std::string> object_locked_defgroups;
   const ListBaseT<bDeformGroup> *defgroups = BKE_object_defgroup_list(object);
-  LISTBASE_FOREACH (bDeformGroup *, dg, defgroups) {
-    if ((dg->flag & DG_LOCK_WEIGHT) != 0) {
-      object_locked_defgroups.add(dg->name);
+  for (bDeformGroup &dg : *defgroups) {
+    if ((dg.flag & DG_LOCK_WEIGHT) != 0) {
+      object_locked_defgroups.add(dg.name);
     }
   }
   const bool lock_active_group = RNA_boolean_get(op->ptr, "lock_active");
@@ -906,8 +906,8 @@ static wmOperatorStatus vertex_group_normalize_all_exec(bContext *C, wmOperator 
       /* Put the lock state of every vertex group in a boolean array. */
       Vector<bool> vertex_group_is_locked;
       Vector<bool> vertex_group_is_included;
-      LISTBASE_FOREACH (bDeformGroup *, dg, &curves.vertex_group_names) {
-        vertex_group_is_locked.append(object_locked_defgroups.contains(dg->name));
+      for (bDeformGroup &dg : curves.vertex_group_names) {
+        vertex_group_is_locked.append(object_locked_defgroups.contains(dg.name));
         /* Dummy, needed for the #normalize_vertex_weights() call. */
         vertex_group_is_included.append(true);
       }

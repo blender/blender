@@ -186,7 +186,8 @@ struct CfraElem {
 struct KeyframeEditData {
   /* generic properties/data access */
   /** temp list for storing custom list of data to check */
-  ListBase list;
+  ListBaseT<CfraElem> cfra_elem_list;
+  ListBaseT<TimeMarker> time_marker_list;
   /** pointer to current scene - many tools need access to cfra/etc. */
   Scene *scene;
   /** pointer to custom data - usually 'Object' but also 'rectf', but could be other types too */

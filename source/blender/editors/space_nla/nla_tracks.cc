@@ -125,10 +125,10 @@ static int mouse_nla_tracks(bContext *C, bAnimContext *ac, int track_index, shor
           /* deselect all */
           /* TODO: should this deselect all other types of tracks too? */
           BKE_view_layer_synced_ensure(ac->scene, view_layer);
-          LISTBASE_FOREACH (Base *, b, BKE_view_layer_object_bases_get(view_layer)) {
-            blender::ed::object::base_select(b, blender::ed::object::BA_DESELECT);
-            if (b->object->adt) {
-              b->object->adt->flag &= ~(ADT_UI_SELECTED | ADT_UI_ACTIVE);
+          for (Base &b : *BKE_view_layer_object_bases_get(view_layer)) {
+            blender::ed::object::base_select(&b, blender::ed::object::BA_DESELECT);
+            if (b.object->adt) {
+              b.object->adt->flag &= ~(ADT_UI_SELECTED | ADT_UI_ACTIVE);
             }
           }
 
@@ -566,13 +566,13 @@ bool nlaedit_add_tracks_existing(bAnimContext *ac, bool above_sel)
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
   /* add tracks... */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    if (ale->type == ANIMTYPE_NLATRACK) {
-      NlaTrack *nlt = static_cast<NlaTrack *>(ale->data);
-      AnimData *adt = ale->adt;
+  for (bAnimListElem &ale : anim_data) {
+    if (ale.type == ANIMTYPE_NLATRACK) {
+      NlaTrack *nlt = static_cast<NlaTrack *>(ale.data);
+      AnimData *adt = ale.adt;
       NlaTrack *new_track = nullptr;
 
-      const bool is_liboverride = ID_IS_OVERRIDE_LIBRARY(ale->id);
+      const bool is_liboverride = ID_IS_OVERRIDE_LIBRARY(ale.id);
 
       /* check if just adding a new track above this one,
        * or whether we're adding a new one to the top of the stack that this one belongs to
@@ -581,7 +581,7 @@ bool nlaedit_add_tracks_existing(bAnimContext *ac, bool above_sel)
         /* just add a new one above this one */
         new_track = BKE_nlatrack_new_after(&adt->nla_tracks, nlt, is_liboverride);
         BKE_nlatrack_set_active(&adt->nla_tracks, new_track);
-        ale->update = ANIM_UPDATE_DEPS;
+        ale.update = ANIM_UPDATE_DEPS;
         added = true;
       }
       else if ((lastAdt == nullptr) || (adt != lastAdt)) {
@@ -590,7 +590,7 @@ bool nlaedit_add_tracks_existing(bAnimContext *ac, bool above_sel)
         new_track = BKE_nlatrack_new_tail(&adt->nla_tracks, is_liboverride);
         BKE_nlatrack_set_active(&adt->nla_tracks, new_track);
         lastAdt = adt;
-        ale->update = ANIM_UPDATE_DEPS;
+        ale.update = ANIM_UPDATE_DEPS;
         added = true;
       }
     }
@@ -616,8 +616,8 @@ bool nlaedit_add_tracks_empty(bAnimContext *ac)
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
   /* check if selected AnimData blocks are empty, and add tracks if so... */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    AnimData *adt = ale->adt;
+  for (bAnimListElem &ale : anim_data) {
+    AnimData *adt = ale.adt;
     NlaTrack *new_track;
 
     /* sanity check */
@@ -626,9 +626,9 @@ bool nlaedit_add_tracks_empty(bAnimContext *ac)
     /* ensure it is empty */
     if (BLI_listbase_is_empty(&adt->nla_tracks)) {
       /* add new track to this AnimData block then */
-      new_track = BKE_nlatrack_new_tail(&adt->nla_tracks, ID_IS_OVERRIDE_LIBRARY(ale->id));
+      new_track = BKE_nlatrack_new_tail(&adt->nla_tracks, ID_IS_OVERRIDE_LIBRARY(ale.id));
       BKE_nlatrack_set_active(&adt->nla_tracks, new_track);
-      ale->update = ANIM_UPDATE_DEPS;
+      ale.update = ANIM_UPDATE_DEPS;
       added = true;
     }
   }
@@ -718,12 +718,12 @@ static wmOperatorStatus nlaedit_delete_tracks_exec(bContext *C, wmOperator * /*o
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
 
   /* delete tracks */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    if (ale->type == ANIMTYPE_NLATRACK) {
-      NlaTrack *nlt = static_cast<NlaTrack *>(ale->data);
-      AnimData *adt = ale->adt;
+  for (bAnimListElem &ale : anim_data) {
+    if (ale.type == ANIMTYPE_NLATRACK) {
+      NlaTrack *nlt = static_cast<NlaTrack *>(ale.data);
+      AnimData *adt = ale.adt;
 
-      if (BKE_nlatrack_is_nonlocal_in_liboverride(ale->id, nlt)) {
+      if (BKE_nlatrack_is_nonlocal_in_liboverride(ale.id, nlt)) {
         /* No deletion of non-local tracks of override data. */
         continue;
       }
@@ -737,7 +737,7 @@ static wmOperatorStatus nlaedit_delete_tracks_exec(bContext *C, wmOperator * /*o
 
       /* call delete on this track - deletes all strips too */
       BKE_nlatrack_remove_and_free(&adt->nla_tracks, nlt, true);
-      ale->update = ANIM_UPDATE_DEPS;
+      ale.update = ANIM_UPDATE_DEPS;
     }
   }
 

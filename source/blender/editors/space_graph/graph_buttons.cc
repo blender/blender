@@ -1105,14 +1105,14 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
   }
 
   /* loop over targets, drawing them */
-  LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
+  for (DriverVar &dvar : driver->variables) {
 
     /* sub-layout column for this variable's settings */
     blender::ui::Layout &col = layout.column(true);
 
     /* 1) header panel */
     blender::ui::Layout &header_box = col.box();
-    PointerRNA dvar_ptr = RNA_pointer_create_discrete(id, &RNA_DriverVariable, dvar);
+    PointerRNA dvar_ptr = RNA_pointer_create_discrete(id, &RNA_DriverVariable, &dvar);
 
     /* 1.1) variable type and name */
     blender::ui::Layout &sub = header_box.row(false).row(true);
@@ -1140,7 +1140,7 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
     /* 1.2) invalid name? */
     block_emboss_set(block, blender::ui::EmbossType::None);
 
-    if (dvar->flag & DVAR_FLAG_INVALID_NAME) {
+    if (dvar.flag & DVAR_FLAG_INVALID_NAME) {
       but = uiDefIconBut(block,
                          blender::ui::ButtonType::But,
                          ICON_ERROR,
@@ -1153,7 +1153,7 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
                          0.0,
                          TIP_("Invalid variable name, click here for details"));
       button_retval_set(but, B_IPO_DEPCHANGE);
-      button_func_set(but, driver_dvar_invalid_name_query_cb, dvar, nullptr); /* XXX: reports? */
+      button_func_set(but, driver_dvar_invalid_name_query_cb, &dvar, nullptr); /* XXX: reports? */
     }
 
     /* 1.3) remove button */
@@ -1169,27 +1169,27 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
                        0.0,
                        TIP_("Delete target variable"));
     button_retval_set(but, B_IPO_DEPCHANGE);
-    button_func_set(but, driver_delete_var_cb, driver, dvar);
+    button_func_set(but, driver_delete_var_cb, driver, &dvar);
     block_emboss_set(block, blender::ui::EmbossType::Emboss);
 
     /* 2) variable type settings */
     blender::ui::Layout &box = col.box();
     /* controls to draw depends on the type of variable */
-    switch (dvar->type) {
+    switch (dvar.type) {
       case DVAR_TYPE_SINGLE_PROP: /* single property */
-        graph_panel_driverVar__singleProp(box, id, dvar);
+        graph_panel_driverVar__singleProp(box, id, &dvar);
         break;
       case DVAR_TYPE_ROT_DIFF: /* rotational difference */
-        graph_panel_driverVar__rotDiff(box, id, dvar);
+        graph_panel_driverVar__rotDiff(box, id, &dvar);
         break;
       case DVAR_TYPE_LOC_DIFF: /* location difference */
-        graph_panel_driverVar__locDiff(box, id, dvar);
+        graph_panel_driverVar__locDiff(box, id, &dvar);
         break;
       case DVAR_TYPE_TRANSFORM_CHAN: /* transform channel */
-        graph_panel_driverVar__transChan(box, id, dvar);
+        graph_panel_driverVar__transChan(box, id, &dvar);
         break;
       case DVAR_TYPE_CONTEXT_PROP: /* context property */
-        graph_panel_driverVar__contextProp(box, id, dvar);
+        graph_panel_driverVar__contextProp(box, id, &dvar);
         break;
     }
 
@@ -1200,22 +1200,22 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
       blender::ui::Layout &sub = col.box().row(true);
       sub.label(IFACE_("Value:"), ICON_NONE);
 
-      if ((dvar->type == DVAR_TYPE_ROT_DIFF) ||
-          (dvar->type == DVAR_TYPE_TRANSFORM_CHAN &&
-           ELEM(dvar->targets[0].transChan,
+      if ((dvar.type == DVAR_TYPE_ROT_DIFF) ||
+          (dvar.type == DVAR_TYPE_TRANSFORM_CHAN &&
+           ELEM(dvar.targets[0].transChan,
                 DTAR_TRANSCHAN_ROTX,
                 DTAR_TRANSCHAN_ROTY,
                 DTAR_TRANSCHAN_ROTZ,
                 DTAR_TRANSCHAN_ROTW) &&
-           dvar->targets[0].rotation_mode != DTAR_ROTMODE_QUATERNION))
+           dvar.targets[0].rotation_mode != DTAR_ROTMODE_QUATERNION))
       {
         SNPRINTF_UTF8(valBuf,
                       "%.3f (%4.1f" BLI_STR_UTF8_DEGREE_SIGN ")",
-                      dvar->curval,
-                      RAD2DEGF(dvar->curval));
+                      dvar.curval,
+                      RAD2DEGF(dvar.curval));
       }
       else {
-        SNPRINTF_UTF8(valBuf, "%.3f", dvar->curval);
+        SNPRINTF_UTF8(valBuf, "%.3f", dvar.curval);
       }
 
       sub.label(valBuf, ICON_NONE);

@@ -2148,8 +2148,8 @@ static int arg_handle_engine_set(int argc, const char **argv, void *data)
 
     if (STREQ(engine_name, "help")) {
       printf("Blender Engine Listing:\n");
-      LISTBASE_FOREACH (RenderEngineType *, type, &R_engines) {
-        printf("\t%s\n", type->idname);
+      for (RenderEngineType &type : R_engines) {
+        printf("\t%s\n", type.idname);
       }
       WM_exit_ex(C, false, false);
       exit(0);

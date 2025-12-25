@@ -293,14 +293,14 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
    * are selected (or should be edited). */
   Set<FCurve *> visited_fcurves;
   Vector<bAnimListElem *> unique_fcu_anim_list_elements;
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    FCurve *fcu = (FCurve *)ale->key_data;
+  for (bAnimListElem &ale : anim_data) {
+    FCurve *fcu = (FCurve *)ale.key_data;
     /* If 2 or more objects share the same action, multiple bAnimListElem might reference the same
      * FCurve. */
     if (!visited_fcurves.add(fcu)) {
       continue;
     }
-    unique_fcu_anim_list_elements.append(ale);
+    unique_fcu_anim_list_elements.append(&ale);
     int curvecount = 0;
     bool selected = false;
 
@@ -311,7 +311,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 
     /* Convert current-frame to action-time (slightly less accurate, especially under
      * higher scaling ratios, but is faster than converting all points). */
-    const float cfra = ANIM_nla_tweakedit_remap(ale, float(scene->r.cfra), NLATIME_CONVERT_UNMAP);
+    const float cfra = ANIM_nla_tweakedit_remap(&ale, float(scene->r.cfra), NLATIME_CONVERT_UNMAP);
 
     for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
       /* Only include BezTriples whose 'keyframe'
@@ -345,7 +345,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
     if (is_prop_edit) {
       if (selected) {
         count += curvecount;
-        ale->tag = true;
+        ale.tag = true;
       }
     }
   }
@@ -938,8 +938,8 @@ static void recalcData_graphedit(TransInfo *t)
 
   Vector<FCurve *> unsorted_fcurves;
   /* Now test if there is a need to re-sort. */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    FCurve *fcu = (FCurve *)ale->key_data;
+  for (bAnimListElem &ale : anim_data) {
+    FCurve *fcu = (FCurve *)ale.key_data;
 
     /* Ignore FC-Curves without any selected verts. */
     if (!fcu_test_selected(fcu)) {
@@ -957,7 +957,7 @@ static void recalcData_graphedit(TransInfo *t)
     /* Set refresh tags for objects using this animation,
      * BUT only if realtime updates are enabled. */
     if ((sipo->flag & SIPO_NOREALTIMEUPDATES) == 0) {
-      ANIM_list_elem_update(CTX_data_main(t->context), t->scene, ale);
+      ANIM_list_elem_update(CTX_data_main(t->context), t->scene, &ale);
     }
   }
 
@@ -999,8 +999,8 @@ static void special_aftertrans_update__graph(bContext *C, TransInfo *t)
     ANIM_animdata_filter(
         &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
-    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-      FCurve *fcu = (FCurve *)ale->key_data;
+    for (bAnimListElem &ale : anim_data) {
+      FCurve *fcu = (FCurve *)ale.key_data;
 
       /* 3 cases here for curve cleanups:
        * 1) NOTRANSKEYCULL on    -> cleanup of duplicates shouldn't be done.
@@ -1010,9 +1010,9 @@ static void special_aftertrans_update__graph(bContext *C, TransInfo *t)
        *                            but we made duplicates, so get rid of these.
        */
       if ((sipo->flag & SIPO_NOTRANSKEYCULL) == 0 && ((canceled == 0) || (duplicate))) {
-        ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcu, false, false);
+        ANIM_nla_mapping_apply_if_needed_fcurve(&ale, fcu, false, false);
         BKE_fcurve_merge_duplicate_keys(fcu, BEZT_FLAG_TEMP_TAG, use_handle);
-        ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcu, true, false);
+        ANIM_nla_mapping_apply_if_needed_fcurve(&ale, fcu, true, false);
       }
     }
 

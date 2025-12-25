@@ -46,8 +46,8 @@ static wmOperatorStatus rule_add_exec(bContext *C, wmOperator *op)
 
   state = boid_get_current_state(part->boids);
 
-  LISTBASE_FOREACH (BoidRule *, rule, &state->rules) {
-    rule->flag &= ~BOIDRULE_CURRENT;
+  for (BoidRule &rule : state->rules) {
+    rule.flag &= ~BOIDRULE_CURRENT;
   }
 
   rule = boid_new_rule(type);
@@ -90,10 +90,10 @@ static wmOperatorStatus rule_del_exec(bContext *C, wmOperator * /*op*/)
 
   state = boid_get_current_state(part->boids);
 
-  LISTBASE_FOREACH (BoidRule *, rule, &state->rules) {
-    if (rule->flag & BOIDRULE_CURRENT) {
-      BLI_remlink(&state->rules, rule);
-      MEM_freeN(rule);
+  for (BoidRule &rule : state->rules) {
+    if (rule.flag & BOIDRULE_CURRENT) {
+      BLI_remlink(&state->rules, &rule);
+      MEM_freeN(&rule);
       break;
     }
   }
@@ -135,10 +135,10 @@ static wmOperatorStatus rule_move_up_exec(bContext *C, wmOperator * /*op*/)
   }
 
   state = boid_get_current_state(part->boids);
-  LISTBASE_FOREACH (BoidRule *, rule, &state->rules) {
-    if (rule->flag & BOIDRULE_CURRENT && rule->prev) {
-      BLI_remlink(&state->rules, rule);
-      BLI_insertlinkbefore(&state->rules, rule->prev, rule);
+  for (BoidRule &rule : state->rules) {
+    if (rule.flag & BOIDRULE_CURRENT && rule.prev) {
+      BLI_remlink(&state->rules, &rule);
+      BLI_insertlinkbefore(&state->rules, rule.prev, &rule);
 
       DEG_id_tag_update(&part->id, ID_RECALC_GEOMETRY | ID_RECALC_PSYS_RESET);
       break;
@@ -171,10 +171,10 @@ static wmOperatorStatus rule_move_down_exec(bContext *C, wmOperator * /*op*/)
   }
 
   state = boid_get_current_state(part->boids);
-  LISTBASE_FOREACH (BoidRule *, rule, &state->rules) {
-    if (rule->flag & BOIDRULE_CURRENT && rule->next) {
-      BLI_remlink(&state->rules, rule);
-      BLI_insertlinkafter(&state->rules, rule->next, rule);
+  for (BoidRule &rule : state->rules) {
+    if (rule.flag & BOIDRULE_CURRENT && rule.next) {
+      BLI_remlink(&state->rules, &rule);
+      BLI_insertlinkafter(&state->rules, rule.next, &rule);
 
       DEG_id_tag_update(&part->id, ID_RECALC_GEOMETRY | ID_RECALC_PSYS_RESET);
       break;
@@ -207,8 +207,8 @@ static wmOperatorStatus state_add_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  LISTBASE_FOREACH (BoidState *, state, &part->boids->states) {
-    state->flag &= ~BOIDSTATE_CURRENT;
+  for (BoidState &state : part->boids->states) {
+    state.flag &= ~BOIDSTATE_CURRENT;
   }
 
   state = boid_new_state(part->boids);
@@ -243,10 +243,10 @@ static wmOperatorStatus state_del_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  LISTBASE_FOREACH (BoidState *, state, &part->boids->states) {
-    if (state->flag & BOIDSTATE_CURRENT) {
-      BLI_remlink(&part->boids->states, state);
-      MEM_freeN(state);
+  for (BoidState &state : part->boids->states) {
+    if (state.flag & BOIDSTATE_CURRENT) {
+      BLI_remlink(&part->boids->states, &state);
+      MEM_freeN(&state);
       break;
     }
   }
@@ -295,10 +295,10 @@ static wmOperatorStatus state_move_up_exec(bContext *C, wmOperator * /*op*/)
 
   boids = part->boids;
 
-  LISTBASE_FOREACH (BoidState *, state, &boids->states) {
-    if (state->flag & BOIDSTATE_CURRENT && state->prev) {
-      BLI_remlink(&boids->states, state);
-      BLI_insertlinkbefore(&boids->states, state->prev, state);
+  for (BoidState &state : boids->states) {
+    if (state.flag & BOIDSTATE_CURRENT && state.prev) {
+      BLI_remlink(&boids->states, &state);
+      BLI_insertlinkbefore(&boids->states, state.prev, &state);
       break;
     }
   }
@@ -330,10 +330,10 @@ static wmOperatorStatus state_move_down_exec(bContext *C, wmOperator * /*op*/)
 
   boids = part->boids;
 
-  LISTBASE_FOREACH (BoidState *, state, &boids->states) {
-    if (state->flag & BOIDSTATE_CURRENT && state->next) {
-      BLI_remlink(&boids->states, state);
-      BLI_insertlinkafter(&boids->states, state->next, state);
+  for (BoidState &state : boids->states) {
+    if (state.flag & BOIDSTATE_CURRENT && state.next) {
+      BLI_remlink(&boids->states, &state);
+      BLI_insertlinkafter(&boids->states, state.next, &state);
       DEG_id_tag_update(&part->id, ID_RECALC_GEOMETRY | ID_RECALC_PSYS_RESET);
       break;
     }

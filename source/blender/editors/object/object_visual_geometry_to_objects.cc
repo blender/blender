@@ -505,10 +505,10 @@ static wmOperatorStatus visual_geometry_to_objects_exec(bContext *C, wmOperator 
   }
   /* Exclude the new collections. This is done because they are only instanced by other objects but
    * should not be visible by themselves. */
-  LISTBASE_FOREACH (ViewLayer *, view_layer, &scene.view_layers) {
+  for (ViewLayer &view_layer : scene.view_layers) {
     for (Collection *new_collection : new_instance_collections) {
       LayerCollection *new_layer_collection = BKE_layer_collection_first_from_scene_collection(
-          view_layer, new_collection);
+          &view_layer, new_collection);
       BKE_layer_collection_set_flag(new_layer_collection, LAYER_COLLECTION_EXCLUDE, true);
     }
   }

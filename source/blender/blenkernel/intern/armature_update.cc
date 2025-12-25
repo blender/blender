@@ -184,9 +184,9 @@ static void splineik_init_tree(Scene *scene, Object *ob, float /*ctime*/)
 {
   /* Find the tips of Spline IK chains,
    * which are simply the bones which have been tagged as such. */
-  LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-    if (pchan->constflag & PCHAN_HAS_SPLINEIK) {
-      splineik_init_tree_from_pchan(scene, ob, pchan);
+  for (bPoseChannel &pchan : ob->pose->chanbase) {
+    if (pchan.constflag & PCHAN_HAS_SPLINEIK) {
+      splineik_init_tree_from_pchan(scene, ob, &pchan);
     }
   }
 }

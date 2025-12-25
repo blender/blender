@@ -283,26 +283,26 @@ static void wm_xr_controller_model_draw(const XrSessionSettings *settings,
   GPU_depth_test(GPU_DEPTH_NONE);
   GPU_blend(GPU_BLEND_ALPHA);
 
-  LISTBASE_FOREACH (wmXrController *, controller, &state->controllers) {
-    if (!controller->grip_active) {
+  for (wmXrController &controller : state->controllers) {
+    if (!controller.grip_active) {
       continue;
     }
 
-    blender::gpu::Batch *model = controller->model;
+    blender::gpu::Batch *model = controller.model;
     if (!model) {
-      model = controller->model = wm_xr_controller_model_batch_create(xr_context,
-                                                                      controller->subaction_path);
+      model = controller.model = wm_xr_controller_model_batch_create(xr_context,
+                                                                     controller.subaction_path);
     }
 
     if (model &&
-        GHOST_XrGetControllerModelData(xr_context, controller->subaction_path, &model_data) &&
+        GHOST_XrGetControllerModelData(xr_context, controller.subaction_path, &model_data) &&
         model_data.count_components > 0)
     {
       GPU_batch_program_set_builtin(model, GPU_SHADER_3D_UNIFORM_COLOR);
       GPU_batch_uniform_4fv(model, "color", color);
 
       GPU_matrix_push();
-      GPU_matrix_mul(controller->grip_mat);
+      GPU_matrix_mul(controller.grip_mat);
       for (uint component_idx = 0; component_idx < model_data.count_components; ++component_idx) {
         const GHOST_XrControllerModelComponent *component = &model_data.components[component_idx];
         GPU_matrix_push();
@@ -322,7 +322,7 @@ static void wm_xr_controller_model_draw(const XrSessionSettings *settings,
       GPU_batch_uniform_4fv(sphere, "color", color);
 
       GPU_matrix_push();
-      GPU_matrix_mul(controller->grip_mat);
+      GPU_matrix_mul(controller.grip_mat);
       GPU_matrix_scale_1f(scale);
       GPU_batch_draw(sphere);
       GPU_matrix_pop();
@@ -355,14 +355,14 @@ static void wm_xr_controller_aim_draw(const XrSessionSettings *settings, wmXrSes
     GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
     GPU_blend(GPU_BLEND_ALPHA);
 
-    LISTBASE_FOREACH (wmXrController *, controller, &state->controllers) {
-      if (!controller->grip_active) {
+    for (wmXrController &controller : state->controllers) {
+      if (!controller.grip_active) {
         continue;
       }
 
       immBegin(GPU_PRIM_LINES, 2);
 
-      const float (*mat)[4] = controller->aim_mat;
+      const float (*mat)[4] = controller.aim_mat;
       madd_v3_v3v3fl(ray, mat[3], mat[2], -scale);
 
       immAttrSkip(col);
@@ -383,14 +383,14 @@ static void wm_xr_controller_aim_draw(const XrSessionSettings *settings, wmXrSes
     GPU_depth_test(GPU_DEPTH_NONE);
     GPU_blend(GPU_BLEND_NONE);
 
-    LISTBASE_FOREACH (wmXrController *, controller, &state->controllers) {
-      if (!controller->grip_active) {
+    for (wmXrController &controller : state->controllers) {
+      if (!controller.grip_active) {
         continue;
       }
 
       immBegin(GPU_PRIM_LINES, 6);
 
-      const float (*mat)[4] = controller->aim_mat;
+      const float (*mat)[4] = controller.aim_mat;
       madd_v3_v3v3fl(x_axis, mat[3], mat[0], scale);
       madd_v3_v3v3fl(y_axis, mat[3], mat[1], scale);
       madd_v3_v3v3fl(z_axis, mat[3], mat[2], scale);

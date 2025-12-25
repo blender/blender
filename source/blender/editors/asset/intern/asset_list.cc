@@ -445,13 +445,13 @@ static void foreach_visible_asset_browser_showing_library(
     const wmWindowManager *wm,
     const FunctionRef<void(SpaceFile &sfile)> fn)
 {
-  LISTBASE_FOREACH (const wmWindow *, win, &wm->windows) {
-    const bScreen *screen = WM_window_get_active_screen(win);
-    LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
+  for (const wmWindow &win : wm->windows) {
+    const bScreen *screen = WM_window_get_active_screen(&win);
+    for (const ScrArea &area : screen->areabase) {
       /* Only needs to cover visible file/asset browsers, since others are already cleared through
        * area exiting. */
-      if (area->spacetype == SPACE_FILE) {
-        SpaceFile *sfile = reinterpret_cast<SpaceFile *>(area->spacedata.first);
+      if (area.spacetype == SPACE_FILE) {
+        SpaceFile *sfile = reinterpret_cast<SpaceFile *>(area.spacedata.first);
         if (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS) {
           if (sfile->asset_params && sfile->asset_params->asset_library_ref == library_reference) {
             fn(*sfile);

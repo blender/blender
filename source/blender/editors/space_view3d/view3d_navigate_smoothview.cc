@@ -56,11 +56,11 @@ void ED_view3d_smooth_view_undo_begin(bContext *C, const ScrArea *area)
    * NOTE: It doesn't matter if the actual object being manipulated is the camera or not. */
   camera->id.tag &= ~ID_TAG_DOIT;
 
-  LISTBASE_FOREACH (const ARegion *, region, &area->regionbase) {
-    if (region->regiontype != RGN_TYPE_WINDOW) {
+  for (const ARegion &region : area->regionbase) {
+    if (region.regiontype != RGN_TYPE_WINDOW) {
       continue;
     }
-    const RegionView3D *rv3d = static_cast<const RegionView3D *>(region->regiondata);
+    const RegionView3D *rv3d = static_cast<const RegionView3D *>(region.regiondata);
     if (ED_view3d_camera_lock_undo_test(v3d, rv3d, C)) {
       camera->id.tag |= ID_TAG_DOIT;
       break;
@@ -96,13 +96,13 @@ void ED_view3d_smooth_view_undo_end(bContext *C,
 
   /* An undo push should be performed. */
   bool is_interactive = false;
-  LISTBASE_FOREACH (const ARegion *, region, &area->regionbase) {
-    if (region->regiontype != RGN_TYPE_WINDOW) {
+  for (const ARegion &region : area->regionbase) {
+    if (region.regiontype != RGN_TYPE_WINDOW) {
       continue;
     }
-    const RegionView3D *rv3d = static_cast<const RegionView3D *>(region->regiondata);
+    const RegionView3D *rv3d = static_cast<const RegionView3D *>(region.regiondata);
     if (ED_view3d_camera_lock_undo_test(v3d, rv3d, C)) {
-      region_camera = region;
+      region_camera = &region;
       if (rv3d->sms) {
         is_interactive = true;
       }

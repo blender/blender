@@ -58,12 +58,13 @@ CryptomatteSession::CryptomatteSession(const Main *bmain)
   if (!BLI_listbase_is_empty(&bmain->objects)) {
     blender::bke::cryptomatte::CryptomatteLayer &objects = add_layer(
         RE_PASSNAME_CRYPTOMATTE_OBJECT);
-    LISTBASE_FOREACH (Object *, object, &bmain->objects) {
-      objects.add_ID(object->id);
+    for (Object &object : bmain->objects) {
+      objects.add_ID(object.id);
     }
 
     blender::bke::cryptomatte::CryptomatteLayer &assets = add_layer(RE_PASSNAME_CRYPTOMATTE_ASSET);
-    LISTBASE_FOREACH (Object *, asset_object, &bmain->objects) {
+    for (Object &object : bmain->objects) {
+      Object *asset_object = &object;
       while (asset_object->parent != nullptr) {
         asset_object = asset_object->parent;
       }
@@ -73,8 +74,8 @@ CryptomatteSession::CryptomatteSession(const Main *bmain)
   if (!BLI_listbase_is_empty(&bmain->materials)) {
     blender::bke::cryptomatte::CryptomatteLayer &materials = add_layer(
         RE_PASSNAME_CRYPTOMATTE_MATERIAL);
-    LISTBASE_FOREACH (Material *, material, &bmain->materials) {
-      materials.add_ID(material->id);
+    for (Material &material : bmain->materials) {
+      materials.add_ID(material.id);
     }
   }
 }
@@ -107,8 +108,8 @@ CryptomatteSession::CryptomatteSession(const Scene *scene, bool build_meta_data)
     BKE_scene_view_layers_synced_ensure(scene);
   }
 
-  LISTBASE_FOREACH (const ViewLayer *, view_layer, &scene->view_layers) {
-    init(view_layer, build_meta_data);
+  for (const ViewLayer &view_layer : scene->view_layers) {
+    init(&view_layer, build_meta_data);
   }
 }
 
@@ -129,8 +130,8 @@ void CryptomatteSession::init(const ViewLayer *view_layer, bool build_meta_data)
         blender::StringRefNull(view_layer->name) + "." + RE_PASSNAME_CRYPTOMATTE_OBJECT);
 
     if (build_meta_data) {
-      LISTBASE_FOREACH (Base *, base, object_bases) {
-        objects.add_ID(base->object->id);
+      for (Base &base : *object_bases) {
+        objects.add_ID(base.object->id);
       }
     }
   }
@@ -140,8 +141,8 @@ void CryptomatteSession::init(const ViewLayer *view_layer, bool build_meta_data)
         blender::StringRefNull(view_layer->name) + "." + RE_PASSNAME_CRYPTOMATTE_ASSET);
 
     if (build_meta_data) {
-      LISTBASE_FOREACH (Base *, base, object_bases) {
-        const Object *asset_object = base->object;
+      for (Base &base : *object_bases) {
+        const Object *asset_object = base.object;
         while (asset_object->parent != nullptr) {
           asset_object = asset_object->parent;
         }
@@ -155,9 +156,9 @@ void CryptomatteSession::init(const ViewLayer *view_layer, bool build_meta_data)
         blender::StringRefNull(view_layer->name) + "." + RE_PASSNAME_CRYPTOMATTE_MATERIAL);
 
     if (build_meta_data) {
-      LISTBASE_FOREACH (Base *, base, object_bases) {
-        for (int i = 0; i < base->object->totcol; i++) {
-          Material *material = BKE_object_material_get(base->object, i + 1);
+      for (Base &base : *object_bases) {
+        for (int i = 0; i < base.object->totcol; i++) {
+          Material *material = BKE_object_material_get(base.object, i + 1);
           if (material) {
             materials.add_ID(material->id);
           }
@@ -282,15 +283,15 @@ char *BKE_cryptomatte_entries_to_matte_id(NodeCryptomatte *node_storage)
 {
   DynStr *matte_id = BLI_dynstr_new();
   bool first = true;
-  LISTBASE_FOREACH (CryptomatteEntry *, entry, &node_storage->entries) {
+  for (CryptomatteEntry &entry : node_storage->entries) {
     if (!first) {
       BLI_dynstr_append(matte_id, ",");
     }
-    if (entry->name[0] != '\0') {
-      BLI_dynstr_nappend(matte_id, entry->name, sizeof(entry->name));
+    if (entry.name[0] != '\0') {
+      BLI_dynstr_nappend(matte_id, entry.name, sizeof(entry.name));
     }
     else {
-      BLI_dynstr_appendf(matte_id, "<%.9g>", entry->encoded_hash);
+      BLI_dynstr_appendf(matte_id, "<%.9g>", entry.encoded_hash);
     }
     first = false;
   }

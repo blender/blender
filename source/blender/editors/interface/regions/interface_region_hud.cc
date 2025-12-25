@@ -49,11 +49,11 @@ static int area_calc_region_type_index(const ScrArea *area, const ARegion *regio
 {
   const int region_type = region->regiontype;
   int index = 0;
-  LISTBASE_FOREACH (const ARegion *, region_iter, &area->regionbase) {
-    if (region_iter->regiontype != region_type) {
+  for (const ARegion &region_iter : area->regionbase) {
+    if (region_iter.regiontype != region_type) {
       continue;
     }
-    if (region_iter == region) {
+    if (&region_iter == region) {
       return index;
     }
     index += 1;
@@ -76,16 +76,16 @@ static ARegion *area_find_region_by_type_and_index_hint(const ScrArea *area,
   /* Any negative values can return the first match. */
   index_hint = std::max(0, index_hint);
   int index = 0;
-  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    if (region->regiontype != region_type) {
+  for (ARegion &region : area->regionbase) {
+    if (region.regiontype != region_type) {
       continue;
     }
     if (index == index_hint) {
-      region_match_type = region;
+      region_match_type = &region;
       break;
     }
     if (region_match_type == nullptr) {
-      region_match_type = region;
+      region_match_type = &region;
     }
     index += 1;
   }
@@ -335,16 +335,16 @@ static ARegion *hud_region_add(ScrArea *area)
 
 void ED_area_type_hud_clear(wmWindowManager *wm, ScrArea *area_keep)
 {
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    bScreen *screen = WM_window_get_active_screen(win);
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      if (area != area_keep) {
-        LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-          if (region->regiontype == RGN_TYPE_HUD) {
-            if ((region->flag & RGN_FLAG_HIDDEN) == 0) {
-              hud_region_hide(region);
-              ED_region_tag_redraw(region);
-              ED_area_tag_redraw(area);
+  for (wmWindow &win : wm->windows) {
+    bScreen *screen = WM_window_get_active_screen(&win);
+    for (ScrArea &area : screen->areabase) {
+      if (&area != area_keep) {
+        for (ARegion &region : area.regionbase) {
+          if (region.regiontype == RGN_TYPE_HUD) {
+            if ((region.flag & RGN_FLAG_HIDDEN) == 0) {
+              hud_region_hide(&region);
+              ED_region_tag_redraw(&region);
+              ED_area_tag_redraw(&area);
             }
           }
         }

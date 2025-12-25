@@ -292,8 +292,8 @@ static wmOperatorStatus clear_solution_exec(bContext *C, wmOperator * /*op*/)
   MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
   MovieTrackingReconstruction *reconstruction = &tracking_object->reconstruction;
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    track->flag &= ~TRACK_HAS_BUNDLE;
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    track.flag &= ~TRACK_HAS_BUNDLE;
   }
 
   MEM_SAFE_FREE(reconstruction->cameras);

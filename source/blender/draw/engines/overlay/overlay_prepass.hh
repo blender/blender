@@ -138,12 +138,12 @@ class Prepass : Overlay {
 
     ResourceHandleRange handle = {};
 
-    LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
-      if (!DRW_object_is_visible_psys_in_active_context(ob, psys)) {
+    for (ParticleSystem &psys : ob->particlesystem) {
+      if (!DRW_object_is_visible_psys_in_active_context(ob, &psys)) {
         continue;
       }
 
-      const ParticleSettings *part = psys->part;
+      const ParticleSettings *part = psys.part;
       const int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
       switch (draw_as) {
         case PART_DRAW_PATH:
@@ -158,7 +158,7 @@ class Prepass : Overlay {
                                        res.select_id(ob_ref, part->omat << 16) :
                                        res.select_id(ob_ref);
 
-            gpu::Batch *geom = DRW_cache_particles_get_hair(ob, psys, nullptr);
+            gpu::Batch *geom = DRW_cache_particles_get_hair(ob, &psys, nullptr);
             mesh_ps_->draw(geom, handle, select_id.get());
             break;
           }

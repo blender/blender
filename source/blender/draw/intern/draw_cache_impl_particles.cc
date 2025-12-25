@@ -1497,8 +1497,8 @@ void CurvesEvalCache::ensure_attributes(CurvesModule &module,
   if (gpu_material) {
     VectorSet<std::string> attrs_needed;
     ListBaseT<GPUMaterialAttribute> gpu_attrs = GPU_material_attributes(gpu_material);
-    LISTBASE_FOREACH (GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
-      StringRef name = gpu_attr->name;
+    for (GPUMaterialAttribute &gpu_attr : gpu_attrs) {
+      StringRef name = gpu_attr.name;
       if (name.is_empty()) {
         if (std::optional<StringRef> uv_name = get_first_uv_name(attributes)) {
           drw_attributes_add_request(&attrs_needed, *uv_name);

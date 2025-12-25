@@ -193,9 +193,9 @@ static void query_strip_effects_fn(const Scene *scene,
   strips.add(strip_reference);
 
   /* Find all strips connected to `strip_reference`. */
-  LISTBASE_FOREACH (Strip *, strip_test, seqbase) {
-    if (seq::relation_is_effect_of_strip(strip_test, strip_reference)) {
-      query_strip_effects_fn(scene, strip_test, seqbase, strips);
+  for (Strip &strip_test : *seqbase) {
+    if (seq::relation_is_effect_of_strip(&strip_test, strip_reference)) {
+      query_strip_effects_fn(scene, &strip_test, seqbase, strips);
     }
   }
 }
@@ -218,21 +218,21 @@ static VectorSet<Strip *> query_snap_targets_timeline(Scene *scene,
   });
 
   VectorSet<Strip *> snap_targets;
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if (exclude_selected && strip->flag & SEQ_SELECT) {
+  for (Strip &strip : *seqbase) {
+    if (exclude_selected && strip.flag & SEQ_SELECT) {
       continue; /* Selected are being transformed if there is no drag and drop. */
     }
-    if (seq::render_is_muted(channels, strip) && (snap_flag & SEQ_SNAP_IGNORE_MUTED)) {
+    if (seq::render_is_muted(channels, &strip) && (snap_flag & SEQ_SNAP_IGNORE_MUTED)) {
       continue;
     }
-    if (strip->type == STRIP_TYPE_SOUND && (snap_flag & SEQ_SNAP_IGNORE_SOUND)) {
+    if (strip.type == STRIP_TYPE_SOUND && (snap_flag & SEQ_SNAP_IGNORE_SOUND)) {
       continue;
     }
-    if (effects_of_snap_sources.contains(strip)) {
+    if (effects_of_snap_sources.contains(&strip)) {
       continue;
     }
 
-    snap_targets.add(strip);
+    snap_targets.add(&strip);
   }
 
   return snap_targets;
@@ -291,8 +291,8 @@ static void points_build_targets_timeline(const Scene *scene,
   }
 
   if (snap_mode & SEQ_SNAP_TO_MARKERS) {
-    LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {
-      snap_data->target_snap_points.append(float2(marker->frame));
+    for (TimeMarker &marker : scene->markers) {
+      snap_data->target_snap_points.append(float2(marker.frame));
     }
   }
 

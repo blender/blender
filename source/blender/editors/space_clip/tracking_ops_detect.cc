@@ -38,9 +38,9 @@ static bGPDlayer *detect_get_layer(MovieClip *clip)
     return nullptr;
   }
 
-  LISTBASE_FOREACH (bGPDlayer *, layer, &clip->gpd->layers) {
-    if (layer->flag & GP_LAYER_ACTIVE) {
-      return layer;
+  for (bGPDlayer &layer : clip->gpd->layers) {
+    if (layer.flag & GP_LAYER_ACTIVE) {
+      return &layer;
     }
   }
   return nullptr;

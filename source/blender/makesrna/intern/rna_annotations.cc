@@ -169,10 +169,10 @@ static void rna_annotation_layer_info_set(PointerRNA *ptr, const char *value)
   BKE_animdata_fix_paths_rename_all(&gpd->id, "layers", oldname, gpl->info);
 
   /* Fix mask layers. */
-  LISTBASE_FOREACH (bGPDlayer *, gpl_, &gpd->layers) {
-    LISTBASE_FOREACH (bGPDlayer_Mask *, mask, &gpl_->mask_layers) {
-      if (STREQ(mask->name, oldname)) {
-        STRNCPY(mask->name, gpl->info);
+  for (bGPDlayer &gpl_ : gpd->layers) {
+    for (bGPDlayer_Mask &mask : gpl_.mask_layers) {
+      if (STREQ(mask.name, oldname)) {
+        STRNCPY(mask.name, gpl->info);
       }
     }
   }

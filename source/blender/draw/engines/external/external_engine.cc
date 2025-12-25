@@ -101,12 +101,12 @@ class Prepass {
 
     ResourceHandleRange handle = {};
 
-    LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
-      if (!DRW_object_is_visible_psys_in_active_context(ob, psys)) {
+    for (ParticleSystem &psys : ob->particlesystem) {
+      if (!DRW_object_is_visible_psys_in_active_context(ob, &psys)) {
         continue;
       }
 
-      const ParticleSettings *part = psys->part;
+      const ParticleSettings *part = psys.part;
       const int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
       if (draw_as == PART_DRAW_PATH && part->draw_as == PART_DRAW_REND) {
         /* Case where the render engine should have rendered it, but we need to draw it for
@@ -115,7 +115,7 @@ class Prepass {
           handle = manager.resource_handle_for_psys(ob_ref, ob_ref.particles_matrix());
         }
 
-        gpu::Batch *geom = DRW_cache_particles_get_hair(ob, psys, nullptr);
+        gpu::Batch *geom = DRW_cache_particles_get_hair(ob, &psys, nullptr);
         mesh_ps_->draw(geom, handle);
         break;
       }

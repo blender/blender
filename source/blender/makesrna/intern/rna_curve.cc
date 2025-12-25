@@ -532,8 +532,8 @@ static void rna_Curve_resolution_u_update_data(Main *bmain, Scene *scene, Pointe
   Curve *cu = reinterpret_cast<Curve *>(ptr->owner_id);
   ListBaseT<Nurb> *nurbs = BKE_curve_nurbs_get(cu);
 
-  LISTBASE_FOREACH (Nurb *, nu, nurbs) {
-    nu->resolu = cu->resolu;
+  for (Nurb &nu : *nurbs) {
+    nu.resolu = cu->resolu;
   }
 
   rna_Curve_update_data(bmain, scene, ptr);
@@ -544,8 +544,8 @@ static void rna_Curve_resolution_v_update_data(Main *bmain, Scene *scene, Pointe
   Curve *cu = reinterpret_cast<Curve *>(ptr->owner_id);
   ListBaseT<Nurb> *nurbs = BKE_curve_nurbs_get(cu);
 
-  LISTBASE_FOREACH (Nurb *, nu, nurbs) {
-    nu->resolv = cu->resolv;
+  for (Nurb &nu : *nurbs) {
+    nu.resolv = cu->resolv;
   }
 
   rna_Curve_update_data(bmain, scene, ptr);

@@ -178,10 +178,10 @@ void relations_invalidate_cache(Scene *scene, Strip *strip)
 
 void relations_invalidate_scene_strips(const Main *bmain, const Scene *scene_target)
 {
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    if (scene->ed != nullptr) {
-      for (Strip *strip : lookup_strips_by_scene(editing_get(scene), scene_target)) {
-        relations_invalidate_cache_raw(scene, strip);
+  for (Scene &scene : bmain->scenes) {
+    if (scene.ed != nullptr) {
+      for (Strip *strip : lookup_strips_by_scene(editing_get(&scene), scene_target)) {
+        relations_invalidate_cache_raw(&scene, strip);
       }
     }
   }
@@ -189,10 +189,10 @@ void relations_invalidate_scene_strips(const Main *bmain, const Scene *scene_tar
 
 void relations_invalidate_compositor_modifiers(const Main *bmain, const bNodeTree *node_tree)
 {
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    if (scene->ed != nullptr) {
-      for (Strip *strip : lookup_strips_by_compositor_node_group(editing_get(scene), node_tree)) {
-        relations_invalidate_cache(scene, strip);
+  for (Scene &scene : bmain->scenes) {
+    if (scene.ed != nullptr) {
+      for (Strip *strip : lookup_strips_by_compositor_node_group(editing_get(&scene), node_tree)) {
+        relations_invalidate_cache(&scene, strip);
       }
     }
   }
@@ -233,23 +233,23 @@ void relations_free_imbuf(Scene *scene, ListBaseT<Strip> *seqbase, bool for_rend
 
   prefetch_stop(scene);
 
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if (for_render && strip->intersects_frame(scene, scene->r.cfra)) {
+  for (Strip &strip : *seqbase) {
+    if (for_render && strip.intersects_frame(scene, scene->r.cfra)) {
       continue;
     }
 
-    if (strip->data) {
-      if (strip->type == STRIP_TYPE_MOVIE) {
-        strip_free_movie_readers(strip);
+    if (strip.data) {
+      if (strip.type == STRIP_TYPE_MOVIE) {
+        strip_free_movie_readers(&strip);
       }
-      if (strip->type == STRIP_TYPE_SPEED) {
-        strip_effect_speed_rebuild_map(scene, strip);
+      if (strip.type == STRIP_TYPE_SPEED) {
+        strip_effect_speed_rebuild_map(scene, &strip);
       }
     }
-    if (strip->type == STRIP_TYPE_META) {
-      relations_free_imbuf(scene, &strip->seqbase, for_render);
+    if (strip.type == STRIP_TYPE_META) {
+      relations_free_imbuf(scene, &strip.seqbase, for_render);
     }
-    if (strip->type == STRIP_TYPE_SCENE) {
+    if (strip.type == STRIP_TYPE_SCENE) {
       /* FIXME: recurse downwards,
        * but do recurse protection somehow! */
     }
@@ -301,22 +301,21 @@ void relations_free_all_anim_ibufs(Scene *scene, int timeline_frame)
 
 static Strip *sequencer_check_scene_recursion(Scene *scene, ListBaseT<Strip> *seqbase)
 {
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if (strip->type == STRIP_TYPE_SCENE && strip->scene == scene) {
-      return strip;
+  for (Strip &strip : *seqbase) {
+    if (strip.type == STRIP_TYPE_SCENE && strip.scene == scene) {
+      return &strip;
     }
 
-    if (strip->type == STRIP_TYPE_SCENE && (strip->flag & SEQ_SCENE_STRIPS)) {
-      if (strip->scene && strip->scene->ed &&
-          sequencer_check_scene_recursion(scene, &strip->scene->ed->seqbase))
+    if (strip.type == STRIP_TYPE_SCENE && (strip.flag & SEQ_SCENE_STRIPS)) {
+      if (strip.scene && strip.scene->ed &&
+          sequencer_check_scene_recursion(scene, &strip.scene->ed->seqbase))
       {
-        return strip;
+        return &strip;
       }
     }
 
-    if (strip->type == STRIP_TYPE_META && sequencer_check_scene_recursion(scene, &strip->seqbase))
-    {
-      return strip;
+    if (strip.type == STRIP_TYPE_META && sequencer_check_scene_recursion(scene, &strip.seqbase)) {
+      return &strip;
     }
   }
 
@@ -339,8 +338,8 @@ bool relations_check_scene_recursion(Scene *scene, ReportList *reports)
                 recursive_seq->name + 2,
                 recursive_seq->left_handle());
 
-    LISTBASE_FOREACH (Strip *, strip, &ed->seqbase) {
-      if (strip->type != STRIP_TYPE_SCENE && sequencer_strip_generates_image(strip)) {
+    for (Strip &strip : ed->seqbase) {
+      if (strip.type != STRIP_TYPE_SCENE && sequencer_strip_generates_image(&strip)) {
         /* There are other strips to render, so render them. */
         return false;
       }
@@ -368,8 +367,8 @@ bool relations_render_loop_check(Strip *strip_main, Strip *strip)
     return true;
   }
 
-  LISTBASE_FOREACH (StripModifierData *, smd, &strip_main->modifiers) {
-    if (smd->mask_strip && relations_render_loop_check(smd->mask_strip, strip)) {
+  for (StripModifierData &smd : strip_main->modifiers) {
+    if (smd.mask_strip && relations_render_loop_check(smd.mask_strip, strip)) {
       return true;
     }
   }
@@ -419,11 +418,11 @@ void relations_check_uids_unique_and_report(const Scene *scene)
 
 bool exists_in_seqbase(const Strip *strip, const ListBaseT<Strip> *seqbase)
 {
-  LISTBASE_FOREACH (Strip *, strip_test, seqbase) {
-    if (strip_test->type == STRIP_TYPE_META && exists_in_seqbase(strip, &strip_test->seqbase)) {
+  for (Strip &strip_test : *seqbase) {
+    if (strip_test.type == STRIP_TYPE_META && exists_in_seqbase(strip, &strip_test.seqbase)) {
       return true;
     }
-    if (strip_test == strip) {
+    if (&strip_test == strip) {
       return true;
     }
   }

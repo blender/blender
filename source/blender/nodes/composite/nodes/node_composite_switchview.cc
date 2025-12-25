@@ -32,11 +32,11 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   if (scene != nullptr) {
     /* add the new views */
-    LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
-      if (srv->viewflag & SCE_VIEW_DISABLE) {
+    for (SceneRenderView &srv : scene->r.views) {
+      if (srv.viewflag & SCE_VIEW_DISABLE) {
         continue;
       }
-      b.add_input<decl::Color>(srv->name)
+      b.add_input<decl::Color>(srv.name)
           .default_value({0.0f, 0.0f, 0.0f, 1.0f})
           .structure_type(StructureType::Dynamic);
     }

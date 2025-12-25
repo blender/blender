@@ -120,9 +120,9 @@ static void palette_foreach_working_space_color(ID *id,
 {
   Palette *palette = (Palette *)id;
 
-  LISTBASE_FOREACH (PaletteColor *, color, &palette->colors) {
-    fn.single(color->color);
-    BKE_palette_color_sync_legacy(color);
+  for (PaletteColor &color : palette->colors) {
+    fn.single(color.color);
+    BKE_palette_color_sync_legacy(&color);
   }
 }
 
@@ -1857,13 +1857,12 @@ void BKE_paint_free(Paint *paint)
   MEM_delete(paint->tool_brush_bindings.main_brush_asset_reference);
   MEM_delete(paint->eraser_brush_asset_reference);
 
-  LISTBASE_FOREACH_MUTABLE (NamedBrushAssetReference *,
-                            brush_ref,
-                            &paint->tool_brush_bindings.active_brush_per_brush_type)
+  for (NamedBrushAssetReference &brush_ref :
+       paint->tool_brush_bindings.active_brush_per_brush_type.items_mutable())
   {
-    MEM_delete(brush_ref->name);
-    MEM_delete(brush_ref->brush_asset_reference);
-    MEM_delete(brush_ref);
+    MEM_delete(brush_ref.name);
+    MEM_delete(brush_ref.brush_asset_reference);
+    MEM_delete(&brush_ref);
   }
 
   BKE_curvemapping_free(paint->unified_paint_settings.curve_rand_hue);
@@ -1891,12 +1890,11 @@ void BKE_paint_copy(const Paint *src, Paint *dst, const int flag)
   }
   BLI_duplicatelist(&dst->tool_brush_bindings.active_brush_per_brush_type,
                     &src->tool_brush_bindings.active_brush_per_brush_type);
-  LISTBASE_FOREACH (
-      NamedBrushAssetReference *, brush_ref, &dst->tool_brush_bindings.active_brush_per_brush_type)
+  for (NamedBrushAssetReference &brush_ref : dst->tool_brush_bindings.active_brush_per_brush_type)
   {
-    brush_ref->name = BLI_strdup(brush_ref->name);
-    brush_ref->brush_asset_reference = MEM_new<AssetWeakReference>(
-        __func__, *brush_ref->brush_asset_reference);
+    brush_ref.name = BLI_strdup(brush_ref.name);
+    brush_ref.brush_asset_reference = MEM_new<AssetWeakReference>(
+        __func__, *brush_ref.brush_asset_reference);
   }
 
   dst->unified_paint_settings.curve_rand_hue = BKE_curvemapping_copy(
@@ -2036,12 +2034,10 @@ void BKE_paint_blend_write(BlendWriter *writer, Paint *paint)
     }
     BLO_write_struct_list(
         writer, NamedBrushAssetReference, &tool_brush_bindings.active_brush_per_brush_type);
-    LISTBASE_FOREACH (
-        NamedBrushAssetReference *, brush_ref, &tool_brush_bindings.active_brush_per_brush_type)
-    {
-      BLO_write_string(writer, brush_ref->name);
-      if (brush_ref->brush_asset_reference) {
-        BKE_asset_weak_reference_write(writer, brush_ref->brush_asset_reference);
+    for (NamedBrushAssetReference &brush_ref : tool_brush_bindings.active_brush_per_brush_type) {
+      BLO_write_string(writer, brush_ref.name);
+      if (brush_ref.brush_asset_reference) {
+        BKE_asset_weak_reference_write(writer, brush_ref.brush_asset_reference);
       }
     }
   }
@@ -2089,14 +2085,12 @@ void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Pain
 
     BLO_read_struct_list(
         reader, NamedBrushAssetReference, &tool_brush_bindings.active_brush_per_brush_type);
-    LISTBASE_FOREACH (
-        NamedBrushAssetReference *, brush_ref, &tool_brush_bindings.active_brush_per_brush_type)
-    {
-      BLO_read_string(reader, &brush_ref->name);
+    for (NamedBrushAssetReference &brush_ref : tool_brush_bindings.active_brush_per_brush_type) {
+      BLO_read_string(reader, &brush_ref.name);
 
-      BLO_read_struct(reader, AssetWeakReference, &brush_ref->brush_asset_reference);
-      if (brush_ref->brush_asset_reference) {
-        BKE_asset_weak_reference_read(reader, brush_ref->brush_asset_reference);
+      BLO_read_struct(reader, AssetWeakReference, &brush_ref.brush_asset_reference);
+      if (brush_ref.brush_asset_reference) {
+        BKE_asset_weak_reference_read(reader, brush_ref.brush_asset_reference);
       }
     }
   }

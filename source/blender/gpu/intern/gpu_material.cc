@@ -141,8 +141,8 @@ GPUMaterialFromNodeTreeResult GPU_material_from_nodetree(
     GPUMaterialPassReplacementCallbackFn pass_replacement_cb)
 {
   /* Search if this material is not already compiled. */
-  LISTBASE_FOREACH (LinkData *, link, gpumaterials) {
-    GPUMaterial *mat = (GPUMaterial *)link->data;
+  for (LinkData &link : *gpumaterials) {
+    GPUMaterial *mat = (GPUMaterial *)link.data;
     if (mat->uuid == shader_uuid && mat->engine == engine) {
       if (!deferred_compilation) {
         GPU_pass_ensure_its_ready(mat->pass);
@@ -266,8 +266,8 @@ void GPU_material_free_single(GPUMaterial *material)
 
 void GPU_material_free(ListBaseT<LinkData> *gpumaterial)
 {
-  LISTBASE_FOREACH (LinkData *, link, gpumaterial) {
-    GPUMaterial *material = static_cast<GPUMaterial *>(link->data);
+  for (LinkData &link : *gpumaterial) {
+    GPUMaterial *material = static_cast<GPUMaterial *>(link.data);
     GPU_material_free_single(material);
   }
   BLI_freelistN(gpumaterial);
@@ -275,12 +275,12 @@ void GPU_material_free(ListBaseT<LinkData> *gpumaterial)
 
 void GPU_materials_free(Main *bmain)
 {
-  LISTBASE_FOREACH (Material *, ma, &bmain->materials) {
-    GPU_material_free(&ma->gpumaterial);
+  for (Material &ma : bmain->materials) {
+    GPU_material_free(&ma.gpumaterial);
   }
 
-  LISTBASE_FOREACH (World *, wo, &bmain->worlds) {
-    GPU_material_free(&wo->gpumaterial);
+  for (World &wo : bmain->worlds) {
+    GPU_material_free(&wo.gpumaterial);
   }
 
   BKE_material_defaults_free_gpu();

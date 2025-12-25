@@ -180,14 +180,14 @@ MultiresModifierData *get_multires_modifier(Scene *scene, Object *ob, const bool
   MultiresModifierData *mmd = nullptr, *firstmmd = nullptr;
 
   /* find first active multires modifier */
-  LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-    if (md->type == eModifierType_Multires) {
+  for (ModifierData &md : ob->modifiers) {
+    if (md.type == eModifierType_Multires) {
       if (!firstmmd) {
-        firstmmd = reinterpret_cast<MultiresModifierData *>(md);
+        firstmmd = reinterpret_cast<MultiresModifierData *>(&md);
       }
 
-      if (BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime)) {
-        mmd = reinterpret_cast<MultiresModifierData *>(md);
+      if (BKE_modifier_is_enabled(scene, &md, eModifierMode_Realtime)) {
+        mmd = reinterpret_cast<MultiresModifierData *>(&md);
         break;
       }
     }

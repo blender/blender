@@ -82,8 +82,8 @@ void get_graph_keyframe_extents(bAnimContext *ac,
     bool foundBounds = false;
 
     /* Go through channels, finding max extents. */
-    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-      FCurve *fcu = (FCurve *)ale->key_data;
+    for (bAnimListElem &ale : anim_data) {
+      FCurve *fcu = (FCurve *)ale.key_data;
       rctf bounds;
       float unitFac, offset;
 
@@ -92,11 +92,11 @@ void get_graph_keyframe_extents(bAnimContext *ac,
         short mapping_flag = ANIM_get_normalization_flags(ac->sl);
 
         /* Apply NLA scaling. */
-        bounds.xmin = ANIM_nla_tweakedit_remap(ale, bounds.xmin, NLATIME_CONVERT_MAP);
-        bounds.xmax = ANIM_nla_tweakedit_remap(ale, bounds.xmax, NLATIME_CONVERT_MAP);
+        bounds.xmin = ANIM_nla_tweakedit_remap(&ale, bounds.xmin, NLATIME_CONVERT_MAP);
+        bounds.xmax = ANIM_nla_tweakedit_remap(&ale, bounds.xmax, NLATIME_CONVERT_MAP);
 
         /* Apply unit corrections. */
-        unitFac = ANIM_unit_mapping_get_factor(ac->scene, ale->id, fcu, mapping_flag, &offset);
+        unitFac = ANIM_unit_mapping_get_factor(ac->scene, ale.id, fcu, mapping_flag, &offset);
         bounds.ymin += offset;
         bounds.ymax += offset;
         bounds.ymin *= unitFac;
@@ -400,8 +400,8 @@ static void create_ghost_curves(bAnimContext *ac, int start, int end)
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
   /* Loop through filtered data and add keys between selected keyframes on every frame. */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    FCurve *fcu = (FCurve *)ale->key_data;
+  for (bAnimListElem &ale : anim_data) {
+    FCurve *fcu = (FCurve *)ale.key_data;
     FCurve *gcu = BKE_fcurve_create();
     ChannelDriver *driver = fcu->driver;
     FPoint *fpt;
@@ -413,7 +413,7 @@ static void create_ghost_curves(bAnimContext *ac, int start, int end)
     fcu->driver = nullptr;
 
     /* Calculate unit-mapping factor. */
-    unitFac = ANIM_unit_mapping_get_factor(ac->scene, ale->id, fcu, mapping_flag, &offset);
+    unitFac = ANIM_unit_mapping_get_factor(ac->scene, ale.id, fcu, mapping_flag, &offset);
 
     /* Create samples, but store them in a new curve
      * - we cannot use fcurve_store_samples() as that will only overwrite the original curve.
@@ -423,7 +423,7 @@ static void create_ghost_curves(bAnimContext *ac, int start, int end)
 
     /* Use the sampling callback at 1-frame intervals from start to end frames. */
     for (cfra = start; cfra <= end; cfra++, fpt++) {
-      const float cfrae = ANIM_nla_tweakedit_remap(ale, cfra, NLATIME_CONVERT_UNMAP);
+      const float cfrae = ANIM_nla_tweakedit_remap(&ale, cfra, NLATIME_CONVERT_UNMAP);
 
       fpt->vec[0] = cfrae;
       fpt->vec[1] = (fcurve_samplingcb_evalcurve(fcu, nullptr, cfrae) + offset) * unitFac;

@@ -59,9 +59,9 @@ class RNANodeQueryIDData {
     const Object *object = reinterpret_cast<const Object *>(id_);
     constraint_to_pchan_map_ = new Map<const bConstraint *, const bPoseChannel *>();
     if (object->pose != nullptr) {
-      LISTBASE_FOREACH (const bPoseChannel *, pchan, &object->pose->chanbase) {
-        LISTBASE_FOREACH (const bConstraint *, constraint, &pchan->constraints) {
-          constraint_to_pchan_map_->add_new(constraint, pchan);
+      for (const bPoseChannel &pchan : object->pose->chanbase) {
+        for (const bConstraint &constraint : pchan.constraints) {
+          constraint_to_pchan_map_->add_new(&constraint, &pchan);
         }
       }
     }

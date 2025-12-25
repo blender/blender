@@ -109,9 +109,9 @@ static void node_tag_recursive(bNode *node)
 
   node->flag |= NODE_TEST;
 
-  LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
-    if (input->link) {
-      node_tag_recursive(input->link->fromnode);
+  for (bNodeSocket &input : node->inputs) {
+    if (input.link) {
+      node_tag_recursive(input.link->fromnode);
     }
   }
 }
@@ -124,9 +124,9 @@ static void node_clear_recursive(bNode *node)
 
   node->flag &= ~NODE_TEST;
 
-  LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
-    if (input->link) {
-      node_clear_recursive(input->link->fromnode);
+  for (bNodeSocket &input : node->inputs) {
+    if (input.link) {
+      node_clear_recursive(input.link->fromnode);
     }
   }
 }
@@ -149,9 +149,9 @@ static void node_remove_linked(Main *bmain, bNodeTree *ntree, bNode *rem_node)
   /* clear tags on nodes that are still used by other nodes */
   for (bNode *node : ntree->all_nodes()) {
     if (!(node->flag & NODE_TEST)) {
-      LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-        if (sock->link && sock->link->fromnode != rem_node) {
-          node_clear_recursive(sock->link->fromnode);
+      for (bNodeSocket &sock : node->inputs) {
+        if (sock.link && sock.link->fromnode != rem_node) {
+          node_clear_recursive(sock.link->fromnode);
         }
       }
     }
@@ -261,25 +261,24 @@ static void node_socket_add_replace(const bContext *C,
 
   /* copy input sockets from previous node */
   if (node_prev && node_from != node_prev) {
-    LISTBASE_FOREACH (bNodeSocket *, sock_prev, &node_prev->inputs) {
-      LISTBASE_FOREACH (bNodeSocket *, sock_from, &node_from->inputs) {
-        if (bke::node_count_socket_links(*ntree, *sock_from) >=
-            bke::node_socket_link_limit(*sock_from))
+    for (bNodeSocket &sock_prev : node_prev->inputs) {
+      for (bNodeSocket &sock_from : node_from->inputs) {
+        if (bke::node_count_socket_links(*ntree, sock_from) >=
+            bke::node_socket_link_limit(sock_from))
         {
           continue;
         }
 
-        if (STREQ(sock_prev->identifier, sock_from->identifier) &&
-            sock_prev->type == sock_from->type)
+        if (STREQ(sock_prev.identifier, sock_from.identifier) && sock_prev.type == sock_from.type)
         {
-          bNodeLink *link = sock_prev->link;
+          bNodeLink *link = sock_prev.link;
 
           if (link && link->fromnode) {
-            bke::node_add_link(*ntree, *link->fromnode, *link->fromsock, *node_from, *sock_from);
+            bke::node_add_link(*ntree, *link->fromnode, *link->fromsock, *node_from, sock_from);
             bke::node_remove_link(ntree, *link);
           }
 
-          node_socket_copy_default_value(sock_from, sock_prev);
+          node_socket_copy_default_value(&sock_from, &sock_prev);
         }
       }
     }
@@ -328,23 +327,23 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
   Vector<NodeLinkItem> items;
 
   if (arg->node_type->type_legacy == NODE_GROUP) {
-    LISTBASE_FOREACH (bNodeTree *, ngroup, &arg->bmain->nodetrees) {
-      if (BKE_id_name(ngroup->id)[0] == '.') {
+    for (bNodeTree &ngroup : arg->bmain->nodetrees) {
+      if (BKE_id_name(ngroup.id)[0] == '.') {
         /* Don't display hidden node groups, just like the add menu. */
         continue;
       }
 
       const char *disabled_hint;
-      if ((ngroup->type != arg->ntree->type) ||
-          !bke::node_group_poll(arg->ntree, ngroup, &disabled_hint))
+      if ((ngroup.type != arg->ntree->type) ||
+          !bke::node_group_poll(arg->ntree, &ngroup, &disabled_hint))
       {
         continue;
       }
 
-      ngroup->ensure_interface_cache();
+      ngroup.ensure_interface_cache();
       Span<bNodeTreeInterfaceSocket *> iosockets = (in_out == SOCK_IN ?
-                                                        ngroup->interface_inputs() :
-                                                        ngroup->interface_outputs());
+                                                        ngroup.interface_inputs() :
+                                                        ngroup.interface_outputs());
       for (const int index : iosockets.index_range()) {
         bNodeTreeInterfaceSocket *iosock = iosockets[index];
         NodeLinkItem item;
@@ -356,8 +355,8 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
         const bke::bNodeSocketType *typeinfo = iosock->socket_typeinfo();
         item.socket_type = typeinfo->type;
         item.socket_name = iosock->name;
-        item.node_name = ngroup->id.name + 2;
-        item.ngroup = ngroup;
+        item.node_name = ngroup.id.name + 2;
+        item.ngroup = &ngroup;
 
         items.append(item);
       }
@@ -841,8 +840,8 @@ static void ui_node_draw_node(
   }
   else {
     /* Draw socket values using the flat inputs list. */
-    LISTBASE_FOREACH (bNodeSocket *, input, &node.inputs) {
-      ui_node_draw_input(layout, C, ntree, node, *input, depth + 1, nullptr);
+    for (bNodeSocket &input : node.inputs) {
+      ui_node_draw_input(layout, C, ntree, node, input, depth + 1, nullptr);
     }
   }
 }

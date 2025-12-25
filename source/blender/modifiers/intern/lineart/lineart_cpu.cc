@@ -45,6 +45,7 @@
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -194,17 +195,17 @@ void lineart_edge_cut(LineartData *ld,
   /* Begin looking for starting position of the segment. */
   /* Not using a list iteration macro because of it more clear when using for loops to iterate
    * through the segments. */
-  LISTBASE_FOREACH (LineartEdgeSegment *, seg, &e->segments) {
-    if (LRT_DOUBLE_CLOSE_ENOUGH(seg->ratio, start)) {
-      cut_start_before = seg;
+  for (LineartEdgeSegment &seg : e->segments) {
+    if (LRT_DOUBLE_CLOSE_ENOUGH(seg.ratio, start)) {
+      cut_start_before = &seg;
       new_seg1 = cut_start_before;
       break;
     }
-    if (seg->next == nullptr) {
+    if (seg.next == nullptr) {
       break;
     }
-    i_seg = seg->next;
-    if (i_seg->ratio > start + 1e-09 && start > seg->ratio) {
+    i_seg = seg.next;
+    if (i_seg->ratio > start + 1e-09 && start > seg.ratio) {
       cut_start_before = i_seg;
       new_seg1 = lineart_give_segment(ld);
       break;
@@ -331,22 +332,22 @@ void lineart_edge_cut(LineartData *ld,
   /* Reduce adjacent cutting points of the same level, which saves memory. */
   int8_t min_occ = 127;
   prev_seg = nullptr;
-  LISTBASE_FOREACH_MUTABLE (LineartEdgeSegment *, seg, &e->segments) {
+  for (LineartEdgeSegment &seg : e->segments.items_mutable()) {
 
-    if (prev_seg && prev_seg->occlusion == seg->occlusion &&
-        prev_seg->material_mask_bits == seg->material_mask_bits &&
-        prev_seg->shadow_mask_bits == seg->shadow_mask_bits)
+    if (prev_seg && prev_seg->occlusion == seg.occlusion &&
+        prev_seg->material_mask_bits == seg.material_mask_bits &&
+        prev_seg->shadow_mask_bits == seg.shadow_mask_bits)
     {
-      BLI_remlink(&e->segments, seg);
+      BLI_remlink(&e->segments, &seg);
       /* This puts the node back to the render buffer, if more cut happens, these unused nodes get
        * picked first. */
-      lineart_discard_segment(ld, seg);
+      lineart_discard_segment(ld, &seg);
       continue;
     }
 
-    min_occ = std::min<int8_t>(min_occ, seg->occlusion);
+    min_occ = std::min<int8_t>(min_occ, seg.occlusion);
 
-    prev_seg = seg;
+    prev_seg = &seg;
   }
   e->min_occ = min_occ;
 }
@@ -1303,15 +1304,15 @@ void lineart_main_cull_triangles(LineartData *ld, bool clip_far)
   }
 
   /* Then go through all the other triangles. */
-  LISTBASE_FOREACH (LineartElementLinkNode *, eln, &ld->geom.triangle_buffer_pointers) {
-    if (eln->flags & LRT_ELEMENT_IS_ADDITIONAL) {
+  for (LineartElementLinkNode &eln : ld->geom.triangle_buffer_pointers) {
+    if (eln.flags & LRT_ELEMENT_IS_ADDITIONAL) {
       continue;
     }
-    ob = static_cast<Object *>(eln->object_ref);
-    for (i = 0; i < eln->element_count; i++) {
+    ob = static_cast<Object *>(eln.object_ref);
+    for (i = 0; i < eln.element_count; i++) {
       /* Select the triangle in the array. */
       tri = static_cast<LineartTriangle *>(
-          (void *)(((uchar *)eln->pointer) + ld->sizeof_triangle * i));
+          (void *)(((uchar *)eln.pointer) + ld->sizeof_triangle * i));
 
       if (tri->flags & LRT_CULL_DISCARD) {
         continue;
@@ -1351,10 +1352,10 @@ void lineart_main_free_adjacent_data(LineartData *ld)
   {
     MEM_freeN(link->data);
   }
-  LISTBASE_FOREACH (LineartElementLinkNode *, eln, &ld->geom.triangle_buffer_pointers) {
-    LineartTriangle *tri = static_cast<LineartTriangle *>(eln->pointer);
+  for (LineartElementLinkNode &eln : ld->geom.triangle_buffer_pointers) {
+    LineartTriangle *tri = static_cast<LineartTriangle *>(eln.pointer);
     int i;
-    for (i = 0; i < eln->element_count; i++) {
+    for (i = 0; i < eln.element_count; i++) {
       /* See definition of tri->intersecting_verts and the usage in
        * lineart_geometry_object_load() for detailed. */
       tri->intersecting_verts = nullptr;
@@ -1365,9 +1366,9 @@ void lineart_main_free_adjacent_data(LineartData *ld)
 
 void lineart_main_perspective_division(LineartData *ld)
 {
-  LISTBASE_FOREACH (LineartElementLinkNode *, eln, &ld->geom.vertex_buffer_pointers) {
-    LineartVert *vt = static_cast<LineartVert *>(eln->pointer);
-    for (int i = 0; i < eln->element_count; i++) {
+  for (LineartElementLinkNode &eln : ld->geom.vertex_buffer_pointers) {
+    LineartVert *vt = static_cast<LineartVert *>(eln.pointer);
+    for (int i = 0; i < eln.element_count; i++) {
       if (ld->conf.cam_is_persp) {
         /* Do not divide Z, we use Z to back transform cut points in later chaining process. */
         vt[i].fbcoord[0] /= vt[i].fbcoord[3];
@@ -1393,9 +1394,9 @@ void lineart_main_discard_out_of_frame_edges(LineartData *ld)
 #define LRT_VERT_OUT_OF_BOUND(v) \
   (v->fbcoord[0] < -1 || v->fbcoord[0] > 1 || v->fbcoord[1] < -1 || v->fbcoord[1] > 1)
 
-  LISTBASE_FOREACH (LineartElementLinkNode *, eln, &ld->geom.line_buffer_pointers) {
-    e = (LineartEdge *)eln->pointer;
-    for (int i = 0; i < eln->element_count; i++) {
+  for (LineartElementLinkNode &eln : ld->geom.line_buffer_pointers) {
+    e = (LineartEdge *)eln.pointer;
+    for (int i = 0; i < eln.element_count; i++) {
       if (!e[i].v1 || !e[i].v2) {
         e[i].flags = MOD_LINEART_EDGE_FLAG_CHAIN_PICKED;
         continue;
@@ -2291,8 +2292,8 @@ static void lineart_object_load_worker(TaskPool *__restrict /*pool*/,
 
 static uchar lineart_intersection_mask_check(Collection *c, Object *ob)
 {
-  LISTBASE_FOREACH (CollectionChild *, cc, &c->children) {
-    uchar result = lineart_intersection_mask_check(cc->collection, ob);
+  for (CollectionChild &cc : c->children) {
+    uchar result = lineart_intersection_mask_check(cc.collection, ob);
     if (result) {
       return result;
     }
@@ -2313,8 +2314,8 @@ static uchar lineart_intersection_priority_check(Collection *c, Object *ob)
     return ob->lineart.intersection_priority;
   }
 
-  LISTBASE_FOREACH (CollectionChild *, cc, &c->children) {
-    uchar result = lineart_intersection_priority_check(cc->collection, ob);
+  for (CollectionChild &cc : c->children) {
+    uchar result = lineart_intersection_priority_check(cc.collection, ob);
     if (result) {
       return result;
     }
@@ -2370,8 +2371,8 @@ static int lineart_usage_check(Collection *c, Object *ob, bool is_render)
     }
   }
 
-  LISTBASE_FOREACH (CollectionChild *, cc, &c->children) {
-    int result = lineart_usage_check(cc->collection, ob, is_render);
+  for (CollectionChild &cc : c->children) {
+    int result = lineart_usage_check(cc.collection, ob, is_render);
     if (result > OBJECT_LRT_INHERIT) {
       return result;
     }
@@ -3801,11 +3802,11 @@ static void lineart_bounding_areas_connect_new(LineartData *ld, LineartBoundingA
 
   /* Connect 4 child bounding areas to other areas that are
    * adjacent to their original parents. */
-  LISTBASE_FOREACH (LinkData *, lip, &root->lp) {
+  for (LinkData &lip : root->lp) {
 
     /* For example, we are dealing with parent's left side
      * "tba" represents each adjacent neighbor of the parent. */
-    tba = static_cast<LineartBoundingArea *>(lip->data);
+    tba = static_cast<LineartBoundingArea *>(lip.data);
 
     /* if this neighbor is adjacent to
      * the two new areas on the left side of the parent,
@@ -3819,8 +3820,8 @@ static void lineart_bounding_areas_connect_new(LineartData *ld, LineartBoundingA
       lineart_list_append_pointer_pool(&tba->rp, mph, &ba[2]);
     }
   }
-  LISTBASE_FOREACH (LinkData *, lip, &root->rp) {
-    tba = static_cast<LineartBoundingArea *>(lip->data);
+  for (LinkData &lip : root->rp) {
+    tba = static_cast<LineartBoundingArea *>(lip.data);
     if (ba[0].u > tba->b && ba[0].b < tba->u) {
       lineart_list_append_pointer_pool(&ba[0].rp, mph, tba);
       lineart_list_append_pointer_pool(&tba->lp, mph, &ba[0]);
@@ -3830,8 +3831,8 @@ static void lineart_bounding_areas_connect_new(LineartData *ld, LineartBoundingA
       lineart_list_append_pointer_pool(&tba->lp, mph, &ba[3]);
     }
   }
-  LISTBASE_FOREACH (LinkData *, lip, &root->up) {
-    tba = static_cast<LineartBoundingArea *>(lip->data);
+  for (LinkData &lip : root->up) {
+    tba = static_cast<LineartBoundingArea *>(lip.data);
     if (ba[0].r > tba->l && ba[0].l < tba->r) {
       lineart_list_append_pointer_pool(&ba[0].up, mph, tba);
       lineart_list_append_pointer_pool(&tba->bp, mph, &ba[0]);
@@ -3841,8 +3842,8 @@ static void lineart_bounding_areas_connect_new(LineartData *ld, LineartBoundingA
       lineart_list_append_pointer_pool(&tba->bp, mph, &ba[1]);
     }
   }
-  LISTBASE_FOREACH (LinkData *, lip, &root->bp) {
-    tba = static_cast<LineartBoundingArea *>(lip->data);
+  for (LinkData &lip : root->bp) {
+    tba = static_cast<LineartBoundingArea *>(lip.data);
     if (ba[2].r > tba->l && ba[2].l < tba->r) {
       lineart_list_append_pointer_pool(&ba[2].bp, mph, tba);
       lineart_list_append_pointer_pool(&tba->up, mph, &ba[2]);
@@ -3855,14 +3856,14 @@ static void lineart_bounding_areas_connect_new(LineartData *ld, LineartBoundingA
 
   /* Then remove the parent bounding areas from
    * their original adjacent areas. */
-  LISTBASE_FOREACH (LinkData *, lip, &root->lp) {
-    for (lip2 = static_cast<LinkData *>(((LineartBoundingArea *)lip->data)->rp.first); lip2;
+  for (LinkData &lip : root->lp) {
+    for (lip2 = static_cast<LinkData *>(((LineartBoundingArea *)lip.data)->rp.first); lip2;
          lip2 = next_lip)
     {
       next_lip = lip2->next;
       tba = static_cast<LineartBoundingArea *>(lip2->data);
       if (tba == root) {
-        lineart_list_remove_pointer_item_no_free(&((LineartBoundingArea *)lip->data)->rp, lip2);
+        lineart_list_remove_pointer_item_no_free(&((LineartBoundingArea *)lip.data)->rp, lip2);
         if (ba[1].u > tba->b && ba[1].b < tba->u) {
           lineart_list_append_pointer_pool(&tba->rp, mph, &ba[1]);
         }
@@ -3872,14 +3873,14 @@ static void lineart_bounding_areas_connect_new(LineartData *ld, LineartBoundingA
       }
     }
   }
-  LISTBASE_FOREACH (LinkData *, lip, &root->rp) {
-    for (lip2 = static_cast<LinkData *>(((LineartBoundingArea *)lip->data)->lp.first); lip2;
+  for (LinkData &lip : root->rp) {
+    for (lip2 = static_cast<LinkData *>(((LineartBoundingArea *)lip.data)->lp.first); lip2;
          lip2 = next_lip)
     {
       next_lip = lip2->next;
       tba = static_cast<LineartBoundingArea *>(lip2->data);
       if (tba == root) {
-        lineart_list_remove_pointer_item_no_free(&((LineartBoundingArea *)lip->data)->lp, lip2);
+        lineart_list_remove_pointer_item_no_free(&((LineartBoundingArea *)lip.data)->lp, lip2);
         if (ba[0].u > tba->b && ba[0].b < tba->u) {
           lineart_list_append_pointer_pool(&tba->lp, mph, &ba[0]);
         }
@@ -3889,14 +3890,14 @@ static void lineart_bounding_areas_connect_new(LineartData *ld, LineartBoundingA
       }
     }
   }
-  LISTBASE_FOREACH (LinkData *, lip, &root->up) {
-    for (lip2 = static_cast<LinkData *>(((LineartBoundingArea *)lip->data)->bp.first); lip2;
+  for (LinkData &lip : root->up) {
+    for (lip2 = static_cast<LinkData *>(((LineartBoundingArea *)lip.data)->bp.first); lip2;
          lip2 = next_lip)
     {
       next_lip = lip2->next;
       tba = static_cast<LineartBoundingArea *>(lip2->data);
       if (tba == root) {
-        lineart_list_remove_pointer_item_no_free(&((LineartBoundingArea *)lip->data)->bp, lip2);
+        lineart_list_remove_pointer_item_no_free(&((LineartBoundingArea *)lip.data)->bp, lip2);
         if (ba[0].r > tba->l && ba[0].l < tba->r) {
           lineart_list_append_pointer_pool(&tba->up, mph, &ba[0]);
         }
@@ -3906,14 +3907,14 @@ static void lineart_bounding_areas_connect_new(LineartData *ld, LineartBoundingA
       }
     }
   }
-  LISTBASE_FOREACH (LinkData *, lip, &root->bp) {
-    for (lip2 = static_cast<LinkData *>(((LineartBoundingArea *)lip->data)->up.first); lip2;
+  for (LinkData &lip : root->bp) {
+    for (lip2 = static_cast<LinkData *>(((LineartBoundingArea *)lip.data)->up.first); lip2;
          lip2 = next_lip)
     {
       next_lip = lip2->next;
       tba = static_cast<LineartBoundingArea *>(lip2->data);
       if (tba == root) {
-        lineart_list_remove_pointer_item_no_free(&((LineartBoundingArea *)lip->data)->up, lip2);
+        lineart_list_remove_pointer_item_no_free(&((LineartBoundingArea *)lip.data)->up, lip2);
         if (ba[2].r > tba->l && ba[2].l < tba->r) {
           lineart_list_append_pointer_pool(&tba->bp, mph, &ba[2]);
         }
@@ -4790,8 +4791,8 @@ LineartBoundingArea *lineart_bounding_area_next(LineartBoundingArea *self,
 
       /* We reached the right side before the top side. */
       if (r1 <= r2) {
-        LISTBASE_FOREACH (LinkData *, lip, &self->rp) {
-          ba = static_cast<LineartBoundingArea *>(lip->data);
+        for (LinkData &lip : self->rp) {
+          ba = static_cast<LineartBoundingArea *>(lip.data);
           if (ba->u >= ry && ba->b < ry) {
             *next_x = rx;
             *next_y = ry;
@@ -4801,8 +4802,8 @@ LineartBoundingArea *lineart_bounding_area_next(LineartBoundingArea *self,
       }
       /* We reached the top side before the right side. */
       else {
-        LISTBASE_FOREACH (LinkData *, lip, &self->up) {
-          ba = static_cast<LineartBoundingArea *>(lip->data);
+        for (LinkData &lip : self->up) {
+          ba = static_cast<LineartBoundingArea *>(lip.data);
           if (ba->r >= ux && ba->l < ux) {
             *next_x = ux;
             *next_y = uy;
@@ -4821,8 +4822,8 @@ LineartBoundingArea *lineart_bounding_area_next(LineartBoundingArea *self,
         return nullptr;
       }
       if (r1 <= r2) {
-        LISTBASE_FOREACH (LinkData *, lip, &self->rp) {
-          ba = static_cast<LineartBoundingArea *>(lip->data);
+        for (LinkData &lip : self->rp) {
+          ba = static_cast<LineartBoundingArea *>(lip.data);
           if (ba->u >= ry && ba->b < ry) {
             *next_x = rx;
             *next_y = ry;
@@ -4831,8 +4832,8 @@ LineartBoundingArea *lineart_bounding_area_next(LineartBoundingArea *self,
         }
       }
       else {
-        LISTBASE_FOREACH (LinkData *, lip, &self->bp) {
-          ba = static_cast<LineartBoundingArea *>(lip->data);
+        for (LinkData &lip : self->bp) {
+          ba = static_cast<LineartBoundingArea *>(lip.data);
           if (ba->r >= bx && ba->l < bx) {
             *next_x = bx;
             *next_y = by;
@@ -4847,8 +4848,8 @@ LineartBoundingArea *lineart_bounding_area_next(LineartBoundingArea *self,
       if (r1 > 1) {
         return nullptr;
       }
-      LISTBASE_FOREACH (LinkData *, lip, &self->rp) {
-        ba = static_cast<LineartBoundingArea *>(lip->data);
+      for (LinkData &lip : self->rp) {
+        ba = static_cast<LineartBoundingArea *>(lip.data);
         if (ba->u >= y && ba->b < y) {
           *next_x = self->r;
           *next_y = y;
@@ -4873,8 +4874,8 @@ LineartBoundingArea *lineart_bounding_area_next(LineartBoundingArea *self,
         return nullptr;
       }
       if (r1 <= r2) {
-        LISTBASE_FOREACH (LinkData *, lip, &self->lp) {
-          ba = static_cast<LineartBoundingArea *>(lip->data);
+        for (LinkData &lip : self->lp) {
+          ba = static_cast<LineartBoundingArea *>(lip.data);
           if (ba->u >= ly && ba->b < ly) {
             *next_x = lx;
             *next_y = ly;
@@ -4883,8 +4884,8 @@ LineartBoundingArea *lineart_bounding_area_next(LineartBoundingArea *self,
         }
       }
       else {
-        LISTBASE_FOREACH (LinkData *, lip, &self->up) {
-          ba = static_cast<LineartBoundingArea *>(lip->data);
+        for (LinkData &lip : self->up) {
+          ba = static_cast<LineartBoundingArea *>(lip.data);
           if (ba->r >= ux && ba->l < ux) {
             *next_x = ux;
             *next_y = uy;
@@ -4904,8 +4905,8 @@ LineartBoundingArea *lineart_bounding_area_next(LineartBoundingArea *self,
         return nullptr;
       }
       if (r1 <= r2) {
-        LISTBASE_FOREACH (LinkData *, lip, &self->lp) {
-          ba = static_cast<LineartBoundingArea *>(lip->data);
+        for (LinkData &lip : self->lp) {
+          ba = static_cast<LineartBoundingArea *>(lip.data);
           if (ba->u >= ly && ba->b < ly) {
             *next_x = lx;
             *next_y = ly;
@@ -4914,8 +4915,8 @@ LineartBoundingArea *lineart_bounding_area_next(LineartBoundingArea *self,
         }
       }
       else {
-        LISTBASE_FOREACH (LinkData *, lip, &self->bp) {
-          ba = static_cast<LineartBoundingArea *>(lip->data);
+        for (LinkData &lip : self->bp) {
+          ba = static_cast<LineartBoundingArea *>(lip.data);
           if (ba->r >= bx && ba->l < bx) {
             *next_x = bx;
             *next_y = by;
@@ -4930,8 +4931,8 @@ LineartBoundingArea *lineart_bounding_area_next(LineartBoundingArea *self,
       if (r1 > 1) {
         return nullptr;
       }
-      LISTBASE_FOREACH (LinkData *, lip, &self->lp) {
-        ba = static_cast<LineartBoundingArea *>(lip->data);
+      for (LinkData &lip : self->lp) {
+        ba = static_cast<LineartBoundingArea *>(lip.data);
         if (ba->u >= y && ba->b < y) {
           *next_x = self->l;
           *next_y = y;
@@ -4947,8 +4948,8 @@ LineartBoundingArea *lineart_bounding_area_next(LineartBoundingArea *self,
       if (r1 > 1) {
         return nullptr;
       }
-      LISTBASE_FOREACH (LinkData *, lip, &self->up) {
-        ba = static_cast<LineartBoundingArea *>(lip->data);
+      for (LinkData &lip : self->up) {
+        ba = static_cast<LineartBoundingArea *>(lip.data);
         if (ba->r > x && ba->l <= x) {
           *next_x = x;
           *next_y = self->u;
@@ -4961,8 +4962,8 @@ LineartBoundingArea *lineart_bounding_area_next(LineartBoundingArea *self,
       if (r1 > 1) {
         return nullptr;
       }
-      LISTBASE_FOREACH (LinkData *, lip, &self->bp) {
-        ba = static_cast<LineartBoundingArea *>(lip->data);
+      for (LinkData &lip : self->bp) {
+        ba = static_cast<LineartBoundingArea *>(lip.data);
         if (ba->r > x && ba->l <= x) {
           *next_x = x;
           *next_y = self->b;
@@ -5251,22 +5252,22 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
   writer.reserve(128);
   int total_point_count = 0;
   int stroke_count = 0;
-  LISTBASE_FOREACH (LineartEdgeChain *, ec, &cache->chains) {
+  for (LineartEdgeChain &ec : cache->chains) {
 
-    if (ec->picked) {
+    if (ec.picked) {
       continue;
     }
-    if (!(ec->type & (edge_types & enabled_types))) {
+    if (!(ec.type & (edge_types & enabled_types))) {
       continue;
     }
-    if (ec->level > level_end || ec->level < level_start) {
+    if (ec.level > level_end || ec.level < level_start) {
       continue;
     }
-    if (orig_ob && orig_ob != ec->object_ref) {
+    if (orig_ob && orig_ob != ec.object_ref) {
       continue;
     }
-    if (orig_col && ec->object_ref) {
-      if (BKE_collection_has_object_recursive_instanced(orig_col, ec->object_ref)) {
+    if (orig_col && ec.object_ref) {
+      if (BKE_collection_has_object_recursive_instanced(orig_col, ec.object_ref)) {
         if (modifier_flags & MOD_LINEART_INVERT_COLLECTION) {
           continue;
         }
@@ -5279,43 +5280,43 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
     }
     if (mask_switches & MOD_LINEART_MATERIAL_MASK_ENABLE) {
       if (mask_switches & MOD_LINEART_MATERIAL_MASK_MATCH) {
-        if (ec->material_mask_bits != material_mask_bits) {
+        if (ec.material_mask_bits != material_mask_bits) {
           continue;
         }
       }
       else {
-        if (!(ec->material_mask_bits & material_mask_bits)) {
+        if (!(ec.material_mask_bits & material_mask_bits)) {
           continue;
         }
       }
     }
-    if (ec->type & MOD_LINEART_EDGE_FLAG_INTERSECTION) {
+    if (ec.type & MOD_LINEART_EDGE_FLAG_INTERSECTION) {
       if (mask_switches & MOD_LINEART_INTERSECTION_MATCH) {
-        if (ec->intersection_mask != intersection_mask) {
+        if (ec.intersection_mask != intersection_mask) {
           continue;
         }
       }
       else {
-        if ((intersection_mask) && !(ec->intersection_mask & intersection_mask)) {
+        if ((intersection_mask) && !(ec.intersection_mask & intersection_mask)) {
           continue;
         }
       }
     }
     if (shadow_selection) {
-      if (ec->shadow_mask_bits != LRT_SHADOW_MASK_UNDEFINED) {
+      if (ec.shadow_mask_bits != LRT_SHADOW_MASK_UNDEFINED) {
         /* TODO(@Yiming): Give a behavior option for how to display undefined shadow info. */
         if (shadow_selection == LINEART_SHADOW_FILTER_ILLUMINATED &&
-            !(ec->shadow_mask_bits & LRT_SHADOW_MASK_ILLUMINATED))
+            !(ec.shadow_mask_bits & LRT_SHADOW_MASK_ILLUMINATED))
         {
           continue;
         }
         if (shadow_selection == LINEART_SHADOW_FILTER_SHADED &&
-            !(ec->shadow_mask_bits & LRT_SHADOW_MASK_SHADED))
+            !(ec.shadow_mask_bits & LRT_SHADOW_MASK_SHADED))
         {
           continue;
         }
         if (shadow_selection == LINEART_SHADOW_FILTER_ILLUMINATED_ENCLOSED_SHAPES) {
-          uint32_t test_bits = ec->shadow_mask_bits & LRT_SHADOW_TEST_SHAPE_BITS;
+          uint32_t test_bits = ec.shadow_mask_bits & LRT_SHADOW_TEST_SHAPE_BITS;
           if ((test_bits != LRT_SHADOW_MASK_ILLUMINATED) &&
               (test_bits != (LRT_SHADOW_MASK_SHADED | LRT_SHADOW_MASK_ILLUMINATED_SHAPE)))
           {
@@ -5324,25 +5325,25 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
         }
       }
     }
-    if (silhouette_mode && (ec->type & (MOD_LINEART_EDGE_FLAG_CONTOUR))) {
+    if (silhouette_mode && (ec.type & (MOD_LINEART_EDGE_FLAG_CONTOUR))) {
       bool is_silhouette = false;
       if (orig_col) {
-        if (!ec->silhouette_backdrop) {
+        if (!ec.silhouette_backdrop) {
           is_silhouette = true;
         }
-        else if (!BKE_collection_has_object_recursive_instanced(orig_col, ec->silhouette_backdrop))
+        else if (!BKE_collection_has_object_recursive_instanced(orig_col, ec.silhouette_backdrop))
         {
           is_silhouette = true;
         }
       }
       else {
-        if ((!orig_ob) && (!ec->silhouette_backdrop)) {
+        if ((!orig_ob) && (!ec.silhouette_backdrop)) {
           is_silhouette = true;
         }
       }
 
       if ((silhouette_mode == LINEART_SILHOUETTE_FILTER_INDIVIDUAL || orig_ob) &&
-          ec->silhouette_backdrop != ec->object_ref)
+          ec.silhouette_backdrop != ec.object_ref)
       {
         is_silhouette = true;
       }
@@ -5358,13 +5359,13 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
     /* Preserved: If we ever do asynchronous generation, this picked flag should be set here. */
     // ec->picked = 1;
 
-    const int count = MOD_lineart_chain_count(ec);
+    const int count = MOD_lineart_chain_count(&ec);
     if (count < 2) {
       continue;
     }
 
     total_point_count += count;
-    writer.append({ec, count});
+    writer.append({&ec, count});
 
     stroke_count++;
   }
@@ -5400,11 +5401,13 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
     if (group_name.is_empty()) {
       return -1;
     }
+
     int group_index = 0;
-    LISTBASE_FOREACH_INDEX (bDeformGroup *, group, &new_curves.vertex_group_names, group_index) {
-      if (group_name == StringRef(group->name)) {
+    for (const bDeformGroup &group : new_curves.vertex_group_names) {
+      if (group_name == StringRef(group.name)) {
         return group_index;
       }
+      group_index++;
     }
     bDeformGroup *defgroup = MEM_new_for_free<bDeformGroup>(__func__);
     group_name.copy_utf8_truncated(defgroup->name);
@@ -5432,11 +5435,11 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
 
     if (!src_dvert.is_empty()) {
       const ListBaseT<bDeformGroup> *deflist = &src_mesh->vertex_group_names;
-      int group_index = 0;
-      LISTBASE_FOREACH_INDEX (bDeformGroup *, defgroup, deflist, group_index) {
-        if (StringRef(defgroup->name).startswith(source_vgname)) {
+
+      for (const auto [group_index, defgroup] : (deflist)->enumerate()) {
+        if (StringRef(defgroup.name).startswith(source_vgname)) {
           const int target_group_index = weight_transfer_match_output ?
-                                             ensure_target_defgroup(defgroup->name) :
+                                             ensure_target_defgroup(defgroup.name) :
                                              target_defgroup;
           src_to_dst_defgroup.append(target_group_index);
         }
@@ -5480,16 +5483,15 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
       mdw_to->weight = invert_input ? (1 - highest_weight) : highest_weight;
     };
 
-    int i;
-    LISTBASE_FOREACH_INDEX (LineartEdgeChainItem *, eci, &cwi.chain->chain, i) {
+    for (const auto [i, eci] : cwi.chain->chain.enumerate()) {
       int point_i = i + up_to_point;
-      point_positions[point_i] = blender::math::transform_point(inverse_mat, float3(eci->gpos));
+      point_positions[point_i] = blender::math::transform_point(inverse_mat, float3(eci.gpos));
       point_radii.span[point_i] = thickness / 2.0f;
       if (point_opacities) {
         point_opacities.span[point_i] = opacity;
       }
 
-      const int64_t vindex = eci->index - cwi.chain->index_offset;
+      const int64_t vindex = eci.index - cwi.chain->index_offset;
 
       if (!src_to_dst_defgroup.is_empty()) {
         if (weight_transfer_match_output) {

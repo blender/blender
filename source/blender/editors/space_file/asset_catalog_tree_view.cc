@@ -483,15 +483,15 @@ bool AssetCatalogDropTarget::drop_assets_into_catalog(bContext *C,
   }
 
   bool did_update = false;
-  LISTBASE_FOREACH (wmDragAssetListItem *, asset_item, asset_drags) {
-    if (asset_item->is_external) {
+  for (wmDragAssetListItem &asset_item : *asset_drags) {
+    if (asset_item.is_external) {
       /* Only internal assets can be modified! */
       continue;
     }
 
     did_update = true;
     BKE_asset_metadata_catalog_id_set(
-        asset_item->asset_data.local_id->asset_data, catalog_id, simple_name.c_str());
+        asset_item.asset_data.local_id->asset_data, catalog_id, simple_name.c_str());
 
     /* Trigger re-run of filtering to update visible assets. */
     filelist_tag_needs_filtering(tree_view.space_file_.files);
@@ -523,8 +523,8 @@ bool AssetCatalogDropTarget::has_droppable_asset(const wmDrag &drag, const char 
   const ListBaseT<wmDragAssetListItem> *asset_drags = WM_drag_asset_list_get(&drag);
 
   /* There needs to be at least one asset from the current file. */
-  LISTBASE_FOREACH (const wmDragAssetListItem *, asset_item, asset_drags) {
-    if (!asset_item->is_external) {
+  for (const wmDragAssetListItem &asset_item : *asset_drags) {
+    if (!asset_item.is_external) {
       return true;
     }
   }

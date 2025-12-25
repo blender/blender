@@ -2948,8 +2948,8 @@ static void curve_surf_to_softbody(Object *ob)
     setgoal = 1;
   }
 
-  LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
-    if (nu->bezt) {
+  for (Nurb &nu : cu->nurb) {
+    if (nu.bezt) {
       /* Bezier case; this is nicely said naive; who ever wrote this part,
        * it was not me (JOW) :).
        *
@@ -2959,7 +2959,7 @@ static void curve_surf_to_softbody(Object *ob)
        *
        * Not too hard to do, but needs some more code to care for;
        * some one may want look at it (JOW 2010/06/12). */
-      for (bezt = nu->bezt, a = 0; a < nu->pntsu; a++, bezt++, bp += 3, curindex += 3) {
+      for (bezt = nu.bezt, a = 0; a < nu.pntsu; a++, bezt++, bp += 3, curindex += 3) {
         if (setgoal) {
           bp->goal *= bezt->weight;
 
@@ -2994,7 +2994,7 @@ static void curve_surf_to_softbody(Object *ob)
       }
     }
     else {
-      for (bpnt = nu->bp, a = 0; a < nu->pntsu * nu->pntsv; a++, bpnt++, bp++, curindex++) {
+      for (bpnt = nu.bp, a = 0; a < nu.pntsu * nu.pntsv; a++, bpnt++, bp++, curindex++) {
         if (setgoal) {
           bp->goal *= bpnt->weight;
         }

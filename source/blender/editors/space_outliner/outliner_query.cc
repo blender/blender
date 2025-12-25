@@ -29,12 +29,12 @@ bool outliner_has_element_warnings(const SpaceOutliner &space_outliner)
   std::function<bool(const ListBaseT<TreeElement> &)> recursive_fn;
 
   recursive_fn = [&](const ListBaseT<TreeElement> &lb) {
-    LISTBASE_FOREACH (const TreeElement *, te, &lb) {
-      if (te->abstract_element && !te->abstract_element->get_warning().is_empty()) {
+    for (const TreeElement &te : lb) {
+      if (te.abstract_element && !te.abstract_element->get_warning().is_empty()) {
         return true;
       }
 
-      if (recursive_fn(te->subtree)) {
+      if (recursive_fn(te.subtree)) {
         return true;
       }
     }

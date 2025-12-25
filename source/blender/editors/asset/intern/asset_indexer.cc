@@ -176,8 +176,8 @@ static void init_value_from_file_indexer_entry(DictionaryValue &result,
 
   if (!BLI_listbase_is_empty(&asset_data.tags)) {
     ArrayValue &tags = *result.append_array(ATTRIBUTE_ENTRIES_TAGS);
-    LISTBASE_FOREACH (AssetTag *, tag, &asset_data.tags) {
-      tags.append_str(tag->name);
+    for (AssetTag &tag : asset_data.tags) {
+      tags.append_str(tag.name);
     }
   }
 

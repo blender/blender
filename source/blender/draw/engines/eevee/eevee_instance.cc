@@ -598,15 +598,15 @@ void Instance::render_read_result(RenderLayer *render_layer, const char *view_na
   }
 
   /* AOVs. */
-  LISTBASE_FOREACH (ViewLayerAOV *, aov, &view_layer->aovs) {
-    if ((aov->flag & AOV_CONFLICT) != 0) {
+  for (ViewLayerAOV &aov : view_layer->aovs) {
+    if ((aov.flag & AOV_CONFLICT) != 0) {
       continue;
     }
-    RenderPass *rp = RE_pass_find_by_name(render_layer, aov->name, view_name);
+    RenderPass *rp = RE_pass_find_by_name(render_layer, aov.name, view_name);
     if (!rp) {
       continue;
     }
-    float *result = film.read_aov(aov);
+    float *result = film.read_aov(&aov);
 
     if (result) {
       BLI_mutex_lock(&render->update_render_passes_mutex);
@@ -832,16 +832,16 @@ void Instance::update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view
   CHECK_PASS_LEGACY(AO, SOCK_RGBA, 3, "RGB");
   CHECK_PASS_EEVEE(TRANSPARENT, SOCK_RGBA, 4, "RGBA");
 
-  LISTBASE_FOREACH (ViewLayerAOV *, aov, &view_layer->aovs) {
-    if ((aov->flag & AOV_CONFLICT) != 0) {
+  for (ViewLayerAOV &aov : view_layer->aovs) {
+    if ((aov.flag & AOV_CONFLICT) != 0) {
       continue;
     }
-    switch (aov->type) {
+    switch (aov.type) {
       case AOV_TYPE_COLOR:
-        RE_engine_register_pass(engine, scene, view_layer, aov->name, 4, "RGBA", SOCK_RGBA);
+        RE_engine_register_pass(engine, scene, view_layer, aov.name, 4, "RGBA", SOCK_RGBA);
         break;
       case AOV_TYPE_VALUE:
-        RE_engine_register_pass(engine, scene, view_layer, aov->name, 1, "X", SOCK_FLOAT);
+        RE_engine_register_pass(engine, scene, view_layer, aov.name, 1, "X", SOCK_FLOAT);
         break;
       default:
         break;

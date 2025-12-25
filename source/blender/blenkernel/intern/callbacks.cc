@@ -30,8 +30,8 @@ void BKE_callback_exec(Main *bmain, PointerRNA **pointers, const int num_pointer
 
   /* Use mutable iteration so handlers are able to remove themselves. */
   ListBaseT<bCallbackFuncStore> *lb = &callback_slots[evt];
-  LISTBASE_FOREACH_MUTABLE (bCallbackFuncStore *, funcstore, lb) {
-    funcstore->func(bmain, pointers, num_pointers, funcstore->arg);
+  for (bCallbackFuncStore &funcstore : lb->items_mutable()) {
+    funcstore.func(bmain, pointers, num_pointers, funcstore.arg);
   }
 }
 

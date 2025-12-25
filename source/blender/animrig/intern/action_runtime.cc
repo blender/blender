@@ -28,8 +28,8 @@ namespace blender::animrig::internal {
 void rebuild_slot_user_cache(Main &bmain)
 {
   /* Loop over all Actions and clear their slots' user cache. */
-  LISTBASE_FOREACH (bAction *, dna_action, &bmain.actions) {
-    Action &action = dna_action->wrap();
+  for (bAction &dna_action : bmain.actions) {
+    Action &action = dna_action.wrap();
     for (Slot *slot : action.slots()) {
       BLI_assert_msg(slot->runtime, "Slot::runtime should always be allocated");
       slot->runtime->users.clear();

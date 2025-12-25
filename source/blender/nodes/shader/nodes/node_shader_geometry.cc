@@ -36,8 +36,7 @@ static int node_shader_gpu_geometry(GPUMaterial *mat,
 
   const bool success = GPU_stack_link(mat, node, "node_geometry", in, out, orco_link);
 
-  int i;
-  LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->outputs, i) {
+  for (const auto [i, sock] : node->outputs.enumerate()) {
     node_shader_gpu_bump_tex_coord(mat, node, &out[i].link);
     /* Normalize some vectors after dFdx/dFdy offsets.
      * This is the case for interpolated, non linear functions.

@@ -114,17 +114,17 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
   DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
   /* Add relation from canvases to all brush objects. */
   if (pmd->canvas != nullptr && pmd->type == MOD_DYNAMICPAINT_TYPE_CANVAS) {
-    LISTBASE_FOREACH (DynamicPaintSurface *, surface, &pmd->canvas->surfaces) {
-      if (surface->effect & MOD_DPAINT_EFFECT_DO_DRIP) {
+    for (DynamicPaintSurface &surface : pmd->canvas->surfaces) {
+      if (surface.effect & MOD_DPAINT_EFFECT_DO_DRIP) {
         DEG_add_forcefield_relations(
-            ctx->node, ctx->object, surface->effector_weights, true, 0, "Dynamic Paint Field");
+            ctx->node, ctx->object, surface.effector_weights, true, 0, "Dynamic Paint Field");
       }
 
       /* Actual code uses custom loop over group/scene
        * without layer checks in dynamicPaint_doStep. */
       DEG_add_collision_relations(ctx->node,
                                   ctx->object,
-                                  surface->brush_group,
+                                  surface.brush_group,
                                   eModifierType_DynamicPaint,
                                   is_brush_cb,
                                   "Dynamic Paint Brush");

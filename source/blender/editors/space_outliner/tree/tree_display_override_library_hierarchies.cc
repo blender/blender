@@ -71,13 +71,13 @@ ListBaseT<TreeElement> TreeDisplayOverrideLibraryHierarchies::build_tree(
   }
 
   /* Remove top level library elements again that don't contain any overrides. */
-  LISTBASE_FOREACH_MUTABLE (TreeElement *, top_level_te, &tree) {
-    if (top_level_te == current_file_te) {
+  for (TreeElement &top_level_te : tree.items_mutable()) {
+    if (&top_level_te == current_file_te) {
       continue;
     }
 
-    if (BLI_listbase_is_empty(&top_level_te->subtree)) {
-      outliner_free_tree_element(top_level_te, &tree);
+    if (BLI_listbase_is_empty(&top_level_te.subtree)) {
+      outliner_free_tree_element(&top_level_te, &tree);
     }
   }
 

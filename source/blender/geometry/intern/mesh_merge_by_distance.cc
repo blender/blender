@@ -1515,8 +1515,8 @@ static void mix_vertex_groups(const Mesh &mesh_src,
 static Set<StringRef> get_vertex_group_names(const Mesh &mesh)
 {
   Set<StringRef> names;
-  LISTBASE_FOREACH (bDeformGroup *, group, &mesh.vertex_group_names) {
-    names.add(group->name);
+  for (bDeformGroup &group : mesh.vertex_group_names) {
+    names.add(group.name);
   }
   return names;
 }

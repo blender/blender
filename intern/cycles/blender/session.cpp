@@ -371,14 +371,10 @@ void BlenderSession::render(::Depsgraph &b_depsgraph_)
   /* Compute render passes and film settings. */
   sync->sync_render_passes(*b_rlay, b_view_layer);
 
-  int num_views = 0;
-  LISTBASE_FOREACH (::RenderView *, b_view, &b_rr->views) {
-    num_views++;
-  }
+  const int num_views = BLI_listbase_count(&b_rr->views);
 
-  int view_index;
-  LISTBASE_FOREACH_INDEX (::RenderView *, b_view, &b_rr->views, view_index) {
-    b_rview_name = b_view->name;
+  for (const auto [view_index, b_view] : b_rr->views.enumerate()) {
+    b_rview_name = b_view.name;
 
     buffer_params.layer = b_view_layer.name;
     buffer_params.view = b_rview_name;

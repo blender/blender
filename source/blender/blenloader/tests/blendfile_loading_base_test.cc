@@ -134,8 +134,8 @@ bool BlendfileLoadingBaseTest::blendfile_load(const char *filepath)
 
   /* Make sure that all view_layers in the file are synced. Depsgraph can make a copy of the whole
    * scene, which will fail when one view layer isn't synced. */
-  LISTBASE_FOREACH (ViewLayer *, view_layer, &bfile->curscene->view_layers) {
-    BKE_view_layer_synced_ensure(bfile->curscene, view_layer);
+  for (ViewLayer &view_layer : bfile->curscene->view_layers) {
+    BKE_view_layer_synced_ensure(bfile->curscene, &view_layer);
   }
 
   return true;

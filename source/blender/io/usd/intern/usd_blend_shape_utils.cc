@@ -221,17 +221,13 @@ void create_blend_shapes(pxr::UsdStageRefPtr stage,
 
   int basis_totelem = basis_key->totelem;
 
-  LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
-    if (!kb) {
-      continue;
-    }
-
-    if (kb == basis_key) {
+  for (KeyBlock &kb : key->block) {
+    if (&kb == basis_key) {
       /* Skip the basis. */
       continue;
     }
 
-    pxr::TfToken name(make_safe_name(kb->name, allow_unicode));
+    pxr::TfToken name(make_safe_name(kb.name, allow_unicode));
     blendshape_names.push_back(name);
 
     pxr::SdfPath path = mesh_prim.GetPath().AppendChild(name);
@@ -246,15 +242,15 @@ void create_blend_shapes(pxr::UsdStageRefPtr stage,
      * is included. */
     pxr::UsdAttribute point_indices_attr = blendshape.CreatePointIndicesAttr();
 
-    pxr::VtVec3fArray offsets(kb->totelem);
-    pxr::VtIntArray indices(kb->totelem);
+    pxr::VtVec3fArray offsets(kb.totelem);
+    pxr::VtIntArray indices(kb.totelem);
     std::iota(indices.begin(), indices.end(), 0);
 
-    const float (*fp)[3] = static_cast<float (*)[3]>(kb->data);
+    const float (*fp)[3] = static_cast<float (*)[3]>(kb.data);
 
     const float (*basis_fp)[3] = static_cast<float (*)[3]>(basis_key->data);
 
-    for (int i = 0; i < kb->totelem; ++i) {
+    for (int i = 0; i < kb.totelem; ++i) {
       /* Subtract the key positions from the
        * basis positions to get the offsets. */
       sub_v3_v3v3(offsets[i].data(), fp[i], basis_fp[i]);
@@ -289,12 +285,12 @@ pxr::VtFloatArray get_blendshape_weights(const Key *key)
 
   pxr::VtFloatArray weights;
 
-  LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
-    if (kb == key->block.first) {
+  for (KeyBlock &kb : key->block) {
+    if (&kb == key->block.first) {
       /* Skip the first key, which is the basis. */
       continue;
     }
-    weights.push_back(kb->curval);
+    weights.push_back(kb.curval);
   }
 
   return weights;

@@ -49,10 +49,10 @@ static void rna_RegionView3D_update(ID *id, RegionView3D *rv3d, bContext *C)
     View3D *v3d = static_cast<View3D *>(area->spacedata.first);
     wmWindowManager *wm = CTX_wm_manager(C);
 
-    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-      if (WM_window_get_active_screen(win) == screen) {
-        Scene *scene = WM_window_get_active_scene(win);
-        ViewLayer *view_layer = WM_window_get_active_view_layer(win);
+    for (wmWindow &win : wm->windows) {
+      if (WM_window_get_active_screen(&win) == screen) {
+        Scene *scene = WM_window_get_active_scene(&win);
+        ViewLayer *view_layer = WM_window_get_active_view_layer(&win);
         Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);
 
         ED_view3d_update_viewmat(depsgraph, scene, v3d, region, nullptr, nullptr, nullptr, false);

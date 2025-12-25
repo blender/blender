@@ -246,26 +246,26 @@ static void do_outliner_object_select_recursive(const Scene *scene,
                                                 bool select)
 {
   BKE_view_layer_synced_ensure(scene, view_layer);
-  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-    Object *ob = base->object;
-    if (((base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) != 0) &&
+  for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+    Object *ob = base.object;
+    if (((base.flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) != 0) &&
         BKE_object_is_child_recursive(ob_parent, ob))
     {
-      object::base_select(base, select ? object::BA_SELECT : object::BA_DESELECT);
+      object::base_select(&base, select ? object::BA_SELECT : object::BA_DESELECT);
     }
   }
 }
 
 static void do_outliner_bone_select_recursive(bArmature *arm, Bone *bone_parent, bool select)
 {
-  LISTBASE_FOREACH (Bone *, bone, &bone_parent->childbase) {
-    if (select && blender::animrig::bone_is_selectable(arm, bone)) {
-      bone->flag |= BONE_SELECTED;
+  for (Bone &bone : bone_parent->childbase) {
+    if (select && blender::animrig::bone_is_selectable(arm, &bone)) {
+      bone.flag |= BONE_SELECTED;
     }
     else {
-      bone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
+      bone.flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
     }
-    do_outliner_bone_select_recursive(arm, bone, select);
+    do_outliner_bone_select_recursive(arm, &bone, select);
   }
 }
 
@@ -569,8 +569,8 @@ static void tree_element_posechannel_activate(bContext *C,
         continue;
       }
 
-      LISTBASE_FOREACH (bPoseChannel *, pchannel, &ob_iter->pose->chanbase) {
-        blender::animrig::bone_deselect(pchannel);
+      for (bPoseChannel &pchannel : ob_iter->pose->chanbase) {
+        blender::animrig::bone_deselect(&pchannel);
       }
 
       if (ob != ob_iter) {
@@ -1247,13 +1247,13 @@ static void outliner_sync_to_properties_editors(const bContext *C,
 {
   bScreen *screen = CTX_wm_screen(C);
 
-  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-    if (area->spacetype != SPACE_PROPERTIES) {
+  for (ScrArea &area : screen->areabase) {
+    if (area.spacetype != SPACE_PROPERTIES) {
       continue;
     }
 
-    SpaceProperties *sbuts = (SpaceProperties *)area->spacedata.first;
-    if (ED_buttons_should_sync_with_outliner(C, sbuts, area)) {
+    SpaceProperties *sbuts = (SpaceProperties *)area.spacedata.first;
+    if (ED_buttons_should_sync_with_outliner(C, sbuts, &area)) {
       ED_buttons_set_context(C, sbuts, ptr, context);
     }
   }
@@ -1637,20 +1637,20 @@ static void do_outliner_select_recursive(ListBaseT<TreeElement> *lb,
                                          bool selecting,
                                          Collection *in_collection)
 {
-  LISTBASE_FOREACH (TreeElement *, te, lb) {
-    TreeStoreElem *tselem = TREESTORE(te);
+  for (TreeElement &te : *lb) {
+    TreeStoreElem *tselem = TREESTORE(&te);
     /* Recursive selection only on collections or objects. */
-    if (can_select_recursive(te, in_collection)) {
+    if (can_select_recursive(&te, in_collection)) {
       tselem->flag = selecting ? (tselem->flag | TSE_SELECTED) : (tselem->flag & ~TSE_SELECTED);
       if (tselem->type == TSE_LAYER_COLLECTION) {
         /* Restrict sub-tree selections to this collection. This prevents undesirable behavior in
          * the edge-case where there is an object which is part of this collection, but which has
          * children that are part of another collection. */
         do_outliner_select_recursive(
-            &te->subtree, selecting, static_cast<LayerCollection *>(te->directdata)->collection);
+            &te.subtree, selecting, static_cast<LayerCollection *>(te.directdata)->collection);
       }
       else {
-        do_outliner_select_recursive(&te->subtree, selecting, in_collection);
+        do_outliner_select_recursive(&te.subtree, selecting, in_collection);
       }
     }
     else {
@@ -1666,16 +1666,16 @@ static bool do_outliner_range_select_recursive(ListBaseT<TreeElement> *lb,
                                                const bool recurse,
                                                Collection *in_collection)
 {
-  LISTBASE_FOREACH (TreeElement *, te, lb) {
-    TreeStoreElem *tselem = TREESTORE(te);
+  for (TreeElement &te : *lb) {
+    TreeStoreElem *tselem = TREESTORE(&te);
 
-    bool can_select = !recurse || can_select_recursive(te, in_collection);
+    bool can_select = !recurse || can_select_recursive(&te, in_collection);
 
     /* Remember if we are selecting before we potentially change the selecting state. */
     bool selecting_before = selecting;
 
     /* Set state for selection */
-    if (ELEM(te, active, cursor)) {
+    if (ELEM(&te, active, cursor)) {
       selecting = !selecting;
     }
 
@@ -1689,10 +1689,10 @@ static bool do_outliner_range_select_recursive(ListBaseT<TreeElement> *lb,
        * the precedent for inclusion of its sub-objects. */
       Collection *child_collection = in_collection;
       if (tselem->type == TSE_LAYER_COLLECTION) {
-        child_collection = static_cast<LayerCollection *>(te->directdata)->collection;
+        child_collection = static_cast<LayerCollection *>(te.directdata)->collection;
       }
       selecting = do_outliner_range_select_recursive(
-          &te->subtree, active, cursor, selecting, recurse, child_collection);
+          &te.subtree, active, cursor, selecting, recurse, child_collection);
     }
   }
 

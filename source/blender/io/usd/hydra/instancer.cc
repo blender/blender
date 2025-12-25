@@ -165,20 +165,20 @@ void InstancerData::update_instance(DupliObject *dupli)
     nm_inst->transforms.push_back(gf_matrix_from_transform(dupli->mat));
   }
 
-  LISTBASE_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
-    if (psys_in_edit_mode(scene_delegate_->depsgraph, psys)) {
+  for (ParticleSystem &psys : object->particlesystem) {
+    if (psys_in_edit_mode(scene_delegate_->depsgraph, &psys)) {
       continue;
     }
-    if (HairData::is_supported(psys) && HairData::is_visible(scene_delegate_, object, psys)) {
-      pxr::SdfPath h_id = hair_prim_id(object, psys);
+    if (HairData::is_supported(&psys) && HairData::is_visible(scene_delegate_, object, &psys)) {
+      pxr::SdfPath h_id = hair_prim_id(object, &psys);
       NonmeshInstance *nm_inst = nonmesh_instance(h_id);
       if (!nm_inst) {
         nm_inst = &nonmesh_instances_.lookup_or_add_default(h_id);
-        nm_inst->data = std::make_unique<HairData>(scene_delegate_, object, h_id, psys);
+        nm_inst->data = std::make_unique<HairData>(scene_delegate_, object, h_id, &psys);
         nm_inst->data->init();
       }
       ID_LOG("Nonmesh %s %d", nm_inst->data->id->name, int(nm_inst->transforms.size()));
-      nm_inst->transforms.push_back(gf_matrix_from_transform(psys->imat) *
+      nm_inst->transforms.push_back(gf_matrix_from_transform(psys.imat) *
                                     gf_matrix_from_transform(dupli->mat));
     }
   }

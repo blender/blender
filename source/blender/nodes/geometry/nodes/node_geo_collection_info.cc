@@ -93,12 +93,12 @@ static void node_geo_exec(GeoNodeExecParams params)
   if (separate_children) {
     const bool reset_children = params.extract_input<bool>("Reset Children");
     Vector<Collection *> children_collections;
-    LISTBASE_FOREACH (CollectionChild *, collection_child, &collection->children) {
-      children_collections.append(collection_child->collection);
+    for (CollectionChild &collection_child : collection->children) {
+      children_collections.append(collection_child.collection);
     }
     Vector<Object *> children_objects;
-    LISTBASE_FOREACH (CollectionObject *, collection_object, &collection->gobject) {
-      children_objects.append(collection_object->ob);
+    for (CollectionObject &collection_object : collection->gobject) {
+      children_objects.append(collection_object.ob);
     }
 
     Vector<InstanceListEntry> entries;

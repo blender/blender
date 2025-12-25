@@ -181,8 +181,8 @@ static void sh_node_mix_update(bNodeTree *ntree, bNode *node)
     bke::node_set_socket_availability(*ntree, *socket, socket->type == data_type);
   }
 
-  LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-    bke::node_set_socket_availability(*ntree, *socket, socket->type == data_type);
+  for (bNodeSocket &socket : node->outputs) {
+    bke::node_set_socket_availability(*ntree, socket, socket.type == data_type);
   }
 }
 

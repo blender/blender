@@ -15,7 +15,7 @@
 
 namespace blender::ed::outliner {
 
-static void outliner_context_selected_ids(const SpaceOutliner *space_outliner,
+static void outliner_context_selected_ids(SpaceOutliner *space_outliner,
                                           bContextDataResult *result)
 {
   tree_iterator::all(*space_outliner, [&](const TreeElement *te) {

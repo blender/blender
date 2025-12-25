@@ -366,14 +366,14 @@ static bool WIDGETGROUP_node_crop_poll(const bContext *C, wmGizmoGroupType * /*g
   }
 
   snode->edittree->ensure_topology_cache();
-  LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
-    if (!STREQ(input->name, "Image") && input->is_directly_linked()) {
+  for (bNodeSocket &input : node->inputs) {
+    if (!STREQ(input.name, "Image") && input.is_directly_linked()) {
       /* Note: the Image input could be connected to a single value input, in which case the
        * gizmo has no effect. */
       return false;
     }
-    else if (STREQ(input->name, "Alpha Crop") && !input->is_directly_linked()) {
-      PointerRNA input_rna_pointer = RNA_pointer_create_discrete(nullptr, &RNA_NodeSocket, input);
+    else if (STREQ(input.name, "Alpha Crop") && !input.is_directly_linked()) {
+      PointerRNA input_rna_pointer = RNA_pointer_create_discrete(nullptr, &RNA_NodeSocket, &input);
       if (RNA_boolean_get(&input_rna_pointer, "default_value")) {
         /* If Alpha Crop is not set, the image size changes depending on the input parameters,
          * so we can't usefully edit the crop in this case. */
@@ -570,8 +570,8 @@ static bool WIDGETGROUP_node_box_mask_poll(const bContext *C, wmGizmoGroupType *
 
   if (node && node->is_type("CompositorNodeBoxMask")) {
     snode->edittree->ensure_topology_cache();
-    LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
-      if (STR_ELEM(input->name, "Position", "Size", "Rotation") && input->is_directly_linked()) {
+    for (bNodeSocket &input : node->inputs) {
+      if (STR_ELEM(input.name, "Position", "Size", "Rotation") && input.is_directly_linked()) {
         return false;
       }
     }
@@ -685,8 +685,8 @@ static bool WIDGETGROUP_node_ellipse_mask_poll(const bContext *C, wmGizmoGroupTy
 
   if (node && node->is_type("CompositorNodeEllipseMask")) {
     snode->edittree->ensure_topology_cache();
-    LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
-      if (STR_ELEM(input->name, "Position", "Size", "Rotation") && input->is_directly_linked()) {
+    for (bNodeSocket &input : node->inputs) {
+      if (STR_ELEM(input.name, "Position", "Size", "Rotation") && input.is_directly_linked()) {
         return false;
       }
     }
@@ -769,8 +769,8 @@ static bool WIDGETGROUP_node_glare_poll(const bContext *C, wmGizmoGroupType * /*
     return false;
   }
 
-  LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
-    if (STR_ELEM(input->name, "Sun Position") && input->is_directly_linked()) {
+  for (bNodeSocket &input : node->inputs) {
+    if (STR_ELEM(input.name, "Sun Position") && input.is_directly_linked()) {
       return false;
     }
   }
@@ -987,8 +987,8 @@ static bool WIDGETGROUP_node_split_poll(const bContext *C, wmGizmoGroupType * /*
 
   if (node && node->is_type("CompositorNodeSplit")) {
     snode->edittree->ensure_topology_cache();
-    LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
-      if (STR_ELEM(input->name, "Position", "Rotation") && input->is_directly_linked()) {
+    for (bNodeSocket &input : node->inputs) {
+      if (STR_ELEM(input.name, "Position", "Rotation") && input.is_directly_linked()) {
         return false;
       }
     }

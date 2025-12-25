@@ -1734,8 +1734,8 @@ static void file_draw_invalid_library_hint(const bContext * /*C*/,
   /* Separate a bit further. */
   sy -= line_height * 2.2f;
 
-  LISTBASE_FOREACH (Report *, report, &reports->list) {
-    const short report_type = report->type;
+  for (Report &report : reports->list) {
+    const short report_type = report.type;
     if (report_type <= RPT_INFO) {
       continue;
     }
@@ -1748,7 +1748,7 @@ static void file_draw_invalid_library_hint(const bContext * /*C*/,
 
     file_draw_string_multiline(sx + UI_UNIT_X,
                                sy,
-                               RPT_(report->message),
+                               RPT_(report.message),
                                width - UI_UNIT_X,
                                line_height,
                                text_col,

@@ -254,14 +254,14 @@ void drawSnapping(TransInfo *t)
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
       if (!BLI_listbase_is_empty(&t->tsnap.points)) {
-        LISTBASE_FOREACH (TransSnapPoint *, p, &t->tsnap.points) {
-          if (p == t->tsnap.selectedPoint) {
+        for (TransSnapPoint &p : t->tsnap.points) {
+          if (&p == t->tsnap.selectedPoint) {
             immUniformColor4ubv(selectedCol);
           }
           else {
             immUniformColor4ubv(col);
           }
-          imm_drawcircball(p->co, ED_view3d_pixel_size(rv3d, p->co) * size, view_inv, pos);
+          imm_drawcircball(p.co, ED_view3d_pixel_size(rv3d, p.co) * size, view_inv, pos);
         }
       }
 
@@ -1168,10 +1168,10 @@ eRedrawFlag updateSelectedSnapPoint(TransInfo *t)
     float dist_min_sq = TRANSFORM_SNAP_MAX_PX;
     float screen_loc[2];
 
-    LISTBASE_FOREACH (TransSnapPoint *, p, &t->tsnap.points) {
+    for (TransSnapPoint &p : t->tsnap.points) {
       float dist_sq;
 
-      if (ED_view3d_project_float_global(t->region, p->co, screen_loc, V3D_PROJ_TEST_NOP) !=
+      if (ED_view3d_project_float_global(t->region, p.co, screen_loc, V3D_PROJ_TEST_NOP) !=
           V3D_PROJ_RET_OK)
       {
         continue;
@@ -1180,7 +1180,7 @@ eRedrawFlag updateSelectedSnapPoint(TransInfo *t)
       dist_sq = len_squared_v2v2(t->mval, screen_loc);
 
       if (dist_sq < dist_min_sq) {
-        closest_p = p;
+        closest_p = &p;
         dist_min_sq = dist_sq;
       }
     }
@@ -1664,21 +1664,21 @@ bool peelObjectsTransform(TransInfo *t,
     if (use_peel_object) {
       /* If peeling objects, take the first and last from each object. */
       hit_max = hit_min;
-      LISTBASE_FOREACH (SnapObjectHitDepth *, iter, &depths_peel) {
-        if ((iter->depth > hit_max->depth) && (iter->ob_uuid == hit_min->ob_uuid)) {
-          hit_max = iter;
+      for (SnapObjectHitDepth &iter : depths_peel) {
+        if ((iter.depth > hit_max->depth) && (iter.ob_uuid == hit_min->ob_uuid)) {
+          hit_max = &iter;
         }
       }
     }
     else {
       /* Otherwise, pair first with second and so on. */
-      LISTBASE_FOREACH (SnapObjectHitDepth *, iter, &depths_peel) {
-        if ((iter != hit_min) && (iter->ob_uuid == hit_min->ob_uuid)) {
+      for (SnapObjectHitDepth &iter : depths_peel) {
+        if ((&iter != hit_min) && (iter.ob_uuid == hit_min->ob_uuid)) {
           if (hit_max == nullptr) {
-            hit_max = iter;
+            hit_max = &iter;
           }
-          else if (iter->depth < hit_max->depth) {
-            hit_max = iter;
+          else if (iter.depth < hit_max->depth) {
+            hit_max = &iter;
           }
         }
       }
@@ -1699,8 +1699,8 @@ bool peelObjectsTransform(TransInfo *t,
     r_no[1] = 0.0;
     r_no[2] = 1.0;
 
-    LISTBASE_FOREACH_MUTABLE (SnapObjectHitDepth *, link, &depths_peel) {
-      MEM_delete(link);
+    for (SnapObjectHitDepth &link : depths_peel.items_mutable()) {
+      MEM_delete(&link);
     }
     return true;
   }

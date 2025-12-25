@@ -1987,8 +1987,8 @@ void mesh_translate(Mesh &mesh, const float3 &translation, const bool do_shape_k
   translate_positions(mesh.vert_positions_for_write(), translation);
 
   if (do_shape_keys && mesh.key) {
-    LISTBASE_FOREACH (KeyBlock *, kb, &mesh.key->block) {
-      translate_positions({static_cast<float3 *>(kb->data), kb->totelem}, translation);
+    for (KeyBlock &kb : mesh.key->block) {
+      translate_positions({static_cast<float3 *>(kb.data), kb.totelem}, translation);
     }
   }
 
@@ -2006,8 +2006,8 @@ void mesh_transform(Mesh &mesh, const float4x4 &transform, bool do_shape_keys)
   math::transform_points(transform, mesh.vert_positions_for_write());
 
   if (do_shape_keys && mesh.key) {
-    LISTBASE_FOREACH (KeyBlock *, kb, &mesh.key->block) {
-      math::transform_points(transform, MutableSpan(static_cast<float3 *>(kb->data), kb->totelem));
+    for (KeyBlock &kb : mesh.key->block) {
+      math::transform_points(transform, MutableSpan(static_cast<float3 *>(kb.data), kb.totelem));
     }
   }
   MutableAttributeAccessor attributes = mesh.attributes_for_write();

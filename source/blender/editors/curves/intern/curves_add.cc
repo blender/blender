@@ -46,11 +46,11 @@ static bool has_surface_deformation_node(const bNodeTree &ntree)
 
 static bool has_surface_deformation_node(const Object &curves_ob)
 {
-  LISTBASE_FOREACH (const ModifierData *, md, &curves_ob.modifiers) {
-    if (md->type != eModifierType_Nodes) {
+  for (const ModifierData &md : curves_ob.modifiers) {
+    if (md.type != eModifierType_Nodes) {
       continue;
     }
-    const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(md);
+    const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(&md);
     if (nmd->node_group == nullptr) {
       continue;
     }

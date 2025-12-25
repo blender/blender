@@ -516,8 +516,8 @@ void copy_update(blender::bke::pbvh::Tree &pbvh,
   }
 
   ImageUser tile_user = image_user;
-  LISTBASE_FOREACH (ImageTile *, tile, &image.tiles) {
-    const image::ImageTileWrapper image_tile = image::ImageTileWrapper(tile);
+  for (ImageTile &tile : image.tiles) {
+    const image::ImageTileWrapper image_tile = image::ImageTileWrapper(&tile);
     tile_user.tile = image_tile.get_tile_number();
 
     ImBuf *tile_buffer = BKE_image_acquire_ibuf(&image, &tile_user, nullptr);

@@ -344,16 +344,16 @@ static void foreach_active_gizmo_in_open_editors(const wmWindowManager &wm,
                                                  bke::ComputeContextCache &compute_context_cache,
                                                  const ForeachGizmoFn fn)
 {
-  LISTBASE_FOREACH (const wmWindow *, window, &wm.windows) {
-    const bScreen *active_screen = BKE_workspace_active_screen_get(window->workspace_hook);
+  for (const wmWindow &window : wm.windows) {
+    const bScreen *active_screen = BKE_workspace_active_screen_get(window.workspace_hook);
     Vector<const bScreen *> screens = {active_screen};
     if (ELEM(active_screen->state, SCREENMAXIMIZED, SCREENFULL)) {
       const ScrArea *area = static_cast<const ScrArea *>(active_screen->areabase.first);
       screens.append(area->full);
     }
     for (const bScreen *screen : screens) {
-      LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
-        const SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
+      for (const ScrArea &area : screen->areabase) {
+        const SpaceLink *sl = static_cast<SpaceLink *>(area.spacedata.first);
         if (sl == nullptr) {
           continue;
         }

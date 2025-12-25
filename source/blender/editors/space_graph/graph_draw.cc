@@ -1457,15 +1457,15 @@ void graph_draw_ghost_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region
    * See issue #109920 for details. */
   const bool draw_extrapolation = false;
   /* the ghost curves are simply sampled F-Curves stored in sipo->runtime.ghost_curves */
-  LISTBASE_FOREACH (FCurve *, fcu, &sipo->runtime.ghost_curves) {
+  for (FCurve &fcu : sipo->runtime.ghost_curves) {
     /* set whatever color the curve has set
      * - this is set by the function which creates these
      * - draw with a fixed opacity of 2
      */
-    immUniformColor3fvAlpha(fcu->color, 0.5f);
+    immUniformColor3fvAlpha(fcu.color, 0.5f);
 
     /* simply draw the stored samples */
-    draw_fcurve_curve_samples(ac, nullptr, fcu, &region->v2d, shdr_pos, draw_extrapolation);
+    draw_fcurve_curve_samples(ac, nullptr, &fcu, &region->v2d, shdr_pos, draw_extrapolation);
   }
 
   immUnbindProgram();
@@ -1492,13 +1492,13 @@ void graph_draw_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, shor
    * the data will be layered correctly
    */
   bAnimListElem *ale_active_fcurve = nullptr;
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    const FCurve *fcu = (FCurve *)ale->key_data;
+  for (bAnimListElem &ale : anim_data) {
+    const FCurve *fcu = (FCurve *)ale.key_data;
     if ((fcu->flag & FCURVE_ACTIVE) && !ale_active_fcurve) {
-      ale_active_fcurve = ale;
+      ale_active_fcurve = &ale;
       continue;
     }
-    draw_fcurve(ac, sipo, region, ale);
+    draw_fcurve(ac, sipo, region, &ale);
   }
 
   /* Draw the active FCurve last so that it (especially the active keyframe)

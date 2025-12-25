@@ -1785,8 +1785,8 @@ static void libblock_relink_collection(Main *bmain,
     BKE_libblock_relink_to_newid(bmain, &cob->ob->id, 0);
   }
 
-  LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-    libblock_relink_collection(bmain, child->collection, true);
+  for (CollectionChild &child : collection->children) {
+    libblock_relink_collection(bmain, child.collection, true);
   }
 }
 
@@ -1807,8 +1807,8 @@ static Collection *single_object_users_collection(Main *bmain,
   }
 
   /* We do not remap to new objects here, this is done in separate step. */
-  LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
-    Object *ob = cob->ob;
+  for (CollectionObject &cob : collection->gobject) {
+    Object *ob = cob.ob;
     /* an object may be in more than one collection */
     if ((ob->id.newid == nullptr) && ((ob->flag & flag) == flag)) {
       if (!ID_IS_LINKED(ob) && BKE_object_scenes_users_get(bmain, ob) > 1) {
@@ -2214,12 +2214,12 @@ static bool make_local_all__instance_indirect_unused(Main *bmain,
 
 static void make_local_animdata_tag_strips(ListBaseT<NlaStrip> *strips)
 {
-  LISTBASE_FOREACH (NlaStrip *, strip, strips) {
-    if (strip->act) {
-      strip->act->id.tag &= ~ID_TAG_PRE_EXISTING;
+  for (NlaStrip &strip : *strips) {
+    if (strip.act) {
+      strip.act->id.tag &= ~ID_TAG_PRE_EXISTING;
     }
 
-    make_local_animdata_tag_strips(&strip->strips);
+    make_local_animdata_tag_strips(&strip.strips);
   }
 }
 
@@ -2239,8 +2239,8 @@ static void make_local_animdata_tag(AnimData *adt)
     /* TODO: need to handle the ID-targets too? */
 
     /* NLA Data */
-    LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
-      make_local_animdata_tag_strips(&nlt->strips);
+    for (NlaTrack &nlt : adt->nla_tracks) {
+      make_local_animdata_tag_strips(&nlt.strips);
     }
   }
 }
@@ -2291,8 +2291,8 @@ static wmOperatorStatus make_local_exec(bContext *C, wmOperator *op)
 
       ob->id.tag &= ~ID_TAG_PRE_EXISTING;
       make_local_animdata_tag(BKE_animdata_from_id(&ob->id));
-      LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
-        psys->part->id.tag &= ~ID_TAG_PRE_EXISTING;
+      for (ParticleSystem &psys : ob->particlesystem) {
+        psys.part->id.tag &= ~ID_TAG_PRE_EXISTING;
       }
 
       if (mode == MAKE_LOCAL_SELECT_OBDATA_MATERIAL) {
@@ -2373,13 +2373,13 @@ static bool make_override_library_object_overridable_check(Main *bmain, Object *
 {
   /* An object is actually overridable only if it is in at least one local collection.
    * Unfortunately 'direct link' flag is not enough here. */
-  LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
-    if (!ID_IS_LINKED(collection) && BKE_collection_has_object(collection, object)) {
+  for (Collection &collection : bmain->collections) {
+    if (!ID_IS_LINKED(&collection) && BKE_collection_has_object(&collection, object)) {
       return true;
     }
   }
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    if (!ID_IS_LINKED(scene) && BKE_collection_has_object(scene->master_collection, object)) {
+  for (Scene &scene : bmain->scenes) {
+    if (!ID_IS_LINKED(&scene) && BKE_collection_has_object(scene.master_collection, object)) {
       return true;
     }
   }
@@ -2489,14 +2489,14 @@ static wmOperatorStatus make_override_library_exec(bContext *C, wmOperator *op)
    * While this may not be the absolute best behavior in all cases, in most common one this
    * should match the expected result. */
   if (user_overrides_objects_uids != nullptr) {
-    LISTBASE_FOREACH (Collection *, coll_iter, &bmain->collections) {
-      if (ID_IS_LINKED(coll_iter)) {
+    for (Collection &coll_iter : bmain->collections) {
+      if (ID_IS_LINKED(&coll_iter)) {
         continue;
       }
-      LISTBASE_FOREACH (CollectionObject *, coll_ob_iter, &coll_iter->gobject) {
-        if (user_overrides_objects_uids->contains(coll_ob_iter->ob->id.session_uid)) {
+      for (CollectionObject &coll_ob_iter : coll_iter.gobject) {
+        if (user_overrides_objects_uids->contains(coll_ob_iter.ob->id.session_uid)) {
           /* Tag for remapping when creating overrides. */
-          coll_iter->id.tag |= ID_TAG_DOIT;
+          coll_iter.id.tag |= ID_TAG_DOIT;
           break;
         }
       }
@@ -2546,15 +2546,15 @@ static wmOperatorStatus make_override_library_exec(bContext *C, wmOperator *op)
       switch (GS(id_root->name)) {
         case ID_GR: {
           Collection *collection_root = (Collection *)id_root;
-          LISTBASE_FOREACH_MUTABLE (
-              CollectionParent *, collection_parent, &collection_root->runtime->parents)
+          for (CollectionParent &collection_parent :
+               collection_root->runtime->parents.items_mutable())
           {
-            if (ID_IS_LINKED(collection_parent->collection) ||
-                !BKE_view_layer_has_collection(view_layer, collection_parent->collection))
+            if (ID_IS_LINKED(collection_parent.collection) ||
+                !BKE_view_layer_has_collection(view_layer, collection_parent.collection))
             {
               continue;
             }
-            BKE_collection_child_remove(bmain, collection_parent->collection, collection_root);
+            BKE_collection_child_remove(bmain, collection_parent.collection, collection_root);
           }
           break;
         }
@@ -2608,32 +2608,32 @@ static wmOperatorStatus make_override_library_invoke(bContext *C,
   }
 
   VectorSet<Collection *> potential_root_collections;
-  LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
+  for (Collection &collection : bmain->collections) {
     /* Only check for linked collections from the same library, in the current view-layer. */
-    if (!ID_IS_LINKED(&collection->id) || collection->id.lib != obact->id.lib ||
-        !BKE_view_layer_has_collection(view_layer, collection))
+    if (!ID_IS_LINKED(&collection.id) || collection.id.lib != obact->id.lib ||
+        !BKE_view_layer_has_collection(view_layer, &collection))
     {
       continue;
     }
-    if (!BKE_collection_has_object_recursive(collection, obact)) {
+    if (!BKE_collection_has_object_recursive(&collection, obact)) {
       continue;
     }
     if (potential_root_collections.is_empty()) {
-      potential_root_collections.add_new(collection);
+      potential_root_collections.add_new(&collection);
     }
     else {
       bool has_parents_in_potential_roots = false;
       bool is_potential_root = false;
       for (auto *collection_root_iter : potential_root_collections) {
-        if (BKE_collection_has_collection(collection_root_iter, collection)) {
-          BLI_assert_msg(!BKE_collection_has_collection(collection, collection_root_iter),
+        if (BKE_collection_has_collection(collection_root_iter, &collection)) {
+          BLI_assert_msg(!BKE_collection_has_collection(&collection, collection_root_iter),
                          "Invalid loop in collection hierarchy");
           /* Current potential root is already 'better' (higher up in the collection hierarchy)
            * than current collection, nothing else to do. */
           has_parents_in_potential_roots = true;
         }
-        else if (BKE_collection_has_collection(collection, collection_root_iter)) {
-          BLI_assert_msg(!BKE_collection_has_collection(collection_root_iter, collection),
+        else if (BKE_collection_has_collection(&collection, collection_root_iter)) {
+          BLI_assert_msg(!BKE_collection_has_collection(collection_root_iter, &collection),
                          "Invalid loop in collection hierarchy");
           /* Current potential root is in the current collection's hierarchy, so the later is a
            * better candidate as root collection. */
@@ -2649,7 +2649,7 @@ static wmOperatorStatus make_override_library_invoke(bContext *C,
       /* Only add the current collection as potential root if it is not a descendant of any
        * already known potential root collections. */
       if (is_potential_root && !has_parents_in_potential_roots) {
-        potential_root_collections.add_new(collection);
+        potential_root_collections.add_new(&collection);
       }
     }
   }

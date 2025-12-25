@@ -491,9 +491,9 @@ ePartialUpdateCollectResult BKE_image_partial_update_collect_changes(Image *imag
   }
 
   /* Collect changed tiles. */
-  LISTBASE_FOREACH (ImageTile *, tile, &image->tiles) {
+  for (ImageTile &tile : image->tiles) {
     std::optional<TileChangeset> changed_chunks = partial_updater->changed_tile_chunks_since(
-        tile, user_impl->last_changeset_id);
+        &tile, user_impl->last_changeset_id);
     /* Check if chunks of this tile are dirty. */
     if (!changed_chunks.has_value()) {
       continue;
@@ -510,7 +510,7 @@ ePartialUpdateCollectResult BKE_image_partial_update_collect_changes(Image *imag
         }
 
         PartialUpdateRegion region;
-        region.tile_number = tile->tile_number;
+        region.tile_number = tile.tile_number;
         BLI_rcti_init(&region.region,
                       chunk_x * CHUNK_SIZE,
                       (chunk_x + 1) * CHUNK_SIZE,

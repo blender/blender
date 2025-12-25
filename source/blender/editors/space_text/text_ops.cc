@@ -333,8 +333,8 @@ void text_update_line_edited(TextLine *line)
 
 void text_update_edited(Text *text)
 {
-  LISTBASE_FOREACH (TextLine *, line, &text->lines) {
-    text_update_line_edited(line);
+  for (TextLine &line : text->lines) {
+    text_update_line_edited(&line);
   }
 }
 
@@ -728,9 +728,9 @@ static void txt_write_file(Main *bmain, Text *text, ReportList *reports)
     return;
   }
 
-  LISTBASE_FOREACH (TextLine *, tmp, &text->lines) {
-    fputs(tmp->line, fp);
-    if (tmp->next) {
+  for (TextLine &tmp : text->lines) {
+    fputs(tmp.line, fp);
+    if (tmp.next) {
       fputc('\n', fp);
     }
   }
@@ -1438,33 +1438,33 @@ static wmOperatorStatus text_convert_whitespace_exec(bContext *C, wmOperator *op
 
   /* First convert to all space, this make it a lot easier to convert to tabs
    * because there is no mixtures of ` ` && `\t`. */
-  LISTBASE_FOREACH (TextLine *, tmp, &text->lines) {
+  for (TextLine &tmp : text->lines) {
     char *new_line;
 
-    BLI_assert(tmp->line);
+    BLI_assert(tmp.line);
 
-    flatten_string(st, &fs, tmp->line);
+    flatten_string(st, &fs, tmp.line);
     new_line = BLI_strdup(fs.buf);
     flatten_string_free(&fs);
 
-    MEM_freeN(tmp->line);
-    if (tmp->format) {
-      MEM_freeN(tmp->format);
+    MEM_freeN(tmp.line);
+    if (tmp.format) {
+      MEM_freeN(tmp.format);
     }
 
     /* Put new_line in the tmp->line spot still need to try and set the curc correctly. */
-    tmp->line = new_line;
-    tmp->len = strlen(new_line);
-    tmp->format = nullptr;
-    max_len = std::max<size_t>(tmp->len, max_len);
+    tmp.line = new_line;
+    tmp.len = strlen(new_line);
+    tmp.format = nullptr;
+    max_len = std::max<size_t>(tmp.len, max_len);
   }
 
   if (type == TO_TABS) {
     char *tmp_line = MEM_malloc_arrayN<char>(max_len + 1, __func__);
 
-    LISTBASE_FOREACH (TextLine *, tmp, &text->lines) {
-      const char *text_check_line = tmp->line;
-      const int text_check_line_len = tmp->len;
+    for (TextLine &tmp : text->lines) {
+      const char *text_check_line = tmp.line;
+      const int text_check_line_len = tmp.len;
       char *tmp_line_cur = tmp_line;
       const size_t tab_len = st->tabnumber;
 
@@ -1517,19 +1517,19 @@ static wmOperatorStatus text_convert_whitespace_exec(bContext *C, wmOperator *op
         BLI_assert(tmp_line_cur - tmp_line <= max_len);
 
         flatten_string(st, &fs, tmp_line);
-        BLI_assert(STREQ(fs.buf, tmp->line));
+        BLI_assert(STREQ(fs.buf, tmp.line));
         flatten_string_free(&fs);
 #endif
 
-        MEM_freeN(tmp->line);
-        if (tmp->format) {
-          MEM_freeN(tmp->format);
+        MEM_freeN(tmp.line);
+        if (tmp.format) {
+          MEM_freeN(tmp.format);
         }
 
         /* Put new_line in the `tmp->line` spot. */
-        tmp->len = strlen(tmp_line);
-        tmp->line = BLI_strdupn(tmp_line, tmp->len);
-        tmp->format = nullptr;
+        tmp.len = strlen(tmp_line);
+        tmp.line = BLI_strdupn(tmp_line, tmp.len);
+        tmp.format = nullptr;
       }
     }
 
@@ -4050,23 +4050,23 @@ static bool text_jump_to_file_at_point_internal(bContext *C,
   Text *text = nullptr;
   BLI_assert(!BLI_path_is_rel(filepath));
 
-  LISTBASE_FOREACH (Text *, text_iter, &bmain->texts) {
-    if (text_iter->filepath == nullptr) {
+  for (Text &text_iter : bmain->texts) {
+    if (text_iter.filepath == nullptr) {
       continue;
     }
     const char *filepath_iter;
     char filepath_iter_buf[FILE_MAX];
-    if (BLI_path_is_rel(text_iter->filepath)) {
-      STRNCPY(filepath_iter_buf, text_iter->filepath);
-      BLI_path_abs(filepath_iter_buf, ID_BLEND_PATH(bmain, &text_iter->id));
+    if (BLI_path_is_rel(text_iter.filepath)) {
+      STRNCPY(filepath_iter_buf, text_iter.filepath);
+      BLI_path_abs(filepath_iter_buf, ID_BLEND_PATH(bmain, &text_iter.id));
       filepath_iter = filepath_iter_buf;
     }
     else {
-      filepath_iter = text_iter->filepath;
+      filepath_iter = text_iter.filepath;
     }
 
     if (BLI_path_cmp(filepath, filepath_iter) == 0) {
-      text = text_iter;
+      text = &text_iter;
       break;
     }
   }
@@ -4402,9 +4402,9 @@ static wmOperatorStatus text_update_shader_exec(bContext *C, wmOperator *op)
 
   /* Update all cameras using text data-block. */
   if (type->update_custom_camera != nullptr) {
-    LISTBASE_FOREACH (Camera *, cam, &bmain->cameras) {
-      if (cam->custom_shader == text) {
-        type->update_custom_camera(engine, cam);
+    for (Camera &cam : bmain->cameras) {
+      if (cam.custom_shader == text) {
+        type->update_custom_camera(engine, &cam);
         found = true;
       }
     }

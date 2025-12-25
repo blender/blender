@@ -343,16 +343,16 @@ Vector<GreasePencilExporter::ObjectInfo> GreasePencilExporter::retrieve_objects(
       add_object(params_.object);
       break;
     case SelectMode::Selected:
-      LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-        if (base->flag & BASE_SELECTED) {
-          add_object(base->object);
+      for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+        if (base.flag & BASE_SELECTED) {
+          add_object(base.object);
         }
       }
       break;
     case SelectMode::Visible:
-      LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-        if ((base->flag & BASE_ENABLED_RENDER) != 0) {
-          add_object(base->object);
+      for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+        if ((base.flag & BASE_ENABLED_RENDER) != 0) {
+          add_object(base.object);
         }
       }
       break;

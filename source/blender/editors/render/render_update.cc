@@ -70,12 +70,12 @@ void ED_render_view3d_update(Depsgraph *depsgraph,
   Main *bmain = DEG_get_bmain(depsgraph);
   Scene *scene = DEG_get_input_scene(depsgraph);
 
-  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    if (region->regiontype != RGN_TYPE_WINDOW) {
+  for (ARegion &region : area->regionbase) {
+    if (region.regiontype != RGN_TYPE_WINDOW) {
       continue;
     }
 
-    RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
+    RegionView3D *rv3d = static_cast<RegionView3D *>(region.regiondata);
     RenderEngine *engine = rv3d->view_render ? RE_view_engine_get(rv3d->view_render) : nullptr;
 
     /* call update if the scene changed, or if the render engine
@@ -90,7 +90,7 @@ void ED_render_view3d_update(Depsgraph *depsgraph,
       CTX_wm_window_set(C, window);
       CTX_wm_screen_set(C, WM_window_get_active_screen(window));
       CTX_wm_area_set(C, area);
-      CTX_wm_region_set(C, region);
+      CTX_wm_region_set(C, &region);
 
       engine->flag &= ~RE_ENGINE_DO_UPDATE;
       /* NOTE: Important to pass non-updated depsgraph, This is because this function is called
@@ -127,12 +127,12 @@ void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, const bool
   recursive_check = true;
 
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
-  LISTBASE_FOREACH (wmWindow *, window, &wm->windows) {
-    bScreen *screen = WM_window_get_active_screen(window);
+  for (wmWindow &window : wm->windows) {
+    bScreen *screen = WM_window_get_active_screen(&window);
 
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      if (area->spacetype == SPACE_VIEW3D) {
-        ED_render_view3d_update(update_ctx->depsgraph, window, area, updated);
+    for (ScrArea &area : screen->areabase) {
+      if (area.spacetype == SPACE_VIEW3D) {
+        ED_render_view3d_update(update_ctx->depsgraph, &window, &area, updated);
       }
     }
   }
@@ -149,11 +149,11 @@ void ED_render_engine_area_exit(Main *bmain, ScrArea *area)
     return;
   }
 
-  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    if (region->regiontype != RGN_TYPE_WINDOW || !(region->regiondata)) {
+  for (ARegion &region : area->regionbase) {
+    if (region.regiontype != RGN_TYPE_WINDOW || !(region.regiondata)) {
       continue;
     }
-    ED_view3d_stop_render_preview(wm, region);
+    ED_view3d_stop_render_preview(wm, &region);
   }
 }
 
@@ -163,14 +163,14 @@ void ED_render_engine_changed(Main *bmain, const bool update_scene_data)
   for (bScreen *screen = static_cast<bScreen *>(bmain->screens.first); screen;
        screen = static_cast<bScreen *>(screen->id.next))
   {
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      ED_render_engine_area_exit(bmain, area);
+    for (ScrArea &area : screen->areabase) {
+      ED_render_engine_area_exit(bmain, &area);
     }
   }
   /* Stop and invalidate all shader previews. */
   ED_preview_kill_jobs(static_cast<wmWindowManager *>(bmain->wm.first), bmain);
-  LISTBASE_FOREACH (Material *, ma, &bmain->materials) {
-    BKE_material_make_node_previews_dirty(ma);
+  for (Material &ma : bmain->materials) {
+    BKE_material_make_node_previews_dirty(&ma);
   }
   RE_FreePersistentData(nullptr);
   /* Inform all render engines and draw managers. */
@@ -180,10 +180,10 @@ void ED_render_engine_changed(Main *bmain, const bool update_scene_data)
        scene = static_cast<Scene *>(scene->id.next))
   {
     update_ctx.scene = scene;
-    LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
+    for (ViewLayer &view_layer : scene->view_layers) {
       /* TDODO(sergey): Iterate over depsgraphs instead? */
-      update_ctx.depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);
-      update_ctx.view_layer = view_layer;
+      update_ctx.depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, &view_layer);
+      update_ctx.view_layer = &view_layer;
       ED_render_id_flush_update(&update_ctx, &scene->id);
     }
     if (update_scene_data) {
@@ -196,8 +196,8 @@ void ED_render_engine_changed(Main *bmain, const bool update_scene_data)
 
 void ED_render_view_layer_changed(Main *bmain, bScreen *screen)
 {
-  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-    ED_render_engine_area_exit(bmain, area);
+  for (ScrArea &area : screen->areabase) {
+    ED_render_engine_area_exit(bmain, &area);
   }
 }
 
@@ -238,14 +238,14 @@ static void texture_changed(Main *bmain, Tex *tex)
        scene = static_cast<Scene *>(scene->id.next))
   {
     /* paint overlays */
-    LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
-      BKE_paint_invalidate_overlay_tex(scene, view_layer, tex);
+    for (ViewLayer &view_layer : scene->view_layers) {
+      BKE_paint_invalidate_overlay_tex(scene, &view_layer, tex);
     }
   }
 
-  LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-    if (ELEM(tex, brush->mtex.tex, brush->mask_mtex.tex)) {
-      BKE_brush_tag_unsaved_changes(brush);
+  for (Brush &brush : bmain->brushes) {
+    if (ELEM(tex, brush.mtex.tex, brush.mask_mtex.tex)) {
+      BKE_brush_tag_unsaved_changes(&brush);
     }
   }
 }

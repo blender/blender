@@ -1896,10 +1896,10 @@ void WeightPaintStroke::done(bool /*is_cancel*/)
   }
 
   if (ob.particlesystem.first) {
-    LISTBASE_FOREACH (ParticleSystem *, psys, &ob.particlesystem) {
+    for (ParticleSystem &psys : ob.particlesystem) {
       for (int i = 0; i < PSYS_TOT_VG; i++) {
-        if (psys->vgroup[i] == BKE_object_defgroup_active_index_get(&ob)) {
-          psys->recalc |= ID_RECALC_PSYS_RESET;
+        if (psys.vgroup[i] == BKE_object_defgroup_active_index_get(&ob)) {
+          psys.recalc |= ID_RECALC_PSYS_RESET;
           break;
         }
       }

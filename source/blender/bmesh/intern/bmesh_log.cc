@@ -502,8 +502,8 @@ void BM_log_free(BMLog *log)
 
   /* Clear the BMLog references within each entry, but do not free
    * the entries themselves */
-  LISTBASE_FOREACH (BMLogEntry *, entry, &log->entries) {
-    entry->log = nullptr;
+  for (BMLogEntry &entry : log->entries) {
+    entry.log = nullptr;
   }
 
   MEM_delete(log);

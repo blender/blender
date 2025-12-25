@@ -263,22 +263,22 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
   BKE_screen_area_map_free(&win->global_areas);
 
   /* End running jobs, a job end also removes its timer. */
-  LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->runtime->timers) {
-    if (wt->flags & WM_TIMER_TAGGED_FOR_REMOVAL) {
+  for (wmTimer &wt : wm->runtime->timers.items_mutable()) {
+    if (wt.flags & WM_TIMER_TAGGED_FOR_REMOVAL) {
       continue;
     }
-    if (wt->win == win && wt->event_type == TIMERJOBS) {
-      wm_jobs_timer_end(wm, wt);
+    if (wt.win == win && wt.event_type == TIMERJOBS) {
+      wm_jobs_timer_end(wm, &wt);
     }
   }
 
   /* Timer removing, need to call this API function. */
-  LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->runtime->timers) {
-    if (wt->flags & WM_TIMER_TAGGED_FOR_REMOVAL) {
+  for (wmTimer &wt : wm->runtime->timers.items_mutable()) {
+    if (wt.flags & WM_TIMER_TAGGED_FOR_REMOVAL) {
       continue;
     }
-    if (wt->win == win) {
-      WM_event_timer_remove(wm, win, wt);
+    if (wt.win == win) {
+      WM_event_timer_remove(wm, win, &wt);
     }
   }
   wm_window_timers_delete_removed(wm);
@@ -314,9 +314,9 @@ static int find_free_winid(wmWindowManager *wm)
 {
   int id = 1;
 
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    if (id <= win->winid) {
-      id = win->winid + 1;
+  for (wmWindow &win : wm->windows) {
+    if (id <= win.winid) {
+      id = win.winid + 1;
     }
   }
   return id;
@@ -506,9 +506,9 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
   }
 
   /* Close child windows. */
-  LISTBASE_FOREACH_MUTABLE (wmWindow *, iter_win, &wm->windows) {
-    if (iter_win->parent == win) {
-      wm_window_close(C, wm, iter_win);
+  for (wmWindow &iter_win : wm->windows.items_mutable()) {
+    if (iter_win.parent == win) {
+      wm_window_close(C, wm, &iter_win);
     }
   }
 
@@ -1169,8 +1169,8 @@ void wm_window_ghostwindows_ensure(wmWindowManager *wm)
     wm_init_state.start = blender::int2(0);
   }
 
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    wm_window_ghostwindow_ensure(wm, win, false);
+  for (wmWindow &win : wm->windows) {
+    wm_window_ghostwindow_ensure(wm, &win, false);
   }
 }
 
@@ -1178,9 +1178,9 @@ void wm_window_ghostwindows_remove_invalid(bContext *C, wmWindowManager *wm)
 {
   BLI_assert(G.background == false);
 
-  LISTBASE_FOREACH_MUTABLE (wmWindow *, win, &wm->windows) {
-    if (win->runtime->ghostwin == nullptr) {
-      wm_window_close(C, wm, win);
+  for (wmWindow &win : wm->windows.items_mutable()) {
+    if (win.runtime->ghostwin == nullptr) {
+      wm_window_close(C, wm, &win);
     }
   }
 }
@@ -1275,12 +1275,12 @@ wmWindow *WM_window_open(bContext *C,
   /* Reuse temporary windows when they share the same single area. */
   wmWindow *win = nullptr;
   if (temp) {
-    LISTBASE_FOREACH (wmWindow *, win_iter, &wm->windows) {
-      const bScreen *screen = WM_window_get_active_screen(win_iter);
+    for (wmWindow &win_iter : wm->windows) {
+      const bScreen *screen = WM_window_get_active_screen(&win_iter);
       if (screen && screen->temp && BLI_listbase_is_single(&screen->areabase)) {
         ScrArea *area = static_cast<ScrArea *>(screen->areabase.first);
         if (space_type == (area->butspacetype ? area->butspacetype : area->spacetype)) {
-          win = win_iter;
+          win = &win_iter;
           break;
         }
       }
@@ -2075,51 +2075,51 @@ static bool wm_window_timers_process(const bContext *C, int *sleep_us_p)
   double ntime_min = DBL_MAX;
 
   /* Mutable in case the timer gets removed. */
-  LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->runtime->timers) {
-    if (wt->flags & WM_TIMER_TAGGED_FOR_REMOVAL) {
+  for (wmTimer &wt : wm->runtime->timers.items_mutable()) {
+    if (wt.flags & WM_TIMER_TAGGED_FOR_REMOVAL) {
       continue;
     }
-    if (wt->sleep == true) {
+    if (wt.sleep == true) {
       continue;
     }
 
     /* Future timer, update nearest time & skip. */
-    if (wt->time_next >= time) {
+    if (wt.time_next >= time) {
       if ((has_event == false) && (sleep_us != 0)) {
         /* The timer is not ready to run but may run shortly. */
-        ntime_min = std::min(wt->time_next, ntime_min);
+        ntime_min = std::min(wt.time_next, ntime_min);
       }
       continue;
     }
 
-    wt->time_delta = time - wt->time_last;
-    wt->time_duration += wt->time_delta;
-    wt->time_last = time;
+    wt.time_delta = time - wt.time_last;
+    wt.time_duration += wt.time_delta;
+    wt.time_last = time;
 
-    wt->time_next = wt->time_start;
-    if (wt->time_step != 0.0f) {
-      wt->time_next += wt->time_step * ceil(wt->time_duration / wt->time_step);
+    wt.time_next = wt.time_start;
+    if (wt.time_step != 0.0f) {
+      wt.time_next += wt.time_step * ceil(wt.time_duration / wt.time_step);
     }
 
-    if (wt->event_type == TIMERJOBS) {
-      wm_jobs_timer(wm, wt);
+    if (wt.event_type == TIMERJOBS) {
+      wm_jobs_timer(wm, &wt);
     }
-    else if (wt->event_type == TIMERAUTOSAVE) {
-      wm_autosave_timer(bmain, wm, wt);
+    else if (wt.event_type == TIMERAUTOSAVE) {
+      wm_autosave_timer(bmain, wm, &wt);
     }
-    else if (wt->event_type == TIMERNOTIFIER) {
-      WM_main_add_notifier(POINTER_AS_UINT(wt->customdata), nullptr);
+    else if (wt.event_type == TIMERNOTIFIER) {
+      WM_main_add_notifier(POINTER_AS_UINT(wt.customdata), nullptr);
     }
-    else if (wmWindow *win = wt->win) {
+    else if (wmWindow *win = wt.win) {
       wmEvent event;
       wm_event_init_from_window(win, &event);
 
-      event.type = wt->event_type;
+      event.type = wt.event_type;
       event.val = KM_NOTHING;
       event.keymodifier = EVENT_NONE;
       event.flag = eWM_EventFlag(0);
       event.custom = EVT_DATA_TIMER;
-      event.customdata = wt;
+      event.customdata = &wt;
       WM_event_add(win, &event);
 
       has_event = true;
@@ -2510,14 +2510,14 @@ wmTimer *WM_event_timer_add_notifier(wmWindowManager *wm,
 
 void wm_window_timers_delete_removed(wmWindowManager *wm)
 {
-  LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->runtime->timers) {
-    if ((wt->flags & WM_TIMER_TAGGED_FOR_REMOVAL) == 0) {
+  for (wmTimer &wt : wm->runtime->timers.items_mutable()) {
+    if ((wt.flags & WM_TIMER_TAGGED_FOR_REMOVAL) == 0) {
       continue;
     }
 
     /* Actual removal and freeing of the timer. */
-    BLI_remlink(&wm->runtime->timers, wt);
-    MEM_freeN(wt);
+    BLI_remlink(&wm->runtime->timers, &wt);
+    MEM_freeN(&wt);
   }
 }
 
@@ -2543,11 +2543,11 @@ void WM_event_timer_remove(wmWindowManager *wm, wmWindow * /*win*/, wmTimer *tim
     wm->runtime->reports.reporttimer = nullptr;
   }
   /* There might be events in queue with this timer as customdata. */
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    LISTBASE_FOREACH (wmEvent *, event, &win->runtime->event_queue) {
-      if (event->customdata == timer) {
-        event->customdata = nullptr;
-        event->type = EVENT_NONE; /* Timer users customdata, don't want `nullptr == nullptr`. */
+  for (wmWindow &win : wm->windows) {
+    for (wmEvent &event : win.runtime->event_queue) {
+      if (event.customdata == timer) {
+        event.customdata = nullptr;
+        event.type = EVENT_NONE; /* Timer users customdata, don't want `nullptr == nullptr`. */
       }
     }
   }
@@ -2905,10 +2905,10 @@ wmWindow *WM_window_find_under_cursor(wmWindow *win,
 
 wmWindow *WM_window_find_by_area(wmWindowManager *wm, const ScrArea *area)
 {
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    bScreen *sc = WM_window_get_active_screen(win);
+  for (wmWindow &win : wm->windows) {
+    bScreen *sc = WM_window_get_active_screen(&win);
     if (BLI_findindex(&sc->areabase, area) != -1) {
-      return win;
+      return &win;
     }
   }
   return nullptr;
@@ -3104,14 +3104,14 @@ void WM_window_screen_rect_calc(const wmWindow *win, rcti *r_rect)
   screen_rect = window_rect;
 
   /* Subtract global areas from screen rectangle. */
-  LISTBASE_FOREACH (ScrArea *, global_area, &win->global_areas.areabase) {
-    int height = ED_area_global_size_y(global_area) - 1;
+  for (ScrArea &global_area : win->global_areas.areabase) {
+    int height = ED_area_global_size_y(&global_area) - 1;
 
-    if (global_area->global->flag & GLOBAL_AREA_IS_HIDDEN) {
+    if (global_area.global->flag & GLOBAL_AREA_IS_HIDDEN) {
       continue;
     }
 
-    switch (global_area->global->align) {
+    switch (global_area.global->align) {
       case GLOBAL_AREA_ALIGN_TOP:
         screen_rect.ymax -= height;
         break;
@@ -3167,18 +3167,18 @@ bool WM_window_support_hdr_color(const wmWindow *win)
 
 void WM_windows_scene_data_sync(const ListBaseT<wmWindow> *win_lb, Scene *scene)
 {
-  LISTBASE_FOREACH (wmWindow *, win, win_lb) {
-    if (WM_window_get_active_scene(win) == scene) {
-      ED_workspace_scene_data_sync(win->workspace_hook, scene);
+  for (wmWindow &win : *win_lb) {
+    if (WM_window_get_active_scene(&win) == scene) {
+      ED_workspace_scene_data_sync(win.workspace_hook, scene);
     }
   }
 }
 
 Scene *WM_windows_scene_get_from_screen(const wmWindowManager *wm, const bScreen *screen)
 {
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    if (WM_window_get_active_screen(win) == screen) {
-      return WM_window_get_active_scene(win);
+  for (wmWindow &win : wm->windows) {
+    if (WM_window_get_active_screen(&win) == screen) {
+      return WM_window_get_active_scene(&win);
     }
   }
 
@@ -3187,9 +3187,9 @@ Scene *WM_windows_scene_get_from_screen(const wmWindowManager *wm, const bScreen
 
 ViewLayer *WM_windows_view_layer_get_from_screen(const wmWindowManager *wm, const bScreen *screen)
 {
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    if (WM_window_get_active_screen(win) == screen) {
-      return WM_window_get_active_view_layer(win);
+  for (wmWindow &win : wm->windows) {
+    if (WM_window_get_active_screen(&win) == screen) {
+      return WM_window_get_active_view_layer(&win);
     }
   }
 
@@ -3198,9 +3198,9 @@ ViewLayer *WM_windows_view_layer_get_from_screen(const wmWindowManager *wm, cons
 
 WorkSpace *WM_windows_workspace_get_from_screen(const wmWindowManager *wm, const bScreen *screen)
 {
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    if (WM_window_get_active_screen(win) == screen) {
-      return WM_window_get_active_workspace(win);
+  for (wmWindow &win : wm->windows) {
+    if (WM_window_get_active_screen(&win) == screen) {
+      return WM_window_get_active_workspace(&win);
     }
   }
   return nullptr;
@@ -3223,9 +3223,9 @@ void WM_window_set_active_scene(Main *bmain, bContext *C, wmWindow *win, Scene *
     changed = true;
   }
 
-  LISTBASE_FOREACH (wmWindow *, win_child, &wm->windows) {
-    if (win_child->parent == win_parent && win_child->scene != scene) {
-      ED_screen_scene_change(C, win_child, scene, true);
+  for (wmWindow &win_child : wm->windows) {
+    if (win_child.parent == win_parent && win_child.scene != scene) {
+      ED_screen_scene_change(C, &win_child, scene, true);
       changed = true;
     }
   }
@@ -3269,10 +3269,10 @@ void WM_window_set_active_view_layer(wmWindow *win, ViewLayer *view_layer)
   wmWindow *win_parent = (win->parent) ? win->parent : win;
 
   /* Set view layer in parent and child windows. */
-  LISTBASE_FOREACH (wmWindow *, win_iter, &wm->windows) {
-    if ((win_iter == win_parent) || (win_iter->parent == win_parent)) {
-      STRNCPY_UTF8(win_iter->view_layer_name, view_layer->name);
-      bScreen *screen = BKE_workspace_active_screen_get(win_iter->workspace_hook);
+  for (wmWindow &win_iter : wm->windows) {
+    if ((&win_iter == win_parent) || (win_iter.parent == win_parent)) {
+      STRNCPY_UTF8(win_iter.view_layer_name, view_layer->name);
+      bScreen *screen = BKE_workspace_active_screen_get(win_iter.workspace_hook);
       ED_render_view_layer_changed(bmain, screen);
     }
   }
@@ -3301,14 +3301,14 @@ void WM_window_set_active_workspace(bContext *C, wmWindow *win, WorkSpace *works
 
   ED_workspace_change(workspace, C, wm, win);
 
-  LISTBASE_FOREACH (wmWindow *, win_child, &wm->windows) {
-    if (win_child->parent == win_parent) {
-      bScreen *screen = WM_window_get_active_screen(win_child);
+  for (wmWindow &win_child : wm->windows) {
+    if (win_child.parent == win_parent) {
+      bScreen *screen = WM_window_get_active_screen(&win_child);
       /* Don't change temporary screens, they only serve a single purpose. */
       if (screen->temp) {
         continue;
       }
-      ED_workspace_change(workspace, C, wm, win_child);
+      ED_workspace_change(workspace, C, wm, &win_child);
     }
   }
 }

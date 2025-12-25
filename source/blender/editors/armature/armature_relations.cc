@@ -78,31 +78,31 @@ static void joined_armature_fix_links_constraints(Main *bmain,
 {
   bool changed = false;
 
-  LISTBASE_FOREACH (bConstraint *, con, lb) {
+  for (bConstraint &con : *lb) {
     ListBaseT<bConstraintTarget> targets = {nullptr, nullptr};
 
     /* constraint targets */
-    if (BKE_constraint_targets_get(con, &targets)) {
-      LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
-        if (ct->tar == srcArm) {
-          if (ct->subtarget[0] == '\0') {
-            ct->tar = tarArm;
+    if (BKE_constraint_targets_get(&con, &targets)) {
+      for (bConstraintTarget &ct : targets) {
+        if (ct.tar == srcArm) {
+          if (ct.subtarget[0] == '\0') {
+            ct.tar = tarArm;
             changed = true;
           }
-          else if (STREQ(ct->subtarget, pchan->name)) {
-            ct->tar = tarArm;
-            STRNCPY_UTF8(ct->subtarget, curbone->name);
+          else if (STREQ(ct.subtarget, pchan->name)) {
+            ct.tar = tarArm;
+            STRNCPY_UTF8(ct.subtarget, curbone->name);
             changed = true;
           }
         }
       }
 
-      BKE_constraint_targets_flush(con, &targets, false);
+      BKE_constraint_targets_flush(&con, &targets, false);
     }
 
     /* action constraint? (pose constraints only) */
-    if (con->type == CONSTRAINT_TYPE_ACTION) {
-      bActionConstraint *data = static_cast<bActionConstraint *>(con->data);
+    if (con.type == CONSTRAINT_TYPE_ACTION) {
+      bActionConstraint *data = static_cast<bActionConstraint *>(con.data);
 
       if (data->act) {
         BKE_action_fix_paths_rename(&tarArm->id,
@@ -171,9 +171,9 @@ static void joined_armature_fix_animdata_cb(
     driver->flag &= ~DRIVER_FLAG_INVALID;
 
     /* Fix driver references to invalid ID's */
-    LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
+    for (DriverVar &dvar : driver->variables) {
       /* only change the used targets, since the others will need fixing manually anyway */
-      DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
+      DRIVER_TARGETS_USED_LOOPER_BEGIN (&dvar) {
         /* change the ID's used... */
         if (dtar->id == src_id) {
           dtar->id = dst_id;
@@ -231,9 +231,9 @@ static void joined_armature_fix_links(
     /* do some object-type specific things */
     if (ob->type == OB_ARMATURE) {
       pose = ob->pose;
-      LISTBASE_FOREACH (bPoseChannel *, pchant, &pose->chanbase) {
+      for (bPoseChannel &pchant : pose->chanbase) {
         joined_armature_fix_links_constraints(
-            bmain, ob, tarArm, srcArm, pchan, curbone, &pchant->constraints);
+            bmain, ob, tarArm, srcArm, pchan, curbone, &pchant.constraints);
       }
     }
 
@@ -471,8 +471,8 @@ wmOperatorStatus ED_armature_join_objects_exec(bContext *C, wmOperator *op)
         BKE_pose_channels_hash_free(pose);
 
         /* Remap collections. */
-        LISTBASE_FOREACH (BoneCollectionReference *, bcoll_ref, &curbone->bone_collections) {
-          bcoll_ref->bcoll = bone_collection_remap.lookup(bcoll_ref->bcoll);
+        for (BoneCollectionReference &bcoll_ref : curbone->bone_collections) {
+          bcoll_ref.bcoll = bone_collection_remap.lookup(bcoll_ref.bcoll);
         }
       }
 
@@ -561,33 +561,33 @@ static void separated_armature_fix_links(Main *bmain, Object *origArm, Object *n
   {
     /* do some object-type specific things */
     if (ob->type == OB_ARMATURE) {
-      LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-        LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
+      for (bPoseChannel &pchan : ob->pose->chanbase) {
+        for (bConstraint &con : pchan.constraints) {
           ListBaseT<bConstraintTarget> targets = {nullptr, nullptr};
 
           /* constraint targets */
-          if (BKE_constraint_targets_get(con, &targets)) {
-            LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
+          if (BKE_constraint_targets_get(&con, &targets)) {
+            for (bConstraintTarget &ct : targets) {
               /* Any targets which point to original armature
                * are redirected to the new one only if:
                * - The target isn't origArm/newArm itself.
                * - The target is one that can be found in newArm/origArm.
                */
-              if (ct->subtarget[0] != 0) {
-                if (ct->tar == origArm) {
-                  if (BLI_findstring(npchans, ct->subtarget, offsetof(bPoseChannel, name))) {
-                    ct->tar = newArm;
+              if (ct.subtarget[0] != 0) {
+                if (ct.tar == origArm) {
+                  if (BLI_findstring(npchans, ct.subtarget, offsetof(bPoseChannel, name))) {
+                    ct.tar = newArm;
                   }
                 }
-                else if (ct->tar == newArm) {
-                  if (BLI_findstring(opchans, ct->subtarget, offsetof(bPoseChannel, name))) {
-                    ct->tar = origArm;
+                else if (ct.tar == newArm) {
+                  if (BLI_findstring(opchans, ct.subtarget, offsetof(bPoseChannel, name))) {
+                    ct.tar = origArm;
                   }
                 }
               }
             }
 
-            BKE_constraint_targets_flush(con, &targets, false);
+            BKE_constraint_targets_flush(&con, &targets, false);
           }
         }
       }
@@ -595,31 +595,31 @@ static void separated_armature_fix_links(Main *bmain, Object *origArm, Object *n
 
     /* fix object-level constraints */
     if (ob != origArm) {
-      LISTBASE_FOREACH (bConstraint *, con, &ob->constraints) {
+      for (bConstraint &con : ob->constraints) {
         ListBaseT<bConstraintTarget> targets = {nullptr, nullptr};
 
         /* constraint targets */
-        if (BKE_constraint_targets_get(con, &targets)) {
-          LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
+        if (BKE_constraint_targets_get(&con, &targets)) {
+          for (bConstraintTarget &ct : targets) {
             /* any targets which point to original armature are redirected to the new one only if:
              * - the target isn't origArm/newArm itself
              * - the target is one that can be found in newArm/origArm
              */
-            if (ct->subtarget[0] != '\0') {
-              if (ct->tar == origArm) {
-                if (BLI_findstring(npchans, ct->subtarget, offsetof(bPoseChannel, name))) {
-                  ct->tar = newArm;
+            if (ct.subtarget[0] != '\0') {
+              if (ct.tar == origArm) {
+                if (BLI_findstring(npchans, ct.subtarget, offsetof(bPoseChannel, name))) {
+                  ct.tar = newArm;
                 }
               }
-              else if (ct->tar == newArm) {
-                if (BLI_findstring(opchans, ct->subtarget, offsetof(bPoseChannel, name))) {
-                  ct->tar = origArm;
+              else if (ct.tar == newArm) {
+                if (BLI_findstring(opchans, ct.subtarget, offsetof(bPoseChannel, name))) {
+                  ct.tar = origArm;
                 }
               }
             }
           }
 
-          BKE_constraint_targets_flush(con, &targets, false);
+          BKE_constraint_targets_flush(&con, &targets, false);
         }
       }
     }
@@ -661,25 +661,25 @@ static void separate_armature_bones(Main *bmain, Object *ob, const bool is_selec
     if (is_select == blender::animrig::bone_is_selected(arm, curbone)) {
 
       /* Clear the bone->parent var of any bone that had this as its parent. */
-      LISTBASE_FOREACH (EditBone *, ebo, arm->edbo) {
-        if (ebo->parent == curbone) {
-          ebo->parent = nullptr;
+      for (EditBone &ebo : *arm->edbo) {
+        if (ebo.parent == curbone) {
+          ebo.parent = nullptr;
           /* this is needed to prevent random crashes with in ED_armature_from_edit */
-          ebo->temp.p = nullptr;
-          ebo->flag &= ~BONE_CONNECTED;
+          ebo.temp.p = nullptr;
+          ebo.flag &= ~BONE_CONNECTED;
         }
       }
 
       /* clear the pchan->parent var of any pchan that had this as its parent */
-      LISTBASE_FOREACH (bPoseChannel *, pchn, &ob->pose->chanbase) {
-        if (pchn->parent == pchan) {
-          pchn->parent = nullptr;
+      for (bPoseChannel &pchn : ob->pose->chanbase) {
+        if (pchn.parent == pchan) {
+          pchn.parent = nullptr;
         }
-        if (pchn->bbone_next == pchan) {
-          pchn->bbone_next = nullptr;
+        if (pchn.bbone_next == pchan) {
+          pchn.bbone_next = nullptr;
         }
-        if (pchn->bbone_prev == pchan) {
-          pchn->bbone_prev = nullptr;
+        if (pchn.bbone_prev == pchan) {
+          pchn.bbone_prev = nullptr;
         }
       }
 
@@ -720,13 +720,13 @@ static wmOperatorStatus separate_armature_exec(bContext *C, wmOperator *op)
       bArmature *arm_old = static_cast<bArmature *>(ob_old->data);
       bool has_selected_bone = false;
       bool has_selected_any = false;
-      LISTBASE_FOREACH (EditBone *, ebone, arm_old->edbo) {
-        if (blender::animrig::bone_is_visible(arm_old, ebone)) {
-          if (ebone->flag & BONE_SELECTED) {
+      for (EditBone &ebone : *arm_old->edbo) {
+        if (blender::animrig::bone_is_visible(arm_old, &ebone)) {
+          if (ebone.flag & BONE_SELECTED) {
             has_selected_bone = true;
             break;
           }
-          if (ebone->flag & (BONE_TIPSEL | BONE_ROOTSEL)) {
+          if (ebone.flag & (BONE_TIPSEL | BONE_ROOTSEL)) {
             has_selected_any = true;
           }
         }
@@ -871,13 +871,13 @@ static void bone_connect_to_new_parent(ListBaseT<EditBone> *edbo,
     add_v3_v3(selbone->tail, offset);
 
     /* offset for all its children */
-    LISTBASE_FOREACH (EditBone *, ebone, edbo) {
+    for (EditBone &ebone : *edbo) {
       EditBone *par;
 
-      for (par = ebone->parent; par; par = par->parent) {
+      for (par = ebone.parent; par; par = par->parent) {
         if (par == selbone) {
-          add_v3_v3(ebone->head, offset);
-          add_v3_v3(ebone->tail, offset);
+          add_v3_v3(ebone.head, offset);
+          add_v3_v3(ebone.tail, offset);
           break;
         }
       }
@@ -927,9 +927,9 @@ static wmOperatorStatus armature_parent_set_exec(bContext *C, wmOperator *op)
   bool is_active_only_selected = false;
   if (actbone->flag & BONE_SELECTED) {
     is_active_only_selected = true;
-    LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
-      if (EBONE_EDITABLE(ebone)) {
-        if (ebone != actbone) {
+    for (EditBone &ebone : *arm->edbo) {
+      if (EBONE_EDITABLE(&ebone)) {
+        if (&ebone != actbone) {
           is_active_only_selected = false;
           break;
         }
@@ -959,14 +959,14 @@ static wmOperatorStatus armature_parent_set_exec(bContext *C, wmOperator *op)
      */
 
     /* Parent selected bones to the active one. */
-    LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
-      if (EBONE_EDITABLE(ebone)) {
-        if (ebone != actbone) {
-          bone_connect_to_new_parent(arm->edbo, ebone, actbone, val);
+    for (EditBone &ebone : *arm->edbo) {
+      if (EBONE_EDITABLE(&ebone)) {
+        if (&ebone != actbone) {
+          bone_connect_to_new_parent(arm->edbo, &ebone, actbone, val);
         }
 
         if (arm->flag & ARM_MIRROR_EDIT) {
-          EditBone *ebone_mirror = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
+          EditBone *ebone_mirror = ED_armature_ebone_get_mirrored(arm->edbo, &ebone);
           if (ebone_mirror && (ebone_mirror->flag & BONE_SELECTED) == 0) {
             if (ebone_mirror != actmirb) {
               bone_connect_to_new_parent(arm->edbo, ebone_mirror, actmirb, val);
@@ -996,20 +996,20 @@ static wmOperatorStatus armature_parent_set_invoke(bContext *C,
     Object *ob = CTX_data_edit_object(C);
     bArmature *arm = static_cast<bArmature *>(ob->data);
     EditBone *actbone = arm->act_edbone;
-    LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
-      if (!EBONE_EDITABLE(ebone) || !(ebone->flag & BONE_SELECTED)) {
+    for (EditBone &ebone : *arm->edbo) {
+      if (!EBONE_EDITABLE(&ebone) || !(ebone.flag & BONE_SELECTED)) {
         continue;
       }
-      if (ebone == actbone) {
+      if (&ebone == actbone) {
         continue;
       }
 
-      if (ebone->parent != actbone) {
+      if (ebone.parent != actbone) {
         enable_offset = true;
         enable_connect = true;
         break;
       }
-      if (!(ebone->flag & BONE_CONNECTED)) {
+      if (!(ebone.flag & BONE_CONNECTED)) {
         enable_connect = true;
       }
     }
@@ -1089,8 +1089,8 @@ static wmOperatorStatus armature_parent_clear_exec(bContext *C, wmOperator *op)
     bArmature *arm = static_cast<bArmature *>(ob->data);
     bool changed = false;
 
-    LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
-      if (EBONE_EDITABLE(ebone)) {
+    for (EditBone &ebone : *arm->edbo) {
+      if (EBONE_EDITABLE(&ebone)) {
         changed = true;
         break;
       }
@@ -1119,16 +1119,16 @@ static wmOperatorStatus armature_parent_clear_invoke(bContext *C,
   {
     Object *ob = CTX_data_edit_object(C);
     bArmature *arm = static_cast<bArmature *>(ob->data);
-    LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
-      if (!EBONE_EDITABLE(ebone) || !(ebone->flag & BONE_SELECTED)) {
+    for (EditBone &ebone : *arm->edbo) {
+      if (!EBONE_EDITABLE(&ebone) || !(ebone.flag & BONE_SELECTED)) {
         continue;
       }
-      if (ebone->parent == nullptr) {
+      if (ebone.parent == nullptr) {
         continue;
       }
       enable_clear = true;
 
-      if (ebone->flag & BONE_CONNECTED) {
+      if (ebone.flag & BONE_CONNECTED) {
         enable_disconnect = true;
         break;
       }

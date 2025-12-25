@@ -50,18 +50,18 @@ static ScrArea *biggest_non_image_area(bContext *C)
   int size, maxsize = 0, bwmaxsize = 0;
   short foundwin = 0;
 
-  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-    if (area->winx > 30 && area->winy > 30) {
-      size = area->winx * area->winy;
-      if (!area->full && area->spacetype == SPACE_PROPERTIES) {
+  for (ScrArea &area : screen->areabase) {
+    if (area.winx > 30 && area.winy > 30) {
+      size = area.winx * area.winy;
+      if (!area.full && area.spacetype == SPACE_PROPERTIES) {
         if (foundwin == 0 && size > bwmaxsize) {
           bwmaxsize = size;
-          big = area;
+          big = &area;
         }
       }
-      else if (area->spacetype != SPACE_IMAGE && size > maxsize) {
+      else if (area.spacetype != SPACE_IMAGE && size > maxsize) {
         maxsize = size;
-        big = area;
+        big = &area;
         foundwin = 1;
       }
     }
@@ -77,18 +77,18 @@ static ScrArea *find_area_showing_render_result(bContext *C, Scene *scene, wmWin
   wmWindow *win_render = nullptr;
 
   /* find an image-window showing render result */
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    if (WM_window_get_active_scene(win) != scene) {
+  for (wmWindow &win : wm->windows) {
+    if (WM_window_get_active_scene(&win) != scene) {
       continue;
     }
 
-    const bScreen *screen = WM_window_get_active_screen(win);
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      if (area->spacetype == SPACE_IMAGE) {
-        SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+    const bScreen *screen = WM_window_get_active_screen(&win);
+    for (ScrArea &area : screen->areabase) {
+      if (area.spacetype == SPACE_IMAGE) {
+        SpaceImage *sima = static_cast<SpaceImage *>(area.spacedata.first);
         if (sima->image && sima->image->type == IMA_TYPE_R_RESULT) {
-          area_render = area;
-          win_render = win;
+          area_render = &area;
+          win_render = &win;
           break;
         }
       }
@@ -353,14 +353,14 @@ static wmOperatorStatus render_view_show_invoke(bContext *C, wmOperator *op, con
     ScrArea *area = find_area_showing_render_result(C, CTX_data_scene(C), &win_show);
 
     /* is there another window on current scene showing result? */
-    LISTBASE_FOREACH (wmWindow *, win, &CTX_wm_manager(C)->windows) {
-      const bScreen *screen = WM_window_get_active_screen(win);
+    for (wmWindow &win : CTX_wm_manager(C)->windows) {
+      const bScreen *screen = WM_window_get_active_screen(&win);
 
-      if ((WM_window_is_temp_screen(win) &&
+      if ((WM_window_is_temp_screen(&win) &&
            ((ScrArea *)screen->areabase.first)->spacetype == SPACE_IMAGE) ||
-          (win == win_show && win_show != wincur))
+          (&win == win_show && win_show != wincur))
       {
-        wm_window_raise(win);
+        wm_window_raise(&win);
         return OPERATOR_FINISHED;
       }
     }

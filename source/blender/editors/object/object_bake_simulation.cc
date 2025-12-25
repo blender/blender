@@ -82,11 +82,11 @@ static void simulate_to_frame_startjob(void *customdata, wmJobWorkerStatus *work
     if (!BKE_id_is_editable(job.bmain, &object->id)) {
       continue;
     }
-    LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
-      if (md->type != eModifierType_Nodes) {
+    for (ModifierData &md : object->modifiers) {
+      if (md.type != eModifierType_Nodes) {
         continue;
       }
-      NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
+      NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(&md);
       if (!nmd->runtime->cache) {
         continue;
       }
@@ -621,14 +621,14 @@ static Vector<NodeBakeRequest> collect_simulations_to_bake(Main &bmain,
     if (!BKE_id_is_editable(&bmain, &object->id)) {
       continue;
     }
-    LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
-      if (md->type != eModifierType_Nodes) {
+    for (ModifierData &md : object->modifiers) {
+      if (md.type != eModifierType_Nodes) {
         continue;
       }
-      if (!BKE_modifier_is_enabled(&scene, md, eModifierMode_Realtime)) {
+      if (!BKE_modifier_is_enabled(&scene, &md, eModifierMode_Realtime)) {
         continue;
       }
-      NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
+      NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(&md);
       if (!nmd->node_group) {
         continue;
       }
@@ -780,11 +780,11 @@ static void bake_simulation_validate_paths(bContext *C,
       continue;
     }
 
-    LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
-      if (md->type != eModifierType_Nodes) {
+    for (ModifierData &md : object->modifiers) {
+      if (md.type != eModifierType_Nodes) {
         continue;
       }
-      NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
+      NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(&md);
       initialize_modifier_bake_directory_if_necessary(C, *object, *nmd, op);
     }
   }
@@ -806,11 +806,11 @@ static PathUsersMap bake_simulation_get_path_users(bContext *C, const Span<Objec
   for (const Object *object : objects) {
     const char *base_path = ID_BLEND_PATH(bmain, &object->id);
 
-    LISTBASE_FOREACH (const ModifierData *, md, &object->modifiers) {
-      if (md->type != eModifierType_Nodes) {
+    for (const ModifierData &md : object->modifiers) {
+      if (md.type != eModifierType_Nodes) {
         continue;
       }
-      const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(md);
+      const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(&md);
       if (StringRef(nmd->bake_directory).is_empty()) {
         continue;
       }
@@ -915,9 +915,9 @@ static wmOperatorStatus delete_baked_simulation_exec(bContext *C, wmOperator *op
   }
 
   for (Object *object : objects) {
-    LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
-      if (md->type == eModifierType_Nodes) {
-        NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
+    for (ModifierData &md : object->modifiers) {
+      if (md.type == eModifierType_Nodes) {
+        NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(&md);
         for (const NodesModifierBake &bake : Span(nmd->bakes, nmd->bakes_num)) {
           try_delete_bake(bmain, *object, *nmd, bake.id, op->reports);
         }

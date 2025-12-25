@@ -96,10 +96,10 @@ class InsertCollectionDropTarget : public DropTargetInterface {
     Main *bmain = CTX_data_main(C);
     Scene *scene = CTX_data_scene(C);
 
-    LISTBASE_FOREACH (wmDragID *, drag_id, &drag.drag_data.ids) {
+    for (wmDragID &drag_id : drag.drag_data.ids) {
       BKE_light_linking_add_receiver_to_collection(bmain,
                                                    &collection_target_.get_collection(),
-                                                   drag_id->id,
+                                                   drag_id.id,
                                                    COLLECTION_LIGHT_LINKING_STATE_INCLUDE);
     }
 
@@ -157,25 +157,24 @@ class ReorderCollectionDropTarget : public TreeViewItemDropTarget {
     Collection &collection = collection_target_.get_collection();
     const eCollectionLightLinkingState link_state = COLLECTION_LIGHT_LINKING_STATE_INCLUDE;
 
-    LISTBASE_FOREACH (wmDragID *, drag_id, &drag.drag_data.ids) {
-      if (drag_id->id == &drop_id_) {
+    for (wmDragID &drag_id : drag.drag_data.ids) {
+      if (drag_id.id == &drop_id_) {
         continue;
       }
 
-      BKE_light_linking_unlink_id_from_collection(bmain, &collection, drag_id->id, nullptr);
+      BKE_light_linking_unlink_id_from_collection(bmain, &collection, drag_id.id, nullptr);
 
       switch (drag.drop_location) {
         case DropLocation::Into:
-          BKE_light_linking_add_receiver_to_collection(
-              bmain, &collection, drag_id->id, link_state);
+          BKE_light_linking_add_receiver_to_collection(bmain, &collection, drag_id.id, link_state);
           break;
         case DropLocation::Before:
           BKE_light_linking_add_receiver_to_collection_before(
-              bmain, &collection, drag_id->id, &drop_id_, link_state);
+              bmain, &collection, drag_id.id, &drop_id_, link_state);
           break;
         case DropLocation::After:
           BKE_light_linking_add_receiver_to_collection_after(
-              bmain, &collection, drag_id->id, &drop_id_, link_state);
+              bmain, &collection, drag_id.id, &drop_id_, link_state);
           break;
       }
     }
@@ -327,21 +326,21 @@ class CollectionView : public AbstractTreeView {
 
   void build_tree() override
   {
-    LISTBASE_FOREACH (CollectionChild *, collection_child, &collection_.children) {
-      Collection *child_collection = collection_child->collection;
+    for (CollectionChild &collection_child : collection_.children) {
+      Collection *child_collection = collection_child.collection;
       add_tree_item<CollectionViewItem>(context_layout_,
                                         collection_,
                                         child_collection->id,
-                                        collection_child->light_linking,
+                                        collection_child.light_linking,
                                         ICON_OUTLINER_COLLECTION);
     }
 
-    LISTBASE_FOREACH (CollectionObject *, collection_object, &collection_.gobject) {
-      Object *child_object = collection_object->ob;
+    for (CollectionObject &collection_object : collection_.gobject) {
+      Object *child_object = collection_object.ob;
       add_tree_item<CollectionViewItem>(context_layout_,
                                         collection_,
                                         child_object->id,
-                                        collection_object->light_linking,
+                                        collection_object.light_linking,
                                         ICON_OBJECT_DATA);
     }
   }

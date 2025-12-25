@@ -84,26 +84,26 @@ bool nla_panel_context(const bContext *C,
                               ANIMFILTER_FCURVESONLY);
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
 
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    switch (ale->type) {
+  for (bAnimListElem &ale : anim_data) {
+    switch (ale.type) {
       case ANIMTYPE_NLATRACK: /* NLA Track - The primary data type which should get caught */
       {
-        NlaTrack *nlt = static_cast<NlaTrack *>(ale->data);
-        AnimData *adt = ale->adt;
+        NlaTrack *nlt = static_cast<NlaTrack *>(ale.data);
+        AnimData *adt = ale.adt;
 
         /* found it, now set the pointers */
         if (adt_ptr) {
           /* AnimData pointer */
-          *adt_ptr = RNA_pointer_create_discrete(ale->id, &RNA_AnimData, adt);
+          *adt_ptr = RNA_pointer_create_discrete(ale.id, &RNA_AnimData, adt);
         }
         if (nlt_ptr) {
           /* NLA-Track pointer */
-          *nlt_ptr = RNA_pointer_create_discrete(ale->id, &RNA_NlaTrack, nlt);
+          *nlt_ptr = RNA_pointer_create_discrete(ale.id, &RNA_NlaTrack, nlt);
         }
         if (strip_ptr) {
           /* NLA-Strip pointer */
           NlaStrip *strip = BKE_nlastrip_find_active(nlt);
-          *strip_ptr = RNA_pointer_create_discrete(ale->id, &RNA_NlaStrip, strip);
+          *strip_ptr = RNA_pointer_create_discrete(ale.id, &RNA_NlaStrip, strip);
         }
 
         found = 1;
@@ -134,22 +134,22 @@ bool nla_panel_context(const bContext *C,
       case ANIMTYPE_DSVOLUME:
       case ANIMTYPE_DSLIGHTPROBE: {
         /* for these channels, we only do AnimData */
-        if (ale->adt && adt_ptr) {
+        if (ale.adt && adt_ptr) {
           ID *id;
 
-          if ((ale->data == nullptr) || (ale->type == ANIMTYPE_OBJECT)) {
+          if ((ale.data == nullptr) || (ale.type == ANIMTYPE_OBJECT)) {
             /* ale->data is not an ID block! */
-            id = ale->id;
+            id = ale.id;
           }
           else {
             /* ale->data is always the proper ID block we need,
              * but ale->id may not be (i.e. for textures) */
-            id = static_cast<ID *>(ale->data);
+            id = static_cast<ID *>(ale.data);
           }
 
           /* AnimData pointer */
           if (adt_ptr) {
-            *adt_ptr = RNA_pointer_create_discrete(id, &RNA_AnimData, ale->adt);
+            *adt_ptr = RNA_pointer_create_discrete(id, &RNA_AnimData, ale.adt);
           }
 
           /* set found status to -1, since setting to 1 would break the loop

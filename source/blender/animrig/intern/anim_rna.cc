@@ -145,10 +145,10 @@ Vector<RNAPath> get_keyable_id_property_paths(const PointerRNA &ptr)
   }
 
   Vector<RNAPath> paths;
-  LISTBASE_FOREACH (const IDProperty *, id_prop, &properties->data.group) {
+  for (const IDProperty &id_prop : properties->data.group) {
     PointerRNA resolved_ptr;
     PropertyRNA *resolved_prop;
-    std::string path = id_prop->name;
+    std::string path = id_prop.name;
     /* Resolving the path twice, once as RNA property (without brackets, `"propname"`),
      * and once as ID property (with brackets, `["propname"]`).
      * This is required to support IDProperties that have been defined as part of an add-on.
@@ -160,14 +160,14 @@ Vector<RNAPath> get_keyable_id_property_paths(const PointerRNA &ptr)
      * catches that case. */
     if (!is_resolved || !RNA_property_is_runtime(resolved_prop)) {
       char name_escaped[MAX_IDPROP_NAME * 2];
-      BLI_str_escape(name_escaped, id_prop->name, sizeof(name_escaped));
+      BLI_str_escape(name_escaped, id_prop.name, sizeof(name_escaped));
       path = fmt::format("[\"{}\"]", name_escaped);
       is_resolved = RNA_path_resolve_property(&ptr, path.c_str(), &resolved_ptr, &resolved_prop);
     }
     if (!is_resolved) {
       continue;
     }
-    if (is_idproperty_keyable(id_prop, &resolved_ptr, resolved_prop)) {
+    if (is_idproperty_keyable(&id_prop, &resolved_ptr, resolved_prop)) {
       paths.append({path});
     }
   }

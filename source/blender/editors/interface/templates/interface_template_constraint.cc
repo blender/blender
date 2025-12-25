@@ -316,14 +316,14 @@ void template_constraints(Layout * /*layout*/, bContext *C, bool use_bone_constr
   else {
     /* Assuming there's only one group of instanced panels, update the custom data pointers. */
     Panel *panel = static_cast<Panel *>(region->panels.first);
-    LISTBASE_FOREACH (bConstraint *, con, constraints) {
+    for (bConstraint &con : *constraints) {
       /* Don't show invalid/legacy constraints. */
-      if (con->type == CONSTRAINT_TYPE_NULL) {
+      if (con.type == CONSTRAINT_TYPE_NULL) {
         continue;
       }
       /* Don't show temporary constraints (AutoIK and target-less IK constraints). */
-      if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
-        bKinematicConstraint *data = static_cast<bKinematicConstraint *>(con->data);
+      if (con.type == CONSTRAINT_TYPE_KINEMATIC) {
+        bKinematicConstraint *data = static_cast<bKinematicConstraint *>(con.data);
         if (data->flag & CONSTRAINT_IK_TEMP) {
           continue;
         }
@@ -336,7 +336,7 @@ void template_constraints(Layout * /*layout*/, bContext *C, bool use_bone_constr
       }
 
       PointerRNA *con_ptr = MEM_new<PointerRNA>(__func__);
-      *con_ptr = RNA_pointer_create_discrete(&ob->id, &RNA_Constraint, con);
+      *con_ptr = RNA_pointer_create_discrete(&ob->id, &RNA_Constraint, &con);
       panel_custom_data_set(panel, con_ptr);
 
       panel = panel->next;

@@ -762,11 +762,11 @@ static void area_region_from_regiondata(bScreen *screen,
   *r_area = nullptr;
   *r_region = nullptr;
 
-  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-      if (region->regiondata == regiondata) {
-        *r_area = area;
-        *r_region = region;
+  for (ScrArea &area : screen->areabase) {
+    for (ARegion &region : area.regionbase) {
+      if (region.regiondata == regiondata) {
+        *r_area = &area;
+        *r_region = &region;
         return;
       }
     }
@@ -1362,20 +1362,20 @@ static void rna_3DViewShading_type_update(Main *bmain, Scene *scene, PointerRNA 
   {
     /* When switching from workbench to render or material mode the geometry of any
      * active sculpt session needs to be recalculated. */
-    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-      if (ob->sculpt) {
-        DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+    for (Object &ob : bmain->objects) {
+      if (ob.sculpt) {
+        DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
       }
     }
   }
 
   bScreen *screen = (bScreen *)ptr->owner_id;
-  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-    LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-      if (sl->spacetype == SPACE_VIEW3D) {
-        View3D *v3d = (View3D *)sl;
+  for (ScrArea &area : screen->areabase) {
+    for (SpaceLink &sl : area.spacedata) {
+      if (sl.spacetype == SPACE_VIEW3D) {
+        View3D *v3d = (View3D *)&sl;
         if (&v3d->shading == shading) {
-          ED_view3d_shade_update(bmain, v3d, area);
+          ED_view3d_shade_update(bmain, v3d, &area);
           return;
         }
       }
@@ -1557,21 +1557,23 @@ static const EnumPropertyItem *rna_View3DShading_studio_light_itemf(bContext * /
   if (shading->type == OB_SOLID && shading->light == V3D_LIGHTING_MATCAP) {
     const int flags = (STUDIOLIGHT_EXTERNAL_FILE | STUDIOLIGHT_TYPE_MATCAP);
 
-    LISTBASE_FOREACH (StudioLight *, sl, BKE_studiolight_listbase()) {
-      int icon_id = (shading->flag & V3D_SHADING_MATCAP_FLIP_X) ? sl->icon_id_matcap_flipped :
-                                                                  sl->icon_id_matcap;
-      if ((sl->flag & flags) == flags) {
-        EnumPropertyItem tmp = {sl->index, sl->name, icon_id, sl->name, ""};
+    const ListBaseT<StudioLight> &studio_lights = BKE_studiolight_listbase();
+    for (const StudioLight &sl : studio_lights) {
+      int icon_id = (shading->flag & V3D_SHADING_MATCAP_FLIP_X) ? sl.icon_id_matcap_flipped :
+                                                                  sl.icon_id_matcap;
+      if ((sl.flag & flags) == flags) {
+        EnumPropertyItem tmp = {sl.index, sl.name, icon_id, sl.name, ""};
         RNA_enum_item_add(&item, &totitem, &tmp);
       }
     }
   }
   else {
-    LISTBASE_FOREACH (StudioLight *, sl, BKE_studiolight_listbase()) {
-      int icon_id = sl->icon_id_irradiance;
+    const ListBaseT<StudioLight> &studio_lights = BKE_studiolight_listbase();
+    for (const StudioLight &sl : studio_lights) {
+      int icon_id = sl.icon_id_irradiance;
       bool show_studiolight = false;
 
-      if (sl->flag & STUDIOLIGHT_INTERNAL) {
+      if (sl.flag & STUDIOLIGHT_INTERNAL) {
         /* always show internal lights for solid */
         if (shading->type == OB_SOLID) {
           show_studiolight = true;
@@ -1581,19 +1583,19 @@ static const EnumPropertyItem *rna_View3DShading_studio_light_itemf(bContext * /
         switch (shading->type) {
           case OB_SOLID:
           case OB_TEXTURE:
-            show_studiolight = ((sl->flag & STUDIOLIGHT_TYPE_STUDIO) != 0);
+            show_studiolight = ((sl.flag & STUDIOLIGHT_TYPE_STUDIO) != 0);
             break;
 
           case OB_MATERIAL:
           case OB_RENDER:
-            show_studiolight = ((sl->flag & STUDIOLIGHT_TYPE_WORLD) != 0);
-            icon_id = sl->icon_id_radiance;
+            show_studiolight = ((sl.flag & STUDIOLIGHT_TYPE_WORLD) != 0);
+            icon_id = sl.icon_id_radiance;
             break;
         }
       }
 
       if (show_studiolight) {
-        EnumPropertyItem tmp = {sl->index, sl->name, icon_id, sl->name, ""};
+        EnumPropertyItem tmp = {sl.index, sl.name, icon_id, sl.name, ""};
         RNA_enum_item_add(&item, &totitem, &tmp);
       }
     }
@@ -1624,12 +1626,12 @@ static const EnumPropertyItem *rna_3DViewShading_render_pass_itemf(bContext *C,
       aov_template.value = item->value;
       aov_template.icon = 0;
       aov_template.description = item->description;
-      LISTBASE_FOREACH (ViewLayerAOV *, aov, &view_layer->aovs) {
-        if ((aov->flag & AOV_CONFLICT) != 0) {
+      for (ViewLayerAOV &aov : view_layer->aovs) {
+        if ((aov.flag & AOV_CONFLICT) != 0) {
           continue;
         }
-        aov_template.name = aov->name;
-        aov_template.identifier = aov->name;
+        aov_template.name = aov.name;
+        aov_template.identifier = aov.name;
         RNA_enum_item_add(&result, &totitem, &aov_template);
         aov_template.value++;
       }
@@ -1763,12 +1765,11 @@ static std::optional<std::string> rna_View3DShading_path(const PointerRNA *ptr)
   else if (GS(ptr->owner_id->name) == ID_SCR) {
     const bScreen *screen = reinterpret_cast<bScreen *>(ptr->owner_id);
     const View3DShading *shading = static_cast<View3DShading *>(ptr->data);
-    int area_index;
-    int space_index;
-    LISTBASE_FOREACH_INDEX (ScrArea *, area, &screen->areabase, area_index) {
-      LISTBASE_FOREACH_INDEX (SpaceLink *, sl, &area->spacedata, space_index) {
-        if (sl->spacetype == SPACE_VIEW3D) {
-          View3D *v3d = reinterpret_cast<View3D *>(sl);
+
+    for (const auto [area_index, area] : screen->areabase.enumerate()) {
+      for (const auto [space_index, sl] : area.spacedata.enumerate()) {
+        if (sl.spacetype == SPACE_VIEW3D) {
+          const View3D *v3d = reinterpret_cast<const View3D *>(&sl);
           if (&v3d->shading == shading) {
             return fmt::format("areas[{}].spaces[{}].shading", area_index, space_index);
           }
@@ -2466,19 +2467,18 @@ static void seq_build_proxy(bContext *C, PointerRNA *ptr)
   wmJob *wm_job = blender::seq::ED_seq_proxy_wm_job_get(C);
   blender::seq::ProxyJob *pj = blender::seq::ED_seq_proxy_job_get(C, wm_job);
 
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if (strip->type != STRIP_TYPE_MOVIE || strip->data == nullptr || strip->data->proxy == nullptr)
-    {
+  for (Strip &strip : *seqbase) {
+    if (strip.type != STRIP_TYPE_MOVIE || strip.data == nullptr || strip.data->proxy == nullptr) {
       continue;
     }
 
     /* Add new proxy size. */
-    strip->data->proxy->build_size_flags |= blender::seq::rendersize_to_proxysize(
+    strip.data->proxy->build_size_flags |= blender::seq::rendersize_to_proxysize(
         eSpaceSeq_Proxy_RenderSize(sseq->render_size));
 
     /* Build proxy. */
     blender::seq::proxy_rebuild_context(
-        pj->main, pj->depsgraph, pj->scene, strip, &processed_paths, &pj->queue, true);
+        pj->main, pj->depsgraph, pj->scene, &strip, &processed_paths, &pj->queue, true);
   }
 
   if (!WM_jobs_is_running(wm_job)) {
@@ -2838,8 +2838,8 @@ static void rna_SpaceNodeEditor_path_clear(SpaceNode *snode, bContext *C)
 static ARegion *find_snode_region(SpaceNode *snode, bContext *C)
 {
   if (wmWindowManager *wm = CTX_wm_manager(C)) {
-    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-      bScreen *screen = WM_window_get_active_screen(win);
+    for (wmWindow &win : wm->windows) {
+      bScreen *screen = WM_window_get_active_screen(&win);
       ScrArea *area = BKE_screen_find_area_from_space(screen,
                                                       reinterpret_cast<const SpaceLink *>(snode));
       if (ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW)) {

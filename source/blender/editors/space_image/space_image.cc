@@ -63,8 +63,8 @@ static void image_scopes_tag_refresh(ScrArea *area)
   SpaceImage *sima = (SpaceImage *)area->spacedata.first;
 
   /* only while histogram is visible */
-  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    if (region->regiontype == RGN_TYPE_TOOL_PROPS && region->flag & RGN_FLAG_HIDDEN) {
+  for (ARegion &region : area->regionbase) {
+    if (region.regiontype == RGN_TYPE_TOOL_PROPS && region.flag & RGN_FLAG_HIDDEN) {
       return;
     }
   }

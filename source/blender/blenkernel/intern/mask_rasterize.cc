@@ -620,9 +620,9 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
 
     BLI_scanfill_begin_arena(&sf_ctx, sf_arena);
 
-    LISTBASE_FOREACH (MaskSpline *, spline, &masklay->splines) {
-      const bool is_cyclic = (spline->flag & MASK_SPLINE_CYCLIC) != 0;
-      const bool is_fill = (spline->flag & MASK_SPLINE_NOFILL) == 0;
+    for (MaskSpline &spline : masklay->splines) {
+      const bool is_cyclic = (spline.flag & MASK_SPLINE_CYCLIC) != 0;
+      const bool is_fill = (spline.flag & MASK_SPLINE_NOFILL) == 0;
 
       float (*diff_points)[2];
       uint tot_diff_point;
@@ -631,15 +631,15 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
       float (*diff_feather_points_flip)[2];
       uint tot_diff_feather_points;
 
-      const uint resol_a = uint(BKE_mask_spline_resolution(spline, width, height) / 4);
-      const uint resol_b = BKE_mask_spline_feather_resolution(spline, width, height) / 4;
+      const uint resol_a = uint(BKE_mask_spline_resolution(&spline, width, height) / 4);
+      const uint resol_b = BKE_mask_spline_feather_resolution(&spline, width, height) / 4;
       const uint resol = std::clamp(std::max(resol_a, resol_b), 4u, 512u);
 
-      diff_points = BKE_mask_spline_differentiate_with_resolution(spline, resol, &tot_diff_point);
+      diff_points = BKE_mask_spline_differentiate_with_resolution(&spline, resol, &tot_diff_point);
 
       if (do_feather) {
         diff_feather_points = BKE_mask_spline_feather_differentiated_points_with_resolution(
-            spline, resol, false, &tot_diff_feather_points);
+            &spline, resol, false, &tot_diff_feather_points);
         BLI_assert(diff_feather_points);
       }
       else {
@@ -700,9 +700,9 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
 
         if (is_fill) {
           /* Apply intersections depending on fill settings. */
-          if (spline->flag & MASK_SPLINE_NOINTERSECT) {
+          if (spline.flag & MASK_SPLINE_NOINTERSECT) {
             BKE_mask_spline_feather_collapse_inner_loops(
-                spline, diff_feather_points, tot_diff_feather_points);
+                &spline, diff_feather_points, tot_diff_feather_points);
           }
 
           sf_vert_prev = scanfill_vert_add_v2_with_depth(&sf_ctx, diff_points[0], 0.0f);
@@ -756,7 +756,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
           /* unfilled spline */
           if (diff_feather_points) {
 
-            if (spline->flag & MASK_SPLINE_NOINTERSECT) {
+            if (spline.flag & MASK_SPLINE_NOINTERSECT) {
               diff_feather_points_flip = MEM_calloc_arrayN<float[2]>(tot_diff_feather_points,
                                                                      "diff_feather_points_flip");
 
@@ -767,9 +767,9 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
               }
 
               BKE_mask_spline_feather_collapse_inner_loops(
-                  spline, diff_feather_points, tot_diff_feather_points);
+                  &spline, diff_feather_points, tot_diff_feather_points);
               BKE_mask_spline_feather_collapse_inner_loops(
-                  spline, diff_feather_points_flip, tot_diff_feather_points);
+                  &spline, diff_feather_points_flip, tot_diff_feather_points);
             }
             else {
               diff_feather_points_flip = nullptr;
@@ -979,8 +979,8 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
       if (tot_feather_quads) {
         const ListBaseT<ScanFillEdge> *lb_array[] = {&sf_ctx.filledgebase, &isect_remedgebase};
         for (int pass = 0; pass < 2; pass++) {
-          LISTBASE_FOREACH (ScanFillEdge *, sf_edge, lb_array[pass]) {
-            if (sf_edge->tmp.c == SF_EDGE_IS_BOUNDARY) {
+          for (ScanFillEdge &sf_edge : *lb_array[pass]) {
+            if (sf_edge.tmp.c == SF_EDGE_IS_BOUNDARY) {
               sf_edge_array_num += 1;
             }
           }
@@ -990,9 +990,9 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
           sf_edge_array = MEM_malloc_arrayN<ScanFillEdge *>(size_t(sf_edge_array_num), __func__);
           uint edge_index = 0;
           for (int pass = 0; pass < 2; pass++) {
-            LISTBASE_FOREACH (ScanFillEdge *, sf_edge, lb_array[pass]) {
-              if (sf_edge->tmp.c == SF_EDGE_IS_BOUNDARY) {
-                sf_edge_array[edge_index++] = sf_edge;
+            for (ScanFillEdge &sf_edge : *lb_array[pass]) {
+              if (sf_edge.tmp.c == SF_EDGE_IS_BOUNDARY) {
+                sf_edge_array[edge_index++] = &sf_edge;
               }
             }
           }

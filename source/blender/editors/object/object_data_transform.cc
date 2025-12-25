@@ -78,10 +78,10 @@ static ElemData_Armature *armature_coords_and_quats_get_recurse(const ListBaseT<
                                                                 ElemData_Armature *elem_array)
 {
   ElemData_Armature *elem = elem_array;
-  LISTBASE_FOREACH (const Bone *, bone, bone_base) {
+  for (const Bone &bone : *bone_base) {
 
-#define COPY_PTR(member) memcpy(elem->member, bone->member, sizeof(bone->member))
-#define COPY_VAL(member) memcpy(&elem->member, &bone->member, sizeof(bone->member))
+#define COPY_PTR(member) memcpy(elem->member, bone.member, sizeof(bone.member))
+#define COPY_VAL(member) memcpy(&elem->member, &bone.member, sizeof(bone.member))
     COPY_PTR(head);
     COPY_PTR(tail);
     COPY_VAL(roll);
@@ -96,7 +96,7 @@ static ElemData_Armature *armature_coords_and_quats_get_recurse(const ListBaseT<
 #undef COPY_PTR
 #undef COPY_VAL
 
-    elem = armature_coords_and_quats_get_recurse(&bone->childbase, elem + 1);
+    elem = armature_coords_and_quats_get_recurse(&bone.childbase, elem + 1);
   }
   return elem;
 }
@@ -111,10 +111,10 @@ static const ElemData_Armature *armature_coords_and_quats_apply_with_mat4_recurs
     ListBaseT<Bone> *bone_base, const ElemData_Armature *elem_array, const float4x4 &transform)
 {
   const ElemData_Armature *elem = elem_array;
-  LISTBASE_FOREACH (Bone *, bone, bone_base) {
+  for (Bone &bone : *bone_base) {
 
-#define COPY_PTR(member) memcpy(bone->member, elem->member, sizeof(bone->member))
-#define COPY_VAL(member) memcpy(&bone->member, &elem->member, sizeof(bone->member))
+#define COPY_PTR(member) memcpy(bone.member, elem->member, sizeof(bone.member))
+#define COPY_VAL(member) memcpy(&bone.member, &elem->member, sizeof(bone.member))
     COPY_PTR(head);
     COPY_PTR(tail);
     COPY_VAL(roll);
@@ -129,8 +129,7 @@ static const ElemData_Armature *armature_coords_and_quats_apply_with_mat4_recurs
 #undef COPY_PTR
 #undef COPY_VAL
 
-    elem = armature_coords_and_quats_apply_with_mat4_recurse(
-        &bone->childbase, elem + 1, transform);
+    elem = armature_coords_and_quats_apply_with_mat4_recurse(&bone.childbase, elem + 1, transform);
   }
   return elem;
 }

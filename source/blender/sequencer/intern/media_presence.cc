@@ -67,8 +67,8 @@ static bool check_media_missing(const Scene *scene, const Strip *strip)
 
   /* Recurse into meta strips. */
   if (strip->type == STRIP_TYPE_META) {
-    LISTBASE_FOREACH (Strip *, strip_n, &strip->seqbase) {
-      if (check_media_missing(scene, strip_n)) {
+    for (Strip &strip_n : strip->seqbase) {
+      if (check_media_missing(scene, &strip_n)) {
         return true;
       }
     }

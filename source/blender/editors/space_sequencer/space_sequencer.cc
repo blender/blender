@@ -794,8 +794,8 @@ static void sequencer_tools_region_draw(const bContext *C, ARegion *region)
   ScrArea *area = CTX_wm_area(C);
   wm::OpCallContext op_context = wm::OpCallContext::InvokeRegionWin;
 
-  LISTBASE_FOREACH (ARegion *, ar, &area->regionbase) {
-    if (ar->regiontype == RGN_TYPE_PREVIEW && region->regiontype == RGN_TYPE_TOOLS) {
+  for (ARegion &ar : area->regionbase) {
+    if (ar.regiontype == RGN_TYPE_PREVIEW && region->regiontype == RGN_TYPE_TOOLS) {
       op_context = wm::OpCallContext::InvokeRegionPreview;
       break;
     }

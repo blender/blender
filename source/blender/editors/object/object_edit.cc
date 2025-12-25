@@ -304,16 +304,16 @@ static wmOperatorStatus object_hide_view_clear_exec(bContext *C, wmOperator *op)
   bool changed = false;
 
   BKE_view_layer_synced_ensure(scene, view_layer);
-  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-    if (base->flag & BASE_HIDDEN) {
-      base->flag &= ~BASE_HIDDEN;
+  for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+    if (base.flag & BASE_HIDDEN) {
+      base.flag &= ~BASE_HIDDEN;
       changed = true;
 
       if (select) {
         /* We cannot call `base_select` because
          * base is not selectable while it is hidden. */
-        base->flag |= BASE_SELECTED;
-        BKE_scene_object_base_flag_sync_from_base(base);
+        base.flag |= BASE_SELECTED;
+        BKE_scene_object_base_flag_sync_from_base(&base);
       }
     }
   }
@@ -358,23 +358,23 @@ static wmOperatorStatus object_hide_view_set_exec(bContext *C, wmOperator *op)
 
   /* Hide selected or unselected objects. */
   BKE_view_layer_synced_ensure(scene, view_layer);
-  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-    if (!(base->flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT)) {
+  for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+    if (!(base.flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT)) {
       continue;
     }
 
     if (!unselected) {
-      if (base->flag & BASE_SELECTED) {
-        base_select(base, BA_DESELECT);
-        base->flag |= BASE_HIDDEN;
+      if (base.flag & BASE_SELECTED) {
+        base_select(&base, BA_DESELECT);
+        base.flag |= BASE_HIDDEN;
         hide_count++;
         changed = true;
       }
     }
     else {
-      if (!(base->flag & BASE_SELECTED)) {
-        base_select(base, BA_DESELECT);
-        base->flag |= BASE_HIDDEN;
+      if (!(base.flag & BASE_SELECTED)) {
+        base_select(&base, BA_DESELECT);
+        base.flag |= BASE_HIDDEN;
         hide_count++;
         changed = true;
       }
@@ -466,26 +466,26 @@ void collection_hide_menu_draw(const bContext *C, ui::Layout &layout)
   /* Use the "invoke" operator context so the "Shift" modifier is used to extend. */
   layout.operator_context_set(wm::OpCallContext::InvokeRegionWin);
 
-  LISTBASE_FOREACH (LayerCollection *, lc, &lc_scene->layer_collections) {
-    int index = BKE_layer_collection_findindex(view_layer, lc);
+  for (LayerCollection &lc : lc_scene->layer_collections) {
+    int index = BKE_layer_collection_findindex(view_layer, &lc);
     ui::Layout &row = layout.row(false);
 
-    if (lc->flag & LAYER_COLLECTION_EXCLUDE) {
+    if (lc.flag & LAYER_COLLECTION_EXCLUDE) {
       continue;
     }
 
-    if (lc->collection->flag & COLLECTION_HIDE_VIEWPORT) {
+    if (lc.collection->flag & COLLECTION_HIDE_VIEWPORT) {
       continue;
     }
 
     int icon = ICON_NONE;
-    if (BKE_layer_collection_has_selected_objects(scene, view_layer, lc)) {
+    if (BKE_layer_collection_has_selected_objects(scene, view_layer, &lc)) {
       icon = ICON_LAYER_ACTIVE;
     }
-    else if (lc->runtime_flag & LAYER_COLLECTION_HAS_OBJECTS) {
+    else if (lc.runtime_flag & LAYER_COLLECTION_HAS_OBJECTS) {
       icon = ICON_LAYER_USED;
     }
-    PointerRNA op_ptr = row.op("OBJECT_OT_hide_collection", lc->collection->id.name + 2, icon);
+    PointerRNA op_ptr = row.op("OBJECT_OT_hide_collection", lc.collection->id.name + 2, icon);
     RNA_int_set(&op_ptr, "collection_index", index);
   }
 }
@@ -562,17 +562,17 @@ void OBJECT_OT_hide_collection(wmOperatorType *ot)
 static void flush_bone_selection_to_pose(Object &ob)
 {
   BLI_assert(ob.pose);
-  LISTBASE_FOREACH (bPoseChannel *, pose_bone, &ob.pose->chanbase) {
-    pose_bone->flag &= ~(POSE_SELECTED | POSE_SELECTED_ROOT | POSE_SELECTED_TIP);
-    const Bone *bone = pose_bone->bone;
+  for (bPoseChannel &pose_bone : ob.pose->chanbase) {
+    pose_bone.flag &= ~(POSE_SELECTED | POSE_SELECTED_ROOT | POSE_SELECTED_TIP);
+    const Bone *bone = pose_bone.bone;
     if (bone->flag & BONE_ROOTSEL) {
-      pose_bone->flag |= POSE_SELECTED_ROOT;
+      pose_bone.flag |= POSE_SELECTED_ROOT;
     }
     if (bone->flag & BONE_TIPSEL) {
-      pose_bone->flag |= POSE_SELECTED_TIP;
+      pose_bone.flag |= POSE_SELECTED_TIP;
     }
     if (bone->flag & BONE_SELECTED) {
-      pose_bone->flag |= POSE_SELECTED;
+      pose_bone.flag |= POSE_SELECTED;
     }
   }
 }
@@ -580,16 +580,16 @@ static void flush_bone_selection_to_pose(Object &ob)
 static void flush_pose_selection_to_bone(Object &ob)
 {
   BLI_assert(ob.pose);
-  LISTBASE_FOREACH (bPoseChannel *, pose_bone, &ob.pose->chanbase) {
-    pose_bone->bone->flag &= ~(BONE_ROOTSEL | BONE_TIPSEL | BONE_SELECTED);
-    Bone *bone = pose_bone->bone;
-    if (pose_bone->flag & POSE_SELECTED_ROOT) {
+  for (bPoseChannel &pose_bone : ob.pose->chanbase) {
+    pose_bone.bone->flag &= ~(BONE_ROOTSEL | BONE_TIPSEL | BONE_SELECTED);
+    Bone *bone = pose_bone.bone;
+    if (pose_bone.flag & POSE_SELECTED_ROOT) {
       bone->flag |= BONE_ROOTSEL;
     }
-    if (pose_bone->flag & POSE_SELECTED_TIP) {
+    if (pose_bone.flag & POSE_SELECTED_TIP) {
       bone->flag |= BONE_TIPSEL;
     }
-    if (pose_bone->flag & POSE_SELECTED) {
+    if (pose_bone.flag & POSE_SELECTED) {
       bone->flag |= BONE_SELECTED;
     }
   }
@@ -601,13 +601,13 @@ static bool mesh_needs_keyindex(Main *bmain, const Mesh *mesh)
     return false; /* will be added */
   }
 
-  LISTBASE_FOREACH (const Object *, ob, &bmain->objects) {
-    if ((ob->parent) && (ob->parent->data == mesh) && ELEM(ob->partype, PARVERT1, PARVERT3)) {
+  for (const Object &ob : bmain->objects) {
+    if ((ob.parent) && (ob.parent->data == mesh) && ELEM(ob.partype, PARVERT1, PARVERT3)) {
       return true;
     }
-    if (ob->data == mesh) {
-      LISTBASE_FOREACH (const ModifierData *, md, &ob->modifiers) {
-        if (md->type == eModifierType_Hook) {
+    if (ob.data == mesh) {
+      for (const ModifierData &md : ob.modifiers) {
+        if (md.type == eModifierType_Hook) {
           return true;
         }
       }
@@ -793,10 +793,10 @@ bool editmode_exit_ex(Main *bmain, Scene *scene, Object *obedit, int flag)
     /* flag object caches as outdated */
     ListBaseT<PTCacheID> pidlist;
     BKE_ptcache_ids_from_object(&pidlist, obedit, scene, 0);
-    LISTBASE_FOREACH (PTCacheID *, pid, &pidlist) {
+    for (PTCacheID &pid : pidlist) {
       /* particles don't need reset on geometry change */
-      if (pid->type != PTCACHE_TYPE_PARTICLES) {
-        pid->cache->flag |= PTCACHE_OUTDATED;
+      if (pid.type != PTCACHE_TYPE_PARTICLES) {
+        pid.cache->flag |= PTCACHE_OUTDATED;
       }
     }
     BLI_freelistN(&pidlist);
@@ -841,10 +841,10 @@ bool editmode_exit_multi_ex(Main *bmain, Scene *scene, ViewLayer *view_layer, in
   const short obedit_type = obedit->type;
 
   BKE_view_layer_synced_ensure(scene, view_layer);
-  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-    Object *ob = base->object;
+  for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+    Object *ob = base.object;
     if ((ob->type == obedit_type) && (ob->mode & OB_MODE_EDIT)) {
-      changed |= editmode_exit_ex(bmain, scene, base->object, flag);
+      changed |= editmode_exit_ex(bmain, scene, base.object, flag);
     }
   }
   return changed;
@@ -1324,8 +1324,8 @@ void motion_paths_recalc(bContext *C,
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
   Vector<MPathTarget *> targets;
-  LISTBASE_FOREACH (LinkData *, link, ld_objects) {
-    Object *ob = static_cast<Object *>(link->data);
+  for (LinkData &link : *ld_objects) {
+    Object *ob = static_cast<Object *>(link.data);
 
     /* set flag to force recalc, then grab path(s) from object */
     if (has_object_motion_paths(ob)) {
@@ -1361,8 +1361,8 @@ void motion_paths_recalc(bContext *C,
   if (range != OBJECT_PATH_CALC_RANGE_CURRENT_FRAME) {
     /* Tag objects for copy-on-eval - so paths will draw/redraw
      * For currently frame only we update evaluated object directly. */
-    LISTBASE_FOREACH (LinkData *, link, ld_objects) {
-      Object *ob = static_cast<Object *>(link->data);
+    for (LinkData &link : *ld_objects) {
+      Object *ob = static_cast<Object *>(link.data);
 
       if (has_object_motion_paths(ob) || has_pose_motion_paths(ob)) {
         DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
@@ -1718,9 +1718,9 @@ static wmOperatorStatus shade_smooth_exec(bContext *C, wmOperator *op)
 
       if (ob->type == OB_MESH) {
         if (use_flat || use_smooth) {
-          LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-            if (is_smooth_by_angle_modifier(*md)) {
-              modifier_remove(op->reports, bmain, scene, ob, md);
+          for (ModifierData &md : ob->modifiers) {
+            if (is_smooth_by_angle_modifier(md)) {
+              modifier_remove(op->reports, bmain, scene, ob, &md);
               DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
               WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_REMOVED, ob);
               break;
@@ -1939,9 +1939,9 @@ static wmOperatorStatus shade_auto_smooth_exec(bContext *C, wmOperator *op)
         DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
       }
       NodesModifierData *smooth_by_angle_nmd = nullptr;
-      LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
-        if (is_smooth_by_angle_modifier(*md)) {
-          smooth_by_angle_nmd = reinterpret_cast<NodesModifierData *>(md);
+      for (ModifierData &md : object->modifiers) {
+        if (is_smooth_by_angle_modifier(md)) {
+          smooth_by_angle_nmd = reinterpret_cast<NodesModifierData *>(&md);
           break;
         }
       }
@@ -1977,9 +1977,9 @@ static wmOperatorStatus shade_auto_smooth_exec(bContext *C, wmOperator *op)
   else {
     for (const PointerRNA &ob_ptr : ctx_objects) {
       Object *object = static_cast<Object *>(ob_ptr.data);
-      LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
-        if (is_smooth_by_angle_modifier(*md)) {
-          modifier_remove(op->reports, &bmain, &scene, object, md);
+      for (ModifierData &md : object->modifiers) {
+        if (is_smooth_by_angle_modifier(md)) {
+          modifier_remove(op->reports, &bmain, &scene, object, &md);
           WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_REMOVED, object);
           break;
         }
@@ -2302,8 +2302,8 @@ static wmOperatorStatus move_to_collection_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  LISTBASE_FOREACH (LinkData *, link, &objects) {
-    Object *ob = static_cast<Object *>(link->data);
+  for (LinkData &link : objects) {
+    Object *ob = static_cast<Object *>(link.data);
 
     if (!is_link) {
       BKE_collection_object_move(bmain, src_scene, collection, nullptr, ob);
@@ -2427,8 +2427,8 @@ static void move_to_collection_menu_draw(Menu *menu, Collection *collection, int
   op_ptr = layout.op(ot, BKE_collection_ui_name_get(collection), icon);
   RNA_int_set(&op_ptr, "collection_uid", collection->id.session_uid);
 
-  LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-    collection = child->collection;
+  for (CollectionChild &child : collection->children) {
+    collection = child.collection;
     if (BLI_listbase_is_empty(&collection->children)) {
       op_ptr = layout.op(
           ot, BKE_collection_ui_name_get(collection), ui::icon_color_from_collection(collection));

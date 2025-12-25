@@ -166,7 +166,7 @@ TEST(listbase, FindLinkFromStringOrPointer)
 
 TEST(listbase, FromLink)
 {
-  ListBase lb = {nullptr, nullptr};
+  ListBaseT<Link> lb = {nullptr, nullptr};
   Link *link1 = MEM_callocN<Link>("link1");
   Link *link2 = MEM_callocN<Link>("link2");
   Link *link3 = MEM_callocN<Link>("link3");

@@ -2007,11 +2007,11 @@ static void rna_Lineart_end_level_set(PointerRNA *ptr, int value)
 static const NodesModifierData *find_nodes_modifier_by_bake(const Object &object,
                                                             const NodesModifierBake &bake)
 {
-  LISTBASE_FOREACH (const ModifierData *, md, &object.modifiers) {
-    if (md->type != eModifierType_Nodes) {
+  for (const ModifierData &md : object.modifiers) {
+    if (md.type != eModifierType_Nodes) {
       continue;
     }
-    const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(md);
+    const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(&md);
     const blender::Span<NodesModifierBake> bakes{nmd->bakes, nmd->bakes_num};
     if (bakes.contains_ptr(&bake)) {
       return nmd;
@@ -2170,9 +2170,9 @@ static void rna_GreasePencilOpacityModifier_opacity_factor_max_set(PointerRNA *p
 static const GreasePencilDashModifierData *find_grease_pencil_dash_modifier_of_segment(
     const Object &ob, const GreasePencilDashModifierSegment &dash_segment)
 {
-  LISTBASE_FOREACH (const ModifierData *, md, &ob.modifiers) {
-    if (md->type == eModifierType_GreasePencilDash) {
-      const auto *dmd = reinterpret_cast<const GreasePencilDashModifierData *>(md);
+  for (const ModifierData &md : ob.modifiers) {
+    if (md.type == eModifierType_GreasePencilDash) {
+      const auto *dmd = reinterpret_cast<const GreasePencilDashModifierData *>(&md);
       if (dmd->segments().contains_ptr(&dash_segment)) {
         return dmd;
       }
@@ -2274,9 +2274,9 @@ const EnumPropertyItem *grease_pencil_build_time_mode_filter(bContext * /*C*/,
 static const GreasePencilTimeModifierData *find_grease_pencil_time_modifier_of_segment(
     const Object &ob, const GreasePencilTimeModifierSegment &time_segment)
 {
-  LISTBASE_FOREACH (const ModifierData *, md, &ob.modifiers) {
-    if (md->type == eModifierType_GreasePencilTime) {
-      const auto *tmd = reinterpret_cast<const GreasePencilTimeModifierData *>(md);
+  for (const ModifierData &md : ob.modifiers) {
+    if (md.type == eModifierType_GreasePencilTime) {
+      const auto *tmd = reinterpret_cast<const GreasePencilTimeModifierData *>(&md);
       if (tmd->segments().contains_ptr(&time_segment)) {
         return tmd;
       }

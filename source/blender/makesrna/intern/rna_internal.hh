@@ -626,7 +626,6 @@ void *rna_calloc(int buffer_size);
 void rna_addtail(ListBase *listbase, void *vlink);
 void rna_freelinkN(ListBase *listbase, void *vlink);
 void rna_freelistN(ListBase *listbase);
-PropertyDefRNA *rna_findlink(ListBase *listbase, const char *identifier);
 
 StructDefRNA *rna_find_struct_def(StructRNA *srna);
 FunctionDefRNA *rna_find_function_def(FunctionRNA *func);

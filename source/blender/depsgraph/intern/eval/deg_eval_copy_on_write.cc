@@ -126,8 +126,8 @@ void nested_id_hack_discard_pointers(ID *id_cow)
     case ID_OB: {
       /* Clear the ParticleSettings pointer to prevent doubly-freeing it. */
       Object *ob = (Object *)id_cow;
-      LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
-        psys->part = nullptr;
+      for (ParticleSystem &psys : ob->particlesystem) {
+        psys.part = nullptr;
       }
       break;
     }
@@ -348,8 +348,8 @@ void scene_minimize_unused_view_layers(const Depsgraph *depsgraph,
      *
      * NOTE: Need to keep view layers for all scenes, even indirect ones. This is because of
      * render layer node possibly pointing to another scene. */
-    LISTBASE_FOREACH (ViewLayer *, view_layer, &scene_cow->view_layers) {
-      BKE_view_layer_free_object_content(view_layer);
+    for (ViewLayer &view_layer : scene_cow->view_layers) {
+      BKE_view_layer_free_object_content(&view_layer);
     }
     return;
   }
@@ -382,8 +382,8 @@ void scene_minimize_unused_view_layers(const Depsgraph *depsgraph,
 
 void scene_remove_all_bases(Scene *scene_cow)
 {
-  LISTBASE_FOREACH (ViewLayer *, view_layer, &scene_cow->view_layers) {
-    BLI_freelistN(&view_layer->object_bases);
+  for (ViewLayer &view_layer : scene_cow->view_layers) {
+    BLI_freelistN(&view_layer.object_bases);
   }
 }
 
@@ -398,7 +398,7 @@ void view_layer_remove_disabled_bases(const Depsgraph *depsgraph,
   }
   ListBaseT<Base> enabled_bases = {nullptr, nullptr};
   BKE_view_layer_synced_ensure(scene, view_layer);
-  LISTBASE_FOREACH_MUTABLE (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
+  for (Base &base : BKE_view_layer_object_bases_get(view_layer)->items_mutable()) {
     /* TODO(sergey): Would be cool to optimize this somehow, or make it so
      * builder tags bases.
      *
@@ -410,15 +410,15 @@ void view_layer_remove_disabled_bases(const Depsgraph *depsgraph,
      * points to is not yet copied. This is dangerous access from evaluated
      * domain to original one, but this is how the entire copy-on-evaluation works:
      * it does need to access original for an initial copy. */
-    const bool is_object_enabled = deg_check_base_in_depsgraph(depsgraph, base);
+    const bool is_object_enabled = deg_check_base_in_depsgraph(depsgraph, &base);
     if (is_object_enabled) {
-      BLI_addtail(&enabled_bases, base);
+      BLI_addtail(&enabled_bases, &base);
     }
     else {
-      if (base == view_layer->basact) {
+      if (&base == view_layer->basact) {
         view_layer->basact = nullptr;
       }
-      MEM_freeN(base);
+      MEM_freeN(&base);
     }
   }
   view_layer->object_bases = enabled_bases;
@@ -432,8 +432,8 @@ void view_layer_update_orig_base_pointers(const ViewLayer *view_layer_orig,
     return;
   }
   Base *base_orig = reinterpret_cast<Base *>(view_layer_orig->object_bases.first);
-  LISTBASE_FOREACH (Base *, base_eval, &view_layer_eval->object_bases) {
-    base_eval->base_orig = base_orig;
+  for (Base &base_eval : view_layer_eval->object_bases) {
+    base_eval.base_orig = base_orig;
     base_orig = base_orig->next;
   }
 }
@@ -599,11 +599,11 @@ void update_particle_system_orig_pointers(const Object *object_orig, Object *obj
 
 void set_particle_system_modifiers_loaded(Object *object_cow)
 {
-  LISTBASE_FOREACH (ModifierData *, md, &object_cow->modifiers) {
-    if (md->type != eModifierType_ParticleSystem) {
+  for (ModifierData &md : object_cow->modifiers) {
+    if (md.type != eModifierType_ParticleSystem) {
       continue;
     }
-    ParticleSystemModifierData *psmd = reinterpret_cast<ParticleSystemModifierData *>(md);
+    ParticleSystemModifierData *psmd = reinterpret_cast<ParticleSystemModifierData *>(&md);
     psmd->flag |= eParticleSystemFlag_file_loaded;
   }
 }
@@ -615,8 +615,8 @@ void reset_particle_system_edit_eval(const Depsgraph *depsgraph, Object *object_
   if (!DEG_is_active(reinterpret_cast<const ::Depsgraph *>(depsgraph))) {
     return;
   }
-  LISTBASE_FOREACH (ParticleSystem *, psys, &object_cow->particlesystem) {
-    ParticleSystem *orig_psys = psys->orig_psys;
+  for (ParticleSystem &psys : object_cow->particlesystem) {
+    ParticleSystem *orig_psys = psys.orig_psys;
     if (orig_psys->edit != nullptr) {
       orig_psys->edit->psys_eval = nullptr;
       orig_psys->edit->psmd_eval = nullptr;

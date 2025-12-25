@@ -325,17 +325,17 @@ static void switch_preview_floor_visibility(Main *pr_main,
 {
   /* Hide floor for icon renders. */
   BKE_view_layer_synced_ensure(scene, view_layer);
-  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-    if (STREQ(base->object->id.name + 2, "Floor")) {
-      base->object->visibility_flag &= ~OB_HIDE_RENDER;
+  for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+    if (STREQ(base.object->id.name + 2, "Floor")) {
+      base.object->visibility_flag &= ~OB_HIDE_RENDER;
       if (pr_method == PR_ICON_RENDER) {
         if (!render_engine_supports_ray_visibility(scene)) {
-          base->object->visibility_flag |= OB_HIDE_RENDER;
+          base.object->visibility_flag |= OB_HIDE_RENDER;
         }
       }
-      if (base->object->type == OB_MESH) {
+      if (base.object->type == OB_MESH) {
         switch_preview_floor_material(
-            pr_main, static_cast<Mesh *>(base->object->data), scene, pr_method);
+            pr_main, static_cast<Mesh *>(base.object->data), scene, pr_method);
       }
     }
   }
@@ -589,23 +589,23 @@ static Scene *preview_prepare_scene(
         sce->display.render_aa = SCE_DISPLAY_AA_OFF;
       }
       BKE_view_layer_synced_ensure(sce, view_layer);
-      LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-        if (base->object->id.name[2] == 'p') {
+      for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+        if (base.object->id.name[2] == 'p') {
           /* copy over object color, in case material uses it */
-          copy_v4_v4(base->object->color, sp->color);
+          copy_v4_v4(base.object->color, sp->color);
 
-          if (OB_TYPE_SUPPORT_MATERIAL(base->object->type)) {
+          if (OB_TYPE_SUPPORT_MATERIAL(base.object->type)) {
             /* don't use BKE_object_material_assign, it changed mat->id.us, which shows in the UI
              */
-            Material ***matar = BKE_object_material_array_p(base->object);
-            int actcol = max_ii(base->object->actcol - 1, 0);
+            Material ***matar = BKE_object_material_array_p(base.object);
+            int actcol = max_ii(base.object->actcol - 1, 0);
 
-            if (matar && actcol < base->object->totcol) {
+            if (matar && actcol < base.object->totcol) {
               (*matar)[actcol] = mat;
             }
           }
-          else if (base->object->type == OB_LAMP) {
-            base->flag |= BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT;
+          else if (base.object->type == OB_LAMP) {
+            base.flag |= BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT;
           }
         }
       }
@@ -641,10 +641,10 @@ static Scene *preview_prepare_scene(
       }
 
       BKE_view_layer_synced_ensure(sce, view_layer);
-      LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-        if (base->object->id.name[2] == 'p') {
-          if (base->object->type == OB_LAMP) {
-            base->object->data = la;
+      for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+        if (base.object->id.name[2] == 'p') {
+          if (base.object->type == OB_LAMP) {
+            base.object->data = la;
           }
         }
       }
@@ -787,12 +787,12 @@ void ED_preview_draw(
 
 void ED_previews_tag_dirty_by_id(const Main &bmain, const ID &id)
 {
-  LISTBASE_FOREACH (const bScreen *, screen, &bmain.screens) {
-    LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (const ARegion *, region, &area->regionbase) {
-        LISTBASE_FOREACH (uiPreview *, preview, &region->ui_previews) {
-          if (preview->id_session_uid == id.session_uid) {
-            preview->tag |= UI_PREVIEW_TAG_DIRTY;
+  for (const bScreen &screen : bmain.screens) {
+    for (const ScrArea &area : screen.areabase) {
+      for (const ARegion &region : area.regionbase) {
+        for (uiPreview &preview : region.ui_previews) {
+          if (preview.id_session_uid == id.session_uid) {
+            preview.tag |= UI_PREVIEW_TAG_DIRTY;
           }
         }
       }
@@ -1585,7 +1585,7 @@ static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus 
 {
   IconPreview *ip = (IconPreview *)customdata;
 
-  LISTBASE_FOREACH (IconPreviewSize *, cur_size, &ip->sizes) {
+  for (IconPreviewSize &cur_size : ip->sizes) {
     PreviewImage *prv = static_cast<PreviewImage *>(ip->owner);
     /* Is this a render job or a deferred loading job? */
     const ePreviewRenderMethod pr_method = (prv->runtime->deferred_loading_data) ?
@@ -1627,7 +1627,7 @@ static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus 
 
 #ifndef NDEBUG
     {
-      int size_index = icon_previewimg_size_index_get(cur_size, prv);
+      int size_index = icon_previewimg_size_index_get(&cur_size, prv);
       BLI_assert(!BKE_previewimg_is_finished(prv, size_index));
     }
 #endif
@@ -1637,7 +1637,7 @@ static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus 
         case ID_OB:
           if (object_preview_is_type_supported((Object *)ip->id)) {
             /* Much simpler than the ShaderPreview mess used for other ID types. */
-            object_preview_render(ip, cur_size);
+            object_preview_render(ip, &cur_size);
           }
           continue;
         case ID_GR:
@@ -1645,20 +1645,20 @@ static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus 
               reinterpret_cast<const Collection *>(ip->id)));
           /* A collection instance empty was created, so this can just reuse the object preview
            * rendering. */
-          object_preview_render(ip, cur_size);
+          object_preview_render(ip, &cur_size);
           continue;
         case ID_AC:
-          action_preview_render(ip, cur_size);
+          action_preview_render(ip, &cur_size);
           continue;
         case ID_SCE:
-          scene_preview_render(ip, cur_size, worker_status->reports);
+          scene_preview_render(ip, &cur_size, worker_status->reports);
           continue;
         default:
           /* Fall through to the same code as the `ip->id == nullptr` case. */
           break;
       }
     }
-    other_id_types_preview_render(ip, cur_size, pr_method, worker_status);
+    other_id_types_preview_render(ip, &cur_size, pr_method, worker_status);
   }
 }
 
@@ -1711,8 +1711,8 @@ static void icon_preview_endjob(void *customdata)
     PreviewImage *prv_img = static_cast<PreviewImage *>(ip->owner);
     prv_img->runtime->tag &= ~PRV_TAG_DEFFERED_RENDERING;
 
-    LISTBASE_FOREACH (IconPreviewSize *, icon_size, &ip->sizes) {
-      int size_index = icon_previewimg_size_index_get(icon_size, prv_img);
+    for (IconPreviewSize &icon_size : ip->sizes) {
+      int size_index = icon_previewimg_size_index_get(&icon_size, prv_img);
       BKE_previewimg_finish(prv_img, size_index);
     }
 
@@ -2235,20 +2235,20 @@ void ED_preview_restart_queue_add(ID *id, enum eIconSizes size)
 
 void ED_preview_restart_queue_work(const bContext *C)
 {
-  LISTBASE_FOREACH_MUTABLE (PreviewRestartQueueEntry *, queue_entry, &G_restart_previews_queue) {
-    PreviewImage *preview = BKE_previewimg_id_get(queue_entry->id);
+  for (PreviewRestartQueueEntry &queue_entry : G_restart_previews_queue.items_mutable()) {
+    PreviewImage *preview = BKE_previewimg_id_get(queue_entry.id);
     if (!preview) {
       continue;
     }
-    if (preview->flag[queue_entry->size] & PRV_USER_EDITED) {
+    if (preview->flag[queue_entry.size] & PRV_USER_EDITED) {
       /* Don't touch custom previews. */
       continue;
     }
 
-    BKE_previewimg_clear_single(preview, queue_entry->size);
-    blender::ui::icon_render_id(C, nullptr, queue_entry->id, queue_entry->size, true);
+    BKE_previewimg_clear_single(preview, queue_entry.size);
+    blender::ui::icon_render_id(C, nullptr, queue_entry.id, queue_entry.size, true);
 
-    BLI_freelinkN(&G_restart_previews_queue, queue_entry);
+    BLI_freelinkN(&G_restart_previews_queue, &queue_entry);
   }
 }
 

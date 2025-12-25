@@ -166,13 +166,13 @@ void GPUCodegen::generate_attribs()
   /* Index of the attribute as ordered in graph.attributes. */
   int attr_n = 0;
   int slot = 15;
-  LISTBASE_FOREACH (GPUMaterialAttribute *, attr, &graph.attributes) {
+  for (GPUMaterialAttribute &attr : graph.attributes) {
     if (slot == -1) {
       BLI_assert_msg(0, "Too many attributes");
       break;
     }
-    STRNCPY(info.name_buffer.attr_names[slot], attr->input_name);
-    SNPRINTF(info.name_buffer.var_names[slot], "v%d", attr->id);
+    STRNCPY(info.name_buffer.attr_names[slot], attr.input_name);
+    SNPRINTF(info.name_buffer.var_names[slot], "v%d", attr.id);
 
     StringRefNull attr_name = info.name_buffer.attr_names[slot];
     StringRefNull var_name = info.name_buffer.var_names[slot];
@@ -180,13 +180,13 @@ void GPUCodegen::generate_attribs()
     GPUType input_type, iface_type;
 
     load_ss << "var_attrs." << var_name;
-    if (attr->is_hair_length || attr->is_hair_intercept) {
+    if (attr.is_hair_length || attr.is_hair_intercept) {
       iface_type = input_type = GPU_FLOAT;
       load_ss << " = attr_load_" << input_type << "(domain, " << attr_name << ", " << attr_n
               << ");\n";
     }
     else {
-      switch (attr->type) {
+      switch (attr.type) {
         case CD_ORCO:
           /* Need vec4 to detect usage of default attribute. */
           input_type = GPU_VEC4;
@@ -221,24 +221,24 @@ void GPUCodegen::generate_resources()
 
   /* Textures. */
   int slot = 0;
-  LISTBASE_FOREACH (GPUMaterialTexture *, tex, &graph.textures) {
-    if (tex->colorband) {
-      const char *name = info.name_buffer.append_sampler_name(tex->sampler_name);
+  for (GPUMaterialTexture &tex : graph.textures) {
+    if (tex.colorband) {
+      const char *name = info.name_buffer.append_sampler_name(tex.sampler_name);
       info.sampler(slot++, ImageType::Float1DArray, name, Frequency::BATCH);
     }
-    else if (tex->sky) {
-      const char *name = info.name_buffer.append_sampler_name(tex->sampler_name);
+    else if (tex.sky) {
+      const char *name = info.name_buffer.append_sampler_name(tex.sampler_name);
       info.sampler(0, ImageType::Float2DArray, name, Frequency::BATCH);
     }
-    else if (tex->tiled_mapping_name[0] != '\0') {
-      const char *name = info.name_buffer.append_sampler_name(tex->sampler_name);
+    else if (tex.tiled_mapping_name[0] != '\0') {
+      const char *name = info.name_buffer.append_sampler_name(tex.sampler_name);
       info.sampler(slot++, ImageType::Float2DArray, name, Frequency::BATCH);
 
-      const char *name_mapping = info.name_buffer.append_sampler_name(tex->tiled_mapping_name);
+      const char *name_mapping = info.name_buffer.append_sampler_name(tex.tiled_mapping_name);
       info.sampler(slot++, ImageType::Float1DArray, name_mapping, Frequency::BATCH);
     }
     else {
-      const char *name = info.name_buffer.append_sampler_name(tex->sampler_name);
+      const char *name = info.name_buffer.append_sampler_name(tex.sampler_name);
       info.sampler(slot++, ImageType::Float2D, name, Frequency::BATCH);
     }
   }
@@ -250,8 +250,8 @@ void GPUCodegen::generate_resources()
     const char *linted_struct_suffix = "_host_shared_";
     /* NOTE: generate_uniform_buffer() should have sorted the inputs before this. */
     ss << "struct NodeTree {\n";
-    LISTBASE_FOREACH (LinkData *, link, &ubo_inputs_) {
-      GPUInput *input = (GPUInput *)(link->data);
+    for (LinkData &link : ubo_inputs_) {
+      GPUInput *input = (GPUInput *)(link.data);
       if (input->source == GPU_SOURCE_CRYPTOMATTE) {
         ss << input->type << " crypto_hash;\n";
       }
@@ -269,8 +269,8 @@ void GPUCodegen::generate_resources()
 
   if (!BLI_listbase_is_empty(&graph.uniform_attrs.list)) {
     ss << "struct UniformAttrs {\n";
-    LISTBASE_FOREACH (GPUUniformAttr *, attr, &graph.uniform_attrs.list) {
-      ss << "vec4 attr" << attr->id << ";\n";
+    for (GPUUniformAttr &attr : graph.uniform_attrs.list) {
+      ss << "vec4 attr" << attr.id << ";\n";
     }
     ss << "};\n\n";
 
@@ -322,79 +322,79 @@ void GPUCodegen::node_serialize(Set<StringRefNull> &used_libraries,
   };
 
   /* Declare constants. */
-  LISTBASE_FOREACH (GPUInput *, input, &node->inputs) {
+  for (GPUInput &input : node->inputs) {
     auto type = [&]() {
       /* Don't declare zone io variables twice. */
       std::stringstream ss;
-      if (!input->is_duplicate) {
-        ss << input->type;
+      if (!input.is_duplicate) {
+        ss << input.type;
       }
       return ss.str();
     };
-    switch (input->source) {
+    switch (input.source) {
       case GPU_SOURCE_FUNCTION_CALL:
-        eval_ss << type() << " " << input << "; " << input->function_call << input << ");\n";
+        eval_ss << type() << " " << &input << "; " << input.function_call << &input << ");\n";
         break;
       case GPU_SOURCE_STRUCT:
-        eval_ss << input->type << " " << input << " = CLOSURE_DEFAULT;\n";
+        eval_ss << input.type << " " << &input << " = CLOSURE_DEFAULT;\n";
         break;
       case GPU_SOURCE_CONSTANT:
-        if (!input->is_duplicate) {
-          eval_ss << type() << " " << input << " = " << (GPUConstant *)input << ";\n";
+        if (!input.is_duplicate) {
+          eval_ss << type() << " " << &input << " = " << (GPUConstant *)&input << ";\n";
         }
         break;
       case GPU_SOURCE_OUTPUT:
       case GPU_SOURCE_ATTR:
-        if (input->is_zone_io) {
-          eval_ss << type() << " " << input << " = ";
-          source_reference(input);
+        if (input.is_zone_io) {
+          eval_ss << type() << " " << &input << " = ";
+          source_reference(&input);
           eval_ss << ";\n";
         }
         break;
       default:
-        if (input->is_zone_io && (!input->is_duplicate || !input->link)) {
-          eval_ss << type() << " zone" << input->id << " = " << input << ";\n";
+        if (input.is_zone_io && (!input.is_duplicate || !input.link)) {
+          eval_ss << type() << " zone" << input.id << " = " << &input << ";\n";
         }
         break;
     }
   }
   /* Declare temporary variables for node output storage. */
-  LISTBASE_FOREACH (GPUOutput *, output, &node->outputs) {
-    if (output->is_zone_io) {
+  for (GPUOutput &output : node->outputs) {
+    if (output.is_zone_io) {
       break;
     }
-    eval_ss << output->type << " " << output << ";\n";
+    eval_ss << output.type << " " << &output << ";\n";
   }
 
   /* Function call. */
   eval_ss << node->name << "(";
   /* Input arguments. */
-  LISTBASE_FOREACH (GPUInput *, input, &node->inputs) {
-    if (input->is_zone_io) {
+  for (GPUInput &input : node->inputs) {
+    if (input.is_zone_io) {
       break;
     }
-    switch (input->source) {
+    switch (input.source) {
       case GPU_SOURCE_OUTPUT:
       case GPU_SOURCE_ATTR: {
-        source_reference(input);
+        source_reference(&input);
         break;
       }
       default:
-        eval_ss << input;
+        eval_ss << &input;
         break;
     }
     GPUOutput *output = static_cast<GPUOutput *>(node->outputs.first);
-    if ((input->next && !input->next->is_zone_io) || (output && !output->is_zone_io)) {
+    if ((input.next && !input.next->is_zone_io) || (output && !output->is_zone_io)) {
       eval_ss << ", ";
     }
   }
   /* Output arguments. */
-  LISTBASE_FOREACH (GPUOutput *, output, &node->outputs) {
-    if (output->is_zone_io) {
+  for (GPUOutput &output : node->outputs) {
+    if (output.is_zone_io) {
       break;
     }
-    eval_ss << output;
-    if (output->next && !output->next->is_zone_io) {
+    eval_ss << &output;
+    if (output.next && !output.next->is_zone_io) {
       eval_ss << ", ";
     }
   }
@@ -428,11 +428,11 @@ GPUGraphOutput GPUCodegen::graph_serialize(GPUNodeTag tree_tag,
   bool has_nodes = false;
   /* NOTE: The node order is already top to bottom (or left to right in node editor)
    * because of the evaluation order inside ntreeExecGPUNodes(). */
-  LISTBASE_FOREACH (GPUNode *, node, &graph.nodes) {
-    if ((node->tag & tree_tag) == 0) {
+  for (GPUNode &node : graph.nodes) {
+    if ((node.tag & tree_tag) == 0) {
       continue;
     }
-    node_serialize(used_libraries, eval_ss, node);
+    node_serialize(used_libraries, eval_ss, &node);
     has_nodes = true;
   }
 
@@ -457,9 +457,9 @@ GPUGraphOutput GPUCodegen::graph_serialize(GPUNodeTag tree_tag)
 {
   std::stringstream eval_ss;
   Set<StringRefNull> used_libraries;
-  LISTBASE_FOREACH (GPUNode *, node, &graph.nodes) {
-    if (node->tag & tree_tag) {
-      node_serialize(used_libraries, eval_ss, node);
+  for (GPUNode &node : graph.nodes) {
+    if (node.tag & tree_tag) {
+      node_serialize(used_libraries, eval_ss, &node);
     }
   }
   std::string str = eval_ss.str();
@@ -488,11 +488,11 @@ void GPUCodegen::generate_cryptomatte()
 void GPUCodegen::generate_uniform_buffer()
 {
   /* Extract uniform inputs. */
-  LISTBASE_FOREACH (GPUNode *, node, &graph.nodes) {
-    LISTBASE_FOREACH (GPUInput *, input, &node->inputs) {
-      if (input->source == GPU_SOURCE_UNIFORM && !input->link) {
+  for (GPUNode &node : graph.nodes) {
+    for (GPUInput &input : node.inputs) {
+      if (input.source == GPU_SOURCE_UNIFORM && !input.link) {
         /* We handle the UBO uniforms separately. */
-        BLI_addtail(&ubo_inputs_, BLI_genericNodeN(input));
+        BLI_addtail(&ubo_inputs_, BLI_genericNodeN(&input));
         uniforms_total_++;
       }
     }
@@ -510,16 +510,16 @@ void GPUCodegen::set_unique_ids()
   Map<int, GPUNode *> zone_ends;
 
   int id = 1;
-  LISTBASE_FOREACH (GPUNode *, node, &graph.nodes) {
-    LISTBASE_FOREACH (GPUInput *, input, &node->inputs) {
-      input->id = id++;
+  for (GPUNode &node : graph.nodes) {
+    for (GPUInput &input : node.inputs) {
+      input.id = id++;
     }
-    LISTBASE_FOREACH (GPUOutput *, output, &node->outputs) {
-      output->id = id++;
+    for (GPUOutput &output : node.outputs) {
+      output.id = id++;
     }
-    if (node->zone_index != -1) {
-      auto &map = node->is_zone_end ? zone_ends : zone_starts;
-      map.add(node->zone_index, node);
+    if (node.zone_index != -1) {
+      auto &map = node.is_zone_end ? zone_ends : zone_starts;
+      map.add(node.zone_index, &node);
     }
   }
 
@@ -568,26 +568,26 @@ void GPUCodegen::generate_graphs()
   }
 
   if (!BLI_listbase_is_empty(&graph.material_functions)) {
-    LISTBASE_FOREACH (GPUNodeGraphFunctionLink *, func_link, &graph.material_functions) {
+    for (GPUNodeGraphFunctionLink &func_link : graph.material_functions) {
       std::stringstream eval_ss;
       /* Untag every node in the graph to avoid serializing nodes from other functions */
-      LISTBASE_FOREACH (GPUNode *, node, &graph.nodes) {
-        node->tag &= ~GPU_NODE_TAG_FUNCTION;
+      for (GPUNode &node : graph.nodes) {
+        node.tag &= ~GPU_NODE_TAG_FUNCTION;
       }
       /* Tag only the nodes needed for the current function */
-      gpu_nodes_tag(&graph, func_link->outlink, GPU_NODE_TAG_FUNCTION);
-      GPUGraphOutput graph = graph_serialize(GPU_NODE_TAG_FUNCTION, func_link->outlink);
-      eval_ss << "float " << func_link->name << "() {\n" << graph.serialized << "}\n\n";
+      gpu_nodes_tag(&graph, func_link.outlink, GPU_NODE_TAG_FUNCTION);
+      GPUGraphOutput graph = graph_serialize(GPU_NODE_TAG_FUNCTION, func_link.outlink);
+      eval_ss << "float " << func_link.name << "() {\n" << graph.serialized << "}\n\n";
       output.material_functions.append({eval_ss.str(), graph.dependencies});
     }
     /* Leave the function tags as they were before serialization */
-    LISTBASE_FOREACH (GPUNodeGraphFunctionLink *, funclink, &graph.material_functions) {
-      gpu_nodes_tag(&graph, funclink->outlink, GPU_NODE_TAG_FUNCTION);
+    for (GPUNodeGraphFunctionLink &funclink : graph.material_functions) {
+      gpu_nodes_tag(&graph, funclink.outlink, GPU_NODE_TAG_FUNCTION);
     }
   }
 
-  LISTBASE_FOREACH (GPUMaterialAttribute *, attr, &graph.attributes) {
-    BLI_hash_mm2a_add(&hm2a_, (uchar *)attr->name, strlen(attr->name));
+  for (GPUMaterialAttribute &attr : graph.attributes) {
+    BLI_hash_mm2a_add(&hm2a_, (uchar *)attr.name, strlen(attr.name));
   }
 
   hash_ = BLI_hash_mm2a_end(&hm2a_);

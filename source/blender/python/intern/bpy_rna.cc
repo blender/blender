@@ -4532,8 +4532,8 @@ static PyObject *pyrna_struct_dir(BPy_StructRNA *self)
   if (self->ptr->type == &RNA_Context) {
     ListBaseT<LinkData> lb = CTX_data_dir_get(static_cast<const bContext *>(self->ptr->data));
 
-    LISTBASE_FOREACH (LinkData *, link, &lb) {
-      PyList_APPEND(ret, PyUnicode_FromString(static_cast<const char *>(link->data)));
+    for (LinkData &link : lb) {
+      PyList_APPEND(ret, PyUnicode_FromString(static_cast<const char *>(link.data)));
     }
 
     BLI_freelistN(&lb);
@@ -9502,8 +9502,8 @@ static int bpy_class_validate_recursive(PointerRNA *dummy_ptr,
 
   /* Verify properties. */
   const ListBaseT<PropertyRNA> *lb_prop = RNA_struct_type_properties(srna);
-  LISTBASE_FOREACH (Link *, link, reinterpret_cast<const ListBaseT<Link> *>(lb_prop)) {
-    PropertyRNA *prop = (PropertyRNA *)link;
+  for (Link &link : *reinterpret_cast<const ListBaseT<Link> *>(lb_prop)) {
+    PropertyRNA *prop = (PropertyRNA *)&link;
     const int flag = RNA_property_flag(prop);
 
     if (!(flag & PROP_REGISTER)) {

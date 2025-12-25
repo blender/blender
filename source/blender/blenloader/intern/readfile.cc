@@ -959,25 +959,25 @@ static void long_id_names_ensure_unique_id_names(Main *bmain)
   blender::Set<ID *> processed_ids;
 
   FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb_iter) {
-    LISTBASE_FOREACH_MUTABLE (ID *, id_iter, lb_iter) {
-      if (processed_ids.contains(id_iter)) {
+    for (ID &id_iter : lb_iter->items_mutable()) {
+      if (processed_ids.contains(&id_iter)) {
         continue;
       }
-      processed_ids.add_new(id_iter);
+      processed_ids.add_new(&id_iter);
       /* Linked IDs can be fully ignored here, 'long names' IDs cannot be linked in any way. */
-      if (ID_IS_LINKED(id_iter)) {
+      if (ID_IS_LINKED(&id_iter)) {
         continue;
       }
-      if (!used_names.contains(id_iter->name)) {
-        used_names.add_new(id_iter->name);
+      if (!used_names.contains(id_iter.name)) {
+        used_names.add_new(id_iter.name);
         continue;
       }
 
       BKE_id_new_name_validate(
-          *bmain, *lb_iter, *id_iter, nullptr, IDNewNameMode::RenameExistingNever, false);
-      BLI_assert(!used_names.contains(id_iter->name));
-      used_names.add_new(id_iter->name);
-      CLOG_DEBUG(&LOG, "ID name has been de-duplicated to '%s'", id_iter->name);
+          *bmain, *lb_iter, id_iter, nullptr, IDNewNameMode::RenameExistingNever, false);
+      BLI_assert(!used_names.contains(id_iter.name));
+      used_names.add_new(id_iter.name);
+      CLOG_DEBUG(&LOG, "ID name has been de-duplicated to '%s'", id_iter.name);
     }
   }
   FOREACH_MAIN_LISTBASE_END;
@@ -1056,13 +1056,13 @@ static void long_id_names_process_action_slots_identifiers(Main *bmain)
         };
 
         Object *object = reinterpret_cast<Object *>(id_iter);
-        LISTBASE_FOREACH (bConstraint *, con, &object->constraints) {
-          visit_constraint(*con);
+        for (bConstraint &con : object->constraints) {
+          visit_constraint(con);
         }
         if (object->pose) {
-          LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
-            LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
-              visit_constraint(*con);
+          for (bPoseChannel &pchan : object->pose->chanbase) {
+            for (bConstraint &con : pchan.constraints) {
+              visit_constraint(con);
             }
           }
         }
@@ -1330,13 +1330,13 @@ void blo_filedata_free(FileData *fd)
   BLI_freelistN(&fd->bhead_list);
 #else
   /* Sanity check we're not keeping memory we don't need. */
-  LISTBASE_FOREACH_MUTABLE (BHeadN *, new_bhead, &fd->bhead_list) {
+  for (BHeadN &new_bhead : fd->bhead_list.items_mutable()) {
 #  ifdef USE_BHEAD_READ_ON_DEMAND
-    if (fd->file->seek != nullptr && BHEAD_USE_READ_ON_DEMAND(&new_bhead->bhead)) {
-      BLI_assert(new_bhead->has_data == 0);
+    if (fd->file->seek != nullptr && BHEAD_USE_READ_ON_DEMAND(&new_bhead.bhead)) {
+      BLI_assert(new_bhead.has_data == 0);
     }
 #  endif
-    MEM_freeN(new_bhead);
+    MEM_freeN(&new_bhead);
   }
 #endif
   fd->file->close(fd->file);
@@ -1984,11 +1984,11 @@ static void direct_link_id_override_property(BlendDataReader *reader,
 
   BLO_read_struct_list(reader, IDOverrideLibraryPropertyOperation, &op->operations);
 
-  LISTBASE_FOREACH (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
-    BLO_read_string(reader, &opop->subitem_reference_name);
-    BLO_read_string(reader, &opop->subitem_local_name);
+  for (IDOverrideLibraryPropertyOperation &opop : op->operations) {
+    BLO_read_string(reader, &opop.subitem_reference_name);
+    BLO_read_string(reader, &opop.subitem_local_name);
 
-    opop->tag = 0; /* Runtime only. */
+    opop.tag = 0; /* Runtime only. */
   }
 }
 
@@ -2295,8 +2295,8 @@ static void direct_link_id_common(BlendDataReader *reader,
     /* Work around file corruption on writing, see #86853. */
     if (id->override_library != nullptr) {
       BLO_read_struct_list(reader, IDOverrideLibraryProperty, &id->override_library->properties);
-      LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &id->override_library->properties) {
-        direct_link_id_override_property(reader, op);
+      for (IDOverrideLibraryProperty &op : id->override_library->properties) {
+        direct_link_id_override_property(reader, &op);
       }
       id->override_library->runtime = nullptr;
     }
@@ -2321,8 +2321,8 @@ static void direct_link_id_common(BlendDataReader *reader,
 void blo_do_versions_key_uidgen(Key *key)
 {
   key->uidgen = 1;
-  LISTBASE_FOREACH (KeyBlock *, block, &key->block) {
-    block->uid = key->uidgen++;
+  for (KeyBlock &block : key->block) {
+    block.uid = key->uidgen++;
   }
 }
 
@@ -2372,11 +2372,11 @@ static void lib_link_scenes_check_set(Main *bmain)
 {
 #ifdef USE_SETSCENE_CHECK
   const int totscene = BLI_listbase_count(&bmain->scenes);
-  LISTBASE_FOREACH (Scene *, sce, &bmain->scenes) {
-    if (sce->flag & SCE_READFILE_LIBLINK_NEED_SETSCENE_CHECK) {
-      sce->flag &= ~SCE_READFILE_LIBLINK_NEED_SETSCENE_CHECK;
-      if (!scene_validate_setscene__liblink(sce, totscene)) {
-        CLOG_WARN(&LOG, "Found cyclic background scene when linking %s", sce->id.name + 2);
+  for (Scene &sce : bmain->scenes) {
+    if (sce.flag & SCE_READFILE_LIBLINK_NEED_SETSCENE_CHECK) {
+      sce.flag &= ~SCE_READFILE_LIBLINK_NEED_SETSCENE_CHECK;
+      if (!scene_validate_setscene__liblink(&sce, totscene)) {
+        CLOG_WARN(&LOG, "Found cyclic background scene when linking %s", sce.id.name + 2);
       }
     }
   }
@@ -2606,25 +2606,25 @@ static void fix_relpaths_library(const char *basepath, Main *main)
 {
   /* #BLO_read_from_memory uses a blank file-path. */
   if (basepath == nullptr || basepath[0] == '\0') {
-    LISTBASE_FOREACH (Library *, lib, &main->libraries) {
+    for (Library &lib : main->libraries) {
       /* when loading a linked lib into a file which has not been saved,
        * there is nothing we can be relative to, so instead we need to make
        * it absolute. This can happen when appending an object with a relative
        * link into an unsaved blend file. See #27405.
        * The remap relative option will make it relative again on save - campbell */
-      if (BLI_path_is_rel(lib->filepath)) {
-        STRNCPY(lib->filepath, lib->runtime->filepath_abs);
+      if (BLI_path_is_rel(lib.filepath)) {
+        STRNCPY(lib.filepath, lib.runtime->filepath_abs);
       }
     }
   }
   else {
-    LISTBASE_FOREACH (Library *, lib, &main->libraries) {
+    for (Library &lib : main->libraries) {
       /* Libraries store both relative and abs paths, recreate relative paths,
        * relative to the blend file since indirectly linked libraries will be
        * relative to their direct linked library. */
-      if (BLI_path_is_rel(lib->filepath)) { /* if this is relative to begin with? */
-        STRNCPY(lib->filepath, lib->runtime->filepath_abs);
-        BLI_path_rel(lib->filepath, basepath);
+      if (BLI_path_is_rel(lib.filepath)) { /* if this is relative to begin with? */
+        STRNCPY(lib.filepath, lib.runtime->filepath_abs);
+        BLI_path_rel(lib.filepath, basepath);
       }
     }
   }
@@ -2680,10 +2680,10 @@ static void placeholders_ensure_valid(Main *bmain)
 {
   /* Placeholder ObData IDs won't have any material, we have to update their objects for that,
    * otherwise the inconsistency between both will lead to crashes (especially in Eevee?). */
-  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    ID *obdata = static_cast<ID *>(ob->data);
+  for (Object &ob : bmain->objects) {
+    ID *obdata = static_cast<ID *>(ob.data);
     if (obdata != nullptr && obdata->tag & ID_TAG_MISSING) {
-      BKE_object_materials_sync_length(bmain, ob, obdata);
+      BKE_object_materials_sync_length(bmain, &ob, obdata);
     }
   }
 }
@@ -2894,9 +2894,9 @@ static void read_undo_reuse_noundo_local_ids(FileData *fd)
     BLI_movelisttolist(new_lb, lbarray[i]);
 
     /* Update mappings accordingly. */
-    LISTBASE_FOREACH (ID *, id_iter, new_lb) {
-      BKE_main_idmap_insert_id(fd->new_idmap_uid, id_iter);
-      id_iter->tag |= ID_TAG_UNDO_OLD_ID_REUSED_NOUNDO;
+    for (ID &id_iter : *new_lb) {
+      BKE_main_idmap_insert_id(fd->new_idmap_uid, &id_iter);
+      id_iter.tag |= ID_TAG_UNDO_OLD_ID_REUSED_NOUNDO;
     }
   }
 }
@@ -3973,58 +3973,58 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
   BLO_read_struct_list(reader, bUserExtensionRepo, &user->extension_repos);
   BLO_read_struct_list(reader, bUserAssetShelfSettings, &user->asset_shelves_settings);
 
-  LISTBASE_FOREACH (wmKeyMap *, keymap, &user->user_keymaps) {
-    keymap->modal_items = nullptr;
-    keymap->poll = nullptr;
-    keymap->flag &= ~KEYMAP_UPDATE;
+  for (wmKeyMap &keymap : user->user_keymaps) {
+    keymap.modal_items = nullptr;
+    keymap.poll = nullptr;
+    keymap.flag &= ~KEYMAP_UPDATE;
 
-    BLO_read_struct_list(reader, wmKeyMapDiffItem, &keymap->diff_items);
-    BLO_read_struct_list(reader, wmKeyMapItem, &keymap->items);
+    BLO_read_struct_list(reader, wmKeyMapDiffItem, &keymap.diff_items);
+    BLO_read_struct_list(reader, wmKeyMapItem, &keymap.items);
 
-    LISTBASE_FOREACH (wmKeyMapDiffItem *, kmdi, &keymap->diff_items) {
-      BLO_read_struct(reader, wmKeyMapItem, &kmdi->remove_item);
-      BLO_read_struct(reader, wmKeyMapItem, &kmdi->add_item);
+    for (wmKeyMapDiffItem &kmdi : keymap.diff_items) {
+      BLO_read_struct(reader, wmKeyMapItem, &kmdi.remove_item);
+      BLO_read_struct(reader, wmKeyMapItem, &kmdi.add_item);
 
-      if (kmdi->remove_item) {
-        direct_link_keymapitem(reader, kmdi->remove_item);
+      if (kmdi.remove_item) {
+        direct_link_keymapitem(reader, kmdi.remove_item);
       }
-      if (kmdi->add_item) {
-        direct_link_keymapitem(reader, kmdi->add_item);
+      if (kmdi.add_item) {
+        direct_link_keymapitem(reader, kmdi.add_item);
       }
     }
 
-    LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
-      direct_link_keymapitem(reader, kmi);
+    for (wmKeyMapItem &kmi : keymap.items) {
+      direct_link_keymapitem(reader, &kmi);
     }
   }
 
-  LISTBASE_FOREACH (wmKeyConfigPref *, kpt, &user->user_keyconfig_prefs) {
-    BLO_read_struct(reader, IDProperty, &kpt->prop);
-    IDP_BlendDataRead(reader, &kpt->prop);
+  for (wmKeyConfigPref &kpt : user->user_keyconfig_prefs) {
+    BLO_read_struct(reader, IDProperty, &kpt.prop);
+    IDP_BlendDataRead(reader, &kpt.prop);
   }
 
-  LISTBASE_FOREACH (bUserMenu *, um, &user->user_menus) {
-    BLO_read_struct_list(reader, bUserMenuItem, &um->items);
-    LISTBASE_FOREACH (bUserMenuItem *, umi, &um->items) {
-      if (umi->type == USER_MENU_TYPE_OPERATOR) {
-        bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)umi;
+  for (bUserMenu &um : user->user_menus) {
+    BLO_read_struct_list(reader, bUserMenuItem, &um.items);
+    for (bUserMenuItem &umi : um.items) {
+      if (umi.type == USER_MENU_TYPE_OPERATOR) {
+        bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)&umi;
         BLO_read_struct(reader, IDProperty, &umi_op->prop);
         IDP_BlendDataRead(reader, &umi_op->prop);
       }
     }
   }
 
-  LISTBASE_FOREACH (bAddon *, addon, &user->addons) {
-    BLO_read_struct(reader, IDProperty, &addon->prop);
-    IDP_BlendDataRead(reader, &addon->prop);
+  for (bAddon &addon : user->addons) {
+    BLO_read_struct(reader, IDProperty, &addon.prop);
+    IDP_BlendDataRead(reader, &addon.prop);
   }
 
-  LISTBASE_FOREACH (bUserExtensionRepo *, repo_ref, &user->extension_repos) {
-    BKE_preferences_extension_repo_read_data(reader, repo_ref);
+  for (bUserExtensionRepo &repo_ref : user->extension_repos) {
+    BKE_preferences_extension_repo_read_data(reader, &repo_ref);
   }
 
-  LISTBASE_FOREACH (bUserAssetShelfSettings *, shelf_settings, &user->asset_shelves_settings) {
-    BKE_asset_catalog_path_list_blend_read_data(reader, shelf_settings->enabled_catalog_paths);
+  for (bUserAssetShelfSettings &shelf_settings : user->asset_shelves_settings) {
+    BKE_asset_catalog_path_list_blend_read_data(reader, shelf_settings.enabled_catalog_paths);
   }
 
   /* XXX */
@@ -4101,10 +4101,10 @@ static void blo_read_file_checks(Main *bmain)
   BLI_assert(!bmain->split_mains);
   BLI_assert(!bmain->is_read_invalid);
 
-  LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
-    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+  for (wmWindowManager &wm : bmain->wm) {
+    for (wmWindow &win : wm.windows) {
       /* This pointer is deprecated and should always be nullptr. */
-      BLI_assert(win->screen == nullptr);
+      BLI_assert(win.screen == nullptr);
     }
   }
 #endif
@@ -4328,14 +4328,14 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 #ifndef NDEBUG
         MainListsArray lbarray = BKE_main_lists_get(*bmain);
         for (ListBaseT<ID> *lb_array : lbarray) {
-          LISTBASE_FOREACH_MUTABLE (ID *, id, lb_array) {
-            BLI_assert_msg((id->runtime->readfile_data->tags.is_link_placeholder ==
-                            contains_link_placeholder),
-                           contains_link_placeholder ?
-                               "Real Library split Main contains non-placeholder IDs" :
-                               (bmain->curlib == nullptr ?
-                                    "Local data split Main contains placeholder IDs" :
-                                    "Archive Library split Main contains placeholder IDs"));
+          for (ID &id : lb_array->items_mutable()) {
+            BLI_assert_msg(
+                (id.runtime->readfile_data->tags.is_link_placeholder == contains_link_placeholder),
+                contains_link_placeholder ?
+                    "Real Library split Main contains non-placeholder IDs" :
+                    (bmain->curlib == nullptr ?
+                         "Local data split Main contains placeholder IDs" :
+                         "Archive Library split Main contains placeholder IDs"));
           }
         }
 #endif
@@ -4411,11 +4411,11 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
       BKE_main_id_refcount_recompute(bfd->main, false);
     }
 
-    LISTBASE_FOREACH_MUTABLE (Library *, lib, &bfd->main->libraries) {
+    for (Library &lib : bfd->main->libraries.items_mutable()) {
       /* Now we can clear this runtime library filedata, it is not needed anymore.
        *
        * NOTE: This is also important to do for archive libraries. */
-      library_filedata_release(lib);
+      library_filedata_release(&lib);
       /* If no data-blocks were read from a library (should only happen when all references to a
        * library's data are `ID_FLAG_INDIRECT_WEAK_LINK`), its versionfile will still be zero and
        * it can be deleted.
@@ -4430,15 +4430,15 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
        *    vector will not be empty, and it must be kept, even if no data is directly linked from
        *    it anymore.
        */
-      if (lib->runtime->versionfile == 0 && lib->runtime->archived_libraries.is_empty()) {
+      if (lib.runtime->versionfile == 0 && lib.runtime->archived_libraries.is_empty()) {
 #ifndef NDEBUG
         ID *id_iter;
         FOREACH_MAIN_ID_BEGIN (bfd->main, id_iter) {
-          BLI_assert(id_iter->lib != lib);
+          BLI_assert(id_iter->lib != &lib);
         }
         FOREACH_MAIN_ID_END;
 #endif
-        BKE_id_delete(bfd->main, lib);
+        BKE_id_delete(bfd->main, &lib);
       }
     }
 
@@ -5269,10 +5269,10 @@ static void split_main_newid(Main *mainptr, Main *main_newid)
   while (i--) {
     BLI_listbase_clear(lbarray_newid[i]);
 
-    LISTBASE_FOREACH_MUTABLE (ID *, id, lbarray[i]) {
-      if (id->tag & ID_TAG_NEW) {
-        BLI_remlink(lbarray[i], id);
-        BLI_addtail(lbarray_newid[i], id);
+    for (ID &id : lbarray[i]->items_mutable()) {
+      if (id.tag & ID_TAG_NEW) {
+        BLI_remlink(lbarray[i], &id);
+        BLI_addtail(lbarray_newid[i], &id);
       }
     }
   }
@@ -5417,12 +5417,12 @@ void BLO_library_link_end(Main *mainl,
     library_link_end(mainl, &fd, params->flag, reports);
   }
 
-  LISTBASE_FOREACH (Library *, lib, &params->bmain->libraries) {
+  for (Library &lib : params->bmain->libraries) {
     /* Now we can clear this runtime library filedata, it is not needed anymore. */
     /* TODO: In the future, could be worth keeping them in case data are linked from several
      * libraries at once? To avoid closing and re-opening the same file several times. Would need
      * a global cleanup callback then once all linking is done, though. */
-    library_filedata_release(lib);
+    library_filedata_release(&lib);
   }
 
   *bh = reinterpret_cast<BlendHandle *>(fd);
@@ -5444,9 +5444,9 @@ static int has_linked_ids_to_read(Main *mainvar)
   MainListsArray lbarray = BKE_main_lists_get(*mainvar);
   int a = lbarray.size();
   while (a--) {
-    LISTBASE_FOREACH (ID *, id, lbarray[a]) {
-      if (BLO_readfile_id_runtime_tags(*id).is_link_placeholder &&
-          !(id->flag & ID_FLAG_INDIRECT_WEAK_LINK))
+    for (ID &id : *lbarray[a]) {
+      if (BLO_readfile_id_runtime_tags(id).is_link_placeholder &&
+          !(id.flag & ID_FLAG_INDIRECT_WEAK_LINK))
       {
         return true;
       }

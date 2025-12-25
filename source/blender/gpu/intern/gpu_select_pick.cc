@@ -731,19 +731,19 @@ void gpu_select_pick_cache_load_id()
 #ifdef DEBUG_PRINT
   printf("%s (building depth from cache)\n", __func__);
 #endif
-  LISTBASE_FOREACH (DepthBufCache *, rect_depth, &ps->cache.bufs) {
-    if (rect_depth->next != nullptr) {
+  for (DepthBufCache &rect_depth : ps->cache.bufs) {
+    if (rect_depth.next != nullptr) {
       /* We know the buffers differ, but this sub-region may not.
        * Double check before adding an id-pass. */
       if (g_pick_state.mode == GPU_SELECT_PICK_ALL) {
-        if (depth_buf_subrect_depth_any(rect_depth->next, &ps->cache.sub_rect)) {
-          gpu_select_load_id_pass_all(rect_depth->next);
+        if (depth_buf_subrect_depth_any(rect_depth.next, &ps->cache.sub_rect)) {
+          gpu_select_load_id_pass_all(rect_depth.next);
         }
       }
       else {
-        if (depth_buf_subrect_depth_any_filled(rect_depth, rect_depth->next, &ps->cache.sub_rect))
+        if (depth_buf_subrect_depth_any_filled(&rect_depth, rect_depth.next, &ps->cache.sub_rect))
         {
-          gpu_select_load_id_pass_nearest(rect_depth, rect_depth->next);
+          gpu_select_load_id_pass_nearest(&rect_depth, rect_depth.next);
         }
       }
     }

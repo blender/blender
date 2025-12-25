@@ -97,8 +97,8 @@ static bool UNUSED_FUNCTION(object_has_shaderfx)(const Object *ob,
                                                  const ShaderFxData *exclude,
                                                  ShaderFxType type)
 {
-  LISTBASE_FOREACH (ShaderFxData *, fx, &ob->shader_fx) {
-    if ((fx != exclude) && (fx->type == type)) {
+  for (ShaderFxData &fx : ob->shader_fx) {
+    if ((&fx != exclude) && (fx.type == type)) {
       return true;
     }
   }

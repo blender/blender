@@ -859,8 +859,8 @@ class SocketValueInferencerImpl {
           });
     }
     /* Gather all inputs controlled by drivers. */
-    LISTBASE_FOREACH (const FCurve *, driver, &tree.adt->drivers) {
-      handle_rna_path(driver->rna_path);
+    for (const FCurve &driver : tree.adt->drivers) {
+      handle_rna_path(driver.rna_path);
     }
 
     /* Actually find the #bNodeSocket for each controlled input. */

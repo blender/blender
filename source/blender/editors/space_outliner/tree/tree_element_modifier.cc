@@ -29,14 +29,14 @@ TreeElementModifierBase::TreeElementModifierBase(TreeElement &legacy_te, Object 
 
 void TreeElementModifierBase::expand(SpaceOutliner & /*space_outliner*/) const
 {
-  int index;
-  LISTBASE_FOREACH_INDEX (ModifierData *, md, &object_.modifiers, index) {
-    ModifierDataStoreElem md_store(md);
+
+  for (const auto [index, md] : object_.modifiers.enumerate()) {
+    ModifierDataStoreElem md_store(&md);
 
     add_element(&legacy_te_.subtree, &object_.id, &md_store, &legacy_te_, TSE_MODIFIER, index);
   }
-  LISTBASE_FOREACH_INDEX (GpencilModifierData *, md, &object_.greasepencil_modifiers, index) {
-    ModifierDataStoreElem md_store(md);
+  for (const auto [index, md] : object_.greasepencil_modifiers.enumerate()) {
+    ModifierDataStoreElem md_store(&md);
 
     add_element(&legacy_te_.subtree, &object_.id, &md_store, &legacy_te_, TSE_MODIFIER, index);
   }

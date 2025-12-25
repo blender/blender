@@ -173,33 +173,33 @@ static bool get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
   /* check if any channels to set range with */
   if (anim_data.first) {
     /* go through channels, finding max extents */
-    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-      if (ale->datatype == ALE_GPFRAME) {
-        bGPDlayer *gpl = static_cast<bGPDlayer *>(ale->data);
+    for (bAnimListElem &ale : anim_data) {
+      if (ale.datatype == ALE_GPFRAME) {
+        bGPDlayer *gpl = static_cast<bGPDlayer *>(ale.data);
 
         /* Find GP-frame which is less than or equal to current-frame. */
-        LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
-          if (!onlySel || (gpf->flag & GP_FRAME_SELECT)) {
-            const float framenum = float(gpf->framenum);
+        for (bGPDframe &gpf : gpl->frames) {
+          if (!onlySel || (gpf.flag & GP_FRAME_SELECT)) {
+            const float framenum = float(gpf.framenum);
             *min = min_ff(*min, framenum);
             *max = max_ff(*max, framenum);
             found = true;
           }
         }
       }
-      else if (ale->datatype == ALE_MASKLAY) {
-        MaskLayer *masklay = static_cast<MaskLayer *>(ale->data);
+      else if (ale.datatype == ALE_MASKLAY) {
+        MaskLayer *masklay = static_cast<MaskLayer *>(ale.data);
         /* Find mask layer which is less than or equal to current-frame. */
-        LISTBASE_FOREACH (MaskLayerShape *, masklay_shape, &masklay->splines_shapes) {
-          const float framenum = float(masklay_shape->frame);
+        for (MaskLayerShape &masklay_shape : masklay->splines_shapes) {
+          const float framenum = float(masklay_shape.frame);
           *min = min_ff(*min, framenum);
           *max = max_ff(*max, framenum);
           found = true;
         }
       }
-      else if (ale->datatype == ALE_GREASE_PENCIL_CEL) {
+      else if (ale.datatype == ALE_GREASE_PENCIL_CEL) {
         const blender::bke::greasepencil::Layer &layer =
-            static_cast<GreasePencilLayer *>(ale->data)->wrap();
+            static_cast<GreasePencilLayer *>(ale.data)->wrap();
 
         for (const auto [key, frame] : layer.frames().items()) {
           if (onlySel && !frame.is_selected()) {
@@ -211,13 +211,13 @@ static bool get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
         }
       }
       else {
-        FCurve *fcu = (FCurve *)ale->key_data;
+        FCurve *fcu = (FCurve *)ale.key_data;
         float tmin, tmax;
 
         /* get range and apply necessary scaling before processing */
         if (BKE_fcurve_calc_range(fcu, &tmin, &tmax, onlySel)) {
-          tmin = ANIM_nla_tweakedit_remap(ale, tmin, NLATIME_CONVERT_MAP);
-          tmax = ANIM_nla_tweakedit_remap(ale, tmax, NLATIME_CONVERT_MAP);
+          tmin = ANIM_nla_tweakedit_remap(&ale, tmin, NLATIME_CONVERT_MAP);
+          tmax = ANIM_nla_tweakedit_remap(&ale, tmax, NLATIME_CONVERT_MAP);
 
           /* Try to set cur using these values,
            * if they're more extreme than previously set values. */
@@ -558,8 +558,8 @@ static eKeyPasteError paste_action_keys(bAnimContext *ac,
                                      ANIMFILTER_LIST_CHANNELS | ANIMFILTER_NODUPLIS |
                                      ANIMFILTER_SEL;
     ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
-    LISTBASE_FOREACH (const bAnimListElem *, ale, &anim_data) {
-      if (ale->datatype == ALE_ACTION_SLOT) {
+    for (const bAnimListElem &ale : anim_data) {
+      if (ale.datatype == ALE_ACTION_SLOT) {
         paste_context.num_slots_selected++;
       }
     }
@@ -947,18 +947,18 @@ static void insert_action_keys(bAnimContext *ac, short mode)
   /* insert keyframes */
   const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
       ac->depsgraph, float(scene->r.cfra));
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    switch (ale->type) {
+  for (bAnimListElem &ale : anim_data) {
+    switch (ale.type) {
       case ANIMTYPE_GPLAYER:
-        insert_gpencil_key(ac, ale, add_frame_mode, &gpd_old);
+        insert_gpencil_key(ac, &ale, add_frame_mode, &gpd_old);
         break;
 
       case ANIMTYPE_GREASE_PENCIL_LAYER:
-        insert_grease_pencil_key(ac, ale, grease_pencil_hold_previous);
+        insert_grease_pencil_key(ac, &ale, grease_pencil_hold_previous);
         break;
 
       case ANIMTYPE_FCURVE:
-        insert_fcurve_key(ac, ale, anim_eval_context, flag);
+        insert_fcurve_key(ac, &ale, anim_eval_context, flag);
         break;
 
       default:
@@ -1041,27 +1041,27 @@ static bool duplicate_action_keys(bAnimContext *ac)
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
   /* loop through filtered data and delete selected keys */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
-      changed |= duplicate_fcurve_keys((FCurve *)ale->key_data);
+  for (bAnimListElem &ale : anim_data) {
+    if (ELEM(ale.type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
+      changed |= duplicate_fcurve_keys((FCurve *)ale.key_data);
     }
-    else if (ale->type == ANIMTYPE_GPLAYER) {
-      ED_gpencil_layer_frames_duplicate((bGPDlayer *)ale->data);
-      changed |= ED_gpencil_layer_frame_select_check((bGPDlayer *)ale->data);
+    else if (ale.type == ANIMTYPE_GPLAYER) {
+      ED_gpencil_layer_frames_duplicate((bGPDlayer *)ale.data);
+      changed |= ED_gpencil_layer_frame_select_check((bGPDlayer *)ale.data);
     }
-    else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
+    else if (ale.type == ANIMTYPE_GREASE_PENCIL_LAYER) {
       changed |= blender::ed::greasepencil::duplicate_selected_frames(
-          *reinterpret_cast<GreasePencil *>(ale->id),
-          static_cast<GreasePencilLayer *>(ale->data)->wrap());
+          *reinterpret_cast<GreasePencil *>(ale.id),
+          static_cast<GreasePencilLayer *>(ale.data)->wrap());
     }
-    else if (ale->type == ANIMTYPE_MASKLAYER) {
-      changed |= ED_masklayer_frames_duplicate((MaskLayer *)ale->data);
+    else if (ale.type == ANIMTYPE_MASKLAYER) {
+      changed |= ED_masklayer_frames_duplicate((MaskLayer *)ale.data);
     }
     else {
       BLI_assert(0);
     }
 
-    ale->update |= ANIM_UPDATE_DEFAULT;
+    ale.update |= ANIM_UPDATE_DEFAULT;
   }
 
   ANIM_animdata_update(ac, &anim_data);
@@ -1125,36 +1125,36 @@ static bool delete_action_keys(bAnimContext *ac)
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
   /* loop through filtered data and delete selected keys */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+  for (bAnimListElem &ale : anim_data) {
     bool changed = false;
 
-    if (ale->type == ANIMTYPE_GPLAYER) {
-      changed = ED_gpencil_layer_frames_delete((bGPDlayer *)ale->data);
+    if (ale.type == ANIMTYPE_GPLAYER) {
+      changed = ED_gpencil_layer_frames_delete((bGPDlayer *)ale.data);
     }
-    else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
-      GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale->id);
+    else if (ale.type == ANIMTYPE_GREASE_PENCIL_LAYER) {
+      GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale.id);
       changed = blender::ed::greasepencil::remove_all_selected_frames(
-          *grease_pencil, static_cast<GreasePencilLayer *>(ale->data)->wrap());
+          *grease_pencil, static_cast<GreasePencilLayer *>(ale.data)->wrap());
 
       if (changed) {
         DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
       }
     }
-    else if (ale->type == ANIMTYPE_MASKLAYER) {
-      changed = ED_masklayer_frames_delete((MaskLayer *)ale->data);
+    else if (ale.type == ANIMTYPE_MASKLAYER) {
+      changed = ED_masklayer_frames_delete((MaskLayer *)ale.data);
     }
     else {
-      FCurve *fcu = static_cast<FCurve *>(ale->key_data);
+      FCurve *fcu = static_cast<FCurve *>(ale.key_data);
       changed = BKE_fcurve_delete_keys_selected(fcu);
 
       if (changed && BKE_fcurve_is_empty(fcu)) {
-        ED_anim_ale_fcurve_delete(*ac, *ale);
-        ale->key_data = nullptr;
+        ED_anim_ale_fcurve_delete(*ac, ale);
+        ale.key_data = nullptr;
       }
     }
 
     if (changed) {
-      ale->update |= ANIM_UPDATE_DEFAULT;
+      ale.update |= ANIM_UPDATE_DEFAULT;
       changed_final = true;
     }
   }
@@ -1243,10 +1243,10 @@ static void clean_action_keys(bAnimContext *ac, float thresh, bool clean_chan)
 
   const bool only_selected_keys = !clean_chan;
   /* loop through filtered data and clean curves */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    clean_fcurve(ale, thresh, clean_chan, only_selected_keys);
+  for (bAnimListElem &ale : anim_data) {
+    clean_fcurve(&ale, thresh, clean_chan, only_selected_keys);
 
-    ale->update |= ANIM_UPDATE_DEFAULT;
+    ale.update |= ANIM_UPDATE_DEFAULT;
   }
 
   ANIM_animdata_update(ac, &anim_data);
@@ -1323,10 +1323,10 @@ static void bake_action_keys(bAnimContext *ac)
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
   /* Loop through filtered data and add keys between selected keyframes on every frame. */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    blender::animrig::bake_fcurve_segments((FCurve *)ale->key_data);
+  for (bAnimListElem &ale : anim_data) {
+    blender::animrig::bake_fcurve_segments((FCurve *)ale.key_data);
 
-    ale->update |= ANIM_UPDATE_DEPS;
+    ale.update |= ANIM_UPDATE_DEPS;
   }
 
   ANIM_animdata_update(ac, &anim_data);
@@ -1421,8 +1421,8 @@ static void setexpo_action_keys(bAnimContext *ac, short mode)
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
   /* loop through setting mode per F-Curve */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    FCurve *fcu = (FCurve *)ale->data;
+  for (bAnimListElem &ale : anim_data) {
+    FCurve *fcu = (FCurve *)ale.data;
 
     if (mode >= 0) {
       /* just set mode setting */
@@ -1453,7 +1453,7 @@ static void setexpo_action_keys(bAnimContext *ac, short mode)
       }
     }
 
-    ale->update |= ANIM_UPDATE_DEFAULT;
+    ale.update |= ANIM_UPDATE_DEFAULT;
   }
 
   ANIM_animdata_update(ac, &anim_data);
@@ -1644,15 +1644,15 @@ static void sethandles_action_keys(bAnimContext *ac, short mode)
    * NOTE: we do not supply KeyframeEditData to the looper yet.
    * Currently that's not necessary here.
    */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    FCurve *fcu = (FCurve *)ale->key_data;
+  for (bAnimListElem &ale : anim_data) {
+    FCurve *fcu = (FCurve *)ale.key_data;
 
     /* any selected keyframes for editing? */
     if (ANIM_fcurve_keyframes_loop(nullptr, fcu, nullptr, sel_cb, nullptr)) {
       /* change type of selected handles */
       ANIM_fcurve_keyframes_loop(nullptr, fcu, nullptr, edit_cb, BKE_fcurve_handles_recalc);
 
-      ale->update |= ANIM_UPDATE_DEFAULT;
+      ale.update |= ANIM_UPDATE_DEFAULT;
     }
   }
 
@@ -1730,23 +1730,23 @@ static void setkeytype_action_keys(bAnimContext *ac, eBezTriple_KeyframeType mod
    * NOTE: we do not supply KeyframeEditData to the looper yet.
    * Currently that's not necessary here.
    */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    switch (ale->type) {
+  for (bAnimListElem &ale : anim_data) {
+    switch (ale.type) {
       case ANIMTYPE_GPLAYER:
-        ED_gpencil_layer_frames_keytype_set(static_cast<bGPDlayer *>(ale->data), mode);
-        ale->update |= ANIM_UPDATE_DEPS;
+        ED_gpencil_layer_frames_keytype_set(static_cast<bGPDlayer *>(ale.data), mode);
+        ale.update |= ANIM_UPDATE_DEPS;
         break;
 
       case ANIMTYPE_GREASE_PENCIL_LAYER:
         blender::ed::greasepencil::set_selected_frames_type(
-            static_cast<GreasePencilLayer *>(ale->data)->wrap(), mode);
-        ale->update |= ANIM_UPDATE_DEPS;
+            static_cast<GreasePencilLayer *>(ale.data)->wrap(), mode);
+        ale.update |= ANIM_UPDATE_DEPS;
         break;
 
       case ANIMTYPE_FCURVE:
         ANIM_fcurve_keyframes_loop(
-            nullptr, static_cast<FCurve *>(ale->key_data), nullptr, set_cb, nullptr);
-        ale->update |= ANIM_UPDATE_DEPS | ANIM_UPDATE_HANDLES;
+            nullptr, static_cast<FCurve *>(ale.key_data), nullptr, set_cb, nullptr);
+        ale.update |= ANIM_UPDATE_DEPS | ANIM_UPDATE_HANDLES;
         break;
 
       default:
@@ -1836,18 +1836,18 @@ static wmOperatorStatus actkeys_framejump_exec(bContext *C, wmOperator * /*op*/)
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS);
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
 
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    switch (ale->datatype) {
+  for (bAnimListElem &ale : anim_data) {
+    switch (ale.datatype) {
       case ALE_GPFRAME: {
-        bGPDlayer *gpl = static_cast<bGPDlayer *>(ale->data);
+        bGPDlayer *gpl = static_cast<bGPDlayer *>(ale.data);
 
-        LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
+        for (bGPDframe &gpf : gpl->frames) {
           /* only if selected */
-          if (!(gpf->flag & GP_FRAME_SELECT)) {
+          if (!(gpf.flag & GP_FRAME_SELECT)) {
             continue;
           }
           /* store average time in float 1 (only do rounding at last step) */
-          ked.f1 += gpf->framenum;
+          ked.f1 += gpf.framenum;
 
           /* increment number of items */
           ked.i1++;
@@ -1857,7 +1857,7 @@ static wmOperatorStatus actkeys_framejump_exec(bContext *C, wmOperator * /*op*/)
 
       case ALE_GREASE_PENCIL_CEL: {
         using namespace blender::bke::greasepencil;
-        const Layer &layer = *static_cast<Layer *>(ale->data);
+        const Layer &layer = *static_cast<Layer *>(ale.data);
         for (auto [frame_number, frame] : layer.frames().items()) {
           if (!frame.is_selected()) {
             continue;
@@ -1869,10 +1869,10 @@ static wmOperatorStatus actkeys_framejump_exec(bContext *C, wmOperator * /*op*/)
       }
 
       case ALE_FCURVE: {
-        FCurve *fcurve = static_cast<FCurve *>(ale->key_data);
-        ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcurve, false, true);
+        FCurve *fcurve = static_cast<FCurve *>(ale.key_data);
+        ANIM_nla_mapping_apply_if_needed_fcurve(&ale, fcurve, false, true);
         ANIM_fcurve_keyframes_loop(&ked, fcurve, nullptr, bezt_calc_average, nullptr);
-        ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcurve, true, true);
+        ANIM_nla_mapping_apply_if_needed_fcurve(&ale, fcurve, true, true);
         break;
       }
 
@@ -1967,18 +1967,18 @@ static void snap_action_keys(bAnimContext *ac, short mode)
 
   ked.scene = ac->scene;
   if (mode == ACTKEYS_SNAP_NEAREST_MARKER) {
-    ked.list.first = (ac->markers) ? ac->markers->first : nullptr;
-    ked.list.last = (ac->markers) ? ac->markers->last : nullptr;
+    ked.time_marker_list.first = (ac->markers) ? ac->markers->first : nullptr;
+    ked.time_marker_list.last = (ac->markers) ? ac->markers->last : nullptr;
   }
 
   /* snap keyframes */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    if (ale->type == ANIMTYPE_GPLAYER) {
-      ED_gpencil_layer_snap_frames(static_cast<bGPDlayer *>(ale->data), ac->scene, mode);
+  for (bAnimListElem &ale : anim_data) {
+    if (ale.type == ANIMTYPE_GPLAYER) {
+      ED_gpencil_layer_snap_frames(static_cast<bGPDlayer *>(ale.data), ac->scene, mode);
     }
-    else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
-      GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale->id);
-      GreasePencilLayer *layer = static_cast<GreasePencilLayer *>(ale->data);
+    else if (ale.type == ANIMTYPE_GREASE_PENCIL_LAYER) {
+      GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale.id);
+      GreasePencilLayer *layer = static_cast<GreasePencilLayer *>(ale.data);
 
       const bool changed = blender::ed::greasepencil::snap_selected_frames(
           *grease_pencil, layer->wrap(), *(ac->scene), static_cast<eEditKeyframes_Snap>(mode));
@@ -1987,19 +1987,19 @@ static void snap_action_keys(bAnimContext *ac, short mode)
         DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
       }
     }
-    else if (ale->type == ANIMTYPE_MASKLAYER) {
-      ED_masklayer_snap_frames(static_cast<MaskLayer *>(ale->data), ac->scene, mode);
+    else if (ale.type == ANIMTYPE_MASKLAYER) {
+      ED_masklayer_snap_frames(static_cast<MaskLayer *>(ale.data), ac->scene, mode);
     }
     else {
-      FCurve *fcurve = static_cast<FCurve *>(ale->key_data);
-      ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcurve, false, false);
+      FCurve *fcurve = static_cast<FCurve *>(ale.key_data);
+      ANIM_nla_mapping_apply_if_needed_fcurve(&ale, fcurve, false, false);
       ANIM_fcurve_keyframes_loop(&ked, fcurve, nullptr, edit_cb, BKE_fcurve_handles_recalc);
       BKE_fcurve_merge_duplicate_keys(
           fcurve, SELECT, false); /* only use handles in graph editor */
-      ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcurve, true, false);
+      ANIM_nla_mapping_apply_if_needed_fcurve(&ale, fcurve, true, false);
     }
 
-    ale->update |= ANIM_UPDATE_DEFAULT;
+    ale.update |= ANIM_UPDATE_DEFAULT;
   }
 
   ANIM_animdata_update(ac, &anim_data);
@@ -2108,13 +2108,13 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
   /* mirror keyframes */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    if (ale->type == ANIMTYPE_GPLAYER) {
-      ED_gpencil_layer_mirror_frames(static_cast<bGPDlayer *>(ale->data), ac->scene, mode);
+  for (bAnimListElem &ale : anim_data) {
+    if (ale.type == ANIMTYPE_GPLAYER) {
+      ED_gpencil_layer_mirror_frames(static_cast<bGPDlayer *>(ale.data), ac->scene, mode);
     }
-    else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
-      GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale->id);
-      GreasePencilLayer *layer = static_cast<GreasePencilLayer *>(ale->data);
+    else if (ale.type == ANIMTYPE_GREASE_PENCIL_LAYER) {
+      GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale.id);
+      GreasePencilLayer *layer = static_cast<GreasePencilLayer *>(ale.data);
 
       const bool changed = blender::ed::greasepencil::mirror_selected_frames(
           *grease_pencil, layer->wrap(), *(ac->scene), static_cast<eEditKeyframes_Mirror>(mode));
@@ -2123,17 +2123,17 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
         DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
       }
     }
-    else if (ale->type == ANIMTYPE_MASKLAYER) {
+    else if (ale.type == ANIMTYPE_MASKLAYER) {
       /* TODO */
     }
     else {
-      FCurve *fcurve = static_cast<FCurve *>(ale->key_data);
-      ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcurve, false, false);
+      FCurve *fcurve = static_cast<FCurve *>(ale.key_data);
+      ANIM_nla_mapping_apply_if_needed_fcurve(&ale, fcurve, false, false);
       ANIM_fcurve_keyframes_loop(&ked, fcurve, nullptr, edit_cb, BKE_fcurve_handles_recalc);
-      ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcurve, true, false);
+      ANIM_nla_mapping_apply_if_needed_fcurve(&ale, fcurve, true, false);
     }
 
-    ale->update |= ANIM_UPDATE_DEFAULT;
+    ale.update |= ANIM_UPDATE_DEFAULT;
   }
 
   ANIM_animdata_update(ac, &anim_data);

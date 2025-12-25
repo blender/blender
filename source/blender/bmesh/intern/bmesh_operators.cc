@@ -1517,13 +1517,13 @@ bool BMO_error_get_at_level(BMesh *bm,
                             const char **r_msg,
                             BMOperator **r_op)
 {
-  LISTBASE_FOREACH (BMOpError *, err, &bm->errorstack) {
-    if (err->level >= level) {
+  for (BMOpError &err : bm->errorstack) {
+    if (err.level >= level) {
       if (r_msg) {
-        *r_msg = err->msg;
+        *r_msg = err.msg;
       }
       if (r_op) {
-        *r_op = err->op;
+        *r_op = err.op;
       }
       return true;
     }

@@ -43,18 +43,18 @@ void BKE_freestyle_config_init(FreestyleConfig *config)
 
 void BKE_freestyle_config_free(FreestyleConfig *config, const bool do_id_user)
 {
-  LISTBASE_FOREACH (FreestyleLineSet *, lineset, &config->linesets) {
-    if (lineset->group) {
+  for (FreestyleLineSet &lineset : config->linesets) {
+    if (lineset.group) {
       if (do_id_user) {
-        id_us_min(&lineset->group->id);
+        id_us_min(&lineset.group->id);
       }
-      lineset->group = nullptr;
+      lineset.group = nullptr;
     }
-    if (lineset->linestyle) {
+    if (lineset.linestyle) {
       if (do_id_user) {
-        id_us_min(&lineset->linestyle->id);
+        id_us_min(&lineset.linestyle->id);
       }
-      lineset->linestyle = nullptr;
+      lineset.linestyle = nullptr;
     }
   }
   BLI_freelistN(&config->linesets);
@@ -75,16 +75,16 @@ void BKE_freestyle_config_copy(FreestyleConfig *new_config,
   new_config->crease_angle = config->crease_angle;
 
   BLI_listbase_clear(&new_config->linesets);
-  LISTBASE_FOREACH (FreestyleLineSet *, lineset, &config->linesets) {
+  for (FreestyleLineSet &lineset : config->linesets) {
     new_lineset = alloc_lineset();
-    copy_lineset(new_lineset, lineset, flag);
+    copy_lineset(new_lineset, &lineset, flag);
     BLI_addtail(&new_config->linesets, (void *)new_lineset);
   }
 
   BLI_listbase_clear(&new_config->modules);
-  LISTBASE_FOREACH (FreestyleModuleConfig *, module, &config->modules) {
+  for (FreestyleModuleConfig &module : config->modules) {
     new_module = alloc_module();
-    copy_module(new_module, module);
+    copy_module(new_module, &module);
     BLI_addtail(&new_config->modules, (void *)new_module);
   }
 }
@@ -211,9 +211,9 @@ bool BKE_freestyle_lineset_delete(FreestyleConfig *config, FreestyleLineSet *lin
 
 FreestyleLineSet *BKE_freestyle_lineset_get_active(FreestyleConfig *config)
 {
-  LISTBASE_FOREACH (FreestyleLineSet *, lineset, &config->linesets) {
-    if (lineset->flags & FREESTYLE_LINESET_CURRENT) {
-      return lineset;
+  for (FreestyleLineSet &lineset : config->linesets) {
+    if (lineset.flags & FREESTYLE_LINESET_CURRENT) {
+      return &lineset;
     }
   }
   return nullptr;

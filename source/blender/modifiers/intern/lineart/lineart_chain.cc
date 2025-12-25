@@ -267,11 +267,11 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
       }
 
       if (new_vt == new_e->v1) {
-        LISTBASE_FOREACH_BACKWARD (LineartEdgeSegment *, es, &new_e->segments) {
+        for (LineartEdgeSegment &es : new_e->segments.items_reversed()) {
           double gpos[3], lpos[3];
           double *lfb = new_e->v1->fbcoord, *rfb = new_e->v2->fbcoord;
-          double global_at = lfb[3] * es->ratio / (es->ratio * lfb[3] + (1 - es->ratio) * rfb[3]);
-          interp_v3_v3v3_db(lpos, new_e->v1->fbcoord, new_e->v2->fbcoord, es->ratio);
+          double global_at = lfb[3] * es.ratio / (es.ratio * lfb[3] + (1 - es.ratio) * rfb[3]);
+          interp_v3_v3v3_db(lpos, new_e->v1->fbcoord, new_e->v2->fbcoord, es.ratio);
           interp_v3_v3v3_db(gpos, new_e->v1->gloc, new_e->v2->gloc, global_at);
           use_fbcoord[3] = interpf(new_e->v2->fbcoord[3], new_e->v1->fbcoord[3], global_at);
           POS_TO_FLOAT(lpos, gpos)
@@ -281,13 +281,13 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
                                       use_gpos,
                                       N,
                                       new_e->flags,
-                                      es->occlusion,
-                                      es->material_mask_bits,
-                                      es->shadow_mask_bits,
+                                      es.occlusion,
+                                      es.material_mask_bits,
+                                      es.shadow_mask_bits,
                                       new_e->v1->index);
-          last_occlusion = es->occlusion;
-          last_transparency = es->material_mask_bits;
-          last_shadow = es->shadow_mask_bits;
+          last_occlusion = es.occlusion;
+          last_transparency = es.material_mask_bits;
+          last_shadow = es.shadow_mask_bits;
         }
       }
       else if (new_vt == new_e->v2) {
@@ -424,16 +424,16 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
         eci->occlusion = last_occlusion;
         eci->material_mask_bits = last_transparency;
         eci->shadow_mask_bits = last_shadow;
-        LISTBASE_FOREACH_BACKWARD (LineartEdgeSegment *, es, &new_e->segments) {
+        for (LineartEdgeSegment &es : new_e->segments.items_reversed()) {
           double gpos[3], lpos[3];
           double *lfb = new_e->v1->fbcoord, *rfb = new_e->v2->fbcoord;
-          double global_at = lfb[3] * es->ratio / (es->ratio * lfb[3] + (1 - es->ratio) * rfb[3]);
-          interp_v3_v3v3_db(lpos, new_e->v1->fbcoord, new_e->v2->fbcoord, es->ratio);
+          double global_at = lfb[3] * es.ratio / (es.ratio * lfb[3] + (1 - es.ratio) * rfb[3]);
+          interp_v3_v3v3_db(lpos, new_e->v1->fbcoord, new_e->v2->fbcoord, es.ratio);
           interp_v3_v3v3_db(gpos, new_e->v1->gloc, new_e->v2->gloc, global_at);
           use_fbcoord[3] = interpf(new_e->v2->fbcoord[3], new_e->v1->fbcoord[3], global_at);
-          last_occlusion = es->prev ? es->prev->occlusion : last_occlusion;
-          last_transparency = es->prev ? es->prev->material_mask_bits : last_transparency;
-          last_shadow = es->prev ? es->prev->shadow_mask_bits : last_shadow;
+          last_occlusion = es.prev ? es.prev->occlusion : last_occlusion;
+          last_transparency = es.prev ? es.prev->material_mask_bits : last_transparency;
+          last_shadow = es.prev ? es.prev->shadow_mask_bits : last_shadow;
           POS_TO_FLOAT(lpos, gpos)
           lineart_chain_append_point(ld,
                                      ec,
@@ -747,8 +747,8 @@ void MOD_lineart_chain_split_for_fixed_occlusion(LineartData *ld)
 
   MOD_lineart_chain_discard_unused(ld, DBL_EDGE_LIM, ld->conf.max_occlusion_level);
 
-  LISTBASE_FOREACH (LineartEdgeChain *, iec, &ld->chains) {
-    lineart_bounding_area_link_chain(ld, iec);
+  for (LineartEdgeChain &iec : ld->chains) {
+    lineart_bounding_area_link_chain(ld, &iec);
   }
 }
 
@@ -833,12 +833,12 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartData *ld,
 
   /* Keep using for loop because `cre` could be removed from the iteration before getting to the
    * next one. */
-  LISTBASE_FOREACH_MUTABLE (LineartChainRegisterEntry *, cre, &ba->linked_chains) {
-    if (cre->ec->object_ref != ec->object_ref) {
+  for (LineartChainRegisterEntry &cre : ba->linked_chains.items_mutable()) {
+    if (cre.ec->object_ref != ec->object_ref) {
       if (!ld->conf.fuzzy_everything) {
         if (ld->conf.fuzzy_intersections) {
           /* If none of those are intersection lines... */
-          if (!(cre->ec->type & MOD_LINEART_EDGE_FLAG_INTERSECTION) &&
+          if (!(cre.ec->type & MOD_LINEART_EDGE_FLAG_INTERSECTION) &&
               !(ec->type & MOD_LINEART_EDGE_FLAG_INTERSECTION))
           {
             continue; /* We don't want to chain along different objects at the moment. */
@@ -849,19 +849,19 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartData *ld,
         }
       }
     }
-    if (cre->ec->picked || cre->picked) {
+    if (cre.ec->picked || cre.picked) {
       continue;
     }
-    if (cre->ec == ec || (!cre->ec->chain.first) || (cre->ec->level != occlusion) ||
-        (cre->ec->material_mask_bits != material_mask_bits) ||
-        (cre->ec->intersection_mask != isec_mask) || (cre->ec->shadow_mask_bits != shadow_mask))
+    if (cre.ec == ec || (!cre.ec->chain.first) || (cre.ec->level != occlusion) ||
+        (cre.ec->material_mask_bits != material_mask_bits) ||
+        (cre.ec->intersection_mask != isec_mask) || (cre.ec->shadow_mask_bits != shadow_mask))
     {
       continue;
     }
     if (!ld->conf.fuzzy_everything) {
-      if (cre->ec->type != ec->type) {
+      if (cre.ec->type != ec->type) {
         if (ld->conf.fuzzy_intersections) {
-          if (!(cre->ec->type == MOD_LINEART_EDGE_FLAG_INTERSECTION ||
+          if (!(cre.ec->type == MOD_LINEART_EDGE_FLAG_INTERSECTION ||
                 ec->type == MOD_LINEART_EDGE_FLAG_INTERSECTION))
           {
             continue; /* Fuzzy intersections but no intersection line found. */
@@ -873,15 +873,15 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartData *ld,
       }
     }
 
-    float new_len = ld->conf.use_geometry_space_chain ? len_v3v3(cre->eci->gpos, eci->gpos) :
-                                                        len_v2v2(cre->eci->pos, eci->pos);
+    float new_len = ld->conf.use_geometry_space_chain ? len_v3v3(cre.eci->gpos, eci->gpos) :
+                                                        len_v2v2(cre.eci->pos, eci->pos);
     /* Even if the vertex is not from the same contour loop, we try to chain it still if the
      * distance is small enough. This way we can better chain smaller loops and smooth them out
      * later. */
-    if (((cre->ec->loop_id == loop_id) && (new_len < dist)) ||
-        ((cre->ec->loop_id != loop_id) && (new_len < dist / 10)))
+    if (((cre.ec->loop_id == loop_id) && (new_len < dist)) ||
+        ((cre.ec->loop_id != loop_id) && (new_len < dist / 10)))
     {
-      closest_cre = cre;
+      closest_cre = &cre;
       dist = new_len;
       if (result_new_len) {
         (*result_new_len) = new_len;
@@ -895,8 +895,8 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartData *ld,
 
 #define LRT_TEST_ADJACENT_AREAS(dist_to, list) \
   if (dist_to < dist && dist_to > 0) { \
-    LISTBASE_FOREACH (LinkData *, link, list) { \
-      LineartBoundingArea *sba = (LineartBoundingArea *)link->data; \
+    for (LinkData &link : list) { \
+      LineartBoundingArea *sba = (LineartBoundingArea *)link.data; \
       adjacent_closest = lineart_chain_get_closest_cre(ld, \
                                                        sba, \
                                                        ec, \
@@ -916,10 +916,10 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartData *ld,
     } \
   }
   if (!caller_ba) {
-    LRT_TEST_ADJACENT_AREAS(eci->pos[0] - ba->l, &ba->lp);
-    LRT_TEST_ADJACENT_AREAS(ba->r - eci->pos[0], &ba->rp);
-    LRT_TEST_ADJACENT_AREAS(ba->u - eci->pos[1], &ba->up);
-    LRT_TEST_ADJACENT_AREAS(eci->pos[1] - ba->b, &ba->bp);
+    LRT_TEST_ADJACENT_AREAS(eci->pos[0] - ba->l, ba->lp);
+    LRT_TEST_ADJACENT_AREAS(ba->r - eci->pos[0], ba->rp);
+    LRT_TEST_ADJACENT_AREAS(ba->u - eci->pos[1], ba->up);
+    LRT_TEST_ADJACENT_AREAS(eci->pos[1] - ba->b, ba->bp);
   }
   if (result_new_len) {
     (*result_new_len) = dist;
@@ -1044,10 +1044,10 @@ float MOD_lineart_chain_compute_length(LineartEdgeChain *ec)
     return 0;
   }
   copy_v2_v2(last_point, eci->pos);
-  LISTBASE_FOREACH (LineartEdgeChainItem *, eci, &ec->chain) {
-    dist = len_v2v2(eci->pos, last_point);
+  for (LineartEdgeChainItem &eci : ec->chain) {
+    dist = len_v2v2(eci.pos, last_point);
     offset_accum += dist;
-    copy_v2_v2(last_point, eci->pos);
+    copy_v2_v2(last_point, eci.pos);
   }
   return offset_accum;
 }
@@ -1067,11 +1067,7 @@ void MOD_lineart_chain_discard_unused(LineartData *ld,
 
 int MOD_lineart_chain_count(const LineartEdgeChain *ec)
 {
-  int count = 0;
-  LISTBASE_FOREACH (LineartEdgeChainItem *, eci, &ec->chain) {
-    count++;
-  }
-  return count;
+  return BLI_listbase_count(&ec->chain);
 }
 
 void MOD_lineart_chain_clear_picked_flag(LineartCache *lc)
@@ -1079,17 +1075,17 @@ void MOD_lineart_chain_clear_picked_flag(LineartCache *lc)
   if (lc == nullptr) {
     return;
   }
-  LISTBASE_FOREACH (LineartEdgeChain *, ec, &lc->chains) {
-    ec->picked = 0;
+  for (LineartEdgeChain &ec : lc->chains) {
+    ec.picked = 0;
   }
 }
 
 LineartElementLinkNode *lineart_find_matching_eln_obj(ListBaseT<LineartElementLinkNode> *elns,
                                                       Object *ob)
 {
-  LISTBASE_FOREACH (LineartElementLinkNode *, eln, elns) {
-    if (eln->object_ref == ob) {
-      return eln;
+  for (LineartElementLinkNode &eln : *elns) {
+    if (eln.object_ref == ob) {
+      return &eln;
     }
   }
   return nullptr;
@@ -1097,8 +1093,8 @@ LineartElementLinkNode *lineart_find_matching_eln_obj(ListBaseT<LineartElementLi
 
 void MOD_lineart_finalize_chains(LineartData *ld)
 {
-  LISTBASE_FOREACH (LineartEdgeChain *, ec, &ld->chains) {
-    if (ELEM(ec->type,
+  for (LineartEdgeChain &ec : ld->chains) {
+    if (ELEM(ec.type,
              MOD_LINEART_EDGE_FLAG_INTERSECTION,
              MOD_LINEART_EDGE_FLAG_PROJECTED_SHADOW,
              MOD_LINEART_EDGE_FLAG_LIGHT_CONTOUR))
@@ -1106,12 +1102,12 @@ void MOD_lineart_finalize_chains(LineartData *ld)
       continue;
     }
     LineartElementLinkNode *eln = lineart_find_matching_eln_obj(&ld->geom.vertex_buffer_pointers,
-                                                                ec->object_ref);
+                                                                ec.object_ref);
     BLI_assert(eln != nullptr);
     if (LIKELY(eln)) {
-      LISTBASE_FOREACH (LineartEdgeChainItem *, eci, &ec->chain) {
-        if (eci->index > eln->global_index_offset) {
-          eci->index -= eln->global_index_offset;
+      for (LineartEdgeChainItem &eci : ec.chain) {
+        if (eci.index > eln->global_index_offset) {
+          eci.index -= eln->global_index_offset;
         }
       }
     }
@@ -1120,10 +1116,10 @@ void MOD_lineart_finalize_chains(LineartData *ld)
 
 void MOD_lineart_smooth_chains(LineartData *ld, float tolerance)
 {
-  LISTBASE_FOREACH (LineartEdgeChain *, ec, &ld->chains) {
+  for (LineartEdgeChain &ec : ld->chains) {
     /* Go through the chain two times, once from each direction. */
     for (int times = 0; times < 2; times++) {
-      for (LineartEdgeChainItem *eci = static_cast<LineartEdgeChainItem *>(ec->chain.first),
+      for (LineartEdgeChainItem *eci = static_cast<LineartEdgeChainItem *>(ec.chain.first),
                                 *next_eci = eci->next;
            eci;
            eci = next_eci)
@@ -1167,7 +1163,7 @@ void MOD_lineart_smooth_chains(LineartData *ld, float tolerance)
             if ((eci4 = eci3->next) &&
                 (dist_to_line_v2(eci4->pos, eci->pos, eci2->pos) < tolerance))
             {
-              BLI_remlink(&ec->chain, eci3);
+              BLI_remlink(&ec.chain, eci3);
               next_eci = eci;
               continue;
             }
@@ -1176,7 +1172,7 @@ void MOD_lineart_smooth_chains(LineartData *ld, float tolerance)
                * Basically we don't need to preserve p3 if the entire chain looked like this:
                * ...----1----3===2 */
               if (len_v2(vec2) > len_v2(vec3)) {
-                BLI_remlink(&ec->chain, eci3);
+                BLI_remlink(&ec.chain, eci3);
               }
               next_eci = nullptr;
               continue;
@@ -1185,7 +1181,7 @@ void MOD_lineart_smooth_chains(LineartData *ld, float tolerance)
         }
         next_eci = eci->next;
       }
-      BLI_listbase_reverse(&ec->chain);
+      BLI_listbase_reverse(&ec.chain);
     }
   }
 }
@@ -1373,25 +1369,25 @@ void MOD_lineart_chain_offset_towards_camera(LineartData *ld, float dist, bool u
   }
 
   if (ld->conf.cam_is_persp) {
-    LISTBASE_FOREACH (LineartEdgeChain *, ec, &ld->chains) {
-      LISTBASE_FOREACH (LineartEdgeChainItem *, eci, &ec->chain) {
-        sub_v3_v3v3(dir, cam, eci->gpos);
+    for (LineartEdgeChain &ec : ld->chains) {
+      for (LineartEdgeChainItem &eci : ec.chain) {
+        sub_v3_v3v3(dir, cam, eci.gpos);
         float orig_len = len_v3(dir);
         normalize_v3(dir);
         mul_v3_fl(dir, std::min<float>(dist, orig_len - ld->conf.near_clip));
-        add_v3_v3(eci->gpos, dir);
+        add_v3_v3(eci.gpos, dir);
       }
     }
   }
   else {
     copy_v3fl_v3db(view, ld->conf.view_vector);
-    LISTBASE_FOREACH (LineartEdgeChain *, ec, &ld->chains) {
-      LISTBASE_FOREACH (LineartEdgeChainItem *, eci, &ec->chain) {
-        sub_v3_v3v3(dir, cam, eci->gpos);
+    for (LineartEdgeChain &ec : ld->chains) {
+      for (LineartEdgeChainItem &eci : ec.chain) {
+        sub_v3_v3v3(dir, cam, eci.gpos);
         float len_lim = dot_v3v3(view, dir) - ld->conf.near_clip;
         normalize_v3_v3(view_clamp, view);
         mul_v3_fl(view_clamp, std::min(dist, len_lim));
-        add_v3_v3(eci->gpos, view_clamp);
+        add_v3_v3(eci.gpos, view_clamp);
       }
     }
   }
@@ -1399,17 +1395,17 @@ void MOD_lineart_chain_offset_towards_camera(LineartData *ld, float dist, bool u
 
 void MOD_lineart_chain_find_silhouette_backdrop_objects(LineartData *ld)
 {
-  LISTBASE_FOREACH (LineartEdgeChain *, ec, &ld->chains) {
-    if (ec->type == MOD_LINEART_EDGE_FLAG_CONTOUR &&
-        ec->shadow_mask_bits & LRT_SHADOW_SILHOUETTE_ERASED_GROUP)
+  for (LineartEdgeChain &ec : ld->chains) {
+    if (ec.type == MOD_LINEART_EDGE_FLAG_CONTOUR &&
+        ec.shadow_mask_bits & LRT_SHADOW_SILHOUETTE_ERASED_GROUP)
     {
-      uint32_t target = ec->shadow_mask_bits & LRT_OBINDEX_HIGHER;
+      uint32_t target = ec.shadow_mask_bits & LRT_OBINDEX_HIGHER;
       LineartElementLinkNode *eln = lineart_find_matching_eln(&ld->geom.line_buffer_pointers,
                                                               target);
       if (!eln) {
         continue;
       }
-      ec->silhouette_backdrop = static_cast<Object *>(eln->object_ref);
+      ec.silhouette_backdrop = static_cast<Object *>(eln->object_ref);
     }
   }
 }

@@ -62,9 +62,9 @@ static XrActionMapBinding *wm_xr_actionmap_binding_find_except(XrActionMapItem *
                                                                const char *name,
                                                                XrActionMapBinding *ambexcept)
 {
-  LISTBASE_FOREACH (XrActionMapBinding *, amb, &ami->bindings) {
-    if (STREQLEN(name, amb->name, MAX_NAME) && (amb != ambexcept)) {
-      return amb;
+  for (XrActionMapBinding &amb : ami->bindings) {
+    if (STREQLEN(name, amb.name, MAX_NAME) && (&amb != ambexcept)) {
+      return &amb;
     }
   }
   return nullptr;
@@ -101,8 +101,8 @@ static XrActionMapBinding *wm_xr_actionmap_binding_copy(XrActionMapBinding *amb_
   amb_dst->prev = amb_dst->next = nullptr;
 
   BLI_listbase_clear(&amb_dst->component_paths);
-  LISTBASE_FOREACH (XrComponentPath *, path, &amb_src->component_paths) {
-    XrComponentPath *path_new = static_cast<XrComponentPath *>(MEM_dupallocN(path));
+  for (XrComponentPath &path : amb_src->component_paths) {
+    XrComponentPath *path_new = static_cast<XrComponentPath *>(MEM_dupallocN(&path));
     BLI_addtail(&amb_dst->component_paths, path_new);
   }
 
@@ -148,9 +148,9 @@ bool WM_xr_actionmap_binding_remove(XrActionMapItem *ami, XrActionMapBinding *am
 
 XrActionMapBinding *WM_xr_actionmap_binding_find(XrActionMapItem *ami, const char *name)
 {
-  LISTBASE_FOREACH (XrActionMapBinding *, amb, &ami->bindings) {
-    if (STREQLEN(name, amb->name, MAX_NAME)) {
-      return amb;
+  for (XrActionMapBinding &amb : ami->bindings) {
+    if (STREQLEN(name, amb.name, MAX_NAME)) {
+      return &amb;
     }
   }
   return nullptr;
@@ -185,8 +185,8 @@ static void wm_xr_actionmap_item_properties_free(XrActionMapItem *ami)
 
 static void wm_xr_actionmap_item_clear(XrActionMapItem *ami)
 {
-  LISTBASE_FOREACH (XrActionMapBinding *, amb, &ami->bindings) {
-    wm_xr_actionmap_binding_clear(amb);
+  for (XrActionMapBinding &amb : ami->bindings) {
+    wm_xr_actionmap_binding_clear(&amb);
   }
   BLI_freelistN(&ami->bindings);
   ami->selbinding = 0;
@@ -264,9 +264,9 @@ static XrActionMapItem *wm_xr_actionmap_item_find_except(XrActionMap *actionmap,
                                                          const char *name,
                                                          const XrActionMapItem *amiexcept)
 {
-  LISTBASE_FOREACH (XrActionMapItem *, ami, &actionmap->items) {
-    if (STREQLEN(name, ami->name, MAX_NAME) && (ami != amiexcept)) {
-      return ami;
+  for (XrActionMapItem &ami : actionmap->items) {
+    if (STREQLEN(name, ami.name, MAX_NAME) && (&ami != amiexcept)) {
+      return &ami;
     }
   }
   return nullptr;
@@ -303,8 +303,8 @@ static XrActionMapItem *wm_xr_actionmap_item_copy(XrActionMapItem *ami_src)
   ami_dst->prev = ami_dst->next = nullptr;
 
   BLI_listbase_clear(&ami_dst->bindings);
-  LISTBASE_FOREACH (XrActionMapBinding *, amb, &ami_src->bindings) {
-    XrActionMapBinding *amb_new = wm_xr_actionmap_binding_copy(amb);
+  for (XrActionMapBinding &amb : ami_src->bindings) {
+    XrActionMapBinding *amb_new = wm_xr_actionmap_binding_copy(&amb);
     BLI_addtail(&ami_dst->bindings, amb_new);
   }
 
@@ -320,8 +320,8 @@ static XrActionMapItem *wm_xr_actionmap_item_copy(XrActionMapItem *ami_src)
   }
 
   BLI_listbase_clear(&ami_dst->user_paths);
-  LISTBASE_FOREACH (XrUserPath *, path, &ami_src->user_paths) {
-    XrUserPath *path_new = static_cast<XrUserPath *>(MEM_dupallocN(path));
+  for (XrUserPath &path : ami_src->user_paths) {
+    XrUserPath *path_new = static_cast<XrUserPath *>(MEM_dupallocN(&path));
     BLI_addtail(&ami_dst->user_paths, path_new);
   }
 
@@ -361,9 +361,9 @@ bool WM_xr_actionmap_item_remove(XrActionMap *actionmap, XrActionMapItem *ami)
 
 XrActionMapItem *WM_xr_actionmap_item_find(XrActionMap *actionmap, const char *name)
 {
-  LISTBASE_FOREACH (XrActionMapItem *, ami, &actionmap->items) {
-    if (STREQLEN(name, ami->name, MAX_NAME)) {
-      return ami;
+  for (XrActionMapItem &ami : actionmap->items) {
+    if (STREQLEN(name, ami.name, MAX_NAME)) {
+      return &ami;
     }
   }
   return nullptr;
@@ -400,9 +400,9 @@ static XrActionMap *wm_xr_actionmap_find_except(wmXrRuntimeData *runtime,
                                                 const char *name,
                                                 const XrActionMap *am_except)
 {
-  LISTBASE_FOREACH (XrActionMap *, am, &runtime->actionmaps) {
-    if (STREQLEN(name, am->name, MAX_NAME) && (am != am_except)) {
-      return am;
+  for (XrActionMap &am : runtime->actionmaps) {
+    if (STREQLEN(name, am.name, MAX_NAME) && (&am != am_except)) {
+      return &am;
     }
   }
 
@@ -440,8 +440,8 @@ static XrActionMap *wm_xr_actionmap_copy(XrActionMap *am_src)
   am_dst->prev = am_dst->next = nullptr;
 
   BLI_listbase_clear(&am_dst->items);
-  LISTBASE_FOREACH (XrActionMapItem *, ami, &am_src->items) {
-    XrActionMapItem *ami_new = wm_xr_actionmap_item_copy(ami);
+  for (XrActionMapItem &ami : am_src->items) {
+    XrActionMapItem *ami_new = wm_xr_actionmap_item_copy(&ami);
     BLI_addtail(&am_dst->items, ami_new);
   }
 
@@ -486,9 +486,9 @@ bool WM_xr_actionmap_remove(wmXrRuntimeData *runtime, XrActionMap *actionmap)
 
 XrActionMap *WM_xr_actionmap_find(wmXrRuntimeData *runtime, const char *name)
 {
-  LISTBASE_FOREACH (XrActionMap *, am, &runtime->actionmaps) {
-    if (STREQLEN(name, am->name, MAX_NAME)) {
-      return am;
+  for (XrActionMap &am : runtime->actionmaps) {
+    if (STREQLEN(name, am.name, MAX_NAME)) {
+      return &am;
     }
   }
   return nullptr;
@@ -496,8 +496,8 @@ XrActionMap *WM_xr_actionmap_find(wmXrRuntimeData *runtime, const char *name)
 
 void WM_xr_actionmap_clear(XrActionMap *actionmap)
 {
-  LISTBASE_FOREACH (XrActionMapItem *, ami, &actionmap->items) {
-    wm_xr_actionmap_item_clear(ami);
+  for (XrActionMapItem &ami : actionmap->items) {
+    wm_xr_actionmap_item_clear(&ami);
   }
   BLI_freelistN(&actionmap->items);
   actionmap->selitem = 0;
@@ -505,8 +505,8 @@ void WM_xr_actionmap_clear(XrActionMap *actionmap)
 
 void WM_xr_actionmaps_clear(wmXrRuntimeData *runtime)
 {
-  LISTBASE_FOREACH (XrActionMap *, am, &runtime->actionmaps) {
-    WM_xr_actionmap_clear(am);
+  for (XrActionMap &am : runtime->actionmaps) {
+    WM_xr_actionmap_clear(&am);
   }
   BLI_freelistN(&runtime->actionmaps);
   runtime->actactionmap = runtime->selactionmap = 0;

@@ -79,10 +79,10 @@ void bke_undo_system_linker_workaround()
 
 static const UndoType *BKE_undosys_type_from_context(bContext *C)
 {
-  LISTBASE_FOREACH (const UndoType *, ut, &g_undo_types) {
+  for (const UndoType &ut : g_undo_types) {
     /* No poll means we don't check context. */
-    if (ut->poll && ut->poll(C)) {
-      return ut;
+    if (ut.poll && ut.poll(C)) {
+      return &ut;
     }
   }
   return nullptr;
@@ -659,10 +659,10 @@ UndoStep *BKE_undosys_step_find_by_name_with_type(UndoStack *ustack,
                                                   const char *name,
                                                   const UndoType *ut)
 {
-  LISTBASE_FOREACH_BACKWARD (UndoStep *, us, &ustack->steps) {
-    if (us->type == ut) {
-      if (STREQ(name, us->name)) {
-        return us;
+  for (UndoStep &us : ustack->steps.items_reversed()) {
+    if (us.type == ut) {
+      if (STREQ(name, us.name)) {
+        return &us;
       }
     }
   }
@@ -676,9 +676,9 @@ UndoStep *BKE_undosys_step_find_by_name(UndoStack *ustack, const char *name)
 
 UndoStep *BKE_undosys_step_find_by_type(UndoStack *ustack, const UndoType *ut)
 {
-  LISTBASE_FOREACH_BACKWARD (UndoStep *, us, &ustack->steps) {
-    if (us->type == ut) {
-      return us;
+  for (UndoStep &us : ustack->steps.items_reversed()) {
+    if (us.type == ut) {
+      return &us;
     }
   }
   return nullptr;
@@ -970,10 +970,10 @@ static void UNUSED_FUNCTION(BKE_undosys_foreach_ID_ref(UndoStack *ustack,
                                                        UndoTypeForEachIDRefFn foreach_ID_ref_fn,
                                                        void *user_data))
 {
-  LISTBASE_FOREACH (UndoStep *, us, &ustack->steps) {
-    const UndoType *ut = us->type;
+  for (UndoStep &us : ustack->steps) {
+    const UndoType *ut = us.type;
     if (ut->step_foreach_ID_ref != nullptr) {
-      ut->step_foreach_ID_ref(us, foreach_ID_ref_fn, user_data);
+      ut->step_foreach_ID_ref(&us, foreach_ID_ref_fn, user_data);
     }
   }
 }
@@ -993,16 +993,16 @@ void BKE_undosys_print(UndoStack *ustack)
   printf("Undo %d Steps (*: active, #=applied, M=memfile-active, S=skip)\n",
          BLI_listbase_count(&ustack->steps));
   int index = 0;
-  LISTBASE_FOREACH (UndoStep *, us, &ustack->steps) {
+  for (UndoStep &us : ustack->steps) {
     printf("[%c%c%c%c] %3d {%p} type='%s', name='%s'\n",
-           (us == ustack->step_active) ? '*' : ' ',
-           us->is_applied ? '#' : ' ',
-           (us == ustack->step_active_memfile) ? 'M' : ' ',
-           us->skip ? 'S' : ' ',
+           (&us == ustack->step_active) ? '*' : ' ',
+           us.is_applied ? '#' : ' ',
+           (&us == ustack->step_active_memfile) ? 'M' : ' ',
+           us.skip ? 'S' : ' ',
            index,
-           (void *)us,
-           us->type->name,
-           us->name);
+           (void *)&us,
+           us.type->name,
+           us.name);
     index++;
   }
 }

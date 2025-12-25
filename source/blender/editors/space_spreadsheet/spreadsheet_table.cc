@@ -287,10 +287,9 @@ void spreadsheet_table_remove_unused(SpaceSpreadsheet &sspreadsheet)
           case SPREADSHEET_TABLE_ID_TYPE_GEOMETRY: {
             const SpreadsheetTableIDGeometry &table_id =
                 *reinterpret_cast<const SpreadsheetTableIDGeometry *>(table->id);
-            LISTBASE_FOREACH (ViewerPathElem *, elem, &table_id.viewer_path.path) {
-              if (elem->type == VIEWER_PATH_ELEM_TYPE_ID) {
-                const IDViewerPathElem &id_elem = reinterpret_cast<const IDViewerPathElem &>(
-                    *elem);
+            for (ViewerPathElem &elem : table_id.viewer_path.path) {
+              if (elem.type == VIEWER_PATH_ELEM_TYPE_ID) {
+                const IDViewerPathElem &id_elem = reinterpret_cast<const IDViewerPathElem &>(elem);
                 if (!id_elem.id) {
                   /* Remove tables which reference an ID that does not exist anymore. */
                   return true;

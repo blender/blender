@@ -1638,15 +1638,15 @@ static void copy_vertex_group_names(Mesh &dst_mesh,
                                     const Span<const Mesh *> src_meshes)
 {
   Set<StringRef> existing_names;
-  LISTBASE_FOREACH (const bDeformGroup *, defgroup, &dst_mesh.vertex_group_names) {
-    existing_names.add(defgroup->name);
+  for (const bDeformGroup &defgroup : dst_mesh.vertex_group_names) {
+    existing_names.add(defgroup.name);
   }
   for (const Mesh *mesh : src_meshes) {
-    LISTBASE_FOREACH (const bDeformGroup *, src, &mesh->vertex_group_names) {
-      if (existing_names.contains(src->name)) {
+    for (const bDeformGroup &src : mesh->vertex_group_names) {
+      if (existing_names.contains(src.name)) {
         continue;
       }
-      copy_vertex_group_name(&dst_mesh.vertex_group_names, ordered_attributes, *src);
+      copy_vertex_group_name(&dst_mesh.vertex_group_names, ordered_attributes, src);
     }
   }
 }
@@ -2019,16 +2019,16 @@ static void copy_vertex_group_names(CurvesGeometry &dst_curve,
                                     const Span<const Curves *> src_curves)
 {
   Set<StringRef> existing_names;
-  LISTBASE_FOREACH (const bDeformGroup *, defgroup, &dst_curve.vertex_group_names) {
-    existing_names.add(defgroup->name);
+  for (const bDeformGroup &defgroup : dst_curve.vertex_group_names) {
+    existing_names.add(defgroup.name);
   }
   for (const Curves *src_curve : src_curves) {
-    LISTBASE_FOREACH (const bDeformGroup *, src, &src_curve->geometry.vertex_group_names) {
-      if (existing_names.contains(src->name)) {
+    for (const bDeformGroup &src : src_curve->geometry.vertex_group_names) {
+      if (existing_names.contains(src.name)) {
         continue;
       }
-      copy_vertex_group_name(&dst_curve.vertex_group_names, ordered_attributes, *src);
-      existing_names.add(src->name);
+      copy_vertex_group_name(&dst_curve.vertex_group_names, ordered_attributes, src);
+      existing_names.add(src.name);
     }
   }
 }

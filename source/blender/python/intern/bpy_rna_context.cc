@@ -67,8 +67,8 @@ static bool wm_check_screen_switch_supported(const bScreen *screen)
 
 static bool wm_check_window_exists(const Main *bmain, const wmWindow *win)
 {
-  LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
-    if (BLI_findindex(&wm->windows, win) != -1) {
+  for (wmWindowManager &wm : bmain->wm) {
+    if (BLI_findindex(&wm.windows, win) != -1) {
       return true;
     }
   }
@@ -272,12 +272,12 @@ static bool bpy_rna_context_temp_override_enter_ok_or_error(const BPyContextTemp
         return false;
       }
 
-      LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
-        LISTBASE_FOREACH (wmWindow *, win_iter, &wm->windows) {
-          if (win_iter == win) {
+      for (wmWindowManager &wm : bmain->wm) {
+        for (wmWindow &win_iter : wm.windows) {
+          if (&win_iter == win) {
             continue;
           }
-          if (screen == WM_window_get_active_screen(win_iter)) {
+          if (screen == WM_window_get_active_screen(&win_iter)) {
             PyErr_SetString(PyExc_TypeError, "Screen is used by another window");
             return false;
           }

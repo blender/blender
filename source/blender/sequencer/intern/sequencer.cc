@@ -299,8 +299,8 @@ void editing_free(Scene *scene, const bool do_id_user)
   seq_prefetch_free(scene);
 
   /* handle cache freeing above */
-  LISTBASE_FOREACH_MUTABLE (Strip *, strip, &ed->seqbase) {
-    seq_free_strip_recurse(scene, strip, do_id_user);
+  for (Strip &strip : ed->seqbase.items_mutable()) {
+    seq_free_strip_recurse(scene, &strip, do_id_user);
   }
 
   BLI_freelistN(&ed->metastack);
@@ -325,19 +325,19 @@ static void seq_new_fix_links_recursive(Strip *strip, Map<Strip *, Strip *> stri
     strip->input2 = strip_map.lookup_default(strip->input2, strip->input2);
   }
 
-  LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {
-    smd->mask_strip = strip_map.lookup_default(smd->mask_strip, smd->mask_strip);
+  for (StripModifierData &smd : strip->modifiers) {
+    smd.mask_strip = strip_map.lookup_default(smd.mask_strip, smd.mask_strip);
   }
 
   if (is_strip_connected(strip)) {
-    LISTBASE_FOREACH (StripConnection *, con, &strip->connections) {
-      con->strip_ref = strip_map.lookup_default(con->strip_ref, con->strip_ref);
+    for (StripConnection &con : strip->connections) {
+      con.strip_ref = strip_map.lookup_default(con.strip_ref, con.strip_ref);
     }
   }
 
   if (strip->type == STRIP_TYPE_META) {
-    LISTBASE_FOREACH (Strip *, strip_n, &strip->seqbase) {
-      seq_new_fix_links_recursive(strip_n, strip_map);
+    for (Strip &strip_n : strip->seqbase) {
+      seq_new_fix_links_recursive(&strip_n, strip_map);
     }
   }
 }
@@ -751,8 +751,8 @@ static Strip *strip_duplicate_recursive_impl(StripDuplicateContext &ctx,
 {
   Strip *strip_new = strip_duplicate(ctx, seqbase_dst, strip);
   if (strip->type == STRIP_TYPE_META) {
-    LISTBASE_FOREACH (Strip *, strip_child, &strip->seqbase) {
-      strip_duplicate_recursive_impl(ctx, &strip_new->seqbase, strip_child);
+    for (Strip &strip_child : strip->seqbase) {
+      strip_duplicate_recursive_impl(ctx, &strip_new->seqbase, &strip_child);
     }
   }
   return strip_new;
@@ -779,19 +779,19 @@ static void seqbase_duplicate_recursive_impl(StripDuplicateContext &ctx,
                                              ListBaseT<Strip> *seqbase_dst,
                                              const ListBaseT<Strip> *seqbase_src)
 {
-  LISTBASE_FOREACH (Strip *, strip, seqbase_src) {
-    if ((strip->flag & SEQ_SELECT) == 0 && !flag_is_set(ctx.dupe_flag, StripDuplicate::All)) {
+  for (Strip &strip : *seqbase_src) {
+    if ((strip.flag & SEQ_SELECT) == 0 && !flag_is_set(ctx.dupe_flag, StripDuplicate::All)) {
       continue;
     }
 
-    Strip *strip_new = strip_duplicate(ctx, seqbase_dst, strip);
+    Strip *strip_new = strip_duplicate(ctx, seqbase_dst, &strip);
     BLI_assert(strip_new != nullptr);
 
-    if (strip->type == STRIP_TYPE_META) {
+    if (strip.type == STRIP_TYPE_META) {
       const StripDuplicate dupe_flag_restore = ctx.dupe_flag;
       /* Always duplicate all strip children inside a selected metastrip. */
       ctx.dupe_flag |= StripDuplicate::All;
-      seqbase_duplicate_recursive_impl(ctx, &strip_new->seqbase, &strip->seqbase);
+      seqbase_duplicate_recursive_impl(ctx, &strip_new->seqbase, &strip.seqbase);
       ctx.dupe_flag = dupe_flag_restore;
     }
   }
@@ -896,12 +896,12 @@ static bool strip_write_data_cb(Strip *strip, void *userdata)
 
   modifier_blend_write(writer, &strip->modifiers);
 
-  LISTBASE_FOREACH (SeqTimelineChannel *, channel, &strip->channels) {
-    writer->write_struct(channel);
+  for (SeqTimelineChannel &channel : strip->channels) {
+    writer->write_struct(&channel);
   }
 
-  LISTBASE_FOREACH (StripConnection *, con, &strip->connections) {
-    writer->write_struct(con);
+  for (StripConnection &con : strip->connections) {
+    writer->write_struct(&con);
   }
 
   if (strip->retiming_keys != nullptr) {
@@ -1013,9 +1013,9 @@ static bool strip_read_data_cb(Strip *strip, void *user_data)
   modifier_blend_read_data(reader, &strip->modifiers);
 
   BLO_read_struct_list(reader, StripConnection, &strip->connections);
-  LISTBASE_FOREACH (StripConnection *, con, &strip->connections) {
-    if (con->strip_ref) {
-      BLO_read_struct(reader, Strip, &con->strip_ref);
+  for (StripConnection &con : strip->connections) {
+    if (con.strip_ref) {
+      BLO_read_struct(reader, Strip, &con.strip_ref);
     }
   }
 
@@ -1106,8 +1106,8 @@ static void strip_update_sound_modifiers(Strip *strip)
   void *sound_handle = BKE_sound_playback_handle_get(strip->sound);
   bool needs_update = false;
 
-  LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {
-    sound_handle = sound_modifier_recreator(strip, smd, sound_handle, needs_update);
+  for (StripModifierData &smd : strip->modifiers) {
+    sound_handle = sound_modifier_recreator(strip, &smd, sound_handle, needs_update);
   }
 
   if (needs_update) {
@@ -1142,12 +1142,12 @@ static void seq_update_sound_strips(Scene *scene, Strip *strip)
 static bool scene_sequencer_is_used(const Scene *scene, ListBaseT<Strip> *seqbase)
 {
   bool sequencer_is_used = false;
-  LISTBASE_FOREACH (Strip *, strip_iter, seqbase) {
-    if (strip_iter->scene == scene && (strip_iter->flag & SEQ_SCENE_STRIPS) != 0) {
+  for (Strip &strip_iter : *seqbase) {
+    if (strip_iter.scene == scene && (strip_iter.flag & SEQ_SCENE_STRIPS) != 0) {
       sequencer_is_used = true;
     }
-    if (strip_iter->type == STRIP_TYPE_META) {
-      sequencer_is_used |= scene_sequencer_is_used(scene, &strip_iter->seqbase);
+    if (strip_iter.type == STRIP_TYPE_META) {
+      sequencer_is_used |= scene_sequencer_is_used(scene, &strip_iter.seqbase);
     }
   }
 

@@ -5680,8 +5680,8 @@ static PyMethodDef props_methods[] = {
 
 static int props_visit(PyObject * /*self*/, visitproc visit, void *arg)
 {
-  LISTBASE_FOREACH (BPyPropStore *, prop_store, &g_bpy_prop_store_list) {
-    PyObject **py_data = (PyObject **)&prop_store->py_data;
+  for (BPyPropStore &prop_store : g_bpy_prop_store_list) {
+    PyObject **py_data = (PyObject **)&prop_store.py_data;
     for (int i = 0; i < BPY_PROP_STORE_PY_DATA_SIZE; i++) {
       Py_VISIT(py_data[i]);
     }
@@ -5691,8 +5691,8 @@ static int props_visit(PyObject * /*self*/, visitproc visit, void *arg)
 
 static int props_clear(PyObject * /*self*/)
 {
-  LISTBASE_FOREACH (BPyPropStore *, prop_store, &g_bpy_prop_store_list) {
-    PyObject **py_data = (PyObject **)&prop_store->py_data;
+  for (BPyPropStore &prop_store : g_bpy_prop_store_list) {
+    PyObject **py_data = (PyObject **)&prop_store.py_data;
     for (int i = 0; i < BPY_PROP_STORE_PY_DATA_SIZE; i++) {
       Py_CLEAR(py_data[i]);
     }

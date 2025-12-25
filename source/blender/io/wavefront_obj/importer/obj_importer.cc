@@ -56,11 +56,11 @@ static Collection *find_or_create_collection(Main *bmain,
     if (sep_pos > subname_start) {
       std::string subname = geom_name.substr(subname_start, sep_pos - subname_start);
       bool found = false;
-      LISTBASE_FOREACH (CollectionChild *, child, &target->children) {
-        if (GS(child->collection->id.name) == ID_GR &&
-            STREQ(child->collection->id.name + 2, subname.c_str()))
+      for (CollectionChild &child : target->children) {
+        if (GS(child.collection->id.name) == ID_GR &&
+            STREQ(child.collection->id.name + 2, subname.c_str()))
         {
-          target = child->collection;
+          target = child.collection;
           found = true;
           break;
         }

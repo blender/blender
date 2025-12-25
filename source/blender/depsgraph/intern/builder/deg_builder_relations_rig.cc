@@ -328,19 +328,19 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
    * - Animated chain-lengths are a problem. */
   RootPChanMap root_map;
   bool pose_depends_on_local_transform = false;
-  LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
-    const BuilderStack::ScopedEntry stack_entry = stack_.trace(*pchan);
+  for (bPoseChannel &pchan : object->pose->chanbase) {
+    const BuilderStack::ScopedEntry stack_entry = stack_.trace(pchan);
 
-    LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
-      const BuilderStack::ScopedEntry stack_entry = stack_.trace(*con);
+    for (bConstraint &con : pchan.constraints) {
+      const BuilderStack::ScopedEntry stack_entry = stack_.trace(con);
 
-      switch (con->type) {
+      switch (con.type) {
         case CONSTRAINT_TYPE_KINEMATIC:
-          build_ik_pose(object, pchan, con, &root_map);
+          build_ik_pose(object, &pchan, &con, &root_map);
           pose_depends_on_local_transform = true;
           break;
         case CONSTRAINT_TYPE_SPLINEIK:
-          build_splineik_pose(object, pchan, con, &root_map);
+          build_splineik_pose(object, &pchan, &con, &root_map);
           pose_depends_on_local_transform = true;
           break;
         /* Constraints which needs world's matrix for transform.
@@ -366,49 +366,49 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
     add_relation(local_transform_key, pose_key, "Local Transforms");
   }
   /* Links between operations for each bone. */
-  LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
-    const BuilderStack::ScopedEntry stack_entry = stack_.trace(*pchan);
+  for (bPoseChannel &pchan : object->pose->chanbase) {
+    const BuilderStack::ScopedEntry stack_entry = stack_.trace(pchan);
 
-    build_idproperties(pchan->prop);
-    build_idproperties(pchan->system_properties);
+    build_idproperties(pchan.prop);
+    build_idproperties(pchan.system_properties);
     OperationKey bone_local_key(
-        &object->id, NodeType::BONE, pchan->name, OperationCode::BONE_LOCAL);
+        &object->id, NodeType::BONE, pchan.name, OperationCode::BONE_LOCAL);
     OperationKey bone_pose_key(
-        &object->id, NodeType::BONE, pchan->name, OperationCode::BONE_POSE_PARENT);
+        &object->id, NodeType::BONE, pchan.name, OperationCode::BONE_POSE_PARENT);
     OperationKey bone_ready_key(
-        &object->id, NodeType::BONE, pchan->name, OperationCode::BONE_READY);
-    OperationKey bone_done_key(&object->id, NodeType::BONE, pchan->name, OperationCode::BONE_DONE);
-    pchan->flag &= ~POSE_DONE;
+        &object->id, NodeType::BONE, pchan.name, OperationCode::BONE_READY);
+    OperationKey bone_done_key(&object->id, NodeType::BONE, pchan.name, OperationCode::BONE_DONE);
+    pchan.flag &= ~POSE_DONE;
     /* Pose init to bone local. */
     add_relation(pose_init_key, bone_local_key, "Pose Init - Bone Local", RELATION_FLAG_GODMODE);
     /* Local to pose parenting operation. */
     add_relation(bone_local_key, bone_pose_key, "Bone Local - Bone Pose");
     /* Parent relation. */
-    if (pchan->parent != nullptr) {
+    if (pchan.parent != nullptr) {
       OperationCode parent_key_opcode;
       /* NOTE: this difference in handling allows us to prevent lockups
        * while ensuring correct poses for separate chains. */
-      if (root_map.has_common_root(pchan->name, pchan->parent->name)) {
+      if (root_map.has_common_root(pchan.name, pchan.parent->name)) {
         parent_key_opcode = OperationCode::BONE_READY;
       }
       else {
         parent_key_opcode = OperationCode::BONE_DONE;
       }
 
-      OperationKey parent_key(&object->id, NodeType::BONE, pchan->parent->name, parent_key_opcode);
+      OperationKey parent_key(&object->id, NodeType::BONE, pchan.parent->name, parent_key_opcode);
       add_relation(parent_key, bone_pose_key, "Parent Bone -> Child Bone");
     }
     /* Build constraints. */
-    if (pchan->constraints.first != nullptr) {
+    if (pchan.constraints.first != nullptr) {
       /* Build relations for indirectly linked objects. */
       BuilderWalkUserData data;
       data.builder = this;
-      BKE_constraints_id_loop(&pchan->constraints, constraint_walk, IDWALK_NOP, &data);
+      BKE_constraints_id_loop(&pchan.constraints, constraint_walk, IDWALK_NOP, &data);
       /* Constraints stack and constraint dependencies. */
-      build_constraints(&object->id, NodeType::BONE, pchan->name, &pchan->constraints, &root_map);
+      build_constraints(&object->id, NodeType::BONE, pchan.name, &pchan.constraints, &root_map);
       /* Pose -> constraints. */
       OperationKey constraints_key(
-          &object->id, NodeType::BONE, pchan->name, OperationCode::BONE_CONSTRAINTS);
+          &object->id, NodeType::BONE, pchan.name, OperationCode::BONE_CONSTRAINTS);
       add_relation(bone_pose_key, constraints_key, "Pose -> Constraints Stack");
       add_relation(bone_local_key, constraints_key, "Local -> Constraints Stack");
       /* Constraints -> ready/ */
@@ -426,18 +426,18 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
      *       to done, with transitive reduction removing this one. */
     add_relation(bone_ready_key, bone_done_key, "Ready -> Done");
     /* B-Bone shape is the real final step after Done if present. */
-    if (check_pchan_has_bbone(object, pchan)) {
+    if (check_pchan_has_bbone(object, &pchan)) {
       OperationKey bone_segments_key(
-          &object->id, NodeType::BONE, pchan->name, OperationCode::BONE_SEGMENTS);
+          &object->id, NodeType::BONE, pchan.name, OperationCode::BONE_SEGMENTS);
       /* B-Bone shape depends on the final position of the bone. */
       add_relation(bone_done_key, bone_segments_key, "Done -> B-Bone Segments");
       /* B-Bone shape depends on final position of handle bones. */
       bPoseChannel *prev, *next;
-      BKE_pchan_bbone_handles_get(pchan, &prev, &next);
+      BKE_pchan_bbone_handles_get(&pchan, &prev, &next);
       if (prev) {
         OperationCode opcode = OperationCode::BONE_DONE;
         /* Inheriting parent roll requires access to prev handle's B-Bone properties. */
-        if ((pchan->bone->bbone_flag & BBONE_ADD_PARENT_END_ROLL) != 0 &&
+        if ((pchan.bone->bbone_flag & BBONE_ADD_PARENT_END_ROLL) != 0 &&
             check_pchan_has_bbone_segments(object, prev))
         {
           opcode = OperationCode::BONE_SEGMENTS;
@@ -465,9 +465,9 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
       add_relation(bone_ready_key, pose_cleanup_key, "Ready -> Cleanup");
     }
     /* Custom shape. */
-    if (pchan->custom != nullptr) {
-      build_object(pchan->custom);
-      add_visibility_relation(&pchan->custom->id, &armature->id);
+    if (pchan.custom != nullptr) {
+      build_object(pchan.custom);
+      add_visibility_relation(&pchan.custom->id, &armature->id);
     }
   }
 }

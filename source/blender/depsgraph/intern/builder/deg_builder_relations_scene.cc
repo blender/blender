@@ -37,9 +37,9 @@ void DepsgraphRelationBuilder::build_scene_camera(Scene *scene)
   if (scene->camera != nullptr) {
     build_object(scene->camera);
   }
-  LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {
-    if (!ELEM(marker->camera, nullptr, scene->camera)) {
-      build_object(marker->camera);
+  for (TimeMarker &marker : scene->markers) {
+    if (!ELEM(marker.camera, nullptr, scene->camera)) {
+      build_object(marker.camera);
     }
   }
 }
@@ -60,8 +60,8 @@ void DepsgraphRelationBuilder::build_scene_parameters(Scene *scene)
   ComponentKey scene_eval_key(&scene->id, NodeType::SCENE);
   add_relation(parameters_eval_key, scene_eval_key, "Parameters -> Scene Eval");
 
-  LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {
-    build_idproperties(marker->prop);
+  for (TimeMarker &marker : scene->markers) {
+    build_idproperties(marker.prop);
   }
 
   /* See the comment in the DepsgraphNodeBuilder::build_scene_parameters(). */

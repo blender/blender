@@ -385,11 +385,11 @@ static void pose_clear_paths(Object *ob, bool only_selected)
   }
 
   /* free the motionpath blocks for all bones - This is easier for users to quickly clear all */
-  LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-    if (pchan->mpath) {
-      if ((only_selected == false) || (pchan->flag & POSE_SELECTED)) {
-        animviz_free_motionpath(pchan->mpath);
-        pchan->mpath = nullptr;
+  for (bPoseChannel &pchan : ob->pose->chanbase) {
+    if (pchan.mpath) {
+      if ((only_selected == false) || (pchan.flag & POSE_SELECTED)) {
+        animviz_free_motionpath(pchan.mpath);
+        pchan.mpath = nullptr;
       }
       else {
         skipped = true;
@@ -677,15 +677,15 @@ static wmOperatorStatus pose_hide_exec(bContext *C, wmOperator *op)
   for (Object *ob_iter : objects) {
     bool changed = false;
     bArmature *arm = static_cast<bArmature *>(ob_iter->data);
-    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob_iter->pose->chanbase) {
-      if (!ANIM_bone_in_visible_collection(arm, pchan->bone)) {
+    for (bPoseChannel &pchan : ob_iter->pose->chanbase) {
+      if (!ANIM_bone_in_visible_collection(arm, pchan.bone)) {
         continue;
       }
-      if (((pchan->flag & POSE_SELECTED) != 0) != hide_select) {
+      if (((pchan.flag & POSE_SELECTED) != 0) != hide_select) {
         continue;
       }
-      pchan->drawflag |= PCHAN_DRAW_HIDDEN;
-      blender::animrig::bone_deselect(pchan);
+      pchan.drawflag |= PCHAN_DRAW_HIDDEN;
+      blender::animrig::bone_deselect(&pchan);
       changed = true;
     }
 
@@ -730,17 +730,17 @@ static wmOperatorStatus pose_reveal_exec(bContext *C, wmOperator *op)
     bArmature *arm = static_cast<bArmature *>(ob_iter->data);
 
     bool changed = false;
-    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob_iter->pose->chanbase) {
-      if (!ANIM_bone_in_visible_collection(arm, pchan->bone)) {
+    for (bPoseChannel &pchan : ob_iter->pose->chanbase) {
+      if (!ANIM_bone_in_visible_collection(arm, pchan.bone)) {
         continue;
       }
-      if ((pchan->drawflag & PCHAN_DRAW_HIDDEN) == 0) {
+      if ((pchan.drawflag & PCHAN_DRAW_HIDDEN) == 0) {
         continue;
       }
-      if (!(pchan->bone->flag & BONE_UNSELECTABLE)) {
-        SET_FLAG_FROM_TEST(pchan->flag, select, POSE_SELECTED);
+      if (!(pchan.bone->flag & BONE_UNSELECTABLE)) {
+        SET_FLAG_FROM_TEST(pchan.flag, select, POSE_SELECTED);
       }
-      pchan->drawflag &= ~PCHAN_DRAW_HIDDEN;
+      pchan.drawflag &= ~PCHAN_DRAW_HIDDEN;
       changed = true;
     }
 

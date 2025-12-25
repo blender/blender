@@ -350,9 +350,9 @@ void ZstdWriteWrap::write_seekable_frames()
   write_u32_le(frame_size);
 
   /* Write seek table entries. */
-  LISTBASE_FOREACH (ZstdFrame *, frame, &frames) {
-    write_u32_le(frame->compressed_size);
-    write_u32_le(frame->uncompressed_size);
+  for (ZstdFrame &frame : frames) {
+    write_u32_le(frame.compressed_size);
+    write_u32_le(frame.uncompressed_size);
   }
 
   /* Write seek table footer (number of frames, option flags and second magic number). */
@@ -1123,14 +1123,14 @@ static void write_renderinfo(WriteData *wd, Main *mainvar)
   /* XXX: in future, handle multiple windows with multiple screens? */
   current_screen_compat(mainvar, false, &curscreen, &curscene, &view_layer);
 
-  LISTBASE_FOREACH (Scene *, sce, &mainvar->scenes) {
-    if (!ID_IS_LINKED(sce) && (sce == curscene || (sce->r.scemode & R_BG_RENDER))) {
+  for (Scene &sce : mainvar->scenes) {
+    if (!ID_IS_LINKED(&sce) && (&sce == curscene || (sce.r.scemode & R_BG_RENDER))) {
       RenderInfo data;
-      data.sfra = sce->r.sfra;
-      data.efra = sce->r.efra;
+      data.sfra = sce.r.sfra;
+      data.efra = sce.r.efra;
       memset(data.scene_name, 0, sizeof(data.scene_name));
 
-      STRNCPY(data.scene_name, sce->id.name + 2);
+      STRNCPY(data.scene_name, sce.id.name + 2);
 
       writedata(wd, BLO_CODE_REND, sizeof(data), &data);
     }
@@ -1149,91 +1149,89 @@ static void write_userdef(BlendWriter *writer, const UserDef *userdef)
 {
   writestruct(writer->wd, BLO_CODE_USER, UserDef, 1, userdef);
 
-  LISTBASE_FOREACH (const bTheme *, btheme, &userdef->themes) {
-    writer->write_struct(btheme);
+  for (const bTheme &btheme : userdef->themes) {
+    writer->write_struct(&btheme);
   }
 
-  LISTBASE_FOREACH (const wmKeyMap *, keymap, &userdef->user_keymaps) {
-    writer->write_struct(keymap);
+  for (const wmKeyMap &keymap : userdef->user_keymaps) {
+    writer->write_struct(&keymap);
 
-    LISTBASE_FOREACH (const wmKeyMapDiffItem *, kmdi, &keymap->diff_items) {
-      writer->write_struct(kmdi);
-      if (kmdi->remove_item) {
-        write_keymapitem(writer, kmdi->remove_item);
+    for (const wmKeyMapDiffItem &kmdi : keymap.diff_items) {
+      writer->write_struct(&kmdi);
+      if (kmdi.remove_item) {
+        write_keymapitem(writer, kmdi.remove_item);
       }
-      if (kmdi->add_item) {
-        write_keymapitem(writer, kmdi->add_item);
+      if (kmdi.add_item) {
+        write_keymapitem(writer, kmdi.add_item);
       }
     }
 
-    LISTBASE_FOREACH (const wmKeyMapItem *, kmi, &keymap->items) {
-      write_keymapitem(writer, kmi);
+    for (const wmKeyMapItem &kmi : keymap.items) {
+      write_keymapitem(writer, &kmi);
     }
   }
 
-  LISTBASE_FOREACH (const wmKeyConfigPref *, kpt, &userdef->user_keyconfig_prefs) {
-    writer->write_struct(kpt);
-    if (kpt->prop) {
-      IDP_BlendWrite(writer, kpt->prop);
+  for (const wmKeyConfigPref &kpt : userdef->user_keyconfig_prefs) {
+    writer->write_struct(&kpt);
+    if (kpt.prop) {
+      IDP_BlendWrite(writer, kpt.prop);
     }
   }
 
-  LISTBASE_FOREACH (const bUserMenu *, um, &userdef->user_menus) {
-    writer->write_struct(um);
-    LISTBASE_FOREACH (const bUserMenuItem *, umi, &um->items) {
-      if (umi->type == USER_MENU_TYPE_OPERATOR) {
-        const bUserMenuItem_Op *umi_op = (const bUserMenuItem_Op *)umi;
+  for (const bUserMenu &um : userdef->user_menus) {
+    writer->write_struct(&um);
+    for (const bUserMenuItem &umi : um.items) {
+      if (umi.type == USER_MENU_TYPE_OPERATOR) {
+        const bUserMenuItem_Op *umi_op = (const bUserMenuItem_Op *)&umi;
         writer->write_struct(umi_op);
         if (umi_op->prop) {
           IDP_BlendWrite(writer, umi_op->prop);
         }
       }
-      else if (umi->type == USER_MENU_TYPE_MENU) {
-        const bUserMenuItem_Menu *umi_mt = (const bUserMenuItem_Menu *)umi;
+      else if (umi.type == USER_MENU_TYPE_MENU) {
+        const bUserMenuItem_Menu *umi_mt = (const bUserMenuItem_Menu *)&umi;
         writer->write_struct(umi_mt);
       }
-      else if (umi->type == USER_MENU_TYPE_PROP) {
-        const bUserMenuItem_Prop *umi_pr = (const bUserMenuItem_Prop *)umi;
+      else if (umi.type == USER_MENU_TYPE_PROP) {
+        const bUserMenuItem_Prop *umi_pr = (const bUserMenuItem_Prop *)&umi;
         writer->write_struct(umi_pr);
       }
       else {
-        writer->write_struct(umi);
+        writer->write_struct(&umi);
       }
     }
   }
 
-  LISTBASE_FOREACH (const bAddon *, bext, &userdef->addons) {
-    writer->write_struct(bext);
-    if (bext->prop) {
-      IDP_BlendWrite(writer, bext->prop);
+  for (const bAddon &bext : userdef->addons) {
+    writer->write_struct(&bext);
+    if (bext.prop) {
+      IDP_BlendWrite(writer, bext.prop);
     }
   }
 
-  LISTBASE_FOREACH (const bPathCompare *, path_cmp, &userdef->autoexec_paths) {
-    writer->write_struct(path_cmp);
+  for (const bPathCompare &path_cmp : userdef->autoexec_paths) {
+    writer->write_struct(&path_cmp);
   }
 
-  LISTBASE_FOREACH (const bUserScriptDirectory *, script_dir, &userdef->script_directories) {
-    writer->write_struct(script_dir);
+  for (const bUserScriptDirectory &script_dir : userdef->script_directories) {
+    writer->write_struct(&script_dir);
   }
 
-  LISTBASE_FOREACH (const bUserAssetLibrary *, asset_library_ref, &userdef->asset_libraries) {
-    writer->write_struct(asset_library_ref);
+  for (const bUserAssetLibrary &asset_library_ref : userdef->asset_libraries) {
+    writer->write_struct(&asset_library_ref);
   }
 
-  LISTBASE_FOREACH (const bUserExtensionRepo *, repo_ref, &userdef->extension_repos) {
-    writer->write_struct(repo_ref);
-    BKE_preferences_extension_repo_write_data(writer, repo_ref);
+  for (const bUserExtensionRepo &repo_ref : userdef->extension_repos) {
+    writer->write_struct(&repo_ref);
+    BKE_preferences_extension_repo_write_data(writer, &repo_ref);
   }
-  LISTBASE_FOREACH (
-      const bUserAssetShelfSettings *, shelf_settings, &userdef->asset_shelves_settings)
-  {
-    writer->write_struct(shelf_settings);
-    BKE_asset_catalog_path_list_blend_write(writer, shelf_settings->enabled_catalog_paths);
+  for (const bUserAssetShelfSettings &shelf_settings : userdef->asset_shelves_settings) {
+    writer->write_struct(&shelf_settings);
+    BKE_asset_catalog_path_list_blend_write(writer, shelf_settings.enabled_catalog_paths);
   }
 
-  LISTBASE_FOREACH (const uiStyle *, style, &userdef->uistyles) {
-    writer->write_struct(style);
+  for (const uiStyle &style : userdef->uistyles) {
+    writer->write_struct(&style);
   }
 }
 
@@ -1284,8 +1282,8 @@ static void write_libraries(WriteData *wd, Main *bmain)
   }
 
   blender::Set<Library *> written_libraries;
-  LISTBASE_FOREACH (Library *, library_ptr, &bmain->libraries) {
-    Library &library = *library_ptr;
+  for (Library &library_ptr : bmain->libraries) {
+    Library &library = library_ptr;
     const blender::Span<ID *> ids = linked_ids_by_library.lookup(&library);
 
     /* Gather IDs that are somehow directly referenced by data in the current blend file. */

@@ -23,13 +23,13 @@ PreferencesOnDiskAssetLibrary::PreferencesOnDiskAssetLibrary(StringRef name, Str
 
 std::optional<AssetLibraryReference> PreferencesOnDiskAssetLibrary::library_reference() const
 {
-  int i;
-  LISTBASE_FOREACH_INDEX (const bUserAssetLibrary *, asset_library, &U.asset_libraries, i) {
-    if (!BLI_is_dir(asset_library->dirpath)) {
+
+  for (const auto [i, asset_library] : U.asset_libraries.enumerate()) {
+    if (!BLI_is_dir(asset_library.dirpath)) {
       continue;
     }
 
-    if (BLI_path_cmp_normalized(asset_library->dirpath, this->root_path().c_str()) == 0) {
+    if (BLI_path_cmp_normalized(asset_library.dirpath, this->root_path().c_str()) == 0) {
       AssetLibraryReference library_ref{};
       library_ref.type = ASSET_LIBRARY_CUSTOM;
       library_ref.custom_library_index = i;

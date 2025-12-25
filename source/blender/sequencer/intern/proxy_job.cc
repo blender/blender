@@ -40,8 +40,8 @@ static void proxy_startjob(void *pjv, wmJobWorkerStatus *worker_status)
 {
   ProxyJob *pj = static_cast<ProxyJob *>(pjv);
 
-  LISTBASE_FOREACH (LinkData *, link, &pj->queue) {
-    IndexBuildContext *context = static_cast<IndexBuildContext *>(link->data);
+  for (LinkData &link : pj->queue) {
+    IndexBuildContext *context = static_cast<IndexBuildContext *>(link.data);
 
     proxy_rebuild(context, worker_status);
 
@@ -58,8 +58,8 @@ static void proxy_endjob(void *pjv)
   ProxyJob *pj = static_cast<ProxyJob *>(pjv);
   Editing *ed = editing_get(pj->scene);
 
-  LISTBASE_FOREACH (LinkData *, link, &pj->queue) {
-    proxy_rebuild_finish(static_cast<IndexBuildContext *>(link->data), pj->stop);
+  for (LinkData &link : pj->queue) {
+    proxy_rebuild_finish(static_cast<IndexBuildContext *>(link.data), pj->stop);
   }
 
   relations_free_imbuf(pj->scene, &ed->seqbase, false);

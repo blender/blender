@@ -192,10 +192,10 @@ bool is_viewport_compositor_used(const bContext &context)
   }
 
   wmWindowManager *window_manager = CTX_wm_manager(&context);
-  LISTBASE_FOREACH (const wmWindow *, window, &window_manager->windows) {
-    const bScreen *screen = WM_window_get_active_screen(window);
-    LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
-      const SpaceLink &space = *static_cast<const SpaceLink *>(area->spacedata.first);
+  for (const wmWindow &window : window_manager->windows) {
+    const bScreen *screen = WM_window_get_active_screen(&window);
+    for (const ScrArea &area : screen->areabase) {
+      const SpaceLink &space = *static_cast<const SpaceLink *>(area.spacedata.first);
       if (space.spacetype == SPACE_VIEW3D) {
         const View3D &view_3d = reinterpret_cast<const View3D &>(space);
 

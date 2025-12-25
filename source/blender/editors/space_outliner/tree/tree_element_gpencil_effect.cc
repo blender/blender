@@ -29,9 +29,9 @@ TreeElementGPencilEffectBase::TreeElementGPencilEffectBase(TreeElement &legacy_t
 
 void TreeElementGPencilEffectBase::expand(SpaceOutliner & /*space_outliner*/) const
 {
-  int index;
-  LISTBASE_FOREACH_INDEX (ShaderFxData *, fx, &object_.shader_fx, index) {
-    add_element(&legacy_te_.subtree, &object_.id, fx, &legacy_te_, TSE_GPENCIL_EFFECT, index);
+
+  for (const auto [index, fx] : object_.shader_fx.enumerate()) {
+    add_element(&legacy_te_.subtree, &object_.id, &fx, &legacy_te_, TSE_GPENCIL_EFFECT, index);
   }
 }
 

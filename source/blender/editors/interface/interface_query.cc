@@ -312,9 +312,9 @@ static Button *ui_but_find(const ARegion *region,
                            const ButtonFindPollFn find_poll,
                            const void *find_custom_data)
 {
-  LISTBASE_FOREACH (Block *, block, &region->runtime->uiblocks) {
-    for (int i = block->buttons.size() - 1; i >= 0; i--) {
-      Button *but = block->buttons[i].get();
+  for (Block &block : region->runtime->uiblocks) {
+    for (int i = block.buttons.size() - 1; i >= 0; i--) {
+      Button *but = block.buttons[i].get();
       if (find_poll && find_poll(but, find_custom_data) == false) {
         continue;
       }
@@ -337,18 +337,18 @@ Button *button_find_mouse_over_ex(const ARegion *region,
   if (!region_contains_point_px(region, xy)) {
     return nullptr;
   }
-  LISTBASE_FOREACH (Block *, block, &region->runtime->uiblocks) {
+  for (Block &block : region->runtime->uiblocks) {
     float mx = xy[0], my = xy[1];
-    window_to_block_fl(region, block, &mx, &my);
+    window_to_block_fl(region, &block, &mx, &my);
 
-    for (int i = block->buttons.size() - 1; i >= 0; i--) {
-      Button *but = block->buttons[i].get();
+    for (int i = block.buttons.size() - 1; i >= 0; i--) {
+      Button *but = block.buttons[i].get();
       if (find_poll && find_poll(but, find_custom_data) == false) {
         continue;
       }
       if (button_is_interactive_ex(but, labeledit, for_tooltip)) {
         if (but->pie_dir != UI_RADIAL_NONE) {
-          if (ui_but_isect_pie_seg(block, but)) {
+          if (ui_but_isect_pie_seg(&block, but)) {
             butover = but;
             break;
           }
@@ -361,9 +361,9 @@ Button *button_find_mouse_over_ex(const ARegion *region,
     }
 
     /* CLIP_EVENTS prevents the event from reaching other blocks */
-    if (block->flag & BLOCK_CLIP_EVENTS) {
+    if (block.flag & BLOCK_CLIP_EVENTS) {
       /* check if mouse is inside block */
-      if (BLI_rctf_isect_pt(&block->rect, mx, my)) {
+      if (BLI_rctf_isect_pt(&block.rect, mx, my)) {
         break;
       }
     }
@@ -390,12 +390,12 @@ Button *button_find_rect_over(const ARegion *region, const rcti *rect_px)
   BLI_rctf_rcti_copy(&rect_px_fl, rect_px);
   Button *butover = nullptr;
 
-  LISTBASE_FOREACH (Block *, block, &region->runtime->uiblocks) {
+  for (Block &block : region->runtime->uiblocks) {
     rctf rect_block;
-    window_to_block_rctf(region, block, &rect_block, &rect_px_fl);
+    window_to_block_rctf(region, &block, &rect_block, &rect_px_fl);
 
-    for (int i = block->buttons.size() - 1; i >= 0; i--) {
-      Button *but = block->buttons[i].get();
+    for (int i = block.buttons.size() - 1; i >= 0; i--) {
+      Button *but = block.buttons[i].get();
       if (button_is_interactive(but, labeledit)) {
         /* No pie menu support. */
         BLI_assert(but->pie_dir == UI_RADIAL_NONE);
@@ -407,9 +407,9 @@ Button *button_find_rect_over(const ARegion *region, const rcti *rect_px)
     }
 
     /* CLIP_EVENTS prevents the event from reaching other blocks */
-    if (block->flag & BLOCK_CLIP_EVENTS) {
+    if (block.flag & BLOCK_CLIP_EVENTS) {
       /* check if mouse is inside block */
-      if (BLI_rctf_isect(&block->rect, &rect_block, nullptr)) {
+      if (BLI_rctf_isect(&block.rect, &rect_block, nullptr)) {
         break;
       }
     }
@@ -422,11 +422,11 @@ Button *list_find_mouse_over_ex(const ARegion *region, const int xy[2])
   if (!region_contains_point_px(region, xy)) {
     return nullptr;
   }
-  LISTBASE_FOREACH (Block *, block, &region->runtime->uiblocks) {
+  for (Block &block : region->runtime->uiblocks) {
     float mx = xy[0], my = xy[1];
-    window_to_block_fl(region, block, &mx, &my);
-    for (int i = block->buttons.size() - 1; i >= 0; i--) {
-      Button *but = block->buttons[i].get();
+    window_to_block_fl(region, &block, &mx, &my);
+    for (int i = block.buttons.size() - 1; i >= 0; i--) {
+      Button *but = block.buttons[i].get();
       if (but->type == ButtonType::ListBox && button_contains_pt(but, mx, my)) {
         return but;
       }
@@ -745,16 +745,16 @@ Block *block_find_mouse_over_ex(const ARegion *region, const int xy[2], bool onl
   if (!region_contains_point_px(region, xy)) {
     return nullptr;
   }
-  LISTBASE_FOREACH (Block *, block, &region->runtime->uiblocks) {
+  for (Block &block : region->runtime->uiblocks) {
     if (only_clip) {
-      if ((block->flag & BLOCK_CLIP_EVENTS) == 0) {
+      if ((block.flag & BLOCK_CLIP_EVENTS) == 0) {
         continue;
       }
     }
     float mx = xy[0], my = xy[1];
-    window_to_block_fl(region, block, &mx, &my);
-    if (BLI_rctf_isect_pt(&block->rect, mx, my)) {
-      return block;
+    window_to_block_fl(region, &block, &mx, &my);
+    if (BLI_rctf_isect_pt(&block.rect, mx, my)) {
+      return &block;
     }
   }
   return nullptr;
@@ -773,8 +773,8 @@ Block *block_find_mouse_over(const ARegion *region, const wmEvent *event, bool o
 
 Button *region_find_active_but(ARegion *region)
 {
-  LISTBASE_FOREACH (Block *, block, &region->runtime->uiblocks) {
-    Button *but = block_active_but_get(block);
+  for (Block &block : region->runtime->uiblocks) {
+    Button *but = block_active_but_get(&block);
     if (but) {
       return but;
     }
@@ -785,8 +785,8 @@ Button *region_find_active_but(ARegion *region)
 
 Button *region_find_first_but_test_flag(ARegion *region, int flag_include, int flag_exclude)
 {
-  LISTBASE_FOREACH (Block *, block, &region->runtime->uiblocks) {
-    for (const std::unique_ptr<Button> &but : block->buttons) {
+  for (Block &block : region->runtime->uiblocks) {
+    for (const std::unique_ptr<Button> &but : block.buttons) {
       if (((but->flag & flag_include) == flag_include) && ((but->flag & flag_exclude) == 0)) {
         return but.get();
       }
@@ -861,13 +861,13 @@ bool region_contains_rect_px(const ARegion *region, const rcti *rect_px)
 
 ARegion *screen_region_find_mouse_over_ex(bScreen *screen, const int xy[2])
 {
-  LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {
+  for (ARegion &region : screen->regionbase) {
     rcti winrct;
 
-    region_winrct_get_no_margin(region, &winrct);
+    region_winrct_get_no_margin(&region, &winrct);
 
     if (BLI_rcti_isect_pt_v(&winrct, xy)) {
-      return region;
+      return &region;
     }
   }
   return nullptr;

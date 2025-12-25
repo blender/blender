@@ -484,12 +484,12 @@ void ED_space_image_paint_update(Main *bmain, wmWindowManager *wm, Scene *scene)
   ImagePaintSettings *imapaint = &settings->imapaint;
   bool enabled = false;
 
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    bScreen *screen = WM_window_get_active_screen(win);
+  for (wmWindow &win : wm->windows) {
+    bScreen *screen = WM_window_get_active_screen(&win);
 
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      if (area->spacetype == SPACE_IMAGE) {
-        if (((SpaceImage *)area->spacedata.first)->mode == SI_MODE_PAINT) {
+    for (ScrArea &area : screen->areabase) {
+      if (area.spacetype == SPACE_IMAGE) {
+        if (((SpaceImage *)area.spacedata.first)->mode == SI_MODE_PAINT) {
           enabled = true;
         }
       }

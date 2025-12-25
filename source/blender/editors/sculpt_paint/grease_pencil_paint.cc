@@ -1533,18 +1533,18 @@ static void process_stroke_weights(const Scene &scene,
   /* Loop through all modifiers trying to find the pose channel for the vertex group name. */
   bPoseChannel *channel = nullptr;
   Object *ob_arm = nullptr;
-  LISTBASE_FOREACH (ModifierData *, md, &(&object)->modifiers) {
-    if (md->type != eModifierType_GreasePencilArmature) {
+  for (ModifierData &md : (&object)->modifiers) {
+    if (md.type != eModifierType_GreasePencilArmature) {
       continue;
     }
 
     /* Skip not visible modifiers. */
-    if (!(md->mode & eModifierMode_Realtime)) {
+    if (!(md.mode & eModifierMode_Realtime)) {
       continue;
     }
 
     GreasePencilArmatureModifierData *amd = reinterpret_cast<GreasePencilArmatureModifierData *>(
-        md);
+        &md);
     if (amd == nullptr) {
       continue;
     }

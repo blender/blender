@@ -59,8 +59,8 @@ struct StripUniqueInfo {
 
 static void seqbase_unique_name(ListBaseT<Strip> *seqbasep, StripUniqueInfo *sui)
 {
-  LISTBASE_FOREACH (Strip *, strip, seqbasep) {
-    if ((sui->strip != strip) && STREQ(sui->name_dest, strip->name + 2)) {
+  for (Strip &strip : *seqbasep) {
+    if ((sui->strip != &strip) && STREQ(sui->name_dest, strip.name + 2)) {
       /* STRIP_NAME_MAXSTR -4 for the number, -1 for \0, - 2 for r_prefix */
       SNPRINTF(
           sui->name_dest, "%.*s.%03d", STRIP_NAME_MAXSTR - 4 - 1 - 2, sui->name_src, sui->count++);
@@ -334,13 +334,13 @@ const Strip *strip_topmost_get(const Scene *scene, int frame)
   const Strip *best_strip = nullptr;
   int best_channel = -1;
 
-  LISTBASE_FOREACH (const Strip *, strip, ed->current_strips()) {
-    if (render_is_muted(channels, strip) || !strip->intersects_frame(scene, frame)) {
+  for (const Strip &strip : *ed->current_strips()) {
+    if (render_is_muted(channels, &strip) || !strip.intersects_frame(scene, frame)) {
       continue;
     }
     /* Only use strips that generate an image, not ones that combine
      * other strips or apply some effect. */
-    if (ELEM(strip->type,
+    if (ELEM(strip.type,
              STRIP_TYPE_IMAGE,
              STRIP_TYPE_META,
              STRIP_TYPE_SCENE,
@@ -348,9 +348,9 @@ const Strip *strip_topmost_get(const Scene *scene, int frame)
              STRIP_TYPE_COLOR,
              STRIP_TYPE_TEXT))
     {
-      if (strip->channel > best_channel) {
-        best_strip = strip;
-        best_channel = strip->channel;
+      if (strip.channel > best_channel) {
+        best_strip = &strip;
+        best_channel = strip.channel;
       }
     }
   }
@@ -394,12 +394,12 @@ Strip *strip_from_strip_elem(ListBaseT<Strip> *seqbase, StripElem *se)
 
 Strip *get_strip_by_name(ListBaseT<Strip> *seqbase, const char *name, bool recursive)
 {
-  LISTBASE_FOREACH (Strip *, istrip, seqbase) {
-    if (STREQ(name, istrip->name + 2)) {
-      return istrip;
+  for (Strip &istrip : *seqbase) {
+    if (STREQ(name, istrip.name + 2)) {
+      return &istrip;
     }
-    if (recursive && !BLI_listbase_is_empty(&istrip->seqbase)) {
-      Strip *rseq = get_strip_by_name(&istrip->seqbase, name, true);
+    if (recursive && !BLI_listbase_is_empty(&istrip.seqbase)) {
+      Strip *rseq = get_strip_by_name(&istrip.seqbase, name, true);
       if (rseq != nullptr) {
         return rseq;
       }
@@ -507,8 +507,8 @@ void ensure_unique_name(Strip *strip, Scene *scene)
                                 false);
 
   if (strip->type == STRIP_TYPE_META) {
-    LISTBASE_FOREACH (Strip *, strip_child, &strip->seqbase) {
-      ensure_unique_name(strip_child, scene);
+    for (Strip &strip_child : strip->seqbase) {
+      ensure_unique_name(&strip_child, scene);
     }
   }
 }

@@ -607,25 +607,25 @@ static void anim_keyingset_visit_for_search_impl(
 
   /* User-defined Keying Sets. */
   if (scene && scene->keyingsets.first) {
-    LISTBASE_FOREACH (KeyingSet *, keyingset, &scene->keyingsets) {
-      if (use_poll && !ANIM_keyingset_context_ok_poll((bContext *)C, keyingset)) {
+    for (KeyingSet &keyingset : scene->keyingsets) {
+      if (use_poll && !ANIM_keyingset_context_ok_poll((bContext *)C, &keyingset)) {
         continue;
       }
       StringPropertySearchVisitParams visit_params{};
-      visit_params.text = keyingset->idname;
-      visit_params.info = keyingset->name;
+      visit_params.text = keyingset.idname;
+      visit_params.info = keyingset.name;
       visit_fn(visit_params);
     }
   }
 
   /* Builtin Keying Sets. */
-  LISTBASE_FOREACH (KeyingSet *, keyingset, &builtin_keyingsets) {
-    if (use_poll && !ANIM_keyingset_context_ok_poll((bContext *)C, keyingset)) {
+  for (KeyingSet &keyingset : builtin_keyingsets) {
+    if (use_poll && !ANIM_keyingset_context_ok_poll((bContext *)C, &keyingset)) {
       continue;
     }
     StringPropertySearchVisitParams visit_params{};
-    visit_params.text = keyingset->idname;
-    visit_params.info = keyingset->name;
+    visit_params.text = keyingset.idname;
+    visit_params.info = keyingset.name;
     visit_fn(visit_params);
   }
 }

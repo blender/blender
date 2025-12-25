@@ -95,9 +95,9 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
 
     /* Count total of vertices, check identical as in 2nd loop for making transdata! */
     ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
-    LISTBASE_FOREACH (Nurb *, nu, nurbs) {
-      if (nu->type == CU_BEZIER) {
-        for (a = 0, bezt = nu->bezt; a < nu->pntsu; a++, bezt++) {
+    for (Nurb &nu : *nurbs) {
+      if (nu.type == CU_BEZIER) {
+        for (a = 0, bezt = nu.bezt; a < nu.pntsu; a++, bezt++) {
           if (bezt->hide == 0) {
             const int bezt_tx = bezt_select_to_transform_triple_flag(bezt, handle_mode);
             if (bezt_tx & (SEL_F1 | SEL_F2 | SEL_F3)) {
@@ -120,7 +120,7 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
         }
       }
       else {
-        for (a = nu->pntsu * nu->pntsv, bp = nu->bp; a > 0; a--, bp++) {
+        for (a = nu.pntsu * nu.pntsv, bp = nu.bp; a > 0; a--, bp++) {
           if (bp->hide == 0) {
             if (bp->f1 & SELECT) {
               countsel++;
@@ -180,12 +180,12 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
 
     TransData *td = tc->data;
     ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
-    LISTBASE_FOREACH (Nurb *, nu, nurbs) {
+    for (Nurb &nu : *nurbs) {
       TransData *head, *tail;
       head = tail = td;
       bool has_any_selected = false;
-      if (nu->type == CU_BEZIER) {
-        for (a = 0, bezt = nu->bezt; a < nu->pntsu; a++, bezt++) {
+      if (nu.type == CU_BEZIER) {
+        for (a = 0, bezt = nu.bezt; a < nu.pntsu; a++, bezt++) {
           if (bezt->hide == 0) {
             TransDataCurveHandleFlags *hdata = nullptr;
             float axismtx[3][3];
@@ -193,8 +193,8 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
             if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
               float normal[3], plane[3];
 
-              BKE_nurb_bezt_calc_normal(nu, bezt, normal);
-              BKE_nurb_bezt_calc_plane(nu, bezt, plane);
+              BKE_nurb_bezt_calc_normal(&nu, bezt, normal);
+              BKE_nurb_bezt_calc_plane(&nu, bezt, plane);
 
               createSpaceNormalTangent_or_fallback(axismtx, normal, plane);
             }
@@ -329,7 +329,7 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
         }
       }
       else {
-        for (a = nu->pntsu * nu->pntsv, bp = nu->bp; a > 0; a--, bp++) {
+        for (a = nu.pntsu * nu.pntsv, bp = nu.bp; a > 0; a--, bp++) {
           if (bp->hide == 0) {
             if (is_prop_edit || (bp->f1 & SELECT)) {
               copy_v3_v3(td->iloc, bp->vec);
@@ -356,11 +356,11 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
               copy_m3_m3(td->mtx, mtx);
 
               if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
-                if (nu->pntsv == 1) {
+                if (nu.pntsv == 1) {
                   float normal[3], plane[3];
 
-                  BKE_nurb_bpoint_calc_normal(nu, bp, normal);
-                  BKE_nurb_bpoint_calc_plane(nu, bp, plane);
+                  BKE_nurb_bpoint_calc_normal(&nu, bp, normal);
+                  BKE_nurb_bpoint_calc_plane(&nu, bp, plane);
 
                   createSpaceNormalTangent_or_fallback(td->axismtx, normal, plane);
                 }
@@ -375,7 +375,7 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
       if (is_prop_edit && head != tail) {
         tail -= 1;
         if (is_prop_connected && has_any_selected) {
-          bool cyclic = (nu->flagu & CU_NURB_CYCLIC) != 0;
+          bool cyclic = (nu.flagu & CU_NURB_CYCLIC) != 0;
           calc_distanceCurveVerts(head, tail, cyclic);
         }
         else {
@@ -387,12 +387,12 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
 
       /* TODO: in the case of tilt and radius we can also avoid allocating the
        * #initTransDataCurveHandles but for now just don't change handle types. */
-      if ((nu->type == CU_BEZIER) &&
+      if ((nu.type == CU_BEZIER) &&
           ELEM(t->mode, TFM_CURVE_SHRINKFATTEN, TFM_TILT, TFM_DUMMY) == 0)
       {
         /* Sets the handles based on their selection,
          * do this after the data is copied to the #TransData. */
-        BKE_nurb_handles_test(nu, handle_mode, use_around_origins_for_handles_test);
+        BKE_nurb_handles_test(&nu, handle_mode, use_around_origins_for_handles_test);
       }
     }
   }
@@ -426,10 +426,10 @@ static void recalcData_curve(TransInfo *t)
       transform_convert_clip_mirror_modifier_apply(tc);
 
       if (t->mode == TFM_TRACKBALL) {
-        LISTBASE_FOREACH (Nurb *, nu, nurbs) {
-          if (nu->type == CU_BEZIER) {
-            BezTriple *bezt = nu->bezt;
-            for (int i = 0; i < nu->pntsu; i++, bezt++) {
+        for (Nurb &nu : *nurbs) {
+          if (nu.type == CU_BEZIER) {
+            BezTriple *bezt = nu.bezt;
+            for (int i = 0; i < nu.pntsu; i++, bezt++) {
               if ((bezt->f1 & SELECT) && ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM)) {
                 bezt->h1 = HD_ALIGN;
               }

@@ -63,20 +63,19 @@ static void node_shader_update_scatter(bNodeTree *ntree, bNode *node)
 {
   const int phase_function = node->custom1;
 
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    if (STR_ELEM(sock->name, "IOR", "Backscatter")) {
+  for (bNodeSocket &sock : node->inputs) {
+    if (STR_ELEM(sock.name, "IOR", "Backscatter")) {
+      bke::node_set_socket_availability(*ntree, sock, phase_function == SHD_PHASE_FOURNIER_FORAND);
+    }
+    else if (STR_ELEM(sock.name, "Anisotropy")) {
       bke::node_set_socket_availability(
-          *ntree, *sock, phase_function == SHD_PHASE_FOURNIER_FORAND);
+          *ntree, sock, ELEM(phase_function, SHD_PHASE_HENYEY_GREENSTEIN, SHD_PHASE_DRAINE));
     }
-    else if (STR_ELEM(sock->name, "Anisotropy")) {
-      bke::node_set_socket_availability(
-          *ntree, *sock, ELEM(phase_function, SHD_PHASE_HENYEY_GREENSTEIN, SHD_PHASE_DRAINE));
+    else if (STR_ELEM(sock.name, "Alpha")) {
+      bke::node_set_socket_availability(*ntree, sock, phase_function == SHD_PHASE_DRAINE);
     }
-    else if (STR_ELEM(sock->name, "Alpha")) {
-      bke::node_set_socket_availability(*ntree, *sock, phase_function == SHD_PHASE_DRAINE);
-    }
-    else if (STR_ELEM(sock->name, "Diameter")) {
-      bke::node_set_socket_availability(*ntree, *sock, phase_function == SHD_PHASE_MIE);
+    else if (STR_ELEM(sock.name, "Diameter")) {
+      bke::node_set_socket_availability(*ntree, sock, phase_function == SHD_PHASE_MIE);
     }
   }
 }

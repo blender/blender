@@ -682,10 +682,10 @@ static void v3d_editvertex_buts(
     StructRNA *seltype = nullptr;
     void *selp = nullptr;
 
-    LISTBASE_FOREACH (Nurb *, nu, nurbs) {
-      if (nu->type == CU_BEZIER) {
-        bezt = nu->bezt;
-        a = nu->pntsu;
+    for (Nurb &nu : *nurbs) {
+      if (nu.type == CU_BEZIER) {
+        bezt = nu.bezt;
+        a = nu.pntsu;
         while (a--) {
           if (bezt->f2 & SELECT) {
             add_v3_v3(median->location, bezt->vec[1]);
@@ -713,8 +713,8 @@ static void v3d_editvertex_buts(
         }
       }
       else {
-        bp = nu->bp;
-        a = nu->pntsu * nu->pntsv;
+        bp = nu.bp;
+        a = nu.pntsu * nu.pntsv;
         while (a--) {
           if (bp->f1 & SELECT) {
             add_v3_v3(median->location, bp->vec);
@@ -1472,9 +1472,9 @@ static void v3d_editvertex_buts(
       ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
       const float scale_w = compute_scale_factor(ve_median->weight, median->weight);
 
-      LISTBASE_FOREACH (Nurb *, nu, nurbs) {
-        if (nu->type == CU_BEZIER) {
-          for (a = nu->pntsu, bezt = nu->bezt; a--; bezt++) {
+      for (Nurb &nu : *nurbs) {
+        if (nu.type == CU_BEZIER) {
+          for (a = nu.pntsu, bezt = nu.bezt; a--; bezt++) {
             if (bezt->f2 & SELECT) {
               if (apply_vcos) {
                 /* Here we always have to use the diff... :/
@@ -1507,7 +1507,7 @@ static void v3d_editvertex_buts(
           }
         }
         else {
-          for (a = nu->pntsu * nu->pntsv, bp = nu->bp; a--; bp++) {
+          for (a = nu.pntsu * nu.pntsv, bp = nu.bp; a--; bp++) {
             if (bp->f1 & SELECT) {
               if (apply_vcos) {
                 apply_raw_diff_v3(bp->vec, tot, ve_median->location, median->location);
@@ -1528,12 +1528,12 @@ static void v3d_editvertex_buts(
           }
         }
         if (CU_IS_2D(cu)) {
-          BKE_nurb_project_2d(nu);
+          BKE_nurb_project_2d(&nu);
         }
         /* In the case of weight, tilt or radius (these don't change positions),
          * don't change handle types. */
-        if ((nu->type == CU_BEZIER) && apply_vcos) {
-          BKE_nurb_handles_test(nu, NURB_HANDLE_TEST_EACH, false); /* test for bezier too */
+        if ((nu.type == CU_BEZIER) && apply_vcos) {
+          BKE_nurb_handles_test(&nu, NURB_HANDLE_TEST_EACH, false); /* test for bezier too */
         }
       }
     }

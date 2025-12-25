@@ -326,8 +326,8 @@ static void gather_vert_attributes(Mesh &mesh,
                                    const IndexRange new_range)
 {
   Set<StringRef> vertex_group_names;
-  LISTBASE_FOREACH (bDeformGroup *, group, &mesh.vertex_group_names) {
-    vertex_group_names.add(group->name);
+  for (bDeformGroup &group : mesh.vertex_group_names) {
+    vertex_group_names.add(group.name);
   }
 
   if (!vertex_group_names.is_empty() && !mesh.deform_verts().is_empty()) {
@@ -351,8 +351,8 @@ static void gather_vert_attributes(Mesh &mesh,
                                    const IndexRange new_range)
 {
   Set<StringRef> vertex_group_names;
-  LISTBASE_FOREACH (bDeformGroup *, group, &mesh.vertex_group_names) {
-    vertex_group_names.add(group->name);
+  for (bDeformGroup &group : mesh.vertex_group_names) {
+    vertex_group_names.add(group.name);
   }
 
   if (!vertex_group_names.is_empty() && !mesh.deform_verts().is_empty()) {

@@ -39,14 +39,14 @@ bool BlenderOutputDriver::read_render_tile(const Tile &tile)
 
   /* Copy each pass.
    * TODO:copy only the required ones for better performance? */
-  LISTBASE_FOREACH (::RenderPass *, b_pass, &b_rlay->passes) {
-    if (b_pass->ibuf && b_pass->ibuf->float_buffer.data) {
-      const float *rect = b_pass->ibuf->float_buffer.data;
-      tile.set_pass_pixels(b_pass->name, b_pass->channels, rect);
+  for (::RenderPass &b_pass : b_rlay->passes) {
+    if (b_pass.ibuf && b_pass.ibuf->float_buffer.data) {
+      const float *rect = b_pass.ibuf->float_buffer.data;
+      tile.set_pass_pixels(b_pass.name, b_pass.channels, rect);
     }
     else {
-      blender::Array<float> rect(int64_t(b_pass->channels) * b_pass->rectx * b_pass->recty, 0.0f);
-      tile.set_pass_pixels(b_pass->name, b_pass->channels, rect.data());
+      blender::Array<float> rect(int64_t(b_pass.channels) * b_pass.rectx * b_pass.recty, 0.0f);
+      tile.set_pass_pixels(b_pass.name, b_pass.channels, rect.data());
     }
   }
 
@@ -102,14 +102,13 @@ void BlenderOutputDriver::write_render_tile(const Tile &tile)
   vector<float> pixels(static_cast<size_t>(tile.size.x) * tile.size.y * 4);
 
   /* Copy each pass. */
-  LISTBASE_FOREACH (::RenderPass *, b_pass, &b_rlay->passes) {
-    if (!tile.get_pass_pixels(b_pass->name, b_pass->channels, pixels.data())) {
+  for (::RenderPass &b_pass : b_rlay->passes) {
+    if (!tile.get_pass_pixels(b_pass.name, b_pass.channels, pixels.data())) {
       memset(pixels.data(), 0, pixels.size() * sizeof(float));
     }
-    if (b_pass->ibuf && b_pass->ibuf->float_buffer.data) {
-      float *rect = b_pass->ibuf->float_buffer.data;
-      const size_t size_in_bytes = sizeof(float) * b_pass->rectx * b_pass->recty *
-                                   b_pass->channels;
+    if (b_pass.ibuf && b_pass.ibuf->float_buffer.data) {
+      float *rect = b_pass.ibuf->float_buffer.data;
+      const size_t size_in_bytes = sizeof(float) * b_pass.rectx * b_pass.recty * b_pass.channels;
       memcpy(rect, pixels.data(), size_in_bytes);
     }
   }

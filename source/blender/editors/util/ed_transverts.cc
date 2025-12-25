@@ -118,17 +118,17 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
     int a = 0;
 
     /* Ensure all bone tails are correctly adjusted */
-    LISTBASE_FOREACH (EditBone *, ebo, arm->edbo) {
-      if (!blender::animrig::bone_is_visible(arm, ebo)) {
+    for (EditBone &ebo : *arm->edbo) {
+      if (!blender::animrig::bone_is_visible(arm, &ebo)) {
         continue;
       }
       /* adjust tip if both ends selected */
-      if ((ebo->flag & BONE_ROOTSEL) && (ebo->flag & BONE_TIPSEL)) {
+      if ((ebo.flag & BONE_ROOTSEL) && (ebo.flag & BONE_TIPSEL)) {
         if (tv) {
           float diffvec[3];
 
           sub_v3_v3v3(diffvec, tv->loc, tv->oldloc);
-          add_v3_v3(ebo->tail, diffvec);
+          add_v3_v3(ebo.tail, diffvec);
 
           a++;
           if (a < tvs->transverts_tot) {
@@ -139,17 +139,16 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
     }
 
     /* Ensure all bones are correctly adjusted */
-    LISTBASE_FOREACH (EditBone *, ebo, arm->edbo) {
-      if ((ebo->flag & BONE_CONNECTED) && ebo->parent) {
+    for (EditBone &ebo : *arm->edbo) {
+      if ((ebo.flag & BONE_CONNECTED) && ebo.parent) {
         /* If this bone has a parent tip that has been moved */
-        if (blender::animrig::bone_is_visible(arm, ebo->parent) &&
-            (ebo->parent->flag & BONE_TIPSEL))
+        if (blender::animrig::bone_is_visible(arm, ebo.parent) && (ebo.parent->flag & BONE_TIPSEL))
         {
-          copy_v3_v3(ebo->head, ebo->parent->tail);
+          copy_v3_v3(ebo.head, ebo.parent->tail);
         }
         /* If this bone has a parent tip that has NOT been moved */
         else {
-          copy_v3_v3(ebo->parent->tail, ebo->head);
+          copy_v3_v3(ebo.parent->tail, ebo.head);
         }
       }
     }
@@ -347,13 +346,13 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
 
     tv = tvs->transverts = MEM_calloc_arrayN<TransVert>(totmalloc, __func__);
 
-    LISTBASE_FOREACH (EditBone *, ebo, arm->edbo) {
-      if (blender::animrig::bone_is_visible(arm, ebo)) {
-        const bool tipsel = (ebo->flag & BONE_TIPSEL) != 0;
-        const bool rootsel = (ebo->flag & BONE_ROOTSEL) != 0;
-        const bool rootok = !(ebo->parent && (ebo->flag & BONE_CONNECTED) &&
-                              (blender::animrig::bone_is_visible(arm, ebo->parent) &&
-                               (ebo->parent->flag & BONE_TIPSEL)));
+    for (EditBone &ebo : *arm->edbo) {
+      if (blender::animrig::bone_is_visible(arm, &ebo)) {
+        const bool tipsel = (ebo.flag & BONE_TIPSEL) != 0;
+        const bool rootsel = (ebo.flag & BONE_ROOTSEL) != 0;
+        const bool rootok = !(ebo.parent && (ebo.flag & BONE_CONNECTED) &&
+                              (blender::animrig::bone_is_visible(arm, ebo.parent) &&
+                               (ebo.parent->flag & BONE_TIPSEL)));
 
         if ((tipsel && rootsel) || (rootsel)) {
           /* Don't add the tip (unless mode & TM_ALL_JOINTS, for getting all joints),
@@ -361,24 +360,24 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
            * location as heads.
            */
           if (rootok) {
-            copy_v3_v3(tv->oldloc, ebo->head);
-            tv->loc = ebo->head;
+            copy_v3_v3(tv->oldloc, ebo.head);
+            tv->loc = ebo.head;
             tv->flag = SELECT;
             tv++;
             tvs->transverts_tot++;
           }
 
           if ((mode & TM_ALL_JOINTS) && (tipsel)) {
-            copy_v3_v3(tv->oldloc, ebo->tail);
-            tv->loc = ebo->tail;
+            copy_v3_v3(tv->oldloc, ebo.tail);
+            tv->loc = ebo.tail;
             tv->flag = SELECT;
             tv++;
             tvs->transverts_tot++;
           }
         }
         else if (tipsel) {
-          copy_v3_v3(tv->oldloc, ebo->tail);
-          tv->loc = ebo->tail;
+          copy_v3_v3(tv->oldloc, ebo.tail);
+          tv->loc = ebo.tail;
           tv->flag = SELECT;
           tv++;
           tvs->transverts_tot++;
@@ -391,12 +390,12 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     int totmalloc = 0;
     ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
 
-    LISTBASE_FOREACH (Nurb *, nu, nurbs) {
-      if (nu->type == CU_BEZIER) {
-        totmalloc += 3 * nu->pntsu;
+    for (Nurb &nu : *nurbs) {
+      if (nu.type == CU_BEZIER) {
+        totmalloc += 3 * nu.pntsu;
       }
       else {
-        totmalloc += nu->pntsu * nu->pntsv;
+        totmalloc += nu.pntsu * nu.pntsv;
       }
     }
     tv = tvs->transverts = MEM_calloc_arrayN<TransVert>(totmalloc, __func__);

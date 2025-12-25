@@ -125,9 +125,9 @@ void BKE_asset_weak_reference_read(BlendDataReader *reader, AssetWeakReference *
 
 void BKE_asset_catalog_path_list_free(ListBaseT<AssetCatalogPathLink> &catalog_path_list)
 {
-  LISTBASE_FOREACH_MUTABLE (AssetCatalogPathLink *, catalog_path, &catalog_path_list) {
-    MEM_delete(catalog_path->path);
-    BLI_freelinkN(&catalog_path_list, catalog_path);
+  for (AssetCatalogPathLink &catalog_path : catalog_path_list.items_mutable()) {
+    MEM_delete(catalog_path.path);
+    BLI_freelinkN(&catalog_path_list, &catalog_path);
   }
   BLI_assert(BLI_listbase_is_empty(&catalog_path_list));
 }
@@ -137,9 +137,9 @@ ListBaseT<AssetCatalogPathLink> BKE_asset_catalog_path_list_duplicate(
 {
   ListBaseT<AssetCatalogPathLink> duplicated_list = {nullptr};
 
-  LISTBASE_FOREACH (AssetCatalogPathLink *, catalog_path, &catalog_path_list) {
+  for (AssetCatalogPathLink &catalog_path : catalog_path_list) {
     AssetCatalogPathLink *copied_path = MEM_new_for_free<AssetCatalogPathLink>(__func__);
-    copied_path->path = BLI_strdup(catalog_path->path);
+    copied_path->path = BLI_strdup(catalog_path.path);
 
     BLI_addtail(&duplicated_list, copied_path);
   }
@@ -150,9 +150,9 @@ ListBaseT<AssetCatalogPathLink> BKE_asset_catalog_path_list_duplicate(
 void BKE_asset_catalog_path_list_blend_write(
     BlendWriter *writer, const ListBaseT<AssetCatalogPathLink> &catalog_path_list)
 {
-  LISTBASE_FOREACH (const AssetCatalogPathLink *, catalog_path, &catalog_path_list) {
-    writer->write_struct(catalog_path);
-    BLO_write_string(writer, catalog_path->path);
+  for (const AssetCatalogPathLink &catalog_path : catalog_path_list) {
+    writer->write_struct(&catalog_path);
+    BLO_write_string(writer, catalog_path.path);
   }
 }
 
@@ -160,8 +160,8 @@ void BKE_asset_catalog_path_list_blend_read_data(
     BlendDataReader *reader, ListBaseT<AssetCatalogPathLink> &catalog_path_list)
 {
   BLO_read_struct_list(reader, AssetCatalogPathLink, &catalog_path_list);
-  LISTBASE_FOREACH (AssetCatalogPathLink *, catalog_path, &catalog_path_list) {
-    BLO_read_string(reader, &catalog_path->path);
+  for (AssetCatalogPathLink &catalog_path : catalog_path_list) {
+    BLO_read_string(reader, &catalog_path.path);
   }
 }
 

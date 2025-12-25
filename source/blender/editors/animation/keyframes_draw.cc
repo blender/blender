@@ -592,16 +592,16 @@ ChannelDrawList *ED_channel_draw_list_create()
 
 static void channel_list_build_keylists(ChannelDrawList *channel_list, blender::float2 range)
 {
-  LISTBASE_FOREACH (ChannelListElement *, elem, &channel_list->channels) {
-    build_channel_keylist(elem, range);
-    prepare_channel_for_drawing(elem);
+  for (ChannelListElement &elem : channel_list->channels) {
+    build_channel_keylist(&elem, range);
+    prepare_channel_for_drawing(&elem);
   }
 }
 
 static void channel_list_draw_blocks(ChannelDrawList *channel_list, View2D *v2d)
 {
-  LISTBASE_FOREACH (ChannelListElement *, elem, &channel_list->channels) {
-    draw_channel_blocks(elem, v2d);
+  for (ChannelListElement &elem : channel_list->channels) {
+    draw_channel_blocks(&elem, v2d);
   }
 }
 
@@ -610,13 +610,13 @@ static int channel_visible_key_len(const View2D *v2d, const ListBaseT<ActKeyColu
   /* count keys */
   uint len = 0;
 
-  LISTBASE_FOREACH (ActKeyColumn *, ak, keys) {
+  for (ActKeyColumn &ak : *keys) {
     /* Optimization: if keyframe doesn't appear within 5 units (screenspace)
      * in visible area, don't draw.
      * This might give some improvements,
      * since we current have to flip between view/region matrices.
      */
-    if (draw_keylist_is_visible_key(v2d, ak)) {
+    if (draw_keylist_is_visible_key(v2d, &ak)) {
       len++;
     }
   }
@@ -626,8 +626,8 @@ static int channel_visible_key_len(const View2D *v2d, const ListBaseT<ActKeyColu
 static int channel_list_visible_key_len(const ChannelDrawList *channel_list, const View2D *v2d)
 {
   uint len = 0;
-  LISTBASE_FOREACH (ChannelListElement *, elem, &channel_list->channels) {
-    const ListBaseT<ActKeyColumn> *keys = ED_keylist_listbase(elem->keylist);
+  for (ChannelListElement &elem : channel_list->channels) {
+    const ListBaseT<ActKeyColumn> *keys = ED_keylist_listbase(elem.keylist);
     len += channel_visible_key_len(v2d, keys);
   }
   return len;
@@ -662,8 +662,8 @@ static void channel_list_draw_keys(ChannelDrawList *channel_list, View2D *v2d)
   immUniform2f("ViewportSize", BLI_rcti_size_x(&v2d->mask) + 1, BLI_rcti_size_y(&v2d->mask) + 1);
   immBegin(GPU_PRIM_POINTS, visible_key_len);
 
-  LISTBASE_FOREACH (ChannelListElement *, elem, &channel_list->channels) {
-    draw_channel_keys(elem, v2d, &sh_bindings);
+  for (ChannelListElement &elem : channel_list->channels) {
+    draw_channel_keys(&elem, v2d, &sh_bindings);
   }
 
   immEnd();
@@ -687,8 +687,8 @@ void ED_channel_list_flush(ChannelDrawList *channel_list, View2D *v2d)
 
 void ED_channel_list_free(ChannelDrawList *channel_list)
 {
-  LISTBASE_FOREACH (ChannelListElement *, elem, &channel_list->channels) {
-    ED_keylist_free(elem->keylist);
+  for (ChannelListElement &elem : channel_list->channels) {
+    ED_keylist_free(elem.keylist);
   }
   BLI_freelistN(&channel_list->channels);
   MEM_freeN(channel_list);

@@ -88,10 +88,10 @@ void ANIM_bonecoll_free(BoneCollection *bcoll, const bool do_id_user_count)
  * twice for the same bone collection will cause duplicate pointers. */
 static void add_reverse_pointers(BoneCollection *bcoll)
 {
-  LISTBASE_FOREACH (BoneCollectionMember *, member, &bcoll->bones) {
+  for (BoneCollectionMember &member : bcoll->bones) {
     BoneCollectionReference *ref = MEM_new_for_free<BoneCollectionReference>(__func__);
     ref->bcoll = bcoll;
-    BLI_addtail(&member->bone->runtime.collections, ref);
+    BLI_addtail(&member.bone->runtime.collections, ref);
   }
 }
 
@@ -269,9 +269,9 @@ static BoneCollection *copy_and_update_ownership(const bArmature *armature_dst,
    * assumed to be owned by another armature. */
   BLI_duplicatelist(&bcoll->bones, &bcoll->bones);
   BLI_assert_msg(armature_dst->bonehash, "Expected armature bone hash to be there");
-  LISTBASE_FOREACH (BoneCollectionMember *, member, &bcoll->bones) {
-    member->bone = BKE_armature_find_bone_name(const_cast<bArmature *>(armature_dst),
-                                               member->bone->name);
+  for (BoneCollectionMember &member : bcoll->bones) {
+    member.bone = BKE_armature_find_bone_name(const_cast<bArmature *>(armature_dst),
+                                              member.bone->name);
   }
 
   /* Now that the collection points to the right bones, these bones can be
@@ -880,8 +880,8 @@ static void add_reference(Bone *bone, BoneCollection *bcoll)
 bool ANIM_armature_bonecoll_assign(BoneCollection *bcoll, Bone *bone)
 {
   /* Precondition check: bail out if already a member. */
-  LISTBASE_FOREACH (BoneCollectionMember *, member, &bcoll->bones) {
-    if (member->bone == bone) {
+  for (BoneCollectionMember &member : bcoll->bones) {
+    if (member.bone == bone) {
       return false;
     }
   }
@@ -895,8 +895,8 @@ bool ANIM_armature_bonecoll_assign(BoneCollection *bcoll, Bone *bone)
 bool ANIM_armature_bonecoll_assign_editbone(BoneCollection *bcoll, EditBone *ebone)
 {
   /* Precondition check: bail out if already a member. */
-  LISTBASE_FOREACH (BoneCollectionReference *, ref, &ebone->bone_collections) {
-    if (ref->bcoll == bcoll) {
+  for (BoneCollectionReference &ref : ebone->bone_collections) {
+    if (ref.bcoll == bcoll) {
       return false;
     }
   }
@@ -928,9 +928,9 @@ bool ANIM_armature_bonecoll_unassign(BoneCollection *bcoll, Bone *bone)
   bool was_found = false;
 
   /* Remove membership from collection. */
-  LISTBASE_FOREACH_MUTABLE (BoneCollectionMember *, member, &bcoll->bones) {
-    if (member->bone == bone) {
-      BLI_freelinkN(&bcoll->bones, member);
+  for (BoneCollectionMember &member : bcoll->bones.items_mutable()) {
+    if (member.bone == bone) {
+      BLI_freelinkN(&bcoll->bones, &member);
       was_found = true;
       break;
     }
@@ -939,9 +939,9 @@ bool ANIM_armature_bonecoll_unassign(BoneCollection *bcoll, Bone *bone)
   /* Remove reverse membership from the bone.
    * For data consistency sake, this is always done, regardless of whether the
    * above loop found the membership. */
-  LISTBASE_FOREACH_MUTABLE (BoneCollectionReference *, ref, &bone->runtime.collections) {
-    if (ref->bcoll == bcoll) {
-      BLI_freelinkN(&bone->runtime.collections, ref);
+  for (BoneCollectionReference &ref : bone->runtime.collections.items_mutable()) {
+    if (ref.bcoll == bcoll) {
+      BLI_freelinkN(&bone->runtime.collections, &ref);
       break;
     }
   }
@@ -951,17 +951,17 @@ bool ANIM_armature_bonecoll_unassign(BoneCollection *bcoll, Bone *bone)
 
 void ANIM_armature_bonecoll_unassign_all(Bone *bone)
 {
-  LISTBASE_FOREACH_MUTABLE (BoneCollectionReference *, ref, &bone->runtime.collections) {
+  for (BoneCollectionReference &ref : bone->runtime.collections.items_mutable()) {
     /* TODO: include Armature as parameter, and check that the bone collection to unassign from is
      * actually editable. */
-    ANIM_armature_bonecoll_unassign(ref->bcoll, bone);
+    ANIM_armature_bonecoll_unassign(ref.bcoll, bone);
   }
 }
 
 void ANIM_armature_bonecoll_unassign_all_editbone(EditBone *ebone)
 {
-  LISTBASE_FOREACH_MUTABLE (BoneCollectionReference *, ref, &ebone->bone_collections) {
-    ANIM_armature_bonecoll_unassign_editbone(ref->bcoll, ebone);
+  for (BoneCollectionReference &ref : ebone->bone_collections.items_mutable()) {
+    ANIM_armature_bonecoll_unassign_editbone(ref.bcoll, ebone);
   }
 }
 
@@ -970,9 +970,9 @@ bool ANIM_armature_bonecoll_unassign_editbone(BoneCollection *bcoll, EditBone *e
   bool was_found = false;
 
   /* Edit bone membership is only stored on the edit bone itself. */
-  LISTBASE_FOREACH_MUTABLE (BoneCollectionReference *, ref, &ebone->bone_collections) {
-    if (ref->bcoll == bcoll) {
-      BLI_freelinkN(&ebone->bone_collections, ref);
+  for (BoneCollectionReference &ref : ebone->bone_collections.items_mutable()) {
+    if (ref.bcoll == bcoll) {
+      BLI_freelinkN(&ebone->bone_collections, &ref);
       was_found = true;
       break;
     }
@@ -989,8 +989,8 @@ void ANIM_armature_bonecoll_reconstruct(bArmature *armature)
 
   /* For all bones, restore their collection memberships. */
   ANIM_armature_foreach_bone(&armature->bonebase, [&](Bone *bone) {
-    LISTBASE_FOREACH (BoneCollectionReference *, ref, &bone->runtime.collections) {
-      add_membership(ref->bcoll, bone);
+    for (BoneCollectionReference &ref : bone->runtime.collections) {
+      add_membership(ref.bcoll, bone);
     }
   });
 }
@@ -1004,8 +1004,8 @@ static bool any_bone_collection_visible(const bArmature *armature,
     return true;
   }
 
-  LISTBASE_FOREACH (const BoneCollectionReference *, bcoll_ref, collection_refs) {
-    const BoneCollection *bcoll = bcoll_ref->bcoll;
+  for (const BoneCollectionReference &bcoll_ref : *collection_refs) {
+    const BoneCollection *bcoll = bcoll_ref.bcoll;
     if (ANIM_armature_bonecoll_is_visible_effectively(armature, bcoll)) {
       return true;
     }
@@ -1052,8 +1052,8 @@ void ANIM_armature_bonecoll_assign_active(const bArmature *armature, EditBone *e
 static bool bcoll_list_contains(const ListBaseT<BoneCollectionReference> *collection_refs,
                                 const BoneCollection *bcoll)
 {
-  LISTBASE_FOREACH (const BoneCollectionReference *, bcoll_ref, collection_refs) {
-    if (bcoll == bcoll_ref->bcoll) {
+  for (const BoneCollectionReference &bcoll_ref : *collection_refs) {
+    if (bcoll == bcoll_ref.bcoll) {
       return true;
     }
   }
@@ -1577,12 +1577,12 @@ void bonecolls_debug_list(const bArmature *armature)
 void bonecoll_unassign_and_free(bArmature *armature, BoneCollection *bcoll)
 {
   /* Remove bone membership. */
-  LISTBASE_FOREACH_MUTABLE (BoneCollectionMember *, member, &bcoll->bones) {
-    ANIM_armature_bonecoll_unassign(bcoll, member->bone);
+  for (BoneCollectionMember &member : bcoll->bones.items_mutable()) {
+    ANIM_armature_bonecoll_unassign(bcoll, member.bone);
   }
   if (armature->edbo) {
-    LISTBASE_FOREACH (EditBone *, ebone, armature->edbo) {
-      ANIM_armature_bonecoll_unassign_editbone(bcoll, ebone);
+    for (EditBone &ebone : *armature->edbo) {
+      ANIM_armature_bonecoll_unassign_editbone(bcoll, &ebone);
     }
   }
 

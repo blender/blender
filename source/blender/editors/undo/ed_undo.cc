@@ -799,10 +799,10 @@ void ED_undo_object_editmode_validate_scene_from_windows(wmWindowManager *wm,
   if (*scene_p == scene_ref) {
     return;
   }
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    if (win->scene == scene_ref) {
-      *scene_p = win->scene;
-      *view_layer_p = WM_window_get_active_view_layer(win);
+  for (wmWindow &win : wm->windows) {
+    if (win.scene == scene_ref) {
+      *scene_p = win.scene;
+      *view_layer_p = WM_window_get_active_view_layer(&win);
       return;
     }
   }

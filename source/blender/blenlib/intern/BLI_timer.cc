@@ -60,10 +60,10 @@ static void clear_user_data(TimedFunction *timed_func)
 
 bool BLI_timer_unregister(uintptr_t uuid)
 {
-  LISTBASE_FOREACH (TimedFunction *, timed_func, &GlobalTimer.funcs) {
-    if (timed_func->uuid == uuid && !timed_func->tag_removal) {
-      timed_func->tag_removal = true;
-      clear_user_data(timed_func);
+  for (TimedFunction &timed_func : GlobalTimer.funcs) {
+    if (timed_func.uuid == uuid && !timed_func.tag_removal) {
+      timed_func.tag_removal = true;
+      clear_user_data(&timed_func);
       return true;
     }
   }
@@ -72,8 +72,8 @@ bool BLI_timer_unregister(uintptr_t uuid)
 
 bool BLI_timer_is_registered(uintptr_t uuid)
 {
-  LISTBASE_FOREACH (TimedFunction *, timed_func, &GlobalTimer.funcs) {
-    if (timed_func->uuid == uuid && !timed_func->tag_removal) {
+  for (TimedFunction &timed_func : GlobalTimer.funcs) {
+    if (timed_func.uuid == uuid && !timed_func.tag_removal) {
       return true;
     }
   }
@@ -84,21 +84,21 @@ static void execute_functions_if_necessary()
 {
   double current_time = GET_TIME();
 
-  LISTBASE_FOREACH (TimedFunction *, timed_func, &GlobalTimer.funcs) {
-    if (timed_func->tag_removal) {
+  for (TimedFunction &timed_func : GlobalTimer.funcs) {
+    if (timed_func.tag_removal) {
       continue;
     }
-    if (timed_func->next_time > current_time) {
+    if (timed_func.next_time > current_time) {
       continue;
     }
 
-    double ret = timed_func->func(timed_func->uuid, timed_func->user_data);
+    double ret = timed_func.func(timed_func.uuid, timed_func.user_data);
 
     if (ret < 0) {
-      timed_func->tag_removal = true;
+      timed_func.tag_removal = true;
     }
     else {
-      timed_func->next_time = current_time + ret;
+      timed_func.next_time = current_time + ret;
     }
   }
 }
@@ -125,8 +125,8 @@ void BLI_timer_execute()
 
 void BLI_timer_free()
 {
-  LISTBASE_FOREACH (TimedFunction *, timed_func, &GlobalTimer.funcs) {
-    timed_func->tag_removal = true;
+  for (TimedFunction &timed_func : GlobalTimer.funcs) {
+    timed_func.tag_removal = true;
   }
 
   remove_tagged_functions();
@@ -134,9 +134,9 @@ void BLI_timer_free()
 
 static void remove_non_persistent_functions()
 {
-  LISTBASE_FOREACH (TimedFunction *, timed_func, &GlobalTimer.funcs) {
-    if (!timed_func->persistent) {
-      timed_func->tag_removal = true;
+  for (TimedFunction &timed_func : GlobalTimer.funcs) {
+    if (!timed_func.persistent) {
+      timed_func.tag_removal = true;
     }
   }
 }

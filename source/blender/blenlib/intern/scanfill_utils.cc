@@ -253,8 +253,8 @@ static bool scanfill_preprocess_self_isect(ScanFillContext *sf_ctx,
           eed = eed_tmp;
         }
 
-        LISTBASE_FOREACH (LinkData *, isect_link, e_ls) {
-          ScanFillIsect *isect = static_cast<ScanFillIsect *>(isect_link->data);
+        for (LinkData &isect_link : *e_ls) {
+          ScanFillIsect *isect = static_cast<ScanFillIsect *>(isect_link.data);
           ScanFillEdge *eed_subd;
 
           eed_subd = BLI_scanfill_edge_add(sf_ctx, isect->v, eed->v2);
@@ -376,24 +376,23 @@ bool BLI_scanfill_calc_self_isect(ScanFillContext *sf_ctx,
   }
   else {
     ushort poly_nr = 0;
-    uint eed_index = 0;
 
-    LISTBASE_FOREACH_INDEX (ScanFillEdge *, eed, &sf_ctx->filledgebase, eed_index) {
-      BLI_assert(eed->poly_nr == eed->v1->poly_nr);
-      BLI_assert(eed->poly_nr == eed->v2->poly_nr);
+    for (auto [eed_index, eed] : sf_ctx->filledgebase.enumerate()) {
+      BLI_assert(eed.poly_nr == eed.v1->poly_nr);
+      BLI_assert(eed.poly_nr == eed.v2->poly_nr);
 
       if ((poly_info[poly_nr].edge_last != nullptr) &&
-          (poly_info[poly_nr].edge_last->poly_nr != eed->poly_nr))
+          (poly_info[poly_nr].edge_last->poly_nr != eed.poly_nr))
       {
         poly_nr++;
       }
 
       if (poly_info[poly_nr].edge_first == nullptr) {
-        poly_info[poly_nr].edge_first = eed;
-        poly_info[poly_nr].edge_last = eed;
+        poly_info[poly_nr].edge_first = &eed;
+        poly_info[poly_nr].edge_last = &eed;
       }
-      else if (poly_info[poly_nr].edge_last->poly_nr == eed->poly_nr) {
-        poly_info[poly_nr].edge_last = eed;
+      else if (poly_info[poly_nr].edge_last->poly_nr == eed.poly_nr) {
+        poly_info[poly_nr].edge_last = &eed;
       }
 
       BLI_assert(poly_info[poly_nr].edge_first->poly_nr == poly_info[poly_nr].edge_last->poly_nr);
@@ -416,33 +415,33 @@ bool BLI_scanfill_calc_self_isect(ScanFillContext *sf_ctx,
 
   /* move free edges into their own list */
   {
-    LISTBASE_FOREACH_MUTABLE (ScanFillEdge *, eed, &sf_ctx->filledgebase) {
-      if (eed->user_flag & E_ISDELETE) {
-        BLI_remlink(&sf_ctx->filledgebase, eed);
-        BLI_addtail(remedgebase, eed);
+    for (ScanFillEdge &eed : sf_ctx->filledgebase.items_mutable()) {
+      if (eed.user_flag & E_ISDELETE) {
+        BLI_remlink(&sf_ctx->filledgebase, &eed);
+        BLI_addtail(remedgebase, &eed);
       }
     }
   }
 
   /* move free vertices into their own list */
   {
-    LISTBASE_FOREACH (ScanFillVert *, eve, &sf_ctx->fillvertbase) {
-      eve->user_flag = 0;
-      eve->poly_nr = SF_POLY_UNSET;
+    for (ScanFillVert &eve : sf_ctx->fillvertbase) {
+      eve.user_flag = 0;
+      eve.poly_nr = SF_POLY_UNSET;
     }
-    LISTBASE_FOREACH (ScanFillEdge *, eed, &sf_ctx->filledgebase) {
-      eed->v1->user_flag = 1;
-      eed->v2->user_flag = 1;
-      eed->poly_nr = SF_POLY_UNSET;
+    for (ScanFillEdge &eed : sf_ctx->filledgebase) {
+      eed.v1->user_flag = 1;
+      eed.v2->user_flag = 1;
+      eed.poly_nr = SF_POLY_UNSET;
     }
 
-    LISTBASE_FOREACH_MUTABLE (ScanFillVert *, eve, &sf_ctx->fillvertbase) {
-      if (eve->user_flag != 1) {
-        BLI_remlink(&sf_ctx->fillvertbase, eve);
-        BLI_addtail(remvertbase, eve);
+    for (ScanFillVert &eve : sf_ctx->fillvertbase.items_mutable()) {
+      if (eve.user_flag != 1) {
+        BLI_remlink(&sf_ctx->fillvertbase, &eve);
+        BLI_addtail(remvertbase, &eve);
       }
       else {
-        eve->user_flag = 0;
+        eve.user_flag = 0;
       }
     }
   }

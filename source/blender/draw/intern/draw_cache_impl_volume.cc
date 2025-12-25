@@ -117,9 +117,9 @@ static void volume_batch_cache_clear(Volume *volume)
     return;
   }
 
-  LISTBASE_FOREACH (DRWVolumeGrid *, grid, &cache->grids) {
-    MEM_SAFE_FREE(grid->name);
-    GPU_TEXTURE_FREE_SAFE(grid->texture);
+  for (DRWVolumeGrid &grid : cache->grids) {
+    MEM_SAFE_FREE(grid.name);
+    GPU_TEXTURE_FREE_SAFE(grid.texture);
   }
   BLI_freelistN(&cache->grids);
 
@@ -290,9 +290,9 @@ static DRWVolumeGrid *volume_grid_cache_get(const Volume *volume,
   const std::string name = bke::volume_grid::get_name(*grid);
 
   /* Return cached grid. */
-  LISTBASE_FOREACH (DRWVolumeGrid *, cache_grid, &cache->grids) {
-    if (cache_grid->name == name) {
-      return cache_grid;
+  for (DRWVolumeGrid &cache_grid : cache->grids) {
+    if (cache_grid.name == name) {
+      return &cache_grid;
     }
   }
 

@@ -277,8 +277,8 @@ class ImageTest : public ::testing::Test {
     }
 
     Vector<std::string> layer_names;
-    LISTBASE_FOREACH (const RenderLayer *, layer, &render_result->layers) {
-      layer_names.append(layer->name);
+    for (const RenderLayer &layer : render_result->layers) {
+      layer_names.append(layer.name);
     }
 
     return layer_names;
@@ -292,11 +292,11 @@ class ImageTest : public ::testing::Test {
       return {};
     }
 
-    LISTBASE_FOREACH (const RenderLayer *, layer, &render_result->layers) {
-      if (layer->name == layer_name) {
+    for (const RenderLayer &layer : render_result->layers) {
+      if (layer.name == layer_name) {
         Vector<std::string> pass_names;
-        LISTBASE_FOREACH (const RenderPass *, pass, &layer->passes) {
-          pass_names.append(pass->name);
+        for (const RenderPass &pass : layer.passes) {
+          pass_names.append(pass.name);
         }
         return pass_names;
       }

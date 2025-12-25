@@ -642,10 +642,10 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
   BLI_assert(i == bm_old->totface);
 
   /* copy over edit selection history */
-  LISTBASE_FOREACH (BMEditSelection *, ese, &bm_old->selected) {
+  for (BMEditSelection &ese : bm_old->selected) {
     BMElem *ele = nullptr;
 
-    switch (ese->htype) {
+    switch (ese.htype) {
       case BM_VERT:
         eletable = (BMElem **)vtable;
         break;
@@ -661,7 +661,7 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
     }
 
     if (eletable) {
-      ele = eletable[BM_elem_index_get(ese->ele)];
+      ele = eletable[BM_elem_index_get(ese.ele)];
       if (ele) {
         BM_select_history_store(bm_new, ele);
       }

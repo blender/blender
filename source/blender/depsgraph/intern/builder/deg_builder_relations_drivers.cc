@@ -172,12 +172,12 @@ void DepsgraphRelationBuilder::build_driver_relations(IDNode *id_node)
 
   PointerRNA id_ptr = RNA_id_pointer_create(id_orig);
 
-  LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
-    if (fcu->rna_path == nullptr) {
+  for (FCurve &fcu : adt->drivers) {
+    if (fcu.rna_path == nullptr) {
       continue;
     }
 
-    DriverDescriptor driver_desc(&id_ptr, fcu);
+    DriverDescriptor driver_desc(&id_ptr, &fcu);
     if (!driver_desc.driver_relations_needed()) {
       continue;
     }

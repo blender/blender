@@ -84,33 +84,33 @@ static void context_path_add_node_tree_and_node_groups(const SpaceNode &snode,
                                                        Vector<ui::ContextPathItem> &path,
                                                        const bool skip_base = false)
 {
-  int i = 0;
-  LISTBASE_FOREACH_INDEX (const bNodeTreePath *, path_item, &snode.treepath, i) {
-    if (skip_base && path_item == snode.treepath.first) {
+
+  for (const auto [i, path_item] : snode.treepath.enumerate()) {
+    if (skip_base && &path_item == snode.treepath.first) {
       continue;
     }
-    if (path_item->nodetree == nullptr) {
+    if (path_item.nodetree == nullptr) {
       continue;
     }
 
     int icon = ICON_NODETREE;
-    if (ID_IS_PACKED(&path_item->nodetree->id)) {
+    if (ID_IS_PACKED(&path_item.nodetree->id)) {
       icon = ICON_PACKAGE;
     }
-    else if (ID_IS_LINKED(&path_item->nodetree->id)) {
+    else if (ID_IS_LINKED(&path_item.nodetree->id)) {
       icon = ICON_LINKED;
     }
-    else if (ID_IS_ASSET(&path_item->nodetree->id)) {
+    else if (ID_IS_ASSET(&path_item.nodetree->id)) {
       icon = ICON_ASSET_MANAGER;
     }
 
-    if (path_item != snode.treepath.last) {
+    if (&path_item != snode.treepath.last) {
       /* We don't need to add handle function to last node-tree. */
       ui::context_path_add_generic(
-          path, RNA_NodeTree, path_item->nodetree, icon, tree_path_handle_func(i));
+          path, RNA_NodeTree, path_item.nodetree, icon, tree_path_handle_func(i));
     }
     else {
-      ui::context_path_add_generic(path, RNA_NodeTree, path_item->nodetree, icon);
+      ui::context_path_add_generic(path, RNA_NodeTree, path_item.nodetree, icon);
     }
   }
 }

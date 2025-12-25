@@ -427,8 +427,8 @@ static const EnumPropertyItem *rna_Particle_Material_itemf(bContext *C,
   Object *ob_found = nullptr;
 
   if (Object *ob_context = static_cast<Object *>(CTX_data_pointer_get(C, "object").data)) {
-    LISTBASE_FOREACH (ParticleSystem *, psys, &ob_context->particlesystem) {
-      if (psys->part == part) {
+    for (ParticleSystem &psys : ob_context->particlesystem) {
+      if (psys.part == part) {
         ob_found = ob_context;
         break;
       }
@@ -441,8 +441,8 @@ static const EnumPropertyItem *rna_Particle_Material_itemf(bContext *C,
          ob && (ob_found == nullptr);
          ob = static_cast<Object *>(ob->id.next))
     {
-      LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
-        if (psys->part == part) {
+      for (ParticleSystem &psys : ob->particlesystem) {
+        if (psys.part == part) {
           ob_found = ob;
           break;
         }
@@ -540,10 +540,10 @@ static void rna_Particle_change_type(Main *bmain, Scene * /*scene*/, PointerRNA 
   for (Object *ob = static_cast<Object *>(bmain->objects.first); ob;
        ob = static_cast<Object *>(ob->id.next))
   {
-    LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
-      if (psys->part == part) {
-        psys_changed_type(ob, psys);
-        psys->recalc |= ID_RECALC_PSYS_RESET;
+    for (ParticleSystem &psys : ob->particlesystem) {
+      if (psys.part == part) {
+        psys_changed_type(ob, &psys);
+        psys.recalc |= ID_RECALC_PSYS_RESET;
         DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
       }
     }

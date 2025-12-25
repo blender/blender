@@ -260,9 +260,9 @@ static void eyedropper_add_palette_color(bContext *C, const float3 color)
 
   /* Check if the color exist already. */
   Palette *palette = paint->palette;
-  int i;
-  LISTBASE_FOREACH_INDEX (PaletteColor *, palcolor, &palette->colors, i) {
-    if (compare_v3v3(palcolor->color, color, 0.01f)) {
+
+  for (const auto [i, palcolor] : palette->colors.enumerate()) {
+    if (compare_v3v3(palcolor.color, color, 0.01f)) {
       palette->active_color = i;
       return;
     }

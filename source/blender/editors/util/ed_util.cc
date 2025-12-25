@@ -61,9 +61,9 @@
 void ED_editors_init_for_undo(Main *bmain)
 {
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    Scene *scene = WM_window_get_active_scene(win);
-    ViewLayer *view_layer = WM_window_get_active_view_layer(win);
+  for (wmWindow &win : wm->windows) {
+    Scene *scene = WM_window_get_active_scene(&win);
+    ViewLayer *view_layer = WM_window_get_active_view_layer(&win);
     BKE_view_layer_synced_ensure(scene, view_layer);
     Object *ob = BKE_view_layer_active_object_get(view_layer);
     if (ob && (ob->mode & OB_MODE_TEXTURE_PAINT)) {
@@ -76,17 +76,17 @@ void ED_editors_init_for_undo(Main *bmain)
      * sad->view_layer pointers are outdated and would need to be updated somehow. */
     bScreen *animscreen = ED_screen_animation_playing(wm);
     if (animscreen && animscreen->animtimer) {
-      WM_event_timer_remove(wm, win, animscreen->animtimer);
+      WM_event_timer_remove(wm, &win, animscreen->animtimer);
       animscreen->animtimer = nullptr;
     }
 
     /* UI Updates. */
     /* Flag local View3D's to check and exit if they are empty. */
-    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-          if (sl->spacetype == SPACE_VIEW3D) {
-            View3D *v3d = reinterpret_cast<View3D *>(sl);
+    for (bScreen &screen : bmain->screens) {
+      for (ScrArea &area : screen.areabase) {
+        for (SpaceLink &sl : area.spacedata) {
+          if (sl.spacetype == SPACE_VIEW3D) {
+            View3D *v3d = reinterpret_cast<View3D *>(&sl);
             if (v3d->localvd) {
               v3d->localvd->runtime.flag |= V3D_RUNTIME_LOCAL_MAYBE_EMPTY;
             }
@@ -118,29 +118,29 @@ void ED_editors_init(bContext *C)
    * e.g. linked objects we have to ensure that they are actually the
    * active object in this scene. */
   Object *obact = CTX_data_active_object(C);
-  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    int mode = ob->mode;
+  for (Object &ob : bmain->objects) {
+    int mode = ob.mode;
     if (mode == OB_MODE_OBJECT) {
       continue;
     }
-    if (BKE_object_has_mode_data(ob, eObjectMode(mode))) {
+    if (BKE_object_has_mode_data(&ob, eObjectMode(mode))) {
       /* For multi-edit mode we may already have mode data. */
       continue;
     }
 
     /* Reset object to Object mode, so that code below can properly re-switch it to its
      * previous mode if possible, re-creating its mode data, etc. */
-    ID *ob_data = static_cast<ID *>(ob->data);
-    ob->mode = OB_MODE_OBJECT;
-    DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
+    ID *ob_data = static_cast<ID *>(ob.data);
+    ob.mode = OB_MODE_OBJECT;
+    DEG_id_tag_update(&ob.id, ID_RECALC_SYNC_TO_EVAL);
 
     /* Object mode is enforced if there is no active object, or if the active object's type is
      * different. */
-    if (obact == nullptr || ob->type != obact->type) {
+    if (obact == nullptr || ob.type != obact->type) {
       continue;
     }
     /* Object mode is enforced for non-editable data (or their obdata). */
-    if (!BKE_id_is_editable(bmain, &ob->id) ||
+    if (!BKE_id_is_editable(bmain, &ob.id) ||
         (ob_data != nullptr && !BKE_id_is_editable(bmain, ob_data)))
     {
       continue;
@@ -149,33 +149,33 @@ void ED_editors_init(bContext *C)
     /* Pose mode is very similar to Object one, we can apply it even on objects not in current
      * scene. */
     if (mode == OB_MODE_POSE) {
-      ED_object_posemode_enter_ex(bmain, ob);
+      ED_object_posemode_enter_ex(bmain, &ob);
     }
 
     /* Other edit/paint/etc. modes are only settable for objects visible in active scene currently.
      * Otherwise, they (and their obdata) may not be (fully) evaluated, which is mandatory for some
      * modes like Sculpt.
      * Ref. #98225. */
-    if (!BKE_collection_has_object_recursive(scene->master_collection, ob) ||
-        !BKE_scene_has_object(scene, ob) || (ob->visibility_flag & OB_HIDE_VIEWPORT) != 0)
+    if (!BKE_collection_has_object_recursive(scene->master_collection, &ob) ||
+        !BKE_scene_has_object(scene, &ob) || (ob.visibility_flag & OB_HIDE_VIEWPORT) != 0)
     {
       continue;
     }
 
     if (mode == OB_MODE_EDIT) {
-      object::editmode_enter_ex(bmain, scene, ob, 0);
+      object::editmode_enter_ex(bmain, scene, &ob, 0);
     }
     else if (mode & OB_MODE_ALL_SCULPT) {
-      if (obact == ob) {
+      if (obact == &ob) {
         if (mode == OB_MODE_SCULPT) {
           blender::ed::sculpt_paint::object_sculpt_mode_enter(
-              *bmain, *depsgraph, *scene, *ob, true, reports);
+              *bmain, *depsgraph, *scene, ob, true, reports);
         }
         else if (mode == OB_MODE_VERTEX_PAINT) {
-          ED_object_vpaintmode_enter_ex(*bmain, *depsgraph, *scene, *ob);
+          ED_object_vpaintmode_enter_ex(*bmain, *depsgraph, *scene, ob);
         }
         else if (mode == OB_MODE_WEIGHT_PAINT) {
-          ED_object_wpaintmode_enter_ex(*bmain, *depsgraph, *scene, *ob);
+          ED_object_wpaintmode_enter_ex(*bmain, *depsgraph, *scene, ob);
         }
         else {
           BLI_assert_unreachable();
@@ -185,14 +185,14 @@ void ED_editors_init(bContext *C)
         /* Create data for non-active objects which need it for
          * mode-switching but don't yet support multi-editing. */
         if (mode & OB_MODE_ALL_SCULPT) {
-          ob->mode = mode;
-          BKE_object_sculpt_data_create(ob);
+          ob.mode = mode;
+          BKE_object_sculpt_data_create(&ob);
         }
       }
     }
     else {
       /* TODO(@ideasman42): avoid operator calls. */
-      if (obact == ob) {
+      if (obact == &ob) {
         object::mode_set(C, eObjectMode(mode));
       }
     }
@@ -207,10 +207,10 @@ void ED_editors_init(bContext *C)
    * just triggers non-rebuild redraws (#RGN_DRAW_NO_REBUILD). Usually a full redraw would be
    * triggered by a `NC_WM | ND_FILEREAD` notifier, but if a startup script calls an operator that
    * redraws the window, notifiers are not handled before the operator runs. See #98461. */
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    const bScreen *screen = WM_window_get_active_screen(win);
+  for (wmWindow &win : wm->windows) {
+    const bScreen *screen = WM_window_get_active_screen(&win);
 
-    ED_screen_areas_iter (win, screen, area) {
+    ED_screen_areas_iter (&win, screen, area) {
       ED_area_tag_redraw(area);
     }
   }
@@ -250,10 +250,10 @@ void ED_editors_exit(Main *bmain, bool do_undo_system)
    * don't handle modes either (doing so isn't always practical).
    *
    * To reproduce the problem where stale data is used, see: #84920. */
-  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    if (object::editmode_free_ex(bmain, ob)) {
+  for (Object &ob : bmain->objects) {
+    if (object::editmode_free_ex(bmain, &ob)) {
       if (do_undo_system == false) {
-        DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+        DEG_id_tag_update(&ob.id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
       }
     }
   }
@@ -324,8 +324,8 @@ bool ED_editors_flush_edits_ex(Main *bmain, bool for_render, bool check_needs_fl
   /* loop through all data to find edit mode or object mode, because during
    * exiting we might not have a context for edit object and multiple sculpt
    * objects can exist at the same time */
-  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    has_edited |= ED_editors_flush_edits_for_object_ex(bmain, ob, for_render, check_needs_flush);
+  for (Object &ob : bmain->objects) {
+    has_edited |= ED_editors_flush_edits_for_object_ex(bmain, &ob, for_render, check_needs_flush);
   }
 
   bmain->is_memfile_undo_flush_needed = false;

@@ -166,10 +166,10 @@ static bool multiresbake_check(bContext *C, wmOperator *op)
           ok = false;
         }
         else {
-          LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
+          for (ImageTile &tile : ima->tiles) {
             ImageUser iuser;
             BKE_imageuser_default(&iuser);
-            iuser.tile = tile->tile_number;
+            iuser.tile = tile.tile_number;
 
             ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, nullptr);
 
@@ -223,10 +223,10 @@ static void clear_single_image(Image *image, ClearFlag flag)
   const float disp_solid[4] = {0.5f, 0.5f, 0.5f, 1.0f};
 
   if ((image->id.tag & ID_TAG_DOIT) == 0) {
-    LISTBASE_FOREACH (ImageTile *, tile, &image->tiles) {
+    for (ImageTile &tile : image->tiles) {
       ImageUser iuser;
       BKE_imageuser_default(&iuser);
-      iuser.tile = tile->tile_number;
+      iuser.tile = tile.tile_number;
 
       ImBuf *ibuf = BKE_image_acquire_ibuf(image, &iuser, nullptr);
 
@@ -384,7 +384,7 @@ static void multiresbake_startjob(void *bkv, wmJobWorkerStatus *worker_status)
   tot_obj = BLI_listbase_count(&bkj->data);
 
   if (bkj->bake_clear) { /* clear images */
-    LISTBASE_FOREACH (MultiresBakerJobData *, data, &bkj->data) {
+    for (MultiresBakerJobData &data : bkj->data) {
       ClearFlag clear_flag = ClearFlag(0);
 
       if (bkj->type == R_BAKE_NORMALS) {
@@ -394,11 +394,11 @@ static void multiresbake_startjob(void *bkv, wmJobWorkerStatus *worker_status)
         clear_flag = CLEAR_DISPLACEMENT;
       }
 
-      clear_images_poly(data->ob_image, clear_flag);
+      clear_images_poly(data.ob_image, clear_flag);
     }
   }
 
-  LISTBASE_FOREACH (MultiresBakerJobData *, data, &bkj->data) {
+  for (MultiresBakerJobData &data : bkj->data) {
     MultiresBakeRender bake;
 
     /* copy data stored in job descriptor */
@@ -407,10 +407,10 @@ static void multiresbake_startjob(void *bkv, wmJobWorkerStatus *worker_status)
     bake.type = bkj->type;
     bake.displacement_space = bkj->displacement_space;
     bake.use_low_resolution_mesh = bkj->use_low_resolution_mesh;
-    bake.ob_image = data->ob_image;
+    bake.ob_image = data.ob_image;
 
-    bake.base_mesh = data->base_mesh;
-    bake.multires_modifier = data->multires_modifier;
+    bake.base_mesh = data.base_mesh;
+    bake.multires_modifier = data.multires_modifier;
 
     /* needed for proper progress bar */
     bake.num_total_objects = tot_obj;
@@ -422,7 +422,7 @@ static void multiresbake_startjob(void *bkv, wmJobWorkerStatus *worker_status)
 
     RE_multires_bake_images(bake);
 
-    data->images = bake.images;
+    data.images = bake.images;
 
     baked_objects++;
   }

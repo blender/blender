@@ -137,23 +137,23 @@ static bool reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context,
   unit_m4(imat);
 
   {
-    int track_index = 0;
-    LISTBASE_FOREACH_INDEX (MovieTrackingTrack *, track, &tracking_object->tracks, track_index) {
+
+    for (const auto [track_index, track] : tracking_object->tracks.enumerate()) {
       double pos[3];
 
       if (libmv_reprojectionPointForTrack(libmv_reconstruction, track_index, pos)) {
-        track->bundle_pos[0] = pos[0];
-        track->bundle_pos[1] = pos[1];
-        track->bundle_pos[2] = pos[2];
+        track.bundle_pos[0] = pos[0];
+        track.bundle_pos[1] = pos[1];
+        track.bundle_pos[2] = pos[2];
 
-        track->flag |= TRACK_HAS_BUNDLE;
-        track->error = libmv_reprojectionErrorForTrack(libmv_reconstruction, track_index);
+        track.flag |= TRACK_HAS_BUNDLE;
+        track.error = libmv_reprojectionErrorForTrack(libmv_reconstruction, track_index);
       }
       else {
-        track->flag &= ~TRACK_HAS_BUNDLE;
+        track.flag &= ~TRACK_HAS_BUNDLE;
         ok = false;
 
-        printf("Unable to reconstruct position for track #%d '%s'\n", track_index, track->name);
+        printf("Unable to reconstruct position for track #%d '%s'\n", track_index, track.name);
       }
     }
   }
@@ -223,9 +223,9 @@ static bool reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context,
   }
 
   if (origin_set) {
-    LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-      if (track->flag & TRACK_HAS_BUNDLE) {
-        mul_v3_m4v3(track->bundle_pos, imat, track->bundle_pos);
+    for (MovieTrackingTrack &track : tracking_object->tracks) {
+      if (track.flag & TRACK_HAS_BUNDLE) {
+        mul_v3_m4v3(track.bundle_pos, imat, track.bundle_pos);
       }
     }
   }
@@ -281,9 +281,9 @@ static int reconstruct_count_tracks_on_both_keyframes(MovieTrackingObject *track
   const int frame1 = tracking_object->keyframe1, frame2 = tracking_object->keyframe2;
 
   int tot = 0;
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (BKE_tracking_track_has_enabled_marker_at_frame(track, frame1)) {
-      if (BKE_tracking_track_has_enabled_marker_at_frame(track, frame2)) {
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    if (BKE_tracking_track_has_enabled_marker_at_frame(&track, frame1)) {
+      if (BKE_tracking_track_has_enabled_marker_at_frame(&track, frame2)) {
         tot++;
       }
     }
@@ -348,13 +348,13 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(
 
   context->tracks_map = tracks_map_new(context->object_name, num_tracks);
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    int first = 0, last = track->markersnr - 1;
-    MovieTrackingMarker *first_marker = &track->markers[0];
-    MovieTrackingMarker *last_marker = &track->markers[track->markersnr - 1];
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    int first = 0, last = track.markersnr - 1;
+    MovieTrackingMarker *first_marker = &track.markers[0];
+    MovieTrackingMarker *last_marker = &track.markers[track.markersnr - 1];
 
     /* find first not-disabled marker */
-    while (first <= track->markersnr - 1 && first_marker->flag & MARKER_DISABLED) {
+    while (first <= track.markersnr - 1 && first_marker->flag & MARKER_DISABLED) {
       first++;
       first_marker++;
     }
@@ -365,7 +365,7 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(
       last_marker--;
     }
 
-    if (first <= track->markersnr - 1) {
+    if (first <= track.markersnr - 1) {
       sfra = min_ii(sfra, first_marker->framenr);
     }
 
@@ -373,7 +373,7 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(
       efra = max_ii(efra, last_marker->framenr);
     }
 
-    tracks_map_insert(context->tracks_map, track);
+    tracks_map_insert(context->tracks_map, &track);
   }
 
   context->sfra = sfra;
@@ -537,17 +537,17 @@ static void tracking_scale_reconstruction(ListBaseT<MovieTrackingTrack> *tracksb
     sub_v3_v3(camera->mat[3], first_camera_delta);
   }
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
-    if (track->flag & TRACK_HAS_BUNDLE) {
-      mul_v3_v3(track->bundle_pos, scale);
-      sub_v3_v3(track->bundle_pos, first_camera_delta);
+  for (MovieTrackingTrack &track : *tracksbase) {
+    if (track.flag & TRACK_HAS_BUNDLE) {
+      mul_v3_v3(track.bundle_pos, scale);
+      sub_v3_v3(track.bundle_pos, first_camera_delta);
     }
   }
 }
 
 void BKE_tracking_reconstruction_scale(MovieTracking *tracking, float scale[3])
 {
-  LISTBASE_FOREACH (MovieTrackingObject *, object, &tracking->objects) {
-    tracking_scale_reconstruction(&object->tracks, &object->reconstruction, scale);
+  for (MovieTrackingObject &object : tracking->objects) {
+    tracking_scale_reconstruction(&object.tracks, &object.reconstruction, scale);
   }
 }

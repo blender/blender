@@ -293,9 +293,9 @@ static void try_convert_single_object(Object &curves_ob,
   }
 
   ParticleSystem *particle_system = nullptr;
-  LISTBASE_FOREACH (ParticleSystem *, psys, &surface_ob.particlesystem) {
-    if (STREQ(psys->name, curves_ob.id.name + 2)) {
-      particle_system = psys;
+  for (ParticleSystem &psys : surface_ob.particlesystem) {
+    if (STREQ(psys.name, curves_ob.id.name + 2)) {
+      particle_system = &psys;
       break;
     }
   }
@@ -532,11 +532,11 @@ static wmOperatorStatus curves_convert_from_particle_system_exec(bContext *C, wm
   }
   Object *ob_from_eval = DEG_get_evaluated(&depsgraph, ob_from_orig);
   ParticleSystem *psys_eval = nullptr;
-  LISTBASE_FOREACH (ModifierData *, md, &ob_from_eval->modifiers) {
-    if (md->type != eModifierType_ParticleSystem) {
+  for (ModifierData &md : ob_from_eval->modifiers) {
+    if (md.type != eModifierType_ParticleSystem) {
       continue;
     }
-    ParticleSystemModifierData *psmd = reinterpret_cast<ParticleSystemModifierData *>(md);
+    ParticleSystemModifierData *psmd = reinterpret_cast<ParticleSystemModifierData *>(&md);
     if (!STREQ(psmd->psys->name, psys_orig->name)) {
       continue;
     }

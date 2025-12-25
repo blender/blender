@@ -301,8 +301,8 @@ bool Instance::is_used_as_layer_mask_in_viewlayer(const GreasePencil &grease_pen
       continue;
     }
 
-    LISTBASE_FOREACH (GreasePencilLayerMask *, mask, &layer->masks) {
-      if (STREQ(mask->layer_name, mask_layer.name().c_str())) {
+    for (GreasePencilLayerMask &mask : layer->masks) {
+      if (STREQ(mask.layer_name, mask_layer.name().c_str())) {
         return true;
       }
     }

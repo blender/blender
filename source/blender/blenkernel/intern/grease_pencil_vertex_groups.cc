@@ -26,8 +26,8 @@ namespace blender::bke::greasepencil {
 void validate_drawing_vertex_groups(GreasePencil &grease_pencil)
 {
   Set<std::string> valid_names;
-  LISTBASE_FOREACH (const bDeformGroup *, defgroup, &grease_pencil.vertex_group_names) {
-    valid_names.add_new(defgroup->name);
+  for (const bDeformGroup &defgroup : grease_pencil.vertex_group_names) {
+    valid_names.add_new(defgroup.name);
   }
 
   for (GreasePencilDrawingBase *base : grease_pencil.drawings()) {
@@ -39,12 +39,11 @@ void validate_drawing_vertex_groups(GreasePencil &grease_pencil)
     /* Remove unknown vertex groups. */
     CurvesGeometry &curves = drawing.strokes_for_write();
     int defgroup_index = 0;
-    LISTBASE_FOREACH_MUTABLE (bDeformGroup *, defgroup, &curves.vertex_group_names) {
-      if (!valid_names.contains(defgroup->name)) {
+    for (bDeformGroup &defgroup : curves.vertex_group_names.items_mutable()) {
+      if (!valid_names.contains(defgroup.name)) {
         remove_defgroup_index(curves.deform_verts_for_write(), defgroup_index);
 
-        BLI_remlink(&curves.vertex_group_names, defgroup);
-        MEM_SAFE_FREE(defgroup);
+        BLI_freelinkN(&curves.vertex_group_names, &defgroup);
       }
 
       ++defgroup_index;

@@ -98,35 +98,35 @@ static void strip_update_sound_bounds_recursive_impl(const Scene *scene,
 {
   /* For sound we go over full meta tree to update bounds of the sound strips,
    * since sound is played outside of evaluating the image-buffers (#ImBuf). */
-  LISTBASE_FOREACH (Strip *, strip, &strip_meta->seqbase) {
-    if (strip->type == STRIP_TYPE_META) {
+  for (Strip &strip : strip_meta->seqbase) {
+    if (strip.type == STRIP_TYPE_META) {
       strip_update_sound_bounds_recursive_impl(scene,
-                                               strip,
-                                               max_ii(start, metastrip_start_get(strip)),
-                                               min_ii(end, metastrip_end_get(strip)));
+                                               &strip,
+                                               max_ii(start, metastrip_start_get(&strip)),
+                                               min_ii(end, metastrip_end_get(&strip)));
     }
-    else if (ELEM(strip->type, STRIP_TYPE_SOUND, STRIP_TYPE_SCENE)) {
-      if (strip->runtime->scene_sound) {
-        int startofs = strip->startofs;
-        int endofs = strip->endofs;
-        if (strip->startofs + strip->start < start) {
-          startofs = start - strip->start;
+    else if (ELEM(strip.type, STRIP_TYPE_SOUND, STRIP_TYPE_SCENE)) {
+      if (strip.runtime->scene_sound) {
+        int startofs = strip.startofs;
+        int endofs = strip.endofs;
+        if (strip.startofs + strip.start < start) {
+          startofs = start - strip.start;
         }
 
-        if (strip->start + strip->len - strip->endofs > end) {
-          endofs = strip->start + strip->len - end;
+        if (strip.start + strip.len - strip.endofs > end) {
+          endofs = strip.start + strip.len - end;
         }
 
         double offset_time = 0.0f;
-        if (strip->sound != nullptr) {
-          offset_time = strip->sound->offset_time + strip->sound_offset;
+        if (strip.sound != nullptr) {
+          offset_time = strip.sound->offset_time + strip.sound_offset;
         }
 
         BKE_sound_move_scene_sound(scene,
-                                   strip->runtime->scene_sound,
-                                   strip->start + startofs,
-                                   strip->start + strip->len - endofs,
-                                   startofs + strip->anim_startofs,
+                                   strip.runtime->scene_sound,
+                                   strip.start + startofs,
+                                   strip.start + strip.len - endofs,
+                                   startofs + strip.anim_startofs,
                                    offset_time);
       }
     }
@@ -154,9 +154,9 @@ void time_update_meta_strip_range(const Scene *scene, Strip *strip_meta)
 
   int min = MAXFRAME * 2;
   int max = -MAXFRAME * 2;
-  LISTBASE_FOREACH (Strip *, strip, &strip_meta->seqbase) {
-    min = min_ii(strip->left_handle(), min);
-    max = max_ii(strip->right_handle(scene), max);
+  for (Strip &strip : strip_meta->seqbase) {
+    min = min_ii(strip.left_handle(), min);
+    max = max_ii(strip.right_handle(scene), max);
   }
 
   strip_meta->start = min + strip_meta->anim_startofs;
@@ -242,24 +242,24 @@ int time_find_next_prev_edit(Scene *scene,
     return timeline_frame;
   }
 
-  LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
+  for (Strip &strip : *ed->current_strips()) {
     int i;
 
-    if (do_skip_mute && render_is_muted(channels, strip)) {
+    if (do_skip_mute && render_is_muted(channels, &strip)) {
       continue;
     }
 
-    if (do_unselected && (strip->flag & SEQ_SELECT)) {
+    if (do_unselected && (strip.flag & SEQ_SELECT)) {
       continue;
     }
 
     if (do_center) {
-      strip_frames[0] = (strip->left_handle() + strip->right_handle(scene)) / 2;
+      strip_frames[0] = (strip.left_handle() + strip.right_handle(scene)) / 2;
       strip_frames_tot = 1;
     }
     else {
-      strip_frames[0] = strip->left_handle();
-      strip_frames[1] = strip->right_handle(scene);
+      strip_frames[0] = strip.left_handle();
+      strip_frames[1] = strip.right_handle(scene);
 
       strip_frames_tot = 2;
     }
@@ -309,11 +309,11 @@ void timeline_expand_boundbox(const Scene *scene, const ListBaseT<Strip> *seqbas
     return;
   }
 
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    rect->xmin = std::min<float>(rect->xmin, strip->left_handle() - 1);
-    rect->xmax = std::max<float>(rect->xmax, strip->right_handle(scene) + 1);
+  for (Strip &strip : *seqbase) {
+    rect->xmin = std::min<float>(rect->xmin, strip.left_handle() - 1);
+    rect->xmax = std::max<float>(rect->xmax, strip.right_handle(scene) + 1);
     /* We do +1 here to account for the channel thickness. Channel n has range of <n, n+1>. */
-    rect->ymax = std::max(rect->ymax, strip->channel + 1.0f);
+    rect->ymax = std::max(rect->ymax, strip.channel + 1.0f);
   }
 }
 
@@ -414,9 +414,9 @@ static void strip_time_slip_strip_ex(const Scene *scene,
       return;
     }
 
-    LISTBASE_FOREACH (Strip *, strip_child, &strip->seqbase) {
+    for (Strip &strip_child : strip->seqbase) {
       /* The keyframes of strips inside meta strips should always be moved. */
-      strip_time_slip_strip_ex(scene, strip_child, delta, subframe_delta, true, true);
+      strip_time_slip_strip_ex(scene, &strip_child, delta, subframe_delta, true, true);
     }
   }
 

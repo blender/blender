@@ -208,9 +208,9 @@ static void template_operator_property_buts_draw_recursive(const bContext *C,
                                                            bool *r_has_advanced)
 {
   if (op->type->flag & OPTYPE_MACRO) {
-    LISTBASE_FOREACH (wmOperator *, macro_op, &op->macro) {
+    for (wmOperator &macro_op : op->macro) {
       template_operator_property_buts_draw_recursive(
-          C, macro_op, layout, label_align, layout_flags, r_has_advanced);
+          C, &macro_op, layout, label_align, layout_flags, r_has_advanced);
     }
   }
   else {
@@ -231,8 +231,8 @@ static bool ui_layout_operator_properties_only_booleans(const bContext *C,
                                                         int layout_flags)
 {
   if (op->type->flag & OPTYPE_MACRO) {
-    LISTBASE_FOREACH (wmOperator *, macro_op, &op->macro) {
-      if (!ui_layout_operator_properties_only_booleans(C, wm, macro_op, layout_flags)) {
+    for (wmOperator &macro_op : op->macro) {
+      if (!ui_layout_operator_properties_only_booleans(C, wm, &macro_op, layout_flags)) {
         return false;
       }
     }

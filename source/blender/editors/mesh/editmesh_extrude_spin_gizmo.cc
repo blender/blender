@@ -1029,8 +1029,8 @@ static void gizmo_mesh_spin_redo_draw_prepare(const bContext * /*C*/, wmGizmoGro
    * could shift because of float precision.
    * Updates in this case are also redundant. */
   bool is_modal = false;
-  LISTBASE_FOREACH (wmGizmo *, gz, &gzgroup->gizmos) {
-    if (gz->state & WM_GIZMO_STATE_MODAL) {
+  for (wmGizmo &gz : gzgroup->gizmos) {
+    if (gz.state & WM_GIZMO_STATE_MODAL) {
       is_modal = true;
       break;
     }

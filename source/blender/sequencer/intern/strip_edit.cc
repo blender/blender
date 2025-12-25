@@ -103,21 +103,21 @@ static void strip_update_muting_recursive(ListBaseT<SeqTimelineChannel> *channel
 {
   /* For sound we go over full meta tree to update muted state,
    * since sound is played outside of evaluating the imbufs. */
-  LISTBASE_FOREACH (Strip *, strip, seqbasep) {
-    bool strip_mute = (mute || render_is_muted(channels, strip));
+  for (Strip &strip : *seqbasep) {
+    bool strip_mute = (mute || render_is_muted(channels, &strip));
 
-    if (strip->type == STRIP_TYPE_META) {
+    if (strip.type == STRIP_TYPE_META) {
       /* if this is the current meta-strip, unmute because
        * all strips above this were set to mute */
-      if (strip == strip_meta) {
+      if (&strip == strip_meta) {
         strip_mute = false;
       }
 
-      strip_update_muting_recursive(&strip->channels, &strip->seqbase, strip_meta, strip_mute);
+      strip_update_muting_recursive(&strip.channels, &strip.seqbase, strip_meta, strip_mute);
     }
-    else if (ELEM(strip->type, STRIP_TYPE_SOUND, STRIP_TYPE_SCENE)) {
-      if (strip->runtime->scene_sound) {
-        BKE_sound_mute_scene_sound(strip->runtime->scene_sound, strip_mute);
+    else if (ELEM(strip.type, STRIP_TYPE_SOUND, STRIP_TYPE_SCENE)) {
+      if (strip.runtime->scene_sound) {
+        BKE_sound_mute_scene_sound(strip.runtime->scene_sound, strip_mute);
       }
     }
   }
@@ -140,24 +140,24 @@ void edit_update_muting(Editing *ed)
 
 static void sequencer_flag_users_for_removal(Scene *scene, ListBaseT<Strip> *seqbase, Strip *strip)
 {
-  LISTBASE_FOREACH (Strip *, user_strip, seqbase) {
+  for (Strip &user_strip : *seqbase) {
     /* Look in meta-strips for usage of strip. */
-    if (user_strip->type == STRIP_TYPE_META) {
-      sequencer_flag_users_for_removal(scene, &user_strip->seqbase, strip);
+    if (user_strip.type == STRIP_TYPE_META) {
+      sequencer_flag_users_for_removal(scene, &user_strip.seqbase, strip);
     }
 
     /* Clear strip from modifiers. */
-    LISTBASE_FOREACH (StripModifierData *, smd, &user_strip->modifiers) {
-      if (smd->mask_strip == strip) {
-        smd->mask_strip = nullptr;
+    for (StripModifierData &smd : user_strip.modifiers) {
+      if (smd.mask_strip == strip) {
+        smd.mask_strip = nullptr;
       }
     }
 
     /* Mark effects for removal that use the strip. */
-    if (relation_is_effect_of_strip(user_strip, strip)) {
-      user_strip->runtime->flag |= StripRuntimeFlag::MarkForDelete;
+    if (relation_is_effect_of_strip(&user_strip, strip)) {
+      user_strip.runtime->flag |= StripRuntimeFlag::MarkForDelete;
       /* Strips can be used as mask even if not in same seqbase. */
-      sequencer_flag_users_for_removal(scene, &scene->ed->seqbase, user_strip);
+      sequencer_flag_users_for_removal(scene, &scene->ed->seqbase, &user_strip);
     }
   }
 }
@@ -170,8 +170,8 @@ void edit_flag_for_removal(Scene *scene, ListBaseT<Strip> *seqbase, Strip *strip
 
   /* Flag and remove meta children. */
   if (strip->type == STRIP_TYPE_META) {
-    LISTBASE_FOREACH (Strip *, meta_child, &strip->seqbase) {
-      edit_flag_for_removal(scene, &strip->seqbase, meta_child);
+    for (Strip &meta_child : strip->seqbase) {
+      edit_flag_for_removal(scene, &strip->seqbase, &meta_child);
     }
   }
 
@@ -181,14 +181,14 @@ void edit_flag_for_removal(Scene *scene, ListBaseT<Strip> *seqbase, Strip *strip
 
 void edit_remove_flagged_strips(Scene *scene, ListBaseT<Strip> *seqbase)
 {
-  LISTBASE_FOREACH_MUTABLE (Strip *, strip, seqbase) {
-    if (flag_is_set(strip->runtime->flag, StripRuntimeFlag::MarkForDelete)) {
-      if (strip->type == STRIP_TYPE_META) {
-        edit_remove_flagged_strips(scene, &strip->seqbase);
+  for (Strip &strip : seqbase->items_mutable()) {
+    if (flag_is_set(strip.runtime->flag, StripRuntimeFlag::MarkForDelete)) {
+      if (strip.type == STRIP_TYPE_META) {
+        edit_remove_flagged_strips(scene, &strip.seqbase);
       }
-      free_animdata(scene, strip);
-      BLI_remlink(seqbase, strip);
-      strip_free(scene, strip);
+      free_animdata(scene, &strip);
+      BLI_remlink(seqbase, &strip);
+      strip_free(scene, &strip);
       strip_lookup_invalidate(scene->ed);
     }
   }

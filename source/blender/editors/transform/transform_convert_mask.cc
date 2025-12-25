@@ -268,16 +268,16 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
   }
 
   /* Count. */
-  LISTBASE_FOREACH (MaskLayer *, masklay, &mask->masklayers) {
-    if (masklay->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
+  for (MaskLayer &masklay : mask->masklayers) {
+    if (masklay.visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
 
-    LISTBASE_FOREACH (MaskSpline *, spline, &masklay->splines) {
+    for (MaskSpline &spline : masklay.splines) {
       int i;
 
-      for (i = 0; i < spline->tot_point; i++) {
-        MaskSplinePoint *point = &spline->points[i];
+      for (i = 0; i < spline.tot_point; i++) {
+        MaskSplinePoint *point = &spline.points[i];
 
         if (BKE_mask_point_selected(point)) {
           if (BKE_mask_point_selected_knot(point)) {
@@ -323,16 +323,16 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
   tc->custom.type.use_free = true;
 
   /* Create data. */
-  LISTBASE_FOREACH (MaskLayer *, masklay, &mask->masklayers) {
-    if (masklay->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
+  for (MaskLayer &masklay : mask->masklayers) {
+    if (masklay.visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
 
-    LISTBASE_FOREACH (MaskSpline *, spline, &masklay->splines) {
+    for (MaskSpline &spline : masklay.splines) {
       int i;
 
-      for (i = 0; i < spline->tot_point; i++) {
-        MaskSplinePoint *point = &spline->points[i];
+      for (i = 0; i < spline.tot_point; i++) {
+        MaskSplinePoint *point = &spline.points[i];
 
         if (is_prop_edit || BKE_mask_point_selected(point)) {
           MaskPointToTransData(scene, point, td, td2d, tdm, is_prop_edit, asp);

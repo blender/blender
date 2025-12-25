@@ -78,31 +78,31 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBaseT<DispLi
   int totedge = 0;
   int faces_num = 0;
   int totloop = 0;
-  LISTBASE_FOREACH (const DispList *, dl, dispbase) {
-    if (dl->type == DL_SEGM) {
-      totvert += dl->parts * dl->nr;
-      totedge += dl->parts * (dl->nr - 1);
+  for (const DispList &dl : *dispbase) {
+    if (dl.type == DL_SEGM) {
+      totvert += dl.parts * dl.nr;
+      totedge += dl.parts * (dl.nr - 1);
     }
-    else if (dl->type == DL_POLY) {
+    else if (dl.type == DL_POLY) {
       if (conv_polys) {
-        totvert += dl->parts * dl->nr;
-        totedge += dl->parts * dl->nr;
+        totvert += dl.parts * dl.nr;
+        totedge += dl.parts * dl.nr;
       }
     }
-    else if (dl->type == DL_SURF) {
-      if (dl->parts != 0) {
+    else if (dl.type == DL_SURF) {
+      if (dl.parts != 0) {
         int tot;
-        totvert += dl->parts * dl->nr;
-        tot = (((dl->flag & DL_CYCL_U) ? 1 : 0) + (dl->nr - 1)) *
-              (((dl->flag & DL_CYCL_V) ? 1 : 0) + (dl->parts - 1));
+        totvert += dl.parts * dl.nr;
+        tot = (((dl.flag & DL_CYCL_U) ? 1 : 0) + (dl.nr - 1)) *
+              (((dl.flag & DL_CYCL_V) ? 1 : 0) + (dl.parts - 1));
         faces_num += tot;
         totloop += tot * 4;
       }
     }
-    else if (dl->type == DL_INDEX3) {
+    else if (dl.type == DL_INDEX3) {
       int tot;
-      totvert += dl->nr;
-      tot = dl->parts;
+      totvert += dl.nr;
+      tot = dl.parts;
       faces_num += tot;
       totloop += tot * 3;
     }
@@ -134,22 +134,22 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBaseT<DispLi
   int dst_edge = 0;
   int dst_poly = 0;
   int dst_loop = 0;
-  LISTBASE_FOREACH (const DispList *, dl, dispbase) {
-    const bool is_smooth = (dl->rt & CU_SMOOTH) != 0;
+  for (const DispList &dl : *dispbase) {
+    const bool is_smooth = (dl.rt & CU_SMOOTH) != 0;
 
-    if (dl->type == DL_SEGM) {
+    if (dl.type == DL_SEGM) {
       const int startvert = dst_vert;
-      a = dl->parts * dl->nr;
-      const float *data = dl->verts;
+      a = dl.parts * dl.nr;
+      const float *data = dl.verts;
       while (a--) {
         copy_v3_v3(positions[dst_vert], data);
         data += 3;
         dst_vert++;
       }
 
-      for (a = 0; a < dl->parts; a++) {
-        ofs = a * dl->nr;
-        for (b = 1; b < dl->nr; b++) {
+      for (a = 0; a < dl.parts; a++) {
+        ofs = a * dl.nr;
+        for (b = 1; b < dl.nr; b++) {
           edges[dst_edge][0] = startvert + ofs + b - 1;
           edges[dst_edge][1] = startvert + ofs + b;
 
@@ -157,22 +157,22 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBaseT<DispLi
         }
       }
     }
-    else if (dl->type == DL_POLY) {
+    else if (dl.type == DL_POLY) {
       if (conv_polys) {
         const int startvert = dst_vert;
-        a = dl->parts * dl->nr;
-        const float *data = dl->verts;
+        a = dl.parts * dl.nr;
+        const float *data = dl.verts;
         while (a--) {
           copy_v3_v3(positions[dst_vert], data);
           data += 3;
           dst_vert++;
         }
 
-        for (a = 0; a < dl->parts; a++) {
-          ofs = a * dl->nr;
-          for (b = 0; b < dl->nr; b++) {
+        for (a = 0; a < dl.parts; a++) {
+          ofs = a * dl.nr;
+          for (b = 0; b < dl.nr; b++) {
             edges[dst_edge][0] = startvert + ofs + b;
-            if (b == dl->nr - 1) {
+            if (b == dl.nr - 1) {
               edges[dst_edge][1] = startvert + ofs;
             }
             else {
@@ -183,27 +183,27 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBaseT<DispLi
         }
       }
     }
-    else if (dl->type == DL_INDEX3) {
+    else if (dl.type == DL_INDEX3) {
       const int startvert = dst_vert;
-      a = dl->nr;
-      const float *data = dl->verts;
+      a = dl.nr;
+      const float *data = dl.verts;
       while (a--) {
         copy_v3_v3(positions[dst_vert], data);
         data += 3;
         dst_vert++;
       }
 
-      a = dl->parts;
-      const int *index = dl->index;
+      a = dl.parts;
+      const int *index = dl.index;
       while (a--) {
         corner_verts[dst_loop + 0] = startvert + index[0];
         corner_verts[dst_loop + 1] = startvert + index[2];
         corner_verts[dst_loop + 2] = startvert + index[1];
         face_offsets[dst_poly] = dst_loop;
-        material_indices.span[dst_poly] = dl->col;
+        material_indices.span[dst_poly] = dl.col;
 
         for (int i = 0; i < 3; i++) {
-          uv_map[dst_loop + i][0] = (corner_verts[dst_loop + i] - startvert) / float(dl->nr - 1);
+          uv_map[dst_loop + i][0] = (corner_verts[dst_loop + i] - startvert) / float(dl.nr - 1);
           uv_map[dst_loop + i][1] = 0.0f;
         }
 
@@ -213,61 +213,61 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBaseT<DispLi
         index += 3;
       }
     }
-    else if (dl->type == DL_SURF) {
+    else if (dl.type == DL_SURF) {
       const int startvert = dst_vert;
-      a = dl->parts * dl->nr;
-      const float *data = dl->verts;
+      a = dl.parts * dl.nr;
+      const float *data = dl.verts;
       while (a--) {
         copy_v3_v3(positions[dst_vert], data);
         data += 3;
         dst_vert++;
       }
 
-      for (a = 0; a < dl->parts; a++) {
+      for (a = 0; a < dl.parts; a++) {
 
-        if ((dl->flag & DL_CYCL_V) == 0 && a == dl->parts - 1) {
+        if ((dl.flag & DL_CYCL_V) == 0 && a == dl.parts - 1) {
           break;
         }
 
         int p1, p2, p3, p4;
-        if (dl->flag & DL_CYCL_U) {    /* p2 -> p1 -> */
-          p1 = startvert + dl->nr * a; /* p4 -> p3 -> */
-          p2 = p1 + dl->nr - 1;        /* -----> next row */
-          p3 = p1 + dl->nr;
-          p4 = p2 + dl->nr;
+        if (dl.flag & DL_CYCL_U) {    /* p2 -> p1 -> */
+          p1 = startvert + dl.nr * a; /* p4 -> p3 -> */
+          p2 = p1 + dl.nr - 1;        /* -----> next row */
+          p3 = p1 + dl.nr;
+          p4 = p2 + dl.nr;
           b = 0;
         }
         else {
-          p2 = startvert + dl->nr * a;
+          p2 = startvert + dl.nr * a;
           p1 = p2 + 1;
-          p4 = p2 + dl->nr;
-          p3 = p1 + dl->nr;
+          p4 = p2 + dl.nr;
+          p3 = p1 + dl.nr;
           b = 1;
         }
-        if ((dl->flag & DL_CYCL_V) && a == dl->parts - 1) {
-          p3 -= dl->parts * dl->nr;
-          p4 -= dl->parts * dl->nr;
+        if ((dl.flag & DL_CYCL_V) && a == dl.parts - 1) {
+          p3 -= dl.parts * dl.nr;
+          p4 -= dl.parts * dl.nr;
         }
 
-        for (; b < dl->nr; b++) {
+        for (; b < dl.nr; b++) {
           corner_verts[dst_loop + 0] = p1;
           corner_verts[dst_loop + 1] = p3;
           corner_verts[dst_loop + 2] = p4;
           corner_verts[dst_loop + 3] = p2;
           face_offsets[dst_poly] = dst_loop;
-          material_indices.span[dst_poly] = dl->col;
+          material_indices.span[dst_poly] = dl.col;
 
-          int orco_sizeu = dl->nr - 1;
-          int orco_sizev = dl->parts - 1;
+          int orco_sizeu = dl.nr - 1;
+          int orco_sizev = dl.parts - 1;
 
           /* exception as handled in convertblender.c too */
-          if (dl->flag & DL_CYCL_U) {
+          if (dl.flag & DL_CYCL_U) {
             orco_sizeu++;
-            if (dl->flag & DL_CYCL_V) {
+            if (dl.flag & DL_CYCL_V) {
               orco_sizev++;
             }
           }
-          else if (dl->flag & DL_CYCL_V) {
+          else if (dl.flag & DL_CYCL_V) {
             orco_sizev++;
           }
 
@@ -275,8 +275,8 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBaseT<DispLi
             /* find uv based on vertex index into grid array */
             int v = corner_verts[dst_loop + i] - startvert;
 
-            uv_map[dst_loop + i][0] = (v / dl->nr) / float(orco_sizev);
-            uv_map[dst_loop + i][1] = (v % dl->nr) / float(orco_sizeu);
+            uv_map[dst_loop + i][0] = (v / dl.nr) / float(orco_sizev);
+            uv_map[dst_loop + i][1] = (v % dl.nr) / float(orco_sizeu);
 
             /* cyclic correction */
             if (ELEM(i, 1, 2) && uv_map[dst_loop + i][0] == 0.0f) {
@@ -1108,12 +1108,12 @@ static void move_shapekey_layers_to_keyblocks(const Mesh &mesh,
     }
   }
 
-  LISTBASE_FOREACH (KeyBlock *, kb, &key_dst.block) {
-    if (kb->totelem != mesh.verts_num) {
-      MEM_SAFE_FREE(kb->data);
-      kb->totelem = mesh.verts_num;
-      kb->data = MEM_calloc_arrayN<float3>(kb->totelem, __func__);
-      CLOG_ERROR(&LOG, "Data for shape key '%s' on mesh missing from evaluated mesh ", kb->name);
+  for (KeyBlock &kb : key_dst.block) {
+    if (kb.totelem != mesh.verts_num) {
+      MEM_SAFE_FREE(kb.data);
+      kb.totelem = mesh.verts_num;
+      kb.data = MEM_calloc_arrayN<float3>(kb.totelem, __func__);
+      CLOG_ERROR(&LOG, "Data for shape key '%s' on mesh missing from evaluated mesh ", kb.name);
     }
   }
 }

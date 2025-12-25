@@ -133,11 +133,11 @@ void ED_screen_draw_edges(wmWindow *win)
   }
 
   if (!active_area) {
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      AZone *zone = ED_area_actionzone_find_xy(area, win->runtime->eventstate->xy);
+    for (ScrArea &area : screen->areabase) {
+      AZone *zone = ED_area_actionzone_find_xy(&area, win->runtime->eventstate->xy);
       /* Get area from action zone, if not scroll-bar. */
       if (zone && zone->type != AZONE_REGION_SCROLL) {
-        active_area = area;
+        active_area = &area;
         break;
       }
     }
@@ -154,9 +154,9 @@ void ED_screen_draw_edges(wmWindow *win)
 
   rcti scissor_rect;
   BLI_rcti_init_minmax(&scissor_rect);
-  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-    BLI_rcti_do_minmax_v(&scissor_rect, blender::int2{area->v1->vec.x, area->v1->vec.y});
-    BLI_rcti_do_minmax_v(&scissor_rect, blender::int2{area->v3->vec.x, area->v3->vec.y});
+  for (ScrArea &area : screen->areabase) {
+    BLI_rcti_do_minmax_v(&scissor_rect, blender::int2{area.v1->vec.x, area.v1->vec.y});
+    BLI_rcti_do_minmax_v(&scissor_rect, blender::int2{area.v3->vec.x, area.v3->vec.y});
   }
 
   if (GPU_type_matches_ex(GPU_DEVICE_INTEL_UHD, GPU_OS_UNIX, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL)) {
@@ -193,8 +193,8 @@ void ED_screen_draw_edges(wmWindow *win)
   GPU_batch_uniform_1f(batch, "width", shader_width);
   GPU_batch_uniform_4fv(batch, "color", col);
 
-  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-    drawscredge_area(*area, edge_thickness);
+  for (ScrArea &area : screen->areabase) {
+    drawscredge_area(area, edge_thickness);
   }
 
   float outline1[4];
@@ -205,14 +205,14 @@ void ED_screen_draw_edges(wmWindow *win)
   blender::ui::theme::get_color_4fv(TH_EDITOR_OUTLINE, outline1);
   blender::ui::theme::get_color_4fv(TH_EDITOR_OUTLINE_ACTIVE, outline2);
   blender::ui::draw_roundbox_corner_set(blender::ui::CNR_ALL);
-  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-    BLI_rctf_rcti_copy(&bounds, &area->totrct);
+  for (ScrArea &area : screen->areabase) {
+    BLI_rctf_rcti_copy(&bounds, &area.totrct);
     BLI_rctf_pad(&bounds, padding, padding);
     blender::ui::draw_roundbox_4fv_ex(&bounds,
                                       nullptr,
                                       nullptr,
                                       1.0f,
-                                      (area == active_area) ? outline2 : outline1,
+                                      (&area == active_area) ? outline2 : outline1,
                                       U.pixelsize,
                                       EDITORRADIUS);
   }
@@ -228,17 +228,17 @@ void screen_draw_move_highlight(const wmWindow *win,
 {
   rctf rect = {SHRT_MAX, SHRT_MIN, SHRT_MAX, SHRT_MIN};
 
-  LISTBASE_FOREACH (const ScrEdge *, edge, &screen->edgebase) {
-    if (edge->v1->editflag && edge->v2->editflag) {
+  for (const ScrEdge &edge : screen->edgebase) {
+    if (edge.v1->editflag && edge.v2->editflag) {
       if (dir_axis == SCREEN_AXIS_H) {
-        rect.xmin = std::min({rect.xmin, float(edge->v1->vec.x), float(edge->v2->vec.x)});
-        rect.xmax = std::max({rect.xmax, float(edge->v1->vec.x), float(edge->v2->vec.x)});
-        rect.ymin = rect.ymax = float(edge->v1->vec.y);
+        rect.xmin = std::min({rect.xmin, float(edge.v1->vec.x), float(edge.v2->vec.x)});
+        rect.xmax = std::max({rect.xmax, float(edge.v1->vec.x), float(edge.v2->vec.x)});
+        rect.ymin = rect.ymax = float(edge.v1->vec.y);
       }
       else {
-        rect.ymin = std::min({rect.ymin, float(edge->v1->vec.y), float(edge->v2->vec.y)});
-        rect.ymax = std::max({rect.ymax, float(edge->v1->vec.y), float(edge->v2->vec.y)});
-        rect.xmin = rect.xmax = float(edge->v1->vec.x);
+        rect.ymin = std::min({rect.ymin, float(edge.v1->vec.y), float(edge.v2->vec.y)});
+        rect.ymax = std::max({rect.ymax, float(edge.v1->vec.y), float(edge.v2->vec.y)});
+        rect.xmin = rect.xmax = float(edge.v1->vec.x);
       }
     };
   }

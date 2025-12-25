@@ -397,15 +397,15 @@ void BM_mesh_edgeloops_free(ListBaseT<BMEdgeLoopStore> *eloops)
 
 void BM_mesh_edgeloops_calc_center(BMesh *bm, ListBaseT<BMEdgeLoopStore> *eloops)
 {
-  LISTBASE_FOREACH (BMEdgeLoopStore *, el_store, eloops) {
-    BM_edgeloop_calc_center(bm, el_store);
+  for (BMEdgeLoopStore &el_store : *eloops) {
+    BM_edgeloop_calc_center(bm, &el_store);
   }
 }
 
 void BM_mesh_edgeloops_calc_normal(BMesh *bm, ListBaseT<BMEdgeLoopStore> *eloops)
 {
-  LISTBASE_FOREACH (BMEdgeLoopStore *, el_store, eloops) {
-    BM_edgeloop_calc_normal(bm, el_store);
+  for (BMEdgeLoopStore &el_store : *eloops) {
+    BM_edgeloop_calc_normal(bm, &el_store);
   }
 }
 
@@ -413,8 +413,8 @@ void BM_mesh_edgeloops_calc_normal_aligned(BMesh *bm,
                                            ListBaseT<BMEdgeLoopStore> *eloops,
                                            const float no_align[3])
 {
-  LISTBASE_FOREACH (BMEdgeLoopStore *, el_store, eloops) {
-    BM_edgeloop_calc_normal_aligned(bm, el_store, no_align);
+  for (BMEdgeLoopStore &el_store : *eloops) {
+    BM_edgeloop_calc_normal_aligned(bm, &el_store, no_align);
   }
 }
 
@@ -439,11 +439,11 @@ void BM_mesh_edgeloops_calc_order(BMesh * /*bm*/,
   {
     BMEdgeLoopStore *el_store_best = nullptr;
     float len_best_sq = -1.0f;
-    LISTBASE_FOREACH (BMEdgeLoopStore *, el_store, eloops) {
-      const float len_sq = len_squared_v3v3(cent, el_store->co);
+    for (BMEdgeLoopStore &el_store : *eloops) {
+      const float len_sq = len_squared_v3v3(cent, el_store.co);
       if (len_sq > len_best_sq) {
         len_best_sq = len_sq;
-        el_store_best = el_store;
+        el_store_best = &el_store;
       }
     }
 
@@ -462,23 +462,23 @@ void BM_mesh_edgeloops_calc_order(BMesh * /*bm*/,
       BLI_ASSERT_UNIT_V3(no);
     }
 
-    LISTBASE_FOREACH (BMEdgeLoopStore *, el_store, eloops) {
+    for (BMEdgeLoopStore &el_store : *eloops) {
       float len_sq;
       if (use_normals) {
         /* Scale the length by how close the loops are to pointing at each other. */
         float dir[3];
-        sub_v3_v3v3(dir, co, el_store->co);
+        sub_v3_v3v3(dir, co, el_store.co);
         len_sq = normalize_v3(dir);
         len_sq = len_sq *
-                 ((1.0f - fabsf(dot_v3v3(dir, no))) + (1.0f - fabsf(dot_v3v3(dir, el_store->no))));
+                 ((1.0f - fabsf(dot_v3v3(dir, no))) + (1.0f - fabsf(dot_v3v3(dir, el_store.no))));
       }
       else {
-        len_sq = len_squared_v3v3(co, el_store->co);
+        len_sq = len_squared_v3v3(co, el_store.co);
       }
 
       if (len_sq < len_best_sq) {
         len_best_sq = len_sq;
-        el_store_best = el_store;
+        el_store_best = &el_store;
       }
     }
 
@@ -781,23 +781,24 @@ bool BM_edgeloop_overlap_check(BMEdgeLoopStore *el_store_a, BMEdgeLoopStore *el_
   }
 
   /* init */
-  LISTBASE_FOREACH (LinkData *, node, &el_store_a->verts) {
-    BM_elem_flag_enable((BMVert *)node->data, BM_ELEM_INTERNAL_TAG);
+  for (LinkData &node : el_store_a->verts) {
+    BM_elem_flag_enable((BMVert *)node.data, BM_ELEM_INTERNAL_TAG);
   }
-  LISTBASE_FOREACH (LinkData *, node, &el_store_b->verts) {
-    BM_elem_flag_disable((BMVert *)node->data, BM_ELEM_INTERNAL_TAG);
+  for (LinkData &node : el_store_b->verts) {
+    BM_elem_flag_disable((BMVert *)node.data, BM_ELEM_INTERNAL_TAG);
   }
 
   /* Check 'a' (clear as we go). */
-  LISTBASE_FOREACH (LinkData *, node, &el_store_a->verts) {
-    if (!BM_elem_flag_test((BMVert *)node->data, BM_ELEM_INTERNAL_TAG)) {
+  for (LinkData &node : el_store_a->verts) {
+    if (!BM_elem_flag_test((BMVert *)node.data, BM_ELEM_INTERNAL_TAG)) {
       /* Finish clearing 'a', leave tag clean. */
-      while ((node = node->next)) {
-        BM_elem_flag_disable((BMVert *)node->data, BM_ELEM_INTERNAL_TAG);
+      LinkData *remaining_node = &node;
+      while ((remaining_node = remaining_node->next)) {
+        BM_elem_flag_disable((BMVert *)remaining_node->data, BM_ELEM_INTERNAL_TAG);
       }
       return true;
     }
-    BM_elem_flag_disable((BMVert *)node->data, BM_ELEM_INTERNAL_TAG);
+    BM_elem_flag_disable((BMVert *)node.data, BM_ELEM_INTERNAL_TAG);
   }
   return false;
 }

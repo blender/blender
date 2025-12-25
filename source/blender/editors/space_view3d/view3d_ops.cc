@@ -85,8 +85,8 @@ static wmOperatorStatus view3d_copybuffer_exec(bContext *C, wmOperator *op)
   int num_copied = 0;
 
   /* Count & mark the active as done (when set). */
-  LISTBASE_FOREACH (Object *, ob, &copybuffer.bmain.objects) {
-    ob->flag &= ~OB_FLAG_ACTIVE_CLIPBOARD;
+  for (Object &ob : copybuffer.bmain.objects) {
+    ob.flag &= ~OB_FLAG_ACTIVE_CLIPBOARD;
     num_copied += 1;
   }
 

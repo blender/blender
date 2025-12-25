@@ -734,12 +734,12 @@ void DepsgraphNodeBuilder::build_collection(LayerCollection *from_layer_collecti
   /* Modify state as we've entered new collection/ */
   is_parent_collection_visible_ = is_collection_visible;
   /* Build collection objects. */
-  LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
-    build_object(-1, cob->ob, DEG_ID_LINKED_INDIRECTLY, is_collection_visible);
+  for (CollectionObject &cob : collection->gobject) {
+    build_object(-1, cob.ob, DEG_ID_LINKED_INDIRECTLY, is_collection_visible);
   }
   /* Build child collections. */
-  LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-    build_collection(nullptr, child->collection);
+  for (CollectionChild &child : collection->children) {
+    build_collection(nullptr, child.collection);
   }
   /* Restore state. */
   is_parent_collection_visible_ = is_current_parent_collection_visible;
@@ -938,13 +938,12 @@ void DepsgraphNodeBuilder::build_object_modifiers(Object *object)
                        deg_evaluate_object_modifiers_mode_node_visibility(depsgraph, id_node);
                      });
 
-  int modifier_index;
-  LISTBASE_FOREACH_INDEX (ModifierData *, modifier, &object->modifiers, modifier_index) {
+  for (const auto [modifier_index, modifier] : object->modifiers.enumerate()) {
     OperationNode *modifier_node = add_operation_node(
-        &object->id, NodeType::GEOMETRY, OperationCode::MODIFIER, nullptr, modifier->name);
-    if (modifier->type == eModifierType_Nodes) {
+        &object->id, NodeType::GEOMETRY, OperationCode::MODIFIER, nullptr, modifier.name);
+    if (modifier.type == eModifierType_Nodes) {
       modifier_node->evaluate =
-          [id_node, modifier_index, modifier_node](::Depsgraph * /*depsgraph*/) {
+          [id_node, modifier_index = modifier_index, modifier_node](::Depsgraph * /*depsgraph*/) {
             Object *ob_eval = reinterpret_cast<Object *>(id_node->id_cow);
             ModifierData *md_eval = reinterpret_cast<ModifierData *>(
                 BLI_findlink(&ob_eval->modifiers, modifier_index));
@@ -962,11 +961,11 @@ void DepsgraphNodeBuilder::build_object_modifiers(Object *object)
 
     /* Mute modifier mode if the modifier is not enabled for the dependency graph mode.
      * This handles static (non-animated) mode of the modifier. */
-    if ((modifier->mode & modifier_mode) == 0) {
+    if ((modifier.mode & modifier_mode) == 0) {
       modifier_node->flag |= DEPSOP_FLAG_MUTE;
     }
 
-    if (is_modifier_visibility_animated(object, modifier)) {
+    if (is_modifier_visibility_animated(object, &modifier)) {
       graph_->has_animated_visibility = true;
     }
   }
@@ -1260,11 +1259,11 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
     operation_node->set_as_exit();
   }
   /* NLA strips contain actions. */
-  LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
-    if (!BKE_nlatrack_is_enabled(*adt, *nlt)) {
+  for (NlaTrack &nlt : adt->nla_tracks) {
+    if (!BKE_nlatrack_is_enabled(*adt, nlt)) {
       continue;
     }
-    build_animdata_nlastrip_targets(&nlt->strips);
+    build_animdata_nlastrip_targets(&nlt.strips);
   }
   /* Drivers. */
   build_animdata_drivers(id, adt);
@@ -1272,12 +1271,12 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
 
 void DepsgraphNodeBuilder::build_animdata_nlastrip_targets(ListBaseT<NlaStrip> *strips)
 {
-  LISTBASE_FOREACH (NlaStrip *, strip, strips) {
-    if (strip->act != nullptr) {
-      build_action(strip->act);
+  for (NlaStrip &strip : *strips) {
+    if (strip.act != nullptr) {
+      build_action(strip.act);
     }
-    else if (strip->strips.first != nullptr) {
-      build_animdata_nlastrip_targets(&strip->strips);
+    else if (strip.strips.first != nullptr) {
+      build_animdata_nlastrip_targets(&strip.strips);
     }
   }
 }
@@ -1324,10 +1323,10 @@ void DepsgraphNodeBuilder::build_animdata_drivers(ID *id, AnimData *adt)
   bool needs_unshare = false;
 
   /* Drivers. */
-  int driver_index;
-  LISTBASE_FOREACH_INDEX (FCurve *, fcu, &adt->drivers, driver_index) {
-    build_driver(id, fcu, driver_index);
-    needs_unshare = needs_unshare || data_path_maybe_shared(*id, fcu->rna_path);
+
+  for (const auto [driver_index, fcu] : adt->drivers.enumerate()) {
+    build_driver(id, &fcu, driver_index);
+    needs_unshare = needs_unshare || data_path_maybe_shared(*id, fcu.rna_path);
   }
 
   if (!needs_unshare) {
@@ -1372,10 +1371,10 @@ void DepsgraphNodeBuilder::build_driver_variables(ID *id, FCurve *fcurve)
   driver_target_context.scene = graph_->scene;
   driver_target_context.view_layer = graph_->view_layer;
 
-  LISTBASE_FOREACH (DriverVar *, dvar, &fcurve->driver->variables) {
-    DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
+  for (DriverVar &dvar : fcurve->driver->variables) {
+    DRIVER_TARGETS_USED_LOOPER_BEGIN (&dvar) {
       PointerRNA target_prop;
-      if (!driver_get_target_property(&driver_target_context, dvar, dtar, &target_prop)) {
+      if (!driver_get_target_property(&driver_target_context, &dvar, dtar, &target_prop)) {
         continue;
       }
 
@@ -1406,9 +1405,9 @@ void DepsgraphNodeBuilder::build_driver_scene_camera_variable(Scene *scene,
                                                               const char *camera_path)
 {
   /* This skips scene->camera, which was already handled by the caller. */
-  LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {
-    if (!ELEM(marker->camera, nullptr, scene->camera)) {
-      PointerRNA camera_ptr = RNA_id_pointer_create(&marker->camera->id);
+  for (TimeMarker &marker : scene->markers) {
+    if (!ELEM(marker.camera, nullptr, scene->camera)) {
+      PointerRNA camera_ptr = RNA_id_pointer_create(&marker.camera->id);
       build_driver_id_property(camera_ptr, camera_path);
     }
   }
@@ -1622,21 +1621,21 @@ void DepsgraphNodeBuilder::build_particle_systems(Object *object, bool is_object
       });
   op_node->set_as_entry();
   /* Build all particle systems. */
-  LISTBASE_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
-    ParticleSettings *part = psys->part;
+  for (ParticleSystem &psys : object->particlesystem) {
+    ParticleSettings *part = psys.part;
     /* Build particle settings operations.
      *
      * NOTE: The call itself ensures settings are only build once. */
     build_particle_settings(part);
     /* Particle system evaluation. */
-    add_operation_node(psys_comp, OperationCode::PARTICLE_SYSTEM_EVAL, nullptr, psys->name);
+    add_operation_node(psys_comp, OperationCode::PARTICLE_SYSTEM_EVAL, nullptr, psys.name);
     /* Keyed particle targets. */
     if (ELEM(part->phystype, PART_PHYS_KEYED, PART_PHYS_BOIDS)) {
-      LISTBASE_FOREACH (ParticleTarget *, particle_target, &psys->targets) {
-        if (ELEM(particle_target->ob, nullptr, object)) {
+      for (ParticleTarget &particle_target : psys.targets) {
+        if (ELEM(particle_target.ob, nullptr, object)) {
           continue;
         }
-        build_object(-1, particle_target->ob, DEG_ID_LINKED_INDIRECTLY, is_object_visible);
+        build_object(-1, particle_target.ob, DEG_ID_LINKED_INDIRECTLY, is_object_visible);
       }
     }
     /* Visualization of particle system. */
@@ -1705,9 +1704,9 @@ void DepsgraphNodeBuilder::build_shapekeys(Key *key)
   add_operation_node(&key->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_SHAPEKEY);
   /* Create per-key block properties, allowing tricky inter-dependencies for
    * drivers evaluation. */
-  LISTBASE_FOREACH (KeyBlock *, key_block, &key->block) {
+  for (KeyBlock &key_block : key->block) {
     add_operation_node(
-        &key->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL, nullptr, key_block->name);
+        &key->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL, nullptr, key_block.name);
   }
 }
 
@@ -1894,10 +1893,10 @@ void DepsgraphNodeBuilder::build_armature(bArmature *armature)
 
 void DepsgraphNodeBuilder::build_armature_bones(ListBaseT<Bone> *bones)
 {
-  LISTBASE_FOREACH (Bone *, bone, bones) {
-    build_idproperties(bone->prop);
-    build_idproperties(bone->system_properties);
-    build_armature_bones(&bone->childbase);
+  for (Bone &bone : *bones) {
+    build_idproperties(bone.prop);
+    build_idproperties(bone.system_properties);
+    build_armature_bones(&bone.childbase);
   }
 }
 
@@ -2011,11 +2010,11 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
   /* nodetree's nodes... */
   for (bNode *bnode : ntree->all_nodes()) {
     build_idproperties(bnode->prop);
-    LISTBASE_FOREACH (bNodeSocket *, socket, &bnode->inputs) {
-      build_nodetree_socket(socket);
+    for (bNodeSocket &socket : bnode->inputs) {
+      build_nodetree_socket(&socket);
     }
-    LISTBASE_FOREACH (bNodeSocket *, socket, &bnode->outputs) {
-      build_nodetree_socket(socket);
+    for (bNodeSocket &socket : bnode->outputs) {
+      build_nodetree_socket(&socket);
     }
 
     ID *id = bnode->id;
@@ -2205,10 +2204,10 @@ void DepsgraphNodeBuilder::build_mask(Mask *mask)
         BKE_mask_eval_update(depsgraph, mask_cow);
       });
   /* Build parents. */
-  LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
-    LISTBASE_FOREACH (MaskSpline *, spline, &mask_layer->splines) {
-      for (int i = 0; i < spline->tot_point; i++) {
-        MaskSplinePoint *point = &spline->points[i];
+  for (MaskLayer &mask_layer : mask->masklayers) {
+    for (MaskSpline &spline : mask_layer.splines) {
+      for (int i = 0; i < spline.tot_point; i++) {
+        MaskSplinePoint *point = &spline.points[i];
         MaskParent *parent = &point->parent;
         if (parent == nullptr || parent->id == nullptr) {
           continue;
@@ -2332,13 +2331,13 @@ static bool strip_node_build_cb(Strip *strip, void *user_data)
     ViewLayer *sequence_view_layer = BKE_view_layer_default_render(strip->scene);
     nb->build_scene_speakers(strip->scene, sequence_view_layer);
   }
-  LISTBASE_FOREACH (StripModifierData *, modifier, &strip->modifiers) {
-    if (modifier->type != eSeqModifierType_Compositor) {
+  for (StripModifierData &modifier : strip->modifiers) {
+    if (modifier.type != eSeqModifierType_Compositor) {
       continue;
     }
 
     const SequencerCompositorModifierData *modifier_data =
-        reinterpret_cast<SequencerCompositorModifierData *>(modifier);
+        reinterpret_cast<SequencerCompositorModifierData *>(&modifier);
     if (!modifier_data->node_group) {
       continue;
     }
@@ -2392,13 +2391,13 @@ void DepsgraphNodeBuilder::build_scene_audio(Scene *scene)
 void DepsgraphNodeBuilder::build_scene_speakers(Scene *scene, ViewLayer *view_layer)
 {
   BKE_view_layer_synced_ensure(scene, view_layer);
-  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-    Object *object = base->object;
-    if (object->type != OB_SPEAKER || !need_pull_base_into_graph(base)) {
+  for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+    Object *object = base.object;
+    if (object->type != OB_SPEAKER || !need_pull_base_into_graph(&base)) {
       continue;
     }
     /* NOTE: Can not use base because it does not belong to a current view layer. */
-    build_object(-1, base->object, DEG_ID_LINKED_INDIRECTLY, true);
+    build_object(-1, base.object, DEG_ID_LINKED_INDIRECTLY, true);
   }
 }
 

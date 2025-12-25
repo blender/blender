@@ -182,8 +182,8 @@ void settings_foreach_enabled_catalog_path(
     return;
   }
 
-  LISTBASE_FOREACH (const AssetCatalogPathLink *, path_link, enabled_catalog_paths) {
-    fn(asset_system::AssetCatalogPath(path_link->path));
+  for (const AssetCatalogPathLink &path_link : *enabled_catalog_paths) {
+    fn(asset_system::AssetCatalogPath(path_link.path));
   }
 }
 

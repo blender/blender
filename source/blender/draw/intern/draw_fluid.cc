@@ -592,8 +592,8 @@ void DRW_smoke_exit(DRWData *drw_data)
    * modifier we don't want them to take precious VRAM if the
    * modifier is not used for display. We should share them for
    * all viewport in a redraw at least. */
-  LISTBASE_FOREACH (LinkData *, link, &drw_data->smoke_textures) {
-    GPU_TEXTURE_FREE_SAFE(*(blender::gpu::Texture **)link->data);
+  for (LinkData &link : drw_data->smoke_textures) {
+    GPU_TEXTURE_FREE_SAFE(*(blender::gpu::Texture **)link.data);
   }
   BLI_freelistN(&drw_data->smoke_textures);
 }

@@ -76,8 +76,8 @@ static void sequencer_copy_animation_listbase(Scene *scene_src,
 {
   /* Add curves for strips inside meta strip. */
   if (strip_dst->type == STRIP_TYPE_META) {
-    LISTBASE_FOREACH (Strip *, meta_child, &strip_dst->seqbase) {
-      sequencer_copy_animation_listbase(scene_src, meta_child, clipboard_dst, fcurve_base_src);
+    for (Strip &meta_child : strip_dst->seqbase) {
+      sequencer_copy_animation_listbase(scene_src, &meta_child, clipboard_dst, fcurve_base_src);
     }
   }
 
@@ -101,9 +101,9 @@ static void sequencer_copy_animation_to_vector(Scene *scene_src,
 {
   /* Add curves for strips inside meta strip. */
   if (strip_dst->type == STRIP_TYPE_META) {
-    LISTBASE_FOREACH (Strip *, meta_child, &strip_dst->seqbase) {
+    for (Strip &meta_child : strip_dst->seqbase) {
       sequencer_copy_animation_to_vector(
-          scene_src, meta_child, clipboard_dst, fcurves_src_action, fcurves_src_slot_handle);
+          scene_src, &meta_child, clipboard_dst, fcurves_src_action, fcurves_src_slot_handle);
     }
   }
 
@@ -186,9 +186,9 @@ static bool sequencer_write_copy_paste_file(Main *bmain_src,
 
   Vector<FCurve *> fcurves_dst = {};
   ListBaseT<FCurve> drivers_dst = {nullptr, nullptr};
-  LISTBASE_FOREACH (Strip *, strip_dst, &scene_dst->ed->seqbase) {
+  for (Strip &strip_dst : scene_dst->ed->seqbase) {
     /* Copy any fcurves/drivers from `scene_src` that are relevant to `strip_dst`. */
-    sequencer_copy_animation(scene_src, fcurves_dst, &drivers_dst, strip_dst);
+    sequencer_copy_animation(scene_src, fcurves_dst, &drivers_dst, &strip_dst);
   }
 
   BLI_assert(scene_dst->adt == nullptr);
@@ -371,8 +371,8 @@ static bool sequencer_paste_animation(Main *bmain_dst, Scene *scene_dst, Scene *
                                   *BKE_fcurve_copy(fcu),
                                   fcu->grp ? std::optional(fcu->grp->name) : std::nullopt);
   }
-  LISTBASE_FOREACH (FCurve *, fcu, &scene_src->adt->drivers) {
-    BLI_addtail(&scene_dst->adt->drivers, BKE_fcurve_copy(fcu));
+  for (FCurve &fcu : scene_src->adt->drivers) {
+    BLI_addtail(&scene_dst->adt->drivers, BKE_fcurve_copy(&fcu));
   }
 
   return true;
@@ -414,9 +414,9 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
 
   Scene *scene_src = nullptr;
   /* Find the scene we pasted that contains the strips. It should be tagged. */
-  LISTBASE_FOREACH (Scene *, scene_iter, &bmain_src->scenes) {
-    if (scene_iter->id.flag & ID_FLAG_CLIPBOARD_MARK) {
-      scene_src = scene_iter;
+  for (Scene &scene_iter : bmain_src->scenes) {
+    if (scene_iter.id.flag & ID_FLAG_CLIPBOARD_MARK) {
+      scene_src = &scene_iter;
       break;
     }
   }
@@ -444,8 +444,8 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
   }
   else {
     int min_seq_startdisp = std::numeric_limits<int>::max();
-    LISTBASE_FOREACH (Strip *, strip, &scene_src->ed->seqbase) {
-      min_seq_startdisp = std::min(strip->left_handle(), min_seq_startdisp);
+    for (Strip &strip : scene_src->ed->seqbase) {
+      min_seq_startdisp = std::min(strip.left_handle(), min_seq_startdisp);
     }
     /* Paste strips relative to the current-frame. */
     ofs = scene_dst->r.cfra - min_seq_startdisp;
@@ -501,19 +501,19 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
 
   int2 strip_mean_pos = {0, 0};
   int image_strip_count = 0;
-  LISTBASE_FOREACH (Strip *, istrip, &nseqbase) {
-    if (istrip->name == active_seq_name) {
-      seq::select_active_set(scene_dst, istrip);
+  for (Strip &istrip : nseqbase) {
+    if (istrip.name == active_seq_name) {
+      seq::select_active_set(scene_dst, &istrip);
     }
     /* Make sure, that pasted strips have unique names. This has to be done after
      * adding strips to seqbase, for lookup cache to work correctly. */
-    seq::ensure_unique_name(istrip, scene_dst);
+    seq::ensure_unique_name(&istrip, scene_dst);
 
-    if (region->regiontype == RGN_TYPE_PREVIEW && istrip->type != STRIP_TYPE_SOUND &&
-        seq::must_render_strip(seq::query_all_strips(&nseqbase), istrip))
+    if (region->regiontype == RGN_TYPE_PREVIEW && istrip.type != STRIP_TYPE_SOUND &&
+        seq::must_render_strip(seq::query_all_strips(&nseqbase), &istrip))
     {
       strip_mean_pos += static_cast<int2>(
-          seq::image_transform_origin_offset_pixelspace_get(scene, istrip));
+          seq::image_transform_origin_offset_pixelspace_get(scene, &istrip));
       image_strip_count++;
     }
   }
@@ -522,25 +522,25 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
     strip_mean_pos /= image_strip_count;
   }
 
-  LISTBASE_FOREACH (Strip *, istrip, &nseqbase) {
+  for (Strip &istrip : nseqbase) {
     /* Place strips that generate an image at the mouse cursor. */
     if (region->regiontype == RGN_TYPE_PREVIEW && !RNA_boolean_get(op->ptr, "keep_offset") &&
-        istrip->type != STRIP_TYPE_SOUND &&
-        seq::must_render_strip(seq::query_all_strips(&nseqbase), istrip))
+        istrip.type != STRIP_TYPE_SOUND &&
+        seq::must_render_strip(seq::query_all_strips(&nseqbase), &istrip))
     {
-      StripTransform *transform = istrip->data->transform;
-      const float2 mirror = seq::image_transform_mirror_factor_get(istrip);
-      const float2 origin = seq::image_transform_origin_offset_pixelspace_get(scene, istrip);
+      StripTransform *transform = istrip.data->transform;
+      const float2 mirror = seq::image_transform_mirror_factor_get(&istrip);
+      const float2 origin = seq::image_transform_origin_offset_pixelspace_get(scene, &istrip);
       transform->xofs = (view_mval[0] - (strip_mean_pos[0] - origin[0])) * mirror[0];
       transform->yofs = (view_mval[1] - (strip_mean_pos[1] - origin[1])) * mirror[1];
-      seq::relations_invalidate_cache(scene, istrip);
+      seq::relations_invalidate_cache(scene, &istrip);
     }
     /* Translate after name has been changed, otherwise this will affect animdata of original
      * strip. */
-    seq::transform_translate_strip(scene_dst, istrip, ofs);
+    seq::transform_translate_strip(scene_dst, &istrip, ofs);
     /* Ensure, that pasted strips don't overlap. */
-    if (seq::transform_test_overlap(scene_dst, ed_dst->current_strips(), istrip)) {
-      seq::transform_seqbase_shuffle(ed_dst->current_strips(), istrip, scene_dst);
+    if (seq::transform_test_overlap(scene_dst, ed_dst->current_strips(), &istrip)) {
+      seq::transform_seqbase_shuffle(ed_dst->current_strips(), &istrip, scene_dst);
     }
   }
 

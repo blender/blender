@@ -623,18 +623,18 @@ static void outliner_do_libdata_operation_selection_set(bContext *C,
                                                         ReportList *reports,
                                                         Scene *scene,
                                                         SpaceOutliner *space_outliner,
-                                                        const ListBaseT<TreeElement> &subtree,
+                                                        ListBaseT<TreeElement> &subtree,
                                                         const bool has_parent_selected,
                                                         outliner_operation_fn operation_fn,
                                                         eOutlinerLibOpSelectionSet selection_set)
 {
-  LISTBASE_FOREACH_MUTABLE (TreeElement *, element, &subtree) {
+  for (TreeElement &element : subtree.items_mutable()) {
     /* Get needed data out in case element gets freed. */
-    TreeStoreElem *tselem = TREESTORE(element);
-    const ListBaseT<TreeElement> subtree = element->subtree;
+    TreeStoreElem *tselem = TREESTORE(&element);
+    ListBaseT<TreeElement> subtree = element.subtree;
 
     const bool is_selected = outliner_do_libdata_operation_selection_set_element(
-        C, reports, scene, element, tselem, has_parent_selected, operation_fn, selection_set);
+        C, reports, scene, &element, tselem, has_parent_selected, operation_fn, selection_set);
 
     /* Don't access element from now on, it may be freed. Note that the open/collapsed state may
      * also have been changed in the visitor callback. */
@@ -662,7 +662,7 @@ static void outliner_do_libdata_operation_selection_set(bContext *C,
                                                                   TSE_ACTIVE);
     if (active_element != nullptr) {
       TreeStoreElem *tselem = TREESTORE(active_element);
-      const ListBaseT<TreeElement> subtree = active_element->subtree;
+      ListBaseT<TreeElement> subtree = active_element->subtree;
 
       const bool is_selected = outliner_do_libdata_operation_selection_set_element(
           C, reports, scene, active_element, tselem, false, operation_fn, selection_set);
@@ -797,25 +797,25 @@ static void merged_element_search_fn_recursive(const ListBaseT<TreeElement> *tre
   char name[64];
   int iconid;
 
-  LISTBASE_FOREACH (TreeElement *, te, tree) {
-    TreeStoreElem *tselem = TREESTORE(te);
+  for (TreeElement &te : *tree) {
+    TreeStoreElem *tselem = TREESTORE(&te);
 
-    if (tree_element_id_type_to_index(te) == type && tselem_type == tselem->type) {
-      if (BLI_strcasestr(te->name, str)) {
-        STRNCPY(name, te->name);
+    if (tree_element_id_type_to_index(&te) == type && tselem_type == tselem->type) {
+      if (BLI_strcasestr(te.name, str)) {
+        STRNCPY(name, te.name);
 
-        iconid = tree_element_get_icon(tselem, te).icon;
+        iconid = tree_element_get_icon(tselem, &te).icon;
 
         /* Don't allow duplicate named items */
         if (search_items_find_index(items, name) == -1) {
-          if (!search_item_add(items, name, te, iconid, 0, 0)) {
+          if (!search_item_add(items, name, &te, iconid, 0, 0)) {
             break;
           }
         }
       }
     }
 
-    merged_element_search_fn_recursive(&te->subtree, tselem_type, type, str, items);
+    merged_element_search_fn_recursive(&te.subtree, tselem_type, type, str, items);
   }
 }
 
@@ -1707,27 +1707,27 @@ void outliner_do_object_operation_ex(bContext *C,
                                      outliner_operation_fn operation_fn,
                                      bool recurse_selected)
 {
-  LISTBASE_FOREACH (TreeElement *, te, lb) {
-    TreeStoreElem *tselem = TREESTORE(te);
+  for (TreeElement &te : *lb) {
+    TreeStoreElem *tselem = TREESTORE(&te);
     bool select_handled = false;
     if (tselem->flag & TSE_SELECTED) {
-      if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
+      if ((tselem->type == TSE_SOME_ID) && (te.idcode == ID_OB)) {
         /* When objects selected in other scenes, don't know if that should be allowed. */
-        Scene *scene_owner = (Scene *)outliner_search_back(te, ID_SCE);
+        Scene *scene_owner = (Scene *)outliner_search_back(&te, ID_SCE);
         if (scene_owner && scene_act != scene_owner) {
           WM_window_set_active_scene(CTX_data_main(C), C, CTX_wm_window(C), scene_owner);
         }
         /* Important to use 'scene_owner' not scene_act else deleting objects can crash.
          * only use 'scene_act' when 'scene_owner' is nullptr, which can happen when the
          * outliner isn't showing scenes: Visible Layer draw mode for eg. */
-        operation_fn(C, reports, scene_owner ? scene_owner : scene_act, te, nullptr, tselem);
+        operation_fn(C, reports, scene_owner ? scene_owner : scene_act, &te, nullptr, tselem);
         select_handled = true;
       }
     }
     if (TSELEM_OPEN(tselem, space_outliner)) {
       if ((select_handled == false) || recurse_selected) {
         outliner_do_object_operation_ex(
-            C, reports, scene_act, space_outliner, &te->subtree, operation_fn, recurse_selected);
+            C, reports, scene_act, space_outliner, &te.subtree, operation_fn, recurse_selected);
       }
     }
   }
@@ -1789,11 +1789,11 @@ static void refreshdrivers_animdata_fn(int /*event*/,
 
   /* Loop over drivers, performing refresh
    * (i.e. check `graph_buttons.cc` and `rna_fcurve.cc` for details). */
-  LISTBASE_FOREACH (FCurve *, fcu, &iat->adt->drivers) {
-    fcu->flag &= ~FCURVE_DISABLED;
+  for (FCurve &fcu : iat->adt->drivers) {
+    fcu.flag &= ~FCURVE_DISABLED;
 
-    if (fcu->driver) {
-      fcu->driver->flag &= ~DRIVER_FLAG_INVALID;
+    if (fcu.driver) {
+      fcu.driver->flag &= ~DRIVER_FLAG_INVALID;
     }
   }
 }
@@ -2466,19 +2466,19 @@ static void object_batch_delete_hierarchy_tag_fn(bContext *C,
 
 static void outliner_batch_delete_object_hierarchy(Main *bmain, Scene *scene)
 {
-  LISTBASE_FOREACH (Object *, ob_iter, &bmain->objects) {
-    if ((ob_iter->id.tag & ID_TAG_DOIT) == 0) {
+  for (Object &ob_iter : bmain->objects) {
+    if ((ob_iter.id.tag & ID_TAG_DOIT) == 0) {
       continue;
     }
 
-    BKE_scene_collections_object_remove(bmain, scene, ob_iter, false);
+    BKE_scene_collections_object_remove(bmain, scene, &ob_iter, false);
 
     /* Check on all objects tagged for deletion, these that are still in use (e.g. in collections
      * from another scene) should not be deleted. They also need to be tagged for depsgraph update.
      */
-    if (ob_iter->id.us != 0) {
-      ob_iter->id.tag &= ~ID_TAG_DOIT;
-      DEG_id_tag_update_ex(bmain, &ob_iter->id, ID_RECALC_BASE_FLAGS);
+    if (ob_iter.id.us != 0) {
+      ob_iter.id.tag &= ~ID_TAG_DOIT;
+      DEG_id_tag_update_ex(bmain, &ob_iter.id, ID_RECALC_BASE_FLAGS);
     }
   }
 

@@ -1142,8 +1142,8 @@ bool retiming_selection_clear(const Editing *ed)
 {
   bool was_empty = true;
 
-  LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
-    for (SeqRetimingKey &key : retiming_keys_get(strip)) {
+  for (Strip &strip : *ed->current_strips()) {
+    for (SeqRetimingKey &key : retiming_keys_get(&strip)) {
       was_empty &= (key.flag & SEQ_KEY_SELECTED) == 0;
       key.flag &= ~SEQ_KEY_SELECTED;
     }
@@ -1175,10 +1175,10 @@ Map<SeqRetimingKey *, Strip *> retiming_selection_get(const Editing *ed)
   if (!ed) {
     return selection;
   }
-  LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
-    for (SeqRetimingKey &key : retiming_keys_get(strip)) {
+  for (Strip &strip : *ed->current_strips()) {
+    for (SeqRetimingKey &key : retiming_keys_get(&strip)) {
       if ((key.flag & SEQ_KEY_SELECTED) != 0) {
-        selection.add(&key, strip);
+        selection.add(&key, &strip);
       }
     }
   }
@@ -1187,8 +1187,8 @@ Map<SeqRetimingKey *, Strip *> retiming_selection_get(const Editing *ed)
 
 bool retiming_selection_contains(const Editing *ed, const SeqRetimingKey *key)
 {
-  LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
-    for (const SeqRetimingKey &key_iter : retiming_keys_get(strip)) {
+  for (Strip &strip : *ed->current_strips()) {
+    for (const SeqRetimingKey &key_iter : retiming_keys_get(&strip)) {
       if ((key_iter.flag & SEQ_KEY_SELECTED) != 0 && &key_iter == key) {
         return true;
       }

@@ -569,23 +569,23 @@ static void draw_layer_splines(const bContext *C,
                                const int height,
                                const bool is_active)
 {
-  LISTBASE_FOREACH (MaskSpline *, spline, &layer->splines) {
+  for (MaskSpline &spline : layer->splines) {
     /* draw curve itself first... */
-    draw_spline_curve(C, layer, spline, draw_type, is_active, width, height);
+    draw_spline_curve(C, layer, &spline, draw_type, is_active, width, height);
 
     if (!(layer->visibility_flag & MASK_HIDE_SELECT)) {
       /* ...and then handles over the curve so they're nicely visible */
-      draw_spline_points(C, layer, spline, draw_type);
+      draw_spline_points(C, layer, &spline, draw_type);
     }
 
     /* show undeform for testing */
     if (false) {
-      MaskSplinePoint *back = spline->points_deform;
+      MaskSplinePoint *back = spline.points_deform;
 
-      spline->points_deform = nullptr;
-      draw_spline_curve(C, layer, spline, draw_type, is_active, width, height);
-      draw_spline_points(C, layer, spline, draw_type);
-      spline->points_deform = back;
+      spline.points_deform = nullptr;
+      draw_spline_curve(C, layer, &spline, draw_type, is_active, width, height);
+      draw_spline_points(C, layer, &spline, draw_type);
+      spline.points_deform = back;
     }
   }
 }
@@ -597,20 +597,20 @@ static void draw_mask_layers(
   GPU_program_point_size(true);
 
   MaskLayer *active = nullptr;
-  int i;
-  LISTBASE_FOREACH_INDEX (MaskLayer *, mask_layer, &mask->masklayers, i) {
+
+  for (const auto [i, mask_layer] : mask->masklayers.enumerate()) {
     const bool is_active = (i == mask->masklay_act);
 
-    if (mask_layer->visibility_flag & MASK_HIDE_VIEW) {
+    if (mask_layer.visibility_flag & MASK_HIDE_VIEW) {
       continue;
     }
 
     if (is_active) {
-      active = mask_layer;
+      active = &mask_layer;
       continue;
     }
 
-    draw_layer_splines(C, mask_layer, draw_type, width, height, is_active);
+    draw_layer_splines(C, &mask_layer, draw_type, width, height, is_active);
   }
 
   if (active != nullptr) {
@@ -815,8 +815,8 @@ void ED_mask_draw_frames(
 
   immBegin(GPU_PRIM_LINES, 2 * num_lines);
 
-  LISTBASE_FOREACH (MaskLayerShape *, mask_layer_shape, &mask_layer->splines_shapes) {
-    int frame = mask_layer_shape->frame;
+  for (MaskLayerShape &mask_layer_shape : mask_layer->splines_shapes) {
+    int frame = mask_layer_shape.frame;
 
     // draw_keyframe(i, scene->r.cfra, sfra, framelen, 1);
     int height = (frame == cfra) ? 22 : 10;

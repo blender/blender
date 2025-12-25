@@ -918,10 +918,10 @@ bool WM_operator_last_properties_init(wmOperator *op)
   bool changed = false;
   if (op->type->last_properties) {
     changed |= operator_last_properties_init_impl(op, op->type->last_properties);
-    LISTBASE_FOREACH (wmOperator *, opm, &op->macro) {
-      IDProperty *idp_src = IDP_GetPropertyFromGroup(op->type->last_properties, opm->idname);
+    for (wmOperator &opm : op->macro) {
+      IDProperty *idp_src = IDP_GetPropertyFromGroup(op->type->last_properties, opm.idname);
       if (idp_src) {
-        changed |= operator_last_properties_init_impl(opm, idp_src);
+        changed |= operator_last_properties_init_impl(&opm, idp_src);
       }
     }
   }
@@ -943,14 +943,14 @@ bool WM_operator_last_properties_store(wmOperator *op)
   }
 
   if (op->macro.first != nullptr) {
-    LISTBASE_FOREACH (wmOperator *, opm, &op->macro) {
-      if (opm->properties) {
+    for (wmOperator &opm : op->macro) {
+      if (opm.properties) {
         if (op->type->last_properties == nullptr) {
           op->type->last_properties =
               blender::bke::idprop::create_group("wmOperatorProperties").release();
         }
-        IDProperty *idp_macro = IDP_CopyProperty(opm->properties);
-        STRNCPY(idp_macro->name, opm->type->idname);
+        IDProperty *idp_macro = IDP_CopyProperty(opm.properties);
+        STRNCPY(idp_macro->name, opm.type->idname);
         IDP_ReplaceInGroup(op->type->last_properties, idp_macro);
       }
     }
@@ -1303,9 +1303,9 @@ wmOperator *WM_operator_last_redo(const bContext *C)
   wmWindowManager *wm = CTX_wm_manager(C);
 
   /* Only for operators that are registered and did an undo push. */
-  LISTBASE_FOREACH_BACKWARD (wmOperator *, op, &wm->runtime->operators) {
-    if ((op->type->flag & OPTYPE_REGISTER) && (op->type->flag & OPTYPE_UNDO)) {
-      return op;
+  for (wmOperator &op : wm->runtime->operators.items_reversed()) {
+    if ((op.type->flag & OPTYPE_REGISTER) && (op.type->flag & OPTYPE_UNDO)) {
+      return &op;
     }
   }
 
@@ -2529,10 +2529,10 @@ wmPaintCursor *WM_paint_cursor_activate(short space_type,
 bool WM_paint_cursor_end(wmPaintCursor *handle)
 {
   wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
-  LISTBASE_FOREACH (wmPaintCursor *, pc, &wm->runtime->paintcursors) {
-    if (pc == handle) {
-      BLI_remlink(&wm->runtime->paintcursors, pc);
-      MEM_freeN(pc);
+  for (wmPaintCursor &pc : wm->runtime->paintcursors) {
+    if (&pc == handle) {
+      BLI_remlink(&wm->runtime->paintcursors, &pc);
+      MEM_freeN(&pc);
       return true;
     }
   }
@@ -2541,13 +2541,13 @@ bool WM_paint_cursor_end(wmPaintCursor *handle)
 
 void WM_paint_cursor_remove_by_type(wmWindowManager *wm, void *draw_fn, void (*free)(void *))
 {
-  LISTBASE_FOREACH_MUTABLE (wmPaintCursor *, pc, &wm->runtime->paintcursors) {
-    if (pc->draw == draw_fn) {
+  for (wmPaintCursor &pc : wm->runtime->paintcursors.items_mutable()) {
+    if (pc.draw == draw_fn) {
       if (free) {
-        free(pc->customdata);
+        free(pc.customdata);
       }
-      BLI_remlink(&wm->runtime->paintcursors, pc);
-      MEM_freeN(pc);
+      BLI_remlink(&wm->runtime->paintcursors, &pc);
+      MEM_freeN(&pc);
     }
   }
 }
@@ -3679,8 +3679,8 @@ static void redraw_timer_window_swap(bContext *C)
 
   CTX_wm_region_popup_set(C, nullptr);
 
-  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-    ED_area_tag_redraw(area);
+  for (ScrArea &area : screen->areabase) {
+    ED_area_tag_redraw(&area);
   }
   wm_draw_update(C);
 
@@ -3737,14 +3737,14 @@ static void redraw_timer_step(bContext *C,
 
     CTX_wm_region_popup_set(C, nullptr);
 
-    LISTBASE_FOREACH (ScrArea *, area_iter, &screen->areabase) {
-      CTX_wm_area_set(C, area_iter);
-      LISTBASE_FOREACH (ARegion *, region_iter, &area_iter->regionbase) {
-        if (!region_iter->runtime->visible) {
+    for (ScrArea &area_iter : screen->areabase) {
+      CTX_wm_area_set(C, &area_iter);
+      for (ARegion &region_iter : area_iter.regionbase) {
+        if (!region_iter.runtime->visible) {
           continue;
         }
-        CTX_wm_region_set(C, region_iter);
-        wm_draw_region_test(C, area_iter, region_iter);
+        CTX_wm_region_set(C, &region_iter);
+        wm_draw_region_test(C, &area_iter, &region_iter);
       }
     }
 
@@ -3973,9 +3973,9 @@ static wmOperatorStatus previews_ensure_exec(bContext *C, wmOperator * /*op*/)
   }
 
   preview_id_data.C = C;
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    preview_id_data.scene = scene;
-    ID *id = (ID *)scene;
+  for (Scene &scene : bmain->scenes) {
+    preview_id_data.scene = &scene;
+    ID *id = (ID *)&scene;
 
     BKE_library_foreach_ID_link(
         nullptr, id, previews_id_ensure_callback, &preview_id_data, IDWALK_RECURSE);
@@ -3984,10 +3984,10 @@ static wmOperatorStatus previews_ensure_exec(bContext *C, wmOperator * /*op*/)
   /* Check a last time for ID not used (fake users only, in theory), and
    * do our best for those, using current scene... */
   for (int i = 0; lb[i]; i++) {
-    LISTBASE_FOREACH (ID *, id, lb[i]) {
-      if (id->tag & ID_TAG_DOIT) {
-        previews_id_ensure(C, nullptr, id);
-        id->tag &= ~ID_TAG_DOIT;
+    for (ID &id : *lb[i]) {
+      if (id.tag & ID_TAG_DOIT) {
+        previews_id_ensure(C, nullptr, &id);
+        id.tag &= ~ID_TAG_DOIT;
       }
     }
   }

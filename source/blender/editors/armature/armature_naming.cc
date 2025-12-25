@@ -125,20 +125,20 @@ static void constraint_bone_name_fix(Object *rename_ob,
                                      const char *oldname,
                                      const char *newname)
 {
-  LISTBASE_FOREACH (bConstraint *, curcon, conlist) {
+  for (bConstraint &curcon : *conlist) {
     ListBaseT<bConstraintTarget> targets = {nullptr, nullptr};
 
     /* constraint targets */
-    if (BKE_constraint_targets_get(curcon, &targets)) {
-      LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
-        if (ct->tar == rename_ob) {
-          if (STREQ(ct->subtarget, oldname)) {
-            STRNCPY_UTF8(ct->subtarget, newname);
+    if (BKE_constraint_targets_get(&curcon, &targets)) {
+      for (bConstraintTarget &ct : targets) {
+        if (ct.tar == rename_ob) {
+          if (STREQ(ct.subtarget, oldname)) {
+            STRNCPY_UTF8(ct.subtarget, newname);
           }
         }
       }
 
-      BKE_constraint_targets_flush(curcon, &targets, false);
+      BKE_constraint_targets_flush(&curcon, &targets, false);
     }
 
     /* Actions from action constraints.
@@ -147,8 +147,8 @@ static void constraint_bone_name_fix(Object *rename_ob,
      * bone rename are from the same object. This is because the action of an
      * action constraint animates the constrained object/bone, it does not
      * animate the constraint target. */
-    if (curcon->type == CONSTRAINT_TYPE_ACTION && constraint_ob == rename_ob) {
-      bActionConstraint *actcon = static_cast<bActionConstraint *>(curcon->data);
+    if (curcon.type == CONSTRAINT_TYPE_ACTION && constraint_ob == rename_ob) {
+      bActionConstraint *actcon = static_cast<bActionConstraint *>(curcon.data);
       BKE_action_fix_paths_rename(&rename_ob->id,
                                   actcon->act,
                                   actcon->action_slot_handle,
@@ -255,8 +255,8 @@ void ED_armature_bone_rename(Main *bmain,
             constraint_bone_name_fix(ob, cob, &cob->constraints, oldname, newname);
           }
           if (cob->pose) {
-            LISTBASE_FOREACH (bPoseChannel *, pchan, &cob->pose->chanbase) {
-              constraint_bone_name_fix(ob, cob, &pchan->constraints, oldname, newname);
+            for (bPoseChannel &pchan : cob->pose->chanbase) {
+              constraint_bone_name_fix(ob, cob, &pchan.constraints, oldname, newname);
             }
           }
         }
@@ -297,10 +297,10 @@ void ED_armature_bone_rename(Main *bmain,
       }
 
       /* fix modifiers that might be using this name */
-      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-        switch (md->type) {
+      for (ModifierData &md : ob->modifiers) {
+        switch (md.type) {
           case eModifierType_Hook: {
-            HookModifierData *hmd = reinterpret_cast<HookModifierData *>(md);
+            HookModifierData *hmd = reinterpret_cast<HookModifierData *>(&md);
 
             if (hmd->object && (hmd->object->data == arm)) {
               if (STREQ(hmd->subtarget, oldname)) {
@@ -310,7 +310,7 @@ void ED_armature_bone_rename(Main *bmain,
             break;
           }
           case eModifierType_UVWarp: {
-            UVWarpModifierData *umd = reinterpret_cast<UVWarpModifierData *>(md);
+            UVWarpModifierData *umd = reinterpret_cast<UVWarpModifierData *>(&md);
 
             if (umd->object_src && (umd->object_src->data == arm)) {
               if (STREQ(umd->bone_src, oldname)) {
@@ -376,10 +376,10 @@ void ED_armature_bone_rename(Main *bmain,
            screen = static_cast<bScreen *>(screen->id.next))
       {
         /* add regions */
-        LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-          LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-            if (sl->spacetype == SPACE_VIEW3D) {
-              View3D *v3d = reinterpret_cast<View3D *>(sl);
+        for (ScrArea &area : screen->areabase) {
+          for (SpaceLink &sl : area.spacedata) {
+            if (sl.spacetype == SPACE_VIEW3D) {
+              View3D *v3d = reinterpret_cast<View3D *>(&sl);
               if (v3d->ob_center && v3d->ob_center->data == arm) {
                 if (STREQ(v3d->ob_center_bone, oldname)) {
                   STRNCPY_UTF8(v3d->ob_center_bone, newname);
@@ -416,9 +416,9 @@ void ED_armature_bones_flip_names(Main *bmain,
   /* First pass: generate flip names, and blindly rename.
    * If rename did not yield expected result,
    * store both bone's name and expected flipped one into temp list for second pass. */
-  LISTBASE_FOREACH (LinkData *, link, bones_names) {
+  for (LinkData &link : *bones_names) {
     char name_flip[MAXBONENAME];
-    char *name = static_cast<char *>(link->data);
+    char *name = static_cast<char *>(link.data);
 
     /* WARNING: if do_strip_numbers is set, expect completely mismatched names in cases like
      * Bone.R, Bone.R.001, Bone.R.002, etc. */
@@ -438,8 +438,8 @@ void ED_armature_bones_flip_names(Main *bmain,
    * Note that if the other bone was not selected, its name was not flipped,
    * so conflict remains and that second rename simply generates a new numbered alternative name.
    */
-  LISTBASE_FOREACH (BoneFlipNameData *, bfn, &bones_names_conflicts) {
-    ED_armature_bone_rename(bmain, arm, bfn->name, bfn->name_flip);
+  for (BoneFlipNameData &bfn : bones_names_conflicts) {
+    ED_armature_bone_rename(bmain, arm, bfn.name, bfn.name_flip);
   }
 }
 
@@ -470,12 +470,12 @@ static wmOperatorStatus armature_flip_names_exec(bContext *C, wmOperator *op)
 
     ListBaseT<LinkData> bones_names = {nullptr};
 
-    LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
-      if (blender::animrig::bone_is_selected(arm, ebone)) {
-        BLI_addtail(&bones_names, BLI_genericNodeN(ebone->name));
+    for (EditBone &ebone : *arm->edbo) {
+      if (blender::animrig::bone_is_selected(arm, &ebone)) {
+        BLI_addtail(&bones_names, BLI_genericNodeN(ebone.name));
 
         if (arm->flag & ARM_MIRROR_EDIT) {
-          EditBone *flipbone = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
+          EditBone *flipbone = ED_armature_ebone_get_mirrored(arm->edbo, &ebone);
           if ((flipbone) && !(flipbone->flag & BONE_SELECTED)) {
             BLI_addtail(&bones_names, BLI_genericNodeN(flipbone->name));
           }
@@ -553,13 +553,13 @@ static wmOperatorStatus armature_autoside_names_exec(bContext *C, wmOperator *op
       continue;
     }
 
-    LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
-      if (EBONE_EDITABLE(ebone)) {
+    for (EditBone &ebone : *arm->edbo) {
+      if (EBONE_EDITABLE(&ebone)) {
 
         /* We first need to do the flipped bone, then the original one.
          * Otherwise we can't find the flipped one because of the bone name change. */
         if (arm->flag & ARM_MIRROR_EDIT) {
-          EditBone *flipbone = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
+          EditBone *flipbone = ED_armature_ebone_get_mirrored(arm->edbo, &ebone);
           if ((flipbone) && !(flipbone->flag & BONE_SELECTED)) {
             STRNCPY_UTF8(newname, flipbone->name);
             if (bone_autoside_name(newname, 1, axis, flipbone->head[axis], flipbone->tail[axis])) {
@@ -569,9 +569,9 @@ static wmOperatorStatus armature_autoside_names_exec(bContext *C, wmOperator *op
           }
         }
 
-        STRNCPY_UTF8(newname, ebone->name);
-        if (bone_autoside_name(newname, 1, axis, ebone->head[axis], ebone->tail[axis])) {
-          ED_armature_bone_rename(bmain, arm, ebone->name, newname);
+        STRNCPY_UTF8(newname, ebone.name);
+        if (bone_autoside_name(newname, 1, axis, ebone.head[axis], ebone.tail[axis])) {
+          ED_armature_bone_rename(bmain, arm, ebone.name, newname);
           changed = true;
         }
       }

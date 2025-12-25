@@ -391,8 +391,8 @@ static void gizmo_mesh_extrude_draw_prepare(const bContext *C, wmGizmoGroup *gzg
   /* Basic ordering for drawing only. */
   {
     RegionView3D *rv3d = CTX_wm_region_view3d(C);
-    LISTBASE_FOREACH (wmGizmo *, gz, &gzgroup->gizmos) {
-      gz->temp.f = dot_v3v3(rv3d->viewinv[2], gz->matrix_offset[3]);
+    for (wmGizmo &gz : gzgroup->gizmos) {
+      gz.temp.f = dot_v3v3(rv3d->viewinv[2], gz.matrix_offset[3]);
     }
     BLI_listbase_sort(&gzgroup->gizmos, WM_gizmo_cmp_temp_fl_reverse);
 

@@ -232,8 +232,8 @@ void select_frames_at(bke::greasepencil::LayerGroup &layer_group,
                       const int frame_number,
                       const short select_mode)
 {
-  LISTBASE_FOREACH_BACKWARD (GreasePencilLayerTreeNode *, node_, &layer_group.children) {
-    bke::greasepencil::TreeNode &node = node_->wrap();
+  for (GreasePencilLayerTreeNode &node_ : layer_group.children.items_reversed()) {
+    bke::greasepencil::TreeNode &node = node_.wrap();
     if (node.is_group()) {
       select_frames_at(node.as_group(), frame_number, select_mode);
     }
@@ -290,8 +290,8 @@ void select_frames_region(KeyframeEditData *ked,
     }
   }
   else if (node.is_group()) {
-    LISTBASE_FOREACH_BACKWARD (GreasePencilLayerTreeNode *, node_, &node.as_group().children) {
-      select_frames_region(ked, node_->wrap(), tool, select_mode);
+    for (GreasePencilLayerTreeNode &node_ : node.as_group().children.items_reversed()) {
+      select_frames_region(ked, node_.wrap(), tool, select_mode);
     }
   }
 }
@@ -311,8 +311,8 @@ void select_frames_range(bke::greasepencil::TreeNode &node,
     }
   }
   else if (node.is_group()) {
-    LISTBASE_FOREACH_BACKWARD (GreasePencilLayerTreeNode *, node_, &node.as_group().children) {
-      select_frames_range(node_->wrap(), min, max, select_mode);
+    for (GreasePencilLayerTreeNode &node_ : node.as_group().children.items_reversed()) {
+      select_frames_range(node_.wrap(), min, max, select_mode);
     }
   }
 }
@@ -324,7 +324,7 @@ static void append_frame_to_key_edit_data(KeyframeEditData *ked,
   CfraElem *ce = MEM_callocN<CfraElem>(__func__);
   ce->cfra = float(frame_number);
   ce->sel = frame.is_selected();
-  BLI_addtail(&ked->list, ce);
+  BLI_addtail(&ked->cfra_elem_list, ce);
 }
 
 void create_keyframe_edit_data_selected_frames_list(KeyframeEditData *ked,
@@ -624,15 +624,15 @@ bool grease_pencil_copy_keyframes(bAnimContext *ac, KeyframeClipboard &clipboard
   ANIM_animdata_filter(
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+  for (bAnimListElem &ale : anim_data) {
     /* This function only deals with grease pencil layer frames.
      * This check is needed in the case of a call from the main dope-sheet. */
-    if (ale->type != ANIMTYPE_GREASE_PENCIL_LAYER) {
+    if (ale.type != ANIMTYPE_GREASE_PENCIL_LAYER) {
       continue;
     }
 
-    GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale->id);
-    Layer *layer = reinterpret_cast<Layer *>(ale->data);
+    GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale.id);
+    Layer *layer = reinterpret_cast<Layer *>(ale.data);
     Vector<KeyframeClipboard::DrawingBufferItem> buf;
     FramesMapKeyT layer_first_frame = std::numeric_limits<int>::max();
     FramesMapKeyT layer_last_frame = std::numeric_limits<int>::min();
@@ -713,13 +713,13 @@ bool grease_pencil_paste_keyframes(bAnimContext *ac,
   /* Check if single channel in buffer (disregard names if so). */
   const bool from_single_channel = clipboard.copy_buffer.size() == 1;
 
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+  for (bAnimListElem &ale : anim_data) {
     /* Only deal with GPlayers (case of calls from general dope-sheet). */
-    if (ale->type != ANIMTYPE_GREASE_PENCIL_LAYER) {
+    if (ale.type != ANIMTYPE_GREASE_PENCIL_LAYER) {
       continue;
     }
-    GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale->id);
-    Layer &layer = *reinterpret_cast<Layer *>(ale->data);
+    GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale.id);
+    Layer &layer = *reinterpret_cast<Layer *>(ale.data);
     const std::string layer_name = layer.name();
     if (!from_single_channel && !clipboard.copy_buffer.contains(layer_name)) {
       continue;

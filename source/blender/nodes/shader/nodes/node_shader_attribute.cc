@@ -77,8 +77,8 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
   GPU_stack_link(mat, node, "node_attribute", in, out, cd_attr);
 
   if (is_varying) {
-    int i;
-    LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->outputs, i) {
+
+    for (const auto [i, sock] : node->outputs.enumerate()) {
       node_shader_gpu_bump_tex_coord(mat, node, &out[i].link);
     }
   }

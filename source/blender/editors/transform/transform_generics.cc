@@ -695,13 +695,13 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     wmWindowManager *wm = CTX_wm_manager(C);
     wmKeyMap *keymap = WM_keymap_active(wm, op->type->modalkeymap);
     const wmKeyMapItem *kmi_passthrough = nullptr;
-    LISTBASE_FOREACH (const wmKeyMapItem *, kmi, &keymap->items) {
-      if (kmi->flag & KMI_INACTIVE) {
+    for (const wmKeyMapItem &kmi : keymap->items) {
+      if (kmi.flag & KMI_INACTIVE) {
         continue;
       }
 
-      if (kmi->propvalue == TFM_MODAL_PASSTHROUGH_NAVIGATE) {
-        kmi_passthrough = kmi;
+      if (kmi.propvalue == TFM_MODAL_PASSTHROUGH_NAVIGATE) {
+        kmi_passthrough = &kmi;
         break;
       }
     }

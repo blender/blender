@@ -859,27 +859,27 @@ void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Sce
   immUniform1i("size1", cache_draw_height * 2.0f);
   immUniform1i("size2", cache_draw_height);
 
-  LISTBASE_FOREACH (PTCacheID *, pid, &pidlist) {
-    if (timeline_cache_is_hidden_by_setting(saction, pid)) {
+  for (PTCacheID &pid : pidlist) {
+    if (timeline_cache_is_hidden_by_setting(saction, &pid)) {
       continue;
     }
 
-    if (pid->cache->cached_frames == nullptr) {
+    if (pid.cache->cached_frames == nullptr) {
       continue;
     }
 
-    timeline_cache_draw_single(pid, y_offset, cache_draw_height, pos_id);
+    timeline_cache_draw_single(&pid, y_offset, cache_draw_height, pos_id);
 
     y_offset += cache_draw_height;
   }
   if (saction->cache_display & TIME_CACHE_SIMULATION_NODES) {
     Vector<CacheRange> cache_ranges;
     bool all_simulations_baked = true;
-    LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-      if (md->type != eModifierType_Nodes) {
+    for (ModifierData &md : ob->modifiers) {
+      if (md.type != eModifierType_Nodes) {
         continue;
       }
-      const NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
+      const NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(&md);
       if (nmd->node_group == nullptr) {
         continue;
       }

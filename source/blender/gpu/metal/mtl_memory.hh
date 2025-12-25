@@ -109,7 +109,7 @@ class MTLStorageBuf;
 class MTLBuffer {
 
  public:
-  /* NOTE: ListBase API is not used due to custom destructor operation required to release
+  /* NOTE: ListBaseT API is not used due to custom destructor operation required to release
    * Metal objective C buffer resource. */
   gpu::MTLBuffer *next, *prev;
 

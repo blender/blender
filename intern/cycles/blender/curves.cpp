@@ -77,12 +77,12 @@ static bool ObtainCacheParticleData(Hair *hair,
   const Transform tfm = get_transform(b_ob->object_to_world());
   const Transform itfm = transform_inverse(tfm);
 
-  LISTBASE_FOREACH (const ::ModifierData *, b_mod, &b_ob->modifiers) {
-    if ((b_mod->type == eModifierType_ParticleSystem) &&
-        (background ? ((b_mod->mode & eModifierMode_Render) != 0) :
-                      ((b_mod->mode & eModifierMode_Realtime) != 0)))
+  for (const ::ModifierData &b_mod : b_ob->modifiers) {
+    if ((b_mod.type == eModifierType_ParticleSystem) &&
+        (background ? ((b_mod.mode & eModifierMode_Render) != 0) :
+                      ((b_mod.mode & eModifierMode_Realtime) != 0)))
     {
-      const auto *psmd = reinterpret_cast<const ::ParticleSystemModifierData *>(b_mod);
+      const auto *psmd = reinterpret_cast<const ::ParticleSystemModifierData *>(&b_mod);
       ::ParticleSystem *b_psys = psmd->psys;
       ::ParticleSettings *b_part = b_psys->part;
 
@@ -178,12 +178,12 @@ static bool ObtainCacheParticleUV(Hair *hair,
 
   CData->curve_uv.clear();
 
-  LISTBASE_FOREACH (::ModifierData *, b_mod, &b_ob->modifiers) {
-    if ((b_mod->type == eModifierType_ParticleSystem) &&
-        (background ? ((b_mod->mode & eModifierMode_Render) != 0) :
-                      ((b_mod->mode & eModifierMode_Realtime) != 0)))
+  for (::ModifierData &b_mod : b_ob->modifiers) {
+    if ((b_mod.type == eModifierType_ParticleSystem) &&
+        (background ? ((b_mod.mode & eModifierMode_Render) != 0) :
+                      ((b_mod.mode & eModifierMode_Realtime) != 0)))
     {
-      auto *psmd = reinterpret_cast<::ParticleSystemModifierData *>(b_mod);
+      auto *psmd = reinterpret_cast<::ParticleSystemModifierData *>(&b_mod);
       ::ParticleSystem *b_psys = psmd->psys;
       ::ParticleSettings *b_part = b_psys->part;
 
@@ -242,12 +242,12 @@ static bool ObtainCacheParticleVcol(Hair *hair,
 
   CData->curve_vcol.clear();
 
-  LISTBASE_FOREACH (::ModifierData *, b_mod, &b_ob->modifiers) {
-    if ((b_mod->type == eModifierType_ParticleSystem) &&
-        (background ? ((b_mod->mode & eModifierMode_Render) != 0) :
-                      ((b_mod->mode & eModifierMode_Realtime) != 0)))
+  for (::ModifierData &b_mod : b_ob->modifiers) {
+    if ((b_mod.type == eModifierType_ParticleSystem) &&
+        (background ? ((b_mod.mode & eModifierMode_Render) != 0) :
+                      ((b_mod.mode & eModifierMode_Realtime) != 0)))
     {
-      auto *psmd = reinterpret_cast<::ParticleSystemModifierData *>(b_mod);
+      auto *psmd = reinterpret_cast<::ParticleSystemModifierData *>(&b_mod);
       ::ParticleSystem *b_psys = psmd->psys;
       ::ParticleSettings *b_part = b_psys->part;
 
@@ -550,12 +550,12 @@ static void ExportCurveSegmentsMotion(Hair *hair, ParticleCurveData *CData, cons
 bool BlenderSync::object_has_particle_hair(::Object *b_ob)
 {
   /* Test if the object has a particle modifier with hair. */
-  LISTBASE_FOREACH (::ModifierData *, b_mod, &b_ob->modifiers) {
-    if ((b_mod->type == eModifierType_ParticleSystem) &&
-        (preview ? ((b_mod->mode & eModifierMode_Realtime) != 0) :
-                   ((b_mod->mode & eModifierMode_Render) != 0)))
+  for (::ModifierData &b_mod : b_ob->modifiers) {
+    if ((b_mod.type == eModifierType_ParticleSystem) &&
+        (preview ? ((b_mod.mode & eModifierMode_Realtime) != 0) :
+                   ((b_mod.mode & eModifierMode_Render) != 0)))
     {
-      auto *psmd = reinterpret_cast<::ParticleSystemModifierData *>(b_mod);
+      auto *psmd = reinterpret_cast<::ParticleSystemModifierData *>(&b_mod);
       ::ParticleSystem *b_psys = psmd->psys;
       ::ParticleSettings *b_part = b_psys->part;
 

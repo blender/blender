@@ -61,11 +61,11 @@
 
 static void version_fix_fcurve_noise_offset(FCurve &fcurve)
 {
-  LISTBASE_FOREACH (FModifier *, fcurve_modifier, &fcurve.modifiers) {
-    if (fcurve_modifier->type != FMODIFIER_TYPE_NOISE) {
+  for (FModifier &fcurve_modifier : fcurve.modifiers) {
+    if (fcurve_modifier.type != FMODIFIER_TYPE_NOISE) {
       continue;
     }
-    FMod_Noise *data = static_cast<FMod_Noise *>(fcurve_modifier->data);
+    FMod_Noise *data = static_cast<FMod_Noise *>(fcurve_modifier.data);
     if (data->legacy_noise) {
       /* We don't want to modify anything if the noise is set to legacy, because the issue only
        * occurred on the new style noise. */
@@ -101,13 +101,13 @@ static void fix_curve_nurbs_knot_mode_custom(Main *bmain)
     curves.nurbs_custom_knots_update_size();
   };
 
-  LISTBASE_FOREACH (Curves *, curves_id, &bmain->hair_curves) {
-    blender::bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+  for (Curves &curves_id : bmain->hair_curves) {
+    blender::bke::CurvesGeometry &curves = curves_id.geometry.wrap();
     fix_curves(curves);
   }
 
-  LISTBASE_FOREACH (GreasePencil *, grease_pencil, &bmain->grease_pencils) {
-    for (GreasePencilDrawingBase *base : grease_pencil->drawings()) {
+  for (GreasePencil &grease_pencil : bmain->grease_pencils) {
+    for (GreasePencilDrawingBase *base : grease_pencil.drawings()) {
       if (base->type != GP_DRAWING) {
         continue;
       }
@@ -120,13 +120,13 @@ static void fix_curve_nurbs_knot_mode_custom(Main *bmain)
 
 static void nlastrips_apply_fcurve_versioning(ListBaseT<NlaStrip> &strips)
 {
-  LISTBASE_FOREACH (NlaStrip *, strip, &strips) {
-    LISTBASE_FOREACH (FCurve *, fcurve, &strip->fcurves) {
-      version_fix_fcurve_noise_offset(*fcurve);
+  for (NlaStrip &strip : strips) {
+    for (FCurve &fcurve : strip.fcurves) {
+      version_fix_fcurve_noise_offset(fcurve);
     }
 
     /* Check sub-strips (if meta-strips). */
-    nlastrips_apply_fcurve_versioning(strip->strips);
+    nlastrips_apply_fcurve_versioning(strip.strips);
   }
 }
 
@@ -135,14 +135,14 @@ static void nlastrips_apply_fcurve_versioning(ListBaseT<NlaStrip> &strips)
  * input. */
 static void do_version_new_glare_clamp_input(bNodeTree *node_tree)
 {
-  LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-    if (node->type_legacy != CMP_NODE_GLARE) {
+  for (bNode &node : node_tree->nodes) {
+    if (node.type_legacy != CMP_NODE_GLARE) {
       continue;
     }
 
-    bNodeSocket *clamp_input = blender::bke::node_find_socket(*node, SOCK_IN, "Clamp Highlights");
+    bNodeSocket *clamp_input = blender::bke::node_find_socket(node, SOCK_IN, "Clamp Highlights");
     bNodeSocket *maximum_input = blender::bke::node_find_socket(
-        *node, SOCK_IN, "Maximum Highlights");
+        node, SOCK_IN, "Maximum Highlights");
 
     const float maximum = maximum_input->default_value_typed<bNodeSocketValueFloat>()->value;
     if (version_node_socket_is_used(maximum_input) || maximum != 0.0) {
@@ -2694,42 +2694,42 @@ static void do_version_composite_viewer_remove_alpha(bNodeTree *node_tree)
   blender::Map<std::string, bNodeLink *> node_to_alpha_link_map;
 
   /* Find links going into the composite and viewer nodes. */
-  LISTBASE_FOREACH (bNodeLink *, link, &node_tree->links) {
-    if (!ELEM(link->tonode->type_legacy, CMP_NODE_COMPOSITE_DEPRECATED, CMP_NODE_VIEWER)) {
+  for (bNodeLink &link : node_tree->links) {
+    if (!ELEM(link.tonode->type_legacy, CMP_NODE_COMPOSITE_DEPRECATED, CMP_NODE_VIEWER)) {
       continue;
     }
 
-    if (blender::StringRef(link->tosock->identifier) == "Image") {
-      node_to_image_link_map.add_new(link->tonode->name, link);
+    if (blender::StringRef(link.tosock->identifier) == "Image") {
+      node_to_image_link_map.add_new(link.tonode->name, &link);
     }
-    else if (blender::StringRef(link->tosock->identifier) == "Alpha") {
-      node_to_alpha_link_map.add_new(link->tonode->name, link);
+    else if (blender::StringRef(link.tosock->identifier) == "Alpha") {
+      node_to_alpha_link_map.add_new(link.tonode->name, &link);
     }
   }
 
-  LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-    if (!ELEM(node->type_legacy, CMP_NODE_COMPOSITE_DEPRECATED, CMP_NODE_VIEWER)) {
+  for (bNode &node : node_tree->nodes) {
+    if (!ELEM(node.type_legacy, CMP_NODE_COMPOSITE_DEPRECATED, CMP_NODE_VIEWER)) {
       continue;
     }
 
-    bNodeSocket *image_input = blender::bke::node_find_socket(*node, SOCK_IN, "Image");
+    bNodeSocket *image_input = blender::bke::node_find_socket(node, SOCK_IN, "Image");
 
     /* Use Alpha is disabled, so we need to set the alpha to 1. */
-    if (node->custom2 & CMP_NODE_OUTPUT_IGNORE_ALPHA) {
+    if (node.custom2 & CMP_NODE_OUTPUT_IGNORE_ALPHA) {
       /* Nothing is connected to the image, just set the default value alpha to 1. */
-      if (!node_to_image_link_map.contains(node->name)) {
+      if (!node_to_image_link_map.contains(node.name)) {
         image_input->default_value_typed<bNodeSocketValueRGBA>()->value[3] = 1.0f;
         continue;
       }
 
-      bNodeLink *image_link = node_to_image_link_map.lookup(node->name);
+      bNodeLink *image_link = node_to_image_link_map.lookup(node.name);
 
       /* Add a set alpha node and make the necessary connections. */
       bNode *set_alpha_node = blender::bke::node_add_static_node(
           nullptr, *node_tree, CMP_NODE_SETALPHA);
-      set_alpha_node->parent = node->parent;
-      set_alpha_node->location[0] = node->location[0] - node->width - 20.0f;
-      set_alpha_node->location[1] = node->location[1];
+      set_alpha_node->parent = node.parent;
+      set_alpha_node->location[0] = node.location[0] - node.width - 20.0f;
+      set_alpha_node->location[1] = node.location[1];
 
       bNodeSocket *set_alpha_input = blender::bke::node_find_socket(
           *set_alpha_node, SOCK_IN, "Image");
@@ -2746,7 +2746,7 @@ static void do_version_composite_viewer_remove_alpha(bNodeTree *node_tree)
                             *image_link->fromsock,
                             *set_alpha_node,
                             *set_alpha_input);
-      version_node_add_link(*node_tree, *set_alpha_node, *set_alpha_output, *node, *image_input);
+      version_node_add_link(*node_tree, *set_alpha_node, *set_alpha_output, node, *image_input);
 
       blender::bke::node_remove_link(node_tree, *image_link);
       continue;
@@ -2754,18 +2754,18 @@ static void do_version_composite_viewer_remove_alpha(bNodeTree *node_tree)
 
     /* If we don't continue, the alpha input is connected and Use Alpha is enabled, so we need to
      * set the alpha using a Set Alpha node. */
-    if (!node_to_alpha_link_map.contains(node->name)) {
+    if (!node_to_alpha_link_map.contains(node.name)) {
       continue;
     }
 
-    bNodeLink *alpha_link = node_to_alpha_link_map.lookup(node->name);
+    bNodeLink *alpha_link = node_to_alpha_link_map.lookup(node.name);
 
     /* Add a set alpha node and make the necessary connections. */
     bNode *set_alpha_node = blender::bke::node_add_static_node(
         nullptr, *node_tree, CMP_NODE_SETALPHA);
-    set_alpha_node->parent = node->parent;
-    set_alpha_node->location[0] = node->location[0] - node->width - 20.0f;
-    set_alpha_node->location[1] = node->location[1];
+    set_alpha_node->parent = node.parent;
+    set_alpha_node->location[0] = node.location[0] - node.width - 20.0f;
+    set_alpha_node->location[1] = node.location[1];
 
     bNodeSocket *set_alpha_input = blender::bke::node_find_socket(
         *set_alpha_node, SOCK_IN, "Image");
@@ -2783,15 +2783,15 @@ static void do_version_composite_viewer_remove_alpha(bNodeTree *node_tree)
                           *alpha_link->fromsock,
                           *set_alpha_node,
                           *set_alpha_alpha);
-    version_node_add_link(*node_tree, *set_alpha_node, *set_alpha_output, *node, *image_input);
+    version_node_add_link(*node_tree, *set_alpha_node, *set_alpha_output, node, *image_input);
     blender::bke::node_remove_link(node_tree, *alpha_link);
 
-    if (!node_to_image_link_map.contains(node->name)) {
+    if (!node_to_image_link_map.contains(node.name)) {
       copy_v4_v4(set_alpha_input->default_value_typed<bNodeSocketValueRGBA>()->value,
                  image_input->default_value_typed<bNodeSocketValueRGBA>()->value);
     }
     else {
-      bNodeLink *image_link = node_to_image_link_map.lookup(node->name);
+      bNodeLink *image_link = node_to_image_link_map.lookup(node.name);
       version_node_add_link(*node_tree,
                             *image_link->fromnode,
                             *image_link->fromsock,
@@ -2806,24 +2806,24 @@ static void do_version_composite_viewer_remove_alpha(bNodeTree *node_tree)
  * before and after the node to perform the adjustment in straight alpha. */
 static void do_version_bright_contrast_remove_premultiplied(bNodeTree *node_tree)
 {
-  LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &node_tree->links) {
-    if (link->tonode->type_legacy != CMP_NODE_BRIGHTCONTRAST) {
+  for (bNodeLink &link : node_tree->links.items_reversed_mutable()) {
+    if (link.tonode->type_legacy != CMP_NODE_BRIGHTCONTRAST) {
       continue;
     }
 
-    if (!bool(link->tonode->custom1)) {
+    if (!bool(link.tonode->custom1)) {
       continue;
     }
 
-    if (blender::StringRef(link->tosock->identifier) != "Image") {
+    if (blender::StringRef(link.tosock->identifier) != "Image") {
       continue;
     }
 
     bNode *convert_alpha_node = blender::bke::node_add_static_node(
         nullptr, *node_tree, CMP_NODE_PREMULKEY);
-    convert_alpha_node->parent = link->tonode->parent;
-    convert_alpha_node->location[0] = link->tonode->location[0] - link->tonode->width - 20.0f;
-    convert_alpha_node->location[1] = link->tonode->location[1];
+    convert_alpha_node->parent = link.tonode->parent;
+    convert_alpha_node->location[0] = link.tonode->location[0] - link.tonode->width - 20.0f;
+    convert_alpha_node->location[1] = link.tonode->location[1];
 
     bNodeSocket *convert_alpha_input = blender::bke::node_find_socket(
         *convert_alpha_node, SOCK_IN, "Image");
@@ -2836,27 +2836,27 @@ static void do_version_bright_contrast_remove_premultiplied(bNodeTree *node_tree
         CMP_NODE_ALPHA_CONVERT_UNPREMULTIPLY;
 
     version_node_add_link(
-        *node_tree, *link->fromnode, *link->fromsock, *convert_alpha_node, *convert_alpha_input);
+        *node_tree, *link.fromnode, *link.fromsock, *convert_alpha_node, *convert_alpha_input);
     version_node_add_link(
-        *node_tree, *convert_alpha_node, *convert_alpha_output, *link->tonode, *link->tosock);
+        *node_tree, *convert_alpha_node, *convert_alpha_output, *link.tonode, *link.tosock);
 
-    blender::bke::node_remove_link(node_tree, *link);
+    blender::bke::node_remove_link(node_tree, link);
   }
 
-  LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &node_tree->links) {
-    if (link->fromnode->type_legacy != CMP_NODE_BRIGHTCONTRAST) {
+  for (bNodeLink &link : node_tree->links.items_reversed_mutable()) {
+    if (link.fromnode->type_legacy != CMP_NODE_BRIGHTCONTRAST) {
       continue;
     }
 
-    if (!bool(link->fromnode->custom1)) {
+    if (!bool(link.fromnode->custom1)) {
       continue;
     }
 
     bNode *convert_alpha_node = blender::bke::node_add_static_node(
         nullptr, *node_tree, CMP_NODE_PREMULKEY);
-    convert_alpha_node->parent = link->fromnode->parent;
-    convert_alpha_node->location[0] = link->fromnode->location[0] + link->fromnode->width + 20.0f;
-    convert_alpha_node->location[1] = link->fromnode->location[1];
+    convert_alpha_node->parent = link.fromnode->parent;
+    convert_alpha_node->location[0] = link.fromnode->location[0] + link.fromnode->width + 20.0f;
+    convert_alpha_node->location[1] = link.fromnode->location[1];
 
     bNodeSocket *convert_alpha_input = blender::bke::node_find_socket(
         *convert_alpha_node, SOCK_IN, "Image");
@@ -2869,11 +2869,11 @@ static void do_version_bright_contrast_remove_premultiplied(bNodeTree *node_tree
         CMP_NODE_ALPHA_CONVERT_PREMULTIPLY;
 
     version_node_add_link(
-        *node_tree, *link->fromnode, *link->fromsock, *convert_alpha_node, *convert_alpha_input);
+        *node_tree, *link.fromnode, *link.fromsock, *convert_alpha_node, *convert_alpha_input);
     version_node_add_link(
-        *node_tree, *convert_alpha_node, *convert_alpha_output, *link->tonode, *link->tosock);
+        *node_tree, *convert_alpha_node, *convert_alpha_output, *link.tonode, *link.tosock);
 
-    blender::bke::node_remove_link(node_tree, *link);
+    blender::bke::node_remove_link(node_tree, link);
   }
 }
 
@@ -2881,27 +2881,27 @@ static void do_version_bright_contrast_remove_premultiplied(bNodeTree *node_tree
  * to straight, and both are mixed using a mix node. */
 static void do_version_alpha_over_remove_premultiply(bNodeTree *node_tree)
 {
-  LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &node_tree->links) {
-    if (link->tonode->type_legacy != CMP_NODE_ALPHAOVER) {
+  for (bNodeLink &link : node_tree->links.items_reversed_mutable()) {
+    if (link.tonode->type_legacy != CMP_NODE_ALPHAOVER) {
       continue;
     }
 
-    const float mix_factor = static_cast<NodeTwoFloats *>(link->tonode->storage)->x;
+    const float mix_factor = static_cast<NodeTwoFloats *>(link.tonode->storage)->x;
     if (mix_factor == 0.0f) {
       continue;
     }
 
-    if (blender::StringRef(link->tosock->identifier) != "Image_001") {
+    if (blender::StringRef(link.tosock->identifier) != "Image_001") {
       continue;
     }
 
     /* Disable Convert Premultiplied option, since this will be done manually. */
-    link->tonode->custom1 = false;
+    link.tonode->custom1 = false;
 
     bNode *mix_node = blender::bke::node_add_static_node(nullptr, *node_tree, SH_NODE_MIX);
-    mix_node->parent = link->tonode->parent;
-    mix_node->location[0] = link->tonode->location[0] - link->tonode->width - 20.0f;
-    mix_node->location[1] = link->tonode->location[1];
+    mix_node->parent = link.tonode->parent;
+    mix_node->location[0] = link.tonode->location[0] - link.tonode->width - 20.0f;
+    mix_node->location[1] = link.tonode->location[1];
     static_cast<NodeShaderMix *>(mix_node->storage)->data_type = SOCK_RGBA;
 
     bNodeSocket *mix_a_input = blender::bke::node_find_socket(*mix_node, SOCK_IN, "A_Color");
@@ -2914,7 +2914,7 @@ static void do_version_alpha_over_remove_premultiply(bNodeTree *node_tree)
 
     bNode *to_straight_node = blender::bke::node_add_static_node(
         nullptr, *node_tree, CMP_NODE_PREMULKEY);
-    to_straight_node->parent = link->tonode->parent;
+    to_straight_node->parent = link.tonode->parent;
     to_straight_node->location[0] = mix_node->location[0] - mix_node->width - 20.0f;
     to_straight_node->location[1] = mix_node->location[1];
 
@@ -2930,7 +2930,7 @@ static void do_version_alpha_over_remove_premultiply(bNodeTree *node_tree)
 
     bNode *to_premultiplied_node = blender::bke::node_add_static_node(
         nullptr, *node_tree, CMP_NODE_PREMULKEY);
-    to_premultiplied_node->parent = link->tonode->parent;
+    to_premultiplied_node->parent = link.tonode->parent;
     to_premultiplied_node->location[0] = to_straight_node->location[0] - to_straight_node->width -
                                          20.0f;
     to_premultiplied_node->location[1] = to_straight_node->location[1];
@@ -2946,8 +2946,8 @@ static void do_version_alpha_over_remove_premultiply(bNodeTree *node_tree)
         CMP_NODE_ALPHA_CONVERT_PREMULTIPLY;
 
     version_node_add_link(*node_tree,
-                          *link->fromnode,
-                          *link->fromsock,
+                          *link.fromnode,
+                          *link.fromsock,
                           *to_premultiplied_node,
                           *to_premultiplied_input);
     version_node_add_link(*node_tree,
@@ -2959,16 +2959,16 @@ static void do_version_alpha_over_remove_premultiply(bNodeTree *node_tree)
         *node_tree, *to_premultiplied_node, *to_premultiplied_output, *mix_node, *mix_b_input);
     version_node_add_link(
         *node_tree, *to_straight_node, *to_straight_output, *mix_node, *mix_a_input);
-    version_node_add_link(*node_tree, *mix_node, *mix_output, *link->tonode, *link->tosock);
+    version_node_add_link(*node_tree, *mix_node, *mix_output, *link.tonode, *link.tosock);
 
-    blender::bke::node_remove_link(node_tree, *link);
+    blender::bke::node_remove_link(node_tree, link);
   }
 
-  LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-    if (node->type_legacy == CMP_NODE_ALPHAOVER) {
-      NodeTwoFloats *storage = static_cast<NodeTwoFloats *>(node->storage);
+  for (bNode &node : node_tree->nodes) {
+    if (node.type_legacy == CMP_NODE_ALPHAOVER) {
+      NodeTwoFloats *storage = static_cast<NodeTwoFloats *>(node.storage);
       MEM_freeN(storage);
-      node->storage = nullptr;
+      node.storage = nullptr;
     }
   }
 }
@@ -3057,28 +3057,28 @@ static void do_version_bokeh_blur_node_options_to_inputs_animation(bNodeTree *no
  * and Y, so add a Translate node to achieve the same function. */
 static void do_version_scale_node_remove_translate(bNodeTree *node_tree)
 {
-  LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &node_tree->links) {
-    if (link->fromnode->type_legacy != CMP_NODE_SCALE) {
+  for (bNodeLink &link : node_tree->links.items_reversed_mutable()) {
+    if (link.fromnode->type_legacy != CMP_NODE_SCALE) {
       continue;
     }
 
-    if (link->fromnode->custom1 != CMP_NODE_SCALE_RENDER_SIZE) {
+    if (link.fromnode->custom1 != CMP_NODE_SCALE_RENDER_SIZE) {
       continue;
     }
 
-    const float x = link->fromnode->custom3;
-    const float y = link->fromnode->custom4;
+    const float x = link.fromnode->custom3;
+    const float y = link.fromnode->custom4;
     if (x == 0.0f && y == 0.0f) {
       continue;
     }
 
     bNode *translate_node = blender::bke::node_add_static_node(
         nullptr, *node_tree, CMP_NODE_TRANSLATE);
-    translate_node->parent = link->fromnode->parent;
-    translate_node->location[0] = link->fromnode->location[0] + link->fromnode->width + 20.0f;
-    translate_node->location[1] = link->fromnode->location[1];
+    translate_node->parent = link.fromnode->parent;
+    translate_node->location[0] = link.fromnode->location[0] + link.fromnode->width + 20.0f;
+    translate_node->location[1] = link.fromnode->location[1];
     static_cast<NodeTranslateData *>(translate_node->storage)->interpolation =
-        static_cast<NodeScaleData *>(link->fromnode->storage)->interpolation;
+        static_cast<NodeScaleData *>(link.fromnode->storage)->interpolation;
     static_cast<NodeTranslateData *>(translate_node->storage)->relative = true;
 
     bNodeSocket *translate_image_input = blender::bke::node_find_socket(
@@ -3092,11 +3092,11 @@ static void do_version_scale_node_remove_translate(bNodeTree *node_tree)
     translate_y_input->default_value_typed<bNodeSocketValueFloat>()->value = y;
 
     version_node_add_link(
-        *node_tree, *link->fromnode, *link->fromsock, *translate_node, *translate_image_input);
+        *node_tree, *link.fromnode, *link.fromsock, *translate_node, *translate_image_input);
     version_node_add_link(
-        *node_tree, *translate_node, *translate_image_output, *link->tonode, *link->tosock);
+        *node_tree, *translate_node, *translate_image_output, *link.tonode, *link.tosock);
 
-    blender::bke::node_remove_link(node_tree, *link);
+    blender::bke::node_remove_link(node_tree, link);
   }
 }
 
@@ -3129,31 +3129,31 @@ static void version_escape_curly_braces(char string[], const int string_array_le
  * the node to perform the adjustment in sRGB space. */
 static void do_version_blur_defocus_nodes_remove_gamma(bNodeTree *node_tree)
 {
-  LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &node_tree->links) {
-    if (!ELEM(link->tonode->type_legacy, CMP_NODE_BLUR, CMP_NODE_DEFOCUS)) {
+  for (bNodeLink &link : node_tree->links.items_reversed_mutable()) {
+    if (!ELEM(link.tonode->type_legacy, CMP_NODE_BLUR, CMP_NODE_DEFOCUS)) {
       continue;
     }
 
-    if (link->tonode->type_legacy == CMP_NODE_BLUR &&
-        !bool(static_cast<NodeBlurData *>(link->tonode->storage)->gamma))
+    if (link.tonode->type_legacy == CMP_NODE_BLUR &&
+        !bool(static_cast<NodeBlurData *>(link.tonode->storage)->gamma))
     {
       continue;
     }
 
-    if (link->tonode->type_legacy == CMP_NODE_DEFOCUS &&
-        !bool(static_cast<NodeDefocus *>(link->tonode->storage)->gamco))
+    if (link.tonode->type_legacy == CMP_NODE_DEFOCUS &&
+        !bool(static_cast<NodeDefocus *>(link.tonode->storage)->gamco))
     {
       continue;
     }
 
-    if (blender::StringRef(link->tosock->identifier) != "Image") {
+    if (blender::StringRef(link.tosock->identifier) != "Image") {
       continue;
     }
 
     bNode *gamma_node = blender::bke::node_add_static_node(nullptr, *node_tree, SH_NODE_GAMMA);
-    gamma_node->parent = link->tonode->parent;
-    gamma_node->location[0] = link->tonode->location[0] - link->tonode->width - 20.0f;
-    gamma_node->location[1] = link->tonode->location[1];
+    gamma_node->parent = link.tonode->parent;
+    gamma_node->location[0] = link.tonode->location[0] - link.tonode->width - 20.0f;
+    gamma_node->location[1] = link.tonode->location[1];
 
     bNodeSocket *color_input = blender::bke::node_find_socket(*gamma_node, SOCK_IN, "Color");
     bNodeSocket *color_output = blender::bke::node_find_socket(*gamma_node, SOCK_OUT, "Color");
@@ -3161,33 +3161,33 @@ static void do_version_blur_defocus_nodes_remove_gamma(bNodeTree *node_tree)
     bNodeSocket *gamma_input = blender::bke::node_find_socket(*gamma_node, SOCK_IN, "Gamma");
     gamma_input->default_value_typed<bNodeSocketValueFloat>()->value = 2.0f;
 
-    version_node_add_link(*node_tree, *link->fromnode, *link->fromsock, *gamma_node, *color_input);
-    version_node_add_link(*node_tree, *gamma_node, *color_output, *link->tonode, *link->tosock);
+    version_node_add_link(*node_tree, *link.fromnode, *link.fromsock, *gamma_node, *color_input);
+    version_node_add_link(*node_tree, *gamma_node, *color_output, *link.tonode, *link.tosock);
 
-    blender::bke::node_remove_link(node_tree, *link);
+    blender::bke::node_remove_link(node_tree, link);
   }
 
-  LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &node_tree->links) {
-    if (!ELEM(link->fromnode->type_legacy, CMP_NODE_BLUR, CMP_NODE_DEFOCUS)) {
+  for (bNodeLink &link : node_tree->links.items_reversed_mutable()) {
+    if (!ELEM(link.fromnode->type_legacy, CMP_NODE_BLUR, CMP_NODE_DEFOCUS)) {
       continue;
     }
 
-    if (link->fromnode->type_legacy == CMP_NODE_BLUR &&
-        !bool(static_cast<NodeBlurData *>(link->fromnode->storage)->gamma))
+    if (link.fromnode->type_legacy == CMP_NODE_BLUR &&
+        !bool(static_cast<NodeBlurData *>(link.fromnode->storage)->gamma))
     {
       continue;
     }
 
-    if (link->fromnode->type_legacy == CMP_NODE_DEFOCUS &&
-        !bool(static_cast<NodeDefocus *>(link->fromnode->storage)->gamco))
+    if (link.fromnode->type_legacy == CMP_NODE_DEFOCUS &&
+        !bool(static_cast<NodeDefocus *>(link.fromnode->storage)->gamco))
     {
       continue;
     }
 
     bNode *gamma_node = blender::bke::node_add_static_node(nullptr, *node_tree, SH_NODE_GAMMA);
-    gamma_node->parent = link->fromnode->parent;
-    gamma_node->location[0] = link->fromnode->location[0] + link->fromnode->width + 20.0f;
-    gamma_node->location[1] = link->fromnode->location[1];
+    gamma_node->parent = link.fromnode->parent;
+    gamma_node->location[0] = link.fromnode->location[0] + link.fromnode->width + 20.0f;
+    gamma_node->location[1] = link.fromnode->location[1];
 
     bNodeSocket *color_input = blender::bke::node_find_socket(*gamma_node, SOCK_IN, "Color");
     bNodeSocket *color_output = blender::bke::node_find_socket(*gamma_node, SOCK_OUT, "Color");
@@ -3195,10 +3195,10 @@ static void do_version_blur_defocus_nodes_remove_gamma(bNodeTree *node_tree)
     bNodeSocket *gamma_input = blender::bke::node_find_socket(*gamma_node, SOCK_IN, "Gamma");
     gamma_input->default_value_typed<bNodeSocketValueFloat>()->value = 0.5f;
 
-    version_node_add_link(*node_tree, *link->fromnode, *link->fromsock, *gamma_node, *color_input);
-    version_node_add_link(*node_tree, *gamma_node, *color_output, *link->tonode, *link->tosock);
+    version_node_add_link(*node_tree, *link.fromnode, *link.fromsock, *gamma_node, *color_input);
+    version_node_add_link(*node_tree, *gamma_node, *color_output, *link.tonode, *link.tosock);
 
-    blender::bke::node_remove_link(node_tree, *link);
+    blender::bke::node_remove_link(node_tree, link);
   }
 }
 
@@ -3214,17 +3214,17 @@ static void version_escape_curly_braces_in_compositor_file_output_nodes(bNodeTre
     return;
   }
 
-  LISTBASE_FOREACH (bNode *, node, &nodetree.nodes) {
-    if (!STREQ(node->idname, "CompositorNodeOutputFile")) {
+  for (bNode &node : nodetree.nodes) {
+    if (!STREQ(node.idname, "CompositorNodeOutputFile")) {
       continue;
     }
 
-    NodeCompositorFileOutput *node_data = static_cast<NodeCompositorFileOutput *>(node->storage);
+    NodeCompositorFileOutput *node_data = static_cast<NodeCompositorFileOutput *>(node.storage);
     version_escape_curly_braces(node_data->directory, FILE_MAX);
 
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
+    for (bNodeSocket &sock : node.inputs) {
       NodeImageMultiFileSocket *socket_data = static_cast<NodeImageMultiFileSocket *>(
-          sock->storage);
+          sock.storage);
       version_escape_curly_braces(socket_data->path, FILE_MAX);
     }
   }
@@ -3234,12 +3234,12 @@ static void version_escape_curly_braces_in_compositor_file_output_nodes(bNodeTre
  * convert relative values to pixel values. */
 static void do_version_translate_node_remove_relative(bNodeTree *node_tree)
 {
-  LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-    if (!STREQ(node->idname, "CompositorNodeTranslate")) {
+  for (bNode &node : node_tree->nodes) {
+    if (!STREQ(node.idname, "CompositorNodeTranslate")) {
       continue;
     }
 
-    const NodeTranslateData *data = static_cast<NodeTranslateData *>(node->storage);
+    const NodeTranslateData *data = static_cast<NodeTranslateData *>(node.storage);
     if (!data) {
       continue;
     }
@@ -3252,21 +3252,21 @@ static void do_version_translate_node_remove_relative(bNodeTree *node_tree)
     bNodeLink *image_link = nullptr;
     bNodeLink *x_link = nullptr;
     bNodeLink *y_link = nullptr;
-    LISTBASE_FOREACH (bNodeLink *, link, &node_tree->links) {
-      if (link->tonode != node) {
+    for (bNodeLink &link : node_tree->links) {
+      if (link.tonode != &node) {
         continue;
       }
 
-      if (blender::StringRef(link->tosock->identifier) == "Image") {
-        image_link = link;
+      if (blender::StringRef(link.tosock->identifier) == "Image") {
+        image_link = &link;
       }
 
-      if (blender::StringRef(link->tosock->identifier) == "X") {
-        x_link = link;
+      if (blender::StringRef(link.tosock->identifier) == "X") {
+        x_link = &link;
       }
 
-      if (blender::StringRef(link->tosock->identifier) == "Y") {
-        y_link = link;
+      if (blender::StringRef(link.tosock->identifier) == "Y") {
+        y_link = &link;
       }
     }
 
@@ -3279,9 +3279,9 @@ static void do_version_translate_node_remove_relative(bNodeTree *node_tree)
      * X translation input. */
     bNode *x_relative_to_pixel_node = blender::bke::node_add_node(
         nullptr, *node_tree, "CompositorNodeRelativeToPixel");
-    x_relative_to_pixel_node->parent = node->parent;
-    x_relative_to_pixel_node->location[0] = node->location[0] - node->width - 20.0f;
-    x_relative_to_pixel_node->location[1] = node->location[1];
+    x_relative_to_pixel_node->parent = node.parent;
+    x_relative_to_pixel_node->location[0] = node.location[0] - node.width - 20.0f;
+    x_relative_to_pixel_node->location[1] = node.location[1];
 
     x_relative_to_pixel_node->custom1 = CMP_NODE_RELATIVE_TO_PIXEL_DATA_TYPE_FLOAT;
     x_relative_to_pixel_node->custom2 = CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_X;
@@ -3293,11 +3293,11 @@ static void do_version_translate_node_remove_relative(bNodeTree *node_tree)
     bNodeSocket *x_value_output = blender::bke::node_find_socket(
         *x_relative_to_pixel_node, SOCK_OUT, "Float Value");
 
-    bNodeSocket *x_input = blender::bke::node_find_socket(*node, SOCK_IN, "X");
+    bNodeSocket *x_input = blender::bke::node_find_socket(node, SOCK_IN, "X");
     x_value_input->default_value_typed<bNodeSocketValueFloat>()->value =
         x_input->default_value_typed<bNodeSocketValueFloat>()->value;
 
-    version_node_add_link(*node_tree, *x_relative_to_pixel_node, *x_value_output, *node, *x_input);
+    version_node_add_link(*node_tree, *x_relative_to_pixel_node, *x_value_output, node, *x_input);
     version_node_add_link(*node_tree,
                           *image_link->fromnode,
                           *image_link->fromsock,
@@ -3317,9 +3317,9 @@ static void do_version_translate_node_remove_relative(bNodeTree *node_tree)
      * Y translation input. */
     bNode *y_relative_to_pixel_node = blender::bke::node_add_node(
         nullptr, *node_tree, "CompositorNodeRelativeToPixel");
-    y_relative_to_pixel_node->parent = node->parent;
-    y_relative_to_pixel_node->location[0] = node->location[0] - node->width - 20.0f;
-    y_relative_to_pixel_node->location[1] = node->location[1] - 20.0f;
+    y_relative_to_pixel_node->parent = node.parent;
+    y_relative_to_pixel_node->location[0] = node.location[0] - node.width - 20.0f;
+    y_relative_to_pixel_node->location[1] = node.location[1] - 20.0f;
 
     y_relative_to_pixel_node->custom1 = CMP_NODE_RELATIVE_TO_PIXEL_DATA_TYPE_FLOAT;
     y_relative_to_pixel_node->custom2 = CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_Y;
@@ -3331,11 +3331,11 @@ static void do_version_translate_node_remove_relative(bNodeTree *node_tree)
     bNodeSocket *y_value_output = blender::bke::node_find_socket(
         *y_relative_to_pixel_node, SOCK_OUT, "Float Value");
 
-    bNodeSocket *y_input = blender::bke::node_find_socket(*node, SOCK_IN, "Y");
+    bNodeSocket *y_input = blender::bke::node_find_socket(node, SOCK_IN, "Y");
     y_value_input->default_value_typed<bNodeSocketValueFloat>()->value =
         y_input->default_value_typed<bNodeSocketValueFloat>()->value;
 
-    version_node_add_link(*node_tree, *y_relative_to_pixel_node, *y_value_output, *node, *y_input);
+    version_node_add_link(*node_tree, *y_relative_to_pixel_node, *y_value_output, node, *y_input);
     version_node_add_link(*node_tree,
                           *image_link->fromnode,
                           *image_link->fromsock,
@@ -3394,13 +3394,13 @@ static void do_version_crop_node_options_to_inputs(bNodeTree *node_tree, bNode *
 
   /* Find links going into the node. */
   bNodeLink *image_link = nullptr;
-  LISTBASE_FOREACH (bNodeLink *, link, &node_tree->links) {
-    if (link->tonode != node) {
+  for (bNodeLink &link : node_tree->links) {
+    if (link.tonode != node) {
       continue;
     }
 
-    if (blender::StringRef(link->tosock->identifier) == "Image") {
-      image_link = link;
+    if (blender::StringRef(link.tosock->identifier) == "Image") {
+      image_link = &link;
     }
   }
 
@@ -3718,29 +3718,29 @@ static void do_version_color_balance_node_options_to_inputs_animation(bNodeTree 
  * Texture Coordinates node and use it instead. */
 static void do_version_replace_image_info_node_coordinates(bNodeTree *node_tree)
 {
-  LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-    if (!STREQ(node->idname, "CompositorNodeImageInfo")) {
+  for (bNode &node : node_tree->nodes) {
+    if (!STREQ(node.idname, "CompositorNodeImageInfo")) {
       continue;
     }
 
     bNodeLink *input_link = nullptr;
     bNodeLink *output_texture_link = nullptr;
     bNodeLink *output_pixel_link = nullptr;
-    LISTBASE_FOREACH (bNodeLink *, link, &node_tree->links) {
-      if (link->tonode == node) {
-        input_link = link;
+    for (bNodeLink &link : node_tree->links) {
+      if (link.tonode == &node) {
+        input_link = &link;
       }
 
-      if (link->fromnode == node &&
-          blender::StringRef(link->fromsock->identifier) == "Texture Coordinates")
+      if (link.fromnode == &node &&
+          blender::StringRef(link.fromsock->identifier) == "Texture Coordinates")
       {
-        output_texture_link = link;
+        output_texture_link = &link;
       }
 
-      if (link->fromnode == node &&
-          blender::StringRef(link->fromsock->identifier) == "Pixel Coordinates")
+      if (link.fromnode == &node &&
+          blender::StringRef(link.fromsock->identifier) == "Pixel Coordinates")
       {
-        output_pixel_link = link;
+        output_pixel_link = &link;
       }
     }
 
@@ -3750,9 +3750,9 @@ static void do_version_replace_image_info_node_coordinates(bNodeTree *node_tree)
 
     bNode *image_coordinates_node = blender::bke::node_add_node(
         nullptr, *node_tree, "CompositorNodeImageCoordinates");
-    image_coordinates_node->parent = node->parent;
-    image_coordinates_node->location[0] = node->location[0];
-    image_coordinates_node->location[1] = node->location[1] - node->height - 10.0f;
+    image_coordinates_node->parent = node.parent;
+    image_coordinates_node->location[0] = node.location[0];
+    image_coordinates_node->location[1] = node.location[1] - node.height - 10.0f;
 
     if (input_link) {
       bNodeSocket *image_input = blender::bke::node_find_socket(
@@ -3811,15 +3811,15 @@ static void do_version_vector_sockets_dimensions(bNodeTree *node_tree)
     return true;
   });
 
-  LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-    LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-      if (socket->type == SOCK_VECTOR) {
-        socket->default_value_typed<bNodeSocketValueVector>()->dimensions = 3;
+  for (bNode &node : node_tree->nodes) {
+    for (bNodeSocket &socket : node.inputs) {
+      if (socket.type == SOCK_VECTOR) {
+        socket.default_value_typed<bNodeSocketValueVector>()->dimensions = 3;
       }
     }
-    LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-      if (socket->type == SOCK_VECTOR) {
-        socket->default_value_typed<bNodeSocketValueVector>()->dimensions = 3;
+    for (bNodeSocket &socket : node.outputs) {
+      if (socket.type == SOCK_VECTOR) {
+        socket.default_value_typed<bNodeSocketValueVector>()->dimensions = 3;
       }
     }
   }
@@ -3857,17 +3857,17 @@ static void do_version_blur_node_options_to_inputs(bNodeTree *node_tree, bNode *
   /* Find links going into the node. */
   bNodeLink *image_link = nullptr;
   bNodeLink *size_link = nullptr;
-  LISTBASE_FOREACH (bNodeLink *, link, &node_tree->links) {
-    if (link->tonode != node) {
+  for (bNodeLink &link : node_tree->links) {
+    if (link.tonode != node) {
       continue;
     }
 
-    if (blender::StringRef(link->tosock->identifier) == "Image") {
-      image_link = link;
+    if (blender::StringRef(link.tosock->identifier) == "Image") {
+      image_link = &link;
     }
 
-    if (blender::StringRef(link->tosock->identifier) == "Size") {
-      size_link = link;
+    if (blender::StringRef(link.tosock->identifier) == "Size") {
+      size_link = &link;
     }
   }
 
@@ -4063,18 +4063,18 @@ static void do_version_flip_node_options_to_inputs(bNodeTree *node_tree, bNode *
 static void clamp_subdivision_node_level_input(bNodeTree &tree)
 {
   blender::Map<bNodeSocket *, bNodeLink *> links_to_level_and_max_inputs;
-  LISTBASE_FOREACH (bNodeLink *, link, &tree.links) {
-    if (link->tosock) {
-      if (ELEM(blender::StringRef(link->tosock->identifier), "Level", "Max")) {
-        links_to_level_and_max_inputs.add(link->tosock, link);
+  for (bNodeLink &link : tree.links) {
+    if (link.tosock) {
+      if (ELEM(blender::StringRef(link.tosock->identifier), "Level", "Max")) {
+        links_to_level_and_max_inputs.add(link.tosock, &link);
       }
     }
   }
-  LISTBASE_FOREACH_MUTABLE (bNode *, node, &tree.nodes) {
-    if (!ELEM(node->type_legacy, GEO_NODE_SUBDIVISION_SURFACE, GEO_NODE_SUBDIVIDE_MESH)) {
+  for (bNode &node : tree.nodes.items_mutable()) {
+    if (!ELEM(node.type_legacy, GEO_NODE_SUBDIVISION_SURFACE, GEO_NODE_SUBDIVIDE_MESH)) {
       continue;
     }
-    bNodeSocket *level_input = blender::bke::node_find_socket(*node, SOCK_IN, "Level");
+    bNodeSocket *level_input = blender::bke::node_find_socket(node, SOCK_IN, "Level");
     if (!level_input || level_input->type != SOCK_INT) {
       continue;
     }
@@ -4095,9 +4095,9 @@ static void clamp_subdivision_node_level_input(bNodeTree &tree)
       }
       /* Insert clamp node. */
       bNode &clamp_node = version_node_add_empty(tree, "ShaderNodeClamp");
-      clamp_node.parent = node->parent;
-      clamp_node.location[0] = node->location[0] - 25;
-      clamp_node.location[1] = node->location[1];
+      clamp_node.parent = node.parent;
+      clamp_node.location[0] = node.location[0] - 25;
+      clamp_node.location[1] = node.location[1];
       bNodeSocket &clamp_value_input = version_node_add_socket(
           tree, clamp_node, SOCK_IN, "NodeSocketFloat", "Value");
       bNodeSocket &clamp_min_input = version_node_add_socket(
@@ -4111,7 +4111,7 @@ static void clamp_subdivision_node_level_input(bNodeTree &tree)
       static_cast<bNodeSocketValueFloat *>(clamp_max_input.default_value)->value = 11.0f;
 
       link->tosock = &clamp_value_input;
-      version_node_add_link(tree, clamp_node, clamp_value_output, *node, *level_input);
+      version_node_add_link(tree, clamp_node, clamp_value_output, node, *level_input);
     }
     else {
       /* Clamp value directly. */
@@ -4141,8 +4141,8 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
    * F-Curves of all Actions, and resolving them all to their RNA properties), it will be skipped
    * if the blend file is old enough to not be affected. */
   if (MAIN_VERSION_FILE_ATLEAST(bmain, 404, 0) && !MAIN_VERSION_FILE_ATLEAST(bmain, 405, 13)) {
-    LISTBASE_FOREACH (bAction *, dna_action, &bmain->actions) {
-      blender::animrig::Action &action = dna_action->wrap();
+    for (bAction &dna_action : bmain->actions) {
+      blender::animrig::Action &action = dna_action.wrap();
       for (const blender::animrig::Slot *slot : action.slots()) {
         blender::Span<ID *> slot_users = slot->users(*bmain);
         if (slot_users.is_empty()) {
@@ -4175,18 +4175,18 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 32) ||
       (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 14) && bmain->versionfile >= 405))
   {
-    LISTBASE_FOREACH (bAction *, dna_action, &bmain->actions) {
-      blender::animrig::Action &action = dna_action->wrap();
+    for (bAction &dna_action : bmain->actions) {
+      blender::animrig::Action &action = dna_action.wrap();
       blender::animrig::foreach_fcurve_in_action(
           action, [&](FCurve &fcurve) { version_fix_fcurve_noise_offset(fcurve); });
     }
 
     BKE_animdata_main_cb(bmain, [](ID * /* id */, AnimData *adt) {
-      LISTBASE_FOREACH (FCurve *, fcurve, &adt->drivers) {
-        version_fix_fcurve_noise_offset(*fcurve);
+      for (FCurve &fcurve : adt->drivers) {
+        version_fix_fcurve_noise_offset(fcurve);
       }
-      LISTBASE_FOREACH (NlaTrack *, track, &adt->nla_tracks) {
-        nlastrips_apply_fcurve_versioning(track->strips);
+      for (NlaTrack &track : adt->nla_tracks) {
+        nlastrips_apply_fcurve_versioning(track.strips);
       }
     });
   }
@@ -4194,9 +4194,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 20)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_GLARE) {
-            do_version_glare_node_star_45_option_to_input_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_GLARE) {
+            do_version_glare_node_star_45_option_to_input_animation(node_tree, &node);
           }
         }
       }
@@ -4207,9 +4207,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 22)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_BOKEHIMAGE) {
-            do_version_bokeh_image_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_BOKEHIMAGE) {
+            do_version_bokeh_image_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4220,9 +4220,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 23)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_TIME) {
-            do_version_time_curve_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_TIME) {
+            do_version_time_curve_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4233,9 +4233,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 24)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_MASK) {
-            do_version_mask_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_MASK) {
+            do_version_mask_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4246,9 +4246,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 25)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_SWITCH) {
-            do_version_switch_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_SWITCH) {
+            do_version_switch_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4259,9 +4259,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 26)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_SPLIT) {
-            do_version_split_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_SPLIT) {
+            do_version_split_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4272,9 +4272,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 27)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_INVERT) {
-            do_version_invert_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_INVERT) {
+            do_version_invert_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4285,9 +4285,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 28)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_ZCOMBINE) {
-            do_version_z_combine_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_ZCOMBINE) {
+            do_version_z_combine_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4298,9 +4298,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 29)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_TONEMAP) {
-            do_version_tone_map_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_TONEMAP) {
+            do_version_tone_map_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4311,9 +4311,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 30)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_DILATEERODE) {
-            do_version_dilate_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_DILATEERODE) {
+            do_version_dilate_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4324,9 +4324,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 31)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_INPAINT) {
-            do_version_inpaint_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_INPAINT) {
+            do_version_inpaint_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4337,9 +4337,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 32)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_PIXELATE) {
-            do_version_pixelate_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_PIXELATE) {
+            do_version_pixelate_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4350,9 +4350,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 33)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_KUWAHARA) {
-            do_version_kuwahara_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_KUWAHARA) {
+            do_version_kuwahara_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4363,9 +4363,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 34)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_DESPECKLE) {
-            do_version_despeckle_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_DESPECKLE) {
+            do_version_despeckle_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4376,9 +4376,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 35)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_DENOISE) {
-            do_version_denoise_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_DENOISE) {
+            do_version_denoise_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4389,9 +4389,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 36)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_ANTIALIASING) {
-            do_version_anti_alias_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_ANTIALIASING) {
+            do_version_anti_alias_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4402,9 +4402,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 37)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_VECBLUR) {
-            do_version_vector_blur_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_VECBLUR) {
+            do_version_vector_blur_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4415,9 +4415,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 38)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_CHANNEL_MATTE) {
-            do_version_channel_matte_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_CHANNEL_MATTE) {
+            do_version_channel_matte_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4428,9 +4428,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 39)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_CHROMA_MATTE) {
-            do_version_chroma_matte_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_CHROMA_MATTE) {
+            do_version_chroma_matte_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4441,9 +4441,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 40)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_COLOR_MATTE) {
-            do_version_color_matte_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_COLOR_MATTE) {
+            do_version_color_matte_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4454,9 +4454,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 41)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_DIFF_MATTE) {
-            do_version_difference_matte_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_DIFF_MATTE) {
+            do_version_difference_matte_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4467,9 +4467,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 42)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_DIST_MATTE) {
-            do_version_distance_matte_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_DIST_MATTE) {
+            do_version_distance_matte_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4480,9 +4480,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 43)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_LUMA_MATTE) {
-            do_version_luminance_matte_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_LUMA_MATTE) {
+            do_version_luminance_matte_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4493,9 +4493,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 44)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_COLOR_SPILL) {
-            do_version_color_spill_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_COLOR_SPILL) {
+            do_version_color_spill_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4506,9 +4506,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 45)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_KEYINGSCREEN) {
-            do_version_keying_screen_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_KEYINGSCREEN) {
+            do_version_keying_screen_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4519,9 +4519,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 47)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_KEYING) {
-            do_version_keying_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_KEYING) {
+            do_version_keying_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4532,9 +4532,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 48)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_ID_MASK) {
-            do_version_id_mask_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_ID_MASK) {
+            do_version_id_mask_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4545,9 +4545,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 49)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_STABILIZE2D) {
-            do_version_stabilize_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_STABILIZE2D) {
+            do_version_stabilize_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4558,9 +4558,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 50)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_PLANETRACKDEFORM) {
-            do_version_plane_track_deform_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_PLANETRACKDEFORM) {
+            do_version_plane_track_deform_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4571,9 +4571,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 52)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_COLORCORRECTION) {
-            do_version_color_correction_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_COLORCORRECTION) {
+            do_version_color_correction_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4584,9 +4584,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 53)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_LENSDIST) {
-            do_version_lens_distortion_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_LENSDIST) {
+            do_version_lens_distortion_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4597,9 +4597,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 54)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_MASK_BOX) {
-            do_version_box_mask_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_MASK_BOX) {
+            do_version_box_mask_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4610,9 +4610,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 55)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_MASK_ELLIPSE) {
-            do_version_ellipse_mask_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_MASK_ELLIPSE) {
+            do_version_ellipse_mask_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4623,9 +4623,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 58)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_SUNBEAMS_DEPRECATED) {
-            do_version_sun_beams_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_SUNBEAMS_DEPRECATED) {
+            do_version_sun_beams_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4636,9 +4636,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 59)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_DBLUR) {
-            do_version_directional_blur_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_DBLUR) {
+            do_version_directional_blur_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4649,9 +4649,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 60)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_BILATERALBLUR) {
-            do_version_bilateral_blur_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_BILATERALBLUR) {
+            do_version_bilateral_blur_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4662,9 +4662,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 64)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_ALPHAOVER) {
-            do_version_alpha_over_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_ALPHAOVER) {
+            do_version_alpha_over_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4675,9 +4675,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 69)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_BOKEHBLUR) {
-            do_version_bokeh_blur_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_BOKEHBLUR) {
+            do_version_bokeh_blur_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4688,9 +4688,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 75)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_CROP) {
-            do_version_crop_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_CROP) {
+            do_version_crop_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4700,20 +4700,20 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 76)) {
     ToolSettings toolsettings_default = {};
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      scene->toolsettings->snap_playhead_mode = toolsettings_default.snap_playhead_mode;
-      scene->toolsettings->snap_step_frames = toolsettings_default.snap_step_frames;
-      scene->toolsettings->snap_step_seconds = toolsettings_default.snap_step_seconds;
-      scene->toolsettings->playhead_snap_distance = toolsettings_default.playhead_snap_distance;
+    for (Scene &scene : bmain->scenes) {
+      scene.toolsettings->snap_playhead_mode = toolsettings_default.snap_playhead_mode;
+      scene.toolsettings->snap_step_frames = toolsettings_default.snap_step_frames;
+      scene.toolsettings->snap_step_seconds = toolsettings_default.snap_step_seconds;
+      scene.toolsettings->playhead_snap_distance = toolsettings_default.playhead_snap_distance;
     }
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 77)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_COLORBALANCE) {
-            do_version_color_balance_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_COLORBALANCE) {
+            do_version_color_balance_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4724,9 +4724,9 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 80)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_BLUR) {
-            do_version_blur_node_options_to_inputs_animation(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_BLUR) {
+            do_version_blur_node_options_to_inputs_animation(node_tree, &node);
           }
         }
       }
@@ -4735,13 +4735,13 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 84)) {
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      do_init_default_jitter_curves_in_unified_paint_settings(scene->toolsettings);
+    for (Scene &scene : bmain->scenes) {
+      do_init_default_jitter_curves_in_unified_paint_settings(scene.toolsettings);
     }
 
-    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-      if (brush->gpencil_settings) {
-        do_convert_gp_jitter_flags(brush);
+    for (Brush &brush : bmain->brushes) {
+      if (brush.gpencil_settings) {
+        do_convert_gp_jitter_flags(&brush);
       }
     }
   }
@@ -4758,9 +4758,9 @@ static void do_version_node_curve_to_mesh_scale_input(bNodeTree *tree)
 {
   using namespace blender;
   Set<bNode *> curve_to_mesh_nodes;
-  LISTBASE_FOREACH (bNode *, node, &tree->nodes) {
-    if (STREQ(node->idname, "GeometryNodeCurveToMesh")) {
-      curve_to_mesh_nodes.add(node);
+  for (bNode &node : tree->nodes) {
+    if (STREQ(node.idname, "GeometryNodeCurveToMesh")) {
+      curve_to_mesh_nodes.add(&node);
     }
   }
 
@@ -4855,23 +4855,22 @@ static bool strip_effect_overdrop_to_alphaover(Strip *strip, void * /*user_data*
 
 static void version_sequencer_update_overdrop(Main *bmain)
 {
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    if (scene->ed != nullptr) {
-      blender::seq::foreach_strip(
-          &scene->ed->seqbase, strip_effect_overdrop_to_alphaover, nullptr);
+  for (Scene &scene : bmain->scenes) {
+    if (scene.ed != nullptr) {
+      blender::seq::foreach_strip(&scene.ed->seqbase, strip_effect_overdrop_to_alphaover, nullptr);
     }
   }
 }
 
 static void asset_browser_add_list_view(Main *bmain)
 {
-  LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-        if (sl->spacetype != SPACE_FILE) {
+  for (bScreen &screen : bmain->screens) {
+    for (ScrArea &area : screen.areabase) {
+      for (SpaceLink &sl : area.spacedata) {
+        if (sl.spacetype != SPACE_FILE) {
           continue;
         }
-        SpaceFile *sfile = reinterpret_cast<SpaceFile *>(sl);
+        SpaceFile *sfile = reinterpret_cast<SpaceFile *>(&sl);
         if (sfile->params) {
           if (sfile->params->list_thumbnail_size == 0) {
             sfile->params->list_thumbnail_size = 16;
@@ -4896,11 +4895,11 @@ static void asset_browser_add_list_view(Main *bmain)
 
 static void version_show_texpaint_to_show_uv(Main *bmain)
 {
-  LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-        if (sl->spacetype == SPACE_IMAGE) {
-          SpaceImage *sima = reinterpret_cast<SpaceImage *>(sl);
+  for (bScreen &screen : bmain->screens) {
+    for (ScrArea &area : screen.areabase) {
+      for (SpaceLink &sl : area.spacedata) {
+        if (sl.spacetype == SPACE_IMAGE) {
+          SpaceImage *sima = reinterpret_cast<SpaceImage *>(&sl);
           if (sima->flag & SI_NO_DRAW_TEXPAINT) {
             sima->flag |= SI_NO_DRAW_UV_GUIDE;
           }
@@ -4912,13 +4911,13 @@ static void version_show_texpaint_to_show_uv(Main *bmain)
 
 static void version_set_uv_face_overlay_defaults(Main *bmain)
 {
-  LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-        if (sl->spacetype == SPACE_IMAGE) {
-          SpaceImage *sima = reinterpret_cast<SpaceImage *>(sl);
+  for (bScreen &screen : bmain->screens) {
+    for (ScrArea &area : screen.areabase) {
+      for (SpaceLink &sl : area.spacedata) {
+        if (sl.spacetype == SPACE_IMAGE) {
+          SpaceImage *sima = reinterpret_cast<SpaceImage *>(&sl);
           /* Remove ID Code from screen name */
-          const char *workspace_name = screen->id.name + 2;
+          const char *workspace_name = screen.id.name + 2;
           /* Don't set uv_face_opacity for Texture Paint or Shading since these are workspaces
            * where it's important to have unobstructed view of the Image Editor to see Image
            * Textures. UV Editing is the only other default workspace with an Image Editor. */
@@ -4933,33 +4932,33 @@ static void version_set_uv_face_overlay_defaults(Main *bmain)
 
 static void version_convert_sculpt_planar_brushes(Main *bmain)
 {
-  LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-    if (ELEM(brush->sculpt_brush_type,
+  for (Brush &brush : bmain->brushes) {
+    if (ELEM(brush.sculpt_brush_type,
              SCULPT_BRUSH_TYPE_FLATTEN,
              SCULPT_BRUSH_TYPE_FILL,
              SCULPT_BRUSH_TYPE_SCRAPE))
     {
-      if (brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_FLATTEN) {
-        brush->plane_height = 1.0f;
-        brush->plane_depth = 1.0f;
-        brush->area_radius_factor = 1.0f;
-        brush->plane_inversion_mode = BRUSH_PLANE_INVERT_DISPLACEMENT;
+      if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_FLATTEN) {
+        brush.plane_height = 1.0f;
+        brush.plane_depth = 1.0f;
+        brush.area_radius_factor = 1.0f;
+        brush.plane_inversion_mode = BRUSH_PLANE_INVERT_DISPLACEMENT;
       }
 
-      if (brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_FILL) {
-        brush->plane_height = 0.0f;
-        brush->plane_depth = 1.0f;
-        brush->plane_inversion_mode = brush->flag & BRUSH_INVERT_TO_SCRAPE_FILL ?
-                                          BRUSH_PLANE_SWAP_HEIGHT_AND_DEPTH :
-                                          BRUSH_PLANE_INVERT_DISPLACEMENT;
+      if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_FILL) {
+        brush.plane_height = 0.0f;
+        brush.plane_depth = 1.0f;
+        brush.plane_inversion_mode = brush.flag & BRUSH_INVERT_TO_SCRAPE_FILL ?
+                                         BRUSH_PLANE_SWAP_HEIGHT_AND_DEPTH :
+                                         BRUSH_PLANE_INVERT_DISPLACEMENT;
       }
 
-      if (brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_SCRAPE) {
-        brush->plane_height = 1.0f;
-        brush->plane_depth = 0.0f;
-        brush->plane_inversion_mode = brush->flag & BRUSH_INVERT_TO_SCRAPE_FILL ?
-                                          BRUSH_PLANE_SWAP_HEIGHT_AND_DEPTH :
-                                          BRUSH_PLANE_INVERT_DISPLACEMENT;
+      if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_SCRAPE) {
+        brush.plane_height = 1.0f;
+        brush.plane_depth = 0.0f;
+        brush.plane_inversion_mode = brush.flag & BRUSH_INVERT_TO_SCRAPE_FILL ?
+                                         BRUSH_PLANE_SWAP_HEIGHT_AND_DEPTH :
+                                         BRUSH_PLANE_INVERT_DISPLACEMENT;
 
         /* Note, this fix was committed after some users had already run the versioning after
          * 4.5 was released. Since 4.5 is an LTS and will be used for the foreseeable future to
@@ -4973,20 +4972,20 @@ static void version_convert_sculpt_planar_brushes(Main *bmain)
          * some false positives.
          *
          * See #142151 for more details. */
-        brush->plane_offset *= -1.0f;
+        brush.plane_offset *= -1.0f;
       }
 
-      if (brush->flag & BRUSH_PLANE_TRIM) {
-        brush->plane_height *= brush->plane_trim;
-        brush->plane_depth *= brush->plane_trim;
+      if (brush.flag & BRUSH_PLANE_TRIM) {
+        brush.plane_height *= brush.plane_trim;
+        brush.plane_depth *= brush.plane_trim;
       }
 
-      brush->stabilize_normal = (brush->flag & BRUSH_ORIGINAL_NORMAL) ? 1.0f : 0.0f;
-      brush->stabilize_plane = (brush->flag & BRUSH_ORIGINAL_PLANE) ? 1.0f : 0.0f;
-      brush->flag &= ~BRUSH_ORIGINAL_NORMAL;
-      brush->flag &= ~BRUSH_ORIGINAL_PLANE;
+      brush.stabilize_normal = (brush.flag & BRUSH_ORIGINAL_NORMAL) ? 1.0f : 0.0f;
+      brush.stabilize_plane = (brush.flag & BRUSH_ORIGINAL_PLANE) ? 1.0f : 0.0f;
+      brush.flag &= ~BRUSH_ORIGINAL_NORMAL;
+      brush.flag &= ~BRUSH_ORIGINAL_PLANE;
 
-      brush->sculpt_brush_type = SCULPT_BRUSH_TYPE_PLANE;
+      brush.sculpt_brush_type = SCULPT_BRUSH_TYPE_PLANE;
     }
   }
 }
@@ -5012,10 +5011,10 @@ static void node_interface_single_value_to_structure_type(bNodeTreeInterfaceItem
 
 static void version_set_default_bone_drawtype(Main *bmain)
 {
-  LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
+  for (bArmature &arm : bmain->armatures) {
     blender::animrig::ANIM_armature_foreach_bone(
-        &arm->bonebase, [](Bone *bone) { bone->drawtype = ARM_DRAW_TYPE_ARMATURE_DEFINED; });
-    BLI_assert_msg(!arm->edbo, "Armatures should not be saved in edit mode");
+        &arm.bonebase, [](Bone *bone) { bone->drawtype = ARM_DRAW_TYPE_ARMATURE_DEFINED; });
+    BLI_assert_msg(!arm.edbo, "Armatures should not be saved in edit mode");
   }
 }
 
@@ -5036,11 +5035,11 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 5)) {
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      ToolSettings *tool_settings = scene->toolsettings;
+    for (Scene &scene : bmain->scenes) {
+      ToolSettings *tool_settings = scene.toolsettings;
       tool_settings->snap_flag_seq |= SCE_SNAP;
 
-      SequencerToolSettings *sequencer_tool_settings = blender::seq::tool_settings_ensure(scene);
+      SequencerToolSettings *sequencer_tool_settings = blender::seq::tool_settings_ensure(&scene);
       sequencer_tool_settings->snap_mode |= SEQ_SNAP_TO_FRAME_RANGE;
     }
   }
@@ -5050,20 +5049,20 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 7)) {
-    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-      if (ntree->type == NTREE_GEOMETRY) {
-        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (STREQ(node->idname, "GeometryNodeStoreNamedGrid")) {
-            switch (node->custom1) {
+    for (bNodeTree &ntree : bmain->nodetrees) {
+      if (ntree.type == NTREE_GEOMETRY) {
+        for (bNode &node : ntree.nodes) {
+          if (STREQ(node.idname, "GeometryNodeStoreNamedGrid")) {
+            switch (node.custom1) {
               case CD_PROP_FLOAT:
-                node->custom1 = VOLUME_GRID_FLOAT;
+                node.custom1 = VOLUME_GRID_FLOAT;
                 break;
               case CD_PROP_FLOAT2:
               case CD_PROP_FLOAT3:
-                node->custom1 = VOLUME_GRID_VECTOR_FLOAT;
+                node.custom1 = VOLUME_GRID_VECTOR_FLOAT;
                 break;
               default:
-                node->custom1 = VOLUME_GRID_FLOAT;
+                node.custom1 = VOLUME_GRID_FLOAT;
                 break;
             }
           }
@@ -5073,13 +5072,13 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 9)) {
-    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-          if (sl->spacetype != SPACE_FILE) {
+    for (bScreen &screen : bmain->screens) {
+      for (ScrArea &area : screen.areabase) {
+        for (SpaceLink &sl : area.spacedata) {
+          if (sl.spacetype != SPACE_FILE) {
             continue;
           }
-          SpaceFile *sfile = reinterpret_cast<SpaceFile *>(sl);
+          SpaceFile *sfile = reinterpret_cast<SpaceFile *>(&sl);
           if (sfile->asset_params) {
             sfile->asset_params->import_flags |= FILE_ASSET_IMPORT_INSTANCE_COLLECTIONS_ON_LINK;
           }
@@ -5093,26 +5092,26 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       if (ntree->type != NTREE_COMPOSIT) {
         continue;
       }
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type_legacy != CMP_NODE_SCALE) {
+      for (bNode &node : ntree->nodes) {
+        if (node.type_legacy != CMP_NODE_SCALE) {
           continue;
         }
-        if (node->storage != nullptr) {
+        if (node.storage != nullptr) {
           continue;
         }
         NodeScaleData *data = MEM_new_for_free<NodeScaleData>(__func__);
         data->interpolation = CMP_NODE_INTERPOLATION_BILINEAR;
-        node->storage = data;
+        node.storage = data;
       }
     }
     FOREACH_NODETREE_END;
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 16)) {
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      scene->grease_pencil_settings.smaa_threshold_render =
-          scene->grease_pencil_settings.smaa_threshold;
-      scene->grease_pencil_settings.aa_samples = 1;
+    for (Scene &scene : bmain->scenes) {
+      scene.grease_pencil_settings.smaa_threshold_render =
+          scene.grease_pencil_settings.smaa_threshold;
+      scene.grease_pencil_settings.aa_samples = 1;
     }
   }
 
@@ -5124,9 +5123,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 18)) {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type_legacy == CMP_NODE_CORNERPIN) {
-            node->custom1 = CMP_NODE_INTERPOLATION_ANISOTROPIC;
+        for (bNode &node : ntree->nodes) {
+          if (node.type_legacy == CMP_NODE_CORNERPIN) {
+            node.custom1 = CMP_NODE_INTERPOLATION_ANISOTROPIC;
           }
         }
       }
@@ -5135,11 +5134,11 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 19)) {
-    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-          if (sl->spacetype == SPACE_PROPERTIES) {
-            SpaceProperties *sbuts = reinterpret_cast<SpaceProperties *>(sl);
+    for (bScreen &screen : bmain->screens) {
+      for (ScrArea &area : screen.areabase) {
+        for (SpaceLink &sl : area.spacedata) {
+          if (sl.spacetype == SPACE_PROPERTIES) {
+            SpaceProperties *sbuts = reinterpret_cast<SpaceProperties *>(&sl);
             /* Translates to 0xFFFFFFFF, so other tabs can be added without versioning. */
             sbuts->visible_tabs = uint(-1);
           }
@@ -5151,25 +5150,25 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 20)) {
     /* Older files uses non-UTF8 aware string copy, ensure names are valid UTF8.
      * The slot names are not unique so no further changes are needed. */
-    LISTBASE_FOREACH (Image *, image, &bmain->images) {
-      LISTBASE_FOREACH (RenderSlot *, slot, &image->renderslots) {
-        if (slot->name[0]) {
-          BLI_str_utf8_invalid_strip(slot->name, STRNLEN(slot->name));
+    for (Image &image : bmain->images) {
+      for (RenderSlot &slot : image.renderslots) {
+        if (slot.name[0]) {
+          BLI_str_utf8_invalid_strip(slot.name, STRNLEN(slot.name));
         }
       }
     }
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      scene->r.ppm_factor = 72.0f;
-      scene->r.ppm_base = 0.0254f;
+    for (Scene &scene : bmain->scenes) {
+      scene.r.ppm_factor = 72.0f;
+      scene.r.ppm_base = 0.0254f;
     }
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 21)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_GLARE) {
-            do_version_glare_node_star_45_option_to_input(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_GLARE) {
+            do_version_glare_node_star_45_option_to_input(node_tree, &node);
           }
         }
       }
@@ -5180,9 +5179,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 22)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_BOKEHIMAGE) {
-            do_version_bokeh_image_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_BOKEHIMAGE) {
+            do_version_bokeh_image_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5193,9 +5192,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 23)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_TIME) {
-            do_version_time_curve_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_TIME) {
+            do_version_time_curve_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5206,9 +5205,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 24)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_MASK) {
-            do_version_mask_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_MASK) {
+            do_version_mask_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5219,9 +5218,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 25)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_SWITCH) {
-            do_version_switch_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_SWITCH) {
+            do_version_switch_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5232,9 +5231,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 26)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_SPLIT) {
-            do_version_split_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_SPLIT) {
+            do_version_split_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5245,9 +5244,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 27)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_INVERT) {
-            do_version_invert_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_INVERT) {
+            do_version_invert_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5258,9 +5257,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 28)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_ZCOMBINE) {
-            do_version_z_combine_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_ZCOMBINE) {
+            do_version_z_combine_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5271,9 +5270,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 29)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_TONEMAP) {
-            do_version_tone_map_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_TONEMAP) {
+            do_version_tone_map_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5284,9 +5283,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 30)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_DILATEERODE) {
-            do_version_dilate_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_DILATEERODE) {
+            do_version_dilate_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5297,9 +5296,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 31)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_INPAINT) {
-            do_version_inpaint_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_INPAINT) {
+            do_version_inpaint_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5310,9 +5309,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 32)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_PIXELATE) {
-            do_version_pixelate_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_PIXELATE) {
+            do_version_pixelate_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5323,9 +5322,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 33)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_KUWAHARA) {
-            do_version_kuwahara_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_KUWAHARA) {
+            do_version_kuwahara_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5336,9 +5335,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 34)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_DESPECKLE) {
-            do_version_despeckle_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_DESPECKLE) {
+            do_version_despeckle_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5349,9 +5348,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 35)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_DENOISE) {
-            do_version_denoise_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_DENOISE) {
+            do_version_denoise_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5362,9 +5361,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 36)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_ANTIALIASING) {
-            do_version_anti_alias_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_ANTIALIASING) {
+            do_version_anti_alias_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5375,9 +5374,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 37)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_VECBLUR) {
-            do_version_vector_blur_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_VECBLUR) {
+            do_version_vector_blur_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5388,9 +5387,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 38)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_CHANNEL_MATTE) {
-            do_version_channel_matte_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_CHANNEL_MATTE) {
+            do_version_channel_matte_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5401,9 +5400,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 39)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_CHROMA_MATTE) {
-            do_version_chroma_matte_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_CHROMA_MATTE) {
+            do_version_chroma_matte_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5414,9 +5413,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 40)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_COLOR_MATTE) {
-            do_version_color_matte_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_COLOR_MATTE) {
+            do_version_color_matte_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5427,9 +5426,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 41)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_DIFF_MATTE) {
-            do_version_difference_matte_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_DIFF_MATTE) {
+            do_version_difference_matte_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5440,9 +5439,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 42)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_DIST_MATTE) {
-            do_version_distance_matte_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_DIST_MATTE) {
+            do_version_distance_matte_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5453,9 +5452,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 43)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_LUMA_MATTE) {
-            do_version_luminance_matte_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_LUMA_MATTE) {
+            do_version_luminance_matte_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5466,9 +5465,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 44)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_COLOR_SPILL) {
-            do_version_color_spill_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_COLOR_SPILL) {
+            do_version_color_spill_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5479,9 +5478,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 45)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_KEYINGSCREEN) {
-            do_version_keying_screen_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_KEYINGSCREEN) {
+            do_version_keying_screen_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5490,16 +5489,16 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 46)) {
-    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-          if (sl->spacetype == SPACE_SEQ) {
-            ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                             &sl->regionbase;
-            LISTBASE_FOREACH (ARegion *, region, regionbase) {
-              if (region->regiontype == RGN_TYPE_WINDOW) {
-                region->v2d.keepzoom |= V2D_KEEPZOOM;
-                region->v2d.keepofs |= V2D_KEEPOFS_X | V2D_KEEPOFS_Y;
+    for (bScreen &screen : bmain->screens) {
+      for (ScrArea &area : screen.areabase) {
+        for (SpaceLink &sl : area.spacedata) {
+          if (sl.spacetype == SPACE_SEQ) {
+            ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first) ? &area.regionbase :
+                                                                             &sl.regionbase;
+            for (ARegion &region : *regionbase) {
+              if (region.regiontype == RGN_TYPE_WINDOW) {
+                region.v2d.keepzoom |= V2D_KEEPZOOM;
+                region.v2d.keepofs |= V2D_KEEPOFS_X | V2D_KEEPOFS_Y;
               }
             }
           }
@@ -5511,9 +5510,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 47)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_KEYING) {
-            do_version_keying_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_KEYING) {
+            do_version_keying_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5524,9 +5523,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 48)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_ID_MASK) {
-            do_version_id_mask_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_ID_MASK) {
+            do_version_id_mask_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5537,9 +5536,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 49)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_STABILIZE2D) {
-            do_version_stabilize_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_STABILIZE2D) {
+            do_version_stabilize_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5550,9 +5549,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 50)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_PLANETRACKDEFORM) {
-            do_version_plane_track_deform_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_PLANETRACKDEFORM) {
+            do_version_plane_track_deform_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5562,16 +5561,16 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 51)) {
     const Object dob;
-    LISTBASE_FOREACH (Object *, object, &bmain->objects) {
-      object->shadow_terminator_normal_offset = dob.shadow_terminator_normal_offset;
-      object->shadow_terminator_geometry_offset = dob.shadow_terminator_geometry_offset;
-      object->shadow_terminator_shading_offset = dob.shadow_terminator_shading_offset;
+    for (Object &object : bmain->objects) {
+      object.shadow_terminator_normal_offset = dob.shadow_terminator_normal_offset;
+      object.shadow_terminator_geometry_offset = dob.shadow_terminator_geometry_offset;
+      object.shadow_terminator_shading_offset = dob.shadow_terminator_shading_offset;
       /* Copy Cycles' property into Blender Object. */
-      IDProperty *cob = version_cycles_properties_from_ID(&object->id);
+      IDProperty *cob = version_cycles_properties_from_ID(&object.id);
       if (cob) {
-        object->shadow_terminator_geometry_offset = version_cycles_property_float(
+        object.shadow_terminator_geometry_offset = version_cycles_property_float(
             cob, "shadow_terminator_geometry_offset", dob.shadow_terminator_geometry_offset);
-        object->shadow_terminator_shading_offset = version_cycles_property_float(
+        object.shadow_terminator_shading_offset = version_cycles_property_float(
             cob, "shadow_terminator_offset", dob.shadow_terminator_shading_offset);
       }
     }
@@ -5580,9 +5579,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 52)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_COLORCORRECTION) {
-            do_version_color_correction_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_COLORCORRECTION) {
+            do_version_color_correction_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5593,9 +5592,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 53)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_LENSDIST) {
-            do_version_lens_distortion_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_LENSDIST) {
+            do_version_lens_distortion_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5606,9 +5605,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 54)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_MASK_BOX) {
-            do_version_box_mask_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_MASK_BOX) {
+            do_version_box_mask_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5619,9 +5618,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 55)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_MASK_ELLIPSE) {
-            do_version_ellipse_mask_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_MASK_ELLIPSE) {
+            do_version_ellipse_mask_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5635,16 +5634,16 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
 
   /* Enforce that bone envelope radii match for parent and connected children. */
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 57)) {
-    LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
-      blender::animrig::ANIM_armature_foreach_bone(&arm->bonebase, [](Bone *bone) {
+    for (bArmature &arm : bmain->armatures) {
+      blender::animrig::ANIM_armature_foreach_bone(&arm.bonebase, [](Bone *bone) {
         if (bone->parent && (bone->flag & BONE_CONNECTED)) {
           bone->rad_head = bone->parent->rad_tail;
         }
       });
-      if (arm->edbo) {
-        LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
-          if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
-            ebone->rad_head = ebone->parent->rad_tail;
+      if (arm.edbo) {
+        for (EditBone &ebone : *arm.edbo) {
+          if (ebone.parent && (ebone.flag & BONE_CONNECTED)) {
+            ebone.rad_head = ebone.parent->rad_tail;
           }
         }
       }
@@ -5654,9 +5653,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 58)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_SUNBEAMS_DEPRECATED) {
-            do_version_sun_beams_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_SUNBEAMS_DEPRECATED) {
+            do_version_sun_beams_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5667,9 +5666,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 59)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_DBLUR) {
-            do_version_directional_blur_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_DBLUR) {
+            do_version_directional_blur_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5680,9 +5679,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 60)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_BILATERALBLUR) {
-            do_version_bilateral_blur_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_BILATERALBLUR) {
+            do_version_bilateral_blur_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5720,9 +5719,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 64)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_ALPHAOVER) {
-            do_version_alpha_over_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_ALPHAOVER) {
+            do_version_alpha_over_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5731,15 +5730,15 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 65)) {
-    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-          if (sl->spacetype == SPACE_SEQ) {
-            ListBaseT<ARegion> *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                             &sl->regionbase;
-            LISTBASE_FOREACH (ARegion *, region, regionbase) {
-              if (region->regiontype == RGN_TYPE_WINDOW) {
-                region->v2d.flag |= V2D_ZOOM_IGNORE_KEEPOFS;
+    for (bScreen &screen : bmain->screens) {
+      for (ScrArea &area : screen.areabase) {
+        for (SpaceLink &sl : area.spacedata) {
+          if (sl.spacetype == SPACE_SEQ) {
+            ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first) ? &area.regionbase :
+                                                                             &sl.regionbase;
+            for (ARegion &region : *regionbase) {
+              if (region.regiontype == RGN_TYPE_WINDOW) {
+                region.v2d.flag |= V2D_ZOOM_IGNORE_KEEPOFS;
               }
             }
           }
@@ -5750,11 +5749,11 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 66)) {
     /* Clear unused draw flag (used to be SEQ_DRAW_BACKDROP). */
-    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-          if (sl->spacetype == SPACE_SEQ) {
-            SpaceSeq *space_sequencer = (SpaceSeq *)sl;
+    for (bScreen &screen : bmain->screens) {
+      for (ScrArea &area : screen.areabase) {
+        for (SpaceLink &sl : area.spacedata) {
+          if (sl.spacetype == SPACE_SEQ) {
+            SpaceSeq *space_sequencer = (SpaceSeq *)&sl;
             space_sequencer->draw_flag &= ~SEQ_DRAW_UNUSED_0;
           }
         }
@@ -5766,24 +5765,24 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     /* Version render output paths (both primary on scene as well as those in
      * the File Output compositor node) to escape curly braces. */
     {
-      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-        version_escape_curly_braces(scene->r.pic, FILE_MAX);
-        if (scene->nodetree) {
-          version_escape_curly_braces_in_compositor_file_output_nodes(*scene->nodetree);
+      for (Scene &scene : bmain->scenes) {
+        version_escape_curly_braces(scene.r.pic, FILE_MAX);
+        if (scene.nodetree) {
+          version_escape_curly_braces_in_compositor_file_output_nodes(*scene.nodetree);
         }
       }
 
-      LISTBASE_FOREACH (bNodeTree *, nodetree, &bmain->nodetrees) {
-        version_escape_curly_braces_in_compositor_file_output_nodes(*nodetree);
+      for (bNodeTree &nodetree : bmain->nodetrees) {
+        version_escape_curly_braces_in_compositor_file_output_nodes(nodetree);
       }
     }
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 68)) {
     /* Fix brush->tip_scale_x which should never be zero. */
-    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-      if (brush->tip_scale_x == 0.0f) {
-        brush->tip_scale_x = 1.0f;
+    for (Brush &brush : bmain->brushes) {
+      if (brush.tip_scale_x == 0.0f) {
+        brush.tip_scale_x = 1.0f;
       }
     }
   }
@@ -5791,9 +5790,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 69)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_BOKEHBLUR) {
-            do_version_bokeh_blur_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_BOKEHBLUR) {
+            do_version_bokeh_blur_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5827,23 +5826,23 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     /* Make #Curve::type the source of truth for the curve type.
      * Previously #Curve::vfont was checked which is error prone
      * since the member can become null at run-time, see: #139133. */
-    LISTBASE_FOREACH (Curve *, cu, &bmain->curves) {
-      if (ELEM(cu->ob_type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
+    for (Curve &cu : bmain->curves) {
+      if (ELEM(cu.ob_type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
         continue;
       }
       short ob_type = OB_CURVES_LEGACY;
-      if (cu->vfont) {
+      if (cu.vfont) {
         ob_type = OB_FONT;
       }
       else {
-        LISTBASE_FOREACH (const Nurb *, nu, &cu->nurb) {
-          if (nu->pntsv > 1) {
+        for (const Nurb &nu : cu.nurb) {
+          if (nu.pntsv > 1) {
             ob_type = OB_SURF;
             break;
           }
         }
       }
-      cu->ob_type = ob_type;
+      cu.ob_type = ob_type;
     }
   }
 
@@ -5859,9 +5858,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 75)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_CROP) {
-            do_version_crop_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_CROP) {
+            do_version_crop_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5870,9 +5869,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 76)) {
-    LISTBASE_FOREACH (Light *, light, &bmain->lights) {
-      if (light->temperature == 0.0f) {
-        light->temperature = 6500.0f;
+    for (Light &light : bmain->lights) {
+      if (light.temperature == 0.0f) {
+        light.temperature = 6500.0f;
       }
     }
   }
@@ -5880,9 +5879,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 77)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_COLORBALANCE) {
-            do_version_color_balance_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_COLORBALANCE) {
+            do_version_color_balance_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5915,9 +5914,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 80)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_BLUR) {
-            do_version_blur_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_BLUR) {
+            do_version_blur_node_options_to_inputs(node_tree, &node);
           }
         }
       }
@@ -5926,17 +5925,17 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 81)) {
-    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-      if (ntree->type == NTREE_GEOMETRY) {
-        node_interface_single_value_to_structure_type(ntree->tree_interface.root_panel.item);
+    for (bNodeTree &ntree : bmain->nodetrees) {
+      if (ntree.type == NTREE_GEOMETRY) {
+        node_interface_single_value_to_structure_type(ntree.tree_interface.root_panel.item);
       }
     }
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 83)) {
-    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-      if (ob->soft) {
-        ob->soft->fuzzyness = std::max<int>(1, ob->soft->fuzzyness);
+    for (Object &ob : bmain->objects) {
+      if (ob.soft) {
+        ob.soft->fuzzyness = std::max<int>(1, ob.soft->fuzzyness);
       }
     }
   }
@@ -5944,9 +5943,9 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 85)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_FLIP) {
-            do_version_flip_node_options_to_inputs(node_tree, node);
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_FLIP) {
+            do_version_flip_node_options_to_inputs(node_tree, &node);
           }
         }
       }

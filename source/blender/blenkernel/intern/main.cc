@@ -844,22 +844,22 @@ ID *BKE_main_library_weak_reference_find(Main *bmain,
   BLI_path_abs(library_filepath_abs, BKE_main_blendfile_path(bmain));
 
   ListBaseT<ID> *id_list = which_libbase(bmain, GS(library_id_name));
-  LISTBASE_FOREACH (ID *, existing_id, id_list) {
-    if (!(existing_id->library_weak_reference &&
-          STREQ(existing_id->library_weak_reference->library_id_name, library_id_name)))
+  for (ID &existing_id : *id_list) {
+    if (!(existing_id.library_weak_reference &&
+          STREQ(existing_id.library_weak_reference->library_id_name, library_id_name)))
     {
       continue;
     }
 
     char existing_filepath_abs[FILE_MAX];
-    STRNCPY(existing_filepath_abs, existing_id->library_weak_reference->library_filepath);
+    STRNCPY(existing_filepath_abs, existing_id.library_weak_reference->library_filepath);
     BLI_path_abs(existing_filepath_abs, BKE_main_blendfile_path(bmain));
 
     if (!STREQ(existing_filepath_abs, library_filepath_abs)) {
       continue;
     }
 
-    return existing_id;
+    return &existing_id;
   }
 
   return nullptr;

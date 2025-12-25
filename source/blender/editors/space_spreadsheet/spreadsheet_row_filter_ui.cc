@@ -298,13 +298,13 @@ static void spreadsheet_row_filters_layout(const bContext *C, Panel *panel)
 
   if (!panels_match) {
     ui::panels_free_instanced(C, region);
-    LISTBASE_FOREACH (SpreadsheetRowFilter *, row_filter, row_filters) {
+    for (SpreadsheetRowFilter &row_filter : *row_filters) {
       char panel_idname[MAX_NAME];
-      filter_panel_id_fn(row_filter, panel_idname);
+      filter_panel_id_fn(&row_filter, panel_idname);
 
       PointerRNA *filter_ptr = MEM_new<PointerRNA>("panel customdata");
       *filter_ptr = RNA_pointer_create_discrete(
-          &screen->id, &RNA_SpreadsheetRowFilter, row_filter);
+          &screen->id, &RNA_SpreadsheetRowFilter, &row_filter);
 
       ui::panel_add_instanced(C, region, &region->panels, panel_idname, filter_ptr);
     }
@@ -312,7 +312,7 @@ static void spreadsheet_row_filters_layout(const bContext *C, Panel *panel)
   else {
     /* Assuming there's only one group of instanced panels, update the custom data pointers. */
     Panel *panel_iter = (Panel *)region->panels.first;
-    LISTBASE_FOREACH (SpreadsheetRowFilter *, row_filter, row_filters) {
+    for (SpreadsheetRowFilter &row_filter : *row_filters) {
 
       /* Move to the next instanced panel corresponding to the next filter. */
       while ((panel_iter->type == nullptr) || !(panel_iter->type->flag & PANEL_TYPE_INSTANCED)) {
@@ -322,7 +322,7 @@ static void spreadsheet_row_filters_layout(const bContext *C, Panel *panel)
 
       PointerRNA *filter_ptr = MEM_new<PointerRNA>("panel customdata");
       *filter_ptr = RNA_pointer_create_discrete(
-          &screen->id, &RNA_SpreadsheetRowFilter, row_filter);
+          &screen->id, &RNA_SpreadsheetRowFilter, &row_filter);
       ui::panel_custom_data_set(panel_iter, filter_ptr);
 
       panel_iter = panel_iter->next;

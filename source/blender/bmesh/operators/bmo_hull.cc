@@ -161,9 +161,9 @@ struct HullFinalEdges {
 
 static LinkData *final_edges_find_link(ListBaseT<LinkData> *adj, BMVert *v)
 {
-  LISTBASE_FOREACH (LinkData *, link, adj) {
-    if (link->data == v) {
-      return link;
+  for (LinkData &link : *adj) {
+    if (link.data == v) {
+      return &link;
     }
   }
 

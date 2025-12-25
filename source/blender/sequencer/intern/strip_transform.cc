@@ -80,8 +80,8 @@ void transform_translate_strip(Scene *evil_scene, Strip *strip, int delta)
    * updated based on nested strips. This won't work for empty meta-strips,
    * so they can be treated as normal strip. */
   if (strip->type == STRIP_TYPE_META && !BLI_listbase_is_empty(&strip->seqbase)) {
-    LISTBASE_FOREACH (Strip *, strip_child, &strip->seqbase) {
-      transform_translate_strip(evil_scene, strip_child, delta);
+    for (Strip &strip_child : strip->seqbase) {
+      transform_translate_strip(evil_scene, &strip_child, delta);
     }
     /* Move meta start/end points. */
     const int left_handle = strip->left_handle();
@@ -134,9 +134,9 @@ bool transform_seqbase_shuffle_ex(ListBaseT<Strip> *seqbasep,
   if (use_fallback_translation) {
     int new_frame = test->right_handle(evil_scene);
 
-    LISTBASE_FOREACH (Strip *, strip, seqbasep) {
-      if (strip->channel == orig_channel) {
-        new_frame = max_ii(new_frame, strip->right_handle(evil_scene));
+    for (Strip &strip : *seqbasep) {
+      if (strip.channel == orig_channel) {
+        new_frame = max_ii(new_frame, strip.right_handle(evil_scene));
       }
     }
 
@@ -177,24 +177,24 @@ static int shuffle_strip_time_offset_get(const Scene *scene,
   while (!all_conflicts_resolved) {
     all_conflicts_resolved = true;
     for (Strip *strip : strips_to_shuffle) {
-      LISTBASE_FOREACH (Strip *, strip_other, seqbasep) {
-        if (strips_to_shuffle.contains(strip_other)) {
+      for (Strip &strip_other : *seqbasep) {
+        if (strips_to_shuffle.contains(&strip_other)) {
           continue;
         }
-        if (relation_is_effect_of_strip(strip_other, strip)) {
+        if (relation_is_effect_of_strip(&strip_other, strip)) {
           continue;
         }
-        if (!shuffle_strip_test_overlap(scene, strip, strip_other, offset)) {
+        if (!shuffle_strip_test_overlap(scene, strip, &strip_other, offset)) {
           continue;
         }
 
         all_conflicts_resolved = false;
 
         if (dir == 'L') {
-          offset = min_ii(offset, strip_other->left_handle() - strip->right_handle(scene));
+          offset = min_ii(offset, strip_other.left_handle() - strip->right_handle(scene));
         }
         else {
-          offset = max_ii(offset, strip_other->right_handle(scene) - strip->left_handle());
+          offset = max_ii(offset, strip_other.right_handle(scene) - strip->left_handle());
         }
       }
     }
@@ -239,9 +239,9 @@ bool transform_seqbase_shuffle_time(Span<Strip *> strips_to_shuffle,
 
     if (use_sync_markers && !(evil_scene->toolsettings->lock_markers) && (markers != nullptr)) {
       /* affect selected markers - it's unlikely that we will want to affect all in this way? */
-      LISTBASE_FOREACH (TimeMarker *, marker, markers) {
-        if (marker->flag & SELECT) {
-          marker->frame += offset;
+      for (TimeMarker &marker : *markers) {
+        if (marker.flag & SELECT) {
+          marker.frame += offset;
         }
       }
     }
@@ -275,16 +275,16 @@ static VectorSet<Strip *> query_right_side_strips(ListBaseT<Strip> *seqbase,
   }
 
   VectorSet<Strip *> right_side_strips;
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if (!time_dependent_strips.is_empty() && time_dependent_strips.contains(strip)) {
+  for (Strip &strip : *seqbase) {
+    if (!time_dependent_strips.is_empty() && time_dependent_strips.contains(&strip)) {
       continue;
     }
-    if (transformed_strips.contains(strip)) {
+    if (transformed_strips.contains(&strip)) {
       continue;
     }
 
-    if ((strip->flag & SEQ_SELECT) == 0 && strip->left_handle() >= minframe) {
-      right_side_strips.add(strip);
+    if ((strip.flag & SEQ_SELECT) == 0 && strip.left_handle() >= minframe) {
+      right_side_strips.add(&strip);
     }
   }
   return right_side_strips;
@@ -548,17 +548,17 @@ void transform_offset_after_frame(Scene *scene,
                                   const int delta,
                                   const int timeline_frame)
 {
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if (strip->left_handle() >= timeline_frame) {
-      transform_translate_strip(scene, strip, delta);
-      relations_invalidate_cache(scene, strip);
+  for (Strip &strip : *seqbase) {
+    if (strip.left_handle() >= timeline_frame) {
+      transform_translate_strip(scene, &strip, delta);
+      relations_invalidate_cache(scene, &strip);
     }
   }
 
   if (!scene->toolsettings->lock_markers) {
-    LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {
-      if (marker->frame >= timeline_frame) {
-        marker->frame += delta;
+    for (TimeMarker &marker : scene->markers) {
+      if (marker.frame >= timeline_frame) {
+        marker.frame += delta;
       }
     }
   }

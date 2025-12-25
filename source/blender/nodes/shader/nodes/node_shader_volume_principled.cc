@@ -83,26 +83,26 @@ static int node_shader_gpu_volume_principled(GPUMaterial *mat,
   /* Get volume attributes. */
   GPUNodeLink *density = nullptr, *color = nullptr, *temperature = nullptr;
 
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    if (sock->typeinfo->type != SOCK_STRING) {
+  for (bNodeSocket &sock : node->inputs) {
+    if (sock.typeinfo->type != SOCK_STRING) {
       continue;
     }
 
-    bNodeSocketValueString *value = (bNodeSocketValueString *)sock->default_value;
+    bNodeSocketValueString *value = (bNodeSocketValueString *)sock.default_value;
     const char *attribute_name = value->value;
     if (attribute_name[0] == '\0') {
       continue;
     }
 
-    if (STREQ(sock->name, "Density Attribute")) {
+    if (STREQ(sock.name, "Density Attribute")) {
       density = GPU_attribute_with_default(mat, CD_AUTO_FROM_NAME, attribute_name, GPU_DEFAULT_1);
       attribute_post_process(mat, attribute_name, &density);
     }
-    else if (STREQ(sock->name, "Color Attribute")) {
+    else if (STREQ(sock.name, "Color Attribute")) {
       color = GPU_attribute_with_default(mat, CD_AUTO_FROM_NAME, attribute_name, GPU_DEFAULT_1);
       attribute_post_process(mat, attribute_name, &color);
     }
-    else if (use_blackbody && STREQ(sock->name, "Temperature Attribute")) {
+    else if (use_blackbody && STREQ(sock.name, "Temperature Attribute")) {
       temperature = GPU_attribute(mat, CD_AUTO_FROM_NAME, attribute_name);
       attribute_post_process(mat, attribute_name, &temperature);
     }

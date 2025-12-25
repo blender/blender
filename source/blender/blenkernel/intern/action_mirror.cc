@@ -471,8 +471,8 @@ void BKE_action_flip_with_pose(bAction *act, Span<Object *> objects)
     }
     Vector<FCurve *> fcurves = animrig::fcurves_for_action_slot(action, slot->handle);
     FCurvePathCache *fcache = BKE_fcurve_pathcache_create(fcurves);
-    LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
-      action_flip_pchan(object, pchan, fcache);
+    for (bPoseChannel &pchan : object->pose->chanbase) {
+      action_flip_pchan(object, &pchan, fcache);
     }
     BKE_fcurve_pathcache_destroy(fcache);
   }

@@ -158,13 +158,13 @@ PackedFileCount BKE_packedfile_count_all(Main *bmain)
     }
   }
 
-  LISTBASE_FOREACH (Object *, object, &bmain->objects) {
-    if (ID_IS_LINKED(object)) {
+  for (Object &object : bmain->objects) {
+    if (ID_IS_LINKED(&object)) {
       continue;
     }
-    LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
-      if (md->type == eModifierType_Nodes) {
-        NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
+    for (ModifierData &md : object.modifiers) {
+      if (md.type == eModifierType_Nodes) {
+        NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(&md);
         for (const NodesModifierBake &bake : Span{nmd->bakes, nmd->bakes_num}) {
           if (bake.packed) {
             count.bakes++;
@@ -332,15 +332,15 @@ void BKE_packedfile_pack_all(Main *bmain, ReportList *reports, bool verbose)
     }
   }
 
-  LISTBASE_FOREACH (Object *, object, &bmain->objects) {
-    if (ID_IS_LINKED(object)) {
+  for (Object &object : bmain->objects) {
+    if (ID_IS_LINKED(&object)) {
       continue;
     }
-    LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
-      if (md->type == eModifierType_Nodes) {
-        NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
+    for (ModifierData &md : object.modifiers) {
+      if (md.type == eModifierType_Nodes) {
+        NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(&md);
         for (NodesModifierBake &bake : MutableSpan{nmd->bakes, nmd->bakes_num}) {
-          blender::bke::bake::pack_geometry_nodes_bake(*bmain, reports, *object, *nmd, bake);
+          blender::bke::bake::pack_geometry_nodes_bake(*bmain, reports, object, *nmd, bake);
         }
       }
     }
@@ -878,16 +878,15 @@ void BKE_packedfile_unpack_all(Main *bmain, ReportList *reports, enum ePF_FileSt
     }
   }
 
-  LISTBASE_FOREACH (Object *, object, &bmain->objects) {
-    if (ID_IS_LINKED(object)) {
+  for (Object &object : bmain->objects) {
+    if (ID_IS_LINKED(&object)) {
       continue;
     }
-    LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
-      if (md->type == eModifierType_Nodes) {
-        NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
+    for (ModifierData &md : object.modifiers) {
+      if (md.type == eModifierType_Nodes) {
+        NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(&md);
         for (NodesModifierBake &bake : MutableSpan{nmd->bakes, nmd->bakes_num}) {
-          blender::bke::bake::unpack_geometry_nodes_bake(
-              *bmain, reports, *object, *nmd, bake, how);
+          blender::bke::bake::unpack_geometry_nodes_bake(*bmain, reports, object, *nmd, bake, how);
         }
       }
     }

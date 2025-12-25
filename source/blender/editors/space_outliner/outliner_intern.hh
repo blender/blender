@@ -417,10 +417,10 @@ int outliner_flag_is_any_test(ListBaseT<TreeElement> *lb, short flag, int curlev
  * Set or unset \a flag for all outliner elements in \a lb and sub-trees.
  * \return if any flag was modified.
  */
-bool outliner_flag_set(const SpaceOutliner &space_outliner, short flag, short set);
-bool outliner_flag_set(const ListBaseT<TreeElement> &lb, short flag, short set);
-bool outliner_flag_flip(const SpaceOutliner &space_outliner, short flag);
-bool outliner_flag_flip(const ListBaseT<TreeElement> &lb, short flag);
+bool outliner_flag_set(SpaceOutliner &space_outliner, short flag, short set);
+bool outliner_flag_set(ListBaseT<TreeElement> &lb, short flag, short set);
+bool outliner_flag_flip(SpaceOutliner &space_outliner, short flag);
+bool outliner_flag_flip(ListBaseT<TreeElement> &lb, short flag);
 
 void item_rename_fn(bContext *C,
                     ReportList *reports,
@@ -457,7 +457,7 @@ void id_remap_fn(bContext *C,
 /**
  * To retrieve coordinates with redrawing the entire tree.
  */
-void outliner_set_coordinates(const ARegion *region, const SpaceOutliner *space_outliner);
+void outliner_set_coordinates(const ARegion *region, SpaceOutliner *space_outliner);
 
 /**
  * Open or close a tree element, optionally toggling all children recursively.

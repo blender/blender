@@ -63,8 +63,8 @@ static void node_geo_exec(GeoNodeExecParams params)
         auto cached_value = std::make_unique<LoadPlyCache>();
         cached_value->geometry = GeometrySet::from_mesh(mesh);
 
-        LISTBASE_FOREACH (Report *, report, &(import_params.reports)->list) {
-          cached_value->warnings.append_as(*report);
+        for (Report &report : (import_params.reports)->list) {
+          cached_value->warnings.append_as(report);
         }
         return cached_value;
       });

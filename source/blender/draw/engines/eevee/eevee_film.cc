@@ -60,22 +60,22 @@ void Film::init_aovs(const Set<std::string> &passes_used_by_viewport_compositor)
     }
 
     if (inst_.is_viewport_compositor_enabled) {
-      LISTBASE_FOREACH (ViewLayerAOV *, aov, &inst_.view_layer->aovs) {
+      for (ViewLayerAOV &aov : inst_.view_layer->aovs) {
         /* Already added as a display pass. No need to add again. */
-        if (!aovs.is_empty() && aovs.last() == aov) {
+        if (!aovs.is_empty() && aovs.last() == &aov) {
           continue;
         }
 
-        if (passes_used_by_viewport_compositor.contains(aov->name)) {
-          aovs.append(aov);
+        if (passes_used_by_viewport_compositor.contains(aov.name)) {
+          aovs.append(&aov);
         }
       }
     }
   }
   else {
     /* Render case. */
-    LISTBASE_FOREACH (ViewLayerAOV *, aov, &inst_.view_layer->aovs) {
-      aovs.append(aov);
+    for (ViewLayerAOV &aov : inst_.view_layer->aovs) {
+      aovs.append(&aov);
     }
   }
 
@@ -1028,21 +1028,21 @@ void Film::write_viewport_compositor_passes()
   }
 
   /* Write AOV passes. */
-  LISTBASE_FOREACH (ViewLayerAOV *, aov, &inst_.view_layer->aovs) {
-    if ((aov->flag & AOV_CONFLICT) != 0) {
+  for (ViewLayerAOV &aov : inst_.view_layer->aovs) {
+    if ((aov.flag & AOV_CONFLICT) != 0) {
       continue;
     }
-    gpu::Texture *pass_texture = this->get_aov_texture(aov);
+    gpu::Texture *pass_texture = this->get_aov_texture(&aov);
     if (!pass_texture) {
       continue;
     }
 
     /* See above comment regarding the allocation extent. */
-    draw::TextureFromPool &output_pass_texture = DRW_viewport_pass_texture_get(aov->name);
+    draw::TextureFromPool &output_pass_texture = DRW_viewport_pass_texture_get(aov.name);
     output_pass_texture.acquire(this->display_extent, GPU_texture_format(pass_texture));
 
     PassSimple write_pass_ps = {"Film.WriteViewportCompositorPass"};
-    const eShaderType write_shader_type = get_aov_write_pass_shader_type(aov);
+    const eShaderType write_shader_type = get_aov_write_pass_shader_type(&aov);
     write_pass_ps.shader_set(inst_.shaders.static_shader_get(write_shader_type));
     write_pass_ps.push_constant("offset", data_.offset);
     write_pass_ps.bind_texture("input_tx", pass_texture);

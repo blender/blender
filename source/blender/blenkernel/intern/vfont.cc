@@ -357,16 +357,16 @@ VFont *BKE_vfont_load_exists_ex(Main *bmain, const char *filepath, bool *r_exist
   BLI_path_abs(filepath_abs, BKE_main_blendfile_path(bmain));
 
   /* first search an identical filepath */
-  LISTBASE_FOREACH (VFont *, vfont, &bmain->fonts) {
-    STRNCPY(filepath_test, vfont->filepath);
-    BLI_path_abs(filepath_test, ID_BLEND_PATH(bmain, &vfont->id));
+  for (VFont &vfont : bmain->fonts) {
+    STRNCPY(filepath_test, vfont.filepath);
+    BLI_path_abs(filepath_test, ID_BLEND_PATH(bmain, &vfont.id));
 
     if (BLI_path_cmp(filepath_test, filepath_abs) == 0) {
-      id_us_plus(&vfont->id); /* officially should not, it doesn't link here! */
+      id_us_plus(&vfont.id); /* officially should not, it doesn't link here! */
       if (r_exists) {
         *r_exists = true;
       }
-      return vfont;
+      return &vfont;
     }
   }
 
@@ -383,9 +383,9 @@ VFont *BKE_vfont_load_exists(Main *bmain, const char *filepath)
 
 VFont *BKE_vfont_builtin_ensure()
 {
-  LISTBASE_FOREACH (VFont *, vfont, &G_MAIN->fonts) {
-    if (BKE_vfont_is_builtin(vfont)) {
-      return vfont;
+  for (VFont &vfont : G_MAIN->fonts) {
+    if (BKE_vfont_is_builtin(&vfont)) {
+      return &vfont;
     }
   }
 

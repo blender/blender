@@ -424,16 +424,16 @@ static std::optional<std::string> rna_CollectionLightLinking_path(const PointerR
   int counter;
 
   counter = 0;
-  LISTBASE_FOREACH (CollectionObject *, collection_object, &collection->gobject) {
-    if (&collection_object->light_linking == collection_light_linking) {
+  for (CollectionObject &collection_object : collection->gobject) {
+    if (&collection_object.light_linking == collection_light_linking) {
       return fmt::format("collection_objects[{}].light_linking", counter);
     }
     ++counter;
   }
 
   counter = 0;
-  LISTBASE_FOREACH (CollectionChild *, collection_child, &collection->children) {
-    if (&collection_child->light_linking == collection_light_linking) {
+  for (CollectionChild &collection_child : collection->children) {
+    if (&collection_child.light_linking == collection_light_linking) {
       return fmt::format("collection_children[{}].light_linking", counter);
     }
     ++counter;

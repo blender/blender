@@ -106,12 +106,12 @@ void DEG_add_scene_camera_relation(DepsNodeHandle *node_handle,
 
   /* Like DepsgraphNodeBuilder::build_scene_camera(), we also need to account for other cameras
    * referenced by markers. */
-  LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {
-    if (!ELEM(marker->camera, nullptr, scene->camera)) {
-      DEG_add_object_relation(node_handle, marker->camera, component, description);
-      if (marker->camera->type == OB_CAMERA) {
+  for (TimeMarker &marker : scene->markers) {
+    if (!ELEM(marker.camera, nullptr, scene->camera)) {
+      DEG_add_object_relation(node_handle, marker.camera, component, description);
+      if (marker.camera->type == OB_CAMERA) {
         add_camera_parameters_relation(
-            node_handle, reinterpret_cast<Camera *>(marker->camera->data), description);
+            node_handle, reinterpret_cast<Camera *>(marker.camera->data), description);
       }
     }
   }

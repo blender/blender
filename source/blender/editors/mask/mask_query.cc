@@ -627,14 +627,14 @@ bool ED_mask_selected_minmax(const bContext *C,
   Mask *mask_eval = DEG_get_evaluated(depsgraph, mask);
 
   INIT_MINMAX2(min, max);
-  LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask_eval->masklayers) {
-    if (mask_layer->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
+  for (MaskLayer &mask_layer : mask_eval->masklayers) {
+    if (mask_layer.visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
-    LISTBASE_FOREACH (MaskSpline *, spline, &mask_layer->splines) {
-      MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
-      for (int i = 0; i < spline->tot_point; i++) {
-        const MaskSplinePoint *point = &spline->points[i];
+    for (MaskSpline &spline : mask_layer.splines) {
+      MaskSplinePoint *points_array = BKE_mask_spline_point_array(&spline);
+      for (int i = 0; i < spline.tot_point; i++) {
+        const MaskSplinePoint *point = &spline.points[i];
         const MaskSplinePoint *deform_point = &points_array[i];
         const BezTriple *bezt = &point->bezt;
         float handle[2];

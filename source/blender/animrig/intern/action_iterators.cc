@@ -141,17 +141,17 @@ bool foreach_action_slot_use_with_references(
   };
 
   /* Visit Object constraints. */
-  LISTBASE_FOREACH (bConstraint *, con, &object.constraints) {
-    if (!visit_constraint(*con)) {
+  for (bConstraint &con : object.constraints) {
+    if (!visit_constraint(con)) {
       return false;
     }
   }
 
   /* Visit Pose Bone constraints. */
   if (object.type == OB_ARMATURE) {
-    LISTBASE_FOREACH (bPoseChannel *, pchan, &object.pose->chanbase) {
-      LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
-        if (!visit_constraint(*con)) {
+    for (bPoseChannel &pchan : object.pose->chanbase) {
+      for (bConstraint &con : pchan.constraints) {
+        if (!visit_constraint(con)) {
           return false;
         }
       }
@@ -230,17 +230,17 @@ bool foreach_action_slot_use_with_rna(ID &animated_id,
   };
 
   /* Visit Object constraints. */
-  LISTBASE_FOREACH (bConstraint *, con, &object.constraints) {
-    if (!visit_constraint(*con)) {
+  for (bConstraint &con : object.constraints) {
+    if (!visit_constraint(con)) {
       return false;
     }
   }
 
   /* Visit Pose Bone constraints. */
   if (object.type == OB_ARMATURE) {
-    LISTBASE_FOREACH (bPoseChannel *, pchan, &object.pose->chanbase) {
-      LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
-        if (!visit_constraint(*con)) {
+    for (bPoseChannel &pchan : object.pose->chanbase) {
+      for (bConstraint &con : pchan.constraints) {
+        if (!visit_constraint(con)) {
           return false;
         }
       }

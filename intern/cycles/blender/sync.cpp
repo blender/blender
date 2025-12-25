@@ -183,7 +183,7 @@ void BlenderSync::sync_recalc(::Depsgraph &b_depsgraph,
           }
 
           if (updated_geometry) {
-            LISTBASE_FOREACH (::ParticleSystem *, b_psys, &b_ob->particlesystem) {
+            if (!BLI_listbase_is_empty(&b_ob->particlesystem)) {
               particle_system_map.set_recalc(b_ob);
             }
           }
@@ -668,10 +668,10 @@ void BlenderSync::sync_images()
     return;
   }
   /* Free buffers used by images which are not needed for render. */
-  LISTBASE_FOREACH (::Image *, b_image, &b_data->images) {
-    const bool is_builtin = image_is_builtin(*b_image, *b_engine);
+  for (::Image &b_image : b_data->images) {
+    const bool is_builtin = image_is_builtin(b_image, *b_engine);
     if (is_builtin == false) {
-      BKE_image_free_buffers_ex(b_image, true);
+      BKE_image_free_buffers_ex(&b_image, true);
     }
     /* TODO(sergey): Free builtin images not used by any shader. */
   }
@@ -797,35 +797,35 @@ void BlenderSync::sync_render_passes(::RenderLayer &b_rlay, ::ViewLayer &b_view_
   unordered_set<string> expected_passes;
 
   /* Custom AOV passes. */
-  LISTBASE_FOREACH (ViewLayerAOV *, b_aov, &b_view_layer.aovs) {
-    if ((b_aov->flag & AOV_CONFLICT) != 0) {
+  for (ViewLayerAOV &b_aov : b_view_layer.aovs) {
+    if ((b_aov.flag & AOV_CONFLICT) != 0) {
       continue;
     }
 
-    const string name = b_aov->name;
-    const PassType type = (b_aov->type == AOV_TYPE_COLOR) ? PASS_AOV_COLOR : PASS_AOV_VALUE;
+    const string name = b_aov.name;
+    const PassType type = (b_aov.type == AOV_TYPE_COLOR) ? PASS_AOV_COLOR : PASS_AOV_VALUE;
 
     pass_add(scene, type, name.c_str());
     expected_passes.insert(name);
   }
 
   /* Light Group passes. */
-  LISTBASE_FOREACH (ViewLayerLightgroup *, b_lightgroup, &b_view_layer.lightgroups) {
-    const string name = string_printf("Combined_%s", b_lightgroup->name);
+  for (ViewLayerLightgroup &b_lightgroup : b_view_layer.lightgroups) {
+    const string name = string_printf("Combined_%s", b_lightgroup.name);
 
     Pass *pass = pass_add(scene, PASS_COMBINED, name.c_str(), PassMode::NOISY);
-    pass->set_lightgroup(ustring(b_lightgroup->name));
+    pass->set_lightgroup(ustring(b_lightgroup.name));
     expected_passes.insert(name);
   }
 
   /* Sync the passes that were defined in engine.py. */
-  LISTBASE_FOREACH (::RenderPass *, b_pass, &b_rlay.passes) {
+  for (::RenderPass &b_pass : b_rlay.passes) {
     PassType pass_type = PASS_NONE;
     PassMode pass_mode = PassMode::DENOISED;
 
-    if (!get_known_pass_type(*b_pass, pass_type, pass_mode)) {
-      if (!expected_passes.count(b_pass->name)) {
-        LOG_ERROR << "Unknown pass " << b_pass->name;
+    if (!get_known_pass_type(b_pass, pass_type, pass_mode)) {
+      if (!expected_passes.count(b_pass.name)) {
+        LOG_ERROR << "Unknown pass " << b_pass.name;
       }
       continue;
     }
@@ -836,7 +836,7 @@ void BlenderSync::sync_render_passes(::RenderLayer &b_rlay, ::ViewLayer &b_view_
       continue;
     }
 
-    pass_add(scene, pass_type, b_pass->name, pass_mode);
+    pass_add(scene, pass_type, b_pass.name, pass_mode);
   }
 
   scene->film->set_pass_alpha_threshold(b_view_layer.pass_alpha_threshold);

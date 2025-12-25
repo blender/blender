@@ -62,9 +62,9 @@ static VectorSet<std::string> join_vertex_groups(const Span<const Object *> obje
   VectorSet<std::string> vertex_group_names;
   for (const int i : objects_to_join.index_range()) {
     const Mesh &mesh = *static_cast<const Mesh *>(objects_to_join[i]->data);
-    LISTBASE_FOREACH (const bDeformGroup *, dg, &mesh.vertex_group_names) {
-      if (vertex_group_names.add_as(dg->name)) {
-        BLI_addtail(&dst_mesh.vertex_group_names, BKE_defgroup_duplicate(dg));
+    for (const bDeformGroup &dg : mesh.vertex_group_names) {
+      if (vertex_group_names.add_as(dg.name)) {
+        BLI_addtail(&dst_mesh.vertex_group_names, BKE_defgroup_duplicate(&dg));
       }
     }
   }
@@ -83,8 +83,8 @@ static VectorSet<std::string> join_vertex_groups(const Span<const Object *> obje
       continue;
     }
     Vector<int, 32> index_map;
-    LISTBASE_FOREACH (const bDeformGroup *, dg, &src_mesh.vertex_group_names) {
-      index_map.append(vertex_group_names.index_of_as(dg->name));
+    for (const bDeformGroup &dg : src_mesh.vertex_group_names) {
+      index_map.append(vertex_group_names.index_of_as(dg.name));
     }
     for (const int vert : src_dverts.index_range()) {
       const MDeformVert &src = src_dverts[vert];
@@ -199,11 +199,11 @@ static void join_shape_keys(Main *bmain,
   Vector<KeyBlock *> key_blocks;
   VectorSet<std::string> key_names;
   if (Key *key = active_mesh.key) {
-    LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
-      kb->data = MEM_reallocN(kb->data, sizeof(float3) * dst_verts_num);
-      kb->totelem = dst_verts_num;
-      key_names.add_new(kb->name);
-      key_blocks.append(kb);
+    for (KeyBlock &kb : key->block) {
+      kb.data = MEM_reallocN(kb.data, sizeof(float3) * dst_verts_num);
+      kb.totelem = dst_verts_num;
+      key_names.add_new(kb.name);
+      key_blocks.append(&kb);
     }
   }
 
@@ -222,10 +222,10 @@ static void join_shape_keys(Main *bmain,
       continue;
     }
     ensure_dst_key();
-    LISTBASE_FOREACH (const KeyBlock *, src_kb, &src_key->block) {
-      if (key_names.add_as(src_kb->name)) {
-        KeyBlock *dst_kb = BKE_keyblock_add(active_mesh.key, src_kb->name);
-        BKE_keyblock_copy_settings(dst_kb, src_kb);
+    for (const KeyBlock &src_kb : src_key->block) {
+      if (key_names.add_as(src_kb.name)) {
+        KeyBlock *dst_kb = BKE_keyblock_add(active_mesh.key, src_kb.name);
+        BKE_keyblock_copy_settings(dst_kb, &src_kb);
         dst_kb->data = MEM_malloc_arrayN<float3>(dst_verts_num, __func__);
         dst_kb->totelem = dst_verts_num;
 
@@ -235,7 +235,7 @@ static void join_shape_keys(Main *bmain,
 
         /* Remap `KeyBlock::relative`. */
         if (const KeyBlock *src_kb_relative = static_cast<KeyBlock *>(
-                BLI_findlink(&src_key->block, src_kb->relative)))
+                BLI_findlink(&src_key->block, src_kb.relative)))
         {
           dst_kb->relative = key_names.index_of_as(src_kb_relative->name);
         }
@@ -255,9 +255,9 @@ static void join_shape_keys(Main *bmain,
     const Span<float3> src_positions = src_mesh.vert_positions();
     const float4x4 transform = world_to_active_mesh * src_object.object_to_world();
 
-    LISTBASE_FOREACH (KeyBlock *, kb, &dst_key->block) {
-      MutableSpan<float3> key_data(static_cast<float3 *>(kb->data), kb->totelem);
-      if (const KeyBlock *src_kb = src_mesh.key ? BKE_keyblock_find_name(src_mesh.key, kb->name) :
+    for (KeyBlock &kb : dst_key->block) {
+      MutableSpan<float3> key_data(static_cast<float3 *>(kb.data), kb.totelem);
+      if (const KeyBlock *src_kb = src_mesh.key ? BKE_keyblock_find_name(src_mesh.key, kb.name) :
                                                   nullptr)
       {
         const Span<float3> src_kb_data(static_cast<float3 *>(src_kb->data), dst_range.size());

@@ -181,12 +181,12 @@ static void sound_jack_sync_callback(Main *bmain, int mode, double time)
 
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
 
-  LISTBASE_FOREACH (wmWindow *, window, &wm->windows) {
-    Scene *scene = WM_window_get_active_scene(window);
+  for (wmWindow &window : wm->windows) {
+    Scene *scene = WM_window_get_active_scene(&window);
     if ((scene->audio.flag & AUDIO_SYNC) == 0) {
       continue;
     }
-    ViewLayer *view_layer = WM_window_get_active_view_layer(window);
+    ViewLayer *view_layer = WM_window_get_active_view_layer(&window);
     Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer);
     if (depsgraph == nullptr) {
       continue;
@@ -417,8 +417,8 @@ static void wm_init_scripts_extensions_once(bContext *C)
 /* Free strings of open recent files. */
 static void free_openrecent()
 {
-  LISTBASE_FOREACH (RecentFile *, recent, &G.recent_files) {
-    MEM_freeN(recent->filepath);
+  for (RecentFile &recent : G.recent_files) {
+    MEM_freeN(recent.filepath);
   }
 
   BLI_freelistN(&(G.recent_files));
@@ -481,11 +481,11 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
 
     WM_jobs_kill_all(wm);
 
-    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-      CTX_wm_window_set(C, win); /* Needed by operator close callbacks. */
-      WM_event_remove_handlers(C, &win->runtime->handlers);
-      WM_event_remove_handlers(C, &win->runtime->modalhandlers);
-      ED_screen_exit(C, win, WM_window_get_active_screen(win));
+    for (wmWindow &win : wm->windows) {
+      CTX_wm_window_set(C, &win); /* Needed by operator close callbacks. */
+      WM_event_remove_handlers(C, &win.runtime->handlers);
+      WM_event_remove_handlers(C, &win.runtime->modalhandlers);
+      ED_screen_exit(C, &win, WM_window_get_active_screen(&win));
     }
 
     if (!G.background) {

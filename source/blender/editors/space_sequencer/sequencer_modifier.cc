@@ -279,8 +279,8 @@ static wmOperatorStatus strip_modifier_copy_exec(bContext *C, wmOperator *op)
       }
     }
 
-    LISTBASE_FOREACH (StripModifierData *, smd, &active_strip->modifiers) {
-      StripModifierData *smd_new = seq::modifier_copy(*strip_iter, smd);
+    for (StripModifierData &smd : active_strip->modifiers) {
+      StripModifierData *smd_new = seq::modifier_copy(*strip_iter, &smd);
       seq::modifier_persistent_uid_init(*strip_iter, *smd_new);
     }
   }

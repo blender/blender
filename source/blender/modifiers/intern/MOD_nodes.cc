@@ -850,12 +850,12 @@ static void find_side_effect_nodes(const NodesModifierData &nmd,
   if (wm == nullptr) {
     return;
   }
-  LISTBASE_FOREACH (const wmWindow *, window, &wm->windows) {
-    const bScreen *screen = BKE_workspace_active_screen_get(window->workspace_hook);
-    const WorkSpace *workspace = BKE_workspace_active_get(window->workspace_hook);
+  for (const wmWindow &window : wm->windows) {
+    const bScreen *screen = BKE_workspace_active_screen_get(window.workspace_hook);
+    const WorkSpace *workspace = BKE_workspace_active_get(window.workspace_hook);
     find_side_effect_nodes_for_viewer_path(workspace->viewer_path, nmd, ctx, r_side_effect_nodes);
-    LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
-      const SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
+    for (const ScrArea &area : screen->areabase) {
+      const SpaceLink *sl = static_cast<SpaceLink *>(area.spacedata.first);
       if (sl->spacetype == SPACE_SPREADSHEET) {
         const SpaceSpreadsheet &sspreadsheet = *reinterpret_cast<const SpaceSpreadsheet *>(sl);
         find_side_effect_nodes_for_viewer_path(
@@ -883,10 +883,10 @@ static void find_socket_log_contexts(const NodesModifierData &nmd,
     return;
   }
   bke::ComputeContextCache compute_context_cache;
-  LISTBASE_FOREACH (const wmWindow *, window, &wm->windows) {
-    const bScreen *screen = BKE_workspace_active_screen_get(window->workspace_hook);
-    LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
-      const SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
+  for (const wmWindow &window : wm->windows) {
+    const bScreen *screen = BKE_workspace_active_screen_get(window.workspace_hook);
+    for (const ScrArea &area : screen->areabase) {
+      const SpaceLink *sl = static_cast<SpaceLink *>(area.spacedata.first);
       if (sl->spacetype == SPACE_NODE) {
         const SpaceNode &snode = *reinterpret_cast<const SpaceNode *>(sl);
         if (snode.edittree == nullptr || snode.edittree->type != NTREE_GEOMETRY) {
@@ -2049,11 +2049,11 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
        * properties are automatically converted to boolean sockets where applicable as well.
        * However, boolean properties will crash old versions of Blender, so convert them to integer
        * properties for writing. The actual value is stored in the same variable for both types */
-      LISTBASE_FOREACH (IDProperty *, prop, &nmd->settings.properties->data.group) {
-        if (prop->type == IDP_BOOLEAN) {
-          boolean_props.add_new(prop, reinterpret_cast<IDPropertyUIDataBool *>(prop->ui_data));
-          prop->type = IDP_INT;
-          prop->ui_data = nullptr;
+      for (IDProperty &prop : nmd->settings.properties->data.group) {
+        if (prop.type == IDP_BOOLEAN) {
+          boolean_props.add_new(&prop, reinterpret_cast<IDPropertyUIDataBool *>(prop.ui_data));
+          prop.type = IDP_INT;
+          prop.ui_data = nullptr;
         }
       }
     }
@@ -2100,12 +2100,12 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 
   if (nmd->settings.properties) {
     if (!BLO_write_is_undo(writer)) {
-      LISTBASE_FOREACH (IDProperty *, prop, &nmd->settings.properties->data.group) {
-        if (prop->type == IDP_INT) {
-          if (IDPropertyUIDataBool **ui_data = boolean_props.lookup_ptr(prop)) {
-            prop->type = IDP_BOOLEAN;
+      for (IDProperty &prop : nmd->settings.properties->data.group) {
+        if (prop.type == IDP_INT) {
+          if (IDPropertyUIDataBool **ui_data = boolean_props.lookup_ptr(&prop)) {
+            prop.type = IDP_BOOLEAN;
             if (ui_data) {
-              prop->ui_data = reinterpret_cast<IDPropertyUIData *>(*ui_data);
+              prop.ui_data = reinterpret_cast<IDPropertyUIData *>(*ui_data);
             }
           }
         }

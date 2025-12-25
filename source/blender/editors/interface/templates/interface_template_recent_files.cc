@@ -29,6 +29,7 @@
 #include "RNA_access.hh"
 
 #include "UI_interface_layout.hh"
+#include "WM_types.hh"
 #include "interface_intern.hh"
 
 namespace blender::ui {
@@ -136,25 +137,26 @@ static void template_recent_files_tooltip_func(bContext & /*C*/,
 int template_recent_files(Layout *layout, int rows)
 {
   int i = 0;
-  LISTBASE_FOREACH_INDEX (RecentFile *, recent, &G.recent_files, i) {
+  for (RecentFile &recent : G.recent_files) {
     if (i >= rows) {
       break;
     }
 
-    const char *filename = BLI_path_basename(recent->filepath);
+    const char *filename = BLI_path_basename(recent.filepath);
     PointerRNA ptr = layout->op("WM_OT_open_mainfile",
                                 filename,
                                 BKE_blendfile_extension_check(filename) ? ICON_FILE_BLEND :
                                                                           ICON_FILE_BACKUP,
                                 wm::OpCallContext::InvokeDefault,
                                 UI_ITEM_NONE);
-    RNA_string_set(&ptr, "filepath", recent->filepath);
+    RNA_string_set(&ptr, "filepath", recent.filepath);
     RNA_boolean_set(&ptr, "display_file_selector", false);
 
     Block *block = layout->block();
     Button *but = button_last(block);
     button_func_tooltip_custom_set(
-        but, template_recent_files_tooltip_func, BLI_strdup(recent->filepath), MEM_freeN);
+        but, template_recent_files_tooltip_func, BLI_strdup(recent.filepath), MEM_freeN);
+    i++;
   }
 
   return i;

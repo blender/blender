@@ -1229,8 +1229,8 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
     }
 
     const MetaBall *mb = static_cast<MetaBall *>(bob->data);
-    LISTBASE_FOREACH (const MetaElem *, ml, (mb->editelems ? mb->editelems : &mb->elems)) {
-      if (ml->flag & MB_HIDE) {
+    for (const MetaElem &ml : mb->editelems ? *mb->editelems : mb->elems) {
+      if (ml.flag & MB_HIDE) {
         continue;
       }
       float pos[4][4], rot[4][4];
@@ -1240,7 +1240,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
       /* make a copy because of duplicates */
       MetaElem *new_ml = static_cast<MetaElem *>(
           BLI_memarena_alloc(process->pgn_elements, sizeof(MetaElem)));
-      *(new_ml) = *ml;
+      *(new_ml) = ml;
       new_ml->bb = static_cast<BoundBox *>(
           BLI_memarena_alloc(process->pgn_elements, sizeof(BoundBox)));
       new_ml->mat = static_cast<float *>(
@@ -1250,11 +1250,11 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
 
       /* too big stiffness seems only ugly due to linear interpolation
        * no need to have possibility for too big stiffness */
-      if (ml->s > 10.0f) {
+      if (ml.s > 10.0f) {
         new_ml->s = 10.0f;
       }
       else {
-        new_ml->s = ml->s;
+        new_ml->s = ml.s;
       }
 
       /* if metaball is negative, set stiffness negative */
@@ -1264,12 +1264,12 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
 
       /* Translation of MetaElem */
       unit_m4(pos);
-      pos[3][0] = ml->x;
-      pos[3][1] = ml->y;
-      pos[3][2] = ml->z;
+      pos[3][0] = ml.x;
+      pos[3][1] = ml.y;
+      pos[3][2] = ml.z;
 
       /* Rotation of MetaElem is stored in quat */
-      quat_to_mat4(rot, ml->quat);
+      quat_to_mat4(rot, ml.quat);
 
       /* Matrix multiply is as follows:
        *   basis object space ->
@@ -1284,29 +1284,29 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
       invert_m4_m4((float (*)[4])new_ml->imat, (float (*)[4])new_ml->mat);
 
       /* rad2 is inverse of squared radius */
-      new_ml->rad2 = 1 / (ml->rad * ml->rad);
+      new_ml->rad2 = 1 / (ml.rad * ml.rad);
 
       /* initial dimensions = radius */
-      expx = ml->rad;
-      expy = ml->rad;
-      expz = ml->rad;
+      expx = ml.rad;
+      expy = ml.rad;
+      expz = ml.rad;
 
-      switch (ml->type) {
+      switch (ml.type) {
         case MB_BALL:
           break;
         case MB_CUBE: /* cube is "expanded" by expz, expy and expx */
-          expz += ml->expz;
+          expz += ml.expz;
           ATTR_FALLTHROUGH;
         case MB_PLANE: /* plane is "expanded" by expy and expx */
-          expy += ml->expy;
+          expy += ml.expy;
           ATTR_FALLTHROUGH;
         case MB_TUBE: /* tube is "expanded" by expx */
-          expx += ml->expx;
+          expx += ml.expx;
           break;
         case MB_ELIPSOID: /* ellipsoid is "stretched" by exp* */
-          expx *= ml->expx;
-          expy *= ml->expy;
-          expz *= ml->expz;
+          expx *= ml.expx;
+          expy *= ml.expy;
+          expz *= ml.expz;
           break;
       }
 

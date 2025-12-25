@@ -80,8 +80,8 @@ static void camera_copy_data(Main * /*bmain*/,
   const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
 
   BLI_listbase_clear(&cam_dst->bg_images);
-  LISTBASE_FOREACH (CameraBGImage *, bgpic_src, &cam_src->bg_images) {
-    CameraBGImage *bgpic_dst = BKE_camera_background_image_copy(bgpic_src, flag_subdata);
+  for (CameraBGImage &bgpic_src : cam_src->bg_images) {
+    CameraBGImage *bgpic_dst = BKE_camera_background_image_copy(&bgpic_src, flag_subdata);
     BLI_addtail(&cam_dst->bg_images, bgpic_dst);
   }
 
@@ -106,9 +106,9 @@ static void camera_foreach_id(ID *id, LibraryForeachIDData *data)
   const int flag = BKE_lib_query_foreachid_process_flags_get(data);
 
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, camera->dof.focus_object, IDWALK_CB_NOP);
-  LISTBASE_FOREACH (CameraBGImage *, bgpic, &camera->bg_images) {
-    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, bgpic->ima, IDWALK_CB_USER);
-    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, bgpic->clip, IDWALK_CB_USER);
+  for (CameraBGImage &bgpic : camera->bg_images) {
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, bgpic.ima, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, bgpic.clip, IDWALK_CB_USER);
   }
 
   if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
@@ -216,8 +216,8 @@ static void camera_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   BLO_write_id_struct(writer, Camera, id_address, &cam->id);
   BKE_id_blend_write(writer, &cam->id);
 
-  LISTBASE_FOREACH (CameraBGImage *, bgpic, &cam->bg_images) {
-    writer->write_struct(bgpic);
+  for (CameraBGImage &bgpic : cam->bg_images) {
+    writer->write_struct(&bgpic);
   }
 
   if (!is_undo) {
@@ -235,12 +235,12 @@ static void camera_blend_read_data(BlendDataReader *reader, ID *id)
 
   BLO_read_struct_list(reader, CameraBGImage, &ca->bg_images);
 
-  LISTBASE_FOREACH (CameraBGImage *, bgpic, &ca->bg_images) {
-    bgpic->iuser.scene = nullptr;
+  for (CameraBGImage &bgpic : ca->bg_images) {
+    bgpic.iuser.scene = nullptr;
 
     /* If linking from a library, clear 'local' library override flag. */
     if (ID_IS_LINKED(ca)) {
-      bgpic->flag &= ~CAM_BGIMG_FLAG_OVERRIDE_LIBRARY_LOCAL;
+      bgpic.flag &= ~CAM_BGIMG_FLAG_OVERRIDE_LIBRARY_LOCAL;
     }
   }
 
@@ -1121,14 +1121,14 @@ static Object *camera_multiview_advanced(const Scene *scene, Object *camera, con
   name[0] = '\0';
 
   /* we need to take the better match, thus the len_suffix_max test */
-  LISTBASE_FOREACH (const SceneRenderView *, srv, &scene->r.views) {
-    const int len_suffix = strlen(srv->suffix);
+  for (const SceneRenderView &srv : scene->r.views) {
+    const int len_suffix = strlen(srv.suffix);
 
     if ((len_suffix < len_suffix_max) || (len_name < len_suffix)) {
       continue;
     }
 
-    if (STREQ(camera_name + (len_name - len_suffix), srv->suffix)) {
+    if (STREQ(camera_name + (len_name - len_suffix), srv.suffix)) {
       SNPRINTF(name, "%.*s%s", (len_name - len_suffix), camera_name, suffix);
       len_suffix_max = len_suffix;
     }

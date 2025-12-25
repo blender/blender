@@ -127,13 +127,13 @@ static void catalog_assets_draw(const bContext *C, Menu *menu)
 
 static bool unassigned_local_poll(const Main &bmain)
 {
-  LISTBASE_FOREACH (const bNodeTree *, group, &bmain.nodetrees) {
+  for (const bNodeTree &group : bmain.nodetrees) {
     /* Assets are displayed in other menus, and non-local data-blocks aren't added to this menu. */
-    if (group->id.library_weak_reference || group->id.asset_data) {
+    if (group.id.library_weak_reference || group.id.asset_data) {
       continue;
     }
-    if (!group->geometry_node_asset_traits ||
-        !(group->geometry_node_asset_traits->flag & GEO_NODE_ASSET_MODIFIER))
+    if (!group.geometry_node_asset_traits ||
+        !(group.geometry_node_asset_traits->flag & GEO_NODE_ASSET_MODIFIER))
     {
       continue;
     }
@@ -156,13 +156,13 @@ static void unassigned_assets_draw(const bContext *C, Menu *menu)
 
   bool first = true;
   bool add_separator = !tree.unassigned_assets.is_empty();
-  LISTBASE_FOREACH (const bNodeTree *, group, &bmain.nodetrees) {
+  for (const bNodeTree &group : bmain.nodetrees) {
     /* Assets are displayed in other menus, and non-local data-blocks aren't added to this menu. */
-    if (group->id.library_weak_reference || group->id.asset_data) {
+    if (group.id.library_weak_reference || group.id.asset_data) {
       continue;
     }
-    if (!group->geometry_node_asset_traits ||
-        !(group->geometry_node_asset_traits->flag & GEO_NODE_ASSET_MODIFIER))
+    if (!group.geometry_node_asset_traits ||
+        !(group.geometry_node_asset_traits->flag & GEO_NODE_ASSET_MODIFIER))
     {
       continue;
     }
@@ -177,8 +177,8 @@ static void unassigned_assets_draw(const bContext *C, Menu *menu)
     }
 
     PointerRNA props_ptr = layout.op(
-        ot, group->id.name + 2, ICON_NONE, wm::OpCallContext::InvokeDefault, UI_ITEM_NONE);
-    WM_operator_properties_id_lookup_set_from_id(&props_ptr, &group->id);
+        ot, group.id.name + 2, ICON_NONE, wm::OpCallContext::InvokeDefault, UI_ITEM_NONE);
+    WM_operator_properties_id_lookup_set_from_id(&props_ptr, &group.id);
   }
 }
 

@@ -149,8 +149,8 @@ static void check_persistent(
 
 void outliner_free_tree(ListBaseT<TreeElement> *tree)
 {
-  LISTBASE_FOREACH_MUTABLE (TreeElement *, element, tree) {
-    outliner_free_tree_element(element, tree);
+  for (TreeElement &element : tree->items_mutable()) {
+    outliner_free_tree_element(&element, tree);
   }
 }
 
@@ -404,9 +404,9 @@ BLI_INLINE void outliner_add_collection_objects(SpaceOutliner *space_outliner,
                                                 Collection *collection,
                                                 TreeElement *parent)
 {
-  LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
+  for (CollectionObject &cob : collection->gobject) {
     AbstractTreeDisplay::add_element(
-        space_outliner, tree, reinterpret_cast<ID *>(cob->ob), nullptr, parent, TSE_SOME_ID, 0);
+        space_outliner, tree, reinterpret_cast<ID *>(cob.ob), nullptr, parent, TSE_SOME_ID, 0);
   }
 }
 
@@ -416,9 +416,9 @@ TreeElement *outliner_add_collection_recursive(SpaceOutliner *space_outliner,
 {
   outliner_add_collection_init(ten, collection);
 
-  LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
+  for (CollectionChild &child : collection->children) {
     AbstractTreeDisplay::add_element(
-        space_outliner, &ten->subtree, &child->collection->id, nullptr, ten, TSE_SOME_ID, 0);
+        space_outliner, &ten->subtree, &child.collection->id, nullptr, ten, TSE_SOME_ID, 0);
   }
 
   if (space_outliner->outlinevis != SO_SCENES) {
@@ -575,11 +575,11 @@ static void outliner_sort(ListBaseT<TreeElement> *lb)
       tTreeSort *tp = tear;
       int skip = 0;
 
-      LISTBASE_FOREACH (TreeElement *, te, lb) {
-        TreeStoreElem *tselem = TREESTORE(te);
-        tp->te = te;
-        tp->name = te->name;
-        tp->idcode = te->idcode;
+      for (TreeElement &te : *lb) {
+        TreeStoreElem *tselem = TREESTORE(&te);
+        tp->te = &te;
+        tp->name = te.name;
+        tp->idcode = te.idcode;
 
         if (!ELEM(tselem->type, TSE_SOME_ID, TSE_DEFGROUP)) {
           tp->idcode = 0; /* Don't sort this. */
@@ -619,8 +619,8 @@ static void outliner_sort(ListBaseT<TreeElement> *lb)
     }
   }
 
-  LISTBASE_FOREACH (TreeElement *, te_iter, lb) {
-    outliner_sort(&te_iter->subtree);
+  for (TreeElement &te_iter : *lb) {
+    outliner_sort(&te_iter.subtree);
   }
 }
 
@@ -640,11 +640,11 @@ static void outliner_collections_children_sort(ListBaseT<TreeElement> *lb)
       tTreeSort *tear = MEM_malloc_arrayN<tTreeSort>(totelem, "tree sort array");
       tTreeSort *tp = tear;
 
-      LISTBASE_FOREACH (TreeElement *, te, lb) {
-        TreeStoreElem *tselem = TREESTORE(te);
-        tp->te = te;
-        tp->name = te->name;
-        tp->idcode = te->idcode;
+      for (TreeElement &te : *lb) {
+        TreeStoreElem *tselem = TREESTORE(&te);
+        tp->te = &te;
+        tp->name = te.name;
+        tp->idcode = te.idcode;
         tp->id = tselem->id;
         tp++;
       }
@@ -661,8 +661,8 @@ static void outliner_collections_children_sort(ListBaseT<TreeElement> *lb)
     }
   }
 
-  LISTBASE_FOREACH (TreeElement *, te_iter, lb) {
-    outliner_collections_children_sort(&te_iter->subtree);
+  for (TreeElement &te_iter : *lb) {
+    outliner_collections_children_sort(&te_iter.subtree);
   }
 }
 
@@ -730,9 +730,9 @@ static TreeElement *outliner_find_first_desired_element_at_y_recursive(
   }
 
   if (TSELEM_OPEN(te->store_elem, space_outliner)) {
-    LISTBASE_FOREACH (TreeElement *, te_iter, &te->subtree) {
+    for (TreeElement &te_iter : te->subtree) {
       TreeElement *te_sub = outliner_find_first_desired_element_at_y_recursive(
-          space_outliner, te_iter, limit, callback_test);
+          space_outliner, &te_iter, limit, callback_test);
       if (te_sub != nullptr) {
         return te_sub;
       }

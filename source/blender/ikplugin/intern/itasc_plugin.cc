@@ -409,10 +409,10 @@ static int initialize_scene(Object *ob, bPoseChannel *pchan_tip)
 {
   /* Find all IK constraints and validate them. */
   int treecount = 0;
-  LISTBASE_FOREACH (bConstraint *, con, &pchan_tip->constraints) {
-    if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
-      if (constraint_valid(con)) {
-        treecount += initialize_chain(ob, pchan_tip, con);
+  for (bConstraint &con : pchan_tip->constraints) {
+    if (con.type == CONSTRAINT_TYPE_KINEMATIC) {
+      if (constraint_valid(&con)) {
+        treecount += initialize_chain(ob, pchan_tip, &con);
       }
     }
   }
@@ -1649,20 +1649,20 @@ static IK_Scene *convert_tree(
 static void create_scene(Depsgraph *depsgraph, Scene *scene, Object *ob, float ctime)
 {
   /* create the IK scene */
-  LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
+  for (bPoseChannel &pchan : ob->pose->chanbase) {
     /* by construction there is only one tree */
-    PoseTree *tree = (PoseTree *)pchan->iktree.first;
+    PoseTree *tree = (PoseTree *)pchan.iktree.first;
     if (tree) {
       IK_Data *ikdata = get_ikdata(ob->pose);
       /* convert tree in iTaSC::Scene */
-      IK_Scene *ikscene = convert_tree(depsgraph, scene, ob, pchan, ctime);
+      IK_Scene *ikscene = convert_tree(depsgraph, scene, ob, &pchan, ctime);
       if (ikscene) {
         ikscene->next = ikdata->first;
         ikdata->first = ikscene;
       }
       /* delete the trees once we are done */
       while (tree) {
-        BLI_remlink(&pchan->iktree, tree);
+        BLI_remlink(&pchan.iktree, tree);
         BLI_freelistN(&tree->targets);
         if (tree->pchan) {
           MEM_freeN(tree->pchan);
@@ -1674,7 +1674,7 @@ static void create_scene(Depsgraph *depsgraph, Scene *scene, Object *ob, float c
           MEM_freeN(tree->basis_change);
         }
         MEM_freeN(tree);
-        tree = (PoseTree *)pchan->iktree.first;
+        tree = (PoseTree *)pchan.iktree.first;
       }
     }
   }
@@ -1894,9 +1894,9 @@ void itasc_initialize_tree(Depsgraph *depsgraph, Scene *scene, Object *ob, float
   itasc_clear_data(ob->pose);
   /* we should handle all the constraint and mark them all disabled
    * for blender but we'll start with the IK constraint alone */
-  LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-    if (pchan->constflag & PCHAN_HAS_IK) {
-      count += initialize_scene(ob, pchan);
+  for (bPoseChannel &pchan : ob->pose->chanbase) {
+    if (pchan.constflag & PCHAN_HAS_IK) {
+      count += initialize_scene(ob, &pchan);
     }
   }
   /* if at least one tree, create the scenes from the PoseTree stored in the channels

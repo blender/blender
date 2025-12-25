@@ -268,17 +268,17 @@ bool ED_workspace_delete(WorkSpace *workspace, Main *bmain, bContext *C, wmWindo
   WorkSpace *new_active = reinterpret_cast<WorkSpace *>(index == 0 ? ordered[1] :
                                                                      ordered[index - 1]);
 
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    WorkSpace *workspace_active = WM_window_get_active_workspace(win);
+  for (wmWindow &win : wm->windows) {
+    WorkSpace *workspace_active = WM_window_get_active_workspace(&win);
     if (workspace_active == workspace) {
-      ED_workspace_change(new_active, C, wm, win);
+      ED_workspace_change(new_active, C, wm, &win);
     }
   }
 
   /* Also delete managed screens if they have no other users. */
-  LISTBASE_FOREACH (WorkSpaceLayout *, layout, &workspace->layouts) {
-    BKE_id_free_us(bmain, layout->screen);
-    layout->screen = nullptr;
+  for (WorkSpaceLayout &layout : workspace->layouts) {
+    BKE_id_free_us(bmain, layout.screen);
+    layout.screen = nullptr;
   }
 
   BKE_id_free(bmain, &workspace->id);
@@ -363,9 +363,9 @@ static wmOperatorStatus workspace_delete_all_others_exec(bContext *C, wmOperator
   Main *bmain = CTX_data_main(C);
   WorkSpace *workspace = workspace_context_get(C);
 
-  LISTBASE_FOREACH (WorkSpace *, ws, &bmain->workspaces) {
-    if (ws != workspace) {
-      WM_event_add_notifier(C, NC_SCREEN | ND_WORKSPACE_DELETE, ws);
+  for (WorkSpace &ws : bmain->workspaces) {
+    if (&ws != workspace) {
+      WM_event_add_notifier(C, NC_SCREEN | ND_WORKSPACE_DELETE, &ws);
       WM_event_add_notifier(C, NC_WINDOW, nullptr);
     }
   }
@@ -541,9 +541,9 @@ static void workspace_add_menu(bContext * /*C*/, blender::ui::Layout *layout, vo
   WorkspaceConfigFileData *builtin_config = workspace_system_file_read(app_template);
 
   if (startup_config) {
-    LISTBASE_FOREACH (WorkSpace *, workspace, &startup_config->workspaces) {
+    for (WorkSpace &workspace : startup_config->workspaces) {
       blender::ui::Layout &row = layout->row(false);
-      workspace_append_button(row, ot_append, workspace, startup_config->main);
+      workspace_append_button(row, ot_append, &workspace, startup_config->main);
       has_startup_items = true;
     }
   }
@@ -551,9 +551,9 @@ static void workspace_add_menu(bContext * /*C*/, blender::ui::Layout *layout, vo
   if (builtin_config) {
     bool has_title = false;
 
-    LISTBASE_FOREACH (WorkSpace *, workspace, &builtin_config->workspaces) {
+    for (WorkSpace &workspace : builtin_config->workspaces) {
       if (startup_config &&
-          BLI_findstring(&startup_config->workspaces, workspace->id.name, offsetof(ID, name)))
+          BLI_findstring(&startup_config->workspaces, workspace.id.name, offsetof(ID, name)))
       {
         continue;
       }
@@ -566,7 +566,7 @@ static void workspace_add_menu(bContext * /*C*/, blender::ui::Layout *layout, vo
       }
 
       blender::ui::Layout &row = layout->row(false);
-      workspace_append_button(row, ot_append, workspace, builtin_config->main);
+      workspace_append_button(row, ot_append, &workspace, builtin_config->main);
     }
   }
 
@@ -595,8 +595,8 @@ static void workspace_add_menu_draw(blender::ui::Layout &layout)
   ListBaseT<LinkData> templates;
   BKE_appdir_app_templates(&templates);
 
-  LISTBASE_FOREACH (LinkData *, link, &templates) {
-    char *app_template = static_cast<char *>(link->data);
+  for (LinkData &link : templates) {
+    char *app_template = static_cast<char *>(link.data);
     char display_name[FILE_MAX];
 
     BLI_path_to_display_name(display_name, sizeof(display_name), IFACE_(app_template));

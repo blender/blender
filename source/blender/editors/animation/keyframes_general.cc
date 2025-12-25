@@ -1106,9 +1106,8 @@ bool decimate_fcurve(bAnimListElem *ale, float remove_ratio, float error_sq_max)
   }
 
   ListBaseT<FCurveSegment> segments = find_fcurve_segments(fcu);
-  LISTBASE_FOREACH (FCurveSegment *, segment, &segments) {
-    decimate_fcurve_segment(
-        fcu, segment->start_index, segment->length, remove_ratio, error_sq_max);
+  for (FCurveSegment &segment : segments) {
+    decimate_fcurve_segment(fcu, segment.start_index, segment.length, remove_ratio, error_sq_max);
   }
   BLI_freelistN(&segments);
 
@@ -1494,9 +1493,9 @@ bool copy_animedit_keys(bAnimContext *ac, ListBaseT<bAnimListElem> *anim_data)
 
   SlotMapper slot_mapper{*keyframe_copy_buffer};
 
-  LISTBASE_FOREACH (const bAnimListElem *, ale, anim_data) {
-    BLI_assert(ale->datatype == ALE_FCURVE);
-    const FCurve *fcu = static_cast<const FCurve *>(ale->key_data);
+  for (const bAnimListElem &ale : *anim_data) {
+    BLI_assert(ale.datatype == ALE_FCURVE);
+    const FCurve *fcu = static_cast<const FCurve *>(ale.key_data);
 
     /* Firstly, check if F-Curve has any selected keyframes. Skip if no selected
      * keyframes found (so no need to create unnecessary copy-buffer data). This
@@ -1505,8 +1504,9 @@ bool copy_animedit_keys(bAnimContext *ac, ListBaseT<bAnimListElem> *anim_data)
     if (ANIM_fcurve_keyframes_loop(
             nullptr,
             /* The const-cast is because I (Sybren) want to have `fcu` as `const` in as much of
-             * this LISTBASE_FOREACH as possible. The code is alternating between the to-be-copied
-             * F-Curve and the copy, and I want the compiler to help distinguish those. */
+             * this ListBaseT iterator as possible. The code is alternating between the
+             * to-be-copied F-Curve and the copy, and I want the compiler to help distinguish
+             * those. */
             const_cast<FCurve *>(fcu),
             nullptr,
             ANIM_editkeyframes_ok(BEZT_OK_SELECTED_KEY),
@@ -1515,7 +1515,7 @@ bool copy_animedit_keys(bAnimContext *ac, ListBaseT<bAnimListElem> *anim_data)
       continue;
     }
 
-    Channelbag &channelbag = slot_mapper.channelbag_for_ale(ale);
+    Channelbag &channelbag = slot_mapper.channelbag_for_ale(&ale);
 
     /* Create an F-Curve on this ChannelBag. */
     FCurve &fcurve_copy = *BKE_fcurve_create();
@@ -1530,7 +1530,7 @@ bool copy_animedit_keys(bAnimContext *ac, ListBaseT<bAnimListElem> *anim_data)
 
     /* Detect if this is a bone. We do that here rather than during pasting
      * because ID pointers will get invalidated on undo / loading another file. */
-    if (is_animating_bone(ale)) {
+    if (is_animating_bone(&ale)) {
       keyframe_copy_buffer->bone_fcurves.add(&fcurve_copy);
     }
 
@@ -2179,30 +2179,30 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
   for (const pastebuf_match_func matcher : matchers) {
     bool found_match = false;
 
-    LISTBASE_FOREACH (bAnimListElem *, ale, anim_data) {
+    for (bAnimListElem &ale : *anim_data) {
       /* See if there is an F-Curve in the copy buffer that matches this ALE. */
       const FCurve *fcurve_in_copy_buffer = pastebuf_find_matching_copybuf_item(
-          matcher, ac->bmain, *ale, from_single, to_single, paste_context);
+          matcher, ac->bmain, ale, from_single, to_single, paste_context);
       if (!fcurve_in_copy_buffer) {
         continue;
       }
 
       /* Copy the relevant data from the matching buffer curve. */
       offset[1] = paste_get_y_offset(
-          ac, *fcurve_in_copy_buffer, ale, paste_context.value_offset_mode);
+          ac, *fcurve_in_copy_buffer, &ale, paste_context.value_offset_mode);
 
       /* Do the actual pasting. */
-      FCurve *fcurve_to_paste_into = static_cast<FCurve *>(ale->data);
-      ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcurve_to_paste_into, false, false);
+      FCurve *fcurve_to_paste_into = static_cast<FCurve *>(ale.data);
+      ANIM_nla_mapping_apply_if_needed_fcurve(&ale, fcurve_to_paste_into, false, false);
       paste_animedit_keys_fcurve(fcurve_to_paste_into,
                                  *fcurve_in_copy_buffer,
                                  offset,
                                  paste_context.merge_mode,
                                  paste_context.flip);
-      ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcurve_to_paste_into, true, false);
+      ANIM_nla_mapping_apply_if_needed_fcurve(&ale, fcurve_to_paste_into, true, false);
 
       found_match = true;
-      ale->update |= ANIM_UPDATE_DEFAULT;
+      ale.update |= ANIM_UPDATE_DEFAULT;
     }
 
     /* Don't continue if some fcurves were pasted. */

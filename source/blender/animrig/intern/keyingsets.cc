@@ -58,22 +58,22 @@ void keyingset_info_unregister(Main *bmain, KeyingSetInfo *keyingset_info)
   /* Find relevant builtin KeyingSets which use this, and remove them. */
   /* TODO: this isn't done now, since unregister is really only used at the moment when we
    * reload the scripts, which kind of defeats the purpose of "builtin"? */
-  LISTBASE_FOREACH_MUTABLE (KeyingSet *, keyingset, &builtin_keyingsets) {
+  for (KeyingSet &keyingset : builtin_keyingsets.items_mutable()) {
     /* Remove if matching typeinfo name. */
-    if (!STREQ(keyingset->typeinfo, keyingset_info->idname)) {
+    if (!STREQ(keyingset.typeinfo, keyingset_info->idname)) {
       continue;
     }
     Scene *scene;
-    BKE_keyingset_free_paths(keyingset);
-    BLI_remlink(&builtin_keyingsets, keyingset);
+    BKE_keyingset_free_paths(&keyingset);
+    BLI_remlink(&builtin_keyingsets, &keyingset);
 
     for (scene = static_cast<Scene *>(bmain->scenes.first); scene;
          scene = static_cast<Scene *>(scene->id.next))
     {
-      BLI_remlink_safe(&scene->keyingsets, keyingset);
+      BLI_remlink_safe(&scene->keyingsets, &keyingset);
     }
 
-    MEM_freeN(keyingset);
+    MEM_freeN(&keyingset);
   }
 
   BLI_freelinkN(&keyingset_type_infos, keyingset_info);
@@ -82,12 +82,12 @@ void keyingset_info_unregister(Main *bmain, KeyingSetInfo *keyingset_info)
 void keyingset_infos_exit()
 {
   /* Free type infos. */
-  LISTBASE_FOREACH_MUTABLE (KeyingSetInfo *, keyingset_info, &keyingset_type_infos) {
+  for (KeyingSetInfo &keyingset_info : keyingset_type_infos.items_mutable()) {
     /* Free extra RNA data, and remove from list. */
-    if (keyingset_info->rna_ext.free) {
-      keyingset_info->rna_ext.free(keyingset_info->rna_ext.data);
+    if (keyingset_info.rna_ext.free) {
+      keyingset_info.rna_ext.free(keyingset_info.rna_ext.data);
     }
-    BLI_freelinkN(&keyingset_type_infos, keyingset_info);
+    BLI_freelinkN(&keyingset_type_infos, &keyingset_info);
   }
 
   BKE_keyingsets_free(&builtin_keyingsets);
@@ -120,9 +120,9 @@ KeyingSet *builtin_keyingset_get_named(const char name[])
   }
 
   /* Loop over KeyingSets checking names. */
-  LISTBASE_FOREACH (KeyingSet *, keyingset, &builtin_keyingsets) {
-    if (STREQ(name, keyingset->idname)) {
-      return keyingset;
+  for (KeyingSet &keyingset : builtin_keyingsets) {
+    if (STREQ(name, keyingset.idname)) {
+      return &keyingset;
     }
   }
 
@@ -438,20 +438,20 @@ int apply_keyingset(bContext *C,
   int keyed_channels = 0;
 
   /* Apply the paths as specified in the KeyingSet now. */
-  LISTBASE_FOREACH (KS_Path *, keyingset_path, &keyingset->paths) {
+  for (KS_Path &keyingset_path : keyingset->paths) {
     /* Skip path if no ID pointer is specified. */
-    if (keyingset_path->id == nullptr) {
+    if (keyingset_path.id == nullptr) {
       BKE_reportf(reports,
                   RPT_WARNING,
                   "Skipping path in keying set, as it has no ID (KS = '%s', path = '%s[%d]')",
                   keyingset->name,
-                  keyingset_path->rna_path,
-                  keyingset_path->array_index);
+                  keyingset_path.rna_path,
+                  keyingset_path.array_index);
       continue;
     }
 
     keyed_channels += insert_key_to_keying_set_path(
-        C, keyingset_path, keyingset, kflag, mode, cfra);
+        C, &keyingset_path, keyingset, kflag, mode, cfra);
   }
 
   /* Return the number of channels successfully affected. */

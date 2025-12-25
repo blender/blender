@@ -316,17 +316,17 @@ void BLI_args_print_arg_doc(bArgs *ba, const char *arg)
 
 void BLI_args_print_other_doc(bArgs *ba)
 {
-  LISTBASE_FOREACH (bArgDoc *, d, &ba->docs) {
-    if (d->done == 0) {
-      internalDocPrint(ba, d);
+  for (bArgDoc &d : ba->docs) {
+    if (d.done == 0) {
+      internalDocPrint(ba, &d);
     }
   }
 }
 
 bool BLI_args_has_other_doc(const bArgs *ba)
 {
-  LISTBASE_FOREACH (const bArgDoc *, d, &ba->docs) {
-    if (d->done == 0) {
+  for (const bArgDoc &d : ba->docs) {
+    if (d.done == 0) {
       return true;
     }
   }

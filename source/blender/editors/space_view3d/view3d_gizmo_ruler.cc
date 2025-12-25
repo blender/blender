@@ -488,9 +488,9 @@ static bool gizmo_ruler_check_for_operator(const wmGizmoGroup *gzgroup)
 /* Helper: Find the layer created as ruler. */
 static bGPDlayer *view3d_ruler_layer_get(bGPdata *gpd)
 {
-  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-    if (gpl->flag & GP_LAYER_IS_RULER) {
-      return gpl;
+  for (bGPDlayer &gpl : gpd->layers) {
+    if (gpl.flag & GP_LAYER_IS_RULER) {
+      return &gpl;
     }
   }
   return nullptr;
@@ -604,11 +604,11 @@ static bool view3d_ruler_from_gpencil(const bContext *C, wmGizmoGroup *gzgroup)
       bGPDframe *gpf;
       gpf = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_USE_PREV);
       if (gpf) {
-        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-          bGPDspoint *pt = gps->points;
+        for (bGPDstroke &gps : gpf->strokes) {
+          bGPDspoint *pt = gps.points;
           int j;
           RulerItem *ruler_item = nullptr;
-          if (gps->totpoints == 3) {
+          if (gps.totpoints == 3) {
             ruler_item = ruler_item_add(gzgroup);
             for (j = 0; j < 3; j++) {
               copy_v3_v3(ruler_item->co[j], &pt->x);
@@ -617,7 +617,7 @@ static bool view3d_ruler_from_gpencil(const bContext *C, wmGizmoGroup *gzgroup)
             ruler_item->flag |= RULERITEM_USE_ANGLE;
             changed = true;
           }
-          else if (gps->totpoints == 2) {
+          else if (gps.totpoints == 2) {
             ruler_item = ruler_item_add(gzgroup);
             for (j = 0; j < 3; j += 2) {
               copy_v3_v3(ruler_item->co[j], &pt->x);
@@ -636,8 +636,8 @@ static bool view3d_ruler_from_gpencil(const bContext *C, wmGizmoGroup *gzgroup)
 void ED_view3d_gizmo_ruler_remove_by_gpencil_layer(bContext *C, bGPDlayer *gpl)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    const Scene *scene = WM_window_get_active_scene(win);
+  for (wmWindow &win : wm->windows) {
+    const Scene *scene = WM_window_get_active_scene(&win);
     if (!scene->gpd) {
       continue;
     }
@@ -647,13 +647,13 @@ void ED_view3d_gizmo_ruler_remove_by_gpencil_layer(bContext *C, bGPDlayer *gpl)
       continue;
     }
 
-    const bScreen *screen = WM_window_get_active_screen(win);
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      if (area->spacetype != SPACE_VIEW3D) {
+    const bScreen *screen = WM_window_get_active_screen(&win);
+    for (ScrArea &area : screen->areabase) {
+      if (area.spacetype != SPACE_VIEW3D) {
         continue;
       }
 
-      ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+      ARegion *region = BKE_area_find_region_type(&area, RGN_TYPE_WINDOW);
       if (!region) {
         continue;
       }

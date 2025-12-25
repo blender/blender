@@ -1211,10 +1211,9 @@ std::optional<std::string> RNA_path_resolve_from_type_to_property(const PointerR
 
   std::optional<std::string> path;
   if (RNA_path_resolve_elements(&idptr, full_path->c_str(), &path_elems)) {
-    LISTBASE_FOREACH_BACKWARD (PropertyElemRNA *, prop_elem, &path_elems) {
-      if (RNA_struct_is_a(prop_elem->ptr.type, type)) {
-        if (const std::optional<std::string> ref_path = RNA_path_from_ID_to_struct(
-                &prop_elem->ptr))
+    for (PropertyElemRNA &prop_elem : path_elems.items_reversed()) {
+      if (RNA_struct_is_a(prop_elem.ptr.type, type)) {
+        if (const std::optional<std::string> ref_path = RNA_path_from_ID_to_struct(&prop_elem.ptr))
         {
           path = blender::StringRef(*full_path).drop_prefix(ref_path->size() + 1);
         }
@@ -1222,8 +1221,8 @@ std::optional<std::string> RNA_path_resolve_from_type_to_property(const PointerR
       }
     }
 
-    LISTBASE_FOREACH_MUTABLE (PropertyElemRNA *, prop_elem, &path_elems) {
-      MEM_delete(prop_elem);
+    for (PropertyElemRNA &prop_elem : path_elems.items_mutable()) {
+      MEM_delete(&prop_elem);
     }
     BLI_listbase_clear(&path_elems);
   }

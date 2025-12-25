@@ -163,8 +163,8 @@ static bool bm_edgeloop_check_overlap_all(BMesh *bm,
   bm_edgeloop_vert_tag(el_store_a, false);
   bm_edgeloop_vert_tag(el_store_b, true);
 
-  LISTBASE_FOREACH (LinkData *, node, lb_a) {
-    if (bm_vert_is_tag_edge_connect(bm, static_cast<BMVert *>(node->data)) == false) {
+  for (LinkData &node : *lb_a) {
+    if (bm_vert_is_tag_edge_connect(bm, static_cast<BMVert *>(node.data)) == false) {
       has_overlap = false;
       goto finally;
     }
@@ -173,8 +173,8 @@ static bool bm_edgeloop_check_overlap_all(BMesh *bm,
   bm_edgeloop_vert_tag(el_store_a, true);
   bm_edgeloop_vert_tag(el_store_b, false);
 
-  LISTBASE_FOREACH (LinkData *, node, lb_b) {
-    if (bm_vert_is_tag_edge_connect(bm, static_cast<BMVert *>(node->data)) == false) {
+  for (LinkData &node : *lb_b) {
+    if (bm_vert_is_tag_edge_connect(bm, static_cast<BMVert *>(node.data)) == false) {
       has_overlap = false;
       goto finally;
     }
@@ -994,12 +994,12 @@ static void bm_edgering_pair_subdiv(BMesh *bm,
   bm_edgeloop_vert_tag(el_store_a, false);
   bm_edgeloop_vert_tag(el_store_b, true);
 
-  LISTBASE_FOREACH (LinkData *, node, lb_a) {
+  for (LinkData &node : *lb_a) {
     BMIter eiter;
 
-    BM_ITER_ELEM (e, &eiter, (BMVert *)node->data, BM_EDGES_OF_VERT) {
+    BM_ITER_ELEM (e, &eiter, (BMVert *)node.data, BM_EDGES_OF_VERT) {
       if (!BMO_edge_flag_test(bm, e, EDGE_IN_STACK)) {
-        BMVert *v_other = BM_edge_other_vert(e, (BMVert *)node->data);
+        BMVert *v_other = BM_edge_other_vert(e, (BMVert *)node.data);
         if (BM_elem_flag_test(v_other, BM_ELEM_TAG)) {
           BMIter fiter;
 

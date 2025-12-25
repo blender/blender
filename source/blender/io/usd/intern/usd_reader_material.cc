@@ -166,8 +166,8 @@ static blender::Vector<int> get_udim_tiles(const std::string &file_path)
   int tile_start, tile_range;
   bool result = BKE_image_get_tile_info(base_udim_path, &tiles, &tile_start, &tile_range);
   if (result) {
-    LISTBASE_FOREACH (LinkData *, tile, &tiles) {
-      int tile_number = POINTER_AS_INT(tile->data);
+    for (LinkData &tile : tiles) {
+      int tile_number = POINTER_AS_INT(tile.data);
       udim_tiles.append(tile_number);
     }
   }
@@ -1569,8 +1569,8 @@ void build_material_map(const Main *bmain, Map<std::string, Material *> &r_mat_m
 {
   BLI_assert_msg(r_mat_map.is_empty(), "The incoming material map should be empty");
 
-  LISTBASE_FOREACH (Material *, material, &bmain->materials) {
-    r_mat_map.add_new(material->id.name + 2, material);
+  for (Material &material : bmain->materials) {
+    r_mat_map.add_new(material.id.name + 2, &material);
   }
 }
 

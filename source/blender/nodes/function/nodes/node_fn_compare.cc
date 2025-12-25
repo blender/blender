@@ -75,9 +75,9 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *sock_angle = (bNodeSocket *)BLI_findlink(&node->inputs, 11);
   bNodeSocket *sock_epsilon = (bNodeSocket *)BLI_findlink(&node->inputs, 12);
 
-  LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+  for (bNodeSocket &socket : node->inputs) {
     bke::node_set_socket_availability(
-        *ntree, *socket, socket->type == eNodeSocketDatatype(data->data_type));
+        *ntree, socket, socket.type == eNodeSocketDatatype(data->data_type));
   }
 
   bke::node_set_socket_availability(

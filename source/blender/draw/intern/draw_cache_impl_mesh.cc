@@ -196,9 +196,9 @@ static void mesh_cd_calc_used_gpu_layers(const Object &object,
       continue;
     }
     ListBaseT<GPUMaterialAttribute> gpu_attrs = GPU_material_attributes(gpumat);
-    LISTBASE_FOREACH (GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
+    for (GPUMaterialAttribute &gpu_attr : gpu_attrs) {
 
-      if (gpu_attr->is_default_color) {
+      if (gpu_attr.is_default_color) {
         const StringRef default_color_name = me_final.default_color_attribute;
         if (attribute_exists(me_final, default_color_name)) {
           drw_attributes_add_request(r_attributes, default_color_name);
@@ -206,14 +206,14 @@ static void mesh_cd_calc_used_gpu_layers(const Object &object,
         continue;
       }
 
-      if (gpu_attr->type == CD_ORCO) {
+      if (gpu_attr.type == CD_ORCO) {
         r_cd_used->orco = true;
         continue;
       }
 
-      StringRef name = gpu_attr->name;
+      StringRef name = gpu_attr.name;
 
-      if (gpu_attr->type == CD_TANGENT) {
+      if (gpu_attr.type == CD_TANGENT) {
         if (name.is_empty()) {
           const StringRef default_name = me_final.default_uv_map_name();
           if (!default_name.is_empty()) {

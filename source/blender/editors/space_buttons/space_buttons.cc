@@ -116,8 +116,8 @@ static void buttons_free(SpaceLink *sl)
 
   if (sbuts->texuser) {
     ButsContextTexture *ct = static_cast<ButsContextTexture *>(sbuts->texuser);
-    LISTBASE_FOREACH_MUTABLE (ButsTextureUser *, user, &ct->users) {
-      MEM_delete(user);
+    for (ButsTextureUser &user : ct->users.items_mutable()) {
+      MEM_delete(&user);
     }
     BLI_listbase_clear(&ct->users);
     MEM_freeN(ct);
@@ -466,8 +466,8 @@ static void buttons_main_region_property_search(const bContext *C,
 
   /* Check whether the current tab has a search match. */
   bool current_tab_has_search_match = false;
-  LISTBASE_FOREACH (Panel *, panel, &region->panels) {
-    if (blender::ui::panel_is_active(panel) && blender::ui::panel_matches_search_filter(panel)) {
+  for (Panel &panel : region->panels) {
+    if (blender::ui::panel_is_active(&panel) && blender::ui::panel_matches_search_filter(&panel)) {
       current_tab_has_search_match = true;
     }
   }
@@ -677,8 +677,8 @@ static void buttons_navigation_bar_region_draw(const bContext *C, ARegion *regio
   SpaceProperties *sbuts = CTX_wm_space_properties(C);
   buttons_context_compute(C, sbuts);
 
-  LISTBASE_FOREACH (PanelType *, pt, &region->runtime->type->paneltypes) {
-    pt->flag |= PANEL_TYPE_LAYOUT_VERT_BAR;
+  for (PanelType &pt : region->runtime->type->paneltypes) {
+    pt.flag |= PANEL_TYPE_LAYOUT_VERT_BAR;
   }
 
   ED_region_panels_layout(C, region);
@@ -998,8 +998,8 @@ static void buttons_id_remap(ScrArea * /*area*/,
   if (sbuts->texuser) {
     ButsContextTexture *ct = static_cast<ButsContextTexture *>(sbuts->texuser);
     mappings.apply(reinterpret_cast<ID **>(&ct->texture), ID_REMAP_APPLY_DEFAULT);
-    LISTBASE_FOREACH_MUTABLE (ButsTextureUser *, user, &ct->users) {
-      MEM_delete(user);
+    for (ButsTextureUser &user : ct->users.items_mutable()) {
+      MEM_delete(&user);
     }
     BLI_listbase_clear(&ct->users);
     ct->user = nullptr;
@@ -1030,8 +1030,8 @@ static void buttons_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, ct->texture, IDWALK_CB_DIRECT_WEAK_LINK);
 
     if (!is_readonly) {
-      LISTBASE_FOREACH_MUTABLE (ButsTextureUser *, user, &ct->users) {
-        MEM_delete(user);
+      for (ButsTextureUser &user : ct->users.items_mutable()) {
+        MEM_delete(&user);
       }
       BLI_listbase_clear(&ct->users);
       ct->user = nullptr;

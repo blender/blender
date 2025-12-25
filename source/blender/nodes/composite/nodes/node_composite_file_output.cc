@@ -282,13 +282,13 @@ static void output_paths_layout(ui::Layout &layout,
   const Scene &scene = *CTX_data_scene(context);
 
   if (bool(scene.r.scemode & R_MULTIVIEW) && format.views_format == R_IMF_VIEWS_MULTIVIEW) {
-    LISTBASE_FOREACH (SceneRenderView *, view, &scene.r.views) {
-      if (!BKE_scene_multiview_is_render_view_active(&scene.r, view)) {
+    for (SceneRenderView &view : scene.r.views) {
+      if (!BKE_scene_multiview_is_render_view_active(&scene.r, &view)) {
         continue;
       }
 
       output_path_layout(
-          layout, directory, file_name, file_name_suffix, view->name, format, scene, node);
+          layout, directory, file_name, file_name_suffix, view.name, format, scene, node);
     }
   }
   else {

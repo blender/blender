@@ -135,12 +135,12 @@ static blender::animrig::Action &extract_pose(Main &bmain, const Span<Object *> 
       });
     }
 
-    LISTBASE_FOREACH (bPoseChannel *, pose_bone, &pose_object->pose->chanbase) {
-      if (!blender::animrig::bone_is_selected(armature, pose_bone)) {
+    for (bPoseChannel &pose_bone : pose_object->pose->chanbase) {
+      if (!blender::animrig::bone_is_selected(armature, &pose_bone)) {
         continue;
       }
       PointerRNA bone_pointer = RNA_pointer_create_discrete(
-          &pose_object->id, &RNA_PoseBone, pose_bone);
+          &pose_object->id, &RNA_PoseBone, &pose_bone);
       Vector<RNAPath> rna_paths = construct_pose_rna_paths(bone_pointer);
       for (const RNAPath &rna_path : rna_paths) {
         PointerRNA resolved_pointer;
@@ -188,18 +188,18 @@ static void ensure_asset_ui_visible(bContext &C)
   }
 
   wmWindowManager *wm = CTX_wm_manager(&C);
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    const bScreen *screen = WM_window_get_active_screen(win);
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      if (area->type->spaceid == SPACE_FILE) {
-        SpaceFile *sfile = reinterpret_cast<SpaceFile *>(area->spacedata.first);
+  for (wmWindow &win : wm->windows) {
+    const bScreen *screen = WM_window_get_active_screen(&win);
+    for (ScrArea &area : screen->areabase) {
+      if (area.type->spaceid == SPACE_FILE) {
+        SpaceFile *sfile = reinterpret_cast<SpaceFile *>(area.spacedata.first);
         if (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS) {
           /* Asset Browser is open. */
           return;
         }
         continue;
       }
-      const ARegion *shelf_region = BKE_area_find_region_type(area, RGN_TYPE_ASSET_SHELF);
+      const ARegion *shelf_region = BKE_area_find_region_type(&area, RGN_TYPE_ASSET_SHELF);
       if (!shelf_region) {
         continue;
       }
@@ -554,12 +554,12 @@ static Vector<PathValue> generate_path_values(Object &pose_object)
 {
   Vector<PathValue> path_values;
   const bArmature *armature = static_cast<bArmature *>(pose_object.data);
-  LISTBASE_FOREACH (bPoseChannel *, pose_bone, &pose_object.pose->chanbase) {
-    if (!blender::animrig::bone_is_selected(armature, pose_bone)) {
+  for (bPoseChannel &pose_bone : pose_object.pose->chanbase) {
+    if (!blender::animrig::bone_is_selected(armature, &pose_bone)) {
       continue;
     }
     PointerRNA bone_pointer = RNA_pointer_create_discrete(
-        &pose_object.id, &RNA_PoseBone, pose_bone);
+        &pose_object.id, &RNA_PoseBone, &pose_bone);
     Vector<RNAPath> rna_paths = construct_pose_rna_paths(bone_pointer);
 
     for (RNAPath &rna_path : rna_paths) {

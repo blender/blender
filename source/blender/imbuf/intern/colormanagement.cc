@@ -1103,21 +1103,20 @@ void IMB_colormanagement_check_file_config(Main *bmain)
   bool is_missing_opencolorio_config = false;
 
   /* Check scenes. */
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+  for (Scene &scene : bmain->scenes) {
     ColorManagedColorspaceSettings *sequencer_colorspace_settings;
     bool ok = true;
 
     /* check scene color management settings */
-    ok &= colormanage_check_display_settings(&scene->display_settings, "scene", default_display);
-    ok &= colormanage_check_view_settings(
-        &scene->display_settings, &scene->view_settings, "scene");
+    ok &= colormanage_check_display_settings(&scene.display_settings, "scene", default_display);
+    ok &= colormanage_check_view_settings(&scene.display_settings, &scene.view_settings, "scene");
 
     ok &= colormanage_check_display_settings(
-        &scene->r.im_format.display_settings, "scene output", default_display);
+        &scene.r.im_format.display_settings, "scene output", default_display);
     ok &= colormanage_check_view_settings(
-        &scene->r.im_format.display_settings, &scene->r.im_format.view_settings, "scene output");
+        &scene.r.im_format.display_settings, &scene.r.im_format.view_settings, "scene output");
 
-    sequencer_colorspace_settings = &scene->sequencer_colorspace_settings;
+    sequencer_colorspace_settings = &scene.sequencer_colorspace_settings;
 
     ok &= colormanage_check_colorspace_settings(sequencer_colorspace_settings, "sequencer");
 
@@ -1126,8 +1125,8 @@ void IMB_colormanagement_check_file_config(Main *bmain)
     }
 
     /* Check sequencer strip input colorspace. */
-    if (scene->ed != nullptr) {
-      blender::seq::foreach_strip(&scene->ed->seqbase, [&](Strip *strip) {
+    if (scene.ed != nullptr) {
+      blender::seq::foreach_strip(&scene.ed->seqbase, [&](Strip *strip) {
         if (strip->data) {
           ok &= colormanage_check_colorspace_settings(&strip->data->colorspace_settings,
                                                       "sequencer strip");
@@ -1136,39 +1135,39 @@ void IMB_colormanagement_check_file_config(Main *bmain)
       });
     }
 
-    is_missing_opencolorio_config |= (!ok && !ID_IS_LINKED(&scene->id));
+    is_missing_opencolorio_config |= (!ok && !ID_IS_LINKED(&scene.id));
   }
 
   /* Check image and movie input colorspace. */
-  LISTBASE_FOREACH (Image *, image, &bmain->images) {
-    const bool ok = colormanage_check_colorspace_settings(&image->colorspace_settings, "image");
-    is_missing_opencolorio_config |= (!ok && !ID_IS_LINKED(&image->id));
+  for (Image &image : bmain->images) {
+    const bool ok = colormanage_check_colorspace_settings(&image.colorspace_settings, "image");
+    is_missing_opencolorio_config |= (!ok && !ID_IS_LINKED(&image.id));
   }
 
-  LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
-    const bool ok = colormanage_check_colorspace_settings(&clip->colorspace_settings, "clip");
-    is_missing_opencolorio_config |= (!ok && !ID_IS_LINKED(&clip->id));
+  for (MovieClip &clip : bmain->movieclips) {
+    const bool ok = colormanage_check_colorspace_settings(&clip.colorspace_settings, "clip");
+    is_missing_opencolorio_config |= (!ok && !ID_IS_LINKED(&clip.id));
   }
 
   /* Check compositing nodes. */
-  LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-    if (ntree->type == NTREE_COMPOSIT) {
+  for (bNodeTree &ntree : bmain->nodetrees) {
+    if (ntree.type == NTREE_COMPOSIT) {
       bool ok = true;
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type_legacy == CMP_NODE_CONVERT_TO_DISPLAY) {
-          NodeConvertToDisplay *nctd = static_cast<NodeConvertToDisplay *>(node->storage);
+      for (bNode &node : ntree.nodes) {
+        if (node.type_legacy == CMP_NODE_CONVERT_TO_DISPLAY) {
+          NodeConvertToDisplay *nctd = static_cast<NodeConvertToDisplay *>(node.storage);
           ok &= colormanage_check_display_settings(
               &nctd->display_settings, "node", default_display);
           ok &= colormanage_check_view_settings(
               &nctd->display_settings, &nctd->view_settings, "node");
         }
-        else if (node->type_legacy == CMP_NODE_CONVERT_COLOR_SPACE) {
-          NodeConvertColorSpace *ncs = static_cast<NodeConvertColorSpace *>(node->storage);
+        else if (node.type_legacy == CMP_NODE_CONVERT_COLOR_SPACE) {
+          NodeConvertColorSpace *ncs = static_cast<NodeConvertColorSpace *>(node.storage);
           ok &= colormanage_check_colorspace_name(ncs->from_color_space, "node");
           ok &= colormanage_check_colorspace_name(ncs->to_color_space, "node");
         }
       }
-      is_missing_opencolorio_config |= (!ok && !ID_IS_LINKED(&ntree->id));
+      is_missing_opencolorio_config |= (!ok && !ID_IS_LINKED(&ntree.id));
     }
   }
 

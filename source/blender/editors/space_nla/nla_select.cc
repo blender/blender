@@ -86,12 +86,12 @@ static void deselect_nla_strips(bAnimContext *ac, short test, short sel)
 
   /* See if we should be selecting or deselecting */
   if (test == DESELECT_STRIPS_TEST) {
-    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-      NlaTrack *nlt = static_cast<NlaTrack *>(ale->data);
+    for (bAnimListElem &ale : anim_data) {
+      NlaTrack *nlt = static_cast<NlaTrack *>(ale.data);
 
       /* if any strip is selected, break out, since we should now be deselecting */
-      LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
-        if (strip->flag & NLASTRIP_FLAG_SELECT) {
+      for (NlaStrip &strip : nlt->strips) {
+        if (strip.flag & NLASTRIP_FLAG_SELECT) {
           sel = SELECT_SUBTRACT;
           break;
         }
@@ -107,20 +107,20 @@ static void deselect_nla_strips(bAnimContext *ac, short test, short sel)
   smode = selmodes_to_flagmodes(sel);
 
   /* Now set the flags */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    NlaTrack *nlt = static_cast<NlaTrack *>(ale->data);
+  for (bAnimListElem &ale : anim_data) {
+    NlaTrack *nlt = static_cast<NlaTrack *>(ale.data);
 
     /* apply same selection to all strips */
-    LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
+    for (NlaStrip &strip : nlt->strips) {
       /* set selection */
       if (test != DESELECT_STRIPS_CLEARACTIVE) {
-        ACHANNEL_SET_FLAG(strip, smode, NLASTRIP_FLAG_SELECT);
+        ACHANNEL_SET_FLAG(&strip, smode, NLASTRIP_FLAG_SELECT);
       }
 
       /* clear active flag */
       /* TODO: for clear active,
        * do we want to limit this to only doing this on a certain set of tracks though? */
-      strip->flag &= ~NLASTRIP_FLAG_ACTIVE;
+      strip.flag &= ~NLASTRIP_FLAG_ACTIVE;
     }
   }
 
@@ -234,15 +234,15 @@ static void box_select_nla_strips(bAnimContext *ac, rcti rect, short mode, short
         NlaTrack *nlt = static_cast<NlaTrack *>(ale->data);
 
         /* only select strips if they fall within the required ranges (if applicable) */
-        LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
+        for (NlaStrip &strip : nlt->strips) {
           if ((mode == NLA_BOXSEL_CHANNELS) ||
-              BKE_nlastrip_within_bounds(strip, rectf.xmin, rectf.xmax))
+              BKE_nlastrip_within_bounds(&strip, rectf.xmin, rectf.xmax))
           {
             /* set selection */
-            ACHANNEL_SET_FLAG(strip, selectmode, NLASTRIP_FLAG_SELECT);
+            ACHANNEL_SET_FLAG(&strip, selectmode, NLASTRIP_FLAG_SELECT);
 
             /* clear active flag */
-            strip->flag &= ~NLASTRIP_FLAG_ACTIVE;
+            strip.flag &= ~NLASTRIP_FLAG_ACTIVE;
           }
         }
       }
@@ -288,9 +288,9 @@ static void nlaedit_strip_at_region_position(
       NlaTrack *nlt = static_cast<NlaTrack *>(ale->data);
       float best_distance = MAXFRAMEF;
 
-      LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
-        if (BKE_nlastrip_within_bounds(strip, xmin, xmax)) {
-          const float distance = BKE_nlastrip_distance_to_frame(strip, mouse_x);
+      for (NlaStrip &strip : nlt->strips) {
+        if (BKE_nlastrip_within_bounds(&strip, xmin, xmax)) {
+          const float distance = BKE_nlastrip_distance_to_frame(&strip, mouse_x);
 
           /* Skip if strip is further away from mouse cursor than any previous strip. */
           if (distance > best_distance) {
@@ -298,7 +298,7 @@ static void nlaedit_strip_at_region_position(
           }
 
           *r_ale = ale;
-          *r_strip = strip;
+          *r_strip = &strip;
           best_distance = distance;
 
           BLI_remlink(&anim_data, ale);
@@ -480,13 +480,13 @@ static void nlaedit_select_leftright(bContext *C,
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
   /* select strips on the side where most data occurs */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    NlaTrack *nlt = static_cast<NlaTrack *>(ale->data);
+  for (bAnimListElem &ale : anim_data) {
+    NlaTrack *nlt = static_cast<NlaTrack *>(ale.data);
 
     /* check each strip to see if it is appropriate */
-    LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
-      if (BKE_nlastrip_within_bounds(strip, xmin, xmax)) {
-        ACHANNEL_SET_FLAG(strip, select_mode, NLASTRIP_FLAG_SELECT);
+    for (NlaStrip &strip : nlt->strips) {
+      if (BKE_nlastrip_within_bounds(&strip, xmin, xmax)) {
+        ACHANNEL_SET_FLAG(&strip, select_mode, NLASTRIP_FLAG_SELECT);
       }
     }
   }

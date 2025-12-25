@@ -52,8 +52,8 @@ void ScreenSpaceDrawingMode::add_depth_shgroups(::Image *image, ImageUser *image
   }
 
   for (const TextureInfo &info : instance_.state.texture_infos) {
-    LISTBASE_FOREACH (ImageTile *, image_tile_ptr, &image->tiles) {
-      const ImageTileWrapper image_tile(image_tile_ptr);
+    for (ImageTile &image_tile_ptr : image->tiles) {
+      const ImageTileWrapper image_tile(&image_tile_ptr);
       const int tile_x = image_tile.get_tile_x_offset();
       const int tile_y = image_tile.get_tile_y_offset();
       tile_user.tile = image_tile.get_tile_number();
@@ -268,8 +268,8 @@ void ScreenSpaceDrawingMode::do_full_update_gpu_texture(TextureInfo &info,
   void *lock;
 
   ::Image *image = instance_.state.image;
-  LISTBASE_FOREACH (ImageTile *, image_tile_ptr, &image->tiles) {
-    const ImageTileWrapper image_tile(image_tile_ptr);
+  for (ImageTile &image_tile_ptr : image->tiles) {
+    const ImageTileWrapper image_tile(&image_tile_ptr);
     tile_user.tile = image_tile.get_tile_number();
 
     ImBuf *tile_buffer = BKE_image_acquire_ibuf(image, &tile_user, &lock);

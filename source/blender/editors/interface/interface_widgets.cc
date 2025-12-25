@@ -2335,23 +2335,23 @@ static void widget_draw_extra_icons(const uiWidgetColors *wcol,
   }
 
   /* Inverse order, from right to left. */
-  LISTBASE_FOREACH_BACKWARD (ButtonExtraOpIcon *, op_icon, &but->extra_op_icons) {
+  for (ButtonExtraOpIcon &op_icon : but->extra_op_icons.items_reversed()) {
     rcti temp = *rect;
     float alpha_this = alpha;
 
     temp.xmin = temp.xmax - icon_size;
 
-    if (op_icon->disabled) {
+    if (op_icon.disabled) {
       alpha_this *= 0.4f;
     }
-    else if (!op_icon->highlighted) {
+    else if (!op_icon.highlighted) {
       alpha_this *= 0.75f;
     }
 
     /* Draw the icon at the center, and restore the flags after. */
     const int old_drawflags = but->drawflag;
     button_drawflag_disable(but, BUT_ICON_LEFT);
-    widget_draw_icon(but, op_icon->icon, alpha_this, &temp, wcol->text);
+    widget_draw_icon(but, op_icon.icon, alpha_this, &temp, wcol->text);
     but->drawflag = old_drawflags;
 
     rect->xmax -= icon_size;

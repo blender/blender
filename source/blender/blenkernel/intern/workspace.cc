@@ -101,14 +101,14 @@ static void workspace_copy_data(
    * This is similar to what is already done with ShapeKeys.
    */
   BLI_listbase_clear(&workspace_dst->layouts);
-  LISTBASE_FOREACH (WorkSpaceLayout *, layout_src, &workspace_src->layouts) {
+  for (WorkSpaceLayout &layout_src : workspace_src->layouts) {
     if (flag & LIB_ID_COPY_SCREEN) {
-      BKE_workspace_layout_add_from_layout(bmain, *workspace_dst, *layout_src, flag);
+      BKE_workspace_layout_add_from_layout(bmain, *workspace_dst, layout_src, flag);
     }
     else {
       /* Copying of screens should only be disabled in some `NO_MAIN` cases. */
       BLI_assert(flag & LIB_ID_CREATE_NO_MAIN);
-      BKE_workspace_layout_add(bmain, *workspace_dst, *layout_src->screen, layout_src->name);
+      BKE_workspace_layout_add(bmain, *workspace_dst, *layout_src.screen, layout_src.name);
     }
   }
 }
@@ -120,8 +120,8 @@ static void workspace_foreach_id(ID *id, LibraryForeachIDData *data)
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, workspace->pin_scene, IDWALK_CB_DIRECT_WEAK_LINK);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, workspace->sequencer_scene, IDWALK_CB_DIRECT_WEAK_LINK);
 
-  LISTBASE_FOREACH (WorkSpaceLayout *, layout, &workspace->layouts) {
-    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, layout->screen, IDWALK_CB_USER);
+  for (WorkSpaceLayout &layout : workspace->layouts) {
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, layout.screen, IDWALK_CB_USER);
   }
 
   BKE_viewer_path_foreach_id(data, &workspace->viewer_path);
@@ -137,9 +137,9 @@ static void workspace_blend_write(BlendWriter *writer, ID *id, const void *id_ad
   BLO_write_struct_list(writer, WorkSpaceDataRelation, &workspace->hook_layout_relations);
   BLO_write_struct_list(writer, wmOwnerID, &workspace->owner_ids);
   BLO_write_struct_list(writer, bToolRef, &workspace->tools);
-  LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
-    if (tref->properties) {
-      IDP_BlendWrite(writer, tref->properties);
+  for (bToolRef &tref : workspace->tools) {
+    if (tref.properties) {
+      IDP_BlendWrite(writer, tref.properties);
     }
   }
 
@@ -155,20 +155,20 @@ static void workspace_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_struct_list(reader, wmOwnerID, &workspace->owner_ids);
   BLO_read_struct_list(reader, bToolRef, &workspace->tools);
 
-  LISTBASE_FOREACH (WorkSpaceDataRelation *, relation, &workspace->hook_layout_relations) {
+  for (WorkSpaceDataRelation &relation : workspace->hook_layout_relations) {
     /* Parent pointer does not belong to workspace data and is therefore restored in lib_link step
      * of window manager. */
     /* FIXME: Should not use that untyped #BLO_read_data_address call, especially since it's
      * reference-counting the matching data in readfile code. Problem currently is that there is no
      * type info available for this void pointer (_should_ be pointing to a #WorkSpaceLayout ?), so
      * #BLO_read_get_new_data_address_no_us cannot be used here. */
-    BLO_read_data_address(reader, &relation->value);
+    BLO_read_data_address(reader, &relation.value);
   }
 
-  LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
-    tref->runtime = nullptr;
-    BLO_read_struct(reader, IDProperty, &tref->properties);
-    IDP_BlendDataRead(reader, &tref->properties);
+  for (bToolRef &tref : workspace->tools) {
+    tref.runtime = nullptr;
+    BLO_read_struct(reader, IDProperty, &tref.properties);
+    IDP_BlendDataRead(reader, &tref.properties);
   }
 
   workspace->runtime = MEM_new<blender::bke::WorkSpaceRuntime>(__func__);
@@ -190,34 +190,34 @@ static void workspace_blend_read_after_liblink(BlendLibReader *reader, ID *id)
   Main *bmain = BLO_read_lib_get_main(reader);
 
   /* Restore proper 'parent' pointers to relevant data, and clean up unused/invalid entries. */
-  LISTBASE_FOREACH_MUTABLE (WorkSpaceDataRelation *, relation, &workspace->hook_layout_relations) {
-    relation->parent = nullptr;
-    LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
-      LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-        if (win->winid == relation->parentid) {
-          relation->parent = win->workspace_hook;
+  for (WorkSpaceDataRelation &relation : workspace->hook_layout_relations.items_mutable()) {
+    relation.parent = nullptr;
+    for (wmWindowManager &wm : bmain->wm) {
+      for (wmWindow &win : wm.windows) {
+        if (win.winid == relation.parentid) {
+          relation.parent = win.workspace_hook;
         }
       }
     }
-    if (relation->parent == nullptr) {
-      BLI_freelinkN(&workspace->hook_layout_relations, relation);
+    if (relation.parent == nullptr) {
+      BLI_freelinkN(&workspace->hook_layout_relations, &relation);
     }
   }
 
-  LISTBASE_FOREACH_MUTABLE (WorkSpaceLayout *, layout, &workspace->layouts) {
-    if (layout->screen) {
+  for (WorkSpaceLayout &layout : workspace->layouts.items_mutable()) {
+    if (layout.screen) {
       if (ID_IS_LINKED(id)) {
-        layout->screen->winid = 0;
-        if (layout->screen->temp) {
+        layout.screen->winid = 0;
+        if (layout.screen->temp) {
           /* delete temp layouts when appending */
-          BKE_workspace_layout_remove(bmain, workspace, layout);
+          BKE_workspace_layout_remove(bmain, workspace, &layout);
         }
       }
     }
     else {
       /* If we're reading a layout without screen stored, it's useless and we shouldn't keep it
        * around. */
-      BKE_workspace_layout_remove(bmain, workspace, layout);
+      BKE_workspace_layout_remove(bmain, workspace, &layout);
     }
   }
 }
@@ -455,11 +455,11 @@ WorkSpaceLayout *BKE_workspace_layout_add_from_layout(Main *bmain,
   /* In case the current layout's screen is a 'full screen' one, find the 'full' area, and its its
    * 'restore screen' as source, instead of the temporary full-screen one. */
   if (BKE_screen_is_fullscreen_area(screen_src)) {
-    LISTBASE_FOREACH (ScrArea *, area_old, &screen_src->areabase) {
+    for (ScrArea &area_old : screen_src->areabase) {
       /* The original layout/screen will also have one area->full set, but it will point to the
        * same source screen. This can be ignored. */
-      if (area_old->full && area_old->full != screen_src) {
-        screen_src = area_old->full;
+      if (area_old.full && area_old.full != screen_src) {
+        screen_src = area_old.full;
         break;
       }
     }
@@ -593,11 +593,11 @@ void BKE_workspace_tool_id_replace_table(WorkSpace *workspace,
   const size_t idname_prefix_len = idname_prefix_skip ? strlen(idname_prefix_skip) : 0;
   const size_t idname_suffix_maxncpy = sizeof(bToolRef::idname) - idname_prefix_len;
 
-  LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
-    if (!(tref->space_type == space_type && tref->mode == mode)) {
+  for (bToolRef &tref : workspace->tools) {
+    if (!(tref.space_type == space_type && tref.mode == mode)) {
       continue;
     }
-    char *idname_suffix = tref->idname;
+    char *idname_suffix = tref.idname;
     if (idname_prefix_skip) {
       if (!STRPREFIX(idname_suffix, idname_prefix_skip)) {
         continue;
@@ -623,8 +623,8 @@ void BKE_workspace_id_tag_all_visible(Main *bmain, int tag)
 {
   BKE_main_id_tag_listbase(&bmain->workspaces.cast<ID>(), tag, false);
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    WorkSpace *workspace = BKE_workspace_active_get(win->workspace_hook);
+  for (wmWindow &win : wm->windows) {
+    WorkSpace *workspace = BKE_workspace_active_get(win.workspace_hook);
     workspace->id.tag |= tag;
   }
 }

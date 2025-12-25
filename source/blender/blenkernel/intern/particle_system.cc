@@ -2837,12 +2837,12 @@ static int collision_detect(ParticleData *pa,
     hit->dist = col->original_ray_length = 0.000001f;
   }
 
-  LISTBASE_FOREACH (ColliderCache *, coll, colliders) {
+  for (ColliderCache &coll : *colliders) {
     /* for boids: don't check with current ground object; also skip if permeated */
     bool skip = false;
 
     for (int i = 0; i < col->skip_count; i++) {
-      if (coll->ob == col->skip[i]) {
+      if (coll.ob == col->skip[i]) {
         skip = true;
         break;
       }
@@ -2853,16 +2853,15 @@ static int collision_detect(ParticleData *pa,
     }
 
     /* particles should not collide with emitter at birth */
-    if (coll->ob == col->emitter && pa->time < col->cfra && pa->time >= col->old_cfra) {
+    if (coll.ob == col->emitter && pa->time < col->cfra && pa->time >= col->old_cfra) {
       continue;
     }
 
-    col->current = coll->ob;
-    col->md = coll->collmd;
-    col->fac1 = (col->old_cfra - coll->collmd->time_x) /
-                (coll->collmd->time_xnew - coll->collmd->time_x);
-    col->fac2 = (col->cfra - coll->collmd->time_x) /
-                (coll->collmd->time_xnew - coll->collmd->time_x);
+    col->current = coll.ob;
+    col->md = coll.collmd;
+    col->fac1 = (col->old_cfra - coll.collmd->time_x) /
+                (coll.collmd->time_xnew - coll.collmd->time_x);
+    col->fac2 = (col->cfra - coll.collmd->time_x) / (coll.collmd->time_xnew - coll.collmd->time_x);
 
     if (col->md && col->md->bvhtree) {
       BLI_bvhtree_ray_cast_ex(col->md->bvhtree,
@@ -5017,8 +5016,8 @@ void BKE_particlesystem_id_loop(ParticleSystem *psys, ParticleSystemIDFunc func,
     }
   }
 
-  LISTBASE_FOREACH (ParticleTarget *, pt, &psys->targets) {
-    func(psys, (ID **)&pt->ob, userdata, IDWALK_CB_NOP);
+  for (ParticleTarget &pt : psys->targets) {
+    func(psys, (ID **)&pt.ob, userdata, IDWALK_CB_NOP);
   }
 
   /* In case `psys->part` is nullptr (See ID_REMAP_SKIP/FORCE/FLAG_NEVER_NULL_USAGE in

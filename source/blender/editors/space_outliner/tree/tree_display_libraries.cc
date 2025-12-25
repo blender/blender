@@ -59,9 +59,8 @@ ListBaseT<TreeElement> TreeDisplayLibraries::build_tree(const TreeSourceData &so
 
   /* Make hierarchy.
    *
-   * Note: `List<T>` template is similar to `LISTBASE_FOREACH`, _not_ `LISTBASE_FOREACH_MUTABLE`,
-   * so we need to iterate over an actual copy of the original list here, to avoid missing some
-   * items. */
+   * Note: `List<T>` template is similar to non-mutable ListBaseT iteration so we need to
+   * iterate over an actual copy of the original list here, to avoid missing some items. */
   for (TreeElement *ten : listbase_to_vector<TreeElement>(tree)) {
     if (ten == tree.first) {
       /* First item is main, skip. */

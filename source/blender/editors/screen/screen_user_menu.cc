@@ -98,9 +98,9 @@ bUserMenuItem_Op *ED_screen_user_menu_item_find_operator(ListBaseT<bUserMenuItem
                                                          const char *op_prop_enum,
                                                          blender::wm::OpCallContext opcontext)
 {
-  LISTBASE_FOREACH (bUserMenuItem *, umi, lb) {
-    if (umi->type == USER_MENU_TYPE_OPERATOR) {
-      bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)umi;
+  for (bUserMenuItem &umi : *lb) {
+    if (umi.type == USER_MENU_TYPE_OPERATOR) {
+      bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)&umi;
       const bool ok_idprop = prop ? IDP_EqualsProperties(prop, umi_op->prop) : true;
       const bool ok_prop_enum = (umi_op->op_prop_enum[0] != '\0') ?
                                     STREQ(umi_op->op_prop_enum, op_prop_enum) :
@@ -119,9 +119,9 @@ bUserMenuItem_Op *ED_screen_user_menu_item_find_operator(ListBaseT<bUserMenuItem
 bUserMenuItem_Menu *ED_screen_user_menu_item_find_menu(ListBaseT<bUserMenuItem> *lb,
                                                        const MenuType *mt)
 {
-  LISTBASE_FOREACH (bUserMenuItem *, umi, lb) {
-    if (umi->type == USER_MENU_TYPE_MENU) {
-      bUserMenuItem_Menu *umi_mt = (bUserMenuItem_Menu *)umi;
+  for (bUserMenuItem &umi : *lb) {
+    if (umi.type == USER_MENU_TYPE_MENU) {
+      bUserMenuItem_Menu *umi_mt = (bUserMenuItem_Menu *)&umi;
       if (STREQ(mt->idname, umi_mt->mt_idname)) {
         return umi_mt;
       }
@@ -135,9 +135,9 @@ bUserMenuItem_Prop *ED_screen_user_menu_item_find_prop(ListBaseT<bUserMenuItem> 
                                                        const char *prop_id,
                                                        int prop_index)
 {
-  LISTBASE_FOREACH (bUserMenuItem *, umi, lb) {
-    if (umi->type == USER_MENU_TYPE_PROP) {
-      bUserMenuItem_Prop *umi_pr = (bUserMenuItem_Prop *)umi;
+  for (bUserMenuItem &umi : *lb) {
+    if (umi.type == USER_MENU_TYPE_PROP) {
+      bUserMenuItem_Prop *umi_pr = (bUserMenuItem_Prop *)&umi;
       if (STREQ(context_data_path, umi_pr->context_data_path) && STREQ(prop_id, umi_pr->prop_id) &&
           (prop_index == umi_pr->prop_index))
       {
@@ -219,12 +219,12 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
     if (um == nullptr) {
       continue;
     }
-    LISTBASE_FOREACH (bUserMenuItem *, umi, &um->items) {
-      std::optional<StringRefNull> ui_name = umi->ui_name[0] ?
-                                                 std::make_optional<StringRefNull>(umi->ui_name) :
+    for (bUserMenuItem &umi : um->items) {
+      std::optional<StringRefNull> ui_name = umi.ui_name[0] ?
+                                                 std::make_optional<StringRefNull>(umi.ui_name) :
                                                  std::nullopt;
-      if (umi->type == USER_MENU_TYPE_OPERATOR) {
-        bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)umi;
+      if (umi.type == USER_MENU_TYPE_OPERATOR) {
+        bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)&umi;
         if (wmOperatorType *ot = WM_operatortype_find(umi_op->op_idname, false)) {
           if (ui_name) {
             ui_name = CTX_IFACE_(ot->translation_context, ui_name->c_str());
@@ -250,8 +250,8 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
           }
         }
       }
-      else if (umi->type == USER_MENU_TYPE_MENU) {
-        bUserMenuItem_Menu *umi_mt = (bUserMenuItem_Menu *)umi;
+      else if (umi.type == USER_MENU_TYPE_MENU) {
+        bUserMenuItem_Menu *umi_mt = (bUserMenuItem_Menu *)&umi;
         MenuType *mt = WM_menutype_find(umi_mt->mt_idname, false);
         if (mt != nullptr) {
           menu->layout->menu(mt, ui_name, ICON_NONE);
@@ -264,8 +264,8 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
           }
         }
       }
-      else if (umi->type == USER_MENU_TYPE_PROP) {
-        bUserMenuItem_Prop *umi_pr = (bUserMenuItem_Prop *)umi;
+      else if (umi.type == USER_MENU_TYPE_PROP) {
+        bUserMenuItem_Prop *umi_pr = (bUserMenuItem_Prop *)&umi;
 
         char *data_path = strchr(umi_pr->context_data_path, '.');
         if (data_path) {
@@ -308,7 +308,7 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
           }
         }
       }
-      else if (umi->type == USER_MENU_TYPE_SEP) {
+      else if (umi.type == USER_MENU_TYPE_SEP) {
         menu->layout->separator();
       }
     }

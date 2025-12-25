@@ -290,8 +290,8 @@ static void do_paint_pixels(const Depsgraph &depsgraph,
   ImageUser image_user = *image_data.image_user;
   bool pixels_updated = false;
   for (UDIMTilePixels &tile_data : node_data.tiles) {
-    LISTBASE_FOREACH (ImageTile *, tile, &image_data.image->tiles) {
-      ImageTileWrapper image_tile(tile);
+    for (ImageTile &tile : image_data.image->tiles) {
+      ImageTileWrapper image_tile(&tile);
       if (image_tile.get_tile_number() == tile_data.tile_number) {
         image_user.tile = image_tile.get_tile_number();
 
@@ -408,8 +408,8 @@ static void do_push_undo_tile(Image &image, ImageUser &image_user, bke::pbvh::No
 
   ImBuf *tmpibuf = nullptr;
   ImageUser local_image_user = image_user;
-  LISTBASE_FOREACH (ImageTile *, tile, &image.tiles) {
-    image::ImageTileWrapper image_tile(tile);
+  for (ImageTile &tile : image.tiles) {
+    image::ImageTileWrapper image_tile(&tile);
     local_image_user.tile = image_tile.get_tile_number();
     ImBuf *image_buffer = BKE_image_acquire_ibuf(&image, &local_image_user, nullptr);
     if (image_buffer == nullptr) {

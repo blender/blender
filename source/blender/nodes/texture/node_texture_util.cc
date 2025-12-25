@@ -142,24 +142,24 @@ void tex_output(bNode *node,
 
 void ntreeTexCheckCyclics(bNodeTree *ntree)
 {
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode &node : ntree->nodes) {
 
-    if (node->type_legacy == TEX_NODE_TEXTURE && node->id) {
+    if (node.type_legacy == TEX_NODE_TEXTURE && node.id) {
       /* custom2 stops the node from rendering */
-      if (node->custom1) {
-        node->custom2 = 1;
-        node->custom1 = 0;
+      if (node.custom1) {
+        node.custom2 = 1;
+        node.custom1 = 0;
       }
       else {
-        Tex *tex = (Tex *)node->id;
+        Tex *tex = (Tex *)node.id;
 
-        node->custom2 = 0;
+        node.custom2 = 0;
 
-        node->custom1 = 1;
+        node.custom1 = 1;
         if (tex->use_nodes && tex->nodetree) {
           ntreeTexCheckCyclics(tex->nodetree);
         }
-        node->custom1 = 0;
+        node.custom1 = 0;
       }
     }
   }

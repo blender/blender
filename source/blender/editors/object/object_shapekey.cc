@@ -104,8 +104,8 @@ static bool object_is_any_shape_key_locked(Object *ob)
   const Key *key = BKE_key_from_object(ob);
 
   if (key) {
-    LISTBASE_FOREACH (const KeyBlock *, kb, &key->block) {
-      if (kb->flag & KEYBLOCK_LOCKED_SHAPE) {
+    for (const KeyBlock &kb : key->block) {
+      if (kb.flag & KEYBLOCK_LOCKED_SHAPE) {
         return true;
       }
     }
@@ -428,19 +428,19 @@ static wmOperatorStatus shape_key_remove_exec(bContext *C, wmOperator *op)
     /* This could be moved into a function of its own at some point. Right now it's only used here,
      * though, since its inner structure is tailored for allowing shapekey deletion. */
     Key &key = *BKE_key_from_object(ob);
-    LISTBASE_FOREACH_MUTABLE (KeyBlock *, kb, &key.block) {
+    for (KeyBlock &kb : key.block.items_mutable()) {
       /* Always try to find the keyblock again, as the previous one may have been deleted. For
        * the same reason, ob->shapenr has to be re-evaluated on every loop iteration. */
-      const int cur_index = BLI_findindex(&key.block, kb);
-      if (!shape_key_is_selected(*ob, *kb, cur_index)) {
+      const int cur_index = BLI_findindex(&key.block, &kb);
+      if (!shape_key_is_selected(*ob, kb, cur_index)) {
         continue;
       }
-      if (kb->flag & KEYBLOCK_LOCKED_SHAPE) {
+      if (kb.flag & KEYBLOCK_LOCKED_SHAPE) {
         num_selected_but_locked++;
         continue;
       }
 
-      changed |= BKE_object_shapekey_remove(bmain, ob, kb);
+      changed |= BKE_object_shapekey_remove(bmain, ob, &kb);
 
       /* When `BKE_object_shapekey_remove()` deletes the active shapekey, the active shapekeyindex
        * is updated as well. It usually decrements, which means that even when the same index is
@@ -546,8 +546,8 @@ static wmOperatorStatus shape_key_clear_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
-    kb->curval = clamp_f(0.0f, kb->slidermin, kb->slidermax);
+  for (KeyBlock &kb : key->block) {
+    kb.curval = clamp_f(0.0f, kb.slidermin, kb.slidermax);
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -583,8 +583,8 @@ static wmOperatorStatus shape_key_retime_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
-    kb->pos = cfra;
+  for (KeyBlock &kb : key->block) {
+    kb.pos = cfra;
     cfra += 0.1f;
   }
 
@@ -788,13 +788,13 @@ static wmOperatorStatus shape_key_lock_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  LISTBASE_FOREACH (KeyBlock *, kb, &keys->block) {
+  for (KeyBlock &kb : keys->block) {
     switch (action) {
       case SHAPE_KEY_LOCK:
-        kb->flag |= KEYBLOCK_LOCKED_SHAPE;
+        kb.flag |= KEYBLOCK_LOCKED_SHAPE;
         break;
       case SHAPE_KEY_UNLOCK:
-        kb->flag &= ~KEYBLOCK_LOCKED_SHAPE;
+        kb.flag &= ~KEYBLOCK_LOCKED_SHAPE;
         break;
       default:
         BLI_assert(0);

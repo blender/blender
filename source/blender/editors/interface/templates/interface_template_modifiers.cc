@@ -41,18 +41,18 @@ void template_modifiers(Layout * /*layout*/, bContext *C)
 
   if (!panels_match) {
     panels_free_instanced(C, region);
-    LISTBASE_FOREACH (ModifierData *, md, modifiers) {
-      const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+    for (ModifierData &md : *modifiers) {
+      const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md.type));
       if (mti->panel_register == nullptr) {
         continue;
       }
 
       char panel_idname[MAX_NAME];
-      modifier_panel_id(md, panel_idname);
+      modifier_panel_id(&md, panel_idname);
 
       /* Create custom data RNA pointer. */
       PointerRNA *md_ptr = MEM_new<PointerRNA>(__func__);
-      *md_ptr = RNA_pointer_create_id_subdata(ob->id, &RNA_Modifier, md);
+      *md_ptr = RNA_pointer_create_id_subdata(ob->id, &RNA_Modifier, &md);
 
       panel_add_instanced(C, region, &region->panels, panel_idname, md_ptr);
     }
@@ -60,8 +60,8 @@ void template_modifiers(Layout * /*layout*/, bContext *C)
   else {
     /* Assuming there's only one group of instanced panels, update the custom data pointers. */
     Panel *panel = static_cast<Panel *>(region->panels.first);
-    LISTBASE_FOREACH (ModifierData *, md, modifiers) {
-      const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+    for (ModifierData &md : *modifiers) {
+      const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md.type));
       if (mti->panel_register == nullptr) {
         continue;
       }
@@ -74,7 +74,7 @@ void template_modifiers(Layout * /*layout*/, bContext *C)
       }
 
       PointerRNA *md_ptr = MEM_new<PointerRNA>(__func__);
-      *md_ptr = RNA_pointer_create_id_subdata(ob->id, &RNA_Modifier, md);
+      *md_ptr = RNA_pointer_create_id_subdata(ob->id, &RNA_Modifier, &md);
       panel_custom_data_set(panel, md_ptr);
 
       panel = panel->next;

@@ -47,12 +47,12 @@ static void update_link_vector(const bNodeTree &ntree)
 {
   bNodeTreeRuntime &tree_runtime = *ntree.runtime;
   tree_runtime.links.clear();
-  LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
+  for (bNodeLink &link : ntree.links) {
     /* Check that the link connects nodes within this tree. */
-    BLI_assert(tree_runtime.nodes_by_id.contains(link->fromnode));
-    BLI_assert(tree_runtime.nodes_by_id.contains(link->tonode));
+    BLI_assert(tree_runtime.nodes_by_id.contains(link.fromnode));
+    BLI_assert(tree_runtime.nodes_by_id.contains(link.tonode));
 
-    tree_runtime.links.append(link);
+    tree_runtime.links.append(&link);
   }
 }
 
@@ -66,22 +66,22 @@ static void update_socket_vectors_and_owner_node(const bNodeTree &ntree)
     bNodeRuntime &node_runtime = *node->runtime;
     node_runtime.inputs.clear();
     node_runtime.outputs.clear();
-    LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-      socket->runtime->index_in_node = node_runtime.inputs.append_and_get_index(socket);
-      socket->runtime->index_in_all_sockets = tree_runtime.sockets.append_and_get_index(socket);
-      socket->runtime->index_in_inout_sockets = tree_runtime.input_sockets.append_and_get_index(
-          socket);
-      socket->runtime->owner_node = node;
-      tree_runtime.has_undefined_nodes_or_sockets |= socket->typeinfo ==
+    for (bNodeSocket &socket : node->inputs) {
+      socket.runtime->index_in_node = node_runtime.inputs.append_and_get_index(&socket);
+      socket.runtime->index_in_all_sockets = tree_runtime.sockets.append_and_get_index(&socket);
+      socket.runtime->index_in_inout_sockets = tree_runtime.input_sockets.append_and_get_index(
+          &socket);
+      socket.runtime->owner_node = node;
+      tree_runtime.has_undefined_nodes_or_sockets |= socket.typeinfo ==
                                                      &bke::NodeSocketTypeUndefined;
     }
-    LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-      socket->runtime->index_in_node = node_runtime.outputs.append_and_get_index(socket);
-      socket->runtime->index_in_all_sockets = tree_runtime.sockets.append_and_get_index(socket);
-      socket->runtime->index_in_inout_sockets = tree_runtime.output_sockets.append_and_get_index(
-          socket);
-      socket->runtime->owner_node = node;
-      tree_runtime.has_undefined_nodes_or_sockets |= socket->typeinfo ==
+    for (bNodeSocket &socket : node->outputs) {
+      socket.runtime->index_in_node = node_runtime.outputs.append_and_get_index(&socket);
+      socket.runtime->index_in_all_sockets = tree_runtime.sockets.append_and_get_index(&socket);
+      socket.runtime->index_in_inout_sockets = tree_runtime.output_sockets.append_and_get_index(
+          &socket);
+      socket.runtime->owner_node = node;
+      tree_runtime.has_undefined_nodes_or_sockets |= socket.typeinfo ==
                                                      &bke::NodeSocketTypeUndefined;
     }
   }

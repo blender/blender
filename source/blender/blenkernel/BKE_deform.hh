@@ -51,11 +51,11 @@ const ListBaseT<bDeformGroup> *BKE_id_defgroup_list_get(const ID *id);
 ListBaseT<bDeformGroup> *BKE_id_defgroup_list_get_mutable(ID *id);
 int BKE_defgroup_name_index(const ListBaseT<bDeformGroup> *defbase, blender::StringRef name);
 int BKE_id_defgroup_name_index(const ID *id, blender::StringRef name);
-bool BKE_defgroup_listbase_name_find(const ListBaseT<bDeformGroup> *defbase,
+bool BKE_defgroup_listbase_name_find(ListBaseT<bDeformGroup> *defbase,
                                      blender::StringRef name,
                                      int *r_index,
                                      bDeformGroup **r_group);
-bool BKE_id_defgroup_name_find(const ID *id,
+bool BKE_id_defgroup_name_find(ID *id,
                                blender::StringRef name,
                                int *r_index,
                                bDeformGroup **r_group);

@@ -74,31 +74,31 @@ static void window_manager_foreach_id(ID *id, LibraryForeachIDData *data)
   wmWindowManager *wm = reinterpret_cast<wmWindowManager *>(id);
   const int flag = BKE_lib_query_foreachid_process_flags_get(data);
 
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, win->scene, IDWALK_CB_USER_ONE);
+  for (wmWindow &win : wm->windows) {
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, win.scene, IDWALK_CB_USER_ONE);
 
     /* This pointer can be nullptr during old files reading. */
-    if (win->workspace_hook != nullptr) {
-      ID *workspace = (ID *)BKE_workspace_active_get(win->workspace_hook);
+    if (win.workspace_hook != nullptr) {
+      ID *workspace = (ID *)BKE_workspace_active_get(win.workspace_hook);
       BKE_lib_query_foreachid_process(data, &workspace, IDWALK_CB_USER);
       /* Allow callback to set a different workspace. */
-      BKE_workspace_active_set(win->workspace_hook, (WorkSpace *)workspace);
+      BKE_workspace_active_set(win.workspace_hook, (WorkSpace *)workspace);
       if (BKE_lib_query_foreachid_iter_stop(data)) {
         return;
       }
     }
 
-    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, win->unpinned_scene, IDWALK_CB_NOP);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, win.unpinned_scene, IDWALK_CB_NOP);
 
     if (flag & IDWALK_INCLUDE_UI) {
-      LISTBASE_FOREACH (ScrArea *, area, &win->global_areas.areabase) {
+      for (ScrArea &area : win.global_areas.areabase) {
         BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
-                                                BKE_screen_foreach_id_screen_area(data, area));
+                                                BKE_screen_foreach_id_screen_area(data, &area));
       }
     }
 
     if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
-      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, win->screen, IDWALK_CB_NOP);
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, win.screen, IDWALK_CB_NOP);
     }
   }
 
@@ -121,18 +121,18 @@ static void window_manager_blend_write(BlendWriter *writer, ID *id, const void *
   BKE_id_blend_write(writer, &wm->id);
   write_wm_xr_data(writer, &wm->xr);
 
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+  for (wmWindow &win : wm->windows) {
     /* Update deprecated screen member (for so loading in 2.7x uses the correct screen). */
-    win->screen = BKE_workspace_active_screen_get(win->workspace_hook);
+    win.screen = BKE_workspace_active_screen_get(win.workspace_hook);
 
-    writer->write_struct(win);
-    writer->write_struct(win->workspace_hook);
-    writer->write_struct(win->stereo3d_format);
+    writer->write_struct(&win);
+    writer->write_struct(win.workspace_hook);
+    writer->write_struct(win.stereo3d_format);
 
-    BKE_screen_area_map_blend_write(writer, &win->global_areas);
+    BKE_screen_area_map_blend_write(writer, &win.global_areas);
 
     /* Data is written, clear deprecated data again. */
-    win->screen = nullptr;
+    win.screen = nullptr;
   }
 }
 
@@ -148,46 +148,46 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
   id_us_ensure_real(&wm->id);
   BLO_read_struct_list(reader, wmWindow, &wm->windows);
 
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    BLO_read_struct(reader, wmWindow, &win->parent);
+  for (wmWindow &win : wm->windows) {
+    BLO_read_struct(reader, wmWindow, &win.parent);
 
-    WorkSpaceInstanceHook *hook = win->workspace_hook;
-    BLO_read_struct(reader, WorkSpaceInstanceHook, &win->workspace_hook);
+    WorkSpaceInstanceHook *hook = win.workspace_hook;
+    BLO_read_struct(reader, WorkSpaceInstanceHook, &win.workspace_hook);
 
     /* This will be nullptr for any pre-2.80 blend file. */
-    if (win->workspace_hook != nullptr) {
+    if (win.workspace_hook != nullptr) {
       /* We need to restore a pointer to this later when reading workspaces,
        * so store in global oldnew-map.
        * Note that this is only needed for versioning of older .blend files now. */
-      BLO_read_data_globmap_add(reader, hook, win->workspace_hook);
+      BLO_read_data_globmap_add(reader, hook, win.workspace_hook);
       /* Cleanup pointers to data outside of this data-block scope. */
-      win->workspace_hook->act_layout = nullptr;
-      win->workspace_hook->temp_workspace_store = nullptr;
-      win->workspace_hook->temp_layout_store = nullptr;
+      win.workspace_hook->act_layout = nullptr;
+      win.workspace_hook->temp_workspace_store = nullptr;
+      win.workspace_hook->temp_layout_store = nullptr;
     }
 
-    BKE_screen_area_map_blend_read_data(reader, &win->global_areas);
+    BKE_screen_area_map_blend_read_data(reader, &win.global_areas);
 
-    win->active = 0;
+    win.active = 0;
 
-    win->cursor = 0;
-    win->lastcursor = 0;
-    win->modalcursor = 0;
-    win->grabcursor = 0;
-    win->addmousemove = true;
-    win->event_queue_check_click = 0;
-    win->event_queue_check_drag = 0;
-    win->event_queue_check_drag_handled = 0;
-    win->event_queue_consecutive_gesture_type = EVENT_NONE;
-    win->event_queue_consecutive_gesture_data = nullptr;
-    BLO_read_struct(reader, Stereo3dFormat, &win->stereo3d_format);
+    win.cursor = 0;
+    win.lastcursor = 0;
+    win.modalcursor = 0;
+    win.grabcursor = 0;
+    win.addmousemove = true;
+    win.event_queue_check_click = 0;
+    win.event_queue_check_drag = 0;
+    win.event_queue_check_drag_handled = 0;
+    win.event_queue_consecutive_gesture_type = EVENT_NONE;
+    win.event_queue_consecutive_gesture_data = nullptr;
+    BLO_read_struct(reader, Stereo3dFormat, &win.stereo3d_format);
 
     /* Multi-view always falls back to anaglyph at file opening
      * otherwise quad-buffer saved files can break Blender. */
-    if (win->stereo3d_format) {
-      win->stereo3d_format->display_mode = S3D_DISPLAY_ANAGLYPH;
+    if (win.stereo3d_format) {
+      win.stereo3d_format->display_mode = S3D_DISPLAY_ANAGLYPH;
     }
-    win->runtime = MEM_new<blender::bke::WindowRuntime>(__func__);
+    win.runtime = MEM_new<blender::bke::WindowRuntime>(__func__);
   }
 
   direct_link_wm_xr_data(reader, &wm->xr);
@@ -207,9 +207,9 @@ static void window_manager_blend_read_after_liblink(BlendLibReader *reader, ID *
 {
   wmWindowManager *wm = reinterpret_cast<wmWindowManager *>(id);
 
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    LISTBASE_FOREACH (ScrArea *, area, &win->global_areas.areabase) {
-      BKE_screen_area_blend_read_after_liblink(reader, id, area);
+  for (wmWindow &win : wm->windows) {
+    for (ScrArea &area : win.global_areas.areabase) {
+      BKE_screen_area_blend_read_after_liblink(reader, id, &area);
     }
   }
 }
@@ -358,10 +358,10 @@ void WM_operator_stack_clear(wmWindowManager *wm)
 void WM_operator_stack_clear(wmWindowManager *wm, const Set<wmOperatorType *> &types)
 {
   bool any_removed = false;
-  LISTBASE_FOREACH_MUTABLE (wmOperator *, op, &wm->runtime->operators) {
-    if (types.contains(op->type)) {
-      WM_operator_free(op);
-      BLI_remlink(&wm->runtime->operators, op);
+  for (wmOperator &op : wm->runtime->operators.items_mutable()) {
+    if (types.contains(op.type)) {
+      WM_operator_free(&op);
+      BLI_remlink(&wm->runtime->operators, &op);
       any_removed = true;
     }
   }
@@ -373,12 +373,12 @@ void WM_operator_stack_clear(wmWindowManager *wm, const Set<wmOperatorType *> &t
 
 void WM_operator_handlers_clear(wmWindowManager *wm, const Set<wmOperatorType *> &types)
 {
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    bScreen *screen = WM_window_get_active_screen(win);
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      switch (area->spacetype) {
+  for (wmWindow &win : wm->windows) {
+    bScreen *screen = WM_window_get_active_screen(&win);
+    for (ScrArea &area : screen->areabase) {
+      switch (area.spacetype) {
         case SPACE_FILE: {
-          SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
+          SpaceFile *sfile = static_cast<SpaceFile *>(area.spacedata.first);
           if (sfile->op && types.contains(sfile->op->type)) {
             /* Freed as part of the handler. */
             sfile->op = nullptr;
@@ -389,12 +389,12 @@ void WM_operator_handlers_clear(wmWindowManager *wm, const Set<wmOperatorType *>
     }
   }
 
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    ListBaseT<wmEventHandler> *lb[2] = {&win->runtime->handlers, &win->runtime->modalhandlers};
+  for (wmWindow &win : wm->windows) {
+    ListBaseT<wmEventHandler> *lb[2] = {&win.runtime->handlers, &win.runtime->modalhandlers};
     for (int i = 0; i < ARRAY_SIZE(lb); i++) {
-      LISTBASE_FOREACH (wmEventHandler *, handler_base, lb[i]) {
-        if (handler_base->type == WM_HANDLER_TYPE_OP) {
-          wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
+      for (wmEventHandler &handler_base : *lb[i]) {
+        if (handler_base.type == WM_HANDLER_TYPE_OP) {
+          wmEventHandler_Op *handler = (wmEventHandler_Op *)&handler_base;
           if (handler->op && types.contains(handler->op->type)) {
             /* Don't run op->cancel because it needs the context,
              * assume whoever unregisters the operator will cleanup. */
@@ -517,11 +517,11 @@ void wm_clear_default_size(bContext *C)
     return;
   }
 
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    win->sizex = 0;
-    win->sizey = 0;
-    win->posx = 0;
-    win->posy = 0;
+  for (wmWindow &win : wm->windows) {
+    win.sizex = 0;
+    win.sizey = 0;
+    win.posx = 0;
+    win.posy = 0;
   }
 }
 

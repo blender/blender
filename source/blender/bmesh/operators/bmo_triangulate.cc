@@ -178,10 +178,10 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
   /* if we have existing faces, base winding on those */
   if (calc_winding) {
     int winding_votes = 0;
-    LISTBASE_FOREACH (ScanFillFace *, sf_tri, &sf_ctx.fillfacebase) {
-      BMVert *v_tri[3] = {static_cast<BMVert *>(sf_tri->v1->tmp.p),
-                          static_cast<BMVert *>(sf_tri->v2->tmp.p),
-                          static_cast<BMVert *>(sf_tri->v3->tmp.p)};
+    for (ScanFillFace &sf_tri : sf_ctx.fillfacebase) {
+      BMVert *v_tri[3] = {static_cast<BMVert *>(sf_tri.v1->tmp.p),
+                          static_cast<BMVert *>(sf_tri.v2->tmp.p),
+                          static_cast<BMVert *>(sf_tri.v3->tmp.p)};
       uint i, i_prev;
 
       for (i = 0, i_prev = 2; i < 3; i_prev = i++) {
@@ -193,21 +193,21 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
     }
 
     if (winding_votes < 0) {
-      LISTBASE_FOREACH (ScanFillFace *, sf_tri, &sf_ctx.fillfacebase) {
-        std::swap(sf_tri->v2, sf_tri->v3);
+      for (ScanFillFace &sf_tri : sf_ctx.fillfacebase) {
+        std::swap(sf_tri.v2, sf_tri.v3);
       }
     }
   }
 
-  LISTBASE_FOREACH (ScanFillFace *, sf_tri, &sf_ctx.fillfacebase) {
+  for (ScanFillFace &sf_tri : sf_ctx.fillfacebase) {
     BMFace *f;
     BMLoop *l;
     BMIter liter;
 
     f = BM_face_create_quad_tri(bm,
-                                static_cast<BMVert *>(sf_tri->v1->tmp.p),
-                                static_cast<BMVert *>(sf_tri->v2->tmp.p),
-                                static_cast<BMVert *>(sf_tri->v3->tmp.p),
+                                static_cast<BMVert *>(sf_tri.v1->tmp.p),
+                                static_cast<BMVert *>(sf_tri.v2->tmp.p),
+                                static_cast<BMVert *>(sf_tri.v3->tmp.p),
                                 nullptr,
                                 nullptr,
                                 BM_CREATE_NO_DOUBLE);

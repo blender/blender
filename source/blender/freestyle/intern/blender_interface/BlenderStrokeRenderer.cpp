@@ -217,9 +217,9 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
     ntree = blender::bke::node_tree_copy_tree_ex(*iNodeTree, bmain, do_id_user);
 
     // find the active Output Line Style node
-    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-      if (node->type_legacy == SH_NODE_OUTPUT_LINESTYLE && (node->flag & NODE_DO_OUTPUT)) {
-        output_linestyle = node;
+    for (bNode &node : ntree->nodes) {
+      if (node.type_legacy == SH_NODE_OUTPUT_LINESTYLE && (node.flag & NODE_DO_OUTPUT)) {
+        output_linestyle = &node;
         break;
       }
     }
@@ -390,17 +390,17 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
       RNA_float_set(&toptr, "default_value", RNA_float_get(&fromptr, "default_value"));
     }
 
-    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-      if (node->type_legacy == SH_NODE_UVALONGSTROKE) {
+    for (bNode &node : ntree->nodes) {
+      if (node.type_legacy == SH_NODE_UVALONGSTROKE) {
         // UV output of the UV Along Stroke node
-        bNodeSocket *sock = (bNodeSocket *)BLI_findlink(&node->outputs, 0);
+        bNodeSocket *sock = (bNodeSocket *)BLI_findlink(&node.outputs, 0);
 
         // add new UV Map node
         bNode *input_uvmap = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_UVMAP);
-        input_uvmap->location[0] = node->location[0] - 200.0f;
-        input_uvmap->location[1] = node->location[1];
+        input_uvmap->location[0] = node.location[0] - 200.0f;
+        input_uvmap->location[1] = node.location[1];
         NodeShaderUVMap *storage = (NodeShaderUVMap *)input_uvmap->storage;
-        if (node->custom1 & 1) {  // use_tips
+        if (node.custom1 & 1) {  // use_tips
           STRNCPY(storage->uv_map, uvNames[1]);
         }
         else {
@@ -409,10 +409,10 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
         fromsock = (bNodeSocket *)BLI_findlink(&input_uvmap->outputs, 0);  // UV
 
         // replace links from the UV Along Stroke node by links from the UV Map node
-        LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-          if (link->fromnode == node && link->fromsock == sock) {
+        for (bNodeLink &link : ntree->links) {
+          if (link.fromnode == &node && link.fromsock == sock) {
             blender::bke::node_add_link(
-                *ntree, *input_uvmap, *fromsock, *link->tonode, *link->tosock);
+                *ntree, *input_uvmap, *fromsock, *link.tonode, *link.tosock);
           }
         }
         blender::bke::node_remove_socket_links(*ntree, *sock);

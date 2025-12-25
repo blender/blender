@@ -3741,11 +3741,11 @@ static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
 
     BLF_wordwrap(fontid, line_width);
 
-    LISTBASE_FOREACH (const TextLine *, line, &text->lines) {
-      if (line->line[0]) {
+    for (const TextLine &line : text->lines) {
+      if (line.line[0]) {
         BLF_position(fontid, x, y, 0);
         ResultBLF info;
-        BLF_draw(fontid, line->line, line->len, &info);
+        BLF_draw(fontid, line.line, line.len, &info);
         y -= line_spacing * info.lines;
       }
       else {
@@ -4891,9 +4891,8 @@ void node_draw_space(const bContext &C, ARegion &region)
    * is open. Otherwise we can have two scroll bars. #141225 */
   ScrArea *area = CTX_wm_area(&C);
   bool sidebar = false;
-  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    if (region->alignment == RGN_ALIGN_RIGHT && region->overlap &&
-        !(region->flag & RGN_FLAG_HIDDEN))
+  for (ARegion &region : area->regionbase) {
+    if (region.alignment == RGN_ALIGN_RIGHT && region.overlap && !(region.flag & RGN_FLAG_HIDDEN))
     {
       sidebar = true;
       break;

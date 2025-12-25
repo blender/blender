@@ -26,13 +26,13 @@ static bool strip_for_each_recursive(ListBaseT<Strip> *seqbase,
                                      ForEachFunc callback,
                                      void *user_data)
 {
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if (!callback(strip, user_data)) {
+  for (Strip &strip : *seqbase) {
+    if (!callback(&strip, user_data)) {
       /* Callback signaled stop, return. */
       return false;
     }
-    if (strip->type == STRIP_TYPE_META) {
-      if (!strip_for_each_recursive(&strip->seqbase, callback, user_data)) {
+    if (strip.type == STRIP_TYPE_META) {
+      if (!strip_for_each_recursive(&strip.seqbase, callback, user_data)) {
         return false;
       }
     }
@@ -43,13 +43,13 @@ static bool strip_for_each_recursive(ListBaseT<Strip> *seqbase,
 static bool strip_for_each_recursive(ListBaseT<Strip> *seqbase,
                                      FunctionRef<bool(Strip *)> callback)
 {
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if (!callback(strip)) {
+  for (Strip &strip : *seqbase) {
+    if (!callback(&strip)) {
       /* Callback signaled stop, return. */
       return false;
     }
-    if (strip->type == STRIP_TYPE_META) {
-      if (!strip_for_each_recursive(&strip->seqbase, callback)) {
+    if (strip.type == STRIP_TYPE_META) {
+      if (!strip_for_each_recursive(&strip.seqbase, callback)) {
         return false;
       }
     }
@@ -101,11 +101,11 @@ void iterator_set_expand(const Scene *scene,
 
 static void query_all_strips_recursive(const ListBaseT<Strip> *seqbase, VectorSet<Strip *> &strips)
 {
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if (strip->type == STRIP_TYPE_META) {
-      query_all_strips_recursive(&strip->seqbase, strips);
+  for (Strip &strip : *seqbase) {
+    if (strip.type == STRIP_TYPE_META) {
+      query_all_strips_recursive(&strip.seqbase, strips);
     }
-    strips.add(strip);
+    strips.add(&strip);
   }
 }
 
@@ -121,14 +121,14 @@ static void query_strips_recursive_at_frame(const Scene *scene,
                                             const int timeline_frame,
                                             VectorSet<Strip *> &strips)
 {
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if (!strip->intersects_frame(scene, timeline_frame)) {
+  for (Strip &strip : *seqbase) {
+    if (!strip.intersects_frame(scene, timeline_frame)) {
       continue;
     }
-    if (strip->type == STRIP_TYPE_META) {
-      query_strips_recursive_at_frame(scene, &strip->seqbase, timeline_frame, strips);
+    if (strip.type == STRIP_TYPE_META) {
+      query_strips_recursive_at_frame(scene, &strip.seqbase, timeline_frame, strips);
     }
-    strips.add(strip);
+    strips.add(&strip);
   }
 }
 
@@ -144,8 +144,8 @@ VectorSet<Strip *> query_strips_recursive_at_frame(const Scene *scene,
 VectorSet<Strip *> query_all_strips(ListBaseT<Strip> *seqbase)
 {
   VectorSet<Strip *> strips;
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    strips.add(strip);
+  for (Strip &strip : *seqbase) {
+    strips.add(&strip);
   }
   return strips;
 }
@@ -153,9 +153,9 @@ VectorSet<Strip *> query_all_strips(ListBaseT<Strip> *seqbase)
 VectorSet<Strip *> query_selected_strips(ListBaseT<Strip> *seqbase)
 {
   VectorSet<Strip *> strips;
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if ((strip->flag & SEQ_SELECT) != 0) {
-      strips.add(strip);
+  for (Strip &strip : *seqbase) {
+    if ((strip.flag & SEQ_SELECT) != 0) {
+      strips.add(&strip);
     }
   }
   return strips;
@@ -167,9 +167,9 @@ static VectorSet<Strip *> query_strips_at_frame(const Scene *scene,
 {
   VectorSet<Strip *> strips;
 
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if (strip->intersects_frame(scene, timeline_frame)) {
-      strips.add(strip);
+  for (Strip &strip : *seqbase) {
+    if (strip.intersects_frame(scene, timeline_frame)) {
+      strips.add(&strip);
     }
   }
   return strips;
@@ -258,11 +258,11 @@ Vector<Strip *> query_rendered_strips_sorted(const Scene *scene,
 VectorSet<Strip *> query_unselected_strips(ListBaseT<Strip> *seqbase)
 {
   VectorSet<Strip *> strips;
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if ((strip->flag & SEQ_SELECT) != 0) {
+  for (Strip &strip : *seqbase) {
+    if ((strip.flag & SEQ_SELECT) != 0) {
       continue;
     }
-    strips.add(strip);
+    strips.add(&strip);
   }
   return strips;
 }
@@ -289,9 +289,9 @@ void query_strip_effect_chain(const Scene *scene,
   }
 
   /* Find all effect strips that have `reference_strip` as an input. */
-  LISTBASE_FOREACH (Strip *, strip_test, seqbase) {
-    if (strip_test->input1 == reference_strip || strip_test->input2 == reference_strip) {
-      query_strip_effect_chain(scene, strip_test, seqbase, r_strips);
+  for (Strip &strip_test : *seqbase) {
+    if (strip_test.input1 == reference_strip || strip_test.input2 == reference_strip) {
+      query_strip_effect_chain(scene, &strip_test, seqbase, r_strips);
     }
   }
 }

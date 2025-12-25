@@ -373,8 +373,8 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
                 __func__);
 
         mesh->key->uidgen = 1;
-        LISTBASE_FOREACH (KeyBlock *, block, &mesh->key->block) {
-          block->uid = mesh->key->uidgen++;
+        for (KeyBlock &block : mesh->key->block) {
+          block.uid = mesh->key->uidgen++;
         }
       }
     }
@@ -885,34 +885,34 @@ static void bm_to_mesh_shape(BMesh *bm,
     }
   }
 
-  int currkey_i;
-  LISTBASE_FOREACH_INDEX (KeyBlock *, currkey, &key->block, currkey_i) {
+  for (const auto [currkey_i, currkey] : key->block.enumerate()) {
     int keyi;
     float (*currkey_data)[3];
 
-    const int currkey_uuid = bm_to_mesh_shape_layer_index_from_kb(bm, currkey);
+    const int currkey_uuid = bm_to_mesh_shape_layer_index_from_kb(bm, &currkey);
     const int cd_shape_offset = (currkey_uuid == -1) ?
                                     -1 :
                                     CustomData_get_n_offset(&bm->vdata, CD_SHAPEKEY, currkey_uuid);
 
     /* Common case, the layer data is available, use it where possible. */
     if (cd_shape_offset != -1) {
-      const bool apply_offset = (ofs != nullptr) && (currkey != actkey) && (*dependent)[currkey_i];
+      const bool apply_offset = (ofs != nullptr) && (&currkey != actkey) &&
+                                (*dependent)[currkey_i];
 
-      if (currkey->data && (currkey->totelem == bm->totvert)) {
+      if (currkey.data && (currkey.totelem == bm->totvert)) {
         /* Use memory in-place. */
       }
       else {
-        currkey->data = MEM_reallocN(currkey->data, key->elemsize * bm->totvert);
-        currkey->totelem = bm->totvert;
+        currkey.data = MEM_reallocN(currkey.data, key->elemsize * bm->totvert);
+        currkey.totelem = bm->totvert;
       }
-      currkey_data = (float (*)[3])currkey->data;
+      currkey_data = (float (*)[3])currkey.data;
 
       int i;
       BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
         float *co_orig = (float *)BM_ELEM_CD_GET_VOID_P(eve, cd_shape_offset);
 
-        if (currkey == actkey) {
+        if (&currkey == actkey) {
           copy_v3_v3(currkey_data[i], eve->co);
 
           if (update_vertex_coords_from_refkey) {
@@ -942,7 +942,7 @@ static void bm_to_mesh_shape(BMesh *bm,
     }
     else {
       /* No original layer data, use fallback information. */
-      if (currkey->data && (cd_shape_keyindex_offset != -1)) {
+      if (currkey.data && (cd_shape_keyindex_offset != -1)) {
         CLOG_WARN(&LOG,
                   "Found shape-key but no CD_SHAPEKEY layers to read from, "
                   "using existing shake-key data where possible");
@@ -959,16 +959,16 @@ static void bm_to_mesh_shape(BMesh *bm,
       int i;
       BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
 
-        if ((currkey->data != nullptr) && (cd_shape_keyindex_offset != -1) &&
+        if ((currkey.data != nullptr) && (cd_shape_keyindex_offset != -1) &&
             ((keyi = BM_ELEM_CD_GET_INT(eve, cd_shape_keyindex_offset)) != ORIGINDEX_NONE) &&
-            (keyi < currkey->totelem))
+            (keyi < currkey.totelem))
         {
           /* Reconstruct keys via vertices original key indices.
            * WARNING(@ideasman42): `currkey->data` is known to be unreliable as the edit-mesh
            * coordinates may be flushed back to the shape-key when exporting or rendering.
            * This is a last resort! If this branch is running as part of regular usage
            * it can be considered a bug. */
-          const float (*oldkey)[3] = static_cast<const float (*)[3]>(currkey->data);
+          const float (*oldkey)[3] = static_cast<const float (*)[3]>(currkey.data);
           copy_v3_v3(currkey_data[i], oldkey[keyi]);
         }
         else {
@@ -977,11 +977,11 @@ static void bm_to_mesh_shape(BMesh *bm,
         }
       }
 
-      currkey->totelem = bm->totvert;
-      if (currkey->data) {
-        MEM_freeN(currkey->data);
+      currkey.totelem = bm->totvert;
+      if (currkey.data) {
+        MEM_freeN(currkey.data);
       }
-      currkey->data = currkey_data;
+      currkey.data = currkey_data;
     }
   }
 
@@ -1015,36 +1015,36 @@ static void bmesh_to_mesh_calc_object_remap(Main &bmain,
   BMVert **vertMap = nullptr;
   BMVert *eve;
 
-  LISTBASE_FOREACH (Object *, ob, &bmain.objects) {
-    if ((ob->parent) && (ob->parent->data == &mesh) && ELEM(ob->partype, PARVERT1, PARVERT3)) {
+  for (Object &ob : bmain.objects) {
+    if ((ob.parent) && (ob.parent->data == &mesh) && ELEM(ob.partype, PARVERT1, PARVERT3)) {
 
       if (vertMap == nullptr) {
         vertMap = bm_to_mesh_vertex_map(&bm, old_totvert);
       }
 
-      if (ob->par1 < old_totvert) {
-        eve = vertMap[ob->par1];
+      if (ob.par1 < old_totvert) {
+        eve = vertMap[ob.par1];
         if (eve) {
-          ob->par1 = BM_elem_index_get(eve);
+          ob.par1 = BM_elem_index_get(eve);
         }
       }
-      if (ob->par2 < old_totvert) {
-        eve = vertMap[ob->par2];
+      if (ob.par2 < old_totvert) {
+        eve = vertMap[ob.par2];
         if (eve) {
-          ob->par2 = BM_elem_index_get(eve);
+          ob.par2 = BM_elem_index_get(eve);
         }
       }
-      if (ob->par3 < old_totvert) {
-        eve = vertMap[ob->par3];
+      if (ob.par3 < old_totvert) {
+        eve = vertMap[ob.par3];
         if (eve) {
-          ob->par3 = BM_elem_index_get(eve);
+          ob.par3 = BM_elem_index_get(eve);
         }
       }
     }
-    if (ob->data == &mesh) {
-      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-        if (md->type == eModifierType_Hook) {
-          HookModifierData *hmd = (HookModifierData *)md;
+    if (ob.data == &mesh) {
+      for (ModifierData &md : ob.modifiers) {
+        if (md.type == eModifierType_Hook) {
+          HookModifierData *hmd = (HookModifierData *)&md;
 
           if (vertMap == nullptr) {
             vertMap = bm_to_mesh_vertex_map(&bm, old_totvert);
@@ -1617,19 +1617,19 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *mesh, const BMeshToMeshParam
         if (mesh->totselect != 0) {
           mesh->mselect = MEM_malloc_arrayN<MSelect>(mesh->totselect, "Mesh selection history");
         }
-        int i;
-        LISTBASE_FOREACH_INDEX (BMEditSelection *, selected, &bm->selected, i) {
-          if (selected->htype == BM_VERT) {
+
+        for (const auto [i, selected] : bm->selected.enumerate()) {
+          if (selected.htype == BM_VERT) {
             mesh->mselect[i].type = ME_VSEL;
           }
-          else if (selected->htype == BM_EDGE) {
+          else if (selected.htype == BM_EDGE) {
             mesh->mselect[i].type = ME_ESEL;
           }
-          else if (selected->htype == BM_FACE) {
+          else if (selected.htype == BM_FACE) {
             mesh->mselect[i].type = ME_FSEL;
           }
 
-          mesh->mselect[i].index = BM_elem_index_get(selected->ele);
+          mesh->mselect[i].index = BM_elem_index_get(selected.ele);
         }
       },
       [&]() {

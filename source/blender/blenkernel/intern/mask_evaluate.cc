@@ -878,12 +878,12 @@ void BKE_mask_layer_evaluate_animation(MaskLayer *masklay, const float ctime)
 void BKE_mask_layer_evaluate_deform(MaskLayer *masklay, const float ctime)
 {
   BKE_mask_layer_calc_handles(masklay);
-  LISTBASE_FOREACH (MaskSpline *, spline, &masklay->splines) {
+  for (MaskSpline &spline : masklay->splines) {
     bool need_handle_recalc = false;
-    BKE_mask_spline_ensure_deform(spline);
-    for (int i = 0; i < spline->tot_point; i++) {
-      MaskSplinePoint *point = &spline->points[i];
-      MaskSplinePoint *point_deform = &spline->points_deform[i];
+    BKE_mask_spline_ensure_deform(&spline);
+    for (int i = 0; i < spline.tot_point; i++) {
+      MaskSplinePoint *point = &spline.points[i];
+      MaskSplinePoint *point_deform = &spline.points_deform[i];
       BKE_mask_point_free(point_deform);
       *point_deform = *point;
       point_deform->uw = point->uw ? static_cast<MaskSplinePointUW *>(MEM_dupallocN(point->uw)) :
@@ -897,10 +897,10 @@ void BKE_mask_layer_evaluate_deform(MaskLayer *masklay, const float ctime)
      * recalculated after deformation.
      */
     if (need_handle_recalc) {
-      for (int i = 0; i < spline->tot_point; i++) {
-        MaskSplinePoint *point_deform = &spline->points_deform[i];
+      for (int i = 0; i < spline.tot_point; i++) {
+        MaskSplinePoint *point_deform = &spline.points_deform[i];
         if (ELEM(point_deform->bezt.h1, HD_AUTO, HD_VECT)) {
-          BKE_mask_calc_handle_point(spline, point_deform);
+          BKE_mask_calc_handle_point(&spline, point_deform);
         }
       }
     }
@@ -912,8 +912,8 @@ void BKE_mask_eval_animation(Depsgraph *depsgraph, Mask *mask)
 {
   float ctime = DEG_get_ctime(depsgraph);
   DEG_debug_print_eval(depsgraph, __func__, mask->id.name, mask);
-  LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
-    BKE_mask_layer_evaluate_animation(mask_layer, ctime);
+  for (MaskLayer &mask_layer : mask->masklayers) {
+    BKE_mask_layer_evaluate_animation(&mask_layer, ctime);
   }
   mask->runtime.last_update = DEG_get_update_count(depsgraph);
 }
@@ -923,8 +923,8 @@ void BKE_mask_eval_update(Depsgraph *depsgraph, Mask *mask)
   const bool is_depsgraph_active = DEG_is_active(depsgraph);
   float ctime = DEG_get_ctime(depsgraph);
   DEG_debug_print_eval(depsgraph, __func__, mask->id.name, mask);
-  LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
-    BKE_mask_layer_evaluate_deform(mask_layer, ctime);
+  for (MaskLayer &mask_layer : mask->masklayers) {
+    BKE_mask_layer_evaluate_deform(&mask_layer, ctime);
   }
 
   if (is_depsgraph_active) {

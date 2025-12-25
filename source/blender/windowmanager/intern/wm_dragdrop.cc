@@ -94,10 +94,10 @@ struct wmDropBoxMap {
 
 ListBaseT<wmDropBox> *WM_dropboxmap_find(const char *idname, int spaceid, int regionid)
 {
-  LISTBASE_FOREACH (wmDropBoxMap *, dm, &dropboxes) {
-    if (dm->spaceid == spaceid && dm->regionid == regionid) {
-      if (STREQLEN(idname, dm->idname, KMAP_MAX_NAME)) {
-        return &dm->dropboxes;
+  for (wmDropBoxMap &dm : dropboxes) {
+    if (dm.spaceid == spaceid && dm.regionid == regionid) {
+      if (STREQLEN(idname, dm.idname, KMAP_MAX_NAME)) {
+        return &dm.dropboxes;
       }
     }
   }
@@ -179,9 +179,9 @@ static void wm_dropbox_item_update_ot(wmDropBox *drop)
 
 void WM_dropbox_update_ot()
 {
-  LISTBASE_FOREACH (wmDropBoxMap *, dm, &dropboxes) {
-    LISTBASE_FOREACH (wmDropBox *, drop, &dm->dropboxes) {
-      wm_dropbox_item_update_ot(drop);
+  for (wmDropBoxMap &dm : dropboxes) {
+    for (wmDropBox &drop : dm.dropboxes) {
+      wm_dropbox_item_update_ot(&drop);
     }
   }
 }
@@ -214,11 +214,11 @@ static void wm_drop_item_clear_runtime(wmDropBox *drop)
 void wm_dropbox_free()
 {
 
-  LISTBASE_FOREACH (wmDropBoxMap *, dm, &dropboxes) {
-    LISTBASE_FOREACH (wmDropBox *, drop, &dm->dropboxes) {
-      wm_drop_item_free_data(drop);
+  for (wmDropBoxMap &dm : dropboxes) {
+    for (wmDropBox &drop : dm.dropboxes) {
+      wm_drop_item_free_data(&drop);
     }
-    BLI_freelistN(&dm->dropboxes);
+    BLI_freelistN(&dm.dropboxes);
   }
 
   BLI_freelistN(&dropboxes);
@@ -234,30 +234,30 @@ static void wm_dropbox_invoke(bContext *C, wmDrag *drag)
    * Everything that isn't visible in the current window should not prefetch any data. */
   bool area_region_tag[SPACE_TYPE_NUM][RGN_TYPE_NUM] = {{false}};
 
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    bScreen *screen = WM_window_get_active_screen(win);
-    ED_screen_areas_iter (win, screen, area) {
-      LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-        if (region->runtime->visible) {
+  for (wmWindow &win : wm->windows) {
+    bScreen *screen = WM_window_get_active_screen(&win);
+    ED_screen_areas_iter (&win, screen, area) {
+      for (ARegion &region : area->regionbase) {
+        if (region.runtime->visible) {
           BLI_assert(area->spacetype < SPACE_TYPE_NUM);
-          BLI_assert(region->regiontype < RGN_TYPE_NUM);
-          area_region_tag[area->spacetype][region->regiontype] = true;
+          BLI_assert(region.regiontype < RGN_TYPE_NUM);
+          area_region_tag[area->spacetype][region.regiontype] = true;
         }
       }
     }
   }
 
-  LISTBASE_FOREACH (wmDropBoxMap *, dm, &dropboxes) {
-    if (!area_region_tag[dm->spaceid][dm->regionid]) {
+  for (wmDropBoxMap &dm : dropboxes) {
+    if (!area_region_tag[dm.spaceid][dm.regionid]) {
       continue;
     }
-    LISTBASE_FOREACH (wmDropBox *, drop, &dm->dropboxes) {
+    for (wmDropBox &drop : dm.dropboxes) {
       if (drag->drop_state.ui_context) {
         CTX_store_set(C, drag->drop_state.ui_context.get());
       }
 
-      if (drop->on_drag_start) {
-        drop->on_drag_start(C, drag);
+      if (drop.on_drag_start) {
+        drop.on_drag_start(C, drag);
       }
       CTX_store_set(C, nullptr);
     }
@@ -327,8 +327,8 @@ void WM_event_start_drag(bContext *C, int icon, eWM_DragDataType type, void *poi
 void wm_drags_exit(wmWindowManager *wm, wmWindow *win)
 {
   /* Turn off modal cursor for all windows. */
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    WM_cursor_modal_restore(win);
+  for (wmWindow &win : wm->windows) {
+    WM_cursor_modal_restore(&win);
   }
 
   /* Active area should always redraw, even if canceled. */
@@ -432,11 +432,11 @@ void WM_drag_free(wmDrag *drag)
   }
   drag->drop_state.ui_context.reset();
   BLI_freelistN(&drag->ids);
-  LISTBASE_FOREACH_MUTABLE (wmDragAssetListItem *, asset_item, &drag->asset_items) {
-    if (asset_item->is_external) {
-      wm_drag_free_asset_data(&asset_item->asset_data.external_info);
+  for (wmDragAssetListItem &asset_item : drag->asset_items.items_mutable()) {
+    if (asset_item.is_external) {
+      wm_drag_free_asset_data(&asset_item.asset_data.external_info);
     }
-    BLI_freelinkN(&drag->asset_items, asset_item);
+    BLI_freelinkN(&drag->asset_items, &asset_item);
   }
   MEM_delete(drag);
 }
@@ -464,28 +464,28 @@ static wmDropBox *dropbox_active(bContext *C,
                                  wmDrag *drag,
                                  const wmEvent *event)
 {
-  LISTBASE_FOREACH (wmEventHandler *, handler_base, handlers) {
-    if (handler_base->type == WM_HANDLER_TYPE_DROPBOX) {
-      wmEventHandler_Dropbox *handler = (wmEventHandler_Dropbox *)handler_base;
+  for (wmEventHandler &handler_base : *handlers) {
+    if (handler_base.type == WM_HANDLER_TYPE_DROPBOX) {
+      wmEventHandler_Dropbox *handler = (wmEventHandler_Dropbox *)&handler_base;
       if (handler->dropboxes) {
-        LISTBASE_FOREACH (wmDropBox *, drop, handler->dropboxes) {
+        for (wmDropBox &drop : *handler->dropboxes) {
           if (drag->drop_state.ui_context) {
             CTX_store_set(C, drag->drop_state.ui_context.get());
           }
 
-          if (!drop->poll(C, drag, event)) {
+          if (!drop.poll(C, drag, event)) {
             /* If the drop's poll fails, don't set the disabled-info. This would be too aggressive.
              * Instead show it only if the drop box could be used in principle, but the operator
              * can't be executed. */
             continue;
           }
 
-          const blender::wm::OpCallContext opcontext = wm_drop_operator_context_get(drop);
-          if (drop->ot && WM_operator_poll_context(C, drop->ot, opcontext)) {
+          const blender::wm::OpCallContext opcontext = wm_drop_operator_context_get(&drop);
+          if (drop.ot && WM_operator_poll_context(C, drop.ot, opcontext)) {
             /* Get dropbox tooltip now, #wm_drag_draw_tooltip can use a different draw context. */
-            drag->drop_state.tooltip = dropbox_tooltip(C, drag, event->xy, drop);
+            drag->drop_state.tooltip = dropbox_tooltip(C, drag, event->xy, &drop);
             CTX_store_set(C, nullptr);
-            return drop;
+            return &drop;
           }
 
           /* Attempt to set the disabled hint when the poll fails. Will always be the last hint set
@@ -606,10 +606,10 @@ void wm_drags_check_ops(bContext *C, const wmEvent *event)
   wmWindowManager *wm = CTX_wm_manager(C);
 
   bool any_active = false;
-  LISTBASE_FOREACH (wmDrag *, drag, &wm->runtime->drags) {
-    wm_drop_update_active(C, drag, event);
+  for (wmDrag &drag : wm->runtime->drags) {
+    wm_drop_update_active(C, &drag, event);
 
-    if (drag->drop_state.active_dropbox) {
+    if (drag.drop_state.active_dropbox) {
       any_active = true;
     }
   }
@@ -631,14 +631,14 @@ blender::wm::OpCallContext wm_drop_operator_context_get(const wmDropBox * /*drop
 void WM_drag_add_local_ID(wmDrag *drag, ID *id, ID *from_parent)
 {
   /* Don't drag the same ID twice. */
-  LISTBASE_FOREACH (wmDragID *, drag_id, &drag->ids) {
-    if (drag_id->id == id) {
-      if (drag_id->from_parent == nullptr) {
-        drag_id->from_parent = from_parent;
+  for (wmDragID &drag_id : drag->ids) {
+    if (drag_id.id == id) {
+      if (drag_id.from_parent == nullptr) {
+        drag_id.from_parent = from_parent;
       }
       return;
     }
-    if (GS(drag_id->id->name) != GS(id->name)) {
+    if (GS(drag_id.id->name) != GS(id->name)) {
       BLI_assert_msg(0, "All dragged IDs must have the same type");
       return;
     }
@@ -873,9 +873,9 @@ std::optional<bool> wm_drag_asset_path_exists(const wmDrag *drag)
   }
 
   if (const ListBaseT<wmDragAssetListItem> *asset_drags = WM_drag_asset_list_get(drag)) {
-    LISTBASE_FOREACH (wmDragAssetListItem *, asset_item, asset_drags) {
-      if (!asset_item->is_external ||
-          BLI_is_file(asset_item->asset_data.external_info->asset->full_library_path().c_str()))
+    for (wmDragAssetListItem &asset_item : *asset_drags) {
+      if (!asset_item.is_external ||
+          BLI_is_file(asset_item.asset_data.external_info->asset->full_library_path().c_str()))
       {
         return true;
       }
@@ -1269,22 +1269,22 @@ void wm_drags_draw(bContext *C, wmWindow *win)
 
   /* Should we support multi-line drag draws? Maybe not, more types mixed won't work well. */
   GPU_blend(GPU_BLEND_ALPHA);
-  LISTBASE_FOREACH (wmDrag *, drag, &wm->runtime->drags) {
-    if (drag->drop_state.active_dropbox) {
-      CTX_wm_area_set(C, drag->drop_state.area_from);
-      CTX_wm_region_set(C, drag->drop_state.region_from);
-      CTX_store_set(C, drag->drop_state.ui_context.get());
+  for (wmDrag &drag : wm->runtime->drags) {
+    if (drag.drop_state.active_dropbox) {
+      CTX_wm_area_set(C, drag.drop_state.area_from);
+      CTX_wm_region_set(C, drag.drop_state.region_from);
+      CTX_store_set(C, drag.drop_state.ui_context.get());
 
-      if (region && drag->drop_state.active_dropbox->draw_in_view) {
+      if (region && drag.drop_state.active_dropbox->draw_in_view) {
         wmViewport(&region->winrct);
-        drag->drop_state.active_dropbox->draw_in_view(C, win, drag, xy);
+        drag.drop_state.active_dropbox->draw_in_view(C, win, &drag, xy);
         wmWindowViewport(win);
       }
 
       /* Drawing should be allowed to assume the context from handling and polling (that's why we
        * restore it above). */
-      if (drag->drop_state.active_dropbox->draw_droptip) {
-        drag->drop_state.active_dropbox->draw_droptip(C, win, drag, xy);
+      if (drag.drop_state.active_dropbox->draw_droptip) {
+        drag.drop_state.active_dropbox->draw_droptip(C, win, &drag, xy);
         continue;
       }
     }
@@ -1295,7 +1295,7 @@ void wm_drags_draw(bContext *C, wmWindow *win)
 
     /* Needs zero offset here or it looks blurry. #128112. */
     wmWindowViewport_ex(win, 0.0f);
-    wm_drag_draw_default(C, win, drag, xy);
+    wm_drag_draw_default(C, win, &drag, xy);
   }
   GPU_blend(GPU_BLEND_NONE);
   CTX_wm_area_set(C, nullptr);

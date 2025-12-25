@@ -32,9 +32,13 @@ void TreeElementDeformGroupBase::expand(SpaceOutliner & /*space_outliner*/) cons
 {
   const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(&object_);
 
-  int index;
-  LISTBASE_FOREACH_INDEX (bDeformGroup *, defgroup, defbase, index) {
-    add_element(&legacy_te_.subtree, &object_.id, defgroup, &legacy_te_, TSE_DEFGROUP, index);
+  for (auto [index, defgroup] : (defbase)->enumerate()) {
+    add_element(&legacy_te_.subtree,
+                &object_.id,
+                const_cast<bDeformGroup *>(&defgroup),
+                &legacy_te_,
+                TSE_DEFGROUP,
+                index);
   }
 }
 

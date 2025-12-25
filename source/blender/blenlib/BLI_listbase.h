@@ -424,12 +424,12 @@ BLI_INLINE bool operator!=(const ListBase &a, const ListBase &b)
   return !(a == b);
 }
 
-template<typename T, typename Fn> T *BLI_listbase_find(const ListBase &listbase, Fn &&predicate)
+template<typename T, typename Fn>
+T *BLI_listbase_find(const ListBaseT<T> &listbase, Fn &&predicate)
 {
-  LISTBASE_FOREACH (T *, link, &listbase) {
-    const T &value = *static_cast<const T *>(link);
+  for (const T &value : listbase) {
     if (predicate(value)) {
-      return link;
+      return &value;
     }
   }
   return nullptr;

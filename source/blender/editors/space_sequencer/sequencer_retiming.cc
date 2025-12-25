@@ -69,34 +69,34 @@ bool sequencer_retiming_mode_is_active(const bContext *C)
 
 static void sequencer_retiming_data_show_selection(ListBaseT<Strip> *seqbase)
 {
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if ((strip->flag & SEQ_SELECT) == 0) {
+  for (Strip &strip : *seqbase) {
+    if ((strip.flag & SEQ_SELECT) == 0) {
       continue;
     }
-    if (!seq::retiming_is_allowed(strip)) {
+    if (!seq::retiming_is_allowed(&strip)) {
       continue;
     }
-    strip->flag |= SEQ_SHOW_RETIMING;
+    strip.flag |= SEQ_SHOW_RETIMING;
   }
 }
 
 static void sequencer_retiming_data_hide_selection(ListBaseT<Strip> *seqbase)
 {
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if ((strip->flag & SEQ_SELECT) == 0) {
+  for (Strip &strip : *seqbase) {
+    if ((strip.flag & SEQ_SELECT) == 0) {
       continue;
     }
-    if (!seq::retiming_is_allowed(strip)) {
+    if (!seq::retiming_is_allowed(&strip)) {
       continue;
     }
-    strip->flag &= ~SEQ_SHOW_RETIMING;
+    strip.flag &= ~SEQ_SHOW_RETIMING;
   }
 }
 
 static void sequencer_retiming_data_hide_all(ListBaseT<Strip> *seqbase)
 {
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    strip->flag &= ~SEQ_SHOW_RETIMING;
+  for (Strip &strip : *seqbase) {
+    strip.flag &= ~SEQ_SHOW_RETIMING;
   }
 }
 

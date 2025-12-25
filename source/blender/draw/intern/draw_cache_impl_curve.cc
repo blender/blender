@@ -75,17 +75,17 @@ static void curve_render_overlay_verts_edges_len_get(ListBaseT<Nurb> *lb,
   BLI_assert(r_vert_len || r_edge_len);
   int vert_len = 0;
   int edge_len = 0;
-  LISTBASE_FOREACH (Nurb *, nu, lb) {
-    if (nu->bezt) {
-      vert_len += nu->pntsu * 3;
+  for (Nurb &nu : *lb) {
+    if (nu.bezt) {
+      vert_len += nu.pntsu * 3;
       /* 2x handles per point. */
-      edge_len += 2 * nu->pntsu;
+      edge_len += 2 * nu.pntsu;
     }
-    else if (nu->bp) {
-      vert_len += nu->pntsu * nu->pntsv;
+    else if (nu.bp) {
+      vert_len += nu.pntsu * nu.pntsv;
       /* segments between points */
-      edge_len += (nu->pntsu - 1) * nu->pntsv;
-      edge_len += (nu->pntsv - 1) * nu->pntsu;
+      edge_len += (nu.pntsu - 1) * nu.pntsv;
+      edge_len += (nu.pntsv - 1) * nu.pntsu;
     }
   }
   if (r_vert_len) {

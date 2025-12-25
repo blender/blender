@@ -465,8 +465,8 @@ static void pose_slide_apply_props(tPoseSlideOp *pso,
    * - bbone properties are similar, but they always start with a prefix "bbone_*",
    *   so a similar method should work here for those too
    */
-  LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
-    FCurve *fcu = static_cast<FCurve *>(ld->data);
+  for (LinkData &ld : pfl->fcurves) {
+    FCurve *fcu = static_cast<FCurve *>(ld.data);
     const char *bPtr, *pPtr;
 
     if (fcu->rna_path == nullptr) {
@@ -738,13 +738,13 @@ static void pose_slide_rest_pose_apply_other_rot(tPoseSlideOp *pso, float vec[4]
 static void pose_slide_rest_pose_apply(bContext *C, tPoseSlideOp *pso)
 {
   /* For each link, handle each set of transforms. */
-  LISTBASE_FOREACH (tPChanFCurveLink *, pfl, &pso->pfLinks) {
+  for (tPChanFCurveLink &pfl : pso->pfLinks) {
     /* Valid transforms for each #bPoseChannel should have been noted already.
      * - Sliding the pose should be a straightforward exercise for location+rotation,
      *   but rotations get more complicated since we may want to use quaternion blending
      *   for quaternions instead.
      */
-    bPoseChannel *pchan = pfl->pchan;
+    bPoseChannel *pchan = pfl.pchan;
 
     if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_LOC) && (pchan->flag & POSE_LOC)) {
       /* Calculate these for the 'location' vector, and use location curves. */
@@ -777,7 +777,7 @@ static void pose_slide_rest_pose_apply(bContext *C, tPoseSlideOp *pso)
       // pose_slide_apply_props(pso, pfl, "bbone_");
     }
 
-    if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_PROPS) && (pfl->oldprops)) {
+    if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_PROPS) && (pfl.oldprops)) {
       /* Not strictly a transform, but custom properties contribute
        * to the pose produced in many rigs (e.g. the facial rigs used in Sintel). */
       /* TODO: Not implemented. */
@@ -814,48 +814,48 @@ static void pose_slide_apply(bContext *C, tPoseSlideOp *pso)
   }
 
   /* For each link, handle each set of transforms. */
-  LISTBASE_FOREACH (tPChanFCurveLink *, pfl, &pso->pfLinks) {
+  for (tPChanFCurveLink &pfl : pso->pfLinks) {
     /* Valid transforms for each #bPoseChannel should have been noted already
      * - sliding the pose should be a straightforward exercise for location+rotation,
      *   but rotations get more complicated since we may want to use quaternion blending
      *   for quaternions instead...
      */
-    bPoseChannel *pchan = pfl->pchan;
+    bPoseChannel *pchan = pfl.pchan;
 
     if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_LOC) && (pchan->flag & POSE_LOC)) {
       /* Calculate these for the 'location' vector, and use location curves. */
-      pose_slide_apply_vec3(pso, pfl, pchan->loc, "location");
+      pose_slide_apply_vec3(pso, &pfl, pchan->loc, "location");
     }
 
     if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_SCALE) && (pchan->flag & POSE_SCALE)) {
       /* Calculate these for the 'scale' vector, and use scale curves. */
-      pose_slide_apply_vec3(pso, pfl, pchan->scale, "scale");
+      pose_slide_apply_vec3(pso, &pfl, pchan->scale, "scale");
     }
 
     if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_ROT) && (pchan->flag & POSE_ROT)) {
       /* Everything depends on the rotation mode. */
       if (pchan->rotmode > 0) {
         /* Eulers - so calculate these for the 'eul' vector, and use euler_rotation curves. */
-        pose_slide_apply_vec3(pso, pfl, pchan->eul, "rotation_euler");
+        pose_slide_apply_vec3(pso, &pfl, pchan->eul, "rotation_euler");
       }
       else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
         /* TODO: need to figure out how to do this! */
       }
       else {
         /* Quaternions - use quaternion blending. */
-        pose_slide_apply_quat(pso, pfl);
+        pose_slide_apply_quat(pso, &pfl);
       }
     }
 
     if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_BBONE_SHAPE) && (pchan->flag & POSE_BBONE_SHAPE)) {
       /* Bbone properties - they all start a "bbone_" prefix. */
-      pose_slide_apply_props(pso, pfl, "bbone_");
+      pose_slide_apply_props(pso, &pfl, "bbone_");
     }
 
-    if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_PROPS) && (pfl->oldprops)) {
+    if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_PROPS) && (pfl.oldprops)) {
       /* Not strictly a transform, but custom properties contribute
        * to the pose produced in many rigs (e.g. the facial rigs used in Sintel). */
-      pose_slide_apply_props(pso, pfl, "[\"");
+      pose_slide_apply_props(pso, &pfl, "[\"");
     }
   }
 
@@ -980,11 +980,11 @@ static wmOperatorStatus pose_slide_invoke_common(bContext *C, wmOperator *op, co
   ED_slider_init(pso->slider, event);
 
   /* For each link, add all its keyframes to the search tree. */
-  LISTBASE_FOREACH (tPChanFCurveLink *, pfl, &pso->pfLinks) {
+  for (tPChanFCurveLink &pfl : pso->pfLinks) {
     /* Do this for each F-Curve. */
-    LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
-      AnimData *adt = pfl->ob->adt;
-      FCurve *fcu = static_cast<FCurve *>(ld->data);
+    for (LinkData &ld : pfl.fcurves) {
+      AnimData *adt = pfl.ob->adt;
+      FCurve *fcu = static_cast<FCurve *>(ld.data);
       fcurve_to_keylist(adt, fcu, pso->keylist, 0, {-FLT_MAX, FLT_MAX}, adt != nullptr);
     }
   }
@@ -1705,16 +1705,16 @@ static void propagate_curve_values(ListBaseT<tPChanFCurveLink> *pflinks,
 {
   using namespace blender::animrig;
   const KeyframeSettings settings = get_keyframe_settings(true);
-  LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
-    LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
-      FCurve *fcu = static_cast<FCurve *>(ld->data);
+  for (tPChanFCurveLink &pfl : *pflinks) {
+    for (LinkData &ld : pfl.fcurves) {
+      FCurve *fcu = static_cast<FCurve *>(ld.data);
       if (!fcu->bezt) {
         continue;
       }
       const float current_fcu_value = evaluate_fcurve(fcu, source_frame);
-      LISTBASE_FOREACH (FrameLink *, target_frame, target_frames) {
+      for (FrameLink &target_frame : *target_frames) {
         insert_vert_fcurve(
-            fcu, {target_frame->frame, current_fcu_value}, settings, INSERTKEY_NOFLAGS);
+            fcu, {target_frame.frame, current_fcu_value}, settings, INSERTKEY_NOFLAGS);
       }
     }
   }
@@ -1723,9 +1723,9 @@ static void propagate_curve_values(ListBaseT<tPChanFCurveLink> *pflinks,
 static float find_next_key(ListBaseT<tPChanFCurveLink> *pflinks, const float start_frame)
 {
   float target_frame = FLT_MAX;
-  LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
-    LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
-      FCurve *fcu = static_cast<FCurve *>(ld->data);
+  for (tPChanFCurveLink &pfl : *pflinks) {
+    for (LinkData &ld : pfl.fcurves) {
+      FCurve *fcu = static_cast<FCurve *>(ld.data);
       if (!fcu->bezt) {
         continue;
       }
@@ -1746,9 +1746,9 @@ static float find_next_key(ListBaseT<tPChanFCurveLink> *pflinks, const float sta
 static float find_last_key(ListBaseT<tPChanFCurveLink> *pflinks)
 {
   float target_frame = FLT_MIN;
-  LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
-    LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
-      const FCurve *fcu = static_cast<const FCurve *>(ld->data);
+  for (tPChanFCurveLink &pfl : *pflinks) {
+    for (LinkData &ld : pfl.fcurves) {
+      const FCurve *fcu = static_cast<const FCurve *>(ld.data);
       if (!fcu->bezt) {
         continue;
       }
@@ -1763,9 +1763,9 @@ static void get_selected_marker_positions(Scene *scene, ListBaseT<FrameLink> *ta
 {
   ListBaseT<CfraElem> selected_markers = {nullptr, nullptr};
   ED_markers_make_cfra_list(&scene->markers, &selected_markers, true);
-  LISTBASE_FOREACH (CfraElem *, marker, &selected_markers) {
+  for (CfraElem &marker : selected_markers) {
     FrameLink *link = MEM_callocN<FrameLink>("Marker Key Link");
-    link->frame = marker->cfra;
+    link->frame = marker.cfra;
     BLI_addtail(target_frames, link);
   }
   BLI_freelistN(&selected_markers);
@@ -1777,21 +1777,21 @@ static void get_keyed_frames_in_range(ListBaseT<tPChanFCurveLink> *pflinks,
                                       ListBaseT<FrameLink> *target_frames)
 {
   AnimKeylist *keylist = ED_keylist_create();
-  LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
-    LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
-      FCurve *fcu = static_cast<FCurve *>(ld->data);
+  for (tPChanFCurveLink &pfl : *pflinks) {
+    for (LinkData &ld : pfl.fcurves) {
+      FCurve *fcu = static_cast<FCurve *>(ld.data);
       fcurve_to_keylist(nullptr, fcu, keylist, 0, {start_frame, end_frame}, false);
     }
   }
-  LISTBASE_FOREACH (ActKeyColumn *, column, ED_keylist_listbase(keylist)) {
-    if (column->cfra <= start_frame) {
+  for (ActKeyColumn &column : *ED_keylist_listbase(keylist)) {
+    if (column.cfra <= start_frame) {
       continue;
     }
-    if (column->cfra > end_frame) {
+    if (column.cfra > end_frame) {
       break;
     }
     FrameLink *link = MEM_callocN<FrameLink>("Marker Key Link");
-    link->frame = column->cfra;
+    link->frame = column.cfra;
     BLI_addtail(target_frames, link);
   }
   ED_keylist_free(keylist);
@@ -1801,18 +1801,18 @@ static void get_selected_frames(ListBaseT<tPChanFCurveLink> *pflinks,
                                 ListBaseT<FrameLink> *target_frames)
 {
   AnimKeylist *keylist = ED_keylist_create();
-  LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
-    LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
-      FCurve *fcu = static_cast<FCurve *>(ld->data);
+  for (tPChanFCurveLink &pfl : *pflinks) {
+    for (LinkData &ld : pfl.fcurves) {
+      FCurve *fcu = static_cast<FCurve *>(ld.data);
       fcurve_to_keylist(nullptr, fcu, keylist, 0, {-FLT_MAX, FLT_MAX}, false);
     }
   }
-  LISTBASE_FOREACH (ActKeyColumn *, column, ED_keylist_listbase(keylist)) {
-    if (!column->sel) {
+  for (ActKeyColumn &column : *ED_keylist_listbase(keylist)) {
+    if (!column.sel) {
       continue;
     }
     FrameLink *link = MEM_callocN<FrameLink>("Marker Key Link");
-    link->frame = column->cfra;
+    link->frame = column.cfra;
     BLI_addtail(target_frames, link);
   }
   ED_keylist_free(keylist);

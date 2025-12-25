@@ -685,9 +685,9 @@ static int outliner_id_delete_tag(bContext *C,
     }
   }
   else {
-    LISTBASE_FOREACH (TreeElement *, te_sub, &te->subtree) {
+    for (TreeElement &te_sub : te->subtree) {
       if ((id_tagged_num += outliner_id_delete_tag(
-               C, reports, te_sub, mval, scene_replace_data)) != 0)
+               C, reports, &te_sub, mval, scene_replace_data)) != 0)
       {
         break;
       }
@@ -714,9 +714,9 @@ static wmOperatorStatus outliner_id_delete_invoke(bContext *C,
 
   int id_tagged_num = 0;
   BKE_main_id_tag_all(bmain, ID_TAG_DOIT, false);
-  LISTBASE_FOREACH (TreeElement *, te, &space_outliner->tree) {
-    if ((id_tagged_num += outliner_id_delete_tag(C, op->reports, te, fmval, scene_replace_data)) !=
-        0)
+  for (TreeElement &te : space_outliner->tree) {
+    if ((id_tagged_num += outliner_id_delete_tag(
+             C, op->reports, &te, fmval, scene_replace_data)) != 0)
     {
       break;
     }
@@ -811,9 +811,9 @@ static bool outliner_id_remap_find_tree_element(bContext *C,
                                                 ListBaseT<TreeElement> *tree,
                                                 const float y)
 {
-  LISTBASE_FOREACH (TreeElement *, te, tree) {
-    if (y > te->ys && y < te->ys + UI_UNIT_Y) {
-      TreeStoreElem *tselem = TREESTORE(te);
+  for (TreeElement &te : *tree) {
+    if (y > te.ys && y < te.ys + UI_UNIT_Y) {
+      TreeStoreElem *tselem = TREESTORE(&te);
 
       if ((tselem->type == TSE_SOME_ID) && tselem->id) {
         RNA_enum_set(op->ptr, "id_type", GS(tselem->id->name));
@@ -822,7 +822,7 @@ static bool outliner_id_remap_find_tree_element(bContext *C,
         return true;
       }
     }
-    if (outliner_id_remap_find_tree_element(C, op, &te->subtree, y)) {
+    if (outliner_id_remap_find_tree_element(C, op, &te.subtree, y)) {
       return true;
     }
   }
@@ -946,8 +946,8 @@ static int outliner_id_copy_tag(SpaceOutliner *space_outliner,
 
   int num_ids = 0;
 
-  LISTBASE_FOREACH (TreeElement *, te, tree) {
-    TreeStoreElem *tselem = TREESTORE(te);
+  for (TreeElement &te : *tree) {
+    TreeStoreElem *tselem = TREESTORE(&te);
 
     /* Add selected item and all of its dependencies to the copy buffer. */
     if (tselem->flag & TSE_SELECTED && ELEM(tselem->type, TSE_SOME_ID, TSE_LAYER_COLLECTION)) {
@@ -976,7 +976,7 @@ static int outliner_id_copy_tag(SpaceOutliner *space_outliner,
     }
 
     /* go over sub-tree */
-    num_ids += outliner_id_copy_tag(space_outliner, &te->subtree, copybuffer, reports);
+    num_ids += outliner_id_copy_tag(space_outliner, &te.subtree, copybuffer, reports);
   }
 
   return num_ids;
@@ -1190,9 +1190,9 @@ static wmOperatorStatus outliner_lib_relocate_invoke_do(
     }
   }
   else {
-    LISTBASE_FOREACH (TreeElement *, te_sub, &te->subtree) {
+    for (TreeElement &te_sub : te->subtree) {
       wmOperatorStatus ret;
-      if ((ret = outliner_lib_relocate_invoke_do(C, reports, te_sub, mval, reload))) {
+      if ((ret = outliner_lib_relocate_invoke_do(C, reports, &te_sub, mval, reload))) {
         return ret;
       }
     }
@@ -1213,10 +1213,10 @@ static wmOperatorStatus outliner_lib_relocate_invoke(bContext *C,
 
   ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
-  LISTBASE_FOREACH (TreeElement *, te, &space_outliner->tree) {
+  for (TreeElement &te : space_outliner->tree) {
     wmOperatorStatus ret;
 
-    if ((ret = outliner_lib_relocate_invoke_do(C, op->reports, te, fmval, false))) {
+    if ((ret = outliner_lib_relocate_invoke_do(C, op->reports, &te, fmval, false))) {
       return ret;
     }
   }
@@ -1265,10 +1265,10 @@ static wmOperatorStatus outliner_lib_reload_invoke(bContext *C,
 
   ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
-  LISTBASE_FOREACH (TreeElement *, te, &space_outliner->tree) {
+  for (TreeElement &te : space_outliner->tree) {
     wmOperatorStatus ret;
 
-    if ((ret = outliner_lib_relocate_invoke_do(C, op->reports, te, fmval, true))) {
+    if ((ret = outliner_lib_relocate_invoke_do(C, op->reports, &te, fmval, true))) {
       return ret;
     }
   }
@@ -1317,8 +1317,8 @@ static int outliner_count_levels(ListBaseT<TreeElement> *lb, const int curlevel)
 {
   int level = curlevel;
 
-  LISTBASE_FOREACH (TreeElement *, te, lb) {
-    int lev = outliner_count_levels(&te->subtree, curlevel + 1);
+  for (TreeElement &te : *lb) {
+    int lev = outliner_count_levels(&te.subtree, curlevel + 1);
     level = std::max(lev, level);
   }
   return level;
@@ -1326,13 +1326,13 @@ static int outliner_count_levels(ListBaseT<TreeElement> *lb, const int curlevel)
 
 int outliner_flag_is_any_test(ListBaseT<TreeElement> *lb, short flag, const int curlevel)
 {
-  LISTBASE_FOREACH (TreeElement *, te, lb) {
-    TreeStoreElem *tselem = TREESTORE(te);
+  for (TreeElement &te : *lb) {
+    TreeStoreElem *tselem = TREESTORE(&te);
     if (tselem->flag & flag) {
       return curlevel;
     }
 
-    int level = outliner_flag_is_any_test(&te->subtree, flag, curlevel + 1);
+    int level = outliner_flag_is_any_test(&te.subtree, flag, curlevel + 1);
     if (level) {
       return level;
     }
@@ -1340,12 +1340,12 @@ int outliner_flag_is_any_test(ListBaseT<TreeElement> *lb, short flag, const int 
   return 0;
 }
 
-bool outliner_flag_set(const SpaceOutliner &space_outliner, const short flag, const short set)
+bool outliner_flag_set(SpaceOutliner &space_outliner, const short flag, const short set)
 {
   return outliner_flag_set(space_outliner.tree, flag, set);
 }
 
-bool outliner_flag_set(const ListBaseT<TreeElement> &lb, const short flag, const short set)
+bool outliner_flag_set(ListBaseT<TreeElement> &lb, const short flag, const short set)
 {
   bool changed = false;
 
@@ -1367,12 +1367,12 @@ bool outliner_flag_set(const ListBaseT<TreeElement> &lb, const short flag, const
   return changed;
 }
 
-bool outliner_flag_flip(const SpaceOutliner &space_outliner, const short flag)
+bool outliner_flag_flip(SpaceOutliner &space_outliner, const short flag)
 {
   return outliner_flag_flip(space_outliner.tree, flag);
 }
 
-bool outliner_flag_flip(const ListBaseT<TreeElement> &lb, const short flag)
+bool outliner_flag_flip(ListBaseT<TreeElement> &lb, const short flag)
 {
   bool changed = false;
 
@@ -1530,7 +1530,7 @@ void OUTLINER_OT_clear_filter(wmOperatorType *ot)
 /** \name View Show Active (Outliner) Operator
  * \{ */
 
-void outliner_set_coordinates(const ARegion *region, const SpaceOutliner *space_outliner)
+void outliner_set_coordinates(const ARegion *region, SpaceOutliner *space_outliner)
 {
   int starty = int(region->v2d.tot.ymax) - UI_UNIT_Y;
 
@@ -1613,8 +1613,8 @@ static void outliner_show_active(SpaceOutliner *space_outliner,
     return;
   }
 
-  LISTBASE_FOREACH (TreeElement *, ten, &te->subtree) {
-    outliner_show_active(space_outliner, region, ten, id);
+  for (TreeElement &ten : te->subtree) {
+    outliner_show_active(space_outliner, region, &ten, id);
   }
 }
 
@@ -1633,8 +1633,8 @@ static wmOperatorStatus outliner_show_active_exec(bContext *C, wmOperator * /*op
     ID *id = TREESTORE(active_element)->id;
 
     /* Expand all elements in the outliner with matching ID */
-    LISTBASE_FOREACH (TreeElement *, te, &space_outliner->tree) {
-      outliner_show_active(space_outliner, region, te, id);
+    for (TreeElement &te : space_outliner->tree) {
+      outliner_show_active(space_outliner, region, &te, id);
     }
 
     /* Also open back from the active_element (only done for the first found occurrence of ID
@@ -1722,8 +1722,8 @@ void OUTLINER_OT_scroll_page(wmOperatorType *ot)
 /* helper function for Show/Hide one level operator */
 static void outliner_openclose_level(ListBaseT<TreeElement> *lb, int curlevel, int level, int open)
 {
-  LISTBASE_FOREACH (TreeElement *, te, lb) {
-    TreeStoreElem *tselem = TREESTORE(te);
+  for (TreeElement &te : *lb) {
+    TreeStoreElem *tselem = TREESTORE(&te);
 
     if (open) {
       if (curlevel <= level) {
@@ -1736,7 +1736,7 @@ static void outliner_openclose_level(ListBaseT<TreeElement> *lb, int curlevel, i
       }
     }
 
-    outliner_openclose_level(&te->subtree, curlevel + 1, level, open);
+    outliner_openclose_level(&te.subtree, curlevel + 1, level, open);
   }
 }
 
@@ -1799,12 +1799,12 @@ void OUTLINER_OT_show_one_level(wmOperatorType *ot)
  */
 static int subtree_has_objects(ListBaseT<TreeElement> *lb)
 {
-  LISTBASE_FOREACH (TreeElement *, te, lb) {
-    TreeStoreElem *tselem = TREESTORE(te);
-    if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
+  for (TreeElement &te : *lb) {
+    TreeStoreElem *tselem = TREESTORE(&te);
+    if ((tselem->type == TSE_SOME_ID) && (te.idcode == ID_OB)) {
       return 1;
     }
-    if (subtree_has_objects(&te->subtree)) {
+    if (subtree_has_objects(&te.subtree)) {
       return 1;
     }
   }
@@ -1936,7 +1936,7 @@ static void tree_element_to_path(TreeElement *te,
 
   /* step 2: step down hierarchy building the path
    * (NOTE: addhead in previous loop was needed so that we can loop like this) */
-  LISTBASE_FOREACH (LinkData *, ld, &hierarchy) {
+  for (const LinkData *ld = static_cast<const LinkData *>(hierarchy.first); ld; ld = ld->next) {
     /* get data */
     TreeElement *tem = (TreeElement *)ld->data;
     TreeElementRNACommon *tem_rna = tree_element_cast<TreeElementRNACommon>(tem);
@@ -1974,8 +1974,8 @@ static void tree_element_to_path(TreeElement *te,
             /* otherwise use index */
             int index = 0;
 
-            LISTBASE_FOREACH (TreeElement *, temsub, &tem->subtree) {
-              if (temsub == temnext) {
+            for (TreeElement &temsub : tem->subtree) {
+              if (&temsub == temnext) {
                 break;
               }
               index++;

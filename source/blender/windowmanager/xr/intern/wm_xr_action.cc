@@ -78,12 +78,11 @@ static wmXrAction *action_create(const char *action_name,
   action->type = type;
 
   const uint count = uint(BLI_listbase_count(user_paths));
-  uint subaction_idx = 0;
   action->count_subaction_paths = count;
 
   action->subaction_paths = MEM_malloc_arrayN<char *>(count, "XrAction_SubactionPaths");
-  LISTBASE_FOREACH_INDEX (XrUserPath *, user_path, user_paths, subaction_idx) {
-    action->subaction_paths[subaction_idx] = BLI_strdup(user_path->path);
+  for (auto [subaction_idx, user_path] : user_paths->enumerate()) {
+    action->subaction_paths[subaction_idx] = BLI_strdup(user_path.path);
   }
 
   size_t size;
@@ -241,12 +240,11 @@ bool WM_xr_action_create(wmXrData *xr,
                                      haptic_flag);
 
   const uint count = uint(BLI_listbase_count(user_paths));
-  uint subaction_idx = 0;
 
   char **subaction_paths = MEM_calloc_arrayN<char *>(count, "XrAction_SubactionPathPointers");
 
-  LISTBASE_FOREACH_INDEX (XrUserPath *, user_path, user_paths, subaction_idx) {
-    subaction_paths[subaction_idx] = (char *)user_path->path;
+  for (auto [subaction_idx, user_path] : user_paths->enumerate()) {
+    subaction_paths[subaction_idx] = (char *)user_path.path;
   }
 
   GHOST_XrActionInfo info{};
@@ -307,17 +305,17 @@ void WM_xr_action_destroy(wmXrData *xr, const char *action_set_name, const char 
     action_set->controller_grip_action = action_set->controller_aim_action = nullptr;
   }
 
-  LISTBASE_FOREACH (LinkData *, ld, &action_set->active_modal_actions) {
-    wmXrAction *active_modal_action = static_cast<wmXrAction *>(ld->data);
+  for (LinkData &ld : action_set->active_modal_actions) {
+    wmXrAction *active_modal_action = static_cast<wmXrAction *>(ld.data);
     if (STREQ(active_modal_action->name, action_name)) {
-      BLI_freelinkN(&action_set->active_modal_actions, ld);
+      BLI_freelinkN(&action_set->active_modal_actions, &ld);
       break;
     }
   }
 
-  LISTBASE_FOREACH_MUTABLE (wmXrHapticAction *, ha, &action_set->active_haptic_actions) {
-    if (STREQ(ha->action->name, action_name)) {
-      BLI_freelinkN(&action_set->active_haptic_actions, ha);
+  for (wmXrHapticAction &ha : action_set->active_haptic_actions.items_mutable()) {
+    if (STREQ(ha.action->name, action_name)) {
+      BLI_freelinkN(&action_set->active_haptic_actions, &ha);
     }
   }
 

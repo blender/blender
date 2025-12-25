@@ -125,14 +125,14 @@ static void shapekey_blend_write(BlendWriter *writer, ID *id, const void *id_add
   BKE_id_blend_write(writer, &key->id);
 
   /* Direct data. */
-  LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
-    KeyBlock tmp_kb = *kb;
+  for (KeyBlock &kb : key->block) {
+    KeyBlock tmp_kb = kb;
     /* Do not store actual geometry data in case this is a library override ID. */
     if (ID_IS_OVERRIDE_LIBRARY(key) && !is_undo) {
       tmp_kb.totelem = 0;
       tmp_kb.data = nullptr;
     }
-    BLO_write_struct_at_address(writer, KeyBlock, kb, &tmp_kb);
+    BLO_write_struct_at_address(writer, KeyBlock, &kb, &tmp_kb);
     if (tmp_kb.data != nullptr) {
       BLO_write_raw(writer, tmp_kb.totelem * key->elemsize, tmp_kb.data);
     }
@@ -151,8 +151,8 @@ static void shapekey_blend_read_data(BlendDataReader *reader, ID *id)
 
   BLO_read_struct(reader, KeyBlock, &key->refkey);
 
-  LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
-    BLO_read_data_address(reader, &kb->data);
+  for (KeyBlock &kb : key->block) {
+    BLO_read_data_address(reader, &kb.data);
 
     /* NOTE: This is endianness-sensitive. */
     /* Keyblock data would need specific endian switching depending of the exact type of data it
@@ -290,9 +290,9 @@ void BKE_key_sort(Key *key)
     BLI_remlink(&key->block, kb);
 
     /* Find the right location and insert before. */
-    LISTBASE_FOREACH (KeyBlock *, kb2, &key->block) {
-      if (kb2->pos > kb->pos) {
-        BLI_insertlinkafter(&key->block, kb2->prev, kb);
+    for (KeyBlock &kb2 : key->block) {
+      if (kb2.pos > kb->pos) {
+        BLI_insertlinkafter(&key->block, kb2.prev, kb);
         break;
       }
     }
@@ -703,21 +703,20 @@ static void key_evaluate_relative_float3(Key *key,
   /* Creates the basis values of the reference key in target_data. */
   copy_key_float3(vertex_count, key, active_keyblock, key->refkey, target_data);
 
-  int keyblock_index = 0;
-  LISTBASE_FOREACH_INDEX (KeyBlock *, kb, &key->block, keyblock_index) {
-    if (kb == key->refkey) {
+  for (const auto [keyblock_index, kb] : key->block.enumerate()) {
+    if (&kb == key->refkey) {
       continue;
     }
     /* No difference in vertex count allowed. */
-    if (kb->flag & KEYBLOCK_MUTE || kb->totelem != vertex_count) {
+    if (kb.flag & KEYBLOCK_MUTE || kb.totelem != vertex_count) {
       continue;
     }
-    const float kb_influence = kb->curval;
+    const float kb_influence = kb.curval;
     if (kb_influence == 0.0f) {
       continue;
     }
     /* Reference can be any block. */
-    KeyBlock *reference_kb = static_cast<KeyBlock *>(BLI_findlink(&key->block, kb->relative));
+    KeyBlock *reference_kb = static_cast<KeyBlock *>(BLI_findlink(&key->block, kb.relative));
     if (reference_kb == nullptr) {
       continue;
     }
@@ -726,14 +725,14 @@ static void key_evaluate_relative_float3(Key *key,
 
     char *freefrom = nullptr;
     const float *from = reinterpret_cast<float *>(
-        key_block_get_data(key, active_keyblock, kb, &freefrom));
+        key_block_get_data(key, active_keyblock, &kb, &freefrom));
 
     /* For meshes, use the original values instead of the bmesh values to
      * maintain a constant offset. */
     const float *reffrom = static_cast<float *>(reference_kb->data);
 
     for (int i = 0; i < vertex_count; i++) {
-      const float weight = weights ? (weights[i] * kb->curval) : kb->curval;
+      const float weight = weights ? (weights[i] * kb.curval) : kb.curval;
       /* Each vertex has 3 floats. */
       const int vector_index = i * 3;
       add_weighted_vector(vector_index, weight, reffrom, from, target_data);
@@ -1105,9 +1104,8 @@ static float **keyblock_get_per_block_weights(Object *ob, Key *key, WeightsArray
   float **per_keyblock_weights = MEM_malloc_arrayN<float *>(size_t(key->totkey),
                                                             "per keyblock weights");
 
-  int keyblock_index;
-  LISTBASE_FOREACH_INDEX (KeyBlock *, keyblock, &key->block, keyblock_index) {
-    per_keyblock_weights[keyblock_index] = get_weights_array(ob, keyblock->vgroup, cache);
+  for (const auto [keyblock_index, keyblock] : key->block.enumerate()) {
+    per_keyblock_weights[keyblock_index] = get_weights_array(ob, keyblock.vgroup, cache);
   }
 
   return per_keyblock_weights;
@@ -1388,10 +1386,10 @@ float *BKE_key_evaluate_object(Object *ob, int *r_totelem)
 int BKE_keyblock_element_count_from_shape(const Key *key, const int shape_index)
 {
   int result = 0;
-  int index = 0;
-  LISTBASE_FOREACH_INDEX (const KeyBlock *, kb, &key->block, index) {
+
+  for (const auto [index, kb] : key->block.enumerate()) {
     if (ELEM(shape_index, -1, index)) {
-      result += kb->totelem;
+      result += kb.totelem;
     }
   }
   return result;
@@ -1424,11 +1422,11 @@ void BKE_keyblock_data_get_from_shape(const Key *key,
                                       const int shape_index)
 {
   uint8_t *elements = (uint8_t *)arr.data();
-  int index = 0;
-  LISTBASE_FOREACH_INDEX (const KeyBlock *, kb, &key->block, index) {
+
+  for (const auto [index, kb] : key->block.enumerate()) {
     if (ELEM(shape_index, -1, index)) {
-      const int block_elem_len = kb->totelem * key->elemsize;
-      memcpy(elements, kb->data, block_elem_len);
+      const int block_elem_len = kb.totelem * key->elemsize;
+      memcpy(elements, kb.data, block_elem_len);
       elements += block_elem_len;
     }
   }
@@ -1451,11 +1449,10 @@ void BKE_keyblock_data_set_with_mat4(Key *key,
 
   const float3 *elements = coords.data();
 
-  int index = 0;
-  LISTBASE_FOREACH_INDEX (KeyBlock *, kb, &key->block, index) {
+  for (const auto [index, kb] : key->block.enumerate()) {
     if (ELEM(shape_index, -1, index)) {
-      const int block_elem_len = kb->totelem;
-      float (*block_data)[3] = (float (*)[3])kb->data;
+      const int block_elem_len = kb.totelem;
+      float (*block_data)[3] = (float (*)[3])kb.data;
       for (int data_offset = 0; data_offset < block_elem_len; ++data_offset) {
         const float *src_data = (const float *)(elements + data_offset);
         float *dst_data = (float *)(block_data + data_offset);
@@ -1474,11 +1471,10 @@ void BKE_keyblock_curve_data_set_with_mat4(Key *key,
 {
   const uint8_t *elements = static_cast<const uint8_t *>(data);
 
-  int index = 0;
-  LISTBASE_FOREACH_INDEX (KeyBlock *, kb, &key->block, index) {
+  for (const auto [index, kb] : key->block.enumerate()) {
     if (ELEM(shape_index, -1, index)) {
-      const int block_elem_size = kb->totelem * key->elemsize;
-      BKE_keyblock_curve_data_transform(nurb, transform.ptr(), elements, kb->data);
+      const int block_elem_size = kb.totelem * key->elemsize;
+      BKE_keyblock_curve_data_transform(nurb, transform.ptr(), elements, kb.data);
       elements += block_elem_size;
     }
   }
@@ -1487,11 +1483,11 @@ void BKE_keyblock_curve_data_set_with_mat4(Key *key,
 void BKE_keyblock_data_set(Key *key, const int shape_index, const void *data)
 {
   const uint8_t *elements = static_cast<const uint8_t *>(data);
-  int index = 0;
-  LISTBASE_FOREACH_INDEX (KeyBlock *, kb, &key->block, index) {
+
+  for (const auto [index, kb] : key->block.enumerate()) {
     if (ELEM(shape_index, -1, index)) {
-      const int block_elem_size = kb->totelem * key->elemsize;
-      memcpy(kb->data, elements, block_elem_size);
+      const int block_elem_size = kb.totelem * key->elemsize;
+      memcpy(kb.data, elements, block_elem_size);
       elements += block_elem_size;
     }
   }
@@ -1636,10 +1632,10 @@ KeyBlock *BKE_keyblock_add_ctime(Key *key, const char *name, const bool do_force
    * won't have to systematically use retiming func (and have ordering issues, too). See #39897.
    */
   if (!do_force && (key->type != KEY_RELATIVE)) {
-    LISTBASE_FOREACH (KeyBlock *, it_kb, &key->block) {
+    for (KeyBlock &it_kb : key->block) {
       /* Use epsilon to avoid floating point precision issues.
        * 1e-3 because the position is stored as frame * 1e-2. */
-      if (compare_ff(it_kb->pos, cpos, 1e-3f)) {
+      if (compare_ff(it_kb.pos, cpos, 1e-3f)) {
         return kb;
       }
     }
@@ -1686,9 +1682,9 @@ KeyBlock *BKE_keyblock_find_name(Key *key, const char name[])
 
 KeyBlock *BKE_keyblock_find_uid(Key *key, const int uid)
 {
-  LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
-    if (kb->uid == uid) {
-      return kb;
+  for (KeyBlock &kb : key->block) {
+    if (kb.uid == uid) {
+      return &kb;
     }
   }
   return nullptr;
@@ -1806,9 +1802,9 @@ void BKE_keyblock_update_from_curve(const Curve * /*cu*/,
   BPoint *bp;
   int a;
   float *fp = static_cast<float *>(kb->data);
-  LISTBASE_FOREACH (Nurb *, nu, nurb) {
-    if (nu->bezt) {
-      for (a = nu->pntsu, bezt = nu->bezt; a; a--, bezt++) {
+  for (Nurb &nu : *nurb) {
+    if (nu.bezt) {
+      for (a = nu.pntsu, bezt = nu.bezt; a; a--, bezt++) {
         for (int i = 0; i < 3; i++) {
           copy_v3_v3(&fp[i * 3], bezt->vec[i]);
         }
@@ -1818,7 +1814,7 @@ void BKE_keyblock_update_from_curve(const Curve * /*cu*/,
       }
     }
     else {
-      for (a = nu->pntsu * nu->pntsv, bp = nu->bp; a; a--, bp++) {
+      for (a = nu.pntsu * nu.pntsv, bp = nu.bp; a; a--, bp++) {
         copy_v3_v3(fp, bp->vec);
         fp[3] = bp->tilt;
         fp[4] = bp->radius;
@@ -1835,9 +1831,9 @@ void BKE_keyblock_curve_data_transform(const ListBaseT<Nurb> *nurb,
 {
   const float *src = static_cast<const float *>(src_data);
   float *dst = static_cast<float *>(dst_data);
-  LISTBASE_FOREACH (Nurb *, nu, nurb) {
-    if (nu->bezt) {
-      for (int a = nu->pntsu; a; a--) {
+  for (Nurb &nu : *nurb) {
+    if (nu.bezt) {
+      for (int a = nu.pntsu; a; a--) {
         for (int i = 0; i < 3; i++) {
           mul_v3_m4v3(&dst[i * 3], mat, &src[i * 3]);
         }
@@ -1848,7 +1844,7 @@ void BKE_keyblock_curve_data_transform(const ListBaseT<Nurb> *nurb,
       }
     }
     else {
-      for (int a = nu->pntsu * nu->pntsv; a; a--) {
+      for (int a = nu.pntsu * nu.pntsv; a; a--) {
         mul_v3_m4v3(dst, mat, src);
         dst[3] = src[3];
         dst[4] = src[4];
@@ -2147,13 +2143,12 @@ std::optional<blender::Array<bool>> BKE_keyblock_get_dependent_keys(const Key *k
   /* Iterative breadth-first search through the key list. This method minimizes
    * the number of scans through the list and is fail-safe vs reference cycles. */
   bool updated, found = false;
-  int i;
 
   do {
     updated = false;
 
-    LISTBASE_FOREACH_INDEX (const KeyBlock *, kb, &key->block, i) {
-      if (!marked[i] && kb->relative >= 0 && kb->relative < count && marked[kb->relative]) {
+    for (const auto [i, kb] : key->block.enumerate()) {
+      if (!marked[i] && kb.relative >= 0 && kb.relative < count && marked[kb.relative]) {
         marked[i] = true;
         updated = found = true;
       }

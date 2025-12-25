@@ -241,9 +241,10 @@ static void gpu_stack_from_data_list(GPUNodeStack *gs,
                                      ListBaseT<bNodeSocket> *sockets,
                                      bNodeStack **ns)
 {
-  int i;
-  LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, sockets, i) {
-    node_gpu_stack_from_data(&gs[i], socket, ns[i]);
+  int i = 0;
+  for (bNodeSocket &socket : *sockets) {
+    node_gpu_stack_from_data(&gs[i], &socket, ns[i]);
+    i++;
   }
 
   gs[i].end = true;
@@ -254,9 +255,8 @@ static void data_from_gpu_stack_list(ListBaseT<bNodeSocket> *sockets,
                                      GPUNodeStack *gs)
 {
   int i = 0;
-  LISTBASE_FOREACH (bNodeSocket *, socket, sockets) {
-    if (ELEM(
-            socket->type, SOCK_FLOAT, SOCK_INT, SOCK_BOOLEAN, SOCK_VECTOR, SOCK_RGBA, SOCK_SHADER))
+  for (bNodeSocket &socket : *sockets) {
+    if (ELEM(socket.type, SOCK_FLOAT, SOCK_INT, SOCK_BOOLEAN, SOCK_VECTOR, SOCK_RGBA, SOCK_SHADER))
     {
       node_data_from_gpu_stack(ns[i], &gs[i]);
       i++;

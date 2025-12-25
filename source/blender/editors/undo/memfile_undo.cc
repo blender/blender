@@ -402,9 +402,9 @@ void ED_undosys_stack_memfile_id_changed_tag(UndoStack *ustack, ID *id)
   }
 
   MemFile *memfile = &((MemFileUndoStep *)us)->data->memfile;
-  LISTBASE_FOREACH (MemFileChunk *, mem_chunk, &memfile->chunks) {
-    if (mem_chunk->id_session_uid == id->session_uid) {
-      mem_chunk->is_identical_future = false;
+  for (MemFileChunk &mem_chunk : memfile->chunks) {
+    if (mem_chunk.id_session_uid == id->session_uid) {
+      mem_chunk.is_identical_future = false;
       break;
     }
   }

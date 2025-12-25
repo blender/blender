@@ -243,22 +243,22 @@ static bool eyedropper_cryptomatte_sample_renderlayer_fl(RenderLayer *render_lay
                                             prefix + 1 + render_layer_name_len :
                                             prefix;
 
-  LISTBASE_FOREACH (RenderPass *, render_pass, &render_layer->passes) {
-    if (STRPREFIX(render_pass->name, render_pass_name_prefix) &&
-        !STREQLEN(render_pass->name, render_pass_name_prefix, sizeof(render_pass->name)))
+  for (RenderPass &render_pass : render_layer->passes) {
+    if (STRPREFIX(render_pass.name, render_pass_name_prefix) &&
+        !STREQLEN(render_pass.name, render_pass_name_prefix, sizeof(render_pass.name)))
     {
-      BLI_assert(render_pass->channels == 4);
+      BLI_assert(render_pass.channels == 4);
 
       /* Pass was allocated but not rendered yet. */
-      if (!render_pass->ibuf) {
+      if (!render_pass.ibuf) {
         return false;
       }
 
-      const int x = int(fpos[0] * render_pass->rectx);
-      const int y = int(fpos[1] * render_pass->recty);
-      const int offset = 4 * (y * render_pass->rectx + x);
+      const int x = int(fpos[0] * render_pass.rectx);
+      const int y = int(fpos[1] * render_pass.recty);
+      const int offset = 4 * (y * render_pass.rectx + x);
       zero_v3(r_col);
-      r_col[0] = render_pass->ibuf->float_buffer.data[offset];
+      r_col[0] = render_pass.ibuf->float_buffer.data[offset];
       return true;
     }
   }
@@ -279,8 +279,8 @@ static bool eyedropper_cryptomatte_sample_render_fl(const bNode *node,
   if (re) {
     RenderResult *rr = RE_AcquireResultRead(re);
     if (rr) {
-      LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
-        RenderLayer *render_layer = RE_GetRenderLayer(rr, view_layer->name);
+      for (ViewLayer &view_layer : scene->view_layers) {
+        RenderLayer *render_layer = RE_GetRenderLayer(rr, view_layer.name);
         success = eyedropper_cryptomatte_sample_renderlayer_fl(render_layer, prefix, fpos, r_col);
         if (success) {
           break;
@@ -311,8 +311,8 @@ static bool eyedropper_cryptomatte_sample_image_fl(bContext *C,
   if (image && image->type == IMA_TYPE_MULTILAYER) {
     ImBuf *ibuf = BKE_image_acquire_ibuf(image, &image_user_for_frame, nullptr);
     if (image->rr) {
-      LISTBASE_FOREACH (RenderLayer *, render_layer, &image->rr->layers) {
-        success = eyedropper_cryptomatte_sample_renderlayer_fl(render_layer, prefix, fpos, r_col);
+      for (RenderLayer &render_layer : image->rr->layers) {
+        success = eyedropper_cryptomatte_sample_renderlayer_fl(&render_layer, prefix, fpos, r_col);
         if (success) {
           break;
         }

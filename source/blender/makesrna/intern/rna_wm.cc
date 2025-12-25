@@ -1325,8 +1325,8 @@ static void rna_WindowManager_extensions_statusbar_update(Main * /*bmain*/,
   }
 
   wmWindowManager *wm = static_cast<wmWindowManager *>(ptr->data);
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    WM_window_status_area_tag_redraw(win);
+  for (wmWindow &win : wm->windows) {
+    WM_window_status_area_tag_redraw(&win);
   }
 }
 

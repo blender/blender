@@ -125,22 +125,21 @@ static void gizmotype_unlink(bContext *C, Main *bmain, wmGizmoType *gzt)
   for (bScreen *screen = static_cast<bScreen *>(bmain->screens.first); screen;
        screen = static_cast<bScreen *>(screen->id.next))
   {
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-        ListBaseT<ARegion> *lb = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                 &sl->regionbase;
-        LISTBASE_FOREACH (ARegion *, region, lb) {
-          wmGizmoMap *gzmap = region->runtime->gizmo_map;
+    for (ScrArea &area : screen->areabase) {
+      for (SpaceLink &sl : area.spacedata) {
+        ListBaseT<ARegion> *lb = (&sl == area.spacedata.first) ? &area.regionbase : &sl.regionbase;
+        for (ARegion &region : *lb) {
+          wmGizmoMap *gzmap = region.runtime->gizmo_map;
           if (gzmap) {
-            LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, &gzmap->groups) {
-              for (wmGizmo *gz = static_cast<wmGizmo *>(gzgroup->gizmos.first), *gz_next; gz;
+            for (wmGizmoGroup &gzgroup : gzmap->groups) {
+              for (wmGizmo *gz = static_cast<wmGizmo *>(gzgroup.gizmos.first), *gz_next; gz;
                    gz = gz_next)
               {
                 gz_next = gz->next;
-                BLI_assert(gzgroup->parent_gzmap == gzmap);
+                BLI_assert(gzgroup.parent_gzmap == gzmap);
                 if (gz->type == gzt) {
-                  WM_gizmo_unlink(&gzgroup->gizmos, gzgroup->parent_gzmap, gz, C);
-                  ED_region_tag_redraw_editor_overlays(region);
+                  WM_gizmo_unlink(&gzgroup.gizmos, gzgroup.parent_gzmap, gz, C);
+                  ED_region_tag_redraw_editor_overlays(&region);
                 }
               }
             }

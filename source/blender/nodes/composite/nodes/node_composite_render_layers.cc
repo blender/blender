@@ -77,8 +77,8 @@ static BaseSocketDeclarationBuilder &declare_existing_output(NodeDeclarationBuil
 static void declare_existing(NodeDeclarationBuilder &b)
 {
   const bNode *node = b.node_or_null();
-  LISTBASE_FOREACH (const bNodeSocket *, output, &node->outputs) {
-    declare_existing_output(b, output);
+  for (const bNodeSocket &output : node->outputs) {
+    declare_existing_output(b, &output);
   }
 }
 

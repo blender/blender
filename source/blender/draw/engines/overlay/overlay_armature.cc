@@ -1013,13 +1013,13 @@ static void draw_bone_update_disp_matrix_custom_shape(UnifiedBonePtr bone)
 /* compute connected child pointer for B-Bone drawing */
 static void edbo_compute_bbone_child(bArmature *arm)
 {
-  LISTBASE_FOREACH (EditBone *, eBone, arm->edbo) {
-    eBone->bbone_child = nullptr;
+  for (EditBone &eBone : *arm->edbo) {
+    eBone.bbone_child = nullptr;
   }
 
-  LISTBASE_FOREACH (EditBone *, eBone, arm->edbo) {
-    if (eBone->parent && (eBone->flag & BONE_CONNECTED)) {
-      eBone->parent->bbone_child = eBone;
+  for (EditBone &eBone : *arm->edbo) {
+    if (eBone.parent && (eBone.flag & BONE_CONNECTED)) {
+      eBone.parent->bbone_child = &eBone;
     }
   }
 }
@@ -1711,14 +1711,14 @@ static void pchan_draw_ik_lines(const Armatures::DrawContext *ctx,
   const float *line_start = nullptr, *line_end = nullptr;
   const ePchan_ConstFlag constflag = ePchan_ConstFlag(pchan->constflag);
 
-  LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
-    if (con->enforce == 0.0f) {
+  for (bConstraint &con : pchan->constraints) {
+    if (con.enforce == 0.0f) {
       continue;
     }
 
-    switch (con->type) {
+    switch (con.type) {
       case CONSTRAINT_TYPE_KINEMATIC: {
-        bKinematicConstraint *data = (bKinematicConstraint *)con->data;
+        bKinematicConstraint *data = (bKinematicConstraint *)con.data;
         int segcount = 0;
 
         /* if only_temp, only draw if it is a temporary ik-chain */
@@ -1752,7 +1752,7 @@ static void pchan_draw_ik_lines(const Armatures::DrawContext *ctx,
         break;
       }
       case CONSTRAINT_TYPE_SPLINEIK: {
-        bSplineIKConstraint *data = (bSplineIKConstraint *)con->data;
+        bSplineIKConstraint *data = (bSplineIKConstraint *)con.data;
         int segcount = 0;
 
         /* don't draw if only_temp, as Spline IK chains cannot be temporary */

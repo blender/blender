@@ -167,9 +167,9 @@ void BKE_light_linking_collection_assign(Main *bmain,
 
 static CollectionObject *find_collection_object(const Collection *collection, const Object *object)
 {
-  LISTBASE_FOREACH (CollectionObject *, collection_object, &collection->gobject) {
-    if (collection_object->ob == object) {
-      return collection_object;
+  for (CollectionObject &collection_object : collection->gobject) {
+    if (collection_object.ob == object) {
+      return &collection_object;
     }
   }
 
@@ -179,9 +179,9 @@ static CollectionObject *find_collection_object(const Collection *collection, co
 static CollectionChild *find_collection_child(const Collection *collection,
                                               const Collection *child)
 {
-  LISTBASE_FOREACH (CollectionChild *, collection_child, &collection->children) {
-    if (collection_child->collection == child) {
-      return collection_child;
+  for (CollectionChild &collection_child : collection->children) {
+    if (collection_child.collection == child) {
+      return &collection_child;
     }
   }
 
@@ -519,16 +519,16 @@ void BKE_light_linking_select_receivers_of_emitter(Scene *scene,
   /* Deselect all currently selected objects in the view layer, but keep the emitter selected.
    * This is because the operation is called from the emitter being active, and it will be
    * confusing to deselect it but keep active. */
-  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-    if (base->object == emitter) {
+  for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+    if (base.object == emitter) {
       continue;
     }
-    base->flag &= ~BASE_SELECTED;
+    base.flag &= ~BASE_SELECTED;
   }
 
   /* Select objects which are reachable via the receiver collection hierarchy. */
-  LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
-    Base *base = BKE_view_layer_base_find(view_layer, cob->ob);
+  for (CollectionObject &cob : collection->gobject) {
+    Base *base = BKE_view_layer_base_find(view_layer, cob.ob);
     if (!base) {
       continue;
     }

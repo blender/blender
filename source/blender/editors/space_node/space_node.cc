@@ -77,8 +77,8 @@ using blender::float2;
 
 void ED_node_tree_start(ARegion *region, SpaceNode *snode, bNodeTree *ntree, ID *id, ID *from)
 {
-  LISTBASE_FOREACH_MUTABLE (bNodeTreePath *, path, &snode->treepath) {
-    MEM_freeN(path);
+  for (bNodeTreePath &path : snode->treepath.items_mutable()) {
+    MEM_freeN(&path);
   }
   BLI_listbase_clear(&snode->treepath);
 
@@ -205,9 +205,9 @@ bNodeTree *ED_node_tree_get(SpaceNode *snode, int level)
 int ED_node_tree_path_length(SpaceNode *snode)
 {
   int length = 0;
-  int i = 0;
-  LISTBASE_FOREACH_INDEX (bNodeTreePath *, path, &snode->treepath, i) {
-    length += strlen(path->display_name);
+
+  for (const auto [i, path] : snode->treepath.enumerate()) {
+    length += strlen(path.display_name);
     if (i > 0) {
       length += 1; /* for separator char */
     }
@@ -217,17 +217,17 @@ int ED_node_tree_path_length(SpaceNode *snode)
 
 void ED_node_tree_path_get(SpaceNode *snode, char *value)
 {
-  int i = 0;
+
 #ifndef NDEBUG
   const char *value_orig = value;
 #endif
   /* Note that the caller ensures there is enough space available. */
-  LISTBASE_FOREACH_INDEX (bNodeTreePath *, path, &snode->treepath, i) {
-    const int len = strlen(path->display_name);
+  for (const auto [i, path] : snode->treepath.enumerate()) {
+    const int len = strlen(path.display_name);
     if (i != 0) {
       *value++ = '/';
     }
-    memcpy(value, path->display_name, len);
+    memcpy(value, path.display_name, len);
     value += len;
   }
   *value = '\0';
@@ -336,9 +336,9 @@ std::optional<ObjectAndModifier> get_modifier_for_node_editor(const SpaceNode &s
   const Object *object = reinterpret_cast<Object *>(snode.id);
   const NodesModifierData *used_modifier = nullptr;
   if (snode.flag & SNODE_PIN) {
-    LISTBASE_FOREACH (const ModifierData *, md, &object->modifiers) {
-      if (md->type == eModifierType_Nodes) {
-        const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(md);
+    for (const ModifierData &md : object->modifiers) {
+      if (md.type == eModifierType_Nodes) {
+        const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(&md);
         /* Would be good to store the name of the pinned modifier in the node editor. */
         if (nmd->node_group == snode.nodetree) {
           used_modifier = nmd;
@@ -348,11 +348,11 @@ std::optional<ObjectAndModifier> get_modifier_for_node_editor(const SpaceNode &s
     }
   }
   else {
-    LISTBASE_FOREACH (const ModifierData *, md, &object->modifiers) {
-      if (md->type == eModifierType_Nodes) {
-        const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(md);
+    for (const ModifierData &md : object->modifiers) {
+      if (md.type == eModifierType_Nodes) {
+        const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(&md);
         if (nmd->node_group == snode.nodetree) {
-          if (md->flag & eModifierFlag_Active) {
+          if (md.flag & eModifierFlag_Active) {
             used_modifier = nmd;
             break;
           }
@@ -444,8 +444,8 @@ static std::optional<const ComputeContext *> compute_context_for_tree_path(
 {
   const ComputeContext *current = parent_compute_context;
   Vector<const bNodeTreePath *> tree_path;
-  LISTBASE_FOREACH (const bNodeTreePath *, item, &snode.treepath) {
-    tree_path.append(item);
+  for (const bNodeTreePath &item : snode.treepath) {
+    tree_path.append(&item);
   }
   if (tree_path.is_empty()) {
     return current;
@@ -1747,8 +1747,8 @@ static void node_space_blend_write(BlendWriter *writer, SpaceLink *sl)
   SpaceNode *snode = (SpaceNode *)sl;
   writer->write_struct_cast<SpaceNode>(snode);
 
-  LISTBASE_FOREACH (bNodeTreePath *, path, &snode->treepath) {
-    writer->write_struct(path);
+  for (bNodeTreePath &path : snode->treepath) {
+    writer->write_struct(&path);
   }
 }
 

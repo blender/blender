@@ -3127,9 +3127,9 @@ static float bm_interior_face_group_calc_cost(ListBaseT<BMFaceLink> *ls, const f
   float area = 0.0f;
   float cost = 0.0f;
   bool found = false;
-  LISTBASE_FOREACH (BMFaceLink *, f_link, ls) {
-    BMFace *f = f_link->face;
-    area += f_link->area;
+  for (BMFaceLink &f_link : *ls) {
+    BMFace *f = f_link.face;
+    area += f_link.area;
     int i = BM_elem_index_get(f);
     BLI_assert(i != -1);
     BMLoop *l_iter, *l_first;
@@ -3333,8 +3333,8 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
             }
 
             /* Merge the groups. */
-            LISTBASE_FOREACH (BMFaceLink *, n, &fgroup_listbase[i_b]) {
-              BMFace *f_iter = n->face;
+            for (BMFaceLink &n : fgroup_listbase[i_b]) {
+              BMFace *f_iter = n.face;
               BM_elem_index_set(f_iter, i_a);
             }
             BLI_movelisttolist(&fgroup_listbase[i_a], &fgroup_listbase[i_b]);

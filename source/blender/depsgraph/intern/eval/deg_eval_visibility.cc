@@ -68,16 +68,16 @@ void deg_evaluate_object_modifiers_mode_node_visibility(::Depsgraph *depsgraph, 
                                                                           eModifierMode_Render;
 
   const ComponentNode *geometry_component = id_node->find_component(NodeType::GEOMETRY);
-  LISTBASE_FOREACH (ModifierData *, modifier, &object->modifiers) {
+  for (ModifierData &modifier : object->modifiers) {
     OperationNode *modifier_node = geometry_component->find_operation(OperationCode::MODIFIER,
-                                                                      modifier->name);
+                                                                      modifier.name);
 
     BLI_assert_msg(modifier_node != nullptr,
                    "Modifier node in depsgraph is not found. Likely due to missing "
                    "DEG_relations_tag_update().");
 
     const bool modifier_enabled = !graph->use_visibility_optimization ||
-                                  (modifier->mode & modifier_mode);
+                                  (modifier.mode & modifier_mode);
     const int mute_flag = modifier_enabled ? 0 : DEPSOP_FLAG_MUTE;
     if ((modifier_node->flag & DEPSOP_FLAG_MUTE) != mute_flag) {
       modifier_node->flag &= ~DEPSOP_FLAG_MUTE;

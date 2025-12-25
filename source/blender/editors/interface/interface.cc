@@ -907,9 +907,9 @@ static bool ui_but_extra_icons_equals_old(const ButtonExtraOpIcon *new_extra_ico
 static ButtonExtraOpIcon *ui_but_extra_icon_find_old(const ButtonExtraOpIcon *new_extra_icon,
                                                      const Button *old_but)
 {
-  LISTBASE_FOREACH (ButtonExtraOpIcon *, op_icon, &old_but->extra_op_icons) {
-    if (ui_but_extra_icons_equals_old(new_extra_icon, op_icon)) {
-      return op_icon;
+  for (ButtonExtraOpIcon &op_icon : old_but->extra_op_icons) {
+    if (ui_but_extra_icons_equals_old(new_extra_icon, &op_icon)) {
+      return &op_icon;
     }
   }
   return nullptr;
@@ -920,11 +920,11 @@ static void ui_but_extra_icons_update_from_old_but(const Button *new_but, const 
   /* Specifically for keeping some state info for the active button. */
   BLI_assert(old_but->active || old_but->semi_modal_state);
 
-  LISTBASE_FOREACH (ButtonExtraOpIcon *, new_extra_icon, &new_but->extra_op_icons) {
-    ButtonExtraOpIcon *old_extra_icon = ui_but_extra_icon_find_old(new_extra_icon, old_but);
+  for (ButtonExtraOpIcon &new_extra_icon : new_but->extra_op_icons) {
+    ButtonExtraOpIcon *old_extra_icon = ui_but_extra_icon_find_old(&new_extra_icon, old_but);
     /* Keep the highlighting state, and let handling update it later. */
     if (old_extra_icon) {
-      new_extra_icon->highlighted = old_extra_icon->highlighted;
+      new_extra_icon.highlighted = old_extra_icon->highlighted;
     }
   }
 }
@@ -1784,8 +1784,8 @@ static void ui_but_extra_operator_icon_free(ButtonExtraOpIcon *extra_icon)
 
 void button_extra_operator_icons_free(Button *but)
 {
-  LISTBASE_FOREACH_MUTABLE (ButtonExtraOpIcon *, op_icon, &but->extra_op_icons) {
-    ui_but_extra_operator_icon_free(op_icon);
+  for (ButtonExtraOpIcon &op_icon : but->extra_op_icons.items_mutable()) {
+    ui_but_extra_operator_icon_free(&op_icon);
   }
   BLI_listbase_clear(&but->extra_op_icons);
 }
@@ -1941,8 +1941,8 @@ static void ui_but_predefined_extra_operator_icons_add(Button *but)
   }
 
   if (optype) {
-    LISTBASE_FOREACH (ButtonExtraOpIcon *, op_icon, &but->extra_op_icons) {
-      if ((op_icon->optype_params->optype == optype) && (op_icon->icon == icon)) {
+    for (ButtonExtraOpIcon &op_icon : but->extra_op_icons) {
+      if ((op_icon.optype_params->optype == optype) && (op_icon.icon == icon)) {
         /* Don't add the same operator icon twice (happens if button is kept alive while active).
          */
         return;
@@ -2087,9 +2087,9 @@ void block_end_ex(const bContext *C,
       }
     }
 
-    LISTBASE_FOREACH (ButtonExtraOpIcon *, op_icon, &but->extra_op_icons) {
-      if (!button_context_poll_operator_ex((bContext *)C, but.get(), op_icon->optype_params)) {
-        op_icon->disabled = true;
+    for (ButtonExtraOpIcon &op_icon : but->extra_op_icons) {
+      if (!button_context_poll_operator_ex((bContext *)C, but.get(), op_icon.optype_params)) {
+        op_icon.disabled = true;
       }
     }
 
@@ -2344,8 +2344,8 @@ static void block_message_subscribe(ARegion *region, wmMsgBus *mbus, Block *bloc
 
 void region_message_subscribe(ARegion *region, wmMsgBus *mbus)
 {
-  LISTBASE_FOREACH (Block *, block, &region->runtime->uiblocks) {
-    block_message_subscribe(region, mbus, block);
+  for (Block &block : region->runtime->uiblocks) {
+    block_message_subscribe(region, mbus, &block);
   }
 }
 
@@ -3763,8 +3763,8 @@ void block_listen(const Block *block, const wmRegionListenerParams *listener_par
   /* Note that #Block.active shouldn't be checked here, since notifier listening happens before
    * drawing, so there are no active blocks at this point. */
 
-  LISTBASE_FOREACH (BlockDynamicListener *, listener, &block->dynamic_listeners) {
-    listener->listener_func(listener_params);
+  for (BlockDynamicListener &listener : block->dynamic_listeners) {
+    listener.listener_func(listener_params);
   }
 
   block_views_listen(block, listener_params);
@@ -3775,27 +3775,27 @@ void blocklist_update_window_matrix(const bContext *C, const ListBaseT<Block> *l
   ARegion *region = CTX_wm_region(C);
   wmWindow *window = CTX_wm_window(C);
 
-  LISTBASE_FOREACH (Block *, block, lb) {
-    if (block->active) {
-      ui_update_window_matrix(window, region, block);
+  for (Block &block : *lb) {
+    if (block.active) {
+      ui_update_window_matrix(window, region, &block);
     }
   }
 }
 
 void blocklist_update_view_for_buttons(const bContext *C, const ListBaseT<Block> *lb)
 {
-  LISTBASE_FOREACH (Block *, block, lb) {
-    if (block->active) {
-      button_update_view_for_active(C, block);
+  for (Block &block : *lb) {
+    if (block.active) {
+      button_update_view_for_active(C, &block);
     }
   }
 }
 
 void blocklist_draw(const bContext *C, const ListBaseT<Block> *lb)
 {
-  LISTBASE_FOREACH (Block *, block, lb) {
-    if (block->active) {
-      block_draw(C, block);
+  for (Block &block : *lb) {
+    if (block.active) {
+      block_draw(C, &block);
     }
   }
 }
@@ -3813,17 +3813,17 @@ void blocklist_free_inactive(const bContext *C, ARegion *region)
 {
   ListBaseT<Block> *lb = &region->runtime->uiblocks;
 
-  LISTBASE_FOREACH_MUTABLE (Block *, block, lb) {
-    if (!block->handle) {
-      if (block->active) {
-        block->active = false;
+  for (Block &block : lb->items_mutable()) {
+    if (!block.handle) {
+      if (block.active) {
+        block.active = false;
       }
       else {
-        if (region->runtime->block_name_map.lookup_default(block->name, nullptr) == block) {
-          region->runtime->block_name_map.remove_as(block->name);
+        if (region->runtime->block_name_map.lookup_default(block.name, nullptr) == &block) {
+          region->runtime->block_name_map.remove_as(block.name);
         }
-        BLI_remlink(lb, block);
-        block_free(C, block);
+        BLI_remlink(lb, &block);
+        block_free(C, &block);
       }
     }
   }
@@ -5883,9 +5883,9 @@ int blocklist_min_y_get(ListBaseT<Block> *lb)
 {
   int min = 0;
 
-  LISTBASE_FOREACH (Block *, block, lb) {
-    if (block == lb->first || block->rect.ymin < min) {
-      min = block->rect.ymin;
+  for (Block &block : *lb) {
+    if (&block == lb->first || block.rect.ymin < min) {
+      min = block.rect.ymin;
     }
   }
 

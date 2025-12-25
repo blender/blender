@@ -171,13 +171,13 @@ ListBaseT<ImageFrameRange> ED_image_filesel_detect_sequences(blender::StringRefN
     was_relative = BLI_path_is_rel(filepath);
   }
 
-  LISTBASE_FOREACH (ImageFrameRange *, range, &ranges) {
+  for (ImageFrameRange &range : ranges) {
     if (was_relative) {
-      BLI_path_abs(range->filepath, blendfile_path.c_str());
+      BLI_path_abs(range.filepath, blendfile_path.c_str());
     }
-    image_detect_frame_range(range, detect_udim);
+    image_detect_frame_range(&range, detect_udim);
     if (was_relative) {
-      BLI_path_rel(range->filepath, root_path.c_str());
+      BLI_path_rel(range.filepath, root_path.c_str());
     }
   }
 

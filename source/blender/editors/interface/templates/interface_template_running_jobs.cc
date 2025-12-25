@@ -86,53 +86,53 @@ void template_running_jobs(Layout *layout, bContext *C)
   block_layout_set_current(block, layout);
 
   /* another scene can be rendering too, for example via compositor */
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_ANY)) {
+  for (Scene &scene : bmain->scenes) {
+    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_ANY)) {
       cancel_fn = set_global_break;
       icon = ICON_NONE;
-      owner = scene;
+      owner = &scene;
     }
     else {
       continue;
     }
 
-    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_SEQ_BUILD_PROXY)) {
+    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_SEQ_BUILD_PROXY)) {
       cancel_fn = cancel_all_scene_jobs;
       icon = ICON_SEQUENCE;
-      owner = scene;
+      owner = &scene;
       break;
     }
-    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_SEQ_BUILD_PREVIEW)) {
-      cancel_fn = cancel_all_scene_jobs;
-      icon = ICON_SEQUENCE;
-      break;
-    }
-    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_SEQ_DRAW_THUMBNAIL)) {
+    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_SEQ_BUILD_PREVIEW)) {
       cancel_fn = cancel_all_scene_jobs;
       icon = ICON_SEQUENCE;
       break;
     }
-    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_CLIP_BUILD_PROXY)) {
+    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_SEQ_DRAW_THUMBNAIL)) {
+      cancel_fn = cancel_all_scene_jobs;
+      icon = ICON_SEQUENCE;
+      break;
+    }
+    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_CLIP_BUILD_PROXY)) {
       cancel_fn = cancel_all_scene_jobs;
       icon = ICON_TRACKER;
       break;
     }
-    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_CLIP_PREFETCH)) {
+    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_CLIP_PREFETCH)) {
       cancel_fn = cancel_all_scene_jobs;
       icon = ICON_TRACKER;
       break;
     }
-    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_CLIP_TRACK_MARKERS)) {
+    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_CLIP_TRACK_MARKERS)) {
       cancel_fn = cancel_all_scene_jobs;
       icon = ICON_TRACKER;
       break;
     }
-    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_CLIP_SOLVE_CAMERA)) {
+    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_CLIP_SOLVE_CAMERA)) {
       cancel_fn = cancel_all_scene_jobs;
       icon = ICON_TRACKER;
       break;
     }
-    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_RENDER)) {
+    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_RENDER)) {
       cancel_fn = set_global_break;
       icon = ICON_SCENE;
       if (U.render_display_type != USER_RENDER_DISPLAY_NONE) {
@@ -141,13 +141,13 @@ void template_running_jobs(Layout *layout, bContext *C)
       }
       break;
     }
-    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_COMPOSITE)) {
+    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_COMPOSITE)) {
       cancel_fn = cancel_all_scene_jobs;
       icon = ICON_RENDERLAYERS;
       break;
     }
-    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_OBJECT_BAKE_TEXTURE) ||
-        WM_jobs_test(wm, scene, WM_JOB_TYPE_OBJECT_BAKE))
+    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_OBJECT_BAKE_TEXTURE) ||
+        WM_jobs_test(wm, &scene, WM_JOB_TYPE_OBJECT_BAKE))
     {
       /* Skip bake jobs in compositor to avoid compo header displaying
        * progress bar which is not being updated (bake jobs only need
@@ -160,35 +160,35 @@ void template_running_jobs(Layout *layout, bContext *C)
       }
       continue;
     }
-    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_DPAINT_BAKE)) {
+    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_DPAINT_BAKE)) {
       cancel_fn = set_global_break;
       icon = ICON_MOD_DYNAMICPAINT;
       break;
     }
-    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_POINTCACHE)) {
+    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_POINTCACHE)) {
       cancel_fn = set_global_break;
       icon = ICON_PHYSICS;
       break;
     }
-    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_OBJECT_SIM_FLUID)) {
+    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_OBJECT_SIM_FLUID)) {
       cancel_fn = set_global_break;
       icon = ICON_MOD_FLUIDSIM;
       break;
     }
-    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_OBJECT_SIM_OCEAN)) {
+    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_OBJECT_SIM_OCEAN)) {
       cancel_fn = set_global_break;
       icon = ICON_MOD_OCEAN;
       break;
     }
   }
   if (!owner) {
-    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-      const bScreen *screen = WM_window_get_active_screen(win);
-      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        if (area->spacetype != SPACE_FILE) {
+    for (wmWindow &win : wm->windows) {
+      const bScreen *screen = WM_window_get_active_screen(&win);
+      for (ScrArea &area : screen->areabase) {
+        if (area.spacetype != SPACE_FILE) {
           continue;
         }
-        const SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
+        const SpaceFile *sfile = static_cast<SpaceFile *>(area.spacedata.first);
         auto tmp_cancel_fn = [sfile](bContext &C) {
           WM_jobs_stop_all_from_owner(CTX_wm_manager(&C), sfile->files);
         };

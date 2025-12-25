@@ -78,9 +78,9 @@ static bool is_disabled(const Scene *scene, ModifierData *md, bool use_render_pa
   /* If the psys modifier is disabled we cannot use its data.
    * First look up the psys modifier from the object, then check if it is enabled.
    */
-  LISTBASE_FOREACH (ModifierData *, ob_md, &pimd->ob->modifiers) {
-    if (ob_md->type == eModifierType_ParticleSystem) {
-      ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)ob_md;
+  for (ModifierData &ob_md : pimd->ob->modifiers) {
+    if (ob_md.type == eModifierType_ParticleSystem) {
+      ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)&ob_md;
       if (psmd->psys == psys) {
         int required_mode;
 
@@ -91,7 +91,7 @@ static bool is_disabled(const Scene *scene, ModifierData *md, bool use_render_pa
           required_mode = eModifierMode_Realtime;
         }
 
-        if (!BKE_modifier_is_enabled(scene, ob_md, required_mode)) {
+        if (!BKE_modifier_is_enabled(scene, &ob_md, required_mode)) {
           return true;
         }
 

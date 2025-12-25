@@ -384,9 +384,9 @@ static void special_aftertrans_update__node(bContext *C, TransInfo *t)
   if (canceled && t->remove_on_cancel) {
     /* Remove selected nodes on cancel. */
     if (ntree) {
-      LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
-        if (node->flag & NODE_SELECT) {
-          bke::node_remove_node(bmain, *ntree, *node, true);
+      for (bNode &node : ntree->nodes.items_mutable()) {
+        if (node.flag & NODE_SELECT) {
+          bke::node_remove_node(bmain, *ntree, node, true);
         }
       }
       BKE_main_ensure_invariants(*bmain, ntree->id);

@@ -55,8 +55,8 @@ bool action_is_layered(const bAction &dna_action)
 
 void convert_legacy_animato_actions(Main &bmain)
 {
-  LISTBASE_FOREACH (bAction *, dna_action, &bmain.actions) {
-    blender::animrig::Action &action = dna_action->wrap();
+  for (bAction &dna_action : bmain.actions) {
+    blender::animrig::Action &action = dna_action.wrap();
 
     if (action_is_layered(action) && !action.is_empty()) {
       /* This is just a safety net. Blender files that trigger this versioning code are not
@@ -104,30 +104,29 @@ void convert_legacy_animato_action(bAction &dna_action)
   bag.group_array = MEM_calloc_arrayN<bActionGroup *>(group_count, "Action versioning - groups");
   bag.group_array_num = group_count;
 
-  int group_index = 0;
   int fcurve_index = 0;
-  LISTBASE_FOREACH_INDEX (bActionGroup *, group, &action.groups, group_index) {
-    bag.group_array[group_index] = group;
+  for (const auto [group_index, group] : action.groups.enumerate()) {
+    bag.group_array[group_index] = &group;
 
-    group->channelbag = &bag;
-    group->fcurve_range_start = fcurve_index;
+    group.channelbag = &bag;
+    group.fcurve_range_start = fcurve_index;
 
-    LISTBASE_FOREACH (FCurve *, fcu, &group->channels) {
-      if (fcu->grp != group) {
+    for (FCurve &fcu : group.channels) {
+      if (fcu.grp != &group) {
         break;
       }
-      bag.fcurve_array[fcurve_index++] = fcu;
+      bag.fcurve_array[fcurve_index++] = &fcu;
     }
 
-    group->fcurve_range_length = fcurve_index - group->fcurve_range_start;
+    group.fcurve_range_length = fcurve_index - group.fcurve_range_start;
   }
 
-  LISTBASE_FOREACH (FCurve *, fcu, &action.curves) {
+  for (FCurve &fcu : action.curves) {
     /* Any fcurves with groups have already been added to the fcurve array. */
-    if (fcu->grp) {
+    if (fcu.grp) {
       continue;
     }
-    bag.fcurve_array[fcurve_index++] = fcu;
+    bag.fcurve_array[fcurve_index++] = &fcu;
   }
 
   BLI_assert(fcurve_index == fcu_count);

@@ -912,9 +912,9 @@ bool butstore_is_valid(ButStore *bs_handle)
 
 bool butstore_is_registered(Block *block, Button *but)
 {
-  LISTBASE_FOREACH (ButStore *, bs_handle, &block->butstore) {
-    LISTBASE_FOREACH (ButStoreElem *, bs_elem, &bs_handle->items) {
-      if (*bs_elem->but_p == but) {
+  for (ButStore &bs_handle : block->butstore) {
+    for (ButStoreElem &bs_elem : bs_handle.items) {
+      if (*bs_elem.but_p == but) {
         return true;
       }
     }
@@ -934,10 +934,10 @@ void butstore_register(ButStore *bs_handle, Button **but_p)
 
 void butstore_unregister(ButStore *bs_handle, Button **but_p)
 {
-  LISTBASE_FOREACH_MUTABLE (ButStoreElem *, bs_elem, &bs_handle->items) {
-    if (bs_elem->but_p == but_p) {
-      BLI_remlink(&bs_handle->items, bs_elem);
-      MEM_freeN(bs_elem);
+  for (ButStoreElem &bs_elem : bs_handle->items.items_mutable()) {
+    if (bs_elem.but_p == but_p) {
+      BLI_remlink(&bs_handle->items, &bs_elem);
+      MEM_freeN(&bs_elem);
     }
   }
 
@@ -948,10 +948,10 @@ bool butstore_register_update(Block *block, Button *but_dst, const Button *but_s
 {
   bool found = false;
 
-  LISTBASE_FOREACH (ButStore *, bs_handle, &block->butstore) {
-    LISTBASE_FOREACH (ButStoreElem *, bs_elem, &bs_handle->items) {
-      if (*bs_elem->but_p == but_src) {
-        *bs_elem->but_p = but_dst;
+  for (ButStore &bs_handle : block->butstore) {
+    for (ButStoreElem &bs_elem : bs_handle.items) {
+      if (*bs_elem.but_p == but_src) {
+        *bs_elem.but_p = but_dst;
         found = true;
       }
     }
@@ -962,10 +962,10 @@ bool butstore_register_update(Block *block, Button *but_dst, const Button *but_s
 
 void butstore_clear(Block *block)
 {
-  LISTBASE_FOREACH (ButStore *, bs_handle, &block->butstore) {
-    bs_handle->block = nullptr;
-    LISTBASE_FOREACH (ButStoreElem *, bs_elem, &bs_handle->items) {
-      *bs_elem->but_p = nullptr;
+  for (ButStore &bs_handle : block->butstore) {
+    bs_handle.block = nullptr;
+    for (ButStoreElem &bs_elem : bs_handle.items) {
+      *bs_elem.but_p = nullptr;
     }
   }
 }
@@ -985,21 +985,21 @@ void butstore_update(Block *block)
 
   /* warning, loop-in-loop, in practice we only store <10 buttons at a time,
    * so this isn't going to be a problem, if that changes old-new mapping can be cached first */
-  LISTBASE_FOREACH (ButStore *, bs_handle, &block->butstore) {
-    BLI_assert(ELEM(bs_handle->block, nullptr, block) ||
-               (block->oldblock && block->oldblock == bs_handle->block));
+  for (ButStore &bs_handle : block->butstore) {
+    BLI_assert(ELEM(bs_handle.block, nullptr, block) ||
+               (block->oldblock && block->oldblock == bs_handle.block));
 
-    if (bs_handle->block == block->oldblock) {
-      bs_handle->block = block;
+    if (bs_handle.block == block->oldblock) {
+      bs_handle.block = block;
 
-      LISTBASE_FOREACH (ButStoreElem *, bs_elem, &bs_handle->items) {
-        if (*bs_elem->but_p) {
-          Button *but_new = button_find_new(block, *bs_elem->but_p);
+      for (ButStoreElem &bs_elem : bs_handle.items) {
+        if (*bs_elem.but_p) {
+          Button *but_new = button_find_new(block, *bs_elem.but_p);
 
           /* can be nullptr if the buttons removed,
            * NOTE: we could allow passing in a callback when buttons are removed
            * so the caller can cleanup */
-          *bs_elem->but_p = but_new;
+          *bs_elem.but_p = but_new;
         }
       }
     }

@@ -194,20 +194,20 @@ bool BLO_main_validate_shapekeys(Main *bmain, ReportList *reports)
 
   /* NOTE: #BKE_id_delete also locks `bmain`, so we need to do this loop outside of the lock here.
    */
-  LISTBASE_FOREACH_MUTABLE (Key *, shapekey, &bmain->shapekeys) {
-    if (shapekey->from != nullptr) {
+  for (Key &shapekey : bmain->shapekeys.items_mutable()) {
+    if (shapekey.from != nullptr) {
       continue;
     }
 
     BKE_reportf(reports,
                 RPT_ERROR,
                 "ShapeKey %s has an invalid 'from' pointer (%p), it will be deleted",
-                shapekey->id.name,
-                shapekey->from);
+                shapekey.id.name,
+                shapekey.from);
     /* NOTE: also need to remap UI data ID pointers here, since `bmain` is not the current
      * `G_MAIN`, default UI-handling remapping callback (defined by call to
      * `BKE_library_callback_remap_editor_id_reference_set`) won't work on expected data here. */
-    BKE_id_delete_ex(bmain, shapekey, ID_REMAP_FORCE_UI_POINTERS);
+    BKE_id_delete_ex(bmain, &shapekey, ID_REMAP_FORCE_UI_POINTERS);
   }
 
   return is_valid;

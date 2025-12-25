@@ -321,15 +321,15 @@ static void console_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   /* Comma expressions, (e.g. expr1, expr2, expr3) evaluate each expression,
    * from left to right.  the right-most expression sets the result of the comma
    * expression as a whole. */
-  LISTBASE_FOREACH_MUTABLE (ConsoleLine *, cl, &sconsole->history) {
-    BLO_read_char_array(reader, size_t(cl->len) + 1, &cl->line);
-    if (cl->line) {
+  for (ConsoleLine &cl : sconsole->history.items_mutable()) {
+    BLO_read_char_array(reader, size_t(cl.len) + 1, &cl.line);
+    if (cl.line) {
       /* The allocated length is not written, so reset here. */
-      cl->len_alloc = cl->len + 1;
+      cl.len_alloc = cl.len + 1;
     }
     else {
-      BLI_remlink(&sconsole->history, cl);
-      MEM_freeN(cl);
+      BLI_remlink(&sconsole->history, &cl);
+      MEM_freeN(&cl);
     }
   }
 }
@@ -338,10 +338,10 @@ static void console_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   SpaceConsole *con = (SpaceConsole *)sl;
 
-  LISTBASE_FOREACH (ConsoleLine *, cl, &con->history) {
+  for (ConsoleLine &cl : con->history) {
     /* 'len_alloc' is invalid on write, set from 'len' on read */
-    writer->write_struct(cl);
-    BLO_write_char_array(writer, size_t(cl->len) + 1, cl->line);
+    writer->write_struct(&cl);
+    BLO_write_char_array(writer, size_t(cl.len) + 1, cl.line);
   }
   writer->write_struct_cast<SpaceConsole>(sl);
 }

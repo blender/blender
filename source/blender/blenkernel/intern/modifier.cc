@@ -248,9 +248,9 @@ bool BKE_modifier_supports_mapping(ModifierData *md)
 
 ModifierData *BKE_modifiers_findby_type(const Object *ob, ModifierType type)
 {
-  LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-    if (md->type == type) {
-      return md;
+  for (ModifierData &md : ob->modifiers) {
+    if (md.type == type) {
+      return &md;
     }
   }
   return nullptr;
@@ -264,9 +264,9 @@ ModifierData *BKE_modifiers_findby_name(const Object *ob, const char *name)
 
 ModifierData *BKE_modifiers_findby_persistent_uid(const Object *ob, const int persistent_uid)
 {
-  LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-    if (md->persistent_uid == persistent_uid) {
-      return md;
+  for (ModifierData &md : ob->modifiers) {
+    if (md.persistent_uid == persistent_uid) {
+      return &md;
     }
   }
   return nullptr;
@@ -274,32 +274,32 @@ ModifierData *BKE_modifiers_findby_persistent_uid(const Object *ob, const int pe
 
 void BKE_modifiers_clear_errors(Object *ob)
 {
-  LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-    if (md->error) {
-      MEM_freeN(md->error);
-      md->error = nullptr;
+  for (ModifierData &md : ob->modifiers) {
+    if (md.error) {
+      MEM_freeN(md.error);
+      md.error = nullptr;
     }
   }
 }
 
 void BKE_modifiers_foreach_ID_link(Object *ob, IDWalkFunc walk, void *user_data)
 {
-  LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+  for (ModifierData &md : ob->modifiers) {
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md.type));
 
     if (mti->foreach_ID_link) {
-      mti->foreach_ID_link(md, ob, walk, user_data);
+      mti->foreach_ID_link(&md, ob, walk, user_data);
     }
   }
 }
 
 void BKE_modifiers_foreach_tex_link(Object *ob, TexWalkFunc walk, void *user_data)
 {
-  LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+  for (ModifierData &md : ob->modifiers) {
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md.type));
 
     if (mti->foreach_tex_link) {
-      mti->foreach_tex_link(md, ob, walk, user_data);
+      mti->foreach_tex_link(&md, ob, walk, user_data);
     }
   }
 }
@@ -847,9 +847,9 @@ void BKE_modifier_free_temporary_data(ModifierData *md)
 void BKE_modifiers_add_at_end_if_possible(Object *ob, ModifierData *new_md)
 {
   ModifierData *next_md = nullptr;
-  LISTBASE_FOREACH_BACKWARD (ModifierData *, md, &ob->modifiers) {
-    if (md->flag & eModifierFlag_PinLast) {
-      next_md = md;
+  for (ModifierData &md : ob->modifiers.items_reversed()) {
+    if (md.flag & eModifierFlag_PinLast) {
+      next_md = &md;
     }
     else {
       break;
@@ -885,9 +885,9 @@ void BKE_modifiers_test_object(Object *ob)
     return;
   }
 
-  LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-    if (md->type == eModifierType_Multires) {
-      MultiresModifierData *mmd = (MultiresModifierData *)md;
+  for (ModifierData &md : ob->modifiers) {
+    if (md.type == eModifierType_Multires) {
+      MultiresModifierData *mmd = (MultiresModifierData *)&md;
 
       multiresModifier_set_levels_from_disps(mmd, ob);
     }
@@ -1099,11 +1099,11 @@ bool BKE_modifiers_persistent_uids_are_valid(const Object &object)
 {
   blender::Set<int> uids;
   int modifiers_num = 0;
-  LISTBASE_FOREACH (const ModifierData *, md, &object.modifiers) {
-    if (md->persistent_uid <= 0) {
+  for (const ModifierData &md : object.modifiers) {
+    if (md.persistent_uid <= 0) {
       return false;
     }
-    uids.add(md->persistent_uid);
+    uids.add(md.persistent_uid);
     modifiers_num++;
   }
   if (uids.size() != modifiers_num) {
@@ -1120,30 +1120,30 @@ void BKE_modifier_blend_write(BlendWriter *writer,
     return;
   }
 
-  LISTBASE_FOREACH (ModifierData *, md, modbase) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+  for (ModifierData &md : *modbase) {
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md.type));
     if (mti == nullptr) {
       continue;
     }
 
     /* If the blend_write callback is defined, it should handle the whole writing process. */
     if (mti->blend_write != nullptr) {
-      mti->blend_write(writer, id_owner, md);
+      mti->blend_write(writer, id_owner, &md);
       continue;
     }
 
-    writer->write_struct_by_name(mti->struct_name, md);
+    writer->write_struct_by_name(mti->struct_name, &md);
 
-    if (md->type == eModifierType_Cloth) {
-      ClothModifierData *clmd = (ClothModifierData *)md;
+    if (md.type == eModifierType_Cloth) {
+      ClothModifierData *clmd = (ClothModifierData *)&md;
 
       writer->write_struct(clmd->sim_parms);
       writer->write_struct(clmd->coll_parms);
       writer->write_struct(clmd->sim_parms->effector_weights);
       BKE_ptcache_blend_write(writer, &clmd->ptcaches);
     }
-    else if (md->type == eModifierType_Fluid) {
-      FluidModifierData *fmd = (FluidModifierData *)md;
+    else if (md.type == eModifierType_Fluid) {
+      FluidModifierData *fmd = (FluidModifierData *)&md;
 
       if (fmd->type & MOD_FLUID_TYPE_DOMAIN) {
         writer->write_struct(fmd->domain);
@@ -1176,24 +1176,24 @@ void BKE_modifier_blend_write(BlendWriter *writer,
         writer->write_struct(fmd->effector);
       }
     }
-    else if (md->type == eModifierType_Fluidsim) {
+    else if (md.type == eModifierType_Fluidsim) {
       BLI_assert_unreachable(); /* Deprecated data, should never be written. */
     }
-    else if (md->type == eModifierType_DynamicPaint) {
-      DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+    else if (md.type == eModifierType_DynamicPaint) {
+      DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)&md;
 
       if (pmd->canvas) {
         writer->write_struct(pmd->canvas);
 
         /* write surfaces */
-        LISTBASE_FOREACH (DynamicPaintSurface *, surface, &pmd->canvas->surfaces) {
-          writer->write_struct(surface);
+        for (DynamicPaintSurface &surface : pmd->canvas->surfaces) {
+          writer->write_struct(&surface);
         }
         /* write caches and effector weights */
-        LISTBASE_FOREACH (DynamicPaintSurface *, surface, &pmd->canvas->surfaces) {
-          BKE_ptcache_blend_write(writer, &(surface->ptcaches));
+        for (DynamicPaintSurface &surface : pmd->canvas->surfaces) {
+          BKE_ptcache_blend_write(writer, &(surface.ptcaches));
 
-          writer->write_struct(surface->effector_weights);
+          writer->write_struct(surface.effector_weights);
         }
       }
       if (pmd->brush) {
@@ -1202,7 +1202,7 @@ void BKE_modifier_blend_write(BlendWriter *writer,
         writer->write_struct(pmd->brush->vel_ramp);
       }
     }
-    else if (md->type == eModifierType_Collision) {
+    else if (md.type == eModifierType_Collision) {
 
 #if 0
       CollisionModifierData *collmd = (CollisionModifierData *)md;
@@ -1339,7 +1339,8 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBaseT<ModifierDat
 {
   BLO_read_struct_list(reader, ModifierData, lb);
 
-  LISTBASE_FOREACH (ModifierData *, md, lb) {
+  for (ModifierData &md_iter : *lb) {
+    ModifierData *md = &md_iter;
     md->error = nullptr;
     md->runtime = nullptr;
 
@@ -1507,14 +1508,14 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBaseT<ModifierDat
         if (pmd->canvas->surfaces.first) {
           BLO_read_struct_list(reader, DynamicPaintSurface, &pmd->canvas->surfaces);
 
-          LISTBASE_FOREACH (DynamicPaintSurface *, surface, &pmd->canvas->surfaces) {
-            surface->canvas = pmd->canvas;
-            surface->data = nullptr;
-            BKE_ptcache_blend_read_data(reader, &(surface->ptcaches), &(surface->pointcache), 1);
+          for (DynamicPaintSurface &surface : pmd->canvas->surfaces) {
+            surface.canvas = pmd->canvas;
+            surface.data = nullptr;
+            BKE_ptcache_blend_read_data(reader, &(surface.ptcaches), &(surface.pointcache), 1);
 
-            BLO_read_struct(reader, EffectorWeights, &surface->effector_weights);
-            if (surface->effector_weights == nullptr) {
-              surface->effector_weights = BKE_effector_add_weights(nullptr);
+            BLO_read_struct(reader, EffectorWeights, &surface.effector_weights);
+            if (surface.effector_weights == nullptr) {
+              surface.effector_weights = BKE_effector_add_weights(nullptr);
             }
           }
         }

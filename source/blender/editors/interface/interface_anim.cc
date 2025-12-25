@@ -108,8 +108,8 @@ void button_anim_flag(Button *but, const AnimationEvalContext *anim_eval_context
    * non-existent here. Note that this is mostly to play nice with stashed Actions, and doesn't
    * fully look at all the track & strip flags. */
   if (adt) {
-    LISTBASE_FOREACH (NlaTrack *, nla_track, &adt->nla_tracks) {
-      if (!(nla_track->flag & NLATRACK_MUTED)) {
+    for (NlaTrack &nla_track : adt->nla_tracks) {
+      if (!(nla_track.flag & NLATRACK_MUTED)) {
         /* Found a non-muted track, so this NLA is not purely for stashing Actions. */
         return;
       }

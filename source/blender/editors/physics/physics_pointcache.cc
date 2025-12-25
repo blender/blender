@@ -271,8 +271,8 @@ static wmOperatorStatus ptcache_free_bake_all_exec(bContext *C, wmOperator * /*o
   FOREACH_SCENE_OBJECT_BEGIN (scene, ob) {
     BKE_ptcache_ids_from_object(&pidlist, ob, scene, MAX_DUPLI_RECUR);
 
-    LISTBASE_FOREACH (PTCacheID *, pid, &pidlist) {
-      ptcache_free_bake(pid->cache);
+    for (PTCacheID &pid : pidlist) {
+      ptcache_free_bake(pid.cache);
     }
 
     BLI_freelistN(&pidlist);

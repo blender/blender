@@ -42,13 +42,13 @@ void template_shader_fx(Layout * /*layout*/, bContext *C)
 
   if (!panels_match) {
     panels_free_instanced(C, region);
-    LISTBASE_FOREACH (ShaderFxData *, fx, shaderfx) {
+    for (ShaderFxData &fx : *shaderfx) {
       char panel_idname[MAX_NAME];
-      shaderfx_panel_id(fx, panel_idname);
+      shaderfx_panel_id(&fx, panel_idname);
 
       /* Create custom data RNA pointer. */
       PointerRNA *fx_ptr = MEM_new<PointerRNA>(__func__);
-      *fx_ptr = RNA_pointer_create_discrete(&ob->id, &RNA_ShaderFx, fx);
+      *fx_ptr = RNA_pointer_create_discrete(&ob->id, &RNA_ShaderFx, &fx);
 
       panel_add_instanced(C, region, &region->panels, panel_idname, fx_ptr);
     }
@@ -56,8 +56,8 @@ void template_shader_fx(Layout * /*layout*/, bContext *C)
   else {
     /* Assuming there's only one group of instanced panels, update the custom data pointers. */
     Panel *panel = static_cast<Panel *>(region->panels.first);
-    LISTBASE_FOREACH (ShaderFxData *, fx, shaderfx) {
-      const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(ShaderFxType(fx->type));
+    for (ShaderFxData &fx : *shaderfx) {
+      const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(ShaderFxType(fx.type));
       if (fxi->panel_register == nullptr) {
         continue;
       }
@@ -70,7 +70,7 @@ void template_shader_fx(Layout * /*layout*/, bContext *C)
       }
 
       PointerRNA *fx_ptr = MEM_new<PointerRNA>(__func__);
-      *fx_ptr = RNA_pointer_create_discrete(&ob->id, &RNA_ShaderFx, fx);
+      *fx_ptr = RNA_pointer_create_discrete(&ob->id, &RNA_ShaderFx, &fx);
       panel_custom_data_set(panel, fx_ptr);
 
       panel = panel->next;

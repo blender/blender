@@ -171,13 +171,13 @@ static void view3d_from_minmax_multi(bContext *C,
                                      const int smooth_viewtx)
 {
   ScrArea *area = CTX_wm_area(C);
-  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    if (region->regiontype == RGN_TYPE_WINDOW) {
-      RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
+  for (ARegion &region : area->regionbase) {
+    if (region.regiontype == RGN_TYPE_WINDOW) {
+      RegionView3D *rv3d = static_cast<RegionView3D *>(region.regiondata);
       /* when using all regions, don't jump out of camera view,
        * but _do_ allow locked cameras to be moved */
       if ((rv3d->persp != RV3D_CAMOB) || ED_view3d_camera_lock_check(v3d, rv3d)) {
-        view3d_from_minmax(C, v3d, region, min, max, do_zoom, smooth_viewtx);
+        view3d_from_minmax(C, v3d, &region, min, max, do_zoom, smooth_viewtx);
       }
     }
   }
@@ -216,14 +216,14 @@ std::optional<blender::Bounds<float3>> view3d_calc_minmax_visible(Depsgraph *dep
                             (use_all_regions && v3d->flag2 & V3D_LOCK_CAMERA));
 
   BKE_view_layer_synced_ensure(scene_eval, view_layer_eval);
-  LISTBASE_FOREACH (Base *, base_eval, BKE_view_layer_object_bases_get(view_layer_eval)) {
-    if (BASE_VISIBLE(v3d, base_eval)) {
+  for (Base &base_eval : *BKE_view_layer_object_bases_get(view_layer_eval)) {
+    if (BASE_VISIBLE(v3d, &base_eval)) {
       bool only_center = false;
-      Object *ob = DEG_get_original(base_eval->object);
+      Object *ob = DEG_get_original(base_eval.object);
       if (view3d_object_skip_minmax(v3d, rv3d, ob, skip_camera, &only_center)) {
         continue;
       }
-      view3d_object_calc_minmax(depsgraph, scene, base_eval->object, only_center, min, max);
+      view3d_object_calc_minmax(depsgraph, scene, base_eval.object, only_center, min, max);
       changed = true;
     }
   }
@@ -364,14 +364,14 @@ std::optional<blender::Bounds<float3>> view3d_calc_minmax_selected(Depsgraph *de
     *r_do_zoom = false;
   }
   else {
-    LISTBASE_FOREACH (Base *, base_eval, BKE_view_layer_object_bases_get(view_layer_eval)) {
-      if (BASE_SELECTED(v3d, base_eval)) {
+    for (Base &base_eval : *BKE_view_layer_object_bases_get(view_layer_eval)) {
+      if (BASE_SELECTED(v3d, &base_eval)) {
         bool only_center = false;
-        Object *ob = DEG_get_original(base_eval->object);
+        Object *ob = DEG_get_original(base_eval.object);
         if (view3d_object_skip_minmax(v3d, rv3d, ob, skip_camera, &only_center)) {
           continue;
         }
-        view3d_object_calc_minmax(depsgraph, scene, base_eval->object, only_center, min, max);
+        view3d_object_calc_minmax(depsgraph, scene, base_eval.object, only_center, min, max);
         changed = true;
       }
     }
@@ -398,11 +398,11 @@ bool view3d_calc_point_in_selected_bounds(Depsgraph *depsgraph,
 {
   Scene *scene = DEG_get_input_scene(depsgraph);
 
-  LISTBASE_FOREACH (const Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-    if (!BASE_SELECTED(v3d, base)) {
+  for (const Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+    if (!BASE_SELECTED(v3d, &base)) {
       continue;
     }
-    Object *ob = base->object;
+    Object *ob = base.object;
     BLI_assert(!DEG_is_original(ob));
 
     float3 min, max;

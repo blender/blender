@@ -505,11 +505,11 @@ static void openexr_header_metadata_global(Header *header,
       TypedAttribute<std::string>(std::string("Blender ") + BKE_blender_version_string()));
 
   if (metadata) {
-    LISTBASE_FOREACH (IDProperty *, prop, &metadata->data.group) {
+    for (IDProperty &prop : metadata->data.group) {
       /* Do not blindly pass along compression or colorInteropID, as they might have
        * changed and will already be written when appropriate. */
-      if ((prop->type == IDP_STRING) && !STR_ELEM(prop->name, "compression", "colorInteropID")) {
-        header->insert(prop->name, StringAttribute(IDP_string_get(prop)));
+      if ((prop.type == IDP_STRING) && !STR_ELEM(prop.name, "compression", "colorInteropID")) {
+        header->insert(prop.name, StringAttribute(IDP_string_get(&prop)));
       }
     }
   }

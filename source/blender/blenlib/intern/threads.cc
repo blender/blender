@@ -147,8 +147,8 @@ int BLI_available_threads(ListBaseT<ThreadSlot> *threadbase)
 {
   int counter = 0;
 
-  LISTBASE_FOREACH (ThreadSlot *, tslot, threadbase) {
-    if (tslot->avail) {
+  for (ThreadSlot &tslot : *threadbase) {
+    if (tslot.avail) {
       counter++;
     }
   }
@@ -160,8 +160,8 @@ int BLI_threadpool_available_thread_index(ListBaseT<ThreadSlot> *threadbase)
 {
   int counter = 0;
 
-  LISTBASE_FOREACH (ThreadSlot *, tslot, threadbase) {
-    if (tslot->avail) {
+  for (ThreadSlot &tslot : *threadbase) {
+    if (tslot.avail) {
       return counter;
     }
     ++counter;
@@ -183,11 +183,11 @@ int BLI_thread_is_main()
 
 void BLI_threadpool_insert(ListBaseT<ThreadSlot> *threadbase, void *callerdata)
 {
-  LISTBASE_FOREACH (ThreadSlot *, tslot, threadbase) {
-    if (tslot->avail) {
-      tslot->avail = 0;
-      tslot->callerdata = callerdata;
-      pthread_create(&tslot->pthread, nullptr, tslot_thread_start, tslot);
+  for (ThreadSlot &tslot : *threadbase) {
+    if (tslot.avail) {
+      tslot.avail = 0;
+      tslot.callerdata = callerdata;
+      pthread_create(&tslot.pthread, nullptr, tslot_thread_start, &tslot);
       return;
     }
   }
@@ -196,11 +196,11 @@ void BLI_threadpool_insert(ListBaseT<ThreadSlot> *threadbase, void *callerdata)
 
 void BLI_threadpool_remove(ListBaseT<ThreadSlot> *threadbase, void *callerdata)
 {
-  LISTBASE_FOREACH (ThreadSlot *, tslot, threadbase) {
-    if (tslot->callerdata == callerdata) {
-      pthread_join(tslot->pthread, nullptr);
-      tslot->callerdata = nullptr;
-      tslot->avail = 1;
+  for (ThreadSlot &tslot : *threadbase) {
+    if (tslot.callerdata == callerdata) {
+      pthread_join(tslot.pthread, nullptr);
+      tslot.callerdata = nullptr;
+      tslot.avail = 1;
     }
   }
 }
@@ -209,11 +209,11 @@ void BLI_threadpool_remove_index(ListBaseT<ThreadSlot> *threadbase, int index)
 {
   int counter = 0;
 
-  LISTBASE_FOREACH (ThreadSlot *, tslot, threadbase) {
-    if (counter == index && tslot->avail == 0) {
-      pthread_join(tslot->pthread, nullptr);
-      tslot->callerdata = nullptr;
-      tslot->avail = 1;
+  for (ThreadSlot &tslot : *threadbase) {
+    if (counter == index && tslot.avail == 0) {
+      pthread_join(tslot.pthread, nullptr);
+      tslot.callerdata = nullptr;
+      tslot.avail = 1;
       break;
     }
     ++counter;
@@ -222,11 +222,11 @@ void BLI_threadpool_remove_index(ListBaseT<ThreadSlot> *threadbase, int index)
 
 void BLI_threadpool_clear(ListBaseT<ThreadSlot> *threadbase)
 {
-  LISTBASE_FOREACH (ThreadSlot *, tslot, threadbase) {
-    if (tslot->avail == 0) {
-      pthread_join(tslot->pthread, nullptr);
-      tslot->callerdata = nullptr;
-      tslot->avail = 1;
+  for (ThreadSlot &tslot : *threadbase) {
+    if (tslot.avail == 0) {
+      pthread_join(tslot.pthread, nullptr);
+      tslot.callerdata = nullptr;
+      tslot.avail = 1;
     }
   }
 }
@@ -240,9 +240,9 @@ void BLI_threadpool_end(ListBaseT<ThreadSlot> *threadbase)
     return;
   }
 
-  LISTBASE_FOREACH (ThreadSlot *, tslot, threadbase) {
-    if (tslot->avail == 0) {
-      pthread_join(tslot->pthread, nullptr);
+  for (ThreadSlot &tslot : *threadbase) {
+    if (tslot.avail == 0) {
+      pthread_join(tslot.pthread, nullptr);
     }
   }
   BLI_freelistN(threadbase);

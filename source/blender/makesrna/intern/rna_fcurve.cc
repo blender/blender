@@ -232,13 +232,13 @@ static FCurve *rna_FCurve_find_driver_by_variable(ID *owner_id, DriverVar *dvar)
 {
   AnimData *adt = BKE_animdata_from_id(owner_id);
   BLI_assert(adt != nullptr);
-  LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
-    ChannelDriver *driver = fcu->driver;
+  for (FCurve &fcu : adt->drivers) {
+    ChannelDriver *driver = fcu.driver;
     if (driver == nullptr) {
       continue;
     }
     if (BLI_findindex(&driver->variables, dvar) != -1) {
-      return fcu;
+      return &fcu;
     }
   }
   return nullptr;
@@ -252,17 +252,17 @@ static FCurve *rna_FCurve_find_driver_by_target(ID *owner_id, DriverTarget *dtar
 {
   AnimData *adt = BKE_animdata_from_id(owner_id);
   BLI_assert(adt != nullptr);
-  LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
-    ChannelDriver *driver = fcu->driver;
+  for (FCurve &fcu : adt->drivers) {
+    ChannelDriver *driver = fcu.driver;
     if (driver == nullptr) {
       continue;
     }
-    LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
+    for (DriverVar &dvar : driver->variables) {
       /* NOTE: Use #MAX_DRIVER_TARGETS instead of `dvar->num_targets` because
        * it's possible RNA holds a reference to a target that has been removed.
        * In this case it's best to return the #FCurve it belongs to instead of nothing. */
-      if (ARRAY_HAS_ITEM(dtar, &dvar->targets[0], MAX_DRIVER_TARGETS)) {
-        return fcu;
+      if (ARRAY_HAS_ITEM(dtar, &dvar.targets[0], MAX_DRIVER_TARGETS)) {
+        return &fcu;
       }
     }
   }

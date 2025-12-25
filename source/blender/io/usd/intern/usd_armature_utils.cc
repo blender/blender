@@ -55,8 +55,8 @@ static void visit_bones(const Bone *bone, FunctionRef<void(const Bone *)> visito
 
   visitor(bone);
 
-  LISTBASE_FOREACH (const Bone *, child, &bone->childbase) {
-    visit_bones(child, visitor);
+  for (const Bone &child : bone->childbase) {
+    visit_bones(&child, visitor);
   }
 }
 
@@ -69,14 +69,14 @@ const ModifierData *get_enabled_modifier(const Object &obj,
   const Scene *scene = DEG_get_input_scene(depsgraph);
   eEvaluationMode mode = DEG_get_mode(depsgraph);
 
-  LISTBASE_FOREACH (ModifierData *, md, &obj.modifiers) {
+  for (ModifierData &md : obj.modifiers) {
 
-    if (!BKE_modifier_is_enabled(scene, md, mode)) {
+    if (!BKE_modifier_is_enabled(scene, &md, mode)) {
       continue;
     }
 
-    if (md->type == type) {
-      return md;
+    if (md.type == type) {
+      return &md;
     }
   }
 
@@ -100,8 +100,8 @@ void visit_bones(const Object *ob_arm, FunctionRef<void(const Bone *)> visitor)
   }
 
   const bArmature *armature = (bArmature *)ob_arm->data;
-  LISTBASE_FOREACH (const Bone *, bone, &armature->bonebase) {
-    visit_bones(bone, visitor);
+  for (const Bone &bone : armature->bonebase) {
+    visit_bones(&bone, visitor);
   }
 }
 
@@ -150,15 +150,15 @@ void create_pose_joints(pxr::UsdSkelAnimation &skel_anim,
 
   const bPose *pose = obj.pose;
 
-  LISTBASE_FOREACH (const bPoseChannel *, pchan, &pose->chanbase) {
-    if (pchan->bone) {
-      if (deform_map && !deform_map->contains(pchan->bone->name)) {
+  for (const bPoseChannel &pchan : pose->chanbase) {
+    if (pchan.bone) {
+      if (deform_map && !deform_map->contains(pchan.bone->name)) {
         /* If deform_map is passed in, assume we're going deform-only.
          * Bones not found in the map should be skipped. */
         continue;
       }
 
-      joints.push_back(build_usd_joint_path(pchan->bone, allow_unicode));
+      joints.push_back(build_usd_joint_path(pchan.bone, allow_unicode));
     }
   }
 

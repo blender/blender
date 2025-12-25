@@ -540,10 +540,10 @@ static bool bake_object_check(const Scene *scene,
           }
         }
 
-        LISTBASE_FOREACH (ImageTile *, tile, &image->tiles) {
+        for (ImageTile &tile : image->tiles) {
           ImageUser iuser;
           BKE_imageuser_default(&iuser);
-          iuser.tile = tile->tile_number;
+          iuser.tile = tile.tile_number;
 
           void *lock;
           ImBuf *ibuf = BKE_image_acquire_ibuf(image, &iuser, &lock);
@@ -708,9 +708,9 @@ static bool bake_objects_check(Main *bmain,
 /* it needs to be called after bake_objects_check since the image tagging happens there */
 static void bake_targets_clear(Main *bmain, const bool is_tangent)
 {
-  LISTBASE_FOREACH (Image *, image, &bmain->images) {
-    if ((image->id.tag & ID_TAG_DOIT) != 0) {
-      RE_bake_ibuf_clear(image, is_tangent);
+  for (Image &image : bmain->images) {
+    if ((image.id.tag & ID_TAG_DOIT) != 0) {
+      RE_bake_ibuf_clear(&image, is_tangent);
     }
   }
 }
@@ -777,12 +777,12 @@ static bool bake_targets_init_image_textures(const BakeAPIRender *bkr,
     /* Some materials have no image, we just ignore those cases.
      * Also setup each image only once. */
     if (image && !(image->id.tag & ID_TAG_DOIT)) {
-      LISTBASE_FOREACH (ImageTile *, tile, &image->tiles) {
+      for (ImageTile &tile : image->tiles) {
         /* Add bake image. */
         targets->images = static_cast<BakeImage *>(
             MEM_recallocN(targets->images, sizeof(BakeImage) * (targets->images_num + 1)));
         targets->images[targets->images_num].image = image;
-        targets->images[targets->images_num].tile_number = tile->tile_number;
+        targets->images[targets->images_num].tile_number = tile.tile_number;
         targets->images_num++;
       }
 

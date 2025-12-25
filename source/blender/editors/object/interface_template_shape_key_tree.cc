@@ -71,8 +71,8 @@ class ShapeKeyDragController : public ui::AbstractViewItemDragController {
   {
     int selected_count = [&]() -> int {
       int count = 0;
-      LISTBASE_FOREACH (KeyBlock *, kb, &drag_key_.key->block) {
-        count += (kb->flag & KEYBLOCK_SEL) != 0;
+      for (KeyBlock &kb : drag_key_.key->block) {
+        count += (kb.flag & KEYBLOCK_SEL) != 0;
       }
       return count;
     }();
@@ -82,15 +82,15 @@ class ShapeKeyDragController : public ui::AbstractViewItemDragController {
                                                               "Selected Key Blocks");
 
     selected_count = 0;
-    int index = 0;
-    LISTBASE_FOREACH_INDEX (KeyBlock *, kb, &drag_key_.key->block, index) {
+
+    for (const auto [index, kb] : drag_key_.key->block.enumerate()) {
       if (index == 0) {
         /* Prevent basis shape key from dragging. */
         continue;
       }
 
-      if (kb->flag & KEYBLOCK_SEL) {
-        selected_keys_[selected_count] = kb;
+      if (kb.flag & KEYBLOCK_SEL) {
+        selected_keys_[selected_count] = &kb;
         selected_count++;
       }
     }
@@ -313,9 +313,9 @@ void ShapeKeyTreeView::build_tree()
   if (key == nullptr) {
     return;
   }
-  int index = 1;
-  LISTBASE_FOREACH_INDEX (KeyBlock *, kb, &key->block, index) {
-    this->add_tree_item<ShapeKeyItem>(&object_, key, kb, index);
+
+  for (const auto [index, kb] : key->block.enumerate()) {
+    this->add_tree_item<ShapeKeyItem>(&object_, key, &kb, index);
   }
 }
 

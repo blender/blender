@@ -82,10 +82,10 @@ void ED_outliner_select_sync_flag_outliners(const bContext *C)
   for (bScreen *screen = static_cast<bScreen *>(bmain->screens.first); screen;
        screen = static_cast<bScreen *>(screen->id.next))
   {
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-        if (sl->spacetype == SPACE_OUTLINER) {
-          SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
+    for (ScrArea &area : screen->areabase) {
+      for (SpaceLink &sl : area.spacedata) {
+        if (sl.spacetype == SPACE_OUTLINER) {
+          SpaceOutliner *space_outliner = (SpaceOutliner *)&sl;
 
           space_outliner->sync_select_dirty |= wm->outliner_sync_select_dirty;
         }
@@ -278,33 +278,33 @@ static void outliner_sync_selection_from_outliner(WorkSpace *workspace,
                                                   SelectedItems *selected_items)
 {
 
-  LISTBASE_FOREACH (TreeElement *, te, tree) {
-    TreeStoreElem *tselem = TREESTORE(te);
+  for (TreeElement &te : *tree) {
+    TreeStoreElem *tselem = TREESTORE(&te);
 
-    if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
+    if ((tselem->type == TSE_SOME_ID) && (te.idcode == ID_OB)) {
       if (sync_types->object) {
-        outliner_select_sync_to_object(view_layer, te, tselem, selected_items->objects);
+        outliner_select_sync_to_object(view_layer, &te, tselem, selected_items->objects);
       }
     }
     else if (tselem->type == TSE_EBONE) {
       if (sync_types->edit_bone) {
         outliner_select_sync_to_edit_bone(
-            scene, view_layer, te, tselem, selected_items->edit_bones);
+            scene, view_layer, &te, tselem, selected_items->edit_bones);
       }
     }
     else if (tselem->type == TSE_POSE_CHANNEL) {
       if (sync_types->pose_bone) {
-        outliner_select_sync_to_pose_bone(te, tselem, selected_items->pose_bones);
+        outliner_select_sync_to_pose_bone(&te, tselem, selected_items->pose_bones);
       }
     }
     else if (tselem->type == TSE_STRIP) {
       if (sync_types->seq_strip) {
-        outliner_select_sync_to_strip(workspace, te);
+        outliner_select_sync_to_strip(workspace, &te);
       }
     }
 
     outliner_sync_selection_from_outliner(
-        workspace, scene, view_layer, &te->subtree, sync_types, selected_items);
+        workspace, scene, view_layer, &te.subtree, sync_types, selected_items);
   }
 }
 
@@ -465,27 +465,27 @@ static void outliner_sync_selection_to_outliner(const Scene *scene,
                                                 SyncSelectActiveData *active_data,
                                                 const SyncSelectTypes *sync_types)
 {
-  LISTBASE_FOREACH (TreeElement *, te, tree) {
-    TreeStoreElem *tselem = TREESTORE(te);
+  for (TreeElement &te : *tree) {
+    TreeStoreElem *tselem = TREESTORE(&te);
 
-    if ((tselem->type == TSE_SOME_ID) && te->idcode == ID_OB) {
+    if ((tselem->type == TSE_SOME_ID) && te.idcode == ID_OB) {
       if (sync_types->object) {
-        outliner_select_sync_from_object(scene, view_layer, active_data->object, te, tselem);
+        outliner_select_sync_from_object(scene, view_layer, active_data->object, &te, tselem);
       }
     }
     else if (tselem->type == TSE_EBONE) {
       if (sync_types->edit_bone) {
-        outliner_select_sync_from_edit_bone(active_data->edit_bone, te, tselem);
+        outliner_select_sync_from_edit_bone(active_data->edit_bone, &te, tselem);
       }
     }
     else if (tselem->type == TSE_POSE_CHANNEL) {
       if (sync_types->pose_bone) {
-        outliner_select_sync_from_pose_bone(active_data->pose_channel, te, tselem);
+        outliner_select_sync_from_pose_bone(active_data->pose_channel, &te, tselem);
       }
     }
     else if (tselem->type == TSE_STRIP) {
       if (sync_types->seq_strip) {
-        outliner_select_sync_from_strip(active_data->strip, te);
+        outliner_select_sync_from_strip(active_data->strip, &te);
       }
     }
     else {
@@ -494,7 +494,7 @@ static void outliner_sync_selection_to_outliner(const Scene *scene,
 
     /* Sync subtree elements */
     outliner_sync_selection_to_outliner(
-        scene, view_layer, space_outliner, &te->subtree, active_data, sync_types);
+        scene, view_layer, space_outliner, &te.subtree, active_data, sync_types);
   }
 }
 

@@ -152,42 +152,42 @@ static void node_shader_update_hair_principled(bNodeTree *ntree, bNode *node)
   int parametrization = data->parametrization;
   int model = data->model;
 
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    if (STREQ(sock->name, "Color")) {
+  for (bNodeSocket &sock : node->inputs) {
+    if (STREQ(sock.name, "Color")) {
       bke::node_set_socket_availability(
-          *ntree, *sock, parametrization == SHD_PRINCIPLED_HAIR_REFLECTANCE);
+          *ntree, sock, parametrization == SHD_PRINCIPLED_HAIR_REFLECTANCE);
     }
-    else if (STREQ(sock->name, "Melanin")) {
+    else if (STREQ(sock.name, "Melanin")) {
       bke::node_set_socket_availability(
-          *ntree, *sock, parametrization == SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION);
+          *ntree, sock, parametrization == SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION);
     }
-    else if (STREQ(sock->name, "Melanin Redness")) {
+    else if (STREQ(sock.name, "Melanin Redness")) {
       bke::node_set_socket_availability(
-          *ntree, *sock, parametrization == SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION);
+          *ntree, sock, parametrization == SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION);
     }
-    else if (STREQ(sock->name, "Tint")) {
+    else if (STREQ(sock.name, "Tint")) {
       bke::node_set_socket_availability(
-          *ntree, *sock, parametrization == SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION);
+          *ntree, sock, parametrization == SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION);
     }
-    else if (STREQ(sock->name, "Absorption Coefficient")) {
+    else if (STREQ(sock.name, "Absorption Coefficient")) {
       bke::node_set_socket_availability(
-          *ntree, *sock, parametrization == SHD_PRINCIPLED_HAIR_DIRECT_ABSORPTION);
+          *ntree, sock, parametrization == SHD_PRINCIPLED_HAIR_DIRECT_ABSORPTION);
     }
-    else if (STREQ(sock->name, "Random Color")) {
+    else if (STREQ(sock.name, "Random Color")) {
       bke::node_set_socket_availability(
-          *ntree, *sock, parametrization == SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION);
+          *ntree, sock, parametrization == SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION);
     }
-    else if (STREQ(sock->name, "Radial Roughness")) {
-      bke::node_set_socket_availability(*ntree, *sock, model == SHD_PRINCIPLED_HAIR_CHIANG);
+    else if (STREQ(sock.name, "Radial Roughness")) {
+      bke::node_set_socket_availability(*ntree, sock, model == SHD_PRINCIPLED_HAIR_CHIANG);
     }
-    else if (STREQ(sock->name, "Coat")) {
-      bke::node_set_socket_availability(*ntree, *sock, model == SHD_PRINCIPLED_HAIR_CHIANG);
+    else if (STREQ(sock.name, "Coat")) {
+      bke::node_set_socket_availability(*ntree, sock, model == SHD_PRINCIPLED_HAIR_CHIANG);
     }
-    else if (STREQ(sock->name, "Aspect Ratio")) {
-      bke::node_set_socket_availability(*ntree, *sock, model == SHD_PRINCIPLED_HAIR_HUANG);
+    else if (STREQ(sock.name, "Aspect Ratio")) {
+      bke::node_set_socket_availability(*ntree, sock, model == SHD_PRINCIPLED_HAIR_HUANG);
     }
-    else if (STR_ELEM(sock->name, "Reflection", "Transmission", "Secondary Reflection")) {
-      bke::node_set_socket_availability(*ntree, *sock, model == SHD_PRINCIPLED_HAIR_HUANG);
+    else if (STR_ELEM(sock.name, "Reflection", "Transmission", "Secondary Reflection")) {
+      bke::node_set_socket_availability(*ntree, sock, model == SHD_PRINCIPLED_HAIR_HUANG);
     }
   }
 }

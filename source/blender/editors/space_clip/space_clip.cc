@@ -125,8 +125,8 @@ static void clip_scopes_tag_refresh(ScrArea *area)
   }
 
   /* only while properties are visible */
-  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    if (region->regiontype == RGN_TYPE_UI && region->flag & RGN_FLAG_HIDDEN) {
+  for (ARegion &region : area->regionbase) {
+    if (region.regiontype == RGN_TYPE_UI && region.flag & RGN_FLAG_HIDDEN) {
       return;
     }
   }

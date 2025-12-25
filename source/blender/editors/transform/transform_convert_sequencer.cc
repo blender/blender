@@ -162,8 +162,8 @@ static int SeqTransCount(TransInfo *t, ListBaseT<Strip> *seqbase)
 {
   int tot = 0, count, flag;
 
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    SeqTransInfo(t, strip, &count, &flag); /* Ignore the flag. */
+  for (Strip &strip : *seqbase) {
+    SeqTransInfo(t, &strip, &count, &flag); /* Ignore the flag. */
     tot += count;
   }
 
@@ -241,24 +241,24 @@ static int SeqToTransData_build(
   int count, flag;
   int tot = 0;
 
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
+  for (Strip &strip : *seqbase) {
 
-    SeqTransInfo(t, strip, &count, &flag);
+    SeqTransInfo(t, &strip, &count, &flag);
 
     /* Use 'flag' which is derived from strip->flag but modified for special cases. */
     if (flag & SEQ_SELECT) {
       if (flag & (SEQ_LEFTSEL | SEQ_RIGHTSEL)) {
         if (flag & SEQ_LEFTSEL) {
-          SeqToTransData(scene, td++, td2d++, tdsq++, strip, flag, SEQ_LEFTSEL);
+          SeqToTransData(scene, td++, td2d++, tdsq++, &strip, flag, SEQ_LEFTSEL);
           tot++;
         }
         if (flag & SEQ_RIGHTSEL) {
-          SeqToTransData(scene, td++, td2d++, tdsq++, strip, flag, SEQ_RIGHTSEL);
+          SeqToTransData(scene, td++, td2d++, tdsq++, &strip, flag, SEQ_RIGHTSEL);
           tot++;
         }
       }
       else {
-        SeqToTransData(scene, td++, td2d++, tdsq++, strip, flag, SEQ_SELECT);
+        SeqToTransData(scene, td++, td2d++, tdsq++, &strip, flag, SEQ_SELECT);
         tot++;
       }
     }
@@ -370,9 +370,9 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
 static VectorSet<Strip *> query_selected_strips_no_handles(ListBaseT<Strip> *seqbase)
 {
   VectorSet<Strip *> strips;
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if ((strip->flag & SEQ_SELECT) != 0 && ((strip->flag & (SEQ_LEFTSEL | SEQ_RIGHTSEL)) == 0)) {
-      strips.add(strip);
+  for (Strip &strip : *seqbase) {
+    if ((strip.flag & SEQ_SELECT) != 0 && ((strip.flag & (SEQ_LEFTSEL | SEQ_RIGHTSEL)) == 0)) {
+      strips.add(&strip);
     }
   }
   return strips;

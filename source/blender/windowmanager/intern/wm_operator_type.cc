@@ -335,15 +335,15 @@ static wmOperatorStatus wm_macro_exec(bContext *C, wmOperator *op)
 
   wm_macro_start(op);
 
-  LISTBASE_FOREACH (wmOperator *, opm, &op->macro) {
-    if (opm->type->exec == nullptr) {
-      CLOG_WARN(WM_LOG_OPERATORS, "'%s' can't exec macro", opm->type->idname);
+  for (wmOperator &opm : op->macro) {
+    if (opm.type->exec == nullptr) {
+      CLOG_WARN(WM_LOG_OPERATORS, "'%s' can't exec macro", opm.type->idname);
       continue;
     }
 
-    opm->flag |= op_inherited_flag;
-    retval = opm->type->exec(C, opm);
-    opm->flag &= ~op_inherited_flag;
+    opm.flag |= op_inherited_flag;
+    retval = opm.type->exec(C, &opm);
+    opm.flag &= ~op_inherited_flag;
 
     OPERATOR_RETVAL_CHECK(retval);
 
@@ -580,10 +580,10 @@ wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char
 
 static void wm_operatortype_free_macro(wmOperatorType *ot)
 {
-  LISTBASE_FOREACH (wmOperatorTypeMacro *, otmacro, &ot->macro) {
-    if (otmacro->ptr) {
-      WM_operator_properties_free(otmacro->ptr);
-      MEM_delete(otmacro->ptr);
+  for (wmOperatorTypeMacro &otmacro : ot->macro) {
+    if (otmacro.ptr) {
+      WM_operator_properties_free(otmacro.ptr);
+      MEM_delete(otmacro.ptr);
     }
   }
   BLI_freelistN(&ot->macro);

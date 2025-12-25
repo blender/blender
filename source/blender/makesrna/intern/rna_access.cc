@@ -97,9 +97,9 @@ void RNA_init()
           MEM_new<blender::CustomIDVectorSet<PropertyRNA *, PropertyRNAIdentifierGetter>>(
               __func__);
 
-      LISTBASE_FOREACH (PropertyRNA *, prop, &srna->cont.properties) {
-        if (!(prop->flag_internal & PROP_INTERN_BUILTIN)) {
-          srna->cont.prop_lookup_set->add(prop);
+      for (PropertyRNA &prop : srna->cont.properties) {
+        if (!(prop.flag_internal & PROP_INTERN_BUILTIN)) {
+          srna->cont.prop_lookup_set->add(&prop);
         }
       }
     }
@@ -6962,10 +6962,10 @@ ParameterList *RNA_parameter_list_create(ParameterList *parms,
   parms->ret_count = 0;
 
   /* allocate data */
-  LISTBASE_FOREACH (PropertyRNA *, parm, &func->cont.properties) {
-    alloc_size += rna_parameter_size_pad(rna_parameter_size(parm));
+  for (PropertyRNA &parm : func->cont.properties) {
+    alloc_size += rna_parameter_size_pad(rna_parameter_size(&parm));
 
-    if (parm->flag_parameter & PARM_OUTPUT) {
+    if (parm.flag_parameter & PARM_OUTPUT) {
       parms->ret_count++;
     }
     else {
@@ -6980,54 +6980,54 @@ ParameterList *RNA_parameter_list_create(ParameterList *parms,
   /* set default values */
   data = parms->data;
 
-  LISTBASE_FOREACH (PropertyRNA *, parm, &func->cont.properties) {
-    size = rna_parameter_size(parm);
+  for (PropertyRNA &parm : func->cont.properties) {
+    size = rna_parameter_size(&parm);
 
     /* set length to 0, these need to be set later, see bpy_array.c's py_to_array */
-    if (parm->flag & PROP_DYNAMIC) {
+    if (parm.flag & PROP_DYNAMIC) {
       ParameterDynAlloc *data_alloc = static_cast<ParameterDynAlloc *>(data);
       data_alloc->array_tot = 0;
       data_alloc->array = nullptr;
     }
-    else if ((parm->flag_parameter & PARM_RNAPTR) && (parm->flag & PROP_THICK_WRAP)) {
-      BLI_assert(parm->type == PROP_POINTER);
+    else if ((parm.flag_parameter & PARM_RNAPTR) && (parm.flag & PROP_THICK_WRAP)) {
+      BLI_assert(parm.type == PROP_POINTER);
       new (static_cast<PointerRNA *>(data)) PointerRNA();
     }
 
-    if (!(parm->flag_parameter & PARM_REQUIRED) && !(parm->flag & PROP_DYNAMIC)) {
-      switch (parm->type) {
+    if (!(parm.flag_parameter & PARM_REQUIRED) && !(parm.flag & PROP_DYNAMIC)) {
+      switch (parm.type) {
         case PROP_BOOLEAN:
-          if (parm->arraydimension) {
+          if (parm.arraydimension) {
             rna_property_boolean_get_default_array_values(
-                &null_ptr, (BoolPropertyRNA *)parm, static_cast<bool *>(data));
+                &null_ptr, (BoolPropertyRNA *)&parm, static_cast<bool *>(data));
           }
           else {
-            memcpy(data, &((BoolPropertyRNA *)parm)->defaultvalue, size);
+            memcpy(data, &((BoolPropertyRNA *)&parm)->defaultvalue, size);
           }
           break;
         case PROP_INT:
-          if (parm->arraydimension) {
+          if (parm.arraydimension) {
             rna_property_int_get_default_array_values(
-                &null_ptr, (IntPropertyRNA *)parm, static_cast<int *>(data));
+                &null_ptr, (IntPropertyRNA *)&parm, static_cast<int *>(data));
           }
           else {
-            memcpy(data, &((IntPropertyRNA *)parm)->defaultvalue, size);
+            memcpy(data, &((IntPropertyRNA *)&parm)->defaultvalue, size);
           }
           break;
         case PROP_FLOAT:
-          if (parm->arraydimension) {
+          if (parm.arraydimension) {
             rna_property_float_get_default_array_values(
-                &null_ptr, (FloatPropertyRNA *)parm, static_cast<float *>(data));
+                &null_ptr, (FloatPropertyRNA *)&parm, static_cast<float *>(data));
           }
           else {
-            memcpy(data, &((FloatPropertyRNA *)parm)->defaultvalue, size);
+            memcpy(data, &((FloatPropertyRNA *)&parm)->defaultvalue, size);
           }
           break;
         case PROP_ENUM:
-          memcpy(data, &((EnumPropertyRNA *)parm)->defaultvalue, size);
+          memcpy(data, &((EnumPropertyRNA *)&parm)->defaultvalue, size);
           break;
         case PROP_STRING: {
-          const char *defvalue = ((StringPropertyRNA *)parm)->defaultvalue;
+          const char *defvalue = ((StringPropertyRNA *)&parm)->defaultvalue;
           if (defvalue && defvalue[0]) {
             /* Causes bug #29988, possibly this is only correct for thick wrapped
              * need to look further into it - campbell */

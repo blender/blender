@@ -116,9 +116,9 @@ bUserAssetLibrary *BKE_preferences_asset_library_find_by_name(const UserDef *use
 bUserAssetLibrary *BKE_preferences_asset_library_containing_path(const UserDef *userdef,
                                                                  const char *path)
 {
-  LISTBASE_FOREACH (bUserAssetLibrary *, asset_lib_pref, &userdef->asset_libraries) {
-    if (asset_lib_pref->dirpath[0] && BLI_path_contains(asset_lib_pref->dirpath, path)) {
-      return asset_lib_pref;
+  for (bUserAssetLibrary &asset_lib_pref : userdef->asset_libraries) {
+    if (asset_lib_pref.dirpath[0] && BLI_path_contains(asset_lib_pref.dirpath, path)) {
+      return &asset_lib_pref;
     }
   }
   return nullptr;
@@ -199,11 +199,11 @@ bUserExtensionRepo *BKE_preferences_extension_repo_add(UserDef *userdef,
 
   /* While not a strict rule, ignored paths that already exist, *
    * pointing to the same path is going to logical problems with package-management. */
-  LISTBASE_FOREACH (const bUserExtensionRepo *, repo_iter, &userdef->extension_repos) {
-    if (repo == repo_iter) {
+  for (const bUserExtensionRepo &repo_iter : userdef->extension_repos) {
+    if (repo == &repo_iter) {
       continue;
     }
-    if (BLI_path_cmp(repo->custom_dirpath, repo_iter->custom_dirpath) == 0) {
+    if (BLI_path_cmp(repo->custom_dirpath, repo_iter.custom_dirpath) == 0) {
       repo->custom_dirpath[0] = '\0';
       break;
     }
@@ -387,21 +387,21 @@ bUserExtensionRepo *BKE_preferences_extension_repo_find_by_remote_url_prefix(
   const int path_full_len = strlen(remote_url_full);
   const int path_full_offset = BKE_preferences_extension_repo_remote_scheme_end(remote_url_full);
 
-  LISTBASE_FOREACH (bUserExtensionRepo *, repo, &userdef->extension_repos) {
-    if (only_enabled && (repo->flag & USER_EXTENSION_REPO_FLAG_DISABLED)) {
+  for (bUserExtensionRepo &repo : userdef->extension_repos) {
+    if (only_enabled && (repo.flag & USER_EXTENSION_REPO_FLAG_DISABLED)) {
       continue;
     }
 
     /* Has a valid remote path to check. */
-    if ((repo->flag & USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL) == 0) {
+    if ((repo.flag & USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL) == 0) {
       continue;
     }
-    if (repo->remote_url[0] == '\0') {
+    if (repo.remote_url[0] == '\0') {
       continue;
     }
 
     /* Set path variables which may be offset by the "scheme". */
-    const char *path_repo = repo->remote_url;
+    const char *path_repo = repo.remote_url;
     const char *path_test = remote_url_full;
     int path_test_len = path_full_len;
 
@@ -434,7 +434,7 @@ bUserExtensionRepo *BKE_preferences_extension_repo_find_by_remote_url_prefix(
     if (!url_char_is_delimiter(path_test[path_repo_len])) {
       continue;
     }
-    return repo;
+    return &repo;
   }
   return nullptr;
 }

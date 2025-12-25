@@ -224,9 +224,9 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
      */
     int tot_ese_v = 0;
 
-    LISTBASE_FOREACH (BMEditSelection *, ese, &bm->selected) {
-      if (ese->htype == BM_VERT) {
-        if (BMO_vert_flag_test(bm, (BMVert *)ese->ele, ELE_NEW)) {
+    for (BMEditSelection &ese : bm->selected) {
+      if (ese.htype == BM_VERT) {
+        if (BMO_vert_flag_test(bm, (BMVert *)ese.ele, ELE_NEW)) {
           tot_ese_v++;
         }
         else {
@@ -241,9 +241,9 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
       BMVert *v_prev = nullptr;
       /* yes, all select-history verts are accounted for, now make edges */
 
-      LISTBASE_FOREACH (BMEditSelection *, ese, &bm->selected) {
-        if (ese->htype == BM_VERT) {
-          BMVert *v = (BMVert *)ese->ele;
+      for (BMEditSelection &ese : bm->selected) {
+        if (ese.htype == BM_VERT) {
+          BMVert *v = (BMVert *)ese.ele;
           if (v_prev) {
             BMEdge *e = BM_edge_create(bm, v, v_prev, nullptr, BM_CREATE_NO_DOUBLE);
             BMO_edge_flag_enable(bm, e, ELE_OUT);

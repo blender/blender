@@ -78,7 +78,7 @@ wmGizmo *wm_gizmogroup_find_intersected_gizmo(wmWindowManager *wm,
  * Added items need freeing!
  */
 void wm_gizmogroup_intersectable_gizmos_to_list(wmWindowManager *wm,
-                                                const wmGizmoGroup *gzgroup,
+                                                wmGizmoGroup *gzgroup,
                                                 int event_modifier,
                                                 blender::Vector<wmGizmo *, 128> *r_visible_gizmos);
 bool wm_gizmogroup_is_visible_in_drawstep(const wmGizmoGroup *gzgroup,

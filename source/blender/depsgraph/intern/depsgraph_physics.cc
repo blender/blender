@@ -133,8 +133,8 @@ void DEG_add_collision_relations(DepsNodeHandle *handle,
     object_component_map = MEM_new<blender::Map<Object *, CollisionComponentFlag>>(__func__);
   }
 
-  LISTBASE_FOREACH (CollisionRelation *, relation, relations) {
-    Object *ob1 = relation->ob;
+  for (CollisionRelation &relation : *relations) {
+    Object *ob1 = relation.ob;
     if (ob1 == object) {
       continue;
     }
@@ -212,36 +212,36 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle,
   deg::Depsgraph *deg_graph = (deg::Depsgraph *)depsgraph;
   ListBaseT<EffectorRelation> *relations = build_effector_relations(deg_graph,
                                                                     effector_weights->group);
-  LISTBASE_FOREACH (EffectorRelation *, relation, relations) {
-    if (relation->ob == object) {
+  for (EffectorRelation &relation : *relations) {
+    if (relation.ob == object) {
       continue;
     }
-    if (relation->pd->forcefield == skip_forcefield) {
+    if (relation.pd->forcefield == skip_forcefield) {
       continue;
     }
 
     /* Relation to forcefield object, optionally including geometry.
      * Use special point cache relations for automatic cache clearing. */
-    DEG_add_object_pointcache_relation(handle, relation->ob, DEG_OB_COMP_TRANSFORM, name);
+    DEG_add_object_pointcache_relation(handle, relation.ob, DEG_OB_COMP_TRANSFORM, name);
 
-    if (relation->psys || ELEM(relation->pd->shape, PFIELD_SHAPE_SURFACE, PFIELD_SHAPE_POINTS) ||
-        relation->pd->forcefield == PFIELD_GUIDE)
+    if (relation.psys || ELEM(relation.pd->shape, PFIELD_SHAPE_SURFACE, PFIELD_SHAPE_POINTS) ||
+        relation.pd->forcefield == PFIELD_GUIDE)
     {
       /* TODO(sergey): Consider going more granular with more dedicated
        * particle system operation. */
-      DEG_add_object_pointcache_relation(handle, relation->ob, DEG_OB_COMP_GEOMETRY, name);
+      DEG_add_object_pointcache_relation(handle, relation.ob, DEG_OB_COMP_GEOMETRY, name);
     }
 
     /* Smoke flow relations. */
-    if (relation->pd->forcefield == PFIELD_FLUIDFLOW && relation->pd->f_source != nullptr) {
+    if (relation.pd->forcefield == PFIELD_FLUIDFLOW && relation.pd->f_source != nullptr) {
       DEG_add_object_pointcache_relation(
-          handle, relation->pd->f_source, DEG_OB_COMP_TRANSFORM, "Fluid Force Domain");
+          handle, relation.pd->f_source, DEG_OB_COMP_TRANSFORM, "Fluid Force Domain");
       DEG_add_object_pointcache_relation(
-          handle, relation->pd->f_source, DEG_OB_COMP_GEOMETRY, "Fluid Force Domain");
+          handle, relation.pd->f_source, DEG_OB_COMP_GEOMETRY, "Fluid Force Domain");
     }
 
     /* Absorption forces need collision relation. */
-    if (add_absorption && (relation->pd->flag & PFIELD_VISIBILITY)) {
+    if (add_absorption && (relation.pd->flag & PFIELD_VISIBILITY)) {
       DEG_add_collision_relations(
           handle, object, nullptr, eModifierType_Collision, nullptr, "Force Absorption");
     }

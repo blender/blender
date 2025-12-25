@@ -395,10 +395,10 @@ struct LooseDataInstantiateContext {
 
 static bool object_in_any_scene(Main *bmain, Object *ob)
 {
-  LISTBASE_FOREACH (Scene *, sce, &bmain->scenes) {
+  for (Scene &sce : bmain->scenes) {
     /* #BKE_scene_has_object checks bases cache of the scenes' view-layer, not actual content of
      * their collections. */
-    if (BKE_collection_has_object_recursive(sce->master_collection, ob)) {
+    if (BKE_collection_has_object_recursive(sce.master_collection, ob)) {
       return true;
     }
   }
@@ -408,8 +408,8 @@ static bool object_in_any_scene(Main *bmain, Object *ob)
 
 static bool collection_instantiated_by_any_object(Main *bmain, Collection *collection)
 {
-  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    if (ob->type == OB_EMPTY && ob->instance_collection == collection) {
+  for (Object &ob : bmain->objects) {
+    if (ob.type == OB_EMPTY && ob.instance_collection == collection) {
       return true;
     }
   }
@@ -618,8 +618,8 @@ static void loose_data_instantiate_collection_process(
      * This avoids cluttering the view-layers, user can instantiate themselves specific collections
      * or objects easily from the Outliner if needed. */
     if (!do_add_collection && do_append && !collection_is_instantiated) {
-      LISTBASE_FOREACH (CollectionObject *, coll_ob, &collection->gobject) {
-        Object *ob = coll_ob->ob;
+      for (CollectionObject &coll_ob : collection->gobject) {
+        Object *ob = coll_ob.ob;
         if (!object_in_any_scene(bmain, ob)) {
           do_add_collection = true;
           break;
@@ -2035,8 +2035,8 @@ static void blendfile_relocate_postprocess_cleanup(BlendfileLinkAppendContext &l
 
   /* Get rid of no more used libraries... */
   ListBaseT<ID> *libraries = which_libbase(&bmain, ID_LI);
-  LISTBASE_FOREACH (ID *, id_iter, libraries) {
-    ids_to_delete.add(id_iter);
+  for (ID &id_iter : *libraries) {
+    ids_to_delete.add(&id_iter);
   }
   FOREACH_MAIN_ID_BEGIN (&bmain, id_iter) {
     if (id_iter->lib) {

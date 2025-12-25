@@ -448,19 +448,19 @@ void HydraSceneDelegate::update_collection()
   instancer_data_->pre_update();
 
   auto update_psys = [this, &available_objects](Object *object) {
-    LISTBASE_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
-      if (psys_in_edit_mode(depsgraph, psys)) {
+    for (ParticleSystem &psys : object->particlesystem) {
+      if (psys_in_edit_mode(depsgraph, &psys)) {
         continue;
       }
-      if (HairData::is_supported(psys) && HairData::is_visible(this, object, psys)) {
-        pxr::SdfPath id = hair_prim_id(object, psys);
+      if (HairData::is_supported(&psys) && HairData::is_visible(this, object, &psys)) {
+        pxr::SdfPath id = hair_prim_id(object, &psys);
         HairData *h_data = hair_data(id);
         if (h_data) {
           h_data->update();
         }
         else {
           h_data = dynamic_cast<HairData *>(
-              objects_.lookup_or_add(id, std::make_unique<HairData>(this, object, id, psys))
+              objects_.lookup_or_add(id, std::make_unique<HairData>(this, object, id, &psys))
                   .get());
           h_data->init();
           h_data->insert();

@@ -308,22 +308,22 @@ static void deselect_action_keys(bAnimContext *ac, short test, eEditKeyframes_Se
 
   /* See if we should be selecting or deselecting */
   if (test) {
-    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-      if (ale->type == ANIMTYPE_GPLAYER) {
-        if (ED_gpencil_layer_frame_select_check(static_cast<bGPDlayer *>(ale->data))) {
+    for (bAnimListElem &ale : anim_data) {
+      if (ale.type == ANIMTYPE_GPLAYER) {
+        if (ED_gpencil_layer_frame_select_check(static_cast<bGPDlayer *>(ale.data))) {
           sel = SELECT_SUBTRACT;
           break;
         }
       }
-      else if (ale->type == ANIMTYPE_MASKLAYER) {
-        if (ED_masklayer_frame_select_check(static_cast<MaskLayer *>(ale->data))) {
+      else if (ale.type == ANIMTYPE_MASKLAYER) {
+        if (ED_masklayer_frame_select_check(static_cast<MaskLayer *>(ale.data))) {
           sel = SELECT_SUBTRACT;
           break;
         }
       }
-      else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
+      else if (ale.type == ANIMTYPE_GREASE_PENCIL_LAYER) {
         if (blender::ed::greasepencil::has_any_frame_selected(
-                static_cast<GreasePencilLayer *>(ale->data)->wrap()))
+                static_cast<GreasePencilLayer *>(ale.data)->wrap()))
         {
           sel = SELECT_SUBTRACT;
         }
@@ -331,7 +331,7 @@ static void deselect_action_keys(bAnimContext *ac, short test, eEditKeyframes_Se
       }
       else {
         if (ANIM_fcurve_keyframes_loop(
-                &ked, static_cast<FCurve *>(ale->key_data), nullptr, test_cb, nullptr))
+                &ked, static_cast<FCurve *>(ale.key_data), nullptr, test_cb, nullptr))
         {
           sel = SELECT_SUBTRACT;
           break;
@@ -344,22 +344,22 @@ static void deselect_action_keys(bAnimContext *ac, short test, eEditKeyframes_Se
   sel_cb = ANIM_editkeyframes_select(sel);
 
   /* Now set the flags */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    if (ale->type == ANIMTYPE_GPLAYER) {
-      ED_gpencil_layer_frame_select_set(static_cast<bGPDlayer *>(ale->data), sel);
-      ale->update |= ANIM_UPDATE_DEPS;
+  for (bAnimListElem &ale : anim_data) {
+    if (ale.type == ANIMTYPE_GPLAYER) {
+      ED_gpencil_layer_frame_select_set(static_cast<bGPDlayer *>(ale.data), sel);
+      ale.update |= ANIM_UPDATE_DEPS;
     }
-    else if (ale->type == ANIMTYPE_MASKLAYER) {
-      ED_masklayer_frame_select_set(static_cast<MaskLayer *>(ale->data), sel);
+    else if (ale.type == ANIMTYPE_MASKLAYER) {
+      ED_masklayer_frame_select_set(static_cast<MaskLayer *>(ale.data), sel);
     }
-    else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
+    else if (ale.type == ANIMTYPE_GREASE_PENCIL_LAYER) {
       blender::ed::greasepencil::select_all_frames(
-          static_cast<GreasePencilLayer *>(ale->data)->wrap(), sel);
-      ale->update |= ANIM_UPDATE_DEPS;
+          static_cast<GreasePencilLayer *>(ale.data)->wrap(), sel);
+      ale.update |= ANIM_UPDATE_DEPS;
     }
     else {
       ANIM_fcurve_keyframes_loop(
-          &ked, static_cast<FCurve *>(ale->key_data), nullptr, sel_cb, nullptr);
+          &ked, static_cast<FCurve *>(ale.key_data), nullptr, sel_cb, nullptr);
     }
   }
 
@@ -508,8 +508,8 @@ static void box_select_elem(
         ANIM_animdata_filter(
             ac, &anim_data, ANIMFILTER_DATA_VISIBLE, ac->data, eAnimCont_Types(ac->datatype));
 
-        LISTBASE_FOREACH (bAnimListElem *, ale2, &anim_data) {
-          box_select_elem(sel_data, ale2, xmin, xmax, true);
+        for (bAnimListElem &ale2 : anim_data) {
+          box_select_elem(sel_data, &ale2, xmin, xmax, true);
         }
 
         ANIM_animdata_update(ac, &anim_data);
@@ -749,9 +749,9 @@ static void region_select_elem(RegionSelectData *sel_data, bAnimListElem *ale, b
       ANIM_animdata_filter(
           ac, &anim_data, ANIMFILTER_DATA_VISIBLE, ac->data, eAnimCont_Types(ac->datatype));
 
-      LISTBASE_FOREACH (bAnimListElem *, ale2, &anim_data) {
-        if ((ale2->type == ANIMTYPE_GREASE_PENCIL_LAYER) && (ale2->id == ale->data)) {
-          region_select_elem(sel_data, ale2, true);
+      for (bAnimListElem &ale2 : anim_data) {
+        if ((ale2.type == ANIMTYPE_GREASE_PENCIL_LAYER) && (ale2.id == ale->data)) {
+          region_select_elem(sel_data, &ale2, true);
         }
       }
 
@@ -787,8 +787,8 @@ static void region_select_elem(RegionSelectData *sel_data, bAnimListElem *ale, b
         ANIM_animdata_filter(
             ac, &anim_data, ANIMFILTER_DATA_VISIBLE, ac->data, eAnimCont_Types(ac->datatype));
 
-        LISTBASE_FOREACH (bAnimListElem *, ale2, &anim_data) {
-          region_select_elem(sel_data, ale2, true);
+        for (bAnimListElem &ale2 : anim_data) {
+          region_select_elem(sel_data, &ale2, true);
         }
 
         ANIM_animdata_update(ac, &anim_data);
@@ -1086,28 +1086,28 @@ static void markers_selectkeys_between(bAnimContext *ac)
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
   /* select keys in-between */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    switch (ale->type) {
+  for (bAnimListElem &ale : anim_data) {
+    switch (ale.type) {
       case ANIMTYPE_GREASE_PENCIL_LAYER:
         blender::ed::greasepencil::select_frames_range(
-            static_cast<GreasePencilLayerTreeNode *>(ale->data)->wrap(), min, max, SELECT_ADD);
-        ale->update |= ANIM_UPDATE_DEPS;
+            static_cast<GreasePencilLayerTreeNode *>(ale.data)->wrap(), min, max, SELECT_ADD);
+        ale.update |= ANIM_UPDATE_DEPS;
         break;
       case ANIMTYPE_GPLAYER:
         ED_gpencil_layer_frames_select_box(
-            static_cast<bGPDlayer *>(ale->data), min, max, SELECT_ADD);
-        ale->update |= ANIM_UPDATE_DEPS;
+            static_cast<bGPDlayer *>(ale.data), min, max, SELECT_ADD);
+        ale.update |= ANIM_UPDATE_DEPS;
         break;
 
       case ANIMTYPE_MASKLAYER:
-        ED_masklayer_frames_select_box(static_cast<MaskLayer *>(ale->data), min, max, SELECT_ADD);
+        ED_masklayer_frames_select_box(static_cast<MaskLayer *>(ale.data), min, max, SELECT_ADD);
         break;
 
       case ANIMTYPE_FCURVE: {
-        FCurve *fcurve = static_cast<FCurve *>(ale->key_data);
-        ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcurve, false, true);
+        FCurve *fcurve = static_cast<FCurve *>(ale.key_data);
+        ANIM_nla_mapping_apply_if_needed_fcurve(&ale, fcurve, false, true);
         ANIM_fcurve_keyframes_loop(&ked, fcurve, ok_cb, select_cb, nullptr);
-        ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcurve, true, true);
+        ANIM_nla_mapping_apply_if_needed_fcurve(&ale, fcurve, true, true);
         break;
       }
 
@@ -1139,16 +1139,15 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
         filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE);
         ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
-        LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-          switch (ale->type) {
+        for (bAnimListElem &ale : anim_data) {
+          switch (ale.type) {
             case ANIMTYPE_GPLAYER:
-              ED_gpencil_layer_make_cfra_list(static_cast<bGPDlayer *>(ale->data),
-                                              static_cast<ListBaseT<CfraElem> *>(&ked.list),
-                                              true);
+              ED_gpencil_layer_make_cfra_list(
+                  static_cast<bGPDlayer *>(ale.data), &ked.cfra_elem_list, true);
               break;
             case ANIMTYPE_GREASE_PENCIL_LAYER:
               blender::ed::greasepencil ::create_keyframe_edit_data_selected_frames_list(
-                  &ked, static_cast<GreasePencilLayer *>(ale->data)->wrap());
+                  &ked, static_cast<GreasePencilLayer *>(ale.data)->wrap());
               break;
             default:
               /* Invalid channel type. */
@@ -1160,16 +1159,15 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
         filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE);
         ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
-        LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-          if (ale->datatype == ALE_GPFRAME) {
-            ED_gpencil_layer_make_cfra_list(static_cast<bGPDlayer *>(ale->data),
-                                            static_cast<ListBaseT<CfraElem> *>(&ked.list),
-                                            true);
+        for (bAnimListElem &ale : anim_data) {
+          if (ale.datatype == ALE_GPFRAME) {
+            ED_gpencil_layer_make_cfra_list(
+                static_cast<bGPDlayer *>(ale.data), &ked.cfra_elem_list, true);
           }
           else {
-            ked.data = ale;
+            ked.data = &ale;
             ANIM_fcurve_keyframes_loop(
-                &ked, static_cast<FCurve *>(ale->key_data), nullptr, bezt_to_cfraelem, nullptr);
+                &ked, static_cast<FCurve *>(ale.key_data), nullptr, bezt_to_cfraelem, nullptr);
           }
         }
       }
@@ -1179,13 +1177,13 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
     case ACTKEYS_COLUMNSEL_CFRA: /* current frame */
       /* make a single CfraElem for storing this */
       ce = MEM_callocN<CfraElem>("cfraElem");
-      BLI_addtail(&ked.list, ce);
+      BLI_addtail(&ked.cfra_elem_list, ce);
 
       ce->cfra = float(scene->r.cfra);
       break;
 
     case ACTKEYS_COLUMNSEL_MARKERS_COLUMN: /* list of selected markers */
-      ED_markers_make_cfra_list(ac->markers, static_cast<ListBaseT<CfraElem> *>(&ked.list), true);
+      ED_markers_make_cfra_list(ac->markers, &ked.cfra_elem_list, true);
       break;
 
     default: /* invalid option */
@@ -1202,36 +1200,37 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+  for (bAnimListElem &ale : anim_data) {
     /* loop over cfraelems (stored in the KeyframeEditData->list)
      * - we need to do this here, as we can apply fewer NLA-mapping conversions
      */
-    LISTBASE_FOREACH (CfraElem *, ce, &ked.list) {
+    for (CfraElem &ce : ked.cfra_elem_list) {
       /* set frame for validation callback to refer to */
-      ked.f1 = ANIM_nla_tweakedit_remap(ale, ce->cfra, NLATIME_CONVERT_UNMAP);
+      ked.f1 = ANIM_nla_tweakedit_remap(&ale, ce.cfra, NLATIME_CONVERT_UNMAP);
 
       /* select elements with frame number matching cfraelem */
-      if (ale->type == ANIMTYPE_GPLAYER) {
-        ED_gpencil_select_frame(static_cast<bGPDlayer *>(ale->data), ce->cfra, SELECT_ADD);
-        ale->update |= ANIM_UPDATE_DEPS;
+      if (ale.type == ANIMTYPE_GPLAYER) {
+        ED_gpencil_select_frame(static_cast<bGPDlayer *>(ale.data), ce.cfra, SELECT_ADD);
+        ale.update |= ANIM_UPDATE_DEPS;
       }
-      else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
+      else if (ale.type == ANIMTYPE_GREASE_PENCIL_LAYER) {
         blender::ed::greasepencil::select_frame_at(
-            static_cast<GreasePencilLayer *>(ale->data)->wrap(), ce->cfra, SELECT_ADD);
-        ale->update |= ANIM_UPDATE_DEPS;
+            static_cast<GreasePencilLayer *>(ale.data)->wrap(), ce.cfra, SELECT_ADD);
+        ale.update |= ANIM_UPDATE_DEPS;
       }
-      else if (ale->type == ANIMTYPE_MASKLAYER) {
-        ED_mask_select_frame(static_cast<MaskLayer *>(ale->data), ce->cfra, SELECT_ADD);
+      else if (ale.type == ANIMTYPE_MASKLAYER) {
+        ED_mask_select_frame(static_cast<MaskLayer *>(ale.data), ce.cfra, SELECT_ADD);
       }
       else {
         ANIM_fcurve_keyframes_loop(
-            &ked, static_cast<FCurve *>(ale->key_data), ok_cb, select_cb, nullptr);
+            &ked, static_cast<FCurve *>(ale.key_data), ok_cb, select_cb, nullptr);
       }
     }
   }
 
   /* free elements */
-  BLI_freelistN(&ked.list);
+  BLI_freelistN(&ked.cfra_elem_list);
+  BLI_freelistN(&ked.time_marker_list);
 
   ANIM_animdata_update(ac, &anim_data);
   ANIM_animdata_freelist(&anim_data);
@@ -1312,8 +1311,8 @@ static wmOperatorStatus actkeys_select_linked_exec(bContext *C, wmOperator * /*o
             ANIMFILTER_NODUPLIS);
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
 
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    FCurve *fcu = (FCurve *)ale->key_data;
+  for (bAnimListElem &ale : anim_data) {
+    FCurve *fcu = (FCurve *)ale.key_data;
 
     /* check if anything selected? */
     if (ANIM_fcurve_keyframes_loop(nullptr, fcu, nullptr, ok_cb, nullptr)) {
@@ -1371,15 +1370,15 @@ static void select_moreless_action_keys(bAnimContext *ac, short mode)
             ANIMFILTER_NODUPLIS);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+  for (bAnimListElem &ale : anim_data) {
 
     /* TODO: other types. */
-    if (ale->datatype != ALE_FCURVE) {
+    if (ale.datatype != ALE_FCURVE) {
       continue;
     }
 
     /* only continue if F-Curve has keyframes */
-    FCurve *fcu = (FCurve *)ale->key_data;
+    FCurve *fcu = (FCurve *)ale.key_data;
     if (fcu->bezt == nullptr) {
       continue;
     }
@@ -1531,32 +1530,32 @@ static void actkeys_select_leftright(bAnimContext *ac,
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
   /* select keys */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    switch (ale->type) {
+  for (bAnimListElem &ale : anim_data) {
+    switch (ale.type) {
       case ANIMTYPE_GREASE_PENCIL_LAYER:
         blender::ed::greasepencil::select_frames_range(
-            static_cast<GreasePencilLayerTreeNode *>(ale->data)->wrap(),
+            static_cast<GreasePencilLayerTreeNode *>(ale.data)->wrap(),
             ked.f1,
             ked.f2,
             select_mode);
-        ale->update |= ANIM_UPDATE_DEPS;
+        ale.update |= ANIM_UPDATE_DEPS;
         break;
       case ANIMTYPE_GPLAYER:
         ED_gpencil_layer_frames_select_box(
-            static_cast<bGPDlayer *>(ale->data), ked.f1, ked.f2, select_mode);
-        ale->update |= ANIM_UPDATE_DEPS;
+            static_cast<bGPDlayer *>(ale.data), ked.f1, ked.f2, select_mode);
+        ale.update |= ANIM_UPDATE_DEPS;
         break;
 
       case ANIMTYPE_MASKLAYER:
         ED_masklayer_frames_select_box(
-            static_cast<MaskLayer *>(ale->data), ked.f1, ked.f2, select_mode);
+            static_cast<MaskLayer *>(ale.data), ked.f1, ked.f2, select_mode);
         break;
 
       case ANIMTYPE_FCURVE: {
-        FCurve *fcurve = static_cast<FCurve *>(ale->key_data);
-        ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcurve, false, true);
+        FCurve *fcurve = static_cast<FCurve *>(ale.key_data);
+        ANIM_nla_mapping_apply_if_needed_fcurve(&ale, fcurve, false, true);
         ANIM_fcurve_keyframes_loop(&ked, fcurve, ok_cb, select_cb, nullptr);
-        ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcurve, true, true);
+        ANIM_nla_mapping_apply_if_needed_fcurve(&ale, fcurve, true, true);
         break;
       }
 
@@ -1570,14 +1569,14 @@ static void actkeys_select_leftright(bAnimContext *ac,
     SpaceAction *saction = (SpaceAction *)ac->sl;
 
     if (saction && ac->markers && (saction->flag & SACTION_MARKERS_MOVE)) {
-      LISTBASE_FOREACH (TimeMarker *, marker, ac->markers) {
-        if (((leftright == ACTKEYS_LRSEL_LEFT) && (marker->frame < scene->r.cfra)) ||
-            ((leftright == ACTKEYS_LRSEL_RIGHT) && (marker->frame >= scene->r.cfra)))
+      for (TimeMarker &marker : *ac->markers) {
+        if (((leftright == ACTKEYS_LRSEL_LEFT) && (marker.frame < scene->r.cfra)) ||
+            ((leftright == ACTKEYS_LRSEL_RIGHT) && (marker.frame >= scene->r.cfra)))
         {
-          marker->flag |= SELECT;
+          marker.flag |= SELECT;
         }
         else {
-          marker->flag &= ~SELECT;
+          marker.flag &= ~SELECT;
         }
       }
     }
@@ -1735,13 +1734,13 @@ static void actkeys_mselect_single(bAnimContext *ac,
     ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
     /* Loop over all keys that are represented by this data-block key. */
-    LISTBASE_FOREACH (bAnimListElem *, ale2, &anim_data) {
-      if ((ale2->type != ANIMTYPE_GREASE_PENCIL_LAYER) || (ale2->id != ale->data)) {
+    for (bAnimListElem &ale2 : anim_data) {
+      if ((ale2.type != ANIMTYPE_GREASE_PENCIL_LAYER) || (ale2.id != ale->data)) {
         continue;
       }
       blender::ed::greasepencil::select_frame_at(
-          static_cast<GreasePencilLayer *>(ale2->data)->wrap(), selx, select_mode);
-      ale2->update |= ANIM_UPDATE_DEPS;
+          static_cast<GreasePencilLayer *>(ale2.data)->wrap(), selx, select_mode);
+      ale2.update |= ANIM_UPDATE_DEPS;
     }
   }
   else if (ale->type == ANIMTYPE_MASKLAYER) {
@@ -1756,21 +1755,21 @@ static void actkeys_mselect_single(bAnimContext *ac,
       ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
       /* Loop over all keys that are represented by this summary key. */
-      LISTBASE_FOREACH (bAnimListElem *, ale2, &anim_data) {
-        switch (ale2->type) {
+      for (bAnimListElem &ale2 : anim_data) {
+        switch (ale2.type) {
           case ANIMTYPE_GPLAYER:
-            ED_gpencil_select_frame(static_cast<bGPDlayer *>(ale2->data), selx, select_mode);
-            ale2->update |= ANIM_UPDATE_DEPS;
+            ED_gpencil_select_frame(static_cast<bGPDlayer *>(ale2.data), selx, select_mode);
+            ale2.update |= ANIM_UPDATE_DEPS;
             break;
 
           case ANIMTYPE_MASKLAYER:
-            ED_mask_select_frame(static_cast<MaskLayer *>(ale2->data), selx, select_mode);
+            ED_mask_select_frame(static_cast<MaskLayer *>(ale2.data), selx, select_mode);
             break;
 
           case ANIMTYPE_GREASE_PENCIL_LAYER:
             blender::ed::greasepencil::select_frame_at(
-                static_cast<GreasePencilLayer *>(ale2->data)->wrap(), selx, select_mode);
-            ale2->update |= ANIM_UPDATE_DEPS;
+                static_cast<GreasePencilLayer *>(ale2.data)->wrap(), selx, select_mode);
+            ale2.update |= ANIM_UPDATE_DEPS;
             break;
 
           default:
@@ -1811,31 +1810,32 @@ static void actkeys_mselect_column(bAnimContext *ac, eEditKeyframes_Select selec
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+  for (bAnimListElem &ale : anim_data) {
     /* select elements with frame number matching cfra */
-    if (ale->type == ANIMTYPE_GPLAYER) {
-      ED_gpencil_select_frame(static_cast<bGPDlayer *>(ale->data), selx, select_mode);
-      ale->update |= ANIM_UPDATE_DEPS;
+    if (ale.type == ANIMTYPE_GPLAYER) {
+      ED_gpencil_select_frame(static_cast<bGPDlayer *>(ale.data), selx, select_mode);
+      ale.update |= ANIM_UPDATE_DEPS;
     }
-    else if (ale->type == ANIMTYPE_MASKLAYER) {
-      ED_mask_select_frame(static_cast<MaskLayer *>(ale->data), selx, select_mode);
+    else if (ale.type == ANIMTYPE_MASKLAYER) {
+      ED_mask_select_frame(static_cast<MaskLayer *>(ale.data), selx, select_mode);
     }
-    else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
+    else if (ale.type == ANIMTYPE_GREASE_PENCIL_LAYER) {
       blender::ed::greasepencil::select_frame_at(
-          static_cast<GreasePencilLayer *>(ale->data)->wrap(), selx, select_mode);
-      ale->update |= ANIM_UPDATE_DEPS;
+          static_cast<GreasePencilLayer *>(ale.data)->wrap(), selx, select_mode);
+      ale.update |= ANIM_UPDATE_DEPS;
     }
     else {
       /* set frame for validation callback to refer to */
-      ked.f1 = ANIM_nla_tweakedit_remap(ale, selx, NLATIME_CONVERT_UNMAP);
+      ked.f1 = ANIM_nla_tweakedit_remap(&ale, selx, NLATIME_CONVERT_UNMAP);
 
       ANIM_fcurve_keyframes_loop(
-          &ked, static_cast<FCurve *>(ale->key_data), ok_cb, select_cb, nullptr);
+          &ked, static_cast<FCurve *>(ale.key_data), ok_cb, select_cb, nullptr);
     }
   }
 
   /* free elements */
-  BLI_freelistN(&ked.list);
+  BLI_freelistN(&ked.cfra_elem_list);
+  BLI_freelistN(&ked.time_marker_list);
 
   ANIM_animdata_update(ac, &anim_data);
   ANIM_animdata_freelist(&anim_data);
@@ -1872,13 +1872,13 @@ static void actkeys_mselect_channel_only(bAnimContext *ac,
       filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS);
       ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
-      LISTBASE_FOREACH (bAnimListElem *, ale2, &anim_data) {
-        if (ale2->type == ANIMTYPE_GPLAYER) {
-          ED_gpencil_select_frames(static_cast<bGPDlayer *>(ale2->data), select_mode);
-          ale2->update |= ANIM_UPDATE_DEPS;
+      for (bAnimListElem &ale2 : anim_data) {
+        if (ale2.type == ANIMTYPE_GPLAYER) {
+          ED_gpencil_select_frames(static_cast<bGPDlayer *>(ale2.data), select_mode);
+          ale2.update |= ANIM_UPDATE_DEPS;
         }
-        else if (ale2->type == ANIMTYPE_MASKLAYER) {
-          ED_mask_select_frames(static_cast<MaskLayer *>(ale2->data), select_mode);
+        else if (ale2.type == ANIMTYPE_MASKLAYER) {
+          ED_mask_select_frames(static_cast<MaskLayer *>(ale2.data), select_mode);
         }
       }
 

@@ -558,17 +558,17 @@ void popup_menu_reports(bContext *C, ReportList *reports)
 
   BKE_reports_lock(reports);
 
-  LISTBASE_FOREACH (Report *, report, &reports->list) {
+  for (Report &report : reports->list) {
     int icon;
     const char *msg, *msg_next;
 
-    if (report->type < reports->printlevel) {
+    if (report.type < reports->printlevel) {
       continue;
     }
 
     if (pup == nullptr) {
       char title[UI_MAX_DRAW_STR];
-      SNPRINTF_UTF8(title, "%s: %s", RPT_("Report"), report->typestr);
+      SNPRINTF_UTF8(title, "%s: %s", RPT_("Report"), report.typestr);
       /* popup_menu stuff does just what we need (but pass meaningful block name) */
       pup = popup_menu_begin_ex(C, title, __func__, ICON_NONE);
       layout = popup_menu_layout(pup);
@@ -578,8 +578,8 @@ void popup_menu_reports(bContext *C, ReportList *reports)
     }
 
     /* split each newline into a label */
-    msg = report->message;
-    icon = icon_from_report_type(report->type);
+    msg = report.message;
+    icon = icon_from_report_type(report.type);
     do {
       char buf[UI_MAX_DRAW_STR];
       msg_next = strchr(msg, '\n');
@@ -878,8 +878,8 @@ void popup_block_close(bContext *C, wmWindow *win, Block *block)
 
       /* In the case we have nested popups,
        * closing one may need to redraw another, see: #48874 */
-      LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {
-        ED_region_tag_refresh_ui(region);
+      for (ARegion &region : screen->regionbase) {
+        ED_region_tag_refresh_ui(&region);
       }
     }
   }
@@ -889,9 +889,9 @@ void popup_block_close(bContext *C, wmWindow *win, Block *block)
 
 bool popup_block_name_exists(const bScreen *screen, const StringRef name)
 {
-  LISTBASE_FOREACH (const ARegion *, region, &screen->regionbase) {
-    LISTBASE_FOREACH (const Block *, block, &region->runtime->uiblocks) {
-      if (block->name == name) {
+  for (const ARegion &region : screen->regionbase) {
+    for (const Block &block : region.runtime->uiblocks) {
+      if (block.name == name) {
         return true;
       }
     }

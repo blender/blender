@@ -873,24 +873,24 @@ void view2d_sync(bScreen *screen, ScrArea *area, View2D *v2dcur, int flag)
 
   /* check if doing within area syncing (i.e. channels/vertical) */
   if ((v2dcur->flag & V2D_VIEWSYNC_AREA_VERTICAL) && (area)) {
-    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+    for (ARegion &region : area->regionbase) {
       /* don't operate on self */
-      if (v2dcur != &region->v2d) {
+      if (v2dcur != &region.v2d) {
         /* only if view has vertical locks enabled */
-        if (region->v2d.flag & V2D_VIEWSYNC_AREA_VERTICAL) {
+        if (region.v2d.flag & V2D_VIEWSYNC_AREA_VERTICAL) {
           if (flag == V2D_LOCK_COPY) {
             /* other views with locks on must copy active */
-            region->v2d.cur.ymin = v2dcur->cur.ymin;
-            region->v2d.cur.ymax = v2dcur->cur.ymax;
+            region.v2d.cur.ymin = v2dcur->cur.ymin;
+            region.v2d.cur.ymax = v2dcur->cur.ymax;
           }
           else { /* V2D_LOCK_SET */
                  /* active must copy others */
-            v2dcur->cur.ymin = region->v2d.cur.ymin;
-            v2dcur->cur.ymax = region->v2d.cur.ymax;
+            v2dcur->cur.ymin = region.v2d.cur.ymin;
+            v2dcur->cur.ymax = region.v2d.cur.ymax;
           }
 
           /* region possibly changed, so refresh */
-          ED_region_tag_redraw_no_rebuild(region);
+          ED_region_tag_redraw_no_rebuild(&region);
         }
       }
     }
@@ -898,28 +898,28 @@ void view2d_sync(bScreen *screen, ScrArea *area, View2D *v2dcur, int flag)
 
   /* check if doing whole screen syncing (i.e. time/horizontal) */
   if ((v2dcur->flag & V2D_VIEWSYNC_SCREEN_TIME) && (screen)) {
-    LISTBASE_FOREACH (ScrArea *, area_iter, &screen->areabase) {
-      if (!view2d_area_supports_sync(area_iter)) {
+    for (ScrArea &area_iter : screen->areabase) {
+      if (!view2d_area_supports_sync(&area_iter)) {
         continue;
       }
-      LISTBASE_FOREACH (ARegion *, region, &area_iter->regionbase) {
+      for (ARegion &region : area_iter.regionbase) {
         /* don't operate on self */
-        if (v2dcur != &region->v2d) {
+        if (v2dcur != &region.v2d) {
           /* only if view has horizontal locks enabled */
-          if (region->v2d.flag & V2D_VIEWSYNC_SCREEN_TIME) {
+          if (region.v2d.flag & V2D_VIEWSYNC_SCREEN_TIME) {
             if (flag == V2D_LOCK_COPY) {
               /* other views with locks on must copy active */
-              region->v2d.cur.xmin = v2dcur->cur.xmin;
-              region->v2d.cur.xmax = v2dcur->cur.xmax;
+              region.v2d.cur.xmin = v2dcur->cur.xmin;
+              region.v2d.cur.xmax = v2dcur->cur.xmax;
             }
             else { /* V2D_LOCK_SET */
                    /* active must copy others */
-              v2dcur->cur.xmin = region->v2d.cur.xmin;
-              v2dcur->cur.xmax = region->v2d.cur.xmax;
+              v2dcur->cur.xmin = region.v2d.cur.xmin;
+              v2dcur->cur.xmax = region.v2d.cur.xmax;
             }
 
             /* region possibly changed, so refresh */
-            ED_region_tag_redraw_no_rebuild(region);
+            ED_region_tag_redraw_no_rebuild(&region);
           }
         }
       }

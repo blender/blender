@@ -1225,8 +1225,8 @@ void BM_select_history_validate(BMesh *bm)
 char BM_select_history_htype_all(const BMesh *bm)
 {
   char htype_selected = 0;
-  LISTBASE_FOREACH (const BMEditSelection *, ese, &bm->selected) {
-    htype_selected |= ese->htype;
+  for (const BMEditSelection &ese : bm->selected) {
+    htype_selected |= ese.htype;
     /* Early exit if all types found. */
     if (htype_selected == (BM_VERT | BM_EDGE | BM_FACE)) {
       break;
@@ -1279,8 +1279,8 @@ GHash *BM_select_history_map_create(BMesh *bm)
 
   GHash *map = BLI_ghash_ptr_new(__func__);
 
-  LISTBASE_FOREACH (BMEditSelection *, ese, &bm->selected) {
-    BLI_ghash_insert(map, ese->ele, ese);
+  for (BMEditSelection &ese : bm->selected) {
+    BLI_ghash_insert(map, ese.ele, &ese);
   }
 
   return map;
@@ -1294,17 +1294,17 @@ void BM_select_history_merge_from_targetmap(BMesh *bm,
 {
 
 #ifndef NDEBUG
-  LISTBASE_FOREACH (BMEditSelection *, ese, &bm->selected) {
-    BLI_assert(BM_ELEM_API_FLAG_TEST(ese->ele, _FLAG_OVERLAP) == 0);
+  for (BMEditSelection &ese : bm->selected) {
+    BLI_assert(BM_ELEM_API_FLAG_TEST(ese.ele, _FLAG_OVERLAP) == 0);
   }
 #endif
 
-  LISTBASE_FOREACH (BMEditSelection *, ese, &bm->selected) {
-    BM_ELEM_API_FLAG_ENABLE(ese->ele, _FLAG_OVERLAP);
+  for (BMEditSelection &ese : bm->selected) {
+    BM_ELEM_API_FLAG_ENABLE(ese.ele, _FLAG_OVERLAP);
 
     /* Only loop when (use_chain == true). */
     blender::Map<void *, void *> *map = nullptr;
-    switch (ese->ele->head.htype) {
+    switch (ese.ele->head.htype) {
       case BM_VERT:
         map = vert_map;
         break;
@@ -1319,7 +1319,7 @@ void BM_select_history_merge_from_targetmap(BMesh *bm,
         break;
     }
     if (map != nullptr) {
-      BMElem *ele_dst = ese->ele;
+      BMElem *ele_dst = ese.ele;
       while (true) {
         BMElem *ele_dst_next = static_cast<BMElem *>(map->lookup_default(ele_dst, nullptr));
         BLI_assert(ele_dst != ele_dst_next);
@@ -1328,7 +1328,7 @@ void BM_select_history_merge_from_targetmap(BMesh *bm,
         }
         ele_dst = ele_dst_next;
         /* Break loop on circular reference (should never happen). */
-        if (UNLIKELY(ele_dst == ese->ele)) {
+        if (UNLIKELY(ele_dst == ese.ele)) {
           BLI_assert(0);
           break;
         }
@@ -1336,7 +1336,7 @@ void BM_select_history_merge_from_targetmap(BMesh *bm,
           break;
         }
       }
-      ese->ele = ele_dst;
+      ese.ele = ele_dst;
     }
   }
 

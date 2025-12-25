@@ -91,8 +91,8 @@ static void compute_vertex_mask__armature_mode(const MDeformVert *dvert,
   /* Element i is true if there is a selected bone that uses vertex group i. */
   Vector<bool> selected_bone_uses_group;
 
-  LISTBASE_FOREACH (bDeformGroup *, def, &mesh->vertex_group_names) {
-    bPoseChannel *pchan = BKE_pose_channel_find_name(armature_ob->pose, def->name);
+  for (bDeformGroup &def : mesh->vertex_group_names) {
+    bPoseChannel *pchan = BKE_pose_channel_find_name(armature_ob->pose, def.name);
     bool bone_for_group_exists = pchan && pchan->bone && (pchan->flag & POSE_SELECTED);
     selected_bone_uses_group.append(bone_for_group_exists);
   }

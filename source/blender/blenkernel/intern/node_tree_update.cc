@@ -271,12 +271,12 @@ struct NodeTreeRelations {
       return;
     }
 
-    LISTBASE_FOREACH (Object *, object, &bmain_->objects) {
-      LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
-        if (md->type == eModifierType_Nodes) {
-          NodesModifierData *nmd = (NodesModifierData *)md;
+    for (Object &object : bmain_->objects) {
+      for (ModifierData &md : object.modifiers) {
+        if (md.type == eModifierType_Nodes) {
+          NodesModifierData *nmd = (NodesModifierData *)&md;
           if (nmd->node_group != nullptr) {
-            modifiers_users_->add(nmd->node_group, {object, md});
+            modifiers_users_->add(nmd->node_group, {&object, &md});
           }
         }
       }
@@ -638,11 +638,11 @@ class NodeTreeMainUpdater {
            * not have a declaration anymore. */
           delete node->runtime->declaration;
           node->runtime->declaration = nullptr;
-          LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-            socket->runtime->declaration = nullptr;
+          for (bNodeSocket &socket : node->inputs) {
+            socket.runtime->declaration = nullptr;
           }
-          LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-            socket->runtime->declaration = nullptr;
+          for (bNodeSocket &socket : node->outputs) {
+            socket.runtime->declaration = nullptr;
           }
         }
         if (ntype.updatefunc) {
@@ -1403,62 +1403,61 @@ class NodeTreeMainUpdater {
       fallback_zones = ntree.runtime->last_valid_zones.get();
     }
 
-    LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
-      link->flag |= NODE_LINK_VALID;
-      if (!link->fromsock->is_available() || !link->tosock->is_available()) {
-        link->flag &= ~NODE_LINK_VALID;
+    for (bNodeLink &link : ntree.links) {
+      link.flag |= NODE_LINK_VALID;
+      if (!link.fromsock->is_available() || !link.tosock->is_available()) {
+        link.flag &= ~NODE_LINK_VALID;
         continue;
       }
-      if (is_invalid_enum_ref(*link->fromsock) || is_invalid_enum_ref(*link->tosock)) {
-        link->flag &= ~NODE_LINK_VALID;
+      if (is_invalid_enum_ref(*link.fromsock) || is_invalid_enum_ref(*link.tosock)) {
+        link.flag &= ~NODE_LINK_VALID;
         ntree.runtime->link_errors.add(
-            NodeLinkKey{*link},
+            NodeLinkKey{link},
             NodeLinkError{TIP_("Use node groups to reuse the same menu multiple times")});
         continue;
       }
-      const bNode &from_node = *link->fromnode;
-      const bNode &to_node = *link->tonode;
+      const bNode &from_node = *link.fromnode;
+      const bNode &to_node = *link.tonode;
       if (from_node.runtime->toposort_left_to_right_index >
           to_node.runtime->toposort_left_to_right_index)
       {
-        link->flag &= ~NODE_LINK_VALID;
+        link.flag &= ~NODE_LINK_VALID;
         ntree.runtime->link_errors.add(
-            NodeLinkKey{*link},
+            NodeLinkKey{link},
             NodeLinkError{TIP_("The links form a cycle which is not supported")});
         continue;
       }
       if (ntree.typeinfo->validate_link) {
-        const eNodeSocketDatatype from_type = eNodeSocketDatatype(link->fromsock->type);
-        const eNodeSocketDatatype to_type = eNodeSocketDatatype(link->tosock->type);
+        const eNodeSocketDatatype from_type = eNodeSocketDatatype(link.fromsock->type);
+        const eNodeSocketDatatype to_type = eNodeSocketDatatype(link.tosock->type);
         if (!ntree.typeinfo->validate_link(from_type, to_type)) {
-          link->flag &= ~NODE_LINK_VALID;
+          link.flag &= ~NODE_LINK_VALID;
           ntree.runtime->link_errors.add(
-              NodeLinkKey{*link},
+              NodeLinkKey{link},
               NodeLinkError{fmt::format("{}: {} " BLI_STR_UTF8_BLACK_RIGHT_POINTING_SMALL_TRIANGLE
                                         " {}",
                                         TIP_("Conversion is not supported"),
-                                        TIP_(link->fromsock->typeinfo->label),
-                                        TIP_(link->tosock->typeinfo->label))});
+                                        TIP_(link.fromsock->typeinfo->label),
+                                        TIP_(link.tosock->typeinfo->label))});
           continue;
         }
       }
       if (fallback_zones) {
-        if (!fallback_zones->link_between_sockets_is_allowed(*link->fromsock, *link->tosock)) {
-          if (const bNodeTreeZone *from_zone = fallback_zones->get_zone_by_socket(*link->fromsock))
+        if (!fallback_zones->link_between_sockets_is_allowed(*link.fromsock, *link.tosock)) {
+          if (const bNodeTreeZone *from_zone = fallback_zones->get_zone_by_socket(*link.fromsock))
           {
             ntree.runtime->invalid_zone_output_node_ids.add(*from_zone->output_node_id);
           }
 
-          link->flag &= ~NODE_LINK_VALID;
+          link.flag &= ~NODE_LINK_VALID;
           ntree.runtime->link_errors.add(
-              NodeLinkKey{*link},
-              NodeLinkError{TIP_("Links can only go into a zone but not out")});
+              NodeLinkKey{link}, NodeLinkError{TIP_("Links can only go into a zone but not out")});
           continue;
         }
       }
-      if (const char *error = this->get_structure_type_link_error(*link)) {
-        link->flag &= ~NODE_LINK_VALID;
-        ntree.runtime->link_errors.add(NodeLinkKey{*link}, NodeLinkError{error});
+      if (const char *error = this->get_structure_type_link_error(link)) {
+        link.flag &= ~NODE_LINK_VALID;
+        ntree.runtime->link_errors.add(NodeLinkKey{link}, NodeLinkError{error});
         continue;
       }
     }
@@ -1540,8 +1539,8 @@ class NodeTreeMainUpdater {
        * Note that this optimization only works in practice when the depsgraph didn't also get a
        * copy-on-evaluation tag for the node tree (which happens when changing node properties). It
        * does work in a few situations like adding reroutes and duplicating nodes though. */
-      LISTBASE_FOREACH (const FCurve *, fcurve, &adt->drivers) {
-        const ChannelDriver *driver = fcurve->driver;
+      for (const FCurve &fcurve : adt->drivers) {
+        const ChannelDriver *driver = fcurve.driver;
         const StringRef expression = driver->expression;
         if (expression.startswith("frame")) {
           const StringRef remaining_expression = expression.drop_known_prefix("frame");
@@ -1993,11 +1992,11 @@ class NodeTreeMainUpdater {
     for (bNode *node : ntree.all_nodes()) {
       node->runtime->changed_flag = NTREE_CHANGED_NOTHING;
       node->runtime->update = 0;
-      LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-        socket->runtime->changed_flag = NTREE_CHANGED_NOTHING;
+      for (bNodeSocket &socket : node->inputs) {
+        socket.runtime->changed_flag = NTREE_CHANGED_NOTHING;
       }
-      LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-        socket->runtime->changed_flag = NTREE_CHANGED_NOTHING;
+      for (bNodeSocket &socket : node->outputs) {
+        socket.runtime->changed_flag = NTREE_CHANGED_NOTHING;
       }
     }
 

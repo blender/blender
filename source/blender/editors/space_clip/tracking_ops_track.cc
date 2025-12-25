@@ -58,10 +58,10 @@ static int track_count_markers(SpaceClip *sc, MovieClip *clip, const int framenr
 {
   int tot = 0;
   const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    bool selected = (sc != nullptr) ? TRACK_VIEW_SELECTED(sc, track) : TRACK_SELECTED(track);
-    if (selected && (track->flag & TRACK_LOCKED) == 0) {
-      MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    bool selected = (sc != nullptr) ? TRACK_VIEW_SELECTED(sc, &track) : TRACK_SELECTED(&track);
+    if (selected && (track.flag & TRACK_LOCKED) == 0) {
+      MovieTrackingMarker *marker = BKE_tracking_marker_get(&track, framenr);
       if (!marker || (marker->flag & MARKER_DISABLED) == 0) {
         tot++;
       }
@@ -80,17 +80,17 @@ static void track_init_markers(SpaceClip *sc,
   if (sc != nullptr) {
     clip_tracking_clear_invisible_track_selection(sc, clip);
   }
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    bool selected = (sc != nullptr) ? TRACK_VIEW_SELECTED(sc, track) : TRACK_SELECTED(track);
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    bool selected = (sc != nullptr) ? TRACK_VIEW_SELECTED(sc, &track) : TRACK_SELECTED(&track);
     if (selected) {
-      if ((track->flag & TRACK_HIDDEN) == 0 && (track->flag & TRACK_LOCKED) == 0) {
-        BKE_tracking_marker_ensure(track, framenr);
-        if (track->frames_limit) {
+      if ((track.flag & TRACK_HIDDEN) == 0 && (track.flag & TRACK_LOCKED) == 0) {
+        BKE_tracking_marker_ensure(&track, framenr);
+        if (track.frames_limit) {
           if (frames_limit == 0) {
-            frames_limit = track->frames_limit;
+            frames_limit = track.frames_limit;
           }
           else {
-            frames_limit = min_ii(frames_limit, int(track->frames_limit));
+            frames_limit = min_ii(frames_limit, int(track.frames_limit));
           }
         }
       }
@@ -447,10 +447,10 @@ static wmOperatorStatus refine_marker_exec(bContext *C, wmOperator *op)
   const bool backwards = RNA_boolean_get(op->ptr, "backwards");
   const int framenr = ED_space_clip_get_clip_frame_number(sc);
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (TRACK_VIEW_SELECTED(sc, track)) {
-      MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
-      BKE_tracking_refine_marker(clip, track, marker, backwards);
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    if (TRACK_VIEW_SELECTED(sc, &track)) {
+      MovieTrackingMarker *marker = BKE_tracking_marker_get(&track, framenr);
+      BKE_tracking_refine_marker(clip, &track, marker, backwards);
     }
   }
 

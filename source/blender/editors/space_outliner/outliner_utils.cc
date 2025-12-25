@@ -71,15 +71,15 @@ TreeElement *outliner_find_item_at_y(const SpaceOutliner *space_outliner,
                                      const ListBaseT<TreeElement> *tree,
                                      float view_co_y)
 {
-  LISTBASE_FOREACH (TreeElement *, te_iter, tree) {
-    if (view_co_y < (te_iter->ys + UI_UNIT_Y)) {
-      if (view_co_y >= te_iter->ys) {
+  for (TreeElement &te_iter : *tree) {
+    if (view_co_y < (te_iter.ys + UI_UNIT_Y)) {
+      if (view_co_y >= te_iter.ys) {
         /* co_y is inside this element */
-        return te_iter;
+        return &te_iter;
       }
 
-      if (BLI_listbase_is_empty(&te_iter->subtree) ||
-          !TSELEM_OPEN(TREESTORE(te_iter), space_outliner))
+      if (BLI_listbase_is_empty(&te_iter.subtree) ||
+          !TSELEM_OPEN(TREESTORE(&te_iter), space_outliner))
       {
         /* No need for recursion. */
         continue;
@@ -87,14 +87,14 @@ TreeElement *outliner_find_item_at_y(const SpaceOutliner *space_outliner,
 
       /* If the coordinate is lower than the next element, we can continue with that one and skip
        * recursion too. */
-      const TreeElement *te_next = te_iter->next;
+      const TreeElement *te_next = te_iter.next;
       if (te_next && (view_co_y < (te_next->ys + UI_UNIT_Y))) {
         continue;
       }
 
       /* co_y is lower than current element (but not lower than the next one), possibly inside
        * children */
-      TreeElement *te_sub = outliner_find_item_at_y(space_outliner, &te_iter->subtree, view_co_y);
+      TreeElement *te_sub = outliner_find_item_at_y(space_outliner, &te_iter.subtree, view_co_y);
       if (te_sub) {
         return te_sub;
       }
@@ -159,11 +159,11 @@ TreeElement *outliner_find_item_at_x_in_row(const SpaceOutliner *space_outliner,
 TreeElement *outliner_find_tree_element(ListBaseT<TreeElement> *lb,
                                         const TreeStoreElem *store_elem)
 {
-  LISTBASE_FOREACH (TreeElement *, te, lb) {
-    if (te->store_elem == store_elem) {
-      return te;
+  for (TreeElement &te : *lb) {
+    if (te.store_elem == store_elem) {
+      return &te;
     }
-    TreeElement *tes = outliner_find_tree_element(&te->subtree, store_elem);
+    TreeElement *tes = outliner_find_tree_element(&te.subtree, store_elem);
     if (tes) {
       return tes;
     }
@@ -175,12 +175,12 @@ TreeElement *outliner_find_parent_element(ListBaseT<TreeElement> *lb,
                                           TreeElement *parent_te,
                                           const TreeElement *child_te)
 {
-  LISTBASE_FOREACH (TreeElement *, te, lb) {
-    if (te == child_te) {
+  for (TreeElement &te : *lb) {
+    if (&te == child_te) {
       return parent_te;
     }
 
-    TreeElement *find_te = outliner_find_parent_element(&te->subtree, te, child_te);
+    TreeElement *find_te = outliner_find_parent_element(&te.subtree, &te, child_te);
     if (find_te) {
       return find_te;
     }
@@ -193,28 +193,28 @@ TreeElement *outliner_find_id(SpaceOutliner *space_outliner,
                               const ID *id,
                               TreeElementFlag exclude_flags)
 {
-  LISTBASE_FOREACH (TreeElement *, te, lb) {
-    TreeStoreElem *tselem = TREESTORE(te);
+  for (TreeElement &te : *lb) {
+    TreeStoreElem *tselem = TREESTORE(&te);
     if (tselem->type == TSE_SOME_ID) {
-      if (tselem->id == id && !(te->flag & exclude_flags)) {
-        return te;
+      if (tselem->id == id && !(te.flag & exclude_flags)) {
+        return &te;
       }
     }
     else if (tselem->type == TSE_RNA_STRUCT) {
       /* No ID, so check if entry is RNA-struct, and if that RNA-struct is an ID datablock we are
        * good. */
-      const TreeElementRNAStruct *te_rna_struct = tree_element_cast<TreeElementRNAStruct>(te);
+      const TreeElementRNAStruct *te_rna_struct = tree_element_cast<TreeElementRNAStruct>(&te);
       if (te_rna_struct) {
         const PointerRNA &ptr = te_rna_struct->get_pointer_rna();
         if (RNA_struct_is_ID(ptr.type)) {
-          if (static_cast<ID *>(ptr.data) == id && !(te->flag & exclude_flags)) {
-            return te;
+          if (static_cast<ID *>(ptr.data) == id && !(te.flag & exclude_flags)) {
+            return &te;
           }
         }
       }
     }
 
-    TreeElement *tes = outliner_find_id(space_outliner, &te->subtree, id, exclude_flags);
+    TreeElement *tes = outliner_find_id(space_outliner, &te.subtree, id, exclude_flags);
     if (tes) {
       return tes;
     }
@@ -224,14 +224,14 @@ TreeElement *outliner_find_id(SpaceOutliner *space_outliner,
 
 TreeElement *outliner_find_posechannel(ListBaseT<TreeElement> *lb, const bPoseChannel *pchan)
 {
-  LISTBASE_FOREACH (TreeElement *, te, lb) {
-    if (te->directdata == pchan) {
-      return te;
+  for (TreeElement &te : *lb) {
+    if (te.directdata == pchan) {
+      return &te;
     }
 
-    TreeStoreElem *tselem = TREESTORE(te);
+    TreeStoreElem *tselem = TREESTORE(&te);
     if (ELEM(tselem->type, TSE_POSE_BASE, TSE_POSE_CHANNEL)) {
-      TreeElement *tes = outliner_find_posechannel(&te->subtree, pchan);
+      TreeElement *tes = outliner_find_posechannel(&te.subtree, pchan);
       if (tes) {
         return tes;
       }
@@ -242,14 +242,14 @@ TreeElement *outliner_find_posechannel(ListBaseT<TreeElement> *lb, const bPoseCh
 
 TreeElement *outliner_find_editbone(ListBaseT<TreeElement> *lb, const EditBone *ebone)
 {
-  LISTBASE_FOREACH (TreeElement *, te, lb) {
-    if (te->directdata == ebone) {
-      return te;
+  for (TreeElement &te : *lb) {
+    if (te.directdata == ebone) {
+      return &te;
     }
 
-    TreeStoreElem *tselem = TREESTORE(te);
+    TreeStoreElem *tselem = TREESTORE(&te);
     if (ELEM(tselem->type, TSE_SOME_ID, TSE_EBONE)) {
-      TreeElement *tes = outliner_find_editbone(&te->subtree, ebone);
+      TreeElement *tes = outliner_find_editbone(&te.subtree, ebone);
       if (tes) {
         return tes;
       }
@@ -381,11 +381,11 @@ float outliner_right_columns_width(const SpaceOutliner *space_outliner)
 
 TreeElement *outliner_find_element_with_flag(const ListBaseT<TreeElement> *lb, short flag)
 {
-  LISTBASE_FOREACH (TreeElement *, te, lb) {
-    if ((TREESTORE(te)->flag & flag) == flag) {
-      return te;
+  for (TreeElement &te : *lb) {
+    if ((TREESTORE(&te)->flag & flag) == flag) {
+      return &te;
     }
-    TreeElement *active_element = outliner_find_element_with_flag(&te->subtree, flag);
+    TreeElement *active_element = outliner_find_element_with_flag(&te.subtree, flag);
     if (active_element) {
       return active_element;
     }

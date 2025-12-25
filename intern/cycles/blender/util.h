@@ -340,8 +340,8 @@ static inline bool image_is_builtin(::Image &ima, ::RenderEngine &engine)
   const eImageSource image_source = eImageSource(ima.source);
   if (image_source == IMA_SRC_TILED) {
     /* If any tile is marked as generated, then treat the entire Image as built-in. */
-    LISTBASE_FOREACH (::ImageTile *, tile, &ima.tiles) {
-      if (tile->gen_flag & IMA_GEN_TILE) {
+    for (::ImageTile &tile : ima.tiles) {
+      if (tile.gen_flag & IMA_GEN_TILE) {
         return true;
       }
     }
@@ -516,8 +516,8 @@ static inline string get_text_datablock_content(const ::ID *id)
   const auto &text = *blender::id_cast<const ::Text *>(id);
 
   string content;
-  LISTBASE_FOREACH (::TextLine *, line, &text.lines) {
-    content += line->line ? line->line : "";
+  for (::TextLine &line : text.lines) {
+    content += line.line ? line.line : "";
     content += "\n";
   }
 
@@ -604,9 +604,9 @@ static inline bool object_use_deform_motion(::Object &b_parent, ::Object &b_ob)
 
 static inline ::FluidDomainSettings *object_fluid_gas_domain_find(::Object &b_ob)
 {
-  LISTBASE_FOREACH (::ModifierData *, b_mod, &b_ob.modifiers) {
-    if (b_mod->type == eModifierType_Fluid) {
-      auto *b_mmd = reinterpret_cast<::FluidModifierData *>(b_mod);
+  for (::ModifierData &b_mod : b_ob.modifiers) {
+    if (b_mod.type == eModifierType_Fluid) {
+      auto *b_mmd = reinterpret_cast<::FluidModifierData *>(&b_mod);
 
       if (b_mmd->type == MOD_FLUID_TYPE_DOMAIN && b_mmd->domain->type == FLUID_DOMAIN_TYPE_GAS) {
         return b_mmd->domain;

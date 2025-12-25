@@ -1313,7 +1313,7 @@ static void rna_ThemeUI_roundness_set(PointerRNA *ptr, float value)
 /* Studio Light */
 static void rna_UserDef_studiolight_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  rna_iterator_listbase_begin(iter, ptr, BKE_studiolight_listbase(), nullptr);
+  rna_iterator_listbase_begin(iter, ptr, &BKE_studiolight_listbase(), nullptr);
 }
 
 static void rna_StudioLights_refresh(UserDef * /*userdef*/)

@@ -311,12 +311,12 @@ static bool pchan_autoik_adjust(bPoseChannel *pchan, short chainlen)
   }
 
   /* Check if pchan has ik-constraint. */
-  LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
-    if (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) {
+  for (bConstraint &con : pchan->constraints) {
+    if (con.flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) {
       continue;
     }
-    if (con->type == CONSTRAINT_TYPE_KINEMATIC && (con->enforce != 0.0f)) {
-      bKinematicConstraint *data = static_cast<bKinematicConstraint *>(con->data);
+    if (con.type == CONSTRAINT_TYPE_KINEMATIC && (con.enforce != 0.0f)) {
+      bKinematicConstraint *data = static_cast<bKinematicConstraint *>(con.data);
 
       /* Only accept if a temporary one (for auto-IK). */
       if (data->flag & CONSTRAINT_IK_TEMP) {
@@ -368,8 +368,8 @@ void transform_autoik_update(TransInfo *t, short mode)
       continue;
     }
 
-    LISTBASE_FOREACH (bPoseChannel *, pchan, &tc->poseobj->pose->chanbase) {
-      changed |= pchan_autoik_adjust(pchan, *chainlen);
+    for (bPoseChannel &pchan : tc->poseobj->pose->chanbase) {
+      changed |= pchan_autoik_adjust(&pchan, *chainlen);
     }
   }
 
@@ -540,12 +540,12 @@ bool constraints_list_needinv(TransInfo *t, ListBaseT<bConstraint> *list)
   /* Loop through constraints, checking if there's one of the mentioned
    * constraints needing special crazy-space corrections. */
   if (list) {
-    LISTBASE_FOREACH (bConstraint *, con, list) {
+    for (bConstraint &con : *list) {
       /* Only consider constraint if it is enabled, and has influence on result. */
-      if ((con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) == 0 && (con->enforce != 0.0f)) {
+      if ((con.flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) == 0 && (con.enforce != 0.0f)) {
         /* Affirmative: returns for specific constraints here. */
         /* Constraints that require this regardless. */
-        if (ELEM(con->type,
+        if (ELEM(con.type,
                  CONSTRAINT_TYPE_FOLLOWPATH,
                  CONSTRAINT_TYPE_CLAMPTO,
                  CONSTRAINT_TYPE_ARMATURE,
@@ -556,9 +556,9 @@ bool constraints_list_needinv(TransInfo *t, ListBaseT<bConstraint> *list)
         }
 
         /* Constraints that require this only under special conditions. */
-        if (con->type == CONSTRAINT_TYPE_CHILDOF) {
+        if (con.type == CONSTRAINT_TYPE_CHILDOF) {
           /* ChildOf constraint only works when using all location components, see #42256. */
-          bChildOfConstraint *data = (bChildOfConstraint *)con->data;
+          bChildOfConstraint *data = (bChildOfConstraint *)con.data;
 
           if ((data->flag & CHILDOF_LOCX) && (data->flag & CHILDOF_LOCY) &&
               (data->flag & CHILDOF_LOCZ))
@@ -566,9 +566,9 @@ bool constraints_list_needinv(TransInfo *t, ListBaseT<bConstraint> *list)
             return true;
           }
         }
-        else if (con->type == CONSTRAINT_TYPE_ROTLIKE) {
+        else if (con.type == CONSTRAINT_TYPE_ROTLIKE) {
           /* CopyRot constraint only does this when rotating, and offset is on. */
-          bRotateLikeConstraint *data = (bRotateLikeConstraint *)con->data;
+          bRotateLikeConstraint *data = (bRotateLikeConstraint *)con.data;
 
           if (ELEM(data->mix_mode, ROTLIKE_MIX_OFFSET, ROTLIKE_MIX_BEFORE) &&
               ELEM(t->mode, TFM_ROTATION))
@@ -576,9 +576,9 @@ bool constraints_list_needinv(TransInfo *t, ListBaseT<bConstraint> *list)
             return true;
           }
         }
-        else if (con->type == CONSTRAINT_TYPE_TRANSLIKE) {
+        else if (con.type == CONSTRAINT_TYPE_TRANSLIKE) {
           /* Copy Transforms constraint only does this in the Before mode. */
-          bTransLikeConstraint *data = (bTransLikeConstraint *)con->data;
+          bTransLikeConstraint *data = (bTransLikeConstraint *)con.data;
 
           if (ELEM(data->mix_mode, TRANSLIKE_MIX_BEFORE, TRANSLIKE_MIX_BEFORE_FULL) &&
               ELEM(t->mode, TFM_ROTATION, TFM_TRANSLATION))
@@ -589,9 +589,9 @@ bool constraints_list_needinv(TransInfo *t, ListBaseT<bConstraint> *list)
             return true;
           }
         }
-        else if (con->type == CONSTRAINT_TYPE_ACTION) {
+        else if (con.type == CONSTRAINT_TYPE_ACTION) {
           /* The Action constraint only does this in the Before mode. */
-          bActionConstraint *data = (bActionConstraint *)con->data;
+          bActionConstraint *data = (bActionConstraint *)con.data;
 
           if (ELEM(data->mix_mode, ACTCON_MIX_BEFORE, ACTCON_MIX_BEFORE_FULL) &&
               ELEM(t->mode, TFM_ROTATION, TFM_TRANSLATION))
@@ -602,10 +602,10 @@ bool constraints_list_needinv(TransInfo *t, ListBaseT<bConstraint> *list)
             return true;
           }
         }
-        else if (con->type == CONSTRAINT_TYPE_TRANSFORM) {
+        else if (con.type == CONSTRAINT_TYPE_TRANSFORM) {
           /* Transform constraint needs it for rotation at least (r.57309),
            * but doing so when translating may also mess things up, see: #36203. */
-          bTransformConstraint *data = (bTransformConstraint *)con->data;
+          bTransformConstraint *data = (bTransformConstraint *)con.data;
 
           if (data->to == TRANS_ROTATION) {
             if (t->mode == TFM_ROTATION && data->mix_mode_rot == TRANS_MIXROT_BEFORE) {

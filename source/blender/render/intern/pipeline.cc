@@ -273,8 +273,8 @@ static bool render_scene_has_layers_to_render(Scene *scene, ViewLayer *single_la
     return true;
   }
 
-  LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
-    if (view_layer->flag & VIEW_LAYER_RENDER) {
+  for (ViewLayer &view_layer : scene->view_layers) {
+    if (view_layer.flag & VIEW_LAYER_RENDER) {
       return true;
     }
   }
@@ -386,8 +386,8 @@ void RE_AcquireResultImageViews(Render *re, RenderResult *rr)
 
       if (rl) {
         if (rv->ibuf == nullptr) {
-          LISTBASE_FOREACH (RenderView *, rview, &rr->views) {
-            rview->ibuf = RE_RenderLayerGetPassImBuf(rl, RE_PASSNAME_COMBINED, rview->name);
+          for (RenderView &rview : rr->views) {
+            rview.ibuf = RE_RenderLayerGetPassImBuf(rl, RE_PASSNAME_COMBINED, rview.name);
           }
         }
       }
@@ -632,13 +632,13 @@ void RE_FreeUnusedGPUResources()
       do_free = false;
     }
 
-    LISTBASE_FOREACH (const wmWindow *, win, &wm->windows) {
+    for (const wmWindow &win : wm->windows) {
       if (!do_free) {
         /* No need to do further checks. */
         break;
       }
 
-      const Scene *scene = WM_window_get_active_scene(win);
+      const Scene *scene = WM_window_get_active_scene(&win);
       if (scene != re->owner) {
         continue;
       }
@@ -651,9 +651,9 @@ void RE_FreeUnusedGPUResources()
         continue;
       }
 
-      const bScreen *screen = WM_window_get_active_screen(win);
-      LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
-        const SpaceLink &space = *static_cast<const SpaceLink *>(area->spacedata.first);
+      const bScreen *screen = WM_window_get_active_screen(&win);
+      for (const ScrArea &area : screen->areabase) {
+        const SpaceLink &space = *static_cast<const SpaceLink *>(area.spacedata.first);
 
         if (space.spacetype == SPACE_NODE) {
           const SpaceNode &snode = reinterpret_cast<const SpaceNode &>(space);
@@ -839,8 +839,8 @@ void RE_InitState(Render *re,
         have_layer = true;
       }
       else {
-        LISTBASE_FOREACH (RenderLayer *, rl, &re->result->layers) {
-          if (STREQ(rl->name, re->single_view_layer)) {
+        for (RenderLayer &rl : re->result->layers) {
+          if (STREQ(rl.name, re->single_view_layer)) {
             have_layer = true;
           }
         }
@@ -1283,12 +1283,12 @@ static void do_render_compositor(Render *re)
         CLOG_STR_INFO(&LOG, "Executing compositor");
         blender::compositor::RenderContext compositor_render_context;
         compositor_render_context.is_animation_render = re->flag & R_ANIMATION;
-        LISTBASE_FOREACH (RenderView *, rv, &re->result->views) {
+        for (RenderView &rv : re->result->views) {
           COM_execute(re,
                       &re->r,
                       re->pipeline_scene_eval,
                       ntree,
-                      rv->name,
+                      rv.name,
                       &compositor_render_context,
                       nullptr,
                       needed_outputs);
@@ -1316,10 +1316,10 @@ static void renderresult_set_passes_metadata(Render *re)
 
   BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 
-  LISTBASE_FOREACH (RenderLayer *, render_layer, &render_result->layers) {
-    LISTBASE_FOREACH_BACKWARD (RenderPass *, render_pass, &render_layer->passes) {
-      if (render_pass->ibuf) {
-        BKE_imbuf_stamp_info(render_result, render_pass->ibuf);
+  for (RenderLayer &render_layer : render_result->layers) {
+    for (RenderPass &render_pass : render_layer.passes.items_reversed()) {
+      if (render_pass.ibuf) {
+        BKE_imbuf_stamp_info(render_result, render_pass.ibuf);
       }
     }
   }
@@ -1333,8 +1333,8 @@ static void renderresult_stampinfo(Render *re)
   int nr = 0;
 
   /* this is the basic trick to get the displayed float or char rect from render result */
-  LISTBASE_FOREACH (RenderView *, rv, &re->result->views) {
-    RE_SetActiveRenderView(re, rv->name);
+  for (RenderView &rv : re->result->views) {
+    RE_SetActiveRenderView(re, rv.name);
     RE_AcquireResultImage(re, &rres, nr);
 
     if (rres.ibuf != nullptr) {
@@ -1358,8 +1358,8 @@ bool RE_seq_render_active(Scene *scene, RenderData *rd)
     return false;
   }
 
-  LISTBASE_FOREACH (Strip *, strip, &ed->seqbase) {
-    if (strip->type != STRIP_TYPE_SOUND && !blender::seq::render_is_muted(&ed->channels, strip)) {
+  for (Strip &strip : ed->seqbase) {
+    if (strip.type != STRIP_TYPE_SOUND && !blender::seq::render_is_muted(&ed->channels, &strip)) {
       return true;
     }
   }
@@ -1611,17 +1611,17 @@ static bool check_valid_camera_multiview(Scene *scene, Object *camera, ReportLis
     return true;
   }
 
-  LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
-    if (BKE_scene_multiview_is_render_view_active(&scene->r, srv)) {
+  for (SceneRenderView &srv : scene->r.views) {
+    if (BKE_scene_multiview_is_render_view_active(&scene->r, &srv)) {
       active_view = true;
 
       if (scene->r.views_format == SCE_VIEWS_FORMAT_MULTIVIEW) {
         Object *view_camera;
-        view_camera = BKE_camera_multiview_render(scene, camera, srv->name);
+        view_camera = BKE_camera_multiview_render(scene, camera, srv.name);
 
         if (view_camera == camera) {
           /* if the suffix is not in the camera, means we are using the fallback camera */
-          if (!BLI_str_endswith(view_camera->id.name + 2, srv->suffix)) {
+          if (!BLI_str_endswith(view_camera->id.name + 2, srv.suffix)) {
             BKE_reportf(reports,
                         RPT_ERROR,
                         "Camera \"%s\" is not a multi-view camera",
@@ -1653,24 +1653,24 @@ static int check_valid_camera(Scene *scene, Object *camera_override, ReportList 
 
   if (RE_seq_render_active(scene, &scene->r)) {
     if (scene->ed) {
-      LISTBASE_FOREACH (Strip *, strip, &scene->ed->seqbase) {
-        if ((strip->type == STRIP_TYPE_SCENE) && ((strip->flag & SEQ_SCENE_STRIPS) == 0) &&
-            (strip->scene != nullptr))
+      for (Strip &strip : scene->ed->seqbase) {
+        if ((strip.type == STRIP_TYPE_SCENE) && ((strip.flag & SEQ_SCENE_STRIPS) == 0) &&
+            (strip.scene != nullptr))
         {
-          if (!strip->scene_camera) {
-            if (!strip->scene->camera &&
-                !BKE_view_layer_camera_find(strip->scene,
-                                            BKE_view_layer_default_render(strip->scene)))
+          if (!strip.scene_camera) {
+            if (!strip.scene->camera &&
+                !BKE_view_layer_camera_find(strip.scene,
+                                            BKE_view_layer_default_render(strip.scene)))
             {
               /* camera could be unneeded due to composite nodes */
-              Object *override = (strip->scene == scene) ? camera_override : nullptr;
+              Object *override = (strip.scene == scene) ? camera_override : nullptr;
 
-              if (!check_valid_compositing_camera(strip->scene, override, reports)) {
+              if (!check_valid_compositing_camera(strip.scene, override, reports)) {
                 return false;
               }
             }
           }
-          else if (!check_valid_camera_multiview(strip->scene, strip->scene_camera, reports)) {
+          else if (!check_valid_camera_multiview(strip.scene, strip.scene_camera, reports)) {
             return false;
           }
         }
@@ -2071,18 +2071,18 @@ void RE_RenderFreestyleExternal(Render *re)
 
   FRS_init_stroke_renderer(re);
 
-  LISTBASE_FOREACH (RenderView *, rv, &re->result->views) {
-    RE_SetActiveRenderView(re, rv->name);
+  for (RenderView &rv : re->result->views) {
+    RE_SetActiveRenderView(re, rv.name);
 
     FRS_begin_stroke_rendering(re);
 
-    LISTBASE_FOREACH (ViewLayer *, view_layer, &re->scene->view_layers) {
-      if ((re->r.scemode & R_SINGLE_LAYER) && !STREQ(view_layer->name, re->single_view_layer)) {
+    for (ViewLayer &view_layer : re->scene->view_layers) {
+      if ((re->r.scemode & R_SINGLE_LAYER) && !STREQ(view_layer.name, re->single_view_layer)) {
         continue;
       }
 
-      if (FRS_is_freestyle_enabled(view_layer)) {
-        FRS_do_stroke_rendering(re, view_layer);
+      if (FRS_is_freestyle_enabled(&view_layer)) {
+        FRS_do_stroke_rendering(re, &view_layer);
       }
     }
 
@@ -2492,18 +2492,16 @@ void RE_RenderAnim(Render *re,
           bool is_skip = false;
           char filepath_view[FILE_MAX];
 
-          LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
-            if (!BKE_scene_multiview_is_render_view_active(&scene->r, srv)) {
+          for (SceneRenderView &srv : scene->r.views) {
+            if (!BKE_scene_multiview_is_render_view_active(&scene->r, &srv)) {
               continue;
             }
 
-            BKE_scene_multiview_filepath_get(srv, filepath, filepath_view);
+            BKE_scene_multiview_filepath_get(&srv, filepath, filepath_view);
             if (BLI_exists(filepath_view)) {
               is_skip = true;
-              CLOG_INFO(&LOG,
-                        "Skipping existing frame \"%s\" for view \"%s\"",
-                        filepath_view,
-                        srv->name);
+              CLOG_INFO(
+                  &LOG, "Skipping existing frame \"%s\" for view \"%s\"", filepath_view, srv.name);
             }
           }
 
@@ -2521,12 +2519,12 @@ void RE_RenderAnim(Render *re,
         else {
           char filepath_view[FILE_MAX];
 
-          LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
-            if (!BKE_scene_multiview_is_render_view_active(&scene->r, srv)) {
+          for (SceneRenderView &srv : scene->r.views) {
+            if (!BKE_scene_multiview_is_render_view_active(&scene->r, &srv)) {
               continue;
             }
 
-            BKE_scene_multiview_filepath_get(srv, filepath, filepath_view);
+            BKE_scene_multiview_filepath_get(&srv, filepath, filepath_view);
 
             touch_file(filepath);
           }
@@ -2568,12 +2566,12 @@ void RE_RenderAnim(Render *re,
           else {
             char filepath_view[FILE_MAX];
 
-            LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
-              if (!BKE_scene_multiview_is_render_view_active(&scene->r, srv)) {
+            for (SceneRenderView &srv : scene->r.views) {
+              if (!BKE_scene_multiview_is_render_view_active(&scene->r, &srv)) {
                 continue;
               }
 
-              BKE_scene_multiview_filepath_get(srv, filepath, filepath_view);
+              BKE_scene_multiview_filepath_get(&srv, filepath, filepath_view);
 
               if (BLI_file_size(filepath_view) == 0) {
                 /* BLI_exists(filepath_view) is implicit */
@@ -2801,8 +2799,8 @@ bool RE_layers_have_name(RenderResult *result)
 
 bool RE_passes_have_name(RenderLayer *rl)
 {
-  LISTBASE_FOREACH (RenderPass *, rp, &rl->passes) {
-    if (!STREQ(rp->name, "Combined")) {
+  for (RenderPass &rp : rl->passes) {
+    if (!STREQ(rp.name, "Combined")) {
       return true;
     }
   }
@@ -2812,13 +2810,13 @@ bool RE_passes_have_name(RenderLayer *rl)
 
 RenderPass *RE_pass_find_by_name(RenderLayer *rl, const char *name, const char *viewname)
 {
-  LISTBASE_FOREACH_BACKWARD (RenderPass *, rp, &rl->passes) {
-    if (STREQ(rp->name, name)) {
+  for (RenderPass &rp : rl->passes.items_reversed()) {
+    if (STREQ(rp.name, name)) {
       if (viewname == nullptr || viewname[0] == '\0') {
-        return rp;
+        return &rp;
       }
-      if (STREQ(rp->view, viewname)) {
-        return rp;
+      if (STREQ(rp.view, viewname)) {
+        return &rp;
       }
     }
   }

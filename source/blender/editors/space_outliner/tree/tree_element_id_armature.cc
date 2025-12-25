@@ -55,11 +55,11 @@ void TreeElementIDArmature::expand(SpaceOutliner &space_outliner) const
 
 void TreeElementIDArmature::expand_edit_bones() const
 {
-  int a = 0;
-  LISTBASE_FOREACH_INDEX (EditBone *, ebone, arm_.edbo, a) {
+
+  for (const auto [a, ebone] : (arm_.edbo)->enumerate()) {
     TreeElement *ten = add_element(
-        &legacy_te_.subtree, &arm_.id, ebone, &legacy_te_, TSE_EBONE, a);
-    ebone->temp.p = ten;
+        &legacy_te_.subtree, &arm_.id, &ebone, &legacy_te_, TSE_EBONE, a);
+    ebone.temp.p = ten;
   }
   /* make hierarchy */
   TreeElement *ten = arm_.edbo->first ?
@@ -91,16 +91,16 @@ static void outliner_add_bone(SpaceOutliner *space_outliner,
 
   (*a)++;
 
-  LISTBASE_FOREACH (Bone *, child_bone, &curBone->childbase) {
-    outliner_add_bone(space_outliner, &te->subtree, id, child_bone, te, a);
+  for (Bone &child_bone : curBone->childbase) {
+    outliner_add_bone(space_outliner, &te->subtree, id, &child_bone, te, a);
   }
 }
 
 void TreeElementIDArmature::expand_bones(SpaceOutliner &space_outliner) const
 {
   int a = 0;
-  LISTBASE_FOREACH (Bone *, bone, &arm_.bonebase) {
-    outliner_add_bone(&space_outliner, &legacy_te_.subtree, &arm_.id, bone, &legacy_te_, &a);
+  for (Bone &bone : arm_.bonebase) {
+    outliner_add_bone(&space_outliner, &legacy_te_.subtree, &arm_.id, &bone, &legacy_te_, &a);
   }
 }
 

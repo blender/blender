@@ -95,13 +95,13 @@ static void wm_xr_session_update_screen(Main *bmain, const wmXrData *xr_data)
   for (bScreen *screen = static_cast<bScreen *>(bmain->screens.first); screen;
        screen = static_cast<bScreen *>(screen->id.next))
   {
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (SpaceLink *, slink, &area->spacedata) {
-        if (slink->spacetype == SPACE_VIEW3D) {
-          View3D *v3d = (View3D *)slink;
+    for (ScrArea &area : screen->areabase) {
+      for (SpaceLink &slink : area.spacedata) {
+        if (slink.spacetype == SPACE_VIEW3D) {
+          View3D *v3d = (View3D *)&slink;
 
           if (v3d->flag & V3D_XR_SESSION_MIRROR) {
-            ED_view3d_xr_mirror_update(area, v3d, session_exists);
+            ED_view3d_xr_mirror_update(&area, v3d, session_exists);
           }
 
           if (session_exists) {

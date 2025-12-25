@@ -308,13 +308,13 @@ void template_palette(Layout *layout,
   col->row(true);
 
   int row_cols = 0, col_id = 0;
-  LISTBASE_FOREACH (PaletteColor *, color, &palette->colors) {
+  for (PaletteColor &color : palette->colors) {
     if (row_cols >= cols_per_row) {
       col->row(true);
       row_cols = 0;
     }
 
-    PointerRNA color_ptr = RNA_pointer_create_discrete(&palette->id, &RNA_PaletteColor, color);
+    PointerRNA color_ptr = RNA_pointer_create_discrete(&palette->id, &RNA_PaletteColor, &color);
     ButtonColor *color_but = (ButtonColor *)uiDefButR(block,
                                                       ButtonType::Color,
                                                       "",

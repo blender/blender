@@ -534,8 +534,8 @@ static void filelist_intern_entry_free(FileList *filelist, FileListInternEntry *
 static void filelist_intern_free(FileList *filelist)
 {
   FileListIntern *filelist_intern = &filelist->filelist_intern;
-  LISTBASE_FOREACH_MUTABLE (FileListInternEntry *, entry, &filelist_intern->entries) {
-    filelist_intern_entry_free(filelist, entry);
+  for (FileListInternEntry &entry : filelist_intern->entries.items_mutable()) {
+    filelist_intern_entry_free(filelist, &entry);
   }
   BLI_listbase_clear(&filelist_intern->entries);
 
@@ -549,13 +549,13 @@ static int filelist_intern_free_main_files(FileList *filelist)
 {
   FileListIntern *filelist_intern = &filelist->filelist_intern;
   int removed_counter = 0;
-  LISTBASE_FOREACH_MUTABLE (FileListInternEntry *, entry, &filelist_intern->entries) {
-    if (!filelist_intern_entry_is_main_file(entry)) {
+  for (FileListInternEntry &entry : filelist_intern->entries.items_mutable()) {
+    if (!filelist_intern_entry_is_main_file(&entry)) {
       continue;
     }
 
-    BLI_remlink(&filelist_intern->entries, entry);
-    filelist_intern_entry_free(filelist, entry);
+    BLI_remlink(&filelist_intern->entries, &entry);
+    filelist_intern_entry_free(filelist, &entry);
     removed_counter++;
   }
 
@@ -646,8 +646,8 @@ static void filelist_cache_previews_clear(FileListEntryCache *cache)
   if (cache->previews_pool) {
     BLI_task_pool_cancel(cache->previews_pool);
 
-    LISTBASE_FOREACH (FileDirEntry *, entry, &cache->cached_entries) {
-      entry->flags &= ~FILE_ENTRY_PREVIEW_LOADING;
+    for (FileDirEntry &entry : cache->cached_entries) {
+      entry.flags &= ~FILE_ENTRY_PREVIEW_LOADING;
     }
 
     FileListEntryPreview *preview;
@@ -806,8 +806,8 @@ FileListEntryCache::~FileListEntryCache()
   MEM_freeN(this->block_entries);
   MEM_freeN(this->misc_entries_indices);
 
-  LISTBASE_FOREACH_MUTABLE (FileDirEntry *, entry, &this->cached_entries) {
-    filelist_entry_free(entry);
+  for (FileDirEntry &entry : this->cached_entries.items_mutable()) {
+    filelist_entry_free(&entry);
   }
 }
 
@@ -835,8 +835,8 @@ void filelist_cache_clear(FileListEntryCache *cache, size_t new_size)
 
   cache->size = new_size;
 
-  LISTBASE_FOREACH_MUTABLE (FileDirEntry *, entry, &cache->cached_entries) {
-    filelist_entry_free(entry);
+  for (FileDirEntry &entry : cache->cached_entries.items_mutable()) {
+    filelist_entry_free(&entry);
   }
   BLI_listbase_clear(&cache->cached_entries);
 }
@@ -2921,19 +2921,19 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
                                               skip_currpar);
     }
 
-    LISTBASE_FOREACH (FileListInternEntry *, entry, &entries) {
-      entry->uid = filelist_uid_generate(filelist);
-      if (!entry->name) {
-        entry->name = fileentry_uiname(root, entry, dir);
+    for (FileListInternEntry &entry : entries) {
+      entry.uid = filelist_uid_generate(filelist);
+      if (!entry.name) {
+        entry.name = fileentry_uiname(root, &entry, dir);
       }
-      entry->free_name = true;
+      entry.free_name = true;
 
       if (filelist_readjob_should_recurse_into_entry(
-              max_recursion, is_lib, recursion_level, entry))
+              max_recursion, is_lib, recursion_level, &entry))
       {
         /* We have a directory we want to list, add it to todo list!
          * Using #BLI_path_join works but isn't needed as `root` has a trailing slash. */
-        BLI_string_join(dir, sizeof(dir), root, entry->relpath);
+        BLI_string_join(dir, sizeof(dir), root, entry.relpath);
         BLI_path_abs(dir, job_params->main_filepath);
         BLI_path_normalize_dir(dir, sizeof(dir));
         td_dir = static_cast<TodoDir *>(BLI_stack_push_r(todo_dirs));

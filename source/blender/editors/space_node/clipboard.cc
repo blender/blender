@@ -351,18 +351,18 @@ static wmOperatorStatus node_clipboard_copy_exec(bContext *C, wmOperator * /*op*
   }
 
   /* Copy links between selected nodes. */
-  LISTBASE_FOREACH (bNodeLink *, link, &tree.links) {
-    BLI_assert(link->tonode);
-    BLI_assert(link->fromnode);
-    if (link->tonode->flag & NODE_SELECT && link->fromnode->flag & NODE_SELECT) {
+  for (bNodeLink &link : tree.links) {
+    BLI_assert(link.tonode);
+    BLI_assert(link.fromnode);
+    if (link.tonode->flag & NODE_SELECT && link.fromnode->flag & NODE_SELECT) {
       clipboard.links.append({});
       ClipboardLink &new_link = clipboard.links.last();
-      new_link.flag = link->flag;
-      new_link.to_node = node_map.lookup(link->tonode);
-      new_link.from_node = node_map.lookup(link->fromnode);
-      new_link.to_socket = link->tosock->identifier;
-      new_link.from_socket = link->fromsock->identifier;
-      new_link.multi_input_sort_id = link->multi_input_sort_id;
+      new_link.flag = link.flag;
+      new_link.to_node = node_map.lookup(link.tonode);
+      new_link.from_node = node_map.lookup(link.fromnode);
+      new_link.to_socket = link.tosock->identifier;
+      new_link.from_socket = link.fromsock->identifier;
+      new_link.multi_input_sort_id = link.multi_input_sort_id;
     }
   }
 
@@ -434,11 +434,11 @@ static wmOperatorStatus node_clipboard_paste_exec(bContext *C, wmOperator *op)
     /* Update the newly copied node's ID references. */
     clipboard.paste_update_node_id_references(*new_node);
     /* Reset socket shape in case a node is copied to a different tree type. */
-    LISTBASE_FOREACH (bNodeSocket *, socket, &new_node->inputs) {
-      socket->display_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
+    for (bNodeSocket &socket : new_node->inputs) {
+      socket.display_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
     }
-    LISTBASE_FOREACH (bNodeSocket *, socket, &new_node->outputs) {
-      socket->display_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
+    for (bNodeSocket &socket : new_node->outputs) {
+      socket.display_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
     }
 
     if (!new_node->typeinfo->poll_instance ||

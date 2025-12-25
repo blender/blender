@@ -109,8 +109,8 @@ static void spreadsheet_free(SpaceLink *sl)
 
   MEM_delete(sspreadsheet->runtime);
 
-  LISTBASE_FOREACH_MUTABLE (SpreadsheetRowFilter *, row_filter, &sspreadsheet->row_filters) {
-    spreadsheet_row_filter_free(row_filter);
+  for (SpreadsheetRowFilter &row_filter : sspreadsheet->row_filters.items_mutable()) {
+    spreadsheet_row_filter_free(&row_filter);
   }
   for (const int i : IndexRange(sspreadsheet->num_tables)) {
     spreadsheet_table_free(sspreadsheet->tables[i]);
@@ -129,8 +129,8 @@ static SpaceLink *spreadsheet_duplicate(SpaceLink *sl)
                                                                 *sspreadsheet_old->runtime);
 
   BLI_listbase_clear(&sspreadsheet_new->row_filters);
-  LISTBASE_FOREACH (const SpreadsheetRowFilter *, src_filter, &sspreadsheet_old->row_filters) {
-    SpreadsheetRowFilter *new_filter = spreadsheet_row_filter_copy(src_filter);
+  for (const SpreadsheetRowFilter &src_filter : sspreadsheet_old->row_filters) {
+    SpreadsheetRowFilter *new_filter = spreadsheet_row_filter_copy(&src_filter);
     BLI_addtail(&sspreadsheet_new->row_filters, new_filter);
   }
   sspreadsheet_new->num_tables = sspreadsheet_old->num_tables;
@@ -720,8 +720,8 @@ static void spreadsheet_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 
   sspreadsheet->runtime = MEM_new<SpaceSpreadsheet_Runtime>(__func__);
   BLO_read_struct_list(reader, SpreadsheetRowFilter, &sspreadsheet->row_filters);
-  LISTBASE_FOREACH (SpreadsheetRowFilter *, row_filter, &sspreadsheet->row_filters) {
-    BLO_read_string(reader, &row_filter->value_string);
+  for (SpreadsheetRowFilter &row_filter : sspreadsheet->row_filters) {
+    BLO_read_string(reader, &row_filter.value_string);
   }
 
   BLO_read_pointer_array(
@@ -739,9 +739,9 @@ static void spreadsheet_blend_write(BlendWriter *writer, SpaceLink *sl)
   writer->write_struct_cast<SpaceSpreadsheet>(sl);
   SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
 
-  LISTBASE_FOREACH (SpreadsheetRowFilter *, row_filter, &sspreadsheet->row_filters) {
-    writer->write_struct(row_filter);
-    BLO_write_string(writer, row_filter->value_string);
+  for (SpreadsheetRowFilter &row_filter : sspreadsheet->row_filters) {
+    writer->write_struct(&row_filter);
+    BLO_write_string(writer, row_filter.value_string);
   }
 
   BLO_write_pointer_array(writer, sspreadsheet->num_tables, sspreadsheet->tables);

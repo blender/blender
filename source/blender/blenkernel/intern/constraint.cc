@@ -2528,8 +2528,8 @@ static void armdef_id_looper(bConstraint *con, ConstraintIDFunc func, void *user
   bArmatureConstraint *data = static_cast<bArmatureConstraint *>(con->data);
 
   /* Target list. */
-  LISTBASE_FOREACH (bConstraintTarget *, ct, &data->targets) {
-    func(con, (ID **)&ct->tar, false, userdata);
+  for (bConstraintTarget &ct : data->targets) {
+    func(con, (ID **)&ct.tar, false, userdata);
   }
 }
 
@@ -2694,23 +2694,23 @@ static void armdef_evaluate(bConstraint *con,
 
   /* Process all targets. This can't use ct->matrix, as armdef_get_tarmat is not
    * called in solve for efficiency because the constraint needs bone data anyway. */
-  LISTBASE_FOREACH (bConstraintTarget *, ct, targets) {
-    if (ct->weight <= 0.0f) {
+  for (bConstraintTarget &ct : *targets) {
+    if (ct.weight <= 0.0f) {
       continue;
     }
 
     /* Lookup the bone and abort if failed. */
-    if (!VALID_CONS_TARGET(ct) || ct->tar->type != OB_ARMATURE) {
+    if (!VALID_CONS_TARGET(&ct) || ct.tar->type != OB_ARMATURE) {
       return;
     }
 
-    bPoseChannel *pchan = BKE_pose_channel_find_name(ct->tar->pose, ct->subtarget);
+    bPoseChannel *pchan = BKE_pose_channel_find_name(ct.tar->pose, ct.subtarget);
 
     if (pchan == nullptr || pchan->bone == nullptr) {
       return;
     }
 
-    armdef_accumulate_bone(ct, pchan, input_co, use_envelopes, &weight, sum_mat, pdq);
+    armdef_accumulate_bone(&ct, pchan, input_co, use_envelopes, &weight, sum_mat, pdq);
   }
 
   /* Compute the final transform. */
@@ -5941,8 +5941,8 @@ void BKE_constraint_free_data(bConstraint *con)
 void BKE_constraints_free_ex(ListBaseT<bConstraint> *list, bool do_id_user)
 {
   /* Free constraint data and also any extra data */
-  LISTBASE_FOREACH (bConstraint *, con, list) {
-    BKE_constraint_free_data_ex(con, do_id_user);
+  for (bConstraint &con : *list) {
+    BKE_constraint_free_data_ex(&con, do_id_user);
   }
 
   /* Free the whole list */
@@ -6245,11 +6245,11 @@ void BKE_constraints_id_loop(ListBaseT<bConstraint> *conlist,
                              const int flag,
                              void *userdata)
 {
-  LISTBASE_FOREACH (bConstraint *, con, conlist) {
-    const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+  for (bConstraint &con : *conlist) {
+    const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(&con);
 
     if (cti) {
-      con_invoke_id_looper(cti, con, func, flag, userdata);
+      con_invoke_id_looper(cti, &con, func, flag, userdata);
     }
   }
 }
@@ -6380,9 +6380,9 @@ bConstraint *BKE_constraints_active_get(ListBaseT<bConstraint> *list)
 
   /* search for the first constraint with the 'active' flag set */
   if (list) {
-    LISTBASE_FOREACH (bConstraint *, con, list) {
-      if (con->flag & CONSTRAINT_ACTIVE) {
-        return con;
+    for (bConstraint &con : *list) {
+      if (con.flag & CONSTRAINT_ACTIVE) {
+        return &con;
       }
     }
   }
@@ -6395,12 +6395,12 @@ void BKE_constraints_active_set(ListBaseT<bConstraint> *list, bConstraint *con)
 {
 
   if (list) {
-    LISTBASE_FOREACH (bConstraint *, con_iter, list) {
-      if (con_iter == con) {
-        con_iter->flag |= CONSTRAINT_ACTIVE;
+    for (bConstraint &con_iter : *list) {
+      if (&con_iter == con) {
+        con_iter.flag |= CONSTRAINT_ACTIVE;
       }
       else {
-        con_iter->flag &= ~CONSTRAINT_ACTIVE;
+        con_iter.flag &= ~CONSTRAINT_ACTIVE;
       }
     }
   }
@@ -6409,15 +6409,15 @@ void BKE_constraints_active_set(ListBaseT<bConstraint> *list, bConstraint *con)
 static bConstraint *constraint_list_find_from_target(ListBaseT<bConstraint> *constraints,
                                                      bConstraintTarget *tgt)
 {
-  LISTBASE_FOREACH (bConstraint *, con, constraints) {
+  for (bConstraint &con : *constraints) {
     ListBaseT<bConstraintTarget> *targets = nullptr;
 
-    if (con->type == CONSTRAINT_TYPE_ARMATURE) {
-      targets = &((bArmatureConstraint *)con->data)->targets;
+    if (con.type == CONSTRAINT_TYPE_ARMATURE) {
+      targets = &((bArmatureConstraint *)con.data)->targets;
     }
 
     if (targets && BLI_findindex(targets, tgt) != -1) {
-      return con;
+      return &con;
     }
   }
 
@@ -6439,12 +6439,12 @@ bConstraint *BKE_constraint_find_from_target(Object *ob,
   }
 
   if (ob->pose != nullptr) {
-    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-      result = constraint_list_find_from_target(&pchan->constraints, tgt);
+    for (bPoseChannel &pchan : ob->pose->chanbase) {
+      result = constraint_list_find_from_target(&pchan.constraints, tgt);
 
       if (result != nullptr) {
         if (r_pchan != nullptr) {
-          *r_pchan = pchan;
+          *r_pchan = &pchan;
         }
 
         return result;
@@ -6691,13 +6691,13 @@ void BKE_constraint_targets_for_solving_get(Depsgraph *depsgraph,
      * - calculate if possible, otherwise just initialize as identity matrix
      */
     if (cti->get_target_matrix) {
-      LISTBASE_FOREACH (bConstraintTarget *, ct, targets) {
-        cti->get_target_matrix(depsgraph, con, cob, ct, ctime);
+      for (bConstraintTarget &ct : *targets) {
+        cti->get_target_matrix(depsgraph, con, cob, &ct, ctime);
       }
     }
     else {
-      LISTBASE_FOREACH (bConstraintTarget *, ct, targets) {
-        unit_m4(ct->matrix);
+      for (bConstraintTarget &ct : *targets) {
+        unit_m4(ct.matrix);
       }
     }
   }
@@ -6738,15 +6738,15 @@ void BKE_constraints_solve(Depsgraph *depsgraph,
   }
 
   /* loop over available constraints, solving and blending them */
-  LISTBASE_FOREACH (bConstraint *, con, conlist) {
-    const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+  for (bConstraint &con : *conlist) {
+    const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(&con);
     ListBaseT<bConstraintTarget> targets = {nullptr, nullptr};
 
     /* these we can skip completely (invalid constraints...) */
     if (cti == nullptr) {
       continue;
     }
-    if (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) {
+    if (con.flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) {
       continue;
     }
     /* these constraints can't be evaluated anyway */
@@ -6754,43 +6754,43 @@ void BKE_constraints_solve(Depsgraph *depsgraph,
       continue;
     }
     /* influence == 0 should be ignored */
-    if (con->enforce == 0.0f) {
+    if (con.enforce == 0.0f) {
       continue;
     }
 
     /* influence of constraint
      * - value should have been set from animation data already
      */
-    enf = con->enforce;
+    enf = con.enforce;
 
     /* Initialize the custom space for use in calculating the matrices. */
-    BKE_constraint_custom_object_space_init(cob, con);
+    BKE_constraint_custom_object_space_init(cob, &con);
 
     /* make copy of world-space matrix pre-constraint for use with blending later */
     copy_m4_m4(oldmat, cob->matrix);
 
     /* move owner matrix into right space */
     BKE_constraint_mat_convertspace(
-        cob->ob, cob->pchan, cob, cob->matrix, CONSTRAINT_SPACE_WORLD, con->ownspace, false);
+        cob->ob, cob->pchan, cob, cob->matrix, CONSTRAINT_SPACE_WORLD, con.ownspace, false);
 
     /* prepare targets for constraint solving */
-    BKE_constraint_targets_for_solving_get(depsgraph, con, cob, &targets, ctime);
+    BKE_constraint_targets_for_solving_get(depsgraph, &con, cob, &targets, ctime);
 
     /* Solve the constraint and put result in cob->matrix */
-    cti->evaluate_constraint(con, cob, &targets);
+    cti->evaluate_constraint(&con, cob, &targets);
 
     /* clear targets after use
      * - this should free temp targets but no data should be copied back
      *   as constraints may have done some nasty things to it...
      */
     if (cti->flush_constraint_targets) {
-      cti->flush_constraint_targets(con, &targets, true);
+      cti->flush_constraint_targets(&con, &targets, true);
     }
 
     /* move owner back into world-space for next constraint/other business */
-    if ((con->flag & CONSTRAINT_SPACEONCE) == 0) {
+    if ((con.flag & CONSTRAINT_SPACEONCE) == 0) {
       BKE_constraint_mat_convertspace(
-          cob->ob, cob->pchan, cob, cob->matrix, con->ownspace, CONSTRAINT_SPACE_WORLD, false);
+          cob->ob, cob->pchan, cob, cob->matrix, con.ownspace, CONSTRAINT_SPACE_WORLD, false);
     }
 
     /* Interpolate the enforcement, to blend result of constraint into final owner transform
@@ -6810,28 +6810,28 @@ void BKE_constraints_solve(Depsgraph *depsgraph,
 
 void BKE_constraint_blend_write(BlendWriter *writer, ListBaseT<bConstraint> *conlist)
 {
-  LISTBASE_FOREACH (bConstraint *, con, conlist) {
-    const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+  for (bConstraint &con : *conlist) {
+    const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(&con);
 
     /* Write the specific data */
-    if (cti && con->data) {
+    if (cti && con.data) {
       /* firstly, just write the plain con->data struct */
-      writer->write_struct_by_name(cti->struct_name, con->data);
+      writer->write_struct_by_name(cti->struct_name, con.data);
 
       /* do any constraint specific stuff */
-      switch (con->type) {
+      switch (con.type) {
         case CONSTRAINT_TYPE_ARMATURE: {
-          bArmatureConstraint *data = static_cast<bArmatureConstraint *>(con->data);
+          bArmatureConstraint *data = static_cast<bArmatureConstraint *>(con.data);
 
           /* write targets */
-          LISTBASE_FOREACH (bConstraintTarget *, ct, &data->targets) {
-            writer->write_struct(ct);
+          for (bConstraintTarget &ct : data->targets) {
+            writer->write_struct(&ct);
           }
 
           break;
         }
         case CONSTRAINT_TYPE_SPLINEIK: {
-          bSplineIKConstraint *data = static_cast<bSplineIKConstraint *>(con->data);
+          bSplineIKConstraint *data = static_cast<bSplineIKConstraint *>(con.data);
 
           /* write points array */
           BLO_write_float_array(writer, data->numpoints, data->points);
@@ -6840,7 +6840,7 @@ void BKE_constraint_blend_write(BlendWriter *writer, ListBaseT<bConstraint> *con
         }
         case CONSTRAINT_TYPE_GEOMETRY_ATTRIBUTE: {
           bGeometryAttributeConstraint *data = static_cast<bGeometryAttributeConstraint *>(
-              con->data);
+              con.data);
           BLO_write_string(writer, data->attribute_name);
           break;
         }
@@ -6848,7 +6848,7 @@ void BKE_constraint_blend_write(BlendWriter *writer, ListBaseT<bConstraint> *con
     }
 
     /* Write the constraint */
-    writer->write_struct(con);
+    writer->write_struct(&con);
   }
 }
 
@@ -6857,61 +6857,60 @@ void BKE_constraint_blend_read_data(BlendDataReader *reader,
                                     ListBaseT<bConstraint> *lb)
 {
   BLO_read_struct_list(reader, bConstraint, lb);
-  LISTBASE_FOREACH (bConstraint *, con, lb) {
-    const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+  for (bConstraint &con : *lb) {
+    const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(&con);
     if (cti) {
-      con->data = BLO_read_struct_by_name_array(reader, cti->struct_name, 1, con->data);
+      con.data = BLO_read_struct_by_name_array(reader, cti->struct_name, 1, con.data);
     }
     else {
       /* No `BLI_assert_unreachable()` here, this code can be reached in some cases, like the
        * deprecated RigidBody constraint. */
-      con->data = nullptr;
+      con.data = nullptr;
     }
 
     /* Patch for error introduced by changing constraints (don't know how). */
     /* NOTE(@ton): If `con->data` type changes, DNA cannot resolve the pointer!. */
-    if (con->data == nullptr) {
-      con->type = CONSTRAINT_TYPE_NULL;
+    if (con.data == nullptr) {
+      con.type = CONSTRAINT_TYPE_NULL;
     }
 
     /* If linking from a library, clear 'local' library override flag. */
     if (ID_IS_LINKED(id_owner)) {
-      con->flag &= ~CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
+      con.flag &= ~CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
     }
 
-    switch (con->type) {
+    switch (con.type) {
       case CONSTRAINT_TYPE_ARMATURE: {
-        bArmatureConstraint *data = static_cast<bArmatureConstraint *>(con->data);
+        bArmatureConstraint *data = static_cast<bArmatureConstraint *>(con.data);
 
         BLO_read_struct_list(reader, bConstraintTarget, &data->targets);
 
         break;
       }
       case CONSTRAINT_TYPE_SPLINEIK: {
-        bSplineIKConstraint *data = static_cast<bSplineIKConstraint *>(con->data);
+        bSplineIKConstraint *data = static_cast<bSplineIKConstraint *>(con.data);
 
         BLO_read_float_array(reader, data->numpoints, &data->points);
         break;
       }
       case CONSTRAINT_TYPE_KINEMATIC: {
-        bKinematicConstraint *data = static_cast<bKinematicConstraint *>(con->data);
+        bKinematicConstraint *data = static_cast<bKinematicConstraint *>(con.data);
 
-        con->lin_error = 0.0f;
-        con->rot_error = 0.0f;
+        con.lin_error = 0.0f;
+        con.rot_error = 0.0f;
 
         /* version patch for runtime flag, was not cleared in some case */
         data->flag &= ~CONSTRAINT_IK_AUTO;
         break;
       }
       case CONSTRAINT_TYPE_TRANSFORM_CACHE: {
-        bTransformCacheConstraint *data = static_cast<bTransformCacheConstraint *>(con->data);
+        bTransformCacheConstraint *data = static_cast<bTransformCacheConstraint *>(con.data);
         data->reader = nullptr;
         data->reader_object_path[0] = '\0';
         break;
       }
       case CONSTRAINT_TYPE_GEOMETRY_ATTRIBUTE: {
-        bGeometryAttributeConstraint *data = static_cast<bGeometryAttributeConstraint *>(
-            con->data);
+        bGeometryAttributeConstraint *data = static_cast<bGeometryAttributeConstraint *>(con.data);
         BLO_read_string(reader, &data->attribute_name);
         break;
       }

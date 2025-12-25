@@ -20,8 +20,8 @@ static void strip_connections_free(Strip *strip)
     return;
   }
   ListBaseT<StripConnection> *connections = &strip->connections;
-  LISTBASE_FOREACH_MUTABLE (StripConnection *, con, connections) {
-    MEM_delete(con);
+  for (StripConnection &con : connections->items_mutable()) {
+    MEM_delete(&con);
   }
   BLI_listbase_clear(connections);
 }
@@ -29,8 +29,8 @@ static void strip_connections_free(Strip *strip)
 void connections_duplicate(ListBaseT<StripConnection> *connections_dst,
                            ListBaseT<StripConnection> *connections_src)
 {
-  LISTBASE_FOREACH (StripConnection *, con, connections_src) {
-    StripConnection *con_duplicate = MEM_new_for_free<StripConnection>(__func__, *con);
+  for (StripConnection &con : *connections_src) {
+    StripConnection *con_duplicate = MEM_new_for_free<StripConnection>(__func__, con);
     BLI_addtail(connections_dst, con_duplicate);
   }
 }
@@ -41,12 +41,12 @@ bool disconnect(Strip *strip)
     return false;
   }
   /* Remove `StripConnections` from other strips' `connections` list that point to `strip`. */
-  LISTBASE_FOREACH (StripConnection *, con_strip, &strip->connections) {
-    Strip *other = con_strip->strip_ref;
-    LISTBASE_FOREACH_MUTABLE (StripConnection *, con_other, &other->connections) {
-      if (con_other->strip_ref == strip) {
-        BLI_remlink(&other->connections, con_other);
-        MEM_delete(con_other);
+  for (StripConnection &con_strip : strip->connections) {
+    Strip *other = con_strip.strip_ref;
+    for (StripConnection &con_other : other->connections.items_mutable()) {
+      if (con_other.strip_ref == strip) {
+        BLI_remlink(&other->connections, &con_other);
+        MEM_delete(&con_other);
       }
     }
   }
@@ -71,19 +71,19 @@ void cut_one_way_connections(Strip *strip)
   if (strip == nullptr) {
     return;
   }
-  LISTBASE_FOREACH_MUTABLE (StripConnection *, con_strip, &strip->connections) {
-    Strip *other = con_strip->strip_ref;
+  for (StripConnection &con_strip : strip->connections.items_mutable()) {
+    Strip *other = con_strip.strip_ref;
     bool is_one_way = true;
-    LISTBASE_FOREACH (StripConnection *, con_other, &other->connections) {
-      if (con_other->strip_ref == strip) {
+    for (StripConnection &con_other : other->connections) {
+      if (con_other.strip_ref == strip) {
         /* The `other` sequence has a bidirectional connection with `strip`. */
         is_one_way = false;
         break;
       }
     }
     if (is_one_way) {
-      BLI_remlink(&strip->connections, con_strip);
-      MEM_delete(con_strip);
+      BLI_remlink(&strip->connections, &con_strip);
+      MEM_delete(&con_strip);
     }
   }
 }
@@ -121,8 +121,8 @@ VectorSet<Strip *> connected_strips_get(const Strip *strip)
 {
   VectorSet<Strip *> connections;
   if (strip != nullptr) {
-    LISTBASE_FOREACH (StripConnection *, con, &strip->connections) {
-      connections.add(con->strip_ref);
+    for (StripConnection &con : strip->connections) {
+      connections.add(con.strip_ref);
     }
   }
   return connections;

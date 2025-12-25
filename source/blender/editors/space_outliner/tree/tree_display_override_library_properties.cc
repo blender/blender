@@ -101,9 +101,9 @@ ListBaseT<TreeElement> TreeDisplayOverrideLibraryProperties::add_library_content
   }
 
   /* Remove ID base elements that turn out to be empty. */
-  LISTBASE_FOREACH_MUTABLE (TreeElement *, te, &tree) {
-    if (BLI_listbase_is_empty(&te->subtree)) {
-      outliner_free_tree_element(te, &tree);
+  for (TreeElement &te : tree.items_mutable()) {
+    if (BLI_listbase_is_empty(&te.subtree)) {
+      outliner_free_tree_element(&te, &tree);
     }
   }
 

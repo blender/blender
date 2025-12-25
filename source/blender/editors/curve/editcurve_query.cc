@@ -162,13 +162,13 @@ void ED_curve_nurb_vert_selected_find(
   *r_bezt = nullptr;
   *r_bp = nullptr;
 
-  LISTBASE_FOREACH (Nurb *, nu1, editnurb) {
-    if (nu1->type == CU_BEZIER) {
-      bezt1 = nu1->bezt;
-      a = nu1->pntsu;
+  for (Nurb &nu1 : *editnurb) {
+    if (nu1.type == CU_BEZIER) {
+      bezt1 = nu1.bezt;
+      a = nu1.pntsu;
       while (a--) {
         if (BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt1)) {
-          if (!ELEM(*r_nu, nullptr, nu1)) {
+          if (!ELEM(*r_nu, nullptr, &nu1)) {
             *r_nu = nullptr;
             *r_bp = nullptr;
             *r_bezt = nullptr;
@@ -181,18 +181,18 @@ void ED_curve_nurb_vert_selected_find(
           }
           else {
             *r_bezt = bezt1;
-            *r_nu = nu1;
+            *r_nu = &nu1;
           }
         }
         bezt1++;
       }
     }
     else {
-      bp1 = nu1->bp;
-      a = nu1->pntsu * nu1->pntsv;
+      bp1 = nu1.bp;
+      a = nu1.pntsu * nu1.pntsv;
       while (a--) {
         if (bp1->f1 & SELECT) {
-          if (!ELEM(*r_nu, nullptr, nu1)) {
+          if (!ELEM(*r_nu, nullptr, &nu1)) {
             *r_bp = nullptr;
             *r_bezt = nullptr;
             *r_nu = nullptr;
@@ -205,7 +205,7 @@ void ED_curve_nurb_vert_selected_find(
           }
           else {
             *r_bp = bp1;
-            *r_nu = nu1;
+            *r_nu = &nu1;
           }
         }
         bp1++;

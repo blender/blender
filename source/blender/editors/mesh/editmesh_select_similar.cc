@@ -1062,9 +1062,9 @@ static wmOperatorStatus similar_vert_select_exec(bContext *C, wmOperator *op)
       const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
 
       int i = 0;
-      LISTBASE_FOREACH (bDeformGroup *, dg, defbase) {
+      for (bDeformGroup &dg : *defbase) {
         if (BLI_BITMAP_TEST(defbase_selected, i)) {
-          selected_vertex_groups.add_as(dg->name);
+          selected_vertex_groups.add_as(dg.name);
         }
         i += 1;
       }

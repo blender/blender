@@ -69,12 +69,12 @@ static void node_shader_update_subsurface_scattering(bNodeTree *ntree, bNode *no
 {
   const int sss_method = node->custom1;
 
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    if (STR_ELEM(sock->name, "IOR", "Anisotropy")) {
-      bke::node_set_socket_availability(*ntree, *sock, sss_method != SHD_SUBSURFACE_BURLEY);
+  for (bNodeSocket &sock : node->inputs) {
+    if (STR_ELEM(sock.name, "IOR", "Anisotropy")) {
+      bke::node_set_socket_availability(*ntree, sock, sss_method != SHD_SUBSURFACE_BURLEY);
     }
-    if (STR_ELEM(sock->name, "Roughness")) {
-      bke::node_set_socket_availability(*ntree, *sock, sss_method == SHD_SUBSURFACE_RANDOM_WALK);
+    if (STR_ELEM(sock.name, "Roughness")) {
+      bke::node_set_socket_availability(*ntree, sock, sss_method == SHD_SUBSURFACE_RANDOM_WALK);
     }
   }
 }

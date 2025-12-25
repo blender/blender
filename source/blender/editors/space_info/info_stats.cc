@@ -242,27 +242,27 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
     /* Armature Edit */
     bArmature *arm = static_cast<bArmature *>(obedit->data);
 
-    LISTBASE_FOREACH (EditBone *, ebo, arm->edbo) {
+    for (EditBone &ebo : *arm->edbo) {
       stats->totbone++;
 
-      if ((ebo->flag & BONE_CONNECTED) && ebo->parent) {
+      if ((ebo.flag & BONE_CONNECTED) && ebo.parent) {
         stats->totvert--;
       }
 
-      if (ebo->flag & BONE_TIPSEL) {
+      if (ebo.flag & BONE_TIPSEL) {
         stats->totvertsel++;
       }
-      if (ebo->flag & BONE_ROOTSEL) {
+      if (ebo.flag & BONE_ROOTSEL) {
         stats->totvertsel++;
       }
 
-      if (ebo->flag & BONE_SELECTED) {
+      if (ebo.flag & BONE_SELECTED) {
         stats->totbonesel++;
       }
 
       /* if this is a connected child and its parent is being moved, remove our root */
-      if ((ebo->flag & BONE_CONNECTED) && (ebo->flag & BONE_ROOTSEL) && ebo->parent &&
-          (ebo->parent->flag & BONE_TIPSEL))
+      if ((ebo.flag & BONE_CONNECTED) && (ebo.flag & BONE_ROOTSEL) && ebo.parent &&
+          (ebo.parent->flag & BONE_TIPSEL))
       {
         stats->totvertsel--;
       }
@@ -278,10 +278,10 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
     int a;
     ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
 
-    LISTBASE_FOREACH (Nurb *, nu, nurbs) {
-      if (nu->type == CU_BEZIER) {
-        bezt = nu->bezt;
-        a = nu->pntsu;
+    for (Nurb &nu : *nurbs) {
+      if (nu.type == CU_BEZIER) {
+        bezt = nu.bezt;
+        a = nu.pntsu;
         while (a--) {
           stats->totvert += 3;
           if (bezt->f1 & SELECT) {
@@ -297,8 +297,8 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
         }
       }
       else {
-        bp = nu->bp;
-        a = nu->pntsu * nu->pntsv;
+        bp = nu.bp;
+        a = nu.pntsu * nu.pntsv;
         while (a--) {
           stats->totvert++;
           if (bp->f1 & SELECT) {
@@ -313,9 +313,9 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
     /* MetaBall Edit */
     MetaBall *mball = static_cast<MetaBall *>(obedit->data);
 
-    LISTBASE_FOREACH (MetaElem *, ml, mball->editelems) {
+    for (MetaElem &ml : *mball->editelems) {
       stats->totvert++;
-      if (ml->flag & SELECT) {
+      if (ml.flag & SELECT) {
         stats->totvertsel++;
       }
     }
@@ -362,10 +362,10 @@ static void stats_object_pose(const Object *ob, SceneStats *stats)
   if (ob->pose) {
     bArmature *arm = static_cast<bArmature *>(ob->data);
 
-    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
+    for (bPoseChannel &pchan : ob->pose->chanbase) {
       stats->totbone++;
-      if ((pchan->flag & POSE_SELECTED)) {
-        if (BKE_pose_is_bonecoll_visible(arm, pchan)) {
+      if ((pchan.flag & POSE_SELECTED)) {
+        if (BKE_pose_is_bonecoll_visible(arm, &pchan)) {
           stats->totbonesel++;
         }
       }
@@ -491,15 +491,15 @@ void ED_info_stats_clear(wmWindowManager *wm, ViewLayer *view_layer)
 {
   MEM_SAFE_FREE(view_layer->stats);
 
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    ViewLayer *view_layer_test = WM_window_get_active_view_layer(win);
+  for (wmWindow &win : wm->windows) {
+    ViewLayer *view_layer_test = WM_window_get_active_view_layer(&win);
     if (view_layer != view_layer_test) {
       continue;
     }
-    const bScreen *screen = WM_window_get_active_screen(win);
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      if (area->spacetype == SPACE_VIEW3D) {
-        View3D *v3d = (View3D *)area->spacedata.first;
+    const bScreen *screen = WM_window_get_active_screen(&win);
+    for (ScrArea &area : screen->areabase) {
+      if (area.spacetype == SPACE_VIEW3D) {
+        View3D *v3d = (View3D *)area.spacedata.first;
         if (v3d->localvd) {
           ED_view3d_local_stats_free(v3d);
         }

@@ -1989,8 +1989,8 @@ void apply_eval_grease_pencil_data(const GreasePencil &eval_grease_pencil,
 
   /* Gather the original vertex group names. */
   Set<StringRef> orig_vgroup_names;
-  LISTBASE_FOREACH (bDeformGroup *, dg, &orig_grease_pencil.vertex_group_names) {
-    orig_vgroup_names.add(dg->name);
+  for (bDeformGroup &dg : orig_grease_pencil.vertex_group_names) {
+    orig_vgroup_names.add(dg.name);
   }
 
   /* Update the drawings. */
@@ -2005,9 +2005,9 @@ void apply_eval_grease_pencil_data(const GreasePencil &eval_grease_pencil,
       CurvesGeometry &eval_strokes = drawing_eval->strokes_for_write();
 
       /* Check for new vertex groups in CurvesGeometry. */
-      LISTBASE_FOREACH (bDeformGroup *, dg, &eval_strokes.vertex_group_names) {
-        if (!orig_vgroup_names.contains(dg->name)) {
-          new_vgroup_names.add(dg->name);
+      for (bDeformGroup &dg : eval_strokes.vertex_group_names) {
+        if (!orig_vgroup_names.contains(dg.name)) {
+          new_vgroup_names.add(dg.name);
         }
       }
 

@@ -113,8 +113,8 @@ static void metaball_blend_write(BlendWriter *writer, ID *id, const void *id_add
   /* direct data */
   BLO_write_pointer_array(writer, mb->totcol, mb->mat);
 
-  LISTBASE_FOREACH (MetaElem *, ml, &mb->elems) {
-    writer->write_struct(ml);
+  for (MetaElem &ml : mb->elems) {
+    writer->write_struct(&ml);
   }
 }
 
@@ -294,8 +294,8 @@ bool BKE_mball_is_basis_for(const Object *ob1, const Object *ob2)
 
 bool BKE_mball_is_any_selected(const MetaBall *mb)
 {
-  LISTBASE_FOREACH (const MetaElem *, ml, mb->editelems) {
-    if (ml->flag & SELECT) {
+  for (const MetaElem &ml : *mb->editelems) {
+    if (ml.flag & SELECT) {
       return true;
     }
   }
@@ -316,8 +316,8 @@ bool BKE_mball_is_any_selected_multi(const Span<Base *> bases)
 
 bool BKE_mball_is_any_unselected(const MetaBall *mb)
 {
-  LISTBASE_FOREACH (const MetaElem *, ml, mb->editelems) {
-    if ((ml->flag & SELECT) == 0) {
+  for (const MetaElem &ml : *mb->editelems) {
+    if ((ml.flag & SELECT) == 0) {
       return true;
     }
   }
@@ -420,11 +420,11 @@ Object *BKE_mball_basis_find(Scene *scene, Object *object)
 
   BLI_string_split_name_number(object->id.name + 2, '.', basisname, &basisnr);
 
-  LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
-    BKE_view_layer_synced_ensure(scene, view_layer);
-    LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-      Object *ob = base->object;
-      if ((ob->type == OB_MBALL) && !(base->flag & BASE_FROM_DUPLI)) {
+  for (ViewLayer &view_layer : scene->view_layers) {
+    BKE_view_layer_synced_ensure(scene, &view_layer);
+    for (Base &base : *BKE_view_layer_object_bases_get(&view_layer)) {
+      Object *ob = base.object;
+      if ((ob->type == OB_MBALL) && !(base.flag & BASE_FROM_DUPLI)) {
         if (ob != bob) {
           BLI_string_split_name_number(ob->id.name + 2, '.', obname, &obnr);
 
@@ -453,15 +453,15 @@ bool BKE_mball_minmax_ex(
 
   INIT_MINMAX(min, max);
 
-  LISTBASE_FOREACH (const MetaElem *, ml, &mb->elems) {
-    if ((ml->flag & flag) == flag) {
-      const float scale_mb = (ml->rad * 0.5f) * scale;
+  for (const MetaElem &ml : mb->elems) {
+    if ((ml.flag & flag) == flag) {
+      const float scale_mb = (ml.rad * 0.5f) * scale;
 
       if (obmat) {
-        mul_v3_m4v3(centroid, obmat, &ml->x);
+        mul_v3_m4v3(centroid, obmat, &ml.x);
       }
       else {
-        copy_v3_v3(centroid, &ml->x);
+        copy_v3_v3(centroid, &ml.x);
       }
 
       /* TODO(@ideasman42): non circle shapes cubes etc, probably nobody notices. */
@@ -481,8 +481,8 @@ bool BKE_mball_minmax(const MetaBall *mb, float min[3], float max[3])
 {
   INIT_MINMAX(min, max);
 
-  LISTBASE_FOREACH (const MetaElem *, ml, &mb->elems) {
-    minmax_v3v3_v3(min, max, &ml->x);
+  for (const MetaElem &ml : mb->elems) {
+    minmax_v3v3_v3(min, max, &ml.x);
   }
 
   return (BLI_listbase_is_empty(&mb->elems) == false);
@@ -494,8 +494,8 @@ bool BKE_mball_center_median(const MetaBall *mb, float r_cent[3])
 
   zero_v3(r_cent);
 
-  LISTBASE_FOREACH (const MetaElem *, ml, &mb->elems) {
-    add_v3_v3(r_cent, &ml->x);
+  for (const MetaElem &ml : mb->elems) {
+    add_v3_v3(r_cent, &ml.x);
     total++;
   }
 
@@ -526,19 +526,19 @@ void BKE_mball_transform(MetaBall *mb, const float mat[4][4], const bool do_prop
 
   mat4_to_quat(quat, mat);
 
-  LISTBASE_FOREACH (MetaElem *, ml, &mb->elems) {
-    mul_m4_v3(mat, &ml->x);
-    mul_qt_qtqt(ml->quat, quat, ml->quat);
+  for (MetaElem &ml : mb->elems) {
+    mul_m4_v3(mat, &ml.x);
+    mul_qt_qtqt(ml.quat, quat, ml.quat);
 
     if (do_props) {
-      ml->rad *= scale;
+      ml.rad *= scale;
       /* hrmf, probably elems shouldn't be
        * treating scale differently - campbell */
-      if (!MB_TYPE_SIZE_SQUARED(ml->type)) {
-        mul_v3_fl(&ml->expx, scale);
+      if (!MB_TYPE_SIZE_SQUARED(ml.type)) {
+        mul_v3_fl(&ml.expx, scale);
       }
       else {
-        mul_v3_fl(&ml->expx, scale_sqrt);
+        mul_v3_fl(&ml.expx, scale_sqrt);
       }
     }
   }
@@ -546,16 +546,16 @@ void BKE_mball_transform(MetaBall *mb, const float mat[4][4], const bool do_prop
 
 void BKE_mball_translate(MetaBall *mb, const float offset[3])
 {
-  LISTBASE_FOREACH (MetaElem *, ml, &mb->elems) {
-    add_v3_v3(&ml->x, offset);
+  for (MetaElem &ml : mb->elems) {
+    add_v3_v3(&ml.x, offset);
   }
 }
 
 int BKE_mball_select_count(const MetaBall *mb)
 {
   int sel = 0;
-  LISTBASE_FOREACH (const MetaElem *, ml, mb->editelems) {
-    if (ml->flag & SELECT) {
+  for (const MetaElem &ml : *mb->editelems) {
+    if (ml.flag & SELECT) {
       sel++;
     }
   }
@@ -576,9 +576,9 @@ int BKE_mball_select_count_multi(const Span<Base *> bases)
 bool BKE_mball_select_all(MetaBall *mb)
 {
   bool changed = false;
-  LISTBASE_FOREACH (MetaElem *, ml, mb->editelems) {
-    if ((ml->flag & SELECT) == 0) {
-      ml->flag |= SELECT;
+  for (MetaElem &ml : *mb->editelems) {
+    if ((ml.flag & SELECT) == 0) {
+      ml.flag |= SELECT;
       changed = true;
     }
   }
@@ -599,9 +599,9 @@ bool BKE_mball_select_all_multi_ex(const Span<Base *> bases)
 bool BKE_mball_deselect_all(MetaBall *mb)
 {
   bool changed = false;
-  LISTBASE_FOREACH (MetaElem *, ml, mb->editelems) {
-    if ((ml->flag & SELECT) != 0) {
-      ml->flag &= ~SELECT;
+  for (MetaElem &ml : *mb->editelems) {
+    if ((ml.flag & SELECT) != 0) {
+      ml.flag &= ~SELECT;
       changed = true;
     }
   }
@@ -623,8 +623,8 @@ bool BKE_mball_deselect_all_multi_ex(const Span<Base *> bases)
 bool BKE_mball_select_swap(MetaBall *mb)
 {
   bool changed = false;
-  LISTBASE_FOREACH (MetaElem *, ml, mb->editelems) {
-    ml->flag ^= SELECT;
+  for (MetaElem &ml : *mb->editelems) {
+    ml.flag ^= SELECT;
     changed = true;
   }
   return changed;

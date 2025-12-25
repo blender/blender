@@ -102,8 +102,8 @@ static void cache_file_blend_write(BlendWriter *writer, ID *id, const void *id_a
   BKE_id_blend_write(writer, &cache_file->id);
 
   /* write layers */
-  LISTBASE_FOREACH (CacheFileLayer *, layer, &cache_file->layers) {
-    writer->write_struct(layer);
+  for (CacheFileLayer &layer : cache_file->layers) {
+    writer->write_struct(&layer);
   }
 }
 
@@ -413,8 +413,8 @@ double BKE_cachefile_frame_offset(const CacheFile *cache_file, const double time
 
 CacheFileLayer *BKE_cachefile_add_layer(CacheFile *cache_file, const char filepath[1024])
 {
-  LISTBASE_FOREACH (CacheFileLayer *, layer, &cache_file->layers) {
-    if (STREQ(layer->filepath, filepath)) {
+  for (CacheFileLayer &layer : cache_file->layers) {
+    if (STREQ(layer.filepath, filepath)) {
       return nullptr;
     }
   }

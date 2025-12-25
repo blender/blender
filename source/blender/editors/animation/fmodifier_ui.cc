@@ -877,12 +877,12 @@ void ANIM_fmodifier_panels(const bContext *C,
 
   if (!panels_match) {
     blender::ui::panels_free_instanced(C, region);
-    LISTBASE_FOREACH (FModifier *, fcm, fmodifiers) {
+    for (FModifier &fcm : *fmodifiers) {
       char panel_idname[MAX_NAME];
-      panel_id_fn(fcm, panel_idname);
+      panel_id_fn(&fcm, panel_idname);
 
       PointerRNA *fcm_ptr = MEM_new<PointerRNA>("panel customdata");
-      *fcm_ptr = RNA_pointer_create_discrete(owner_id, &RNA_FModifier, fcm);
+      *fcm_ptr = RNA_pointer_create_discrete(owner_id, &RNA_FModifier, &fcm);
 
       blender::ui::panel_add_instanced(C, region, &region->panels, panel_idname, fcm_ptr);
     }
@@ -890,7 +890,7 @@ void ANIM_fmodifier_panels(const bContext *C,
   else {
     /* Assuming there's only one group of instanced panels, update the custom data pointers. */
     Panel *panel = static_cast<Panel *>(region->panels.first);
-    LISTBASE_FOREACH (FModifier *, fcm, fmodifiers) {
+    for (FModifier &fcm : *fmodifiers) {
 
       /* Move to the next instanced panel corresponding to the next modifier. */
       while ((panel->type == nullptr) || !(panel->type->flag & PANEL_TYPE_INSTANCED)) {
@@ -900,7 +900,7 @@ void ANIM_fmodifier_panels(const bContext *C,
       }
 
       PointerRNA *fcm_ptr = MEM_new<PointerRNA>("panel customdata");
-      *fcm_ptr = RNA_pointer_create_discrete(owner_id, &RNA_FModifier, fcm);
+      *fcm_ptr = RNA_pointer_create_discrete(owner_id, &RNA_FModifier, &fcm);
       blender::ui::panel_custom_data_set(panel, fcm_ptr);
 
       panel = panel->next;
@@ -993,9 +993,9 @@ bool ANIM_fmodifiers_paste_from_buf(ListBaseT<FModifier> *modifiers, bool replac
   }
 
   /* now copy over all the modifiers in the buffer to the end of the list */
-  LISTBASE_FOREACH (FModifier *, fcm, &fmodifier_copypaste_buf) {
+  for (FModifier &fcm : fmodifier_copypaste_buf) {
     /* make a copy of it */
-    FModifier *fcmN = copy_fmodifier(fcm);
+    FModifier *fcmN = copy_fmodifier(&fcm);
 
     fcmN->curve = curve;
 

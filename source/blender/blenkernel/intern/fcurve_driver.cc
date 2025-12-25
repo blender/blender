@@ -891,9 +891,9 @@ void driver_variables_copy(ListBaseT<DriverVar> *dst_vars, const ListBaseT<Drive
   BLI_assert(BLI_listbase_is_empty(dst_vars));
   BLI_duplicatelist(dst_vars, src_vars);
 
-  LISTBASE_FOREACH (DriverVar *, dvar, dst_vars) {
+  for (DriverVar &dvar : *dst_vars) {
     /* Need to go over all targets so that we don't leave any dangling paths. */
-    DRIVER_TARGETS_LOOPER_BEGIN (dvar) {
+    DRIVER_TARGETS_LOOPER_BEGIN (&dvar) {
       /* Make a copy of target's rna path if available. */
       if (dtar->rna_path) {
         dtar->rna_path = static_cast<char *>(MEM_dupallocN(dtar->rna_path));
@@ -1118,8 +1118,8 @@ static ExprPyLike_Parsed *driver_compile_simple_expr_impl(ChannelDriver *driver)
 
   names[VAR_INDEX_FRAME] = "frame";
 
-  LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
-    names[i++] = dvar->name;
+  for (DriverVar &dvar : driver->variables) {
+    names[i++] = dvar.name;
   }
 
   return BLI_expr_pylike_parse(driver->expression, names, names_len + VAR_INDEX_CUSTOM);
@@ -1144,8 +1144,8 @@ static bool driver_evaluate_simple_expr(const AnimationEvalContext *anim_eval_co
 
   vars[VAR_INDEX_FRAME] = time;
 
-  LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
-    vars[i++] = driver_get_variable_value(anim_eval_context, driver, dvar);
+  for (DriverVar &dvar : driver->variables) {
+    vars[i++] = driver_get_variable_value(anim_eval_context, driver, &dvar);
   }
 
   /* Evaluate expression. */
@@ -1327,8 +1327,8 @@ static void evaluate_driver_sum(const AnimationEvalContext *anim_eval_context,
   int tot = 0;
 
   /* Loop through targets, adding (hopefully we don't get any overflow!). */
-  LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
-    value += driver_get_variable_value(anim_eval_context, driver, dvar);
+  for (DriverVar &dvar : driver->variables) {
+    value += driver_get_variable_value(anim_eval_context, driver, &dvar);
     tot++;
   }
 
@@ -1347,12 +1347,12 @@ static void evaluate_driver_min_max(const AnimationEvalContext *anim_eval_contex
   float value = 0.0f;
 
   /* Loop through the variables, getting the values and comparing them to existing ones. */
-  LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
+  for (DriverVar &dvar : driver->variables) {
     /* Get value. */
-    float tmp_val = driver_get_variable_value(anim_eval_context, driver, dvar);
+    float tmp_val = driver_get_variable_value(anim_eval_context, driver, &dvar);
 
     /* Store this value if appropriate. */
-    if (dvar->prev) {
+    if (dvar.prev) {
       /* Check if greater/smaller than the baseline. */
       if (driver->type == DRIVER_TYPE_MAX) {
         /* Max? */

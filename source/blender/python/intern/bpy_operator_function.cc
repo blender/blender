@@ -55,9 +55,9 @@ static void bpy_op_fn_view_layer_update(bContext *C)
   }
   else {
     /* No active view layer: update all view layers in all scenes. */
-    LISTBASE_FOREACH (Scene *, scene_iter, &bmain->scenes) {
-      LISTBASE_FOREACH (ViewLayer *, vl, &scene_iter->view_layers) {
-        Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene_iter, vl);
+    for (Scene &scene_iter : bmain->scenes) {
+      for (ViewLayer &vl : scene_iter.view_layers) {
+        Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, &scene_iter, &vl);
         if (depsgraph && !DEG_is_evaluating(depsgraph)) {
           DEG_make_active(depsgraph);
           BKE_scene_graph_update_tagged(depsgraph, bmain);

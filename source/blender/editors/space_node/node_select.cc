@@ -84,14 +84,14 @@ static bool has_workbench_in_texture_color(const wmWindowManager *wm,
                                            const Scene *scene,
                                            const Object *ob)
 {
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    if (win->scene != scene) {
+  for (wmWindow &win : wm->windows) {
+    if (win.scene != scene) {
       continue;
     }
-    const bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      if (area->spacetype == SPACE_VIEW3D) {
-        const View3D *v3d = (const View3D *)area->spacedata.first;
+    const bScreen *screen = BKE_workspace_active_screen_get(win.workspace_hook);
+    for (ScrArea &area : screen->areabase) {
+      if (area.spacetype == SPACE_VIEW3D) {
+        const View3D *v3d = (const View3D *)area.spacedata.first;
 
         if (ED_view3d_has_workbench_in_texture_color(scene, ob, v3d)) {
           return true;
@@ -205,14 +205,14 @@ void node_socket_deselect(bNode *node, bNodeSocket &sock, const bool deselect_no
     bool sel = false;
 
     /* if no selected sockets remain, also deselect the node */
-    LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
-      if (input->flag & SELECT) {
+    for (bNodeSocket &input : node->inputs) {
+      if (input.flag & SELECT) {
         sel = true;
         break;
       }
     }
-    LISTBASE_FOREACH (bNodeSocket *, output, &node->outputs) {
-      if (output->flag & SELECT) {
+    for (bNodeSocket &output : node->outputs) {
+      if (output.flag & SELECT) {
         sel = true;
         break;
       }
@@ -253,14 +253,14 @@ void node_deselect_all_input_sockets(bNodeTree &node_tree, const bool deselect_n
   for (bNode *node : node_tree.all_nodes()) {
     bool sel = false;
 
-    LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-      socket->flag &= ~SELECT;
+    for (bNodeSocket &socket : node->inputs) {
+      socket.flag &= ~SELECT;
     }
 
     /* If no selected sockets remain, also deselect the node. */
     if (deselect_nodes) {
-      LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-        if (socket->flag & SELECT) {
+      for (bNodeSocket &socket : node->outputs) {
+        if (socket.flag & SELECT) {
           sel = true;
           break;
         }
@@ -283,14 +283,14 @@ void node_deselect_all_output_sockets(bNodeTree &node_tree, const bool deselect_
   for (bNode *node : node_tree.all_nodes()) {
     bool sel = false;
 
-    LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-      socket->flag &= ~SELECT;
+    for (bNodeSocket &socket : node->outputs) {
+      socket.flag &= ~SELECT;
     }
 
     /* if no selected sockets remain, also deselect the node */
     if (deselect_nodes) {
-      LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-        if (socket->flag & SELECT) {
+      for (bNodeSocket &socket : node->inputs) {
+        if (socket.flag & SELECT) {
           sel = true;
           break;
         }

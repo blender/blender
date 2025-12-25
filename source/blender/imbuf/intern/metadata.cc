@@ -89,7 +89,7 @@ void IMB_metadata_foreach(const ImBuf *ibuf, IMBMetadataForeachCb callback, void
   if (ibuf->metadata == nullptr) {
     return;
   }
-  LISTBASE_FOREACH (IDProperty *, prop, &ibuf->metadata->data.group) {
-    callback(prop->name, IDP_string_get(prop), userdata);
+  for (IDProperty &prop : ibuf->metadata->data.group) {
+    callback(prop.name, IDP_string_get(&prop), userdata);
   }
 }

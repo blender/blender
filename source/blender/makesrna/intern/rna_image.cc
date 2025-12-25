@@ -283,12 +283,11 @@ static std::optional<std::string> rna_ImageUser_path(const PointerRNA *ptr)
       case ID_SCR: {
         const bScreen *screen = reinterpret_cast<bScreen *>(ptr->owner_id);
         const ImageUser *iuser = static_cast<ImageUser *>(ptr->data);
-        int area_index;
-        int space_index;
-        LISTBASE_FOREACH_INDEX (ScrArea *, area, &screen->areabase, area_index) {
-          LISTBASE_FOREACH_INDEX (SpaceLink *, sl, &area->spacedata, space_index) {
-            if (sl->spacetype == SPACE_IMAGE) {
-              SpaceImage *sima = reinterpret_cast<SpaceImage *>(sl);
+
+        for (const auto [area_index, area] : screen->areabase.enumerate()) {
+          for (const auto [space_index, sl] : area.spacedata.enumerate()) {
+            if (sl.spacetype == SPACE_IMAGE) {
+              const SpaceImage *sima = reinterpret_cast<const SpaceImage *>(&sl);
               if (&sima->iuser == iuser) {
                 return fmt::format("areas[{}].spaces[{}].image_user", area_index, space_index);
               }

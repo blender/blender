@@ -57,12 +57,12 @@ bool ED_region_overlap_isect_xy(const ARegion *region, const int event_xy[2])
 
 bool ED_region_overlap_isect_any_xy(const ScrArea *area, const int event_xy[2])
 {
-  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    if (!region->runtime->visible) {
+  for (ARegion &region : area->regionbase) {
+    if (!region.runtime->visible) {
       continue;
     }
-    if (ED_region_is_overlap(area->spacetype, region->regiontype)) {
-      if (ED_region_overlap_isect_xy(region, event_xy)) {
+    if (ED_region_is_overlap(area->spacetype, region.regiontype)) {
+      if (ED_region_overlap_isect_xy(&region, event_xy)) {
         return true;
       }
     }
@@ -205,24 +205,24 @@ ARegion *ED_area_find_region_xy_visual(const ScrArea *area,
   }
 
   /* Check overlapped regions first. */
-  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    if (!region->overlap) {
+  for (ARegion &region : area->regionbase) {
+    if (!region.overlap) {
       continue;
     }
-    if (ELEM(regiontype, RGN_TYPE_ANY, region->regiontype)) {
-      if (ED_region_contains_xy(region, event_xy)) {
-        return region;
+    if (ELEM(regiontype, RGN_TYPE_ANY, region.regiontype)) {
+      if (ED_region_contains_xy(&region, event_xy)) {
+        return &region;
       }
     }
   }
   /* Now non-overlapping ones. */
-  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    if (region->overlap) {
+  for (ARegion &region : area->regionbase) {
+    if (region.overlap) {
       continue;
     }
-    if (ELEM(regiontype, RGN_TYPE_ANY, region->regiontype)) {
-      if (ED_region_contains_xy(region, event_xy)) {
-        return region;
+    if (ELEM(regiontype, RGN_TYPE_ANY, region.regiontype)) {
+      if (ED_region_contains_xy(&region, event_xy)) {
+        return &region;
       }
     }
   }

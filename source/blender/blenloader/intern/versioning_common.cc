@@ -71,12 +71,12 @@ ARegion *do_versions_add_region_if_not_found(ListBaseT<ARegion> *regionbase,
                                              int link_after_region_type)
 {
   ARegion *link_after_region = nullptr;
-  LISTBASE_FOREACH (ARegion *, region, regionbase) {
-    if (region->regiontype == region_type) {
+  for (ARegion &region : *regionbase) {
+    if (region.regiontype == region_type) {
       return nullptr;
     }
-    if (region->regiontype == link_after_region_type) {
-      link_after_region = region;
+    if (region.regiontype == link_after_region_type) {
+      link_after_region = &region;
     }
   }
 
@@ -92,12 +92,12 @@ ARegion *do_versions_ensure_region(ListBaseT<ARegion> *regionbase,
                                    int link_after_region_type)
 {
   ARegion *link_after_region = nullptr;
-  LISTBASE_FOREACH (ARegion *, region, regionbase) {
-    if (region->regiontype == region_type) {
-      return region;
+  for (ARegion &region : *regionbase) {
+    if (region.regiontype == region_type) {
+      return &region;
     }
-    if (region->regiontype == link_after_region_type) {
-      link_after_region = region;
+    if (region.regiontype == link_after_region_type) {
+      link_after_region = &region;
     }
   }
 
@@ -115,12 +115,12 @@ ID *do_versions_rename_id(Main *bmain,
   /* We can ignore libraries */
   ListBaseT<ID> *lb = which_libbase(bmain, id_type);
   ID *id = nullptr;
-  LISTBASE_FOREACH (ID *, idtest, lb) {
-    if (!ID_IS_LINKED(idtest)) {
-      if (STREQ(idtest->name + 2, name_src)) {
-        id = idtest;
+  for (ID &idtest : *lb) {
+    if (!ID_IS_LINKED(&idtest)) {
+      if (STREQ(idtest.name + 2, name_src)) {
+        id = &idtest;
       }
-      if (STREQ(idtest->name + 2, name_dst)) {
+      if (STREQ(idtest.name + 2, name_dst)) {
         return nullptr;
       }
     }
@@ -135,12 +135,12 @@ static void change_node_socket_name(ListBaseT<bNodeSocket> *sockets,
                                     const char *old_name,
                                     const char *new_name)
 {
-  LISTBASE_FOREACH (bNodeSocket *, socket, sockets) {
-    if (STREQ(socket->name, old_name)) {
-      STRNCPY_UTF8(socket->name, new_name);
+  for (bNodeSocket &socket : *sockets) {
+    if (STREQ(socket.name, old_name)) {
+      STRNCPY_UTF8(socket.name, new_name);
     }
-    if (STREQ(socket->identifier, old_name)) {
-      STRNCPY_UTF8(socket->identifier, new_name);
+    if (STREQ(socket.identifier, old_name)) {
+      STRNCPY_UTF8(socket.identifier, new_name);
     }
   }
 }
@@ -448,16 +448,16 @@ void version_node_socket_index_animdata(Main *bmain,
 void version_socket_update_is_used(bNodeTree *ntree)
 {
   for (bNode *node : ntree->all_nodes()) {
-    LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-      socket->flag &= ~SOCK_IS_LINKED;
+    for (bNodeSocket &socket : node->inputs) {
+      socket.flag &= ~SOCK_IS_LINKED;
     }
-    LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-      socket->flag &= ~SOCK_IS_LINKED;
+    for (bNodeSocket &socket : node->outputs) {
+      socket.flag &= ~SOCK_IS_LINKED;
     }
   }
-  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-    link->fromsock->flag |= SOCK_IS_LINKED;
-    link->tosock->flag |= SOCK_IS_LINKED;
+  for (bNodeLink &link : ntree->links) {
+    link.fromsock->flag |= SOCK_IS_LINKED;
+    link.tosock->flag |= SOCK_IS_LINKED;
   }
 }
 
@@ -473,27 +473,27 @@ void node_tree_relink_with_socket_id_map(bNodeTree &ntree,
                                          bNode &new_node,
                                          const Map<std::string, std::string> &map)
 {
-  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree.links) {
-    if (link->tonode == &old_node) {
-      bNodeSocket *old_socket = link->tosock;
+  for (bNodeLink &link : ntree.links.items_mutable()) {
+    if (link.tonode == &old_node) {
+      bNodeSocket *old_socket = link.tosock;
       if (old_socket->is_available()) {
         if (const std::string *new_identifier = map.lookup_ptr_as(old_socket->identifier)) {
           bNodeSocket *new_socket = blender::bke::node_find_socket(
               *&new_node, SOCK_IN, *new_identifier);
-          link->tonode = &new_node;
-          link->tosock = new_socket;
+          link.tonode = &new_node;
+          link.tosock = new_socket;
           old_socket->link = nullptr;
         }
       }
     }
-    if (link->fromnode == &old_node) {
-      bNodeSocket *old_socket = link->fromsock;
+    if (link.fromnode == &old_node) {
+      bNodeSocket *old_socket = link.fromsock;
       if (old_socket->is_available()) {
         if (const std::string *new_identifier = map.lookup_ptr_as(old_socket->identifier)) {
           bNodeSocket *new_socket = blender::bke::node_find_socket(
               *&new_node, SOCK_OUT, *new_identifier);
-          link->fromnode = &new_node;
-          link->fromsock = new_socket;
+          link.fromnode = &new_node;
+          link.fromsock = new_socket;
           old_socket->link = nullptr;
         }
       }
@@ -504,9 +504,9 @@ void node_tree_relink_with_socket_id_map(bNodeTree &ntree,
 static blender::Vector<bNodeLink *> find_connected_links(bNodeTree *ntree, bNodeSocket *in_socket)
 {
   blender::Vector<bNodeLink *> links;
-  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-    if (link->tosock == in_socket) {
-      links.append(link);
+  for (bNodeLink &link : ntree->links) {
+    if (link.tosock == in_socket) {
+      links.append(&link);
     }
   }
   return links;
@@ -624,12 +624,12 @@ void version_update_node_input(
   bool need_update = false;
 
   /* Iterate backwards from end so we don't encounter newly added links. */
-  LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &ntree->links) {
+  for (bNodeLink &link : ntree->links.items_reversed_mutable()) {
     /* Detect link to replace. */
-    bNode *fromnode = link->fromnode;
-    bNodeSocket *fromsock = link->fromsock;
-    bNode *tonode = link->tonode;
-    bNodeSocket *tosock = link->tosock;
+    bNode *fromnode = link.fromnode;
+    bNodeSocket *fromsock = link.fromsock;
+    bNode *tonode = link.tonode;
+    bNodeSocket *tosock = link.tosock;
 
     if (!(tonode != nullptr && check_node(tonode) && STREQ(tosock->identifier, socket_identifier)))
     {
@@ -637,7 +637,7 @@ void version_update_node_input(
     }
 
     /* Replace links with updated equivalent */
-    blender::bke::node_remove_link(ntree, *link);
+    blender::bke::node_remove_link(ntree, link);
     update_input_link(fromnode, fromsock, tonode, tosock);
 
     need_update = true;
@@ -645,11 +645,11 @@ void version_update_node_input(
 
   /* Update sockets and/or their default values.
    * Do this after the link update in case it changes the identifier. */
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (check_node(node)) {
-      bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, socket_identifier);
+  for (bNode &node : ntree->nodes) {
+    if (check_node(&node)) {
+      bNodeSocket *input = blender::bke::node_find_socket(node, SOCK_IN, socket_identifier);
       if (input != nullptr) {
-        update_input(node, input);
+        update_input(&node, input);
       }
     }
   }
@@ -664,26 +664,26 @@ bNode *version_eevee_output_node_get(bNodeTree *ntree, int16_t node_type)
   bNode *output_node = nullptr;
   /* NOTE: duplicated from `ntreeShaderOutputNode` with small adjustments so it can be called
    * during versioning. */
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type_legacy != node_type) {
+  for (bNode &node : ntree->nodes) {
+    if (node.type_legacy != node_type) {
       continue;
     }
-    if (node->custom1 == SHD_OUTPUT_ALL) {
+    if (node.custom1 == SHD_OUTPUT_ALL) {
       if (output_node == nullptr) {
-        output_node = node;
+        output_node = &node;
       }
       else if (output_node->custom1 == SHD_OUTPUT_ALL) {
-        if ((node->flag & NODE_DO_OUTPUT) && !(output_node->flag & NODE_DO_OUTPUT)) {
-          output_node = node;
+        if ((node.flag & NODE_DO_OUTPUT) && !(output_node->flag & NODE_DO_OUTPUT)) {
+          output_node = &node;
         }
       }
     }
-    else if (node->custom1 == SHD_OUTPUT_EEVEE) {
+    else if (node.custom1 == SHD_OUTPUT_EEVEE) {
       if (output_node == nullptr) {
-        output_node = node;
+        output_node = &node;
       }
-      else if ((node->flag & NODE_DO_OUTPUT) && !(output_node->flag & NODE_DO_OUTPUT)) {
-        output_node = node;
+      else if ((node.flag & NODE_DO_OUTPUT) && !(output_node->flag & NODE_DO_OUTPUT)) {
+        output_node = &node;
       }
     }
   }
@@ -697,10 +697,10 @@ bool all_scenes_use(Main *bmain, const blender::Span<const char *> engines)
     return false;
   }
 
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+  for (Scene &scene : bmain->scenes) {
     bool match = false;
     for (const char *engine : engines) {
-      if (STREQ(scene->r.engine, engine)) {
+      if (STREQ(scene.r.engine, engine)) {
         match = true;
       }
     }
@@ -729,8 +729,8 @@ static bool blendfile_or_libraries_versions_atleast(Main *bmain,
     return false;
   }
 
-  LISTBASE_FOREACH (Library *, library, &bmain->libraries) {
-    if (!LIBRARY_VERSION_FILE_ATLEAST(library, versionfile, subversionfile)) {
+  for (Library &library : bmain->libraries) {
+    if (!LIBRARY_VERSION_FILE_ATLEAST(&library, versionfile, subversionfile)) {
       return false;
     }
   }
@@ -777,9 +777,9 @@ void do_versions_after_setup(Main *new_bmain,
   }
 
   if (!blendfile_or_libraries_versions_atleast(new_bmain, 250, 0)) {
-    LISTBASE_FOREACH (Scene *, scene, &new_bmain->scenes) {
-      if (scene->ed) {
-        blender::seq::doversion_250_sound_proxy_update(new_bmain, scene->ed);
+    for (Scene &scene : new_bmain->scenes) {
+      if (scene.ed) {
+        blender::seq::doversion_250_sound_proxy_update(new_bmain, scene.ed);
       }
     }
   }
@@ -815,8 +815,8 @@ void do_versions_after_setup(Main *new_bmain,
   }
 
   if (!blendfile_or_libraries_versions_atleast(new_bmain, 500, 4)) {
-    LISTBASE_FOREACH (Scene *, scene, &new_bmain->scenes) {
-      bNodeTree *ntree = scene->nodetree;
+    for (Scene &scene : new_bmain->scenes) {
+      bNodeTree *ntree = scene.nodetree;
       if (!ntree) {
         continue;
       }
@@ -824,8 +824,8 @@ void do_versions_after_setup(Main *new_bmain,
       ntree->owner_id = nullptr;
       ntree->id.tag |= ID_TAG_NO_MAIN;
 
-      scene->compositing_node_group = ntree;
-      scene->nodetree = nullptr;
+      scene.compositing_node_group = ntree;
+      scene.nodetree = nullptr;
 
       BKE_libblock_management_main_add(new_bmain, ntree);
 

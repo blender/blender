@@ -278,11 +278,11 @@ static void rna_Strip_use_strip(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 static void add_strips_from_seqbase(const ListBaseT<Strip> *seqbase,
                                     blender::Vector<Strip *> &strips)
 {
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    strips.append(strip);
+  for (Strip &strip : *seqbase) {
+    strips.append(&strip);
 
-    if (strip->type == STRIP_TYPE_META) {
-      add_strips_from_seqbase(&strip->seqbase, strips);
+    if (strip.type == STRIP_TYPE_META) {
+      add_strips_from_seqbase(&strip.seqbase, strips);
     }
   }
 }
@@ -1701,8 +1701,8 @@ static void rna_Strip_separate(ID *id, Strip *strip_meta, Main *bmain)
   /* Find the appropriate seqbase */
   ListBaseT<Strip> *seqbase = blender::seq::get_seqbase_by_strip(scene, strip_meta);
 
-  LISTBASE_FOREACH_MUTABLE (Strip *, strip, &strip_meta->seqbase) {
-    blender::seq::edit_move_strip_to_seqbase(scene, &strip_meta->seqbase, strip, seqbase);
+  for (Strip &strip : strip_meta->seqbase.items_mutable()) {
+    blender::seq::edit_move_strip_to_seqbase(scene, &strip_meta->seqbase, &strip, seqbase);
   }
 
   blender::seq::edit_flag_for_removal(scene, seqbase, strip_meta);
@@ -1754,8 +1754,8 @@ static void rna_SequenceTimelineChannel_mute_update(bContext *C, PointerRNA *ptr
   }
 
   blender::ed::vse::sync_active_scene_and_time_with_scene_strip(*C);
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    blender::seq::relations_invalidate_cache(scene, strip);
+  for (Strip &strip : *seqbase) {
+    blender::seq::relations_invalidate_cache(scene, &strip);
   }
 
   rna_Strip_sound_update(bmain, scene, ptr);

@@ -70,14 +70,14 @@ void ED_space_image_set(Main *bmain, SpaceImage *sima, Image *ima, bool automati
 void ED_space_image_sync(Main *bmain, Image *image, bool ignore_render_viewer)
 {
   wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    const bScreen *screen = WM_window_get_active_screen(win);
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-        if (sl->spacetype != SPACE_IMAGE) {
+  for (wmWindow &win : wm->windows) {
+    const bScreen *screen = WM_window_get_active_screen(&win);
+    for (ScrArea &area : screen->areabase) {
+      for (SpaceLink &sl : area.spacedata) {
+        if (sl.spacetype != SPACE_IMAGE) {
           continue;
         }
-        SpaceImage *sima = (SpaceImage *)sl;
+        SpaceImage *sima = (SpaceImage *)&sl;
         if (sima->pin) {
           continue;
         }

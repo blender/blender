@@ -60,13 +60,13 @@ void BKE_object_defgroup_remap_update_users(Object *ob, const int *map)
     ob->soft->vertgroup = map[ob->soft->vertgroup];
   }
 
-  LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-    if (md->type == eModifierType_Explode) {
-      ExplodeModifierData *emd = (ExplodeModifierData *)md;
+  for (ModifierData &md : ob->modifiers) {
+    if (md.type == eModifierType_Explode) {
+      ExplodeModifierData *emd = (ExplodeModifierData *)&md;
       emd->vgroup = map[emd->vgroup];
     }
-    else if (md->type == eModifierType_Cloth) {
-      ClothModifierData *clmd = (ClothModifierData *)md;
+    else if (md.type == eModifierType_Cloth) {
+      ClothModifierData *clmd = (ClothModifierData *)&md;
       ClothSimSettings *clsim = clmd->sim_parms;
       ClothCollSettings *clcoll = clmd->coll_parms;
 
@@ -84,9 +84,9 @@ void BKE_object_defgroup_remap_update_users(Object *ob, const int *map)
     }
   }
 
-  LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
+  for (ParticleSystem &psys : ob->particlesystem) {
     for (int a = 0; a < PSYS_TOT_VG; a++) {
-      psys->vgroup[a] = map[psys->vgroup[a]];
+      psys.vgroup[a] = map[psys.vgroup[a]];
     }
   }
 }
@@ -216,8 +216,8 @@ bool BKE_object_defgroup_clear_all(Object *ob, const bool use_selection)
 
   const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
 
-  LISTBASE_FOREACH (bDeformGroup *, dg, defbase) {
-    if (BKE_object_defgroup_clear(ob, dg, use_selection)) {
+  for (bDeformGroup &dg : *defbase) {
+    if (BKE_object_defgroup_clear(ob, &dg, use_selection)) {
       changed = true;
     }
   }
@@ -579,8 +579,8 @@ bool *BKE_object_defgroup_validmap_get(Object *ob, const int defbase_tot)
   gh = BLI_ghash_str_new_ex(__func__, defbase_tot);
 
   /* add all names to a hash table */
-  LISTBASE_FOREACH (bDeformGroup *, dg, defbase) {
-    BLI_ghash_insert(gh, dg->name, nullptr);
+  for (bDeformGroup &dg : *defbase) {
+    BLI_ghash_insert(gh, dg.name, nullptr);
   }
 
   BLI_assert(BLI_ghash_len(gh) == defbase_tot);
@@ -602,13 +602,13 @@ bool *BKE_object_defgroup_validmap_get(Object *ob, const int defbase_tot)
       if (object && object->pose) {
         bPose *pose = object->pose;
 
-        LISTBASE_FOREACH (bPoseChannel *, chan, &pose->chanbase) {
+        for (bPoseChannel &chan : pose->chanbase) {
           void **val_p;
-          if (chan->bone->flag & BONE_NO_DEFORM) {
+          if (chan.bone->flag & BONE_NO_DEFORM) {
             continue;
           }
 
-          val_p = BLI_ghash_lookup_p(gh, chan->name);
+          val_p = BLI_ghash_lookup_p(gh, chan.name);
           if (val_p) {
             *val_p = POINTER_FROM_INT(1);
           }

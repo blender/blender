@@ -1241,9 +1241,9 @@ FModifier *find_active_fmodifier(ListBaseT<FModifier> *modifiers)
   }
 
   /* loop over modifiers until 'active' one is found */
-  LISTBASE_FOREACH (FModifier *, fcm, modifiers) {
-    if (fcm->flag & FMODIFIER_FLAG_ACTIVE) {
-      return fcm;
+  for (FModifier &fcm : *modifiers) {
+    if (fcm.flag & FMODIFIER_FLAG_ACTIVE) {
+      return &fcm;
     }
   }
 
@@ -1259,8 +1259,8 @@ void set_active_fmodifier(ListBaseT<FModifier> *modifiers, FModifier *fcm)
   }
 
   /* deactivate all, and set current one active */
-  LISTBASE_FOREACH (FModifier *, fm, modifiers) {
-    fm->flag &= ~FMODIFIER_FLAG_ACTIVE;
+  for (FModifier &fm : *modifiers) {
+    fm.flag &= ~FMODIFIER_FLAG_ACTIVE;
   }
 
   /* make given modifier active */
@@ -1282,13 +1282,13 @@ bool list_has_suitable_fmodifier(const ListBaseT<FModifier> *modifiers, int mtyp
   }
 
   /* Find the first modifier fitting these criteria. */
-  LISTBASE_FOREACH (FModifier *, fcm, modifiers) {
-    const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
+  for (FModifier &fcm : *modifiers) {
+    const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(&fcm);
     short mOk = 1, aOk = 1; /* by default 1, so that when only one test, won't fail */
 
     /* check if applicable ones are fulfilled */
     if (mtype) {
-      mOk = (fcm->type == mtype);
+      mOk = (fcm.type == mtype);
     }
     if (acttype > -1) {
       aOk = (fmi->acttype == acttype);
@@ -1315,8 +1315,8 @@ uint evaluate_fmodifiers_storage_size_per_modifier(const ListBaseT<FModifier> *m
 
   uint max_size = 0;
 
-  LISTBASE_FOREACH (FModifier *, fcm, modifiers) {
-    const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
+  for (FModifier &fcm : *modifiers) {
+    const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(&fcm);
 
     if (fmi == nullptr) {
       continue;

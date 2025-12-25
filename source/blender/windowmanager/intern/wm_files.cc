@@ -234,11 +234,11 @@ static BlendFileReadWMSetupData *wm_file_read_setup_wm_init(bContext *C,
   WM_jobs_kill_all(wm);
 
   wmWindow *active_win = CTX_wm_window(C);
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    CTX_wm_window_set(C, win); /* Needed by operator close callbacks. */
-    WM_event_remove_handlers(C, &win->runtime->handlers);
-    WM_event_remove_handlers(C, &win->runtime->modalhandlers);
-    ED_screen_exit(C, win, WM_window_get_active_screen(win));
+  for (wmWindow &win : wm->windows) {
+    CTX_wm_window_set(C, &win); /* Needed by operator close callbacks. */
+    WM_event_remove_handlers(C, &win.runtime->handlers);
+    WM_event_remove_handlers(C, &win.runtime->modalhandlers);
+    ED_screen_exit(C, &win, WM_window_get_active_screen(&win));
   }
   /* Reset active window. */
   CTX_wm_window_set(C, active_win);
@@ -343,16 +343,16 @@ static void wm_file_read_setup_wm_keep_old(const bContext *C,
    * file, so the WM needs to be updated to use these. */
   bScreen *screen = CTX_wm_screen(C);
   if (screen != nullptr) {
-    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+    for (wmWindow &win : wm->windows) {
       WorkSpace *workspace;
 
       WorkSpaceLayout *layout_ref = BKE_workspace_layout_find_global(bmain, screen, &workspace);
-      BKE_workspace_active_set(win->workspace_hook, workspace);
-      win->scene = CTX_data_scene(C);
+      BKE_workspace_active_set(win.workspace_hook, workspace);
+      win.scene = CTX_data_scene(C);
 
       /* All windows get active screen from file. */
       if (screen->winid == 0) {
-        WM_window_set_active_screen(win, workspace, screen);
+        WM_window_set_active_screen(&win, workspace, screen);
       }
       else {
 #if 0
@@ -361,13 +361,13 @@ static void wm_file_read_setup_wm_keep_old(const bContext *C,
         WorkSpaceLayout *layout_ref = WM_window_get_active_layout(win);
 #endif
         WorkSpaceLayout *layout_new = ED_workspace_layout_duplicate(
-            bmain, workspace, layout_ref, win);
+            bmain, workspace, layout_ref, &win);
 
-        WM_window_set_active_layout(win, workspace, layout_new);
+        WM_window_set_active_layout(&win, workspace, layout_new);
       }
 
-      bScreen *win_screen = WM_window_get_active_screen(win);
-      win_screen->winid = win->winid;
+      bScreen *win_screen = WM_window_get_active_screen(&win);
+      win_screen->winid = win.winid;
     }
   }
 }
@@ -400,12 +400,12 @@ static void wm_file_read_setup_wm_use_new(bContext *C,
   wm_window_clear_drawable(old_wm);
 
   bool has_match = false;
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    LISTBASE_FOREACH (wmWindow *, old_win, &old_wm->windows) {
-      if (old_win->winid == win->winid) {
+  for (wmWindow &win : wm->windows) {
+    for (wmWindow &old_win : old_wm->windows) {
+      if (old_win.winid == win.winid) {
         has_match = true;
 
-        wm_file_read_setup_wm_substitute_old_window(old_wm, wm, old_win, win);
+        wm_file_read_setup_wm_substitute_old_window(old_wm, wm, &old_win, &win);
       }
     }
   }
@@ -479,11 +479,11 @@ static void wm_file_read_setup_wm_finalize(bContext *C,
 
   /* UI Updates. */
   /* Flag local View3D's to check and exit if they are empty. */
-  LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-        if (sl->spacetype == SPACE_VIEW3D) {
-          View3D *v3d = reinterpret_cast<View3D *>(sl);
+  for (bScreen &screen : bmain->screens) {
+    for (ScrArea &area : screen.areabase) {
+      for (SpaceLink &sl : area.spacedata) {
+        if (sl.spacetype == SPACE_VIEW3D) {
+          View3D *v3d = reinterpret_cast<View3D *>(&sl);
           if (v3d->localvd) {
             v3d->localvd->runtime.flag |= V3D_RUNTIME_LOCAL_MAYBE_EMPTY;
           }
@@ -629,16 +629,16 @@ void wm_file_read_report(Main *bmain, wmWindow *win)
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
   ReportList *reports = &wm->runtime->reports;
   bool found = false;
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    if (scene->r.engine[0] &&
-        BLI_findstring(&R_engines, scene->r.engine, offsetof(RenderEngineType, idname)) == nullptr)
+  for (Scene &scene : bmain->scenes) {
+    if (scene.r.engine[0] &&
+        BLI_findstring(&R_engines, scene.r.engine, offsetof(RenderEngineType, idname)) == nullptr)
     {
       BKE_reportf(reports,
                   RPT_ERROR,
                   "Engine '%s' not available for scene '%s' (an add-on may need to be installed "
                   "or enabled)",
-                  scene->r.engine,
-                  scene->id.name + 2);
+                  scene.r.engine,
+                  scene.id.name + 2);
       found = true;
     }
   }
@@ -767,9 +767,9 @@ static void wm_file_read_post(bContext *C,
 
   if (is_factory_startup && BLT_translate_new_dataname()) {
     /* Translate workspace names. */
-    LISTBASE_FOREACH_MUTABLE (WorkSpace *, workspace, &bmain->workspaces) {
+    for (WorkSpace &workspace : bmain->workspaces.items_mutable()) {
       BKE_libblock_rename(
-          *bmain, workspace->id, CTX_DATA_(BLT_I18NCONTEXT_ID_WORKSPACE, workspace->id.name + 2));
+          *bmain, workspace.id, CTX_DATA_(BLT_I18NCONTEXT_ID_WORKSPACE, workspace.id.name + 2));
     }
   }
 
@@ -804,8 +804,8 @@ static void wm_file_read_post(bContext *C,
      * Cycles. So we need to update compositor node trees after reading the file when add-ons are
      * now loaded. */
     if (is_startup_file) {
-      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-        BKE_ntree_update_tag_id_changed(bmain, &scene->id);
+      for (Scene &scene : bmain->scenes) {
+        BKE_ntree_update_tag_id_changed(bmain, &scene.id);
       }
       BKE_ntree_update(*bmain);
     }
@@ -1517,9 +1517,9 @@ void wm_homefile_read_ex(bContext *C,
   if (use_userdef) {
     /* Clear keymaps because the current default keymap may have been initialized
      * from user preferences, which have been reset. */
-    LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
-      if (wm->runtime->defaultconf) {
-        wm->runtime->defaultconf->flag &= ~KEYCONF_INIT_DEFAULT;
+    for (wmWindowManager &wm : bmain->wm) {
+      if (wm.runtime->defaultconf) {
+        wm.runtime->defaultconf->flag &= ~KEYCONF_INIT_DEFAULT;
       }
     }
   }
@@ -1632,8 +1632,8 @@ static void wm_history_file_free(RecentFile *recent)
 
 static void wm_history_files_free()
 {
-  LISTBASE_FOREACH_MUTABLE (RecentFile *, recent, &G.recent_files) {
-    wm_history_file_free(recent);
+  for (RecentFile &recent : G.recent_files.items_mutable()) {
+    wm_history_file_free(&recent);
   }
 }
 
@@ -1663,8 +1663,8 @@ static void wm_history_file_write()
 
   fp = BLI_fopen(filepath, "w");
   if (fp) {
-    LISTBASE_FOREACH (RecentFile *, recent, &G.recent_files) {
-      fprintf(fp, "%s\n", recent->filepath);
+    for (RecentFile &recent : G.recent_files) {
+      fprintf(fp, "%s\n", recent.filepath);
     }
     fclose(fp);
   }
@@ -2082,8 +2082,8 @@ static bool wm_file_write_check_with_report_on_failure(Main *bmain,
     return false;
   }
 
-  LISTBASE_FOREACH (Library *, li, &bmain->libraries) {
-    if (BLI_path_cmp(li->runtime->filepath_abs, filepath) == 0) {
+  for (Library &li : bmain->libraries) {
+    if (BLI_path_cmp(li.runtime->filepath_abs, filepath) == 0) {
       BKE_reportf(reports, RPT_ERROR, "Cannot overwrite used library '%.240s'", filepath);
       return false;
     }
@@ -2371,10 +2371,10 @@ void wm_autosave_timer(Main *bmain, wmWindowManager *wm, wmTimer * /*wt*/)
 
   /* If a modal operator is running, don't autosave because we might not be in
    * a valid state to save. But try again in 10ms. */
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    LISTBASE_FOREACH (wmEventHandler *, handler_base, &win->runtime->modalhandlers) {
-      if (handler_base->type == WM_HANDLER_TYPE_OP) {
-        wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
+  for (wmWindow &win : wm->windows) {
+    for (wmEventHandler &handler_base : win.runtime->modalhandlers) {
+      if (handler_base.type == WM_HANDLER_TYPE_OP) {
+        wmEventHandler_Op *handler = (wmEventHandler_Op *)&handler_base;
         if (handler->op) {
           wm_autosave_timer_begin_ex(wm, 0.01);
           return;
@@ -3986,9 +3986,9 @@ static wmOperatorStatus wm_clear_recent_files_exec(bContext * /*C*/, wmOperator 
     wm_history_files_free();
   }
   else if (include == CLEAR_RECENT_MISSING) {
-    LISTBASE_FOREACH_MUTABLE (RecentFile *, recent, &G.recent_files) {
-      if (!BLI_exists(recent->filepath)) {
-        wm_history_file_free(recent);
+    for (RecentFile &recent : G.recent_files.items_mutable()) {
+      if (!BLI_exists(recent.filepath)) {
+        wm_history_file_free(&recent);
       }
     }
   }
@@ -4073,8 +4073,8 @@ static void wm_block_autorun_warning_enable_scripts(bContext *C, blender::ui::Bl
   }
 
   /* Force a full refresh, but without reloading the file. */
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    BKE_scene_free_depsgraph_hash(scene);
+  for (Scene &scene : bmain->scenes) {
+    BKE_scene_free_depsgraph_hash(&scene);
   }
 }
 
@@ -4774,7 +4774,7 @@ static blender::ui::Block *block_create__close_file_dialog(bContext *C,
   BKE_reports_init(&reports, RPT_STORE);
   uint modified_images_count = ED_image_save_all_modified_info(bmain, &reports);
 
-  LISTBASE_FOREACH (Report *, report, &reports.list) {
+  for (Report &report : reports.list) {
     ui::Layout &row = layout.column(false);
     row.scale_y_set(0.6f);
     row.separator();
@@ -4782,7 +4782,7 @@ static blender::ui::Block *block_create__close_file_dialog(bContext *C,
     /* Error messages created in ED_image_save_all_modified_info() can be long,
      * but are made to separate into two parts at first colon between text and paths.
      */
-    char *message = BLI_strdupn(report->message, report->len);
+    char *message = BLI_strdupn(report.message, report.len);
     char *path_info = strstr(message, ": ");
     if (path_info) {
       /* Terminate message string at colon. */

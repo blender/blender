@@ -153,13 +153,13 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
 
   /* Insert keyframes. */
   if (mode & GRAPHKEYS_INSERTKEY_CURSOR) {
-    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-      FCurve *fcu = (FCurve *)ale->key_data;
+    for (bAnimListElem &ale : anim_data) {
+      FCurve *fcu = (FCurve *)ale.key_data;
 
       short mapping_flag = ANIM_get_normalization_flags(ac->sl);
       float offset;
       float unit_scale = ANIM_unit_mapping_get_factor(
-          ac->scene, ale->id, static_cast<FCurve *>(ale->key_data), mapping_flag, &offset);
+          ac->scene, ale.id, static_cast<FCurve *>(ale.key_data), mapping_flag, &offset);
 
       float x, y;
 
@@ -168,7 +168,7 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
         x = sipo->cursorTime;
       }
       else {
-        x = ANIM_nla_tweakedit_remap(ale, float(scene->r.cfra), NLATIME_CONVERT_UNMAP);
+        x = ANIM_nla_tweakedit_remap(&ale, float(scene->r.cfra), NLATIME_CONVERT_UNMAP);
       }
 
       /* Normalize units of cursor's value. */
@@ -182,14 +182,14 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
       /* Insert keyframe directly into the F-Curve. */
       insert_vert_fcurve(fcu, {x, y}, settings, eInsertKeyFlags(0));
 
-      ale->update |= ANIM_UPDATE_DEFAULT;
+      ale.update |= ANIM_UPDATE_DEFAULT;
     }
   }
   else {
     const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
         ac->depsgraph, float(scene->r.cfra));
-    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-      FCurve *fcu = (FCurve *)ale->key_data;
+    for (bAnimListElem &ale : anim_data) {
+      FCurve *fcu = (FCurve *)ale.key_data;
 
       /* Read value from property the F-Curve represents, or from the curve only?
        *
@@ -206,8 +206,8 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
       const std::optional<blender::StringRefNull> channel_group = fcu->grp ? std::optional(
                                                                                  fcu->grp->name) :
                                                                              std::nullopt;
-      if (ale->id && !ale->owner && !fcu->driver) {
-        PointerRNA id_rna_pointer = RNA_id_pointer_create(ale->id);
+      if (ale.id && !ale.owner && !fcu->driver) {
+        PointerRNA id_rna_pointer = RNA_id_pointer_create(ale.id);
         CombinedKeyingResult result = insert_keyframes(ac->bmain,
                                                        &id_rna_pointer,
                                                        channel_group,
@@ -227,14 +227,14 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
           cfra = sipo->cursorTime;
         }
         else {
-          cfra = ANIM_nla_tweakedit_remap(ale, float(scene->r.cfra), NLATIME_CONVERT_UNMAP);
+          cfra = ANIM_nla_tweakedit_remap(&ale, float(scene->r.cfra), NLATIME_CONVERT_UNMAP);
         }
 
         const float curval = evaluate_fcurve_only_curve(fcu, cfra);
         insert_vert_fcurve(fcu, {cfra, curval}, settings, eInsertKeyFlags(0));
       }
 
-      ale->update |= ANIM_UPDATE_DEFAULT;
+      ale.update |= ANIM_UPDATE_DEFAULT;
     }
   }
 
@@ -687,10 +687,10 @@ static bool duplicate_graph_keys(bAnimContext *ac)
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
   /* Loop through filtered data and delete selected keys. */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    changed |= duplicate_fcurve_keys((FCurve *)ale->key_data);
+  for (bAnimListElem &ale : anim_data) {
+    changed |= duplicate_fcurve_keys((FCurve *)ale.key_data);
 
-    ale->update |= ANIM_UPDATE_DEFAULT;
+    ale.update |= ANIM_UPDATE_DEFAULT;
   }
 
   ANIM_animdata_update(ac, &anim_data);
@@ -763,23 +763,23 @@ static bool delete_graph_keys(bAnimContext *ac)
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
   /* Loop through filtered data and delete selected keys. */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    FCurve *fcu = (FCurve *)ale->key_data;
-    AnimData *adt = ale->adt;
+  for (bAnimListElem &ale : anim_data) {
+    FCurve *fcu = (FCurve *)ale.key_data;
+    AnimData *adt = ale.adt;
     bool changed;
 
     /* Delete selected keyframes only. */
     changed = BKE_fcurve_delete_keys_selected(fcu);
 
     if (changed) {
-      ale->update |= ANIM_UPDATE_DEFAULT;
+      ale.update |= ANIM_UPDATE_DEFAULT;
       changed_final = true;
     }
 
     /* Only delete curve too if it won't be doing anything anymore. */
     if (BKE_fcurve_is_empty(fcu)) {
       blender::animrig::animdata_fcurve_delete(adt, fcu);
-      ale->key_data = nullptr;
+      ale.key_data = nullptr;
     }
   }
 
@@ -866,10 +866,10 @@ static void clean_graph_keys(bAnimContext *ac, float thresh, bool clean_chan)
 
   const bool only_selected_keys = !clean_chan;
   /* Loop through filtered data and clean curves. */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    clean_fcurve(ale, thresh, clean_chan, only_selected_keys);
+  for (bAnimListElem &ale : anim_data) {
+    clean_fcurve(&ale, thresh, clean_chan, only_selected_keys);
 
-    ale->update |= ANIM_UPDATE_DEFAULT;
+    ale.update |= ANIM_UPDATE_DEFAULT;
   }
 
   ANIM_animdata_update(ac, &anim_data);
@@ -943,8 +943,8 @@ static void convert_keys_to_samples(bAnimContext *ac, int start, int end)
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
   /* Loop through filtered data and add keys between selected keyframes on every frame. */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    FCurve *fcu = (FCurve *)ale->key_data;
+  for (bAnimListElem &ale : anim_data) {
+    FCurve *fcu = (FCurve *)ale.key_data;
     ChannelDriver *driver = fcu->driver;
 
     /* Disable driver so that it don't muck up the sampling process. */
@@ -956,7 +956,7 @@ static void convert_keys_to_samples(bAnimContext *ac, int start, int end)
     /* Restore driver. */
     fcu->driver = driver;
 
-    ale->update |= ANIM_UPDATE_DEPS;
+    ale.update |= ANIM_UPDATE_DEPS;
   }
 
   ANIM_animdata_update(ac, &anim_data);
@@ -1030,12 +1030,12 @@ static void convert_samples_to_keys(bAnimContext *ac, int start, int end)
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
   /* Loop through filtered data and add keys between selected keyframes on every frame. */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    FCurve *fcu = (FCurve *)ale->key_data;
+  for (bAnimListElem &ale : anim_data) {
+    FCurve *fcu = (FCurve *)ale.key_data;
 
     fcurve_samples_to_keyframes(fcu, start, end);
 
-    ale->update |= ANIM_UPDATE_DEPS;
+    ale.update |= ANIM_UPDATE_DEPS;
   }
 
   ANIM_animdata_update(ac, &anim_data);
@@ -1180,13 +1180,13 @@ static wmOperatorStatus graphkeys_sound_to_samples_exec(bContext *C, wmOperator 
       &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
   /* Loop through all selected F-Curves, replacing its data with the sound samples. */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    FCurve *fcu = (FCurve *)ale->key_data;
+  for (bAnimListElem &ale : anim_data) {
+    FCurve *fcu = (FCurve *)ale.key_data;
 
     /* Sample the sound. */
     fcurve_store_samples(fcu, &sbi, start, end, fcurve_samplingcb_sound);
 
-    ale->update |= ANIM_UPDATE_DEFAULT;
+    ale.update |= ANIM_UPDATE_DEFAULT;
   }
 
   /* Free sample data. */
@@ -1348,10 +1348,10 @@ static void bake_graph_keys(bAnimContext *ac)
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
   /* Loop through filtered data and add keys between selected keyframes on every frame. */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    blender::animrig::bake_fcurve_segments((FCurve *)ale->key_data);
+  for (bAnimListElem &ale : anim_data) {
+    blender::animrig::bake_fcurve_segments((FCurve *)ale.key_data);
 
-    ale->update |= ANIM_UPDATE_DEPS;
+    ale.update |= ANIM_UPDATE_DEPS;
   }
 
   ANIM_animdata_update(ac, &anim_data);
@@ -1445,14 +1445,14 @@ static void setexpo_graph_keys(bAnimContext *ac, short mode)
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
   /* Loop through setting mode per F-Curve. */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    FCurve *fcu = (FCurve *)ale->data;
+  for (bAnimListElem &ale : anim_data) {
+    FCurve *fcu = (FCurve *)ale.data;
 
     if (mode >= 0) {
       /* Just set mode setting. */
       fcu->extend = mode;
 
-      ale->update |= ANIM_UPDATE_HANDLES;
+      ale.update |= ANIM_UPDATE_HANDLES;
     }
     else {
       /* Shortcuts for managing Cycles F-Modifiers to make it easier to toggle cyclic animation
@@ -1480,7 +1480,7 @@ static void setexpo_graph_keys(bAnimContext *ac, short mode)
       }
     }
 
-    ale->update |= ANIM_UPDATE_DEPS;
+    ale.update |= ANIM_UPDATE_DEPS;
   }
 
   ANIM_animdata_update(ac, &anim_data);
@@ -1553,11 +1553,11 @@ static void setipo_graph_keys(bAnimContext *ac, short mode)
    * NOTE: we do not supply KeyframeEditData to the looper yet.
    * Currently that's not necessary here.
    */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+  for (bAnimListElem &ale : anim_data) {
     ANIM_fcurve_keyframes_loop(
-        nullptr, static_cast<FCurve *>(ale->key_data), nullptr, set_cb, BKE_fcurve_handles_recalc);
+        nullptr, static_cast<FCurve *>(ale.key_data), nullptr, set_cb, BKE_fcurve_handles_recalc);
 
-    ale->update |= ANIM_UPDATE_DEFAULT_NOHANDLES;
+    ale.update |= ANIM_UPDATE_DEFAULT_NOHANDLES;
   }
 
   ANIM_animdata_update(ac, &anim_data);
@@ -1632,11 +1632,11 @@ static void seteasing_graph_keys(bAnimContext *ac, short mode)
    * NOTE: we do not supply KeyframeEditData to the looper yet.
    * Currently that's not necessary here.
    */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+  for (bAnimListElem &ale : anim_data) {
     ANIM_fcurve_keyframes_loop(
-        nullptr, static_cast<FCurve *>(ale->key_data), nullptr, set_cb, BKE_fcurve_handles_recalc);
+        nullptr, static_cast<FCurve *>(ale.key_data), nullptr, set_cb, BKE_fcurve_handles_recalc);
 
-    ale->update |= ANIM_UPDATE_DEFAULT_NOHANDLES;
+    ale.update |= ANIM_UPDATE_DEFAULT_NOHANDLES;
   }
 
   ANIM_animdata_update(ac, &anim_data);
@@ -1711,15 +1711,15 @@ static void sethandles_graph_keys(bAnimContext *ac, short mode)
    * NOTE: we do not supply KeyframeEditData to the looper yet.
    * Currently that's not necessary here.
    */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    FCurve *fcu = (FCurve *)ale->key_data;
+  for (bAnimListElem &ale : anim_data) {
+    FCurve *fcu = (FCurve *)ale.key_data;
 
     /* Any selected keyframes for editing? */
     if (ANIM_fcurve_keyframes_loop(nullptr, fcu, nullptr, sel_cb, nullptr)) {
       /* Change type of selected handles. */
       ANIM_fcurve_keyframes_loop(nullptr, fcu, nullptr, edit_cb, BKE_fcurve_handles_recalc);
 
-      ale->update |= ANIM_UPDATE_DEFAULT;
+      ale.update |= ANIM_UPDATE_DEFAULT;
     }
   }
 
@@ -1811,8 +1811,8 @@ static ListBaseT<tEulerFilter> euler_filter_group_channels(
   tEulerFilter *euf = nullptr;
   *r_num_groups = 0;
 
-  LISTBASE_FOREACH (bAnimListElem *, ale, anim_data) {
-    FCurve *const fcu = (FCurve *)ale->data;
+  for (bAnimListElem &ale : *anim_data) {
+    FCurve *const fcu = (FCurve *)ale.data;
 
     /* Check if this is an appropriate F-Curve:
      * - Only rotation curves.
@@ -1825,7 +1825,7 @@ static ListBaseT<tEulerFilter> euler_filter_group_channels(
       BKE_reportf(reports,
                   RPT_WARNING,
                   "Euler Rotation F-Curve has invalid index (ID='%s', Path='%s', Index=%d)",
-                  (ale->id) ? ale->id->name : RPT_("<No ID>"),
+                  (ale.id) ? ale.id->name : RPT_("<No ID>"),
                   fcu->rna_path,
                   fcu->array_index);
       continue;
@@ -1833,13 +1833,13 @@ static ListBaseT<tEulerFilter> euler_filter_group_channels(
 
     /* Assume that this animation channel will be touched by the Euler filter. Doing this here
      * saves another loop over the animation data. */
-    ale->update |= ANIM_UPDATE_DEFAULT;
+    ale.update |= ANIM_UPDATE_DEFAULT;
 
     /* Optimization: assume that XYZ curves will always be stored consecutively,
      * so if the paths or the ID's don't match up, then a curve needs to be added
      * to a new group.
      */
-    if ((euf) && (euf->id == ale->id) && STREQ(euf->rna_path, fcu->rna_path)) {
+    if ((euf) && (euf->id == ale.id) && STREQ(euf->rna_path, fcu->rna_path)) {
       /* This should be fine to add to the existing group then. */
       euf->fcurves[fcu->array_index] = fcu;
       continue;
@@ -1850,7 +1850,7 @@ static ListBaseT<tEulerFilter> euler_filter_group_channels(
     BLI_addtail(&euler_groups, euf);
     ++*r_num_groups;
 
-    euf->id = ale->id;
+    euf->id = ale.id;
     /* This should be safe, since we're only using it for a short time. */
     euf->rna_path = fcu->rna_path;
     euf->fcurves[fcu->array_index] = fcu;
@@ -1988,15 +1988,15 @@ static void euler_filter_perform_filter(ListBaseT<tEulerFilter> *eulers,
   *r_curves_filtered = 0;
   *r_curves_seen = 0;
 
-  LISTBASE_FOREACH (tEulerFilter *, euf, eulers) {
+  for (tEulerFilter &euf : *eulers) {
     int curves_filtered_this_group = 0;
 
-    if (euler_filter_multi_channel(euf, reports)) {
+    if (euler_filter_multi_channel(&euf, reports)) {
       curves_filtered_this_group = 3;
     }
 
     for (int channel_index = 0; channel_index < 3; channel_index++) {
-      FCurve *fcu = euf->fcurves[channel_index];
+      FCurve *fcu = euf.fcurves[channel_index];
       if (fcu == nullptr) {
         continue;
       }
@@ -2144,23 +2144,23 @@ static KeyframeEditData sum_selected_keyframes(bAnimContext *ac)
   ANIM_animdata_filter(
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+  for (bAnimListElem &ale : anim_data) {
     short mapping_flag = ANIM_get_normalization_flags(ac->sl);
     KeyframeEditData current_ked;
     float offset;
     float unit_scale = ANIM_unit_mapping_get_factor(ac->scene,
-                                                    ale->id,
-                                                    static_cast<FCurve *>(ale->key_data),
+                                                    ale.id,
+                                                    static_cast<FCurve *>(ale.key_data),
                                                     mapping_flag | ANIM_UNITCONV_ONLYKEYS,
                                                     &offset);
 
     memset(&current_ked, 0, sizeof(current_ked));
 
     ANIM_nla_mapping_apply_if_needed_fcurve(
-        ale, static_cast<FCurve *>(ale->key_data), false, true);
+        &ale, static_cast<FCurve *>(ale.key_data), false, true);
     ANIM_fcurve_keyframes_loop(
-        &current_ked, static_cast<FCurve *>(ale->key_data), nullptr, bezt_calc_average, nullptr);
-    ANIM_nla_mapping_apply_if_needed_fcurve(ale, static_cast<FCurve *>(ale->key_data), true, true);
+        &current_ked, static_cast<FCurve *>(ale.key_data), nullptr, bezt_calc_average, nullptr);
+    ANIM_nla_mapping_apply_if_needed_fcurve(&ale, static_cast<FCurve *>(ale.key_data), true, true);
 
     if (current_ked.i1 == 0) {
       continue;
@@ -2360,8 +2360,8 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
   memset(&ked, 0, sizeof(KeyframeEditData));
   ked.scene = ac->scene;
   if (mode == GRAPHKEYS_SNAP_NEAREST_MARKER) {
-    ked.list.first = (ac->markers) ? ac->markers->first : nullptr;
-    ked.list.last = (ac->markers) ? ac->markers->last : nullptr;
+    ked.time_marker_list.first = (ac->markers) ? ac->markers->first : nullptr;
+    ked.time_marker_list.last = (ac->markers) ? ac->markers->last : nullptr;
   }
   else if (mode == GRAPHKEYS_SNAP_VALUE) {
     cursor_value = (sipo) ? sipo->cursorVal : 0.0f;
@@ -2381,28 +2381,28 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 
   /* Snap keyframes. */
   const bool use_handle = (sipo->flag & SIPO_NOHANDLES) == 0;
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+  for (bAnimListElem &ale : anim_data) {
     /* Normalize cursor value (for normalized F-Curves display). */
     if (mode == GRAPHKEYS_SNAP_VALUE) {
       short mapping_flag = ANIM_get_normalization_flags(ac->sl);
       float offset;
       float unit_scale = ANIM_unit_mapping_get_factor(
-          ac->scene, ale->id, static_cast<FCurve *>(ale->key_data), mapping_flag, &offset);
+          ac->scene, ale.id, static_cast<FCurve *>(ale.key_data), mapping_flag, &offset);
 
       ked.f1 = (cursor_value / unit_scale) - offset;
     }
 
     /* Perform snapping. */
     ANIM_nla_mapping_apply_if_needed_fcurve(
-        ale, static_cast<FCurve *>(ale->key_data), false, false);
+        &ale, static_cast<FCurve *>(ale.key_data), false, false);
     ANIM_fcurve_keyframes_loop(
-        &ked, static_cast<FCurve *>(ale->key_data), nullptr, edit_cb, BKE_fcurve_handles_recalc);
+        &ked, static_cast<FCurve *>(ale.key_data), nullptr, edit_cb, BKE_fcurve_handles_recalc);
     BKE_fcurve_merge_duplicate_keys(
-        static_cast<FCurve *>(ale->key_data), BEZT_FLAG_TEMP_TAG, use_handle);
+        static_cast<FCurve *>(ale.key_data), BEZT_FLAG_TEMP_TAG, use_handle);
     ANIM_nla_mapping_apply_if_needed_fcurve(
-        ale, static_cast<FCurve *>(ale->key_data), true, false);
+        &ale, static_cast<FCurve *>(ale.key_data), true, false);
 
-    ale->update |= ANIM_UPDATE_DEFAULT;
+    ale.update |= ANIM_UPDATE_DEFAULT;
   }
 
   ANIM_animdata_update(ac, &anim_data);
@@ -2451,8 +2451,8 @@ static bool graph_has_selected_control_points(bContext *C)
 
   /* Check if any of the visible and editable f-curves have at least one selected control point. */
   bool has_selected_control_points = false;
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    const FCurve *fcu = static_cast<const FCurve *>(ale->key_data);
+  for (bAnimListElem &ale : anim_data) {
+    const FCurve *fcu = static_cast<const FCurve *>(ale.key_data);
     if (BKE_fcurve_has_selected_control_points(fcu)) {
       has_selected_control_points = true;
       break;
@@ -2522,12 +2522,12 @@ static void equalize_graph_keys(bAnimContext *ac, int mode, float handle_length,
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
   /* Equalize keyframes. */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    ANIM_fcurve_equalize_keyframes_loop(static_cast<FCurve *>(ale->key_data),
+  for (bAnimListElem &ale : anim_data) {
+    ANIM_fcurve_equalize_keyframes_loop(static_cast<FCurve *>(ale.key_data),
                                         eEditKeyframes_Equalize(mode),
                                         handle_length,
                                         flatten);
-    ale->update |= ANIM_UPDATE_DEFAULT;
+    ale.update |= ANIM_UPDATE_DEFAULT;
   }
 
   ANIM_animdata_update(ac, &anim_data);
@@ -2686,14 +2686,14 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
   /* Mirror keyframes. */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+  for (bAnimListElem &ale : anim_data) {
     /* Apply unit corrections. */
     if (mode == GRAPHKEYS_MIRROR_VALUE) {
       short mapping_flag = ANIM_get_normalization_flags(ac->sl);
       float offset;
       float unit_scale = ANIM_unit_mapping_get_factor(ac->scene,
-                                                      ale->id,
-                                                      static_cast<FCurve *>(ale->key_data),
+                                                      ale.id,
+                                                      static_cast<FCurve *>(ale.key_data),
                                                       mapping_flag | ANIM_UNITCONV_ONLYKEYS,
                                                       &offset);
 
@@ -2702,13 +2702,13 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 
     /* Perform actual mirroring. */
     ANIM_nla_mapping_apply_if_needed_fcurve(
-        ale, static_cast<FCurve *>(ale->key_data), false, false);
+        &ale, static_cast<FCurve *>(ale.key_data), false, false);
     ANIM_fcurve_keyframes_loop(
-        &ked, static_cast<FCurve *>(ale->key_data), nullptr, edit_cb, BKE_fcurve_handles_recalc);
+        &ked, static_cast<FCurve *>(ale.key_data), nullptr, edit_cb, BKE_fcurve_handles_recalc);
     ANIM_nla_mapping_apply_if_needed_fcurve(
-        ale, static_cast<FCurve *>(ale->key_data), true, false);
+        &ale, static_cast<FCurve *>(ale.key_data), true, false);
 
-    ale->update |= ANIM_UPDATE_DEFAULT;
+    ale.update |= ANIM_UPDATE_DEFAULT;
   }
 
   ANIM_animdata_update(ac, &anim_data);
@@ -2782,14 +2782,14 @@ static wmOperatorStatus graphkeys_smooth_exec(bContext *C, wmOperator * /*op*/)
       &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
   /* Smooth keyframes. */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+  for (bAnimListElem &ale : anim_data) {
     /* For now, we can only smooth by flattening handles AND smoothing curve values.
      * Perhaps the mode argument could be removed, as that functionality is offered through
      * Snap->Flatten Handles anyway.
      */
-    smooth_fcurve(static_cast<FCurve *>(ale->key_data));
+    smooth_fcurve(static_cast<FCurve *>(ale.key_data));
 
-    ale->update |= ANIM_UPDATE_DEFAULT;
+    ale.update |= ANIM_UPDATE_DEFAULT;
   }
 
   ANIM_animdata_update(&ac, &anim_data);
@@ -2889,8 +2889,8 @@ static wmOperatorStatus graph_fmodifier_add_exec(bContext *C, wmOperator *op)
       &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
   /* Add f-modifier to each curve. */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    FCurve *fcu = (FCurve *)ale->data;
+  for (bAnimListElem &ale : anim_data) {
+    FCurve *fcu = (FCurve *)ale.data;
     FModifier *fcm;
 
     /* Add F-Modifier of specified type to active F-Curve, and make it the active one. */
@@ -2903,7 +2903,7 @@ static wmOperatorStatus graph_fmodifier_add_exec(bContext *C, wmOperator *op)
       break;
     }
 
-    ale->update |= ANIM_UPDATE_DEPS;
+    ale.update |= ANIM_UPDATE_DEPS;
   }
 
   ANIM_animdata_update(&ac, &anim_data);
@@ -3046,14 +3046,14 @@ static wmOperatorStatus graph_fmodifier_paste_exec(bContext *C, wmOperator *op)
       &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
   /* Paste modifiers. */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    FCurve *fcu = (FCurve *)ale->data;
+  for (bAnimListElem &ale : anim_data) {
+    FCurve *fcu = (FCurve *)ale.data;
     int tot;
 
     tot = ANIM_fmodifiers_paste_from_buf(&fcu->modifiers, replace, fcu);
 
     if (tot) {
-      ale->update |= ANIM_UPDATE_DEPS;
+      ale.update |= ANIM_UPDATE_DEPS;
       ok = true;
     }
   }
@@ -3228,8 +3228,8 @@ static wmOperatorStatus graph_driver_delete_invalid_exec(bContext *C, wmOperator
       &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
   /* Find invalid drivers. */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    FCurve *fcu = (FCurve *)ale->data;
+  for (bAnimListElem &ale : anim_data) {
+    FCurve *fcu = (FCurve *)ale.data;
     if (ELEM(nullptr, fcu, fcu->driver)) {
       continue;
     }
@@ -3237,12 +3237,12 @@ static wmOperatorStatus graph_driver_delete_invalid_exec(bContext *C, wmOperator
       continue;
     }
 
-    ok |= ANIM_remove_driver(ale->id, fcu->rna_path, fcu->array_index);
+    ok |= ANIM_remove_driver(ale.id, fcu->rna_path, fcu->array_index);
     if (!ok) {
       break;
     }
     deleted += 1;
-    DEG_id_tag_update(ale->id, ID_RECALC_ANIMATION);
+    DEG_id_tag_update(ale.id, ID_RECALC_ANIMATION);
   }
 
   /* Cleanup. */

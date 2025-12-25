@@ -146,17 +146,6 @@ static void rna_remlink(ListBase *listbase, void *vlink)
   }
 }
 
-PropertyDefRNA *rna_findlink(ListBase *listbase, const char *identifier)
-{
-  LISTBASE_FOREACH (Link *, link, listbase) {
-    PropertyRNA *prop = ((PropertyDefRNA *)link)->prop;
-    if (prop && STREQ(prop->identifier, identifier)) {
-      return (PropertyDefRNA *)link;
-    }
-  }
-  return nullptr;
-}
-
 void rna_freelinkN(ListBase *listbase, void *vlink)
 {
   rna_remlink(listbase, vlink);
@@ -736,8 +725,8 @@ void RNA_define_free(BlenderRNA * /*brna*/)
   StructDefRNA *ds;
   FunctionDefRNA *dfunc;
 
-  LISTBASE_FOREACH (AllocDefRNA *, alloc, &DefRNA.allocs) {
-    MEM_freeN(alloc->mem);
+  for (AllocDefRNA &alloc : DefRNA.allocs) {
+    MEM_freeN(alloc.mem);
   }
   rna_freelistN(&DefRNA.allocs);
 
@@ -1372,9 +1361,12 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_,
     dcont = rna_find_container_def(cont);
 
     /* TODO: detect super-type collisions. */
-    if (rna_findlink(&dcont->properties, identifier)) {
-      CLOG_ERROR(&LOG, "duplicate identifier \"%s.%s\"", CONTAINER_RNA_ID(cont), identifier);
-      DefRNA.error = true;
+    for (PropertyDefRNA &other_def : dcont->properties) {
+      if (other_def.prop && STREQ(other_def.prop->identifier, identifier)) {
+        CLOG_ERROR(&LOG, "duplicate identifier \"%s.%s\"", CONTAINER_RNA_ID(cont), identifier);
+        DefRNA.error = true;
+        break;
+      }
     }
 
     dprop = MEM_callocN<PropertyDefRNA>("PropertyDefRNA");

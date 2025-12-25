@@ -77,15 +77,13 @@ static void clip_draw_dopesheet_background(ARegion *region, MovieClip *clip, uin
   MovieTracking *tracking = &clip->tracking;
   MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
 
-  LISTBASE_FOREACH (
-      MovieTrackingDopesheetCoverageSegment *, coverage_segment, &dopesheet->coverage_segments)
-  {
-    if (coverage_segment->coverage < TRACKING_COVERAGE_OK) {
+  for (MovieTrackingDopesheetCoverageSegment &coverage_segment : dopesheet->coverage_segments) {
+    if (coverage_segment.coverage < TRACKING_COVERAGE_OK) {
       int start_frame = BKE_movieclip_remap_clip_to_scene_frame(clip,
-                                                                coverage_segment->start_frame);
-      int end_frame = BKE_movieclip_remap_clip_to_scene_frame(clip, coverage_segment->end_frame);
+                                                                coverage_segment.start_frame);
+      int end_frame = BKE_movieclip_remap_clip_to_scene_frame(clip, coverage_segment.end_frame);
 
-      if (coverage_segment->coverage == TRACKING_COVERAGE_BAD) {
+      if (coverage_segment.coverage == TRACKING_COVERAGE_BAD) {
         immUniformColor4f(1.0f, 0.0f, 0.0f, 0.07f);
       }
       else {
@@ -134,7 +132,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
 
     clip_draw_dopesheet_background(region, clip, pos_id);
 
-    LISTBASE_FOREACH (MovieTrackingDopesheetChannel *, channel, &dopesheet->channels) {
+    for (MovieTrackingDopesheetChannel &channel : dopesheet->channels) {
       float yminc = (y - CHANNEL_HEIGHT_HALF);
       float ymaxc = (y + CHANNEL_HEIGHT_HALF);
 
@@ -142,7 +140,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
       if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
           IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax))
       {
-        MovieTrackingTrack *track = channel->track;
+        MovieTrackingTrack *track = channel.track;
         int i;
         bool sel = (track->flag & TRACK_DOPE_SEL) != 0;
 
@@ -161,11 +159,10 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
         }
 
         /* tracked segments */
-        for (i = 0; i < channel->tot_segment; i++) {
-          int start_frame = BKE_movieclip_remap_clip_to_scene_frame(clip,
-                                                                    channel->segments[2 * i]);
+        for (i = 0; i < channel.tot_segment; i++) {
+          int start_frame = BKE_movieclip_remap_clip_to_scene_frame(clip, channel.segments[2 * i]);
           int end_frame = BKE_movieclip_remap_clip_to_scene_frame(clip,
-                                                                  channel->segments[2 * i + 1]);
+                                                                  channel.segments[2 * i + 1]);
 
           immUniformColor4fv(sel ? selected_strip : strip);
 
@@ -223,7 +220,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
       immAttr1u(flags_id, 0);
 
       y = (CHANNEL_FIRST); /* start again at the top */
-      LISTBASE_FOREACH (MovieTrackingDopesheetChannel *, channel, &dopesheet->channels) {
+      for (MovieTrackingDopesheetChannel &channel : dopesheet->channels) {
         float yminc = (y - CHANNEL_HEIGHT_HALF);
         float ymaxc = (y + CHANNEL_HEIGHT_HALF);
 
@@ -231,17 +228,17 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
         if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
             IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax))
         {
-          MovieTrackingTrack *track = channel->track;
+          MovieTrackingTrack *track = channel.track;
           int i;
           bool sel = (track->flag & TRACK_DOPE_SEL) != 0;
           float alpha = (track->flag & TRACK_LOCKED) ? 0.5f : 1.0f;
 
           /* tracked segments */
-          for (i = 0; i < channel->tot_segment; i++) {
+          for (i = 0; i < channel.tot_segment; i++) {
             int start_frame = BKE_movieclip_remap_clip_to_scene_frame(clip,
-                                                                      channel->segments[2 * i]);
+                                                                      channel.segments[2 * i]);
             int end_frame = BKE_movieclip_remap_clip_to_scene_frame(clip,
-                                                                    channel->segments[2 * i + 1]);
+                                                                    channel.segments[2 * i + 1]);
 
             if (start_frame != end_frame) {
               draw_keyframe_shape(start_frame, y, sel, alpha, pos_id, color_id);
@@ -318,7 +315,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
-  LISTBASE_FOREACH (MovieTrackingDopesheetChannel *, channel, &dopesheet->channels) {
+  for (MovieTrackingDopesheetChannel &channel : dopesheet->channels) {
     float yminc = (y - CHANNEL_HEIGHT_HALF);
     float ymaxc = (y + CHANNEL_HEIGHT_HALF);
 
@@ -326,7 +323,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
     if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
         IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax))
     {
-      MovieTrackingTrack *track = channel->track;
+      MovieTrackingTrack *track = channel.track;
       float color[3];
       track_channel_color(track, false, color);
       immUniformColor3fv(color);
@@ -348,7 +345,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
 
   BLF_size(fontid, 11.0f * UI_SCALE_FAC);
 
-  LISTBASE_FOREACH (MovieTrackingDopesheetChannel *, channel, &dopesheet->channels) {
+  for (MovieTrackingDopesheetChannel &channel : dopesheet->channels) {
     float yminc = (y - CHANNEL_HEIGHT_HALF);
     float ymaxc = (y + CHANNEL_HEIGHT_HALF);
 
@@ -356,14 +353,14 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
     if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
         IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax))
     {
-      MovieTrackingTrack *track = channel->track;
+      MovieTrackingTrack *track = channel.track;
       bool sel = (track->flag & TRACK_DOPE_SEL) != 0;
 
       blender::ui::theme::font_theme_color_set(fontid, sel ? TH_TEXT_HI : TH_TEXT);
 
-      float font_height = BLF_height(fontid, channel->name, sizeof(channel->name));
+      float font_height = BLF_height(fontid, channel.name, sizeof(channel.name));
       BLF_position(fontid, v2d->cur.xmin + CHANNEL_PAD, y - font_height / 2.0f, 0.0f);
-      BLF_draw(fontid, channel->name, strlen(channel->name));
+      BLF_draw(fontid, channel.name, strlen(channel.name));
     }
 
     /* adjust y-position for next one */
@@ -379,7 +376,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
   BLI_assert(chan_prop_lock);
 
   GPU_blend(GPU_BLEND_ALPHA);
-  LISTBASE_FOREACH (MovieTrackingDopesheetChannel *, channel, &dopesheet->channels) {
+  for (MovieTrackingDopesheetChannel &channel : dopesheet->channels) {
     float yminc = (y - CHANNEL_HEIGHT_HALF);
     float ymaxc = (y + CHANNEL_HEIGHT_HALF);
 
@@ -387,7 +384,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
     if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
         IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax))
     {
-      MovieTrackingTrack *track = channel->track;
+      MovieTrackingTrack *track = channel.track;
       const int icon = (track->flag & TRACK_LOCKED) ? ICON_LOCKED : ICON_UNLOCKED;
       PointerRNA ptr = RNA_pointer_create_discrete(&clip->id, &RNA_MovieTrackingTrack, track);
 

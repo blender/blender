@@ -68,8 +68,8 @@ namespace utils {
 static std::map<std::string, Material *> build_material_map(const Main *bmain)
 {
   std::map<std::string, Material *> mat_map;
-  LISTBASE_FOREACH (Material *, material, &bmain->materials) {
-    mat_map[material->id.name + 2] = material;
+  for (Material &material : bmain->materials) {
+    mat_map[material.id.name + 2] = &material;
   }
   return mat_map;
 }

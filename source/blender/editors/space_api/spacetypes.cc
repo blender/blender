@@ -212,9 +212,9 @@ void ED_spacetypes_keymap(wmKeyConfig *keyconf)
     if (type->keymap) {
       type->keymap(keyconf);
     }
-    LISTBASE_FOREACH (ARegionType *, region_type, &type->regiontypes) {
-      if (region_type->keymap) {
-        region_type->keymap(keyconf);
+    for (ARegionType &region_type : type->regiontypes) {
+      if (region_type.keymap) {
+        region_type.keymap(keyconf);
       }
     }
   }
@@ -248,10 +248,10 @@ void *ED_region_draw_cb_activate(ARegionType *art,
 
 bool ED_region_draw_cb_exit(ARegionType *art, void *handle)
 {
-  LISTBASE_FOREACH (RegionDrawCB *, rdc, &art->drawcalls) {
-    if (rdc == (RegionDrawCB *)handle) {
-      BLI_remlink(&art->drawcalls, rdc);
-      MEM_freeN(rdc);
+  for (RegionDrawCB &rdc : art->drawcalls) {
+    if (&rdc == (RegionDrawCB *)handle) {
+      BLI_remlink(&art->drawcalls, &rdc);
+      MEM_freeN(&rdc);
       return true;
     }
   }
@@ -260,9 +260,9 @@ bool ED_region_draw_cb_exit(ARegionType *art, void *handle)
 
 static void ed_region_draw_cb_draw(const bContext *C, ARegion *region, ARegionType *art, int type)
 {
-  LISTBASE_FOREACH_MUTABLE (RegionDrawCB *, rdc, &art->drawcalls) {
-    if (rdc->type == type) {
-      rdc->draw(C, region, rdc->customdata);
+  for (RegionDrawCB &rdc : art->drawcalls.items_mutable()) {
+    if (rdc.type == type) {
+      rdc.draw(C, region, rdc.customdata);
     }
   }
 }
@@ -279,13 +279,13 @@ void ED_region_surface_draw_cb_draw(ARegionType *art, int type)
 
 void ED_region_draw_cb_remove_by_type(ARegionType *art, void *draw_fn, void (*free)(void *))
 {
-  LISTBASE_FOREACH_MUTABLE (RegionDrawCB *, rdc, &art->drawcalls) {
-    if (rdc->draw == draw_fn) {
+  for (RegionDrawCB &rdc : art->drawcalls.items_mutable()) {
+    if (rdc.draw == draw_fn) {
       if (free) {
-        free(rdc->customdata);
+        free(rdc.customdata);
       }
-      BLI_remlink(&art->drawcalls, rdc);
-      MEM_freeN(rdc);
+      BLI_remlink(&art->drawcalls, &rdc);
+      MEM_freeN(&rdc);
     }
   }
 }

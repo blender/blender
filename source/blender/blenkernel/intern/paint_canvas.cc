@@ -131,13 +131,13 @@ char *BKE_paint_canvas_key_get(PaintModeSettings *settings, Object *ob)
   if (BKE_paint_canvas_image_get(settings, ob, &image, &image_user)) {
     ss << ",SEAM_MARGIN:" << image->seam_margin;
     ImageUser tile_user = *image_user;
-    LISTBASE_FOREACH (ImageTile *, image_tile, &image->tiles) {
-      tile_user.tile = image_tile->tile_number;
+    for (ImageTile &image_tile : image->tiles) {
+      tile_user.tile = image_tile.tile_number;
       ImBuf *image_buffer = BKE_image_acquire_ibuf(image, &tile_user, nullptr);
       if (!image_buffer) {
         continue;
       }
-      ss << ",TILE_" << image_tile->tile_number;
+      ss << ",TILE_" << image_tile.tile_number;
       ss << "(" << image_buffer->x << "," << image_buffer->y << ")";
       BKE_image_release_ibuf(image, image_buffer, nullptr);
     }

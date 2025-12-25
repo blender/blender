@@ -184,10 +184,10 @@ class WeightPaintOperation : public GreasePencilStrokeOperation {
   /* Get locked and bone-deformed vertex groups in GP object. */
   void get_locked_and_bone_deformed_vertex_groups()
   {
-    const ListBaseT<bDeformGroup> *defgroups = BKE_object_defgroup_list(this->object);
-    LISTBASE_FOREACH (bDeformGroup *, dg, defgroups) {
-      if ((dg->flag & DG_LOCK_WEIGHT) != 0) {
-        this->object_locked_defgroups.add(dg->name);
+    const ListBaseT<bDeformGroup> &defgroups = *BKE_object_defgroup_list(this->object);
+    for (const bDeformGroup &dg : defgroups) {
+      if ((dg.flag & DG_LOCK_WEIGHT) != 0) {
+        this->object_locked_defgroups.add(dg.name);
       }
     }
     this->object_bone_deformed_defgroups = ed::greasepencil::get_bone_deformed_vertex_group_names(
@@ -227,11 +227,11 @@ class WeightPaintOperation : public GreasePencilStrokeOperation {
         /* Create boolean arrays indicating whether a vertex group is locked/bone deformed
          * or not. */
         if (this->auto_normalize) {
-          LISTBASE_FOREACH (bDeformGroup *, dg, &curves.vertex_group_names) {
+          for (const bDeformGroup &dg : curves.vertex_group_names) {
             drawing_weight_data.locked_vgroups.append(
-                this->object_locked_defgroups.contains(dg->name));
+                this->object_locked_defgroups.contains(dg.name));
             drawing_weight_data.bone_deformed_vgroups.append(
-                this->object_bone_deformed_defgroups.contains(dg->name));
+                this->object_bone_deformed_defgroups.contains(dg.name));
           }
         }
 
