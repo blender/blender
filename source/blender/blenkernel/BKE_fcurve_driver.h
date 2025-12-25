@@ -32,16 +32,16 @@ struct ViewLayer;
 /* convenience looper over ALL driver targets for a given variable (even the unused ones) */
 #define DRIVER_TARGETS_LOOPER_BEGIN(dvar) \
   { \
-    DriverTarget *dtar = &dvar->targets[0]; \
+    auto *dtar = &(dvar)->targets[0]; \
     int tarIndex = 0; \
     for (; tarIndex < MAX_DRIVER_TARGETS; tarIndex++, dtar++)
 
 /* convenience looper over USED driver targets only */
 #define DRIVER_TARGETS_USED_LOOPER_BEGIN(dvar) \
   { \
-    DriverTarget *dtar = &dvar->targets[0]; \
+    auto *dtar = &(dvar)->targets[0]; \
     int tarIndex = 0; \
-    for (; tarIndex < dvar->num_targets; tarIndex++, dtar++)
+    for (; tarIndex < (dvar)->num_targets; tarIndex++, dtar++)
 
 /* tidy up for driver targets loopers */
 #define DRIVER_TARGETS_LOOPER_END \

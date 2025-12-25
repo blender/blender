@@ -99,7 +99,7 @@
 /* Useful macros for testing various common flag combinations */
 
 /* Constraint Target Macros */
-#define VALID_CONS_TARGET(ct) ((ct) && (ct->tar))
+#define VALID_CONS_TARGET(ct) ((ct) && ((ct)->tar))
 
 static CLG_LogRef LOG = {"object.constraint"};
 

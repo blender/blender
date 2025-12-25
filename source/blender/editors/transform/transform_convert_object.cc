@@ -673,7 +673,7 @@ static void createTransObject(bContext *C, TransInfo *t)
 
 #define BASE_XFORM_INDIRECT(base) \
 \
-  ((base->flag_legacy & BA_WAS_SEL) && (base->flag & BASE_SELECTED) == 0)
+  (((base)->flag_legacy & BA_WAS_SEL) && ((base)->flag & BASE_SELECTED) == 0)
 
     Set<Object *> objects_in_transdata;
     Map<Object *, Object *> objects_parent_root;
