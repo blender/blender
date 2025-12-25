@@ -259,6 +259,143 @@ TEST(listbase, SplitAfter)
   BLI_freelistN(&split_after_lb);
 }
 
+TEST(listbase, EnumerateIterator)
+{
+  struct TestLink {
+    TestLink *next, *prev;
+    int value;
+  };
+
+  ListBaseT<TestLink> lb;
+  BLI_listbase_clear(&lb);
+
+  TestLink *link1 = MEM_callocN<TestLink>("link1");
+  link1->value = 10;
+  BLI_addtail(&lb, link1);
+
+  TestLink *link2 = MEM_callocN<TestLink>("link2");
+  link2->value = 20;
+  BLI_addtail(&lb, link2);
+
+  int count = 0;
+  for (auto [i, link] : lb.enumerate()) {
+    EXPECT_EQ(i, count);
+    if (i == 0) {
+      EXPECT_EQ(&link, link1);
+      EXPECT_EQ(link.value, 10);
+    }
+    else if (i == 1) {
+      EXPECT_EQ(&link, link2);
+      EXPECT_EQ(link.value, 20);
+    }
+    count++;
+  }
+  EXPECT_EQ(count, 2);
+
+  BLI_freelistN(&lb);
+}
+
+TEST(listbase, ReversedIterator)
+{
+  struct TestLink {
+    TestLink *next, *prev;
+    int value;
+  };
+
+  ListBaseT<TestLink> lb;
+  BLI_listbase_clear(&lb);
+
+  TestLink *link1 = MEM_callocN<TestLink>("link1");
+  link1->value = 10;
+  BLI_addtail(&lb, link1);
+
+  TestLink *link2 = MEM_callocN<TestLink>("link2");
+  link2->value = 20;
+  BLI_addtail(&lb, link2);
+
+  int count = 0;
+  for (TestLink &link : lb.items_reversed()) {
+    if (count == 0) {
+      EXPECT_EQ(&link, link2);
+    }
+    else if (count == 1) {
+      EXPECT_EQ(&link, link1);
+    }
+    count++;
+  }
+  EXPECT_EQ(count, 2);
+
+  BLI_freelistN(&lb);
+}
+
+TEST(listbase, MutableIterator)
+{
+  struct TestLink {
+    TestLink *next, *prev;
+    int value;
+  };
+
+  ListBaseT<TestLink> lb;
+  BLI_listbase_clear(&lb);
+
+  TestLink *link1 = MEM_callocN<TestLink>("link1");
+  BLI_addtail(&lb, link1);
+
+  TestLink *link2 = MEM_callocN<TestLink>("link2");
+  BLI_addtail(&lb, link2);
+
+  TestLink *link3 = MEM_callocN<TestLink>("link3");
+  BLI_addtail(&lb, link3);
+
+  int count = 0;
+  for (TestLink &link : lb.items_mutable()) {
+    count++;
+    if (&link == link2) {
+      BLI_freelinkN(&lb, &link);
+    }
+  }
+  EXPECT_EQ(count, 3);
+  EXPECT_EQ(BLI_listbase_count(&lb), 2);
+  EXPECT_EQ(lb.first, link1);
+  EXPECT_EQ(lb.last, link3);
+
+  BLI_freelistN(&lb);
+}
+
+TEST(listbase, MutableReversedIterator)
+{
+  struct TestLink {
+    TestLink *next, *prev;
+    int value;
+  };
+
+  ListBaseT<TestLink> lb;
+  BLI_listbase_clear(&lb);
+
+  TestLink *link1 = MEM_callocN<TestLink>("link1");
+  BLI_addtail(&lb, link1);
+
+  TestLink *link2 = MEM_callocN<TestLink>("link2");
+  BLI_addtail(&lb, link2);
+
+  TestLink *link3 = MEM_callocN<TestLink>("link3");
+  BLI_addtail(&lb, link3);
+
+  int count = 0;
+  for (TestLink &link : lb.items_reversed_mutable()) {
+    count++;
+    if (&link == link2) {
+      BLI_freelinkN(&lb, &link);
+    }
+  }
+  EXPECT_EQ(count, 3);
+  EXPECT_EQ(BLI_listbase_count(&lb), 2);
+  EXPECT_EQ(lb.first, link1);
+  EXPECT_EQ(lb.last, link3);
+
+  BLI_freelistN(&lb);
+}
+
 /* -------------------------------------------------------------------- */
 /* Sort utilities & test */
 

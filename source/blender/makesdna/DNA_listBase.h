@@ -23,8 +23,6 @@ struct LinkData {
   void *data;
 };
 
-#include "BLI_listbase_iterator.hh"
-
 /**
  * The basic double linked-list structure.
  *
@@ -36,6 +34,12 @@ struct ListBase {
 };
 
 #ifdef __cplusplus
+
+template<typename T> struct ListBaseTIterator;
+template<typename T> struct ListBaseEnumerateWrapper;
+template<typename T> struct ListBaseMutableWrapper;
+template<typename T> struct ListBaseBackwardWrapper;
+template<typename T> struct ListBaseMutableBackwardWrapper;
 
 /**
  * This is a thin wrapper around #ListBase to make it type-safe. It's designed to be used in DNA
@@ -53,6 +57,43 @@ template<typename T> struct ListBaseT : public ListBase {
   {
     /* Don't use `this->last` because this iterator has to point to one-past-the-end. */
     return ListBaseTIterator<T>{nullptr};
+  }
+
+  /** Iterator that returns also gives an index for every item. This helps prevent mistakes
+   * where continue mistakenly skips the incrementation.
+   *
+   * Usage: `for(auto [index, item] : list.enumerate())` */
+  ListBaseEnumerateWrapper<T> enumerate()
+  {
+    return {this->first};
+  }
+
+  ListBaseEnumerateWrapper<const T> enumerate() const
+  {
+    return {this->first};
+  }
+
+  /** Iterator that supports removing the item we're looping over. */
+  ListBaseMutableWrapper<T> items_mutable()
+  {
+    return {this->first};
+  }
+
+  /** Iterator that runs in reverse order. */
+  ListBaseBackwardWrapper<T> items_reversed()
+  {
+    return {this->last};
+  }
+
+  ListBaseBackwardWrapper<const T> items_reversed() const
+  {
+    return {this->last};
+  }
+
+  /** Iterator that runs in reverse order and supports removing the item we're looping over. */
+  ListBaseMutableBackwardWrapper<T> items_reversed_mutable()
+  {
+    return {this->last};
   }
 
   /* Cast for opaque types and C style subclasses. */

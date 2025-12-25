@@ -12,6 +12,7 @@
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_compiler_compat.h"
+#include "BLI_listbase_iterator.hh"
 
 #include "DNA_listBase.h"
 
