@@ -147,7 +147,7 @@ void ED_screen_draw_edges(wmWindow *win)
     active_area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, win->runtime->eventstate->xy);
     /* We don't want an active area when resizing, otherwise outline for active area flickers, see:
      * #136314. */
-    if (active_area && !BLI_listbase_is_empty(&win->drawcalls)) {
+    if (active_area && !BLI_listbase_is_empty(&win->runtime->drawcalls)) {
       active_area = nullptr;
     }
   }
@@ -737,7 +737,7 @@ void screen_animate_area_highlight(wmWindow *win,
 {
   /* Disabling for now, see #147487. This can cause memory leaks since the
    * data is only freed when the animation completes, which might not happen
-   * during automated tests. Freeing wmWindow->drawcalls on window close might
+   * during automated tests. Freeing wmWindow->runtime->drawcalls on window close might
    * be enough, but will have to be investigated. */
   return;
 

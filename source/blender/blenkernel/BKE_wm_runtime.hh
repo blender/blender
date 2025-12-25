@@ -134,6 +134,9 @@ struct WindowRuntime {
   /** Priority handlers, handled first. */
   ListBaseT<wmEventHandler> modalhandlers = {nullptr, nullptr};
 
+  /** Custom drawing callbacks. */
+  ListBaseT<struct WindowDrawCB> drawcalls = {nullptr, nullptr};
+
   /** Gesture stuff. */
   ListBaseT<wmGesture> gesture = {nullptr, nullptr};
 

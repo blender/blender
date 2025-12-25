@@ -269,9 +269,6 @@ struct wmWindow {
   /** Properties for stereoscopic displays. */
   struct Stereo3dFormat *stereo3d_format = nullptr;
 
-  /** Custom drawing callbacks. */
-  ListBaseT<struct WindowDrawCB> drawcalls = {nullptr, nullptr};
-
   WindowRuntimeHandle *runtime = nullptr;
 };
 
