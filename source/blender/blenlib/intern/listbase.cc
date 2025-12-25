@@ -22,6 +22,11 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+#define LISTBASE_FOREACH(type, var, list) \
+  for (type var = (type)((list)->first); var != nullptr; var = (type)(((Link *)(var))->next))
+#define LISTBASE_FOREACH_BACKWARD(type, var, list) \
+  for (type var = (type)((list)->last); var != nullptr; var = (type)(((Link *)(var))->prev))
+
 void BLI_movelisttolist(ListBase *dst, ListBase *src)
 {
   if (src->first == nullptr) {
