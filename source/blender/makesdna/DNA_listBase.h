@@ -42,23 +42,14 @@ struct ListBase {
  * structs. It is written as untyped #ListBase in .blend files for compatibility.
  */
 template<typename T> struct ListBaseT : public ListBase {
-  ListBaseTIterator<const T> begin() const
-  {
-    return ListBaseTIterator<const T>{static_cast<const T *>(this->first)};
-  }
-
-  ListBaseTIterator<const T> end() const
-  {
-    /* Don't use `this->last` because this iterator has to point to one-past-the-end. */
-    return ListBaseTIterator<const T>{nullptr};
-  }
-
-  ListBaseTIterator<T> begin()
+  /* TODO: Add const and non-const iterators. However this will require some refactoring
+   * as some places rely on being able to get a mutable list element from a const list. */
+  ListBaseTIterator<T> begin() const
   {
     return ListBaseTIterator<T>{static_cast<T *>(this->first)};
   }
 
-  ListBaseTIterator<T> end()
+  ListBaseTIterator<T> end() const
   {
     /* Don't use `this->last` because this iterator has to point to one-past-the-end. */
     return ListBaseTIterator<T>{nullptr};
