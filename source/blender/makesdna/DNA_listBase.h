@@ -12,8 +12,6 @@
 
 #pragma once
 
-#include "BLI_listbase_iterator.hh"
-
 /** Generic - all structs which are put into linked lists begin with this. */
 struct Link {
   struct Link *next, *prev;
@@ -24,6 +22,8 @@ struct LinkData {
   struct LinkData *next, *prev;
   void *data;
 };
+
+#include "BLI_listbase_iterator.hh"
 
 /**
  * The basic double linked-list structure.

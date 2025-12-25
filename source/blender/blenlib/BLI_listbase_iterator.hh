@@ -6,6 +6,8 @@
 
 #include <iterator>
 
+struct Link;
+
 /** An iterator for use with #ListBase.  */
 template<typename T> struct ListBaseTIterator {
  public:
@@ -23,7 +25,7 @@ template<typename T> struct ListBaseTIterator {
 
   ListBaseTIterator &operator++()
   {
-    data_ = static_cast<T *>(data_->next);
+    data_ = reinterpret_cast<T *>(((Link *)data_)->next);
     return *this;
   }
 
@@ -36,7 +38,7 @@ template<typename T> struct ListBaseTIterator {
 
   ListBaseTIterator &operator--()
   {
-    data_ = static_cast<T *>(data_->prev);
+    data_ = reinterpret_cast<T *>(((Link *)data_)->prev);
     return *this;
   }
 
