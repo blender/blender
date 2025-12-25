@@ -2184,61 +2184,6 @@ Collection *BKE_collection_from_session_uid(Main *bmain, uint64_t session_uid, S
   return nullptr;
 }
 
-static bool collection_objects_select(const Scene *scene,
-                                      ViewLayer *view_layer,
-                                      Collection *collection,
-                                      bool deselect)
-{
-  bool changed = false;
-
-  if (collection->flag & COLLECTION_HIDE_SELECT) {
-    return false;
-  }
-
-  BKE_view_layer_synced_ensure(scene, view_layer);
-  LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
-    Base *base = BKE_view_layer_base_find(view_layer, cob->ob);
-
-    if (base) {
-      if (deselect) {
-        if (base->flag & BASE_SELECTED) {
-          base->flag &= ~BASE_SELECTED;
-          changed = true;
-        }
-      }
-      else {
-        if ((base->flag & BASE_SELECTABLE) && !(base->flag & BASE_SELECTED)) {
-          base->flag |= BASE_SELECTED;
-          changed = true;
-        }
-      }
-    }
-  }
-
-  LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-    if (collection_objects_select(scene, view_layer, collection, deselect)) {
-      changed = true;
-    }
-  }
-
-  return changed;
-}
-
-bool BKE_collection_objects_select(const Scene *scene,
-                                   ViewLayer *view_layer,
-                                   Collection *collection,
-                                   bool deselect)
-{
-  LayerCollection *layer_collection = BKE_layer_collection_first_from_scene_collection(view_layer,
-                                                                                       collection);
-
-  if (layer_collection != nullptr) {
-    return BKE_layer_collection_objects_select(scene, view_layer, layer_collection, deselect);
-  }
-
-  return collection_objects_select(scene, view_layer, collection, deselect);
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */

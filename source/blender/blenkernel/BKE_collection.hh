@@ -341,14 +341,6 @@ void BKE_collection_new_name_get(Collection *collection_parent,
  * The name to show in the interface.
  */
 const char *BKE_collection_ui_name_get(Collection *collection);
-/**
- * Select all the objects in this Collection (and its nested collections) for this ViewLayer.
- * Return true if any object was selected.
- */
-bool BKE_collection_objects_select(const Scene *scene,
-                                   ViewLayer *view_layer,
-                                   Collection *collection,
-                                   bool deselect);
 
 /* Collection children */
 
