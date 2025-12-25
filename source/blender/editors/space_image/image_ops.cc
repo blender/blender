@@ -652,7 +652,8 @@ static void image_zoom_apply(ViewZoomData *vpd,
                              const short viewzoom,
                              const short zoom_invert,
                              const bool zoom_to_pos,
-                             const bool snap)
+                             const bool snap,
+                             const bool precision)
 {
   float factor;
   float delta;
@@ -675,6 +676,10 @@ static void image_zoom_apply(ViewZoomData *vpd,
     delta = -delta;
   }
 
+  if (precision) {
+    delta /= 10.0f;
+  }
+
   if (viewzoom == USER_ZOOM_CONTINUE) {
     double time = BLI_time_now_seconds();
     float time_step = float(time - vpd->timer_lastdraw);
@@ -692,8 +697,14 @@ static void image_zoom_apply(ViewZoomData *vpd,
   if (snap) {
     zoom = round(zoom * 10.0f) / 10.0f;
   }
-  char str[5];
-  SNPRINTF(str, "%i%%", int(round(vpd->sima->zoom * 100.0f)));
+  char str[10];
+  if (precision) {
+    SNPRINTF(str, "%4.2f%%", vpd->sima->zoom * 100.0f);
+  }
+  else {
+    SNPRINTF(str, "%i%%", int(round(vpd->sima->zoom * 100.0f)));
+  }
+
   ED_area_status_text(vpd->area, str);
 
   RNA_float_set(op->ptr, "factor", factor);
@@ -709,6 +720,7 @@ static wmOperatorStatus image_view_zoom_modal(bContext *C, wmOperator *op, const
 
   WorkspaceStatus status(C);
   status.item_bool(IFACE_("Snap"), event->modifier & KM_CTRL, ICON_EVENT_CTRL);
+  status.item_bool(IFACE_("Precision"), event->modifier & KM_SHIFT, ICON_EVENT_SHIFT);
 
   /* Execute the events. */
   if (event->type == MOUSEMOVE) {
@@ -736,7 +748,8 @@ static wmOperatorStatus image_view_zoom_modal(bContext *C, wmOperator *op, const
                        U.viewzoom,
                        (U.uiflag & USER_ZOOM_INVERT) != 0,
                        (use_cursor_init && (U.uiflag & USER_ZOOM_TO_MOUSEPOS)),
-                       event->modifier & KM_CTRL);
+                       event->modifier & KM_CTRL,
+                       event->modifier & KM_SHIFT);
       break;
     }
     case VIEW_CONFIRM: {
