@@ -1781,22 +1781,28 @@ static void region_rect_recursive(
       const int x = remainder->xmin + int(float(remainder->xmax - remainder->xmin) * ratio_x);
       const int y = remainder->ymin + int(float(remainder->ymax - remainder->ymin) * ratio_y);
 
-      if (quad == 1) { /* left bottom */
-        region->winrct.xmax = x;
-        region->winrct.ymax = y;
-      }
-      else if (quad == 2) { /* left top */
-        region->winrct.xmax = x;
-        region->winrct.ymin = y + 1;
-      }
-      else if (quad == 3) { /* right bottom */
-        region->winrct.xmin = x + 1;
-        region->winrct.ymax = y;
-      }
-      else { /* right top */
-        region->winrct.xmin = x + 1;
-        region->winrct.ymin = y + 1;
-        BLI_rcti_init(remainder, 0, 0, 0, 0);
+      region->runtime->quadview_index = blender::bke::ARegionQuadviewIndex(quad);
+
+      switch (region->runtime->quadview_index) {
+        case blender::bke::ARegionQuadviewIndex::BottomLeft:
+          region->winrct.xmax = x;
+          region->winrct.ymax = y;
+          break;
+        case blender::bke::ARegionQuadviewIndex::TopLeft:
+          region->winrct.xmax = x;
+          region->winrct.ymin = y + 1;
+          break;
+        case blender::bke::ARegionQuadviewIndex::BottomRight:
+          region->winrct.xmin = x + 1;
+          region->winrct.ymax = y;
+          break;
+        case blender::bke::ARegionQuadviewIndex::TopRight:
+          region->winrct.xmin = x + 1;
+          region->winrct.ymin = y + 1;
+          BLI_rcti_init(remainder, 0, 0, 0, 0);
+          break;
+        default:
+          BLI_assert_unreachable();
       }
 
       /* Fix any negative dimensions. This can happen when a quad split 3d view gets too small.
@@ -2198,9 +2204,6 @@ void ED_area_init(bContext *C, const wmWindow *win, ScrArea *area)
   /* clear all azones, add the area triangle widgets */
   area_azone_init(win, screen, area);
 
-  /* Only one quad view gets AZONE_REGION_QUAD. */
-  char quad_view_index = 0;
-
   /* region windows, default and own handlers */
   LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
     region_evaluate_visibility(region);
@@ -2222,11 +2225,10 @@ void ED_area_init(bContext *C, const wmWindow *win, ScrArea *area)
     /* Some AZones use View2D data which is only updated in region init, so call that first! */
     region_azones_add(screen, area, region);
 
-    if (region->alignment == RGN_ALIGN_QSPLIT) {
-      if (quad_view_index == 0) {
-        quadview_azone_init(area, region);
-      }
-      quad_view_index++;
+    if (region->alignment == RGN_ALIGN_QSPLIT &&
+        region->runtime->quadview_index == blender::bke::ARegionQuadviewIndex::BottomLeft)
+    {
+      quadview_azone_init(area, region);
     }
   }
 

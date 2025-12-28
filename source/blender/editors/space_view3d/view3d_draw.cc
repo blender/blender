@@ -1208,10 +1208,14 @@ static void view3d_draw_grease_pencil(const bContext * /*C*/)
 static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
 {
   const char *name = nullptr;
+  const bool is_locked = RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION;
 
   switch (rv3d->view) {
     case RV3D_VIEW_FRONT:
-      if (rv3d->persp == RV3D_ORTHO) {
+      if (is_locked) {
+        name = IFACE_("Front");
+      }
+      else if (rv3d->persp == RV3D_ORTHO) {
         name = IFACE_("Front Orthographic");
       }
       else {
@@ -1219,7 +1223,10 @@ static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
       }
       break;
     case RV3D_VIEW_BACK:
-      if (rv3d->persp == RV3D_ORTHO) {
+      if (is_locked) {
+        name = IFACE_("Back");
+      }
+      else if (rv3d->persp == RV3D_ORTHO) {
         name = IFACE_("Back Orthographic");
       }
       else {
@@ -1227,7 +1234,10 @@ static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
       }
       break;
     case RV3D_VIEW_TOP:
-      if (rv3d->persp == RV3D_ORTHO) {
+      if (is_locked) {
+        name = IFACE_("Top");
+      }
+      else if (rv3d->persp == RV3D_ORTHO) {
         name = IFACE_("Top Orthographic");
       }
       else {
@@ -1235,7 +1245,10 @@ static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
       }
       break;
     case RV3D_VIEW_BOTTOM:
-      if (rv3d->persp == RV3D_ORTHO) {
+      if (is_locked) {
+        name = IFACE_("Bottom");
+      }
+      else if (rv3d->persp == RV3D_ORTHO) {
         name = IFACE_("Bottom Orthographic");
       }
       else {
@@ -1243,7 +1256,10 @@ static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
       }
       break;
     case RV3D_VIEW_RIGHT:
-      if (rv3d->persp == RV3D_ORTHO) {
+      if (is_locked) {
+        name = IFACE_("Right");
+      }
+      else if (rv3d->persp == RV3D_ORTHO) {
         name = IFACE_("Right Orthographic");
       }
       else {
@@ -1251,7 +1267,10 @@ static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
       }
       break;
     case RV3D_VIEW_LEFT:
-      if (rv3d->persp == RV3D_ORTHO) {
+      if (is_locked) {
+        name = IFACE_("Left");
+      }
+      else if (rv3d->persp == RV3D_ORTHO) {
         name = IFACE_("Left Orthographic");
       }
       else {
@@ -1667,8 +1686,13 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
     BLF_shadow_offset(font_id, 0, 0);
     BLF_shadow(font_id, FontShadowType::Outline, shadow_color);
 
+    /* If in Quadview only draw on the top-left region. */
+    bool region_ok = (region->alignment != RGN_ALIGN_QSPLIT ||
+                      region->runtime->quadview_index ==
+                          blender::bke::ARegionQuadviewIndex::TopLeft);
+
     if ((v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) == 0) {
-      if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_no_scrub(wm)) {
+      if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_no_scrub(wm) && region_ok) {
         ED_scene_draw_fps(scene, xoffset, &yoffset);
         BLF_color4fv(font_id, text_color);
       }
@@ -1676,27 +1700,29 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
         draw_viewport_name(region, v3d, xoffset, &yoffset);
       }
 
-      if (U.uiflag & USER_DRAWVIEWINFO) {
+      if (U.uiflag & USER_DRAWVIEWINFO && region_ok) {
         BKE_view_layer_synced_ensure(scene, view_layer);
         Object *ob = BKE_view_layer_active_object_get(view_layer);
         draw_selected_name(v3d, scene, view_layer, ob, xoffset, &yoffset);
         BLF_color4fv(font_id, text_color);
       }
 
-      if (v3d->gridflag & (V3D_SHOW_FLOOR | V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_Z)) {
+      if (v3d->gridflag & (V3D_SHOW_FLOOR | V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_Z) && region_ok) {
         /* draw below the viewport name */
         draw_grid_unit_name(scene, region, v3d, xoffset, &yoffset);
       }
 
-      DRW_draw_region_engine_info(xoffset, &yoffset, VIEW3D_OVERLAY_LINEHEIGHT);
+      if (region_ok) {
+        DRW_draw_region_engine_info(xoffset, &yoffset, VIEW3D_OVERLAY_LINEHEIGHT);
+      }
     }
 
-    if (v3d->overlay.flag & V3D_OVERLAY_PERFORMANCE) {
+    if (v3d->overlay.flag & V3D_OVERLAY_PERFORMANCE && region_ok) {
       draw_performance_stats(
           depsgraph, scene, v3d, text_color, xoffset, &yoffset, VIEW3D_OVERLAY_LINEHEIGHT);
     }
 
-    if (v3d->overlay.flag & V3D_OVERLAY_STATS) {
+    if (v3d->overlay.flag & V3D_OVERLAY_STATS && region_ok) {
       View3D *v3d_local = v3d->localvd ? v3d : nullptr;
       ED_info_draw_stats(
           bmain, scene, view_layer, v3d_local, xoffset, &yoffset, VIEW3D_OVERLAY_LINEHEIGHT);

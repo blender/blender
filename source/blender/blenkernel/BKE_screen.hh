@@ -482,6 +482,15 @@ struct Panel_Runtime {
 
 namespace blender::bke {
 
+/** #ARegionRuntime.quadview_index */
+enum class ARegionQuadviewIndex : uint8_t {
+  None = 0,
+  BottomLeft = 1,
+  TopLeft = 2,
+  BottomRight = 3,
+  TopRight = 4,
+};
+
 struct ARegionRuntime {
   /** Callbacks for this region type. */
   struct ARegionType *type;
@@ -535,6 +544,8 @@ struct ARegionRuntime {
 
   /** Private, cached notifier events. */
   short do_draw_paintcursor;
+
+  ARegionQuadviewIndex quadview_index = ARegionQuadviewIndex::None;
 
   /** Dummy panel used in popups so they can support layout panels. */
   Panel *popup_block_panel = nullptr;
