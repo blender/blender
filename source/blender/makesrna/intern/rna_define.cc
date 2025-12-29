@@ -189,9 +189,11 @@ static void rna_brna_structs_add(BlenderRNA *brna, StructRNA *srna)
 #ifdef RNA_RUNTIME
 static void rna_brna_structs_remove_and_free(BlenderRNA *brna, StructRNA *srna)
 {
-  if ((srna->flag & STRUCT_PUBLIC_NAMESPACE)) {
-    if (srna->identifier[0] != '\0') {
-      brna->structs_map.remove(srna->identifier);
+  if (!brna->structs.is_empty()) {
+    if ((srna->flag & STRUCT_PUBLIC_NAMESPACE)) {
+      if (srna->identifier[0] != '\0') {
+        brna->structs_map.remove(srna->identifier);
+      }
     }
   }
 
@@ -888,6 +890,12 @@ void RNA_free(BlenderRNA *brna)
     MEM_delete(brna);
   }
   else {
+    /* Clear the map for two reasons:
+     *  1. The struct identifiers may reference memory owned elsewhere in Blender and shouldn't be
+     *     accessed at this point.
+     *  2. All structs are being removed anyway; we may as well remove them all at once. */
+    brna->structs_map.clear();
+
     /* Reverse iteration to make removing from vector faster. */
     for (auto srna = brna->structs.rbegin(); srna != brna->structs.rend(); srna++) {
       RNA_struct_free(brna, *srna);
