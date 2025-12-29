@@ -30,6 +30,8 @@ namespace deg = blender::deg;
 static void deg_flush_updates_and_refresh(deg::Depsgraph *deg_graph,
                                           const DepsgraphEvaluateSyncWriteback sync_writeback)
 {
+  BLI_assert(!deg_graph->need_update_relations);
+
   /* Update the time on the cow scene. */
   if (deg_graph->scene_cow) {
     BKE_scene_frame_set(deg_graph->scene_cow, deg_graph->frame);

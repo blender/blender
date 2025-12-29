@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BLI_map.hh"
+#include "BLI_set.hh"
 
 struct ID;
 
@@ -63,6 +64,8 @@ class BuilderMap {
   {
     return this->check_is_built_and_tag(&datablock->id, tag);
   }
+
+  Set<const ID *> get_ids() const;
 
  protected:
   int get_ID_tag(ID *id) const;
