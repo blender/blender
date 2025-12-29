@@ -425,16 +425,6 @@ void interpolate_bilinear_fl(
 [[nodiscard]] float4 interpolate_bilinear_wrap_fl(
     const float *buffer, int width, int height, float u, float v);
 
-void interpolate_bilinear_wrapmode_fl(const float *buffer,
-                                      float *output,
-                                      int width,
-                                      int height,
-                                      int components,
-                                      float u,
-                                      float v,
-                                      InterpWrapMode wrap_u,
-                                      InterpWrapMode wrap_v);
-
 /* -------------------------------------------------------------------- */
 /* Cubic sampling. */
 
