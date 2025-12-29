@@ -52,9 +52,6 @@
 
 #include "kernel/film/read.h"
 
-#if defined(__HIPRT__)
-#  include "kernel/device/hiprt/hiprt_kernels.h"
-#endif
 /* --------------------------------------------------------------------
  * Integrator.
  */

@@ -87,7 +87,6 @@ set(SRC_KERNEL_DEVICE_HIPRT_HEADERS
   device/hiprt/bvh.h
   device/hiprt/common.h
   device/hiprt/globals.h
-  device/hiprt/hiprt_kernels.h
 )
 
 set(SRC_KERNEL_DEVICE_HIPRT_SDK
