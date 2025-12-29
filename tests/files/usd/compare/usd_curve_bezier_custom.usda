@@ -1,0 +1,113 @@
+#usda 1.0
+(
+    defaultPrim = "root"
+    doc = "Cubic Bezier BasisCurves"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "root"
+{
+    def BasisCurves "bezier_vertex_width_single_value"
+    {
+        float3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        uniform token basis = "bezier"
+        int[] curveVertexCounts = [4]
+        point3f[] points = [(-0.5, 0, 0), (-0.5, 0, 0.2760626), (-0.2760626, 0, 0.5), (0, 0, 0.5)]
+        uniform token type = "cubic"
+        float[] widths = [.2] (interpolation = "vertex")
+    }
+
+    def BasisCurves "bezier_empty_frame"
+    {
+        float3 xformOp:translate = (0, 0, 1.25)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        uniform token basis = "bezier"
+        int[] curveVertexCounts.timeSamples = {
+            1: [],
+            2: [4]
+        }
+        point3f[] points.timeSamples = {
+            1: [],
+            2: [(-0.5, 0, 0), (-0.5, 0, 0.2760626), (-0.2760626, 0, 0.5), (0, 0, 0.5)]
+        }
+        uniform token type = "cubic"
+        float[] widths = [.2, .2] (interpolation = "varying")
+    }
+
+    def BasisCurves "bezier_counts_but_no_points"
+    {
+        float3 xformOp:translate = (0, 0, 2.5)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        uniform token basis = "bezier"
+        int[] curveVertexCounts = [4]
+        point3f[] points = []
+        uniform token type = "cubic"
+        float[] widths = [.2] (interpolation = "vertex")
+    }
+
+    def BasisCurves "bezier_counts_but_too_few_points"
+    {
+        float3 xformOp:translate = (0, 0, 3.75)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        uniform token basis = "bezier"
+        int[] curveVertexCounts = [7]
+        point3f[] points = [(-0.5, 0, 0), (-0.5, 0, 0.2760626), (-0.2760626, 0, 0.5), (0, 0, 0.5)]
+        uniform token type = "cubic"
+        float[] widths = [.2] (interpolation = "vertex")
+    }
+
+    def BasisCurves "bezier_bad_count1"
+    {
+        float3 xformOp:translate = (2, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        uniform token basis = "bezier"
+        int[] curveVertexCounts = [1]
+        point3f[] points = [(0.5, 0, 0), (0.5, 0, 0.2760626)]
+        uniform token type = "cubic"
+        float[] widths = [.02] (interpolation = "constant")
+    }
+
+    def BasisCurves "bezier_bad_count2"
+    {
+        float3 xformOp:translate = (2, 0, 1.25)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        uniform token basis = "bezier"
+        int[] curveVertexCounts = [2]
+        point3f[] points = [(0.5, 0, 0), (0.5, 0, 0.2760626)]
+        uniform token type = "cubic"
+        float[] widths = [.02] (interpolation = "constant")
+    }
+
+    def BasisCurves "bezier_bad_count3"
+    {
+        float3 xformOp:translate = (2, 0, 2.5)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        uniform token basis = "bezier"
+        int[] curveVertexCounts = [3]
+        point3f[] points = [(0.5, 0, 0), (0.5, 0, 0.2760626), (0.7239375, 0, 0.5)]
+        uniform token type = "cubic"
+        float[] widths = [.02] (interpolation = "constant")
+    }
+
+    def BasisCurves "bezier_bad_count9"
+    {
+        float3 xformOp:translate = (4, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        uniform token basis = "bezier"
+        int[] curveVertexCounts = [9]
+        point3f[] points = [(0.5, 0, 0), (0.5, 0, 0.2760626), (0.7239375, 0, 0.5), (1, 0, 0.5), (1.2760625, 0, 0.5), (1.5, 0, 0.2760626), (1.5, 0, 0), (1.5, 0, -0.2760626), (1.2760625, 0, -0.5)]
+        uniform token type = "cubic"
+        float[] widths = [.02] (interpolation = "constant")
+    }
+}
+

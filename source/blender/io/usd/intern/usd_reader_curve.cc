@@ -71,9 +71,9 @@ static void add_bezier_control_point(int cp,
     handles_right[cp] = to_float3(usdPoints[offset + 1]);
     handles_left[cp] = 2.0f * positions[cp] - handles_right[cp];
   }
-  else if (offset == usdPoints.size() - 1) {
-    positions[cp] = to_float3(usdPoints[offset]);
-    handles_left[cp] = to_float3(usdPoints[offset - 1]);
+  else if (offset >= usdPoints.size() - 1) {
+    positions[cp] = to_float3(usdPoints.last());
+    handles_left[cp] = to_float3(usdPoints.last(1));
     handles_right[cp] = 2.0f * positions[cp] - handles_left[cp];
   }
   else {
@@ -252,13 +252,23 @@ void USDBasisCurvesReader::read_curve_sample(Curves *curves_id, const pxr::UsdTi
   const int curves_num = usd_counts.size();
   const Array<int> new_offsets = calc_curve_offsets(usd_counts, curve_type, is_cyclic);
 
+  // Check validity of curve counts
+  const int min_points = (curve_type == CURVE_TYPE_BEZIER) ? 3 : 1;
+  const bool all_valid = std::all_of(usd_counts.cbegin(),
+                                     usd_counts.cend(),
+                                     [min_points](int count) { return count >= min_points; });
+
   bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-  if (curves_topology_changed(curves, new_offsets)) {
+  if (all_valid && curves_topology_changed(curves, new_offsets)) {
     curves.resize(new_offsets.last(), curves_num);
   }
 
-  curves.offsets_for_write().copy_from(new_offsets);
+  // Early out if there are no curves to load.
+  if (curves.is_empty()) {
+    return;
+  }
 
+  curves.offsets_for_write().copy_from(new_offsets);
   curves.fill_curve_types(curve_type);
 
   if (is_cyclic) {
@@ -273,6 +283,12 @@ void USDBasisCurvesReader::read_curve_sample(Curves *curves_id, const pxr::UsdTi
   MutableSpan<float3> positions = curves.positions_for_write();
   Span<pxr::GfVec3f> points = Span(usd_points.cdata(), usd_points.size());
   Span<int> counts = Span(usd_counts.cdata(), usd_counts.size());
+
+  /* If there's no points defined, fill positions with default values and exit. */
+  if (points.is_empty()) {
+    positions.fill(float3(0.0f, 0.0f, 0.0f));
+    return;
+  }
 
   /* Bezier curves require care in filing out their left/right handles. */
   if (type == pxr::UsdGeomTokens->cubic && basis == pxr::UsdGeomTokens->bezier) {
@@ -295,7 +311,7 @@ void USDBasisCurvesReader::read_curve_sample(Curves *curves_id, const pxr::UsdTi
                                  positions.slice(point_offset, point_count),
                                  handles_left.slice(point_offset, point_count),
                                  handles_right.slice(point_offset, point_count),
-                                 points.slice(usd_point_offset, usd_point_count));
+                                 points.slice_safe(usd_point_offset, usd_point_count));
         cp_offset += 3;
       }
 
@@ -305,7 +321,11 @@ void USDBasisCurvesReader::read_curve_sample(Curves *curves_id, const pxr::UsdTi
   }
   else {
     static_assert(sizeof(pxr::GfVec3f) == sizeof(float3));
-    positions.copy_from(points.cast<float3>());
+    if (positions.size() != points.size()) {
+      positions.fill(float3(0.0f, 0.0f, 0.0f));
+    }
+    const int copy_size = std::min(positions.size(), points.size());
+    positions.slice(0, copy_size).copy_from(points.slice(0, copy_size).cast<float3>());
   }
 
   if (!usd_widths.empty()) {
@@ -313,7 +333,7 @@ void USDBasisCurvesReader::read_curve_sample(Curves *curves_id, const pxr::UsdTi
     Span<float> widths = Span(usd_widths.cdata(), usd_widths.size());
 
     pxr::TfToken widths_interp = curve_prim_.GetWidthsInterpolation();
-    if (widths_interp == pxr::UsdGeomTokens->constant) {
+    if (widths_interp == pxr::UsdGeomTokens->constant || widths.size() == 1) {
       radii.fill(widths[0] / 2.0f);
     }
     else {
@@ -337,7 +357,8 @@ void USDBasisCurvesReader::read_curve_sample(Curves *curves_id, const pxr::UsdTi
 
           int cp_offset = 0;
           for (const int cp : IndexRange(point_count)) {
-            radii[point_offset + cp] = widths[usd_point_offset + cp_offset] / 2.0f;
+            const int usd_index = std::min(usd_point_offset + cp_offset, int(widths.size()) - 1);
+            radii[point_offset + cp] = widths[usd_index] / 2.0f;
             cp_offset += 3;
           }
 

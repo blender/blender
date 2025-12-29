@@ -1,0 +1,63 @@
+#usda 1.0
+(
+    defaultPrim = "root"
+    doc = "Linear BasisCurves"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "root" (
+)
+{
+    def BasisCurves "linear_empty_frame"
+    {
+        float3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        int[] curveVertexCounts.timeSamples = {
+            1: [],
+            2: [5]
+        }
+        point3f[] points.timeSamples = {
+            1: [],
+            2: [(0, 0, 0), (-.5, 0, .5), (0, 0, 1), (.3, 0, .7), (.3, 0, .3)]
+        }
+        uniform token type = "linear"
+        float[] widths = [.2] (interpolation = "constant")
+    }
+
+    def BasisCurves "linear_counts_but_no_points"
+    {
+        float3 xformOp:translate = (0, 0, 1.25)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        int[] curveVertexCounts = [4]
+        point3f[] points = []
+        uniform token type = "linear"
+        float[] widths = [.2] (interpolation = "constant")
+    }
+
+    def BasisCurves "linear_counts_but_too_few_points"
+    {
+        float3 xformOp:translate = (0, 0, 2.5)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        int[] curveVertexCounts = [7]
+        point3f[] points = [(-0.5, 0, 0), (-0.5, 0, 0.2760626), (-0.2760626, 0, 0.5), (0, 0, 0.5)]
+        uniform token type = "linear"
+        float[] widths = [.2] (interpolation = "constant")
+    }
+
+    def BasisCurves "linear_bad_count0"
+    {
+        float3 xformOp:translate = (2, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        int[] curveVertexCounts = [0]
+        point3f[] points = [(0.5, 0, 0), (0.5, 0, 0.2760626)]
+        uniform token type = "linear"
+        float[] widths = [.2] (interpolation = "constant")
+    }
+
+}
+
