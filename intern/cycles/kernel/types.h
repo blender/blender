@@ -898,31 +898,31 @@ enum ShaderDataFlag {
 };
 
 /* Object flags. */
-enum ShaderDataObjectFlag {
+enum ShaderDataObjectFlag : uint {
   /* Holdout for camera rays. */
-  SD_OBJECT_HOLDOUT_MASK = (1 << 0),
+  SD_OBJECT_HOLDOUT_MASK = (1u << 0),
   /* Has object motion blur. */
-  SD_OBJECT_MOTION = (1 << 1),
+  SD_OBJECT_MOTION = (1u << 1),
   /* Vertices have transform applied. */
-  SD_OBJECT_TRANSFORM_APPLIED = (1 << 2),
+  SD_OBJECT_TRANSFORM_APPLIED = (1u << 2),
   /* The object's transform applies a negative scale. */
-  SD_OBJECT_NEGATIVE_SCALE = (1 << 3),
+  SD_OBJECT_NEGATIVE_SCALE = (1u << 3),
   /* Object has a volume shader. */
-  SD_OBJECT_HAS_VOLUME = (1 << 4),
+  SD_OBJECT_HAS_VOLUME = (1u << 4),
   /* Object intersects AABB of an object with volume shader. */
-  SD_OBJECT_INTERSECTS_VOLUME = (1 << 5),
+  SD_OBJECT_INTERSECTS_VOLUME = (1u << 5),
   /* Has position for motion vertices. */
-  SD_OBJECT_HAS_VERTEX_MOTION = (1 << 6),
+  SD_OBJECT_HAS_VERTEX_MOTION = (1u << 6),
   /* object is used to catch shadows */
-  SD_OBJECT_SHADOW_CATCHER = (1 << 7),
+  SD_OBJECT_SHADOW_CATCHER = (1u << 7),
   /* object has volume attributes */
-  SD_OBJECT_HAS_VOLUME_ATTRIBUTES = (1 << 8),
+  SD_OBJECT_HAS_VOLUME_ATTRIBUTES = (1u << 8),
   /* object is caustics caster */
-  SD_OBJECT_CAUSTICS_CASTER = (1 << 9),
+  SD_OBJECT_CAUSTICS_CASTER = (1u << 9),
   /* object is caustics receiver */
-  SD_OBJECT_CAUSTICS_RECEIVER = (1 << 10),
+  SD_OBJECT_CAUSTICS_RECEIVER = (1u << 10),
   /* object has attribute for volume motion */
-  SD_OBJECT_HAS_VOLUME_MOTION = (1 << 11),
+  SD_OBJECT_HAS_VOLUME_MOTION = (1u << 11),
 
   /* object is using caustics */
   SD_OBJECT_CAUSTICS = (SD_OBJECT_CAUSTICS_CASTER | SD_OBJECT_CAUSTICS_RECEIVER),
@@ -952,7 +952,7 @@ struct ccl_align(16) ShaderData {
   /* booleans describing shader, see ShaderDataFlag */
   int flag;
   /* booleans describing object of the shader, see ShaderDataObjectFlag */
-  int object_flag;
+  uint object_flag;
 
   /* Closure data, we store a fixed array of closures */
   int num_closure;

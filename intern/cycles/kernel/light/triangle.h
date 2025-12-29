@@ -22,7 +22,7 @@ ccl_device_inline bool triangle_world_space_vertices(
     KernelGlobals kg, const int object, const int prim, const float time, float3 V[3])
 {
   bool has_motion = false;
-  const int object_flag = kernel_data_fetch(object_flag, object);
+  const uint object_flag = kernel_data_fetch(object_flag, object);
 
   if (object_flag & SD_OBJECT_HAS_VERTEX_MOTION && time >= 0.0f) {
     motion_triangle_vertices(kg, object, prim, time, V);
@@ -146,7 +146,7 @@ ccl_device_forceinline bool triangle_light_sample(KernelGlobals kg,
   const float longest_edge_squared = max(len_squared(e0), max(len_squared(e1), len_squared(e2)));
   float3 N0 = cross(e0, e1);
   /* Flip normal if necessary. */
-  const int object_flag = kernel_data_fetch(object_flag, object);
+  const uint object_flag = kernel_data_fetch(object_flag, object);
   if (object_flag & SD_OBJECT_NEGATIVE_SCALE) {
     N0 = -N0;
   }

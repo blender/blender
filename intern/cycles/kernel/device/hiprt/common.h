@@ -241,7 +241,7 @@ ccl_device_inline bool motion_triangle_custom_volume_intersect(const hiprtRay &r
   KernelGlobals kg = payload->kg;
 
   const int object_id = kernel_data_fetch(user_instance_id, hit.instanceID);
-  const int object_flag = kernel_data_fetch(object_flag, object_id);
+  const uint object_flag = kernel_data_fetch(object_flag, object_id);
 
   if (!(object_flag & SD_OBJECT_HAS_VOLUME)) {
     return false;

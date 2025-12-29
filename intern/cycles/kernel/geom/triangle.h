@@ -62,7 +62,7 @@ ccl_device_inline void triangle_point_normal(KernelGlobals kg,
   const float w = 1.0f - u - v;
   *P = (w * v0 + u * v1 + v * v2);
   /* get object flags */
-  const int object_flag = kernel_data_fetch(object_flag, object);
+  const uint object_flag = kernel_data_fetch(object_flag, object);
   /* compute normal */
   if (object_negative_scale_applied(object_flag)) {
     *Ng = normalize(cross(v2 - v0, v1 - v0));

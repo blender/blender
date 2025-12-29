@@ -287,7 +287,7 @@ ccl_device_inline ccl_private Bssrdf *bssrdf_alloc(ccl_private ShaderData *sd, S
 
 ccl_device int bssrdf_setup(ccl_private ShaderData *sd,
                             ccl_private Bssrdf *bssrdf,
-                            const int path_flag,
+                            const uint32_t path_flag,
                             ClosureType type)
 {
   /* Clamps protecting against bad/extreme and non physical values. */

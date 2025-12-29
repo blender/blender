@@ -106,7 +106,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
   float3 dir = bvh_clamp_direction(ray->D);
   float3 idir = bvh_inverse_direction(dir);
 
-  const int object_flag = kernel_data_fetch(object_flag, local_object);
+  const uint object_flag = kernel_data_fetch(object_flag, local_object);
   if (!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
 #  if BVH_FEATURE(BVH_MOTION)
     bvh_instance_motion_push(kg, local_object, ray, &P, &dir, &idir);

@@ -94,7 +94,7 @@ ccl_device void light_tree_to_local_space(KernelGlobals kg,
                                           ccl_private float3 &N_or_D,
                                           ccl_private float &t)
 {
-  const int object_flag = kernel_data_fetch(object_flag, object_id);
+  const uint object_flag = kernel_data_fetch(object_flag, object_id);
   if (!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
 #ifdef __OBJECT_MOTION__
     Transform itfm;
@@ -286,7 +286,7 @@ ccl_device bool compute_emitter_centroid_and_dir(KernelGlobals kg,
       if (is_back_only) {
         dir = -dir;
       }
-      const int object_flag = kernel_data_fetch(object_flag, object);
+      const uint object_flag = kernel_data_fetch(object_flag, object);
       if ((object_flag & SD_OBJECT_TRANSFORM_APPLIED) && (object_flag & SD_OBJECT_NEGATIVE_SCALE))
       {
         dir = -dir;
@@ -815,7 +815,7 @@ ccl_device float light_tree_pdf(KernelGlobals kg,
                                 float3 P,
                                 float3 N,
                                 const float dt,
-                                const int path_flag,
+                                const uint32_t path_flag,
                                 const int object_emitter,
                                 const uint index_emitter,
                                 const int object_receiver)
@@ -931,7 +931,7 @@ ccl_device float light_tree_pdf(KernelGlobals kg,
                                 float3 P,
                                 const float3 N,
                                 const float dt,
-                                const int path_flag,
+                                const uint32_t path_flag,
                                 const int emitter_object,
                                 const uint emitter_id,
                                 const int object_receiver)

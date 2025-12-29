@@ -396,7 +396,7 @@ __forceinline uint64_t bitscan(const uint64_t v)
 /* Intrinsic functions fallback for arbitrary processor. */
 __forceinline uint32_t __bsf(const uint32_t x)
 {
-  for (int i = 0; i < 32; i++) {
+  for (uint32_t i = 0; i < 32; i++) {
     if (x & (1U << i)) {
       return i;
     }
@@ -406,7 +406,7 @@ __forceinline uint32_t __bsf(const uint32_t x)
 
 __forceinline uint32_t __bsr(const uint32_t x)
 {
-  for (int i = 0; i < 32; i++) {
+  for (uint32_t i = 0; i < 32; i++) {
     if (x & (1U << (31 - i))) {
       return (31 - i);
     }
@@ -422,7 +422,7 @@ __forceinline uint32_t __btc(const uint32_t x, const uint32_t bit)
 
 __forceinline uint32_t __bsf(const uint64_t x)
 {
-  for (int i = 0; i < 64; i++) {
+  for (uint32_t i = 0; i < 64; i++) {
     if (x & (1UL << i)) {
       return i;
     }
@@ -432,7 +432,7 @@ __forceinline uint32_t __bsf(const uint64_t x)
 
 __forceinline uint32_t __bsr(const uint64_t x)
 {
-  for (int i = 0; i < 64; i++) {
+  for (uint32_t i = 0; i < 64; i++) {
     if (x & (1UL << (63 - i))) {
       return (63 - i);
     }

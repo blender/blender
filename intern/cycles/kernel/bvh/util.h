@@ -177,8 +177,8 @@ ccl_device_forceinline int intersection_get_shader(
   return intersection_get_shader_from_isect_prim(kg, isect->prim, isect->type);
 }
 
-ccl_device_forceinline int intersection_get_object_flags(
-    KernelGlobals kg, const ccl_private Intersection *ccl_restrict isect)
+ccl_device_forceinline uint
+intersection_get_object_flags(KernelGlobals kg, const ccl_private Intersection *ccl_restrict isect)
 {
   return kernel_data_fetch(object_flag, isect->object);
 }

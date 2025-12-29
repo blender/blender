@@ -590,7 +590,7 @@ ccl_device_inline void transform_compose(ccl_private Transform *tfm,
 /* Interpolate from array of decomposed transforms. */
 ccl_device void transform_motion_array_interpolate(ccl_private Transform *tfm,
                                                    const ccl_global DecomposedTransform *motion,
-                                                   const uint numsteps,
+                                                   const int numsteps,
                                                    const float time)
 {
   /* Figure out which steps we need to interpolate. */
