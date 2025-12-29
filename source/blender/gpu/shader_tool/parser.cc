@@ -349,6 +349,9 @@ void Parser::parse_scopes(report_callback &report_error)
     };
 
     auto exit_scope = [&](int end_tok_id) {
+      if (scopes.empty()) {
+        return;
+      }
       ScopeItem scope = scopes.top();
       scope_ranges[scope.index].size = end_tok_id - scope.start + 1;
       scopes.pop();
@@ -480,6 +483,28 @@ void Parser::parse_scopes(report_callback &report_error)
           }
           break;
         case BracketClose:
+          if (scopes.top().type == ScopeType::Assignment) {
+            exit_scope(tok_id - 1);
+          }
+          if (scopes.top().type == ScopeType::Struct || scopes.top().type == ScopeType::Local ||
+              scopes.top().type == ScopeType::Namespace ||
+              scopes.top().type == ScopeType::LoopBody ||
+              scopes.top().type == ScopeType::SwitchBody ||
+              scopes.top().type == ScopeType::Function || scopes.top().type == ScopeType::Function)
+          {
+            exit_scope(tok_id);
+          }
+          else {
+            Token token = Token::from_position(this, tok_id);
+            report_error(token.line_number(),
+                         token.char_number(),
+                         token.line_str(),
+                         "Unexpected '}' token");
+            /* Avoid out of bound access for the rest of the processing. Empty everything. */
+            *this = {};
+            return;
+          }
+          break;
         case ParClose:
           if (scopes.top().type == ScopeType::Assignment) {
             exit_scope(tok_id - 1);
@@ -493,7 +518,25 @@ void Parser::parse_scopes(report_callback &report_error)
           if (scopes.top().type == ScopeType::LoopArg) {
             exit_scope(tok_id - 1);
           }
-          exit_scope(tok_id);
+          if (scopes.top().type == ScopeType::LoopArgs ||
+              scopes.top().type == ScopeType::SwitchArg ||
+              scopes.top().type == ScopeType::FunctionArgs ||
+              scopes.top().type == ScopeType::FunctionArgs ||
+              scopes.top().type == ScopeType::FunctionCall ||
+              scopes.top().type == ScopeType::Local)
+          {
+            exit_scope(tok_id);
+          }
+          else {
+            Token token = Token::from_position(this, tok_id);
+            report_error(token.line_number(),
+                         token.char_number(),
+                         token.line_str(),
+                         "Unexpected ')' token");
+            /* Avoid out of bound access for the rest of the processing. Empty everything. */
+            *this = {};
+            return;
+          }
           break;
         case SquareClose:
           if (scopes.top().type == ScopeType::Attribute) {
@@ -557,8 +600,10 @@ void Parser::parse_scopes(report_callback &report_error)
 
     if (scopes.empty()) {
       Token token = Token::from_position(this, tok_id);
-      report_error(
-          token.line_number(), token.char_number(), token.line_str(), "Extraneous end of scope");
+      report_error(token.line_number(),
+                   token.char_number(),
+                   token.line_str(),
+                   "Extraneous end of scope somewhere in that file");
 
       /* Avoid out of bound access for the rest of the processing. Empty everything. */
       *this = {};
