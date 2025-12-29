@@ -531,12 +531,12 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_shadow_lib.glsl
   engines/eevee/shaders/eevee_shadow_tracing_lib.glsl
   engines/eevee/shaders/eevee_shadow_clipmap_clear_comp.glsl
-  engines/eevee/shaders/eevee_shadow_page_allocate_comp.glsl
+  engines/eevee/shaders/eevee_shadow_page_allocate.bsl.hh
   engines/eevee/shaders/eevee_shadow_page_clear_comp.glsl
-  engines/eevee/shaders/eevee_shadow_page_defrag_comp.glsl
-  engines/eevee/shaders/eevee_shadow_page_free_comp.glsl
+  engines/eevee/shaders/eevee_shadow_page_defrag.bsl.hh
+  engines/eevee/shaders/eevee_shadow_page_free.bsl.hh
   engines/eevee/shaders/eevee_shadow_page_mask_comp.glsl
-  engines/eevee/shaders/eevee_shadow_page_ops_lib.glsl
+  engines/eevee/shaders/eevee_shadow_page_ops.bsl.hh
   engines/eevee/shaders/eevee_shadow_tag_update_comp.glsl
   engines/eevee/shaders/eevee_shadow_tag_usage_comp.glsl
   engines/eevee/shaders/eevee_shadow_tag_usage_frag.glsl
