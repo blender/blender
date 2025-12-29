@@ -146,7 +146,7 @@ struct PageAllocator {
   {
     auto &heap = pages_free_buf;
     bool result = true;
-    for (int i = 0; i < max_page; i++) {
+    for (int i = 0; i < int(max_page); i++) {
       if ((i >= start) && (i < (start + size))) {
         result = result && (heap[i] != invalid_val);
       }

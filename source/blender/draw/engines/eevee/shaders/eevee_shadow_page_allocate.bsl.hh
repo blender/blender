@@ -25,16 +25,15 @@ void allocate([[resource_table]] PageAllocator &allocator,
               [[resource_table]] TileMaps &tilemaps,
               [[resource_table]] Statistics &stats,
               [[global_invocation_id]] const uint3 global_invocation_id,
-              [[local_invocation_id]] const uint3 local_invocation_id)
+              [[local_invocation_index]] const uint local_tile)
 {
   ShadowTileMapData tilemap_data = tilemaps.tilemaps_buf[global_invocation_id.z];
 
-  int tile_start = tilemap_data.tiles_index;
+  uint tile_start = uint(tilemap_data.tiles_index);
   for (int lod = 0; lod <= SHADOW_TILEMAP_LOD; lod++) {
-    int lod_len = SHADOW_TILEMAP_LOD0_LEN >> (lod * 2);
-    int local_tile = int(local_invocation_id.x);
+    uint lod_len = uint(SHADOW_TILEMAP_LOD0_LEN >> (lod * 2));
     if (local_tile < lod_len) {
-      int tile_index = tile_start + local_tile;
+      uint tile_index = tile_start + local_tile;
 
       ShadowTileData tile = shadow_tile_unpack(allocator.tiles_buf[tile_index]);
       if (tile.is_used && !tile.is_allocated) {
