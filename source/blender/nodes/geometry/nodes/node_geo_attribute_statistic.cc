@@ -147,25 +147,23 @@ static void node_geo_exec(GeoNodeExecParams params)
       const Field<float> input_field = params.extract_input<Field<float>>("Attribute");
       Vector<float> data;
       for (const GeometryComponent *component : components) {
-        const std::optional<AttributeAccessor> attributes = component->attributes();
-        if (!attributes.has_value()) {
+        const int domain_size = component->attribute_domain_size(domain);
+        if (domain_size == 0) {
           continue;
         }
-        if (attributes->domain_supported(domain)) {
-          const bke::GeometryFieldContext field_context{*component, domain};
-          fn::FieldEvaluator data_evaluator{field_context, attributes->domain_size(domain)};
-          data_evaluator.add(input_field);
-          data_evaluator.set_selection(selection_field);
-          data_evaluator.evaluate();
-          const VArray<float> component_data = data_evaluator.get_evaluated<float>(0);
-          const IndexMask selection = data_evaluator.get_evaluated_selection_as_mask();
+        const bke::GeometryFieldContext field_context{*component, domain};
+        fn::FieldEvaluator data_evaluator{field_context, domain_size};
+        data_evaluator.add(input_field);
+        data_evaluator.set_selection(selection_field);
+        data_evaluator.evaluate();
+        const VArray<float> component_data = data_evaluator.get_evaluated<float>(0);
+        const IndexMask selection = data_evaluator.get_evaluated_selection_as_mask();
 
-          const int next_data_index = data.size();
-          data.resize(next_data_index + selection.size());
-          MutableSpan<float> selected_data = data.as_mutable_span().slice(next_data_index,
-                                                                          selection.size());
-          array_utils::gather(component_data, selection, selected_data);
-        }
+        const int next_data_index = data.size();
+        data.resize(next_data_index + selection.size());
+        MutableSpan<float> selected_data = data.as_mutable_span().slice(next_data_index,
+                                                                        selection.size());
+        array_utils::gather(component_data, selection, selected_data);
       }
 
       float mean = 0.0f;
