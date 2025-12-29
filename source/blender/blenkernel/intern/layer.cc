@@ -2589,6 +2589,11 @@ static void bke_view_layer_verify_aov_cb(void *userdata,
 {
   auto *name_count = static_cast<ViewLayerAOVNameCountMap *>(userdata);
   name_count->lookup_or_add(name, 0)++;
+
+  /* The alpha pass is implicitly added from the combined pass. */
+  if (STREQ(name, RE_PASSNAME_COMBINED)) {
+    name_count->lookup_or_add("Alpha", 0)++;
+  }
 }
 
 void BKE_view_layer_verify_aov(RenderEngine *engine, Scene *scene, ViewLayer *view_layer)
