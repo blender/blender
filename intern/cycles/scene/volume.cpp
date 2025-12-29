@@ -815,6 +815,12 @@ void VolumeManager::tag_update_indices()
   update_root_indices_ = true;
 }
 
+void VolumeManager::tag_update_algorithm()
+{
+  need_rebuild_ = true;
+  algorithm_modified_ = true;
+}
+
 bool VolumeManager::is_homogeneous_volume(const Object *object, const Shader *shader)
 {
   if (!shader->has_volume || shader->has_volume_spatial_varying) {
@@ -1200,7 +1206,7 @@ void VolumeManager::update_step_size(const Scene *scene, DeviceScene *dscene)
   assert(scene->integrator->get_volume_ray_marching());
 
   if (!need_update_step_size && !dscene->volume_step_size.is_modified() &&
-      !scene->integrator->volume_step_rate_is_modified() && last_algorithm == RAY_MARCHING)
+      !scene->integrator->volume_step_rate_is_modified() && !algorithm_modified_)
   {
     return;
   }
@@ -1233,17 +1239,17 @@ void VolumeManager::device_update(Device *device,
 {
   if (scene->integrator->get_volume_ray_marching()) {
     /* No need to update octree for ray marching. */
-    if (last_algorithm == NULL_SCATTERING) {
+    if (algorithm_modified_) {
       dscene->volume_tree_nodes.free();
       dscene->volume_tree_roots.free();
       dscene->volume_tree_root_ids.free();
     }
     update_step_size(scene, dscene);
-    last_algorithm = RAY_MARCHING;
+    algorithm_modified_ = false;
     return;
   }
 
-  if (need_rebuild_ || last_algorithm == RAY_MARCHING) {
+  if (need_rebuild_) {
     /* Data needed for volume shader evaluation. */
     device->const_copy_to("data", &dscene->data, sizeof(dscene->data));
 
@@ -1269,10 +1275,10 @@ void VolumeManager::device_update(Device *device,
     update_visualization_ = false;
   }
 
-  if (last_algorithm == RAY_MARCHING) {
+  if (algorithm_modified_) {
     dscene->volume_step_size.free();
+    algorithm_modified_ = false;
   }
-  last_algorithm = NULL_SCATTERING;
 }
 
 void VolumeManager::device_free(DeviceScene *dscene)

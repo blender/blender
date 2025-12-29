@@ -15,6 +15,7 @@
 #include "scene/shader.h"
 #include "scene/stats.h"
 #include "scene/tabulated_sobol.h"
+#include "scene/volume.h"
 
 #include "kernel/types.h"
 
@@ -387,6 +388,10 @@ void Integrator::tag_update(Scene *scene, const uint32_t flag)
   if (motion_blur_is_modified()) {
     scene->object_manager->tag_update(scene, ObjectManager::MOTION_BLUR_MODIFIED);
     scene->camera->tag_modified();
+  }
+
+  if (volume_ray_marching_is_modified()) {
+    scene->volume_manager->tag_update_algorithm();
   }
 }
 
