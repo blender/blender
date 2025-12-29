@@ -3,46 +3,48 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
-#include "infos/workbench_composite_infos.hh"
+#pragma create_info
 
 #include "draw_view_lib.glsl"
-#include "workbench_common_lib.glsl"
+
+#include "workbench_common.bsl.hh"
 
 SHADER_LIBRARY_CREATE_INFO(draw_view)
-SHADER_LIBRARY_CREATE_INFO(workbench_composite)
-SHADER_LIBRARY_CREATE_INFO(workbench_resolve_cavity)
 
 /* From The Alchemy screen-space ambient obscurance algorithm
  * http://graphics.cs.williams.edu/papers/AlchemyHPG11/VV11AlchemyAO.pdf */
 
-#ifdef WORKBENCH_CAVITY
-#  define USE_CAVITY
-#  define cavityJitter jitter_tx
-#  define samples_coords cavity_samples
-#endif
+namespace workbench {
 
-#ifdef USE_CAVITY
+struct Cavity {
+  [[sampler(7)]] sampler2D jitter_tx;
+  [[uniform(5)]] const float4 (&cavity_samples)[512];
+};
 
-void cavity_compute(float2 screenco,
-                    sampler2DDepth depth_buffer,
-                    sampler2D normalBuffer,
+void cavity_compute([[resource_table]] const workbench::Cavity &cavity,
+                    [[resource_table]] const workbench::World &world,
+                    sampler2DDepth depth_tx,
+                    sampler2D normal_tx,
+                    float2 screenco,
                     float &cavities,
                     float &edges)
 {
   cavities = edges = 0.0f;
 
-  float depth = texture(depth_buffer, screenco).x;
+  float depth = texture(depth_tx, screenco).x;
 
   /* Early out if background and in front. */
   if (depth == 1.0f || depth == 0.0f) {
     return;
   }
 
+  const WorldData &world_data = world.world_data;
+
   float3 position = drw_point_screen_to_view(float3(screenco, depth));
-  float3 normal = workbench_normal_decode(texture(normalBuffer, screenco));
+  float3 normal = workbench::normal_decode(texture(normal_tx, screenco));
 
   float2 jitter_co = (screenco * world_data.viewport_size.xy) * world_data.cavity_jitter_scale;
-  float3 noise = texture(cavityJitter, jitter_co).rgb;
+  float3 noise = texture(cavity.jitter_tx, jitter_co).rgb;
 
   /* find the offset in screen space by multiplying a point
    * in camera space at the depth of the point by the projection matrix. */
@@ -62,7 +64,7 @@ void cavity_compute(float2 screenco,
   for (int i = sample_start; i < sample_end && i < 512; i++) {
     /* sample_coord.xy is sample direction (normalized).
      * sample_coord.z is sample distance from disk center. */
-    float3 sample_coord = samples_coords[i].xyz;
+    float3 sample_coord = cavity.cavity_samples[i].xyz;
     /* Rotate with random direction to get jittered result. */
     float2 dir_jittered = float2(dot(sample_coord.xy, rotX), dot(sample_coord.xy, rotY));
     dir_jittered.xy *= sample_coord.z + noise.b;
@@ -73,7 +75,7 @@ void cavity_compute(float2 screenco,
       continue;
     }
     /* Sample depth. */
-    float s_depth = texture(depth_buffer, uvcoords).r;
+    float s_depth = texture(depth_tx, uvcoords).r;
     /* Handle Background case */
     bool is_background = (s_depth == 1.0f);
     /* This trick provide good edge effect even if no neighbor is found. */
@@ -109,4 +111,4 @@ void cavity_compute(float2 screenco,
   edges = edges * world_data.cavity_ridge_factor;
 }
 
-#endif /* USE_CAVITY */
+}  // namespace workbench

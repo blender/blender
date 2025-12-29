@@ -2571,8 +2571,8 @@ class Preprocessor {
               /* Add a prefix to all member functions. */
               parser.insert_before(fn_name, method_call_prefix);
 
+              parser.erase(const_tok);
               if (is_const && !is_resource_table) {
-                parser.erase(const_tok);
                 parser.insert_after(fn_args.front(),
                                     prefix + "const " + struct_name.str() + " this_" + suffix);
               }
@@ -2838,12 +2838,12 @@ class Preprocessor {
         if (tokens[2].str() != "resource_table") {
           return;
         }
-        condition += "defined(CREATE_INFO_" + tokens[7].str() + ")";
+        condition += "&& defined(CREATE_INFO_" + tokens[7].str() + ")";
         parser.replace(tokens[0].scope(), "");
       });
 
       if (!condition.empty()) {
-        parser.insert_directive(fn_type.prev(), "#if " + condition);
+        parser.insert_directive(fn_type.prev(), "#if " + condition.substr(3));
         parser.insert_directive(fn_body.back(), "#endif");
       }
     });
@@ -4495,6 +4495,7 @@ class Preprocessor {
               }
               replace_word(srt_var, "gl_VertexID");
               metadata.builtins.emplace_back(Builtin(hash("gl_VertexID")));
+              create_info_decl += "BUILTINS(BuiltinBits::VERTEX_ID)\n";
             }
             else if (srt_attr == "instance_id" && is_entry_point) {
               if (!is_vertex_func) {
@@ -4506,6 +4507,7 @@ class Preprocessor {
               }
               replace_word(srt_var, "gl_InstanceID");
               metadata.builtins.emplace_back(Builtin(hash("gl_InstanceID")));
+              create_info_decl += "BUILTINS(BuiltinBits::INSTANCE_ID)\n";
             }
             else if (srt_attr == "base_instance" && is_entry_point) {
               if (!is_vertex_func) {

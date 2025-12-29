@@ -382,7 +382,6 @@ set(GLSL_SRC
 
   engines/select/shaders/infos/select_id_infos.hh
 
-  engines/workbench/shaders/infos/workbench_composite_infos.hh
   engines/workbench/shaders/infos/workbench_depth_infos.hh
   engines/workbench/shaders/infos/workbench_effect_antialiasing_infos.hh
   engines/workbench/shaders/infos/workbench_effect_dof_infos.hh
@@ -608,10 +607,11 @@ set(GLSL_SRC
   engines/eevee/eevee_velocity_shared.hh
   engines/eevee/eevee_volume_shared.hh
 
-  engines/workbench/shaders/workbench_cavity_lib.glsl
+  engines/workbench/shaders/workbench_cavity.bsl.hh
+  engines/workbench/shaders/workbench_common.bsl.hh
   engines/workbench/shaders/workbench_common_lib.glsl
-  engines/workbench/shaders/workbench_composite_frag.glsl
-  engines/workbench/shaders/workbench_curvature_lib.glsl
+  engines/workbench/shaders/workbench_composite.bsl.hh
+  engines/workbench/shaders/workbench_curvature.bsl.hh
   engines/workbench/shaders/workbench_effect_dof_prepare_frag.glsl
   engines/workbench/shaders/workbench_effect_dof_downsample_frag.glsl
   engines/workbench/shaders/workbench_effect_dof_blur1_frag.glsl
@@ -625,6 +625,7 @@ set(GLSL_SRC
   engines/workbench/shaders/workbench_fullscreen_vert.glsl
   engines/workbench/shaders/workbench_image_lib.glsl
   engines/workbench/shaders/workbench_matcap_lib.glsl
+  engines/workbench/shaders/workbench_matcap.bsl.hh
   engines/workbench/shaders/workbench_material_lib.glsl
   engines/workbench/shaders/workbench_merge_depth_frag.glsl
   engines/workbench/shaders/workbench_overlay_depth_frag.glsl
@@ -642,6 +643,7 @@ set(GLSL_SRC
   engines/workbench/shaders/workbench_transparent_resolve_frag.glsl
   engines/workbench/shaders/workbench_volume.bsl.hh
   engines/workbench/shaders/workbench_world_light_lib.glsl
+  engines/workbench/shaders/workbench_world_light.bsl.hh
 
   engines/workbench/workbench_defines.hh
   engines/workbench/workbench_shader_shared.hh

@@ -751,7 +751,7 @@ static void generate_compilation_constant(GeneratedStreams &generated,
   /* Global scope definition before the wrapper class. */
   auto &out = generated.wrapper_class_prefix;
   out << "constant " << constant.type << " " << constant.name;
-  out << " = " << to_string(constant.type, constant.value) << ";\n";
+  out << " [[maybe_unused]] = " << to_string(constant.type, constant.value) << ";\n";
 }
 
 static void generate_specialization_constant(GeneratedStreams &generated,

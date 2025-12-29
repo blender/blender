@@ -4,13 +4,9 @@
 
 #pragma once
 
-#include "workbench_common_lib.glsl"
+#include "workbench_common.bsl.hh"
 
-#ifdef WORKBENCH_CURVATURE
-#  define USE_CURVATURE
-#endif
-
-#ifdef USE_CURVATURE
+namespace workbench {
 
 float curvature_soft_clamp(float curvature, float control)
 {
@@ -20,18 +16,21 @@ float curvature_soft_clamp(float curvature, float control)
   return 0.25f / control;
 }
 
-void curvature_compute(float2 uv,
-                       usampler2D object_id_buffer,
-                       sampler2D normalBuffer,
+void curvature_compute([[resource_table]] const workbench::World &world,
+                       usampler2D object_id_tx,
+                       sampler2D normal_tx,
+                       float2 uv,
                        float &curvature)
 {
   curvature = 0.0f;
 
+  const WorldData &world_data = world.world_data;
+
   float3 offset = float3(world_data.viewport_size_inv, 0.0f) * world_data.ui_scale;
-  uint object_up = texture(object_id_buffer, uv + offset.zy).r;
-  uint object_down = texture(object_id_buffer, uv - offset.zy).r;
-  uint object_right = texture(object_id_buffer, uv + offset.xz).r;
-  uint object_left = texture(object_id_buffer, uv - offset.xz).r;
+  uint object_up = texture(object_id_tx, uv + offset.zy).r;
+  uint object_down = texture(object_id_tx, uv - offset.zy).r;
+  uint object_right = texture(object_id_tx, uv + offset.xz).r;
+  uint object_left = texture(object_id_tx, uv - offset.xz).r;
 
   /* Remove object outlines. */
   if ((object_up != object_down) || (object_right != object_left)) {
@@ -42,10 +41,10 @@ void curvature_compute(float2 uv,
     return;
   }
 
-  float normal_up = workbench_normal_decode(texture(normalBuffer, uv + offset.zy)).g;
-  float normal_down = workbench_normal_decode(texture(normalBuffer, uv - offset.zy)).g;
-  float normal_right = workbench_normal_decode(texture(normalBuffer, uv + offset.xz)).r;
-  float normal_left = workbench_normal_decode(texture(normalBuffer, uv - offset.xz)).r;
+  float normal_up = workbench::normal_decode(texture(normal_tx, uv + offset.zy)).g;
+  float normal_down = workbench::normal_decode(texture(normal_tx, uv - offset.zy)).g;
+  float normal_right = workbench::normal_decode(texture(normal_tx, uv + offset.xz)).r;
+  float normal_left = workbench::normal_decode(texture(normal_tx, uv - offset.xz)).r;
 
   float normal_diff = (normal_up - normal_down) + (normal_right - normal_left);
 
@@ -57,4 +56,4 @@ void curvature_compute(float2 uv,
   }
 }
 
-#endif /* USE_CURVATURE */
+}  // namespace workbench
