@@ -133,6 +133,11 @@ static KnotsMode determine_knots_mode(const Span<double> usd_knots,
   }
 
   Vector<int> multiplicity = bke::curves::nurbs::calculate_multiplicity_sequence(blender_knots);
+  if (multiplicity.size() < 2) {
+    /* Invalid knot vector. Use normal mode. */
+    return NURBS_KNOT_MODE_NORMAL;
+  }
+
   const int head = multiplicity.first();
   const int tail = multiplicity.last();
   const Span<int> inner = multiplicity.as_span().slice(1, multiplicity.size() - 2);
@@ -278,11 +283,31 @@ void USDNurbsReader::read_curve_sample(Curves *curves_id, const pxr::UsdTimeCode
   /* Calculate and set the Curves topology. */
   CurveData data = calc_curve_offsets(usd_points, usd_counts, usd_orders, usd_knots);
 
+  // Check validity of curve counts
+  const int min_points = 2;
+  const bool all_valid = std::all_of(usd_counts.begin(),
+                                     usd_counts.end(),
+                                     [min_points](int count) { return count >= min_points; });
+
   bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-  if (curves_topology_changed(curves, data.blender_offsets)) {
+  if (all_valid && curves_topology_changed(curves, data.blender_offsets)) {
     curves.resize(data.blender_offsets.last(), usd_counts.size());
-    curves.offsets_for_write().copy_from(data.blender_offsets);
-    curves.fill_curve_types(CurveType::CURVE_TYPE_NURBS);
+  }
+
+  // Early out if there are no curves to load.
+  if (curves.is_empty()) {
+    return;
+  }
+
+  curves.offsets_for_write().copy_from(data.blender_offsets);
+  curves.fill_curve_types(CurveType::CURVE_TYPE_NURBS);
+
+  MutableSpan<float3> curves_positions = curves.positions_for_write();
+
+  /* If there's no points defined, fill positions with default values and exit. */
+  if (usd_points.is_empty()) {
+    curves_positions.fill(float3(0.0f, 0.0f, 0.0f));
+    return;
   }
 
   /* NOTE: USD contains duplicated points for periodic(cyclic) curves. The indices into each curve
@@ -300,14 +325,19 @@ void USDNurbsReader::read_curve_sample(Curves *curves_id, const pxr::UsdTimeCode
       data.is_cyclic.begin(), data.is_cyclic.end(), [](bool item) { return item == false; });
 
   /* Set all curve data. */
-  MutableSpan<float3> curves_positions = curves.positions_for_write();
   for (const int curve_i : blender_points_by_curve.index_range()) {
     const IndexRange blender_points_range = blender_points_by_curve[curve_i];
     const IndexRange usd_points_range_de_dup = get_usd_points_range_de_dup(
         blender_points_range, usd_points_by_curve[curve_i]);
 
-    curves_positions.slice(blender_points_range)
-        .copy_from(usd_points.slice(usd_points_range_de_dup));
+    const int copy_size = std::min(
+        usd_points.size(), std::min(blender_points_range.size(), usd_points_range_de_dup.size()));
+    curves_positions.slice(blender_points_range.start(), copy_size)
+        .copy_from(usd_points.slice(usd_points_range_de_dup.start(), copy_size));
+    /* Fill any missing items with a default value. */
+    for (int i = copy_size; i < blender_points_range.size(); i++) {
+      curves_positions[blender_points_range.start() + i] = float3(0.0f, 0.0f, 0.0f);
+    }
   }
 
   MutableSpan<bool> curves_cyclic = curves.cyclic_for_write();
@@ -315,14 +345,15 @@ void USDNurbsReader::read_curve_sample(Curves *curves_id, const pxr::UsdTimeCode
 
   MutableSpan<int8_t> curves_nurbs_orders = curves.nurbs_orders_for_write();
   for (const int curve_i : blender_points_by_curve.index_range()) {
-    curves_nurbs_orders[curve_i] = int8_t(usd_orders[curve_i]);
+    const int order = usd_orders[curve_i];
+    curves_nurbs_orders[curve_i] = int8_t(order >= 2 ? order : 2);
   }
 
   MutableSpan<int8_t> curves_knots_mode = curves.nurbs_knots_modes_for_write();
   for (const int curve_i : blender_points_by_curve.index_range()) {
     const IndexRange usd_knots_range = usd_knots_by_curve[curve_i];
     curves_knots_mode[curve_i] = determine_knots_mode(
-        usd_knots.slice(usd_knots_range), usd_orders[curve_i], data.is_cyclic[curve_i]);
+        usd_knots.slice_safe(usd_knots_range), usd_orders[curve_i], data.is_cyclic[curve_i]);
   }
 
   /* Load in the optional weights. */
