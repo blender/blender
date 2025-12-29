@@ -2413,7 +2413,7 @@ class Preprocessor {
       uint32_t hash = hash_string(token.str());
       metadata::PrintfFormat format = {hash, token.str()};
       metadata.printf_formats.emplace_back(format);
-      parser.replace(token, "string(" + std::to_string(hash) + "u)", true);
+      parser.replace(token, "string_t(" + std::to_string(hash) + "u)", true);
     });
     parser.apply_mutations();
   }

@@ -140,9 +140,6 @@ template<typename T> struct union_t {
 
 /* To be used on struct. Means the layout is to be used with uniform or storage buffers. */
 #    define host_shared
-/* To be used on struct with host_shared. Bypass layout checks when syntax doesn't permit it (macro
- * usage, unions etc...). */
-#    define unchecked
 
 #  endif
 
