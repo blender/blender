@@ -1401,9 +1401,9 @@ class Preprocessor {
                      loop_body);
       });
 
-      /* [[unroll(n)]]. */
+      /* [[unroll_n(n)]]. */
       parser().foreach_match("[[w(0)]]f(..){..}", [&](const std::vector<Token> tokens) {
-        if (tokens[2].str() != "unroll") {
+        if (tokens[2].str() != "unroll_n") {
           return;
         }
         const Scope loop_args = tokens[9].scope();
@@ -3370,7 +3370,7 @@ class Preprocessor {
           /* Placement already checked. */
           return;
         }
-        else if (attr_str == "unroll" || attr_str == "unroll_define") {
+        else if (attr_str == "unroll" || attr_str == "unroll_n" || attr_str == "unroll_define") {
           if (attributes.back().next().next() != For) {
             report_error(ERROR_TOK(attr),
                          "unroll attributes must be declared before a 'for' loop keyword");

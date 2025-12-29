@@ -499,20 +499,20 @@ static void test_preprocess_unroll()
   }
   {
     string input = R"(
-[[unroll(2)]] for (; i < j;) { content += i; })";
+[[unroll_n(2)]] for (; i < j;) { content += i; })";
     string expect = R"(
 
 {
 #line 2
-                  if(i < j)
+                    if(i < j)
 #line 2
-                             { content += i; }
+                               { content += i; }
 #line 2
-                  if(i < j)
+                    if(i < j)
 #line 2
-                             { content += i; }
+                               { content += i; }
 #line 2
-                                             })";
+                                               })";
     string error;
     string output = process_test_string(input, error);
     EXPECT_EQ(output, expect);
@@ -520,75 +520,75 @@ static void test_preprocess_unroll()
   }
   {
     string input = R"(
-[[unroll(2)]] for (; i < j;) { [[unroll(2)]] for (; j < k;) {} })";
+[[unroll_n(2)]] for (; i < j;) { [[unroll_n(2)]] for (; j < k;) {} })";
     string expect = R"(
 
 {
 #line 2
-                  if(i < j)
+                    if(i < j)
 #line 2
-                             {
+                               {
 {
 #line 2
-                                                 if(j < k)
+                                                     if(j < k)
 #line 2
-                                                            {}
+                                                                {}
 #line 2
-                                                 if(j < k)
+                                                     if(j < k)
 #line 2
-                                                            {}
+                                                                {}
 #line 2
-                                                             } }
+                                                                 } }
 #line 2
-                  if(i < j)
+                    if(i < j)
 #line 2
-                             {
+                               {
 {
 #line 2
-                                                 if(j < k)
+                                                     if(j < k)
 #line 2
-                                                            {}
+                                                                {}
 #line 2
-                                                 if(j < k)
+                                                     if(j < k)
 #line 2
-                                                            {}
+                                                                {}
 #line 2
-                                                             } }
+                                                                 } }
 #line 2
-                                                               })";
+                                                                   })";
     string error;
     string output = process_test_string(input, error);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
   {
-    string input = R"([[unroll(2)]] for (; i < j;) { break; })";
+    string input = R"([[unroll_n(2)]] for (; i < j;) { break; })";
     string error;
     string output = process_test_string(input, error);
     EXPECT_EQ(error, "Unrolled loop cannot contain \"break\" statement.");
   }
   {
-    string input = R"([[unroll(2)]] for (; i < j;) { continue; })";
+    string input = R"([[unroll_n(2)]] for (; i < j;) { continue; })";
     string error;
     string output = process_test_string(input, error);
     EXPECT_EQ(error, "Unrolled loop cannot contain \"continue\" statement.");
   }
   {
     string input = R"(
-[[unroll(2)]] for (; i < j;) { for (; j < k;) {break;continue;} })";
+[[unroll_n(2)]] for (; i < j;) { for (; j < k;) {break;continue;} })";
     string expect = R"(
 
 {
 #line 2
-                  if(i < j)
+                    if(i < j)
 #line 2
-                             { for (; j < k;) {break;continue;} }
+                               { for (; j < k;) {break;continue;} }
 #line 2
-                  if(i < j)
+                    if(i < j)
 #line 2
-                             { for (; j < k;) {break;continue;} }
+                               { for (; j < k;) {break;continue;} }
 #line 2
-                                                                })";
+                                                                  })";
     string error;
     string output = process_test_string(input, error);
     EXPECT_EQ(output, expect);
