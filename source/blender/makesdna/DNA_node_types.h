@@ -1031,6 +1031,18 @@ enum CMPNodeSetAlphaMode {
   CMP_NODE_SETALPHA_MODE_REPLACE_ALPHA = 1,
 };
 
+/** #NodeBlur.type */
+enum CMPNodeBlurType {
+  CMP_NODE_BLUR_TYPE_BOX = 0,
+  CMP_NODE_BLUR_TYPE_TENT = 1,
+  CMP_NODE_BLUR_TYPE_QUAD = 2,
+  CMP_NODE_BLUR_TYPE_CUBIC = 3,
+  CMP_NODE_BLUR_TYPE_CATROM = 4,
+  CMP_NODE_BLUR_TYPE_GAUSS = 5,
+  CMP_NODE_BLUR_TYPE_MITCH = 6,
+  CMP_NODE_BLUR_TYPE_FAST_GAUSS = 7,
+};
+
 /** #NodeDenoise.prefilter */
 enum CMPNodeDenoisePrefilter {
   CMP_NODE_DENOISE_PREFILTER_FAST = 0,
@@ -2221,7 +2233,7 @@ struct NodeBlurData {
   DNA_DEPRECATED float fac = 0;
   DNA_DEPRECATED float percentx = 0;
   DNA_DEPRECATED float percenty = 0;
-  DNA_DEPRECATED short filtertype = 0;
+  DNA_DEPRECATED short filtertype = 0; /* CMPNodeBlurType */
   DNA_DEPRECATED char bokeh = 0;
   DNA_DEPRECATED char gamma = 0;
 };

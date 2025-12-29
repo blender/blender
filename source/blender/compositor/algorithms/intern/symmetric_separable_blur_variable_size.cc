@@ -66,7 +66,7 @@ static Result horizontal_pass_gpu(Context &context,
                                   const Result &input,
                                   const Result &radius,
                                   const int weights_resolution,
-                                  const int filter_type)
+                                  const math::FilterKernel filter_type)
 {
   gpu::Shader *shader = context.get_shader("compositor_symmetric_separable_blur_variable_size");
   GPU_shader_bind(shader);
@@ -113,7 +113,7 @@ static Result horizontal_pass_cpu(Context &context,
                                   const Result &input,
                                   const Result &radius,
                                   const int weights_resolution,
-                                  const int filter_type)
+                                  const math::FilterKernel filter_type)
 {
   const Result &weights = context.cache_manager().symmetric_separable_blur_weights.get(
       context, filter_type, weights_resolution);
@@ -141,7 +141,7 @@ static Result horizontal_pass(Context &context,
                               const Result &input,
                               const Result &radius,
                               const int weights_resolution,
-                              const int filter_type)
+                              const math::FilterKernel filter_type)
 {
   if (context.use_gpu()) {
     return horizontal_pass_gpu(context, input, radius, weights_resolution, filter_type);
@@ -155,7 +155,7 @@ static void vertical_pass_gpu(Context &context,
                               const Result &radius,
                               Result &output,
                               const int weights_resolution,
-                              const int filter_type)
+                              const math::FilterKernel filter_type)
 {
   gpu::Shader *shader = context.get_shader("compositor_symmetric_separable_blur_variable_size");
   GPU_shader_bind(shader);
@@ -193,7 +193,7 @@ static void vertical_pass_cpu(Context &context,
                               const Result &radius,
                               Result &output,
                               const int weights_resolution,
-                              const int filter_type)
+                              const math::FilterKernel filter_type)
 {
   const Result &weights = context.cache_manager().symmetric_separable_blur_weights.get(
       context, filter_type, weights_resolution);
@@ -210,7 +210,7 @@ static void vertical_pass(Context &context,
                           const Result &radius,
                           Result &output,
                           const int weights_resolution,
-                          const int filter_type)
+                          const math::FilterKernel filter_type)
 {
   if (context.use_gpu()) {
     vertical_pass_gpu(context,
@@ -237,7 +237,7 @@ void symmetric_separable_blur_variable_size(Context &context,
                                             const Result &radius,
                                             Result &output,
                                             const int weights_resolution,
-                                            const int filter_type)
+                                            const math::FilterKernel filter_type)
 {
   BLI_assert(input.type() == ResultType::Color);
 

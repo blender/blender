@@ -30,14 +30,14 @@
 namespace blender::nodes::node_composite_blur_cc {
 
 static const EnumPropertyItem type_items[] = {
-    {R_FILTER_BOX, "FLAT", 0, N_("Flat"), ""},
-    {R_FILTER_TENT, "TENT", 0, N_("Tent"), ""},
-    {R_FILTER_QUAD, "QUAD", 0, N_("Quadratic"), ""},
-    {R_FILTER_CUBIC, "CUBIC", 0, N_("Cubic"), ""},
-    {R_FILTER_GAUSS, "GAUSS", 0, N_("Gaussian"), ""},
-    {R_FILTER_FAST_GAUSS, "FAST_GAUSS", 0, N_("Fast Gaussian"), ""},
-    {R_FILTER_CATROM, "CATROM", 0, N_("Catrom"), ""},
-    {R_FILTER_MITCH, "MITCH", 0, N_("Mitch"), ""},
+    {CMP_NODE_BLUR_TYPE_BOX, "FLAT", 0, N_("Flat"), ""},
+    {CMP_NODE_BLUR_TYPE_TENT, "TENT", 0, N_("Tent"), ""},
+    {CMP_NODE_BLUR_TYPE_QUAD, "QUAD", 0, N_("Quadratic"), ""},
+    {CMP_NODE_BLUR_TYPE_CUBIC, "CUBIC", 0, N_("Cubic"), ""},
+    {CMP_NODE_BLUR_TYPE_GAUSS, "GAUSS", 0, N_("Gaussian"), ""},
+    {CMP_NODE_BLUR_TYPE_FAST_GAUSS, "FAST_GAUSS", 0, N_("Fast Gaussian"), ""},
+    {CMP_NODE_BLUR_TYPE_CATROM, "CATROM", 0, N_("Catrom"), ""},
+    {CMP_NODE_BLUR_TYPE_MITCH, "MITCH", 0, N_("Mitch"), ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -57,7 +57,7 @@ static void cmp_node_blur_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .structure_type(StructureType::Dynamic);
   b.add_input<decl::Menu>("Type")
-      .default_value(R_FILTER_GAUSS)
+      .default_value(CMP_NODE_BLUR_TYPE_GAUSS)
       .static_items(type_items)
       .optional_label();
   b.add_input<decl::Bool>("Extend Bounds").default_value(false);
@@ -73,6 +73,31 @@ static void node_composit_init_blur(bNodeTree * /*ntree*/, bNode *node)
   /* Unused, but allocated for forward compatibility. */
   NodeBlurData *data = MEM_new_for_free<NodeBlurData>(__func__);
   node->storage = data;
+}
+
+static math::FilterKernel blur_type_to_kernel(CMPNodeBlurType type)
+{
+  switch (type) {
+    case CMP_NODE_BLUR_TYPE_BOX:
+      return math::FilterKernel::Box;
+    case CMP_NODE_BLUR_TYPE_TENT:
+      return math::FilterKernel::Tent;
+    case CMP_NODE_BLUR_TYPE_QUAD:
+      return math::FilterKernel::Quad;
+    case CMP_NODE_BLUR_TYPE_CUBIC:
+      return math::FilterKernel::Cubic;
+    case CMP_NODE_BLUR_TYPE_CATROM:
+      return math::FilterKernel::Catrom;
+    case CMP_NODE_BLUR_TYPE_GAUSS:
+      return math::FilterKernel::Gauss;
+    case CMP_NODE_BLUR_TYPE_MITCH:
+      return math::FilterKernel::Mitch;
+    case CMP_NODE_BLUR_TYPE_FAST_GAUSS:
+      return math::FilterKernel::Gauss;
+    default:
+      BLI_assert_unreachable();
+      return math::FilterKernel::Box;
+  }
 }
 
 using namespace blender::compositor;
@@ -130,12 +155,15 @@ class BlurOperation : public NodeOperation {
     if (!size.is_single_value()) {
       this->execute_variable_size(input, size, output);
     }
-    else if (this->get_type() == R_FILTER_FAST_GAUSS) {
+    else if (this->get_type() == CMP_NODE_BLUR_TYPE_FAST_GAUSS) {
       recursive_gaussian_blur(this->context(), input, output, this->get_blur_size());
     }
     else if (use_separable_filter()) {
-      symmetric_separable_blur(
-          this->context(), input, output, this->get_blur_size(), this->get_type());
+      symmetric_separable_blur(this->context(),
+                               input,
+                               output,
+                               this->get_blur_size(),
+                               blur_type_to_kernel(this->get_type()));
     }
     else {
       this->execute_constant_size(input, output);
@@ -162,7 +190,7 @@ class BlurOperation : public NodeOperation {
     const float2 blur_radius = this->get_blur_size();
 
     const Result &weights = context().cache_manager().symmetric_blur_weights.get(
-        context(), this->get_type(), blur_radius);
+        context(), blur_type_to_kernel(this->get_type()), blur_radius);
     weights.bind_as_texture(shader, "weights_tx");
 
     const Domain domain = input.domain();
@@ -181,7 +209,7 @@ class BlurOperation : public NodeOperation {
   {
     const float2 blur_radius = this->get_blur_size();
     const Result &weights = this->context().cache_manager().symmetric_blur_weights.get(
-        this->context(), this->get_type(), blur_radius);
+        this->context(), blur_type_to_kernel(this->get_type()), blur_radius);
 
     const Domain domain = input.domain();
     output.allocate_texture(domain);
@@ -253,7 +281,7 @@ class BlurOperation : public NodeOperation {
   {
     const float2 blur_radius = this->compute_maximum_blur_size();
     const Result &weights = context().cache_manager().symmetric_blur_weights.get(
-        context(), this->get_type(), blur_radius);
+        context(), blur_type_to_kernel(this->get_type()), blur_radius);
 
     gpu::Shader *shader = context().get_shader("compositor_symmetric_blur_variable_size");
     GPU_shader_bind(shader);
@@ -279,7 +307,7 @@ class BlurOperation : public NodeOperation {
   {
     const float2 blur_radius = this->compute_maximum_blur_size();
     const Result &weights = this->context().cache_manager().symmetric_blur_weights.get(
-        this->context(), this->get_type(), blur_radius);
+        this->context(), blur_type_to_kernel(this->get_type()), blur_radius);
 
     const Domain domain = input.domain();
     output.allocate_texture(domain);
@@ -388,8 +416,8 @@ class BlurOperation : public NodeOperation {
 
     /* Only Gaussian filters are separable. The rest is not. */
     switch (this->get_type()) {
-      case R_FILTER_GAUSS:
-      case R_FILTER_FAST_GAUSS:
+      case CMP_NODE_BLUR_TYPE_GAUSS:
+      case CMP_NODE_BLUR_TYPE_FAST_GAUSS:
         return true;
       default:
         return false;
@@ -412,9 +440,9 @@ class BlurOperation : public NodeOperation {
     return this->get_input("Extend Bounds").get_single_value_default<bool>();
   }
 
-  int get_type()
+  CMPNodeBlurType get_type()
   {
-    return this->get_input("Type").get_single_value_default<MenuValue>().value;
+    return CMPNodeBlurType(this->get_input("Type").get_single_value_default<MenuValue>().value);
   }
 };
 

@@ -757,18 +757,6 @@ enum {
   R_SEQ_OVERRIDE_SCENE_SETTINGS = (1 << 5),
 };
 
-/** #RenderData::filtertype (used for nodes) */
-enum {
-  R_FILTER_BOX = 0,
-  R_FILTER_TENT = 1,
-  R_FILTER_QUAD = 2,
-  R_FILTER_CUBIC = 3,
-  R_FILTER_CATROM = 4,
-  R_FILTER_GAUSS = 5,
-  R_FILTER_MITCH = 6,
-  R_FILTER_FAST_GAUSS = 7,
-};
-
 /** #RenderData::scemode */
 enum {
   R_DOSEQ = 1 << 0,

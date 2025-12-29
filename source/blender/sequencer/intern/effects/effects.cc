@@ -8,6 +8,8 @@
  * \ingroup sequencer
  */
 
+#include "BLI_math_filter.hh"
+
 #include "BKE_fcurve.hh"
 
 #include "DNA_scene_types.h"
@@ -16,8 +18,6 @@
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_metadata.hh"
-
-#include "RE_pipeline.h"
 
 #include "RNA_prototypes.hh"
 
@@ -88,7 +88,7 @@ Array<float> make_gaussian_blur_kernel(float rad, int size)
   float sum = 0.0f;
   float fac = (rad > 0.0f ? 1.0f / rad : 0.0f);
   for (int i = -size; i <= size; i++) {
-    float val = RE_filter_value(R_FILTER_GAUSS, float(i) * fac);
+    float val = math::filter_kernel_value(math::FilterKernel::Gauss, float(i) * fac);
     sum += val;
     gaussian[i + size] = val;
   }

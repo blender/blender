@@ -992,7 +992,7 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
 
         NodeBlurData &blur_data = *static_cast<NodeBlurData *>(node->storage);
 
-        if (blur_data.filtertype != R_FILTER_FAST_GAUSS) {
+        if (blur_data.filtertype != CMP_NODE_BLUR_TYPE_FAST_GAUSS) {
           continue;
         }
 

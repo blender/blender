@@ -434,13 +434,6 @@ void RE_current_scene_update_cb(struct Render *re,
 void *RE_system_gpu_context_get(Render *re);
 void *RE_blender_gpu_context_ensure(Render *re);
 
-/**
- * \param x: ranges from -1 to 1.
- *
- * TODO: Should move to kernel once... still unsure on how/where.
- */
-float RE_filter_value(int type, float x);
-
 bool RE_seq_render_active(struct Scene *scene, struct RenderData *rd);
 
 /**

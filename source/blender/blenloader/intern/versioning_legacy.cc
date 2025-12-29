@@ -157,7 +157,7 @@ static void ntree_version_241(bNodeTree *ntree)
           NodeBlurData *nbd = MEM_new_for_free<NodeBlurData>("node blur patch");
           nbd->sizex = node->custom1;
           nbd->sizey = node->custom2;
-          nbd->filtertype = R_FILTER_QUAD;
+          nbd->filtertype = CMP_NODE_BLUR_TYPE_QUAD;
           node->storage = nbd;
         }
       }
