@@ -679,10 +679,9 @@ class Preprocessor {
       }
 
       if (end == std::string::npos) {
-        report_error(parser::line_number(out_str, start),
-                     parser::char_number(out_str, start),
-                     parser::line_str(out_str, start),
-                     "Malformed single line comment, missing newline.");
+        for (size_t i = start; i < end; ++i) {
+          out_str[i] = ' ';
+        }
         return out_str;
       }
     }
@@ -1544,6 +1543,76 @@ class Preprocessor {
     parser.apply_mutations();
   }
 
+  void lower_namespace(const shader::parser::Scope &scope,
+                       Parser &parser,
+                       report_callback report_error)
+  {
+    using namespace std;
+    using namespace shader::parser;
+
+    scope.foreach_scope(ScopeType::Namespace,
+                        [&](const Scope &scope) { lower_namespace(scope, parser, report_error); });
+
+    string prefix = scope.front().prev().full_symbol_name();
+
+    auto process_symbol = [&](const Token &symbol) {
+      if (symbol.next() == '<') {
+        /* Template instantiation or specialization. */
+        return;
+      }
+      /* Replace all occurrences of the non-namespace specified symbol. */
+      scope.foreach_token(Word, [&](const Token &token) {
+        if (token.str() != symbol.str()) {
+          return;
+        }
+        /* Reject symbols that already have namespace specified. */
+        if (token.namespace_start() != token) {
+          return;
+        }
+        /* Reject method calls. */
+        if (token.prev() == '.') {
+          return;
+        }
+        parser.insert_before(token, prefix + namespace_separator, true);
+      });
+    };
+
+    unordered_set<string> processed_functions;
+
+    scope.foreach_function([&](bool, Token, Token fn_name, Scope, bool, Scope) {
+      if (fn_name.scope().type() == ScopeType::Struct) {
+        /* Don't process functions inside a struct scope as the namespace must not be apply
+         * to them, but to the type. Otherwise, method calls will not work. */
+        return;
+      }
+      if (processed_functions.count(fn_name.str())) {
+        /* Don't process function names twice. Can happen with overloads. */
+        return;
+      }
+      processed_functions.emplace(fn_name.str());
+      process_symbol(fn_name);
+    });
+    scope.foreach_struct(
+        [&](Token, Scope, Token struct_name, Scope) { process_symbol(struct_name); });
+
+    /* Pipeline declarations. */
+    scope.foreach_match("ww(w", [&](vector<Token> toks) {
+      if (toks[0].scope().type() != ScopeType::Namespace || toks[0].str().find("Pipeline") != 0) {
+        return;
+      }
+      process_symbol(toks[1]);
+    });
+
+    Token namespace_tok = scope.front().prev().namespace_start().prev();
+    if (namespace_tok == Namespace) {
+      parser.erase(namespace_tok, scope.front());
+      parser.erase(scope.back());
+    }
+    else {
+      report_error(ERROR_TOK(namespace_tok), "Expected namespace token.");
+    }
+  }
+
   /* Lower namespaces by adding namespace prefix to all the contained structs and functions. */
   void lower_namespaces(Parser &parser, report_callback report_error)
   {
@@ -1552,70 +1621,7 @@ class Preprocessor {
 
     /* Parse each namespace declaration. */
     parser().foreach_scope(ScopeType::Namespace, [&](const Scope &scope) {
-      /* TODO(fclem): This could be supported using multiple passes. */
-      scope.foreach_match("n", [&](const std::vector<Token> &tokens) {
-        report_error(ERROR_TOK(tokens[0]), "Nested namespaces are unsupported.");
-      });
-
-      string prefix = scope.front().prev().full_symbol_name();
-
-      auto process_symbol = [&](const Token &symbol) {
-        if (symbol.next() == '<') {
-          /* Template instantiation or specialization. */
-          return;
-        }
-        /* Replace all occurrences of the non-namespace specified symbol. */
-        scope.foreach_token(Word, [&](const Token &token) {
-          if (token.str() != symbol.str()) {
-            return;
-          }
-          /* Reject symbols that already have namespace specified. */
-          if (token.namespace_start() != token) {
-            return;
-          }
-          /* Reject method calls. */
-          if (token.prev() == '.') {
-            return;
-          }
-          parser.replace(token, prefix + namespace_separator + token.str(), true);
-        });
-      };
-
-      unordered_set<string> processed_functions;
-
-      scope.foreach_function([&](bool, Token, Token fn_name, Scope, bool, Scope) {
-        if (fn_name.scope().type() == ScopeType::Struct) {
-          /* Don't process functions inside a struct scope as the namespace must not be apply
-           * to them, but to the type. Otherwise, method calls will not work. */
-          return;
-        }
-        if (processed_functions.count(fn_name.str())) {
-          /* Don't process function names twice. Can happen with overloads. */
-          return;
-        }
-        processed_functions.emplace(fn_name.str());
-        process_symbol(fn_name);
-      });
-      scope.foreach_struct(
-          [&](Token, Scope, Token struct_name, Scope) { process_symbol(struct_name); });
-
-      /* Pipeline declarations. */
-      scope.foreach_match("ww(w", [&](vector<Token> toks) {
-        if (toks[0].scope().type() != ScopeType::Namespace || toks[0].str().find("Pipeline") != 0)
-        {
-          return;
-        }
-        process_symbol(toks[1]);
-      });
-
-      Token namespace_tok = scope.front().prev().namespace_start().prev();
-      if (namespace_tok == Namespace) {
-        parser.erase(namespace_tok, scope.front());
-        parser.erase(scope.back());
-      }
-      else {
-        report_error(ERROR_TOK(namespace_tok), "Expected namespace token.");
-      }
+      lower_namespace(scope, parser, report_error);
     });
 
     parser.apply_mutations();

@@ -218,7 +218,7 @@ struct Token {
     return tok;
   }
 
-  /* Return start of namespace identifier is the token is part of one. */
+  /* Return start of namespace identifier if the token is part of one. */
   Token namespace_start() const
   {
     if (*this != Word) {

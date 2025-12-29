@@ -1350,17 +1350,26 @@ int A_B_func2(int a)
   {
     string input = R"(
 namespace A {
+void a() {}
 namespace B {
-int func(int a)
-{
-  return a;
+void b() { a(); }
 }
+void f() { B::b(); }
 }
-}
+)";
+    string expect = R"(
+
+void A_a() {}
+
+void A_B_b() { A_a(); }
+
+void A_f() { B_b(); }
+
 )";
     string error;
     string output = process_test_string(input, error);
-    EXPECT_EQ(error, "Nested namespaces are unsupported.");
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
   }
   {
     string input = R"(
