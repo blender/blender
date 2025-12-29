@@ -390,7 +390,6 @@ set(GLSL_SRC
   engines/workbench/shaders/infos/workbench_prepass_infos.hh
   engines/workbench/shaders/infos/workbench_shadow_infos.hh
   engines/workbench/shaders/infos/workbench_transparent_resolve_infos.hh
-  engines/workbench/shaders/infos/workbench_volume_infos.hh
 
   engines/eevee/shaders/eevee_ambient_occlusion_lib.glsl
   engines/eevee/shaders/eevee_ambient_occlusion_pass_comp.glsl
@@ -641,8 +640,7 @@ set(GLSL_SRC
   engines/workbench/shaders/workbench_shadow_visibility_comp.glsl
   engines/workbench/shaders/workbench_transparent_accum_frag.glsl
   engines/workbench/shaders/workbench_transparent_resolve_frag.glsl
-  engines/workbench/shaders/workbench_volume_frag.glsl
-  engines/workbench/shaders/workbench_volume_vert.glsl
+  engines/workbench/shaders/workbench_volume.bsl.hh
   engines/workbench/shaders/workbench_world_light_lib.glsl
 
   engines/workbench/workbench_defines.hh

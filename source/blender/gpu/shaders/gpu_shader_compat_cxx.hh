@@ -44,15 +44,6 @@
 /** \name Keywords
  * \{ */
 
-/* Note: Cannot easily mutate them. Pass every by copy for now. */
-
-/* Pass argument by reference. */
-#define inout DO_NOT_USE
-/* Pass argument by reference but only write to it. Its initial value is undefined. */
-#define out DO_NOT_USE
-/* Pass argument by copy (default). */
-#define in DO_NOT_USE
-
 /* Decorate a variable in global scope that is common to all threads in a thread-group. */
 #define shared
 
@@ -155,6 +146,7 @@
 // #define namespace /* Needed for Stubs. */
 // #define using /* Needed for Stubs. */
 #define row_major reserved_keyword("row_major")
+#define inout reserved_keyword("inout")
 
 #ifdef GPU_SHADER_LIBRARY
 #  define GPU_VERTEX_SHADER

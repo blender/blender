@@ -42,6 +42,13 @@
  * will execute for the current compute shader dispatch. */
 #define num_work_groups maybe_unused
 
+/* Specify a vertex attribute. */
+#define attribute(slot) maybe_unused
+/* Vertex attribute interpolation modes. */
+#define flat maybe_unused
+#define smooth maybe_unused
+#define no_perspective maybe_unused
+
 /* Vertex shader output position. */
 #define position maybe_unused
 /* Vertex shader output point size. */
@@ -65,12 +72,17 @@
 #define point_coord maybe_unused
 #define front_facing maybe_unused
 
-/* Vertex shader input base instance value added to each instance identifier before reading
- * per-instance data. */
+/* Fragment shader output. */
+#define frag_color(slot) maybe_unused
+/* Fragment shader output. */
 #define frag_depth(mode) maybe_unused
 /* Fragment shader output. Set stencil reference value per pixel.
  * Only supported on some platform. Check for compatibility first. */
 #define frag_stencil_ref maybe_unused
+
+/* Graphic pipeline stage in/out. */
+#define in maybe_unused
+#define out maybe_unused
 
 /* Declare a dependency to a legacy create info whose name is the struct member name. */
 #define legacy_info maybe_unused

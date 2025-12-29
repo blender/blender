@@ -458,6 +458,7 @@ class VolumePass {
 
   Texture dummy_shadow_tx_ = {"Volume.Dummy Shadow Tx"};
   Texture dummy_volume_tx_ = {"Volume.Dummy Volume Tx"};
+  Texture dummy_flag_tx_ = {"Volume.Dummy Flag Tx"};
   Texture dummy_coba_tx_ = {"Volume.Dummy Coba Tx"};
 
   gpu::Texture *stencil_tx_ = nullptr;

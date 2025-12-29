@@ -30,7 +30,9 @@ set(SRC_GLSL_VERT
   workbench_prepass_vert.glsl
   workbench_shadow_caps_vert.glsl
   workbench_shadow_vert.glsl
-  workbench_volume_vert.glsl
+
+  # Combined stages
+  workbench_volume.bsl.hh
 )
 
 set(SRC_GLSL_FRAG
@@ -50,7 +52,6 @@ set(SRC_GLSL_FRAG
   workbench_shadow_debug_frag.glsl
   workbench_transparent_accum_frag.glsl
   workbench_transparent_resolve_frag.glsl
-  workbench_volume_frag.glsl
 )
 
 set(SRC_GLSL_COMP
