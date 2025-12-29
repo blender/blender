@@ -51,58 +51,62 @@ struct [[host_shared]] DRWSubdivUboStorage {
   int _pad4;
 };
 
-struct SculptData {
+struct [[host_shared]] SculptData {
   uint face_set_color;
   float mask;
 };
 
 /* Mirror of #UVStretchAngle in the C++ code, but using floats until proper data compression
  * is implemented for all subdivision data. */
-struct UVStretchAngle {
+struct [[host_shared]] UVStretchAngle {
   float angle;
   float uv_angle0;
   float uv_angle1;
 };
 
-struct Position {
+struct [[host_shared]] Position {
   float x;
   float y;
   float z;
 };
 
-struct Normal {
+struct [[host_shared]] Normal {
   float x;
   float y;
   float z;
 };
 
 /* Structure for #CompressedPatchCoord. */
-struct BlenderPatchCoord {
+struct [[host_shared]] BlenderPatchCoord {
   int patch_index;
   uint encoded_uv;
 };
 
 /* Patch evaluation - F-dots. */
 /* float3 is padded to float4, but the format used for face-dots does not have any padding. */
-struct FDotVert {
-  float x, y, z;
+struct [[host_shared]] FDotVert {
+  float x;
+  float y;
+  float z;
 };
 
 /* Same here, do not use float3. */
-struct FDotNor {
-  float x, y, z;
+struct [[host_shared]] FDotNor {
+  float x;
+  float y;
+  float z;
   float flag;
 };
 
 /* This structure is a carbon copy of OpenSubDiv's #PatchTable::PatchHandle. */
-struct PatchHandle {
+struct [[host_shared]] PatchHandle {
   int array_index;
   int patch_index;
   int vertex_index;
 };
 
 /* This structure is a carbon copy of OpenSubDiv's #PatchCoord. */
-struct PatchCoord {
+struct [[host_shared]] PatchCoord {
   int array_index;
   int patch_index;
   int vertex_index;
@@ -112,6 +116,6 @@ struct PatchCoord {
 
 /* This structure is a carbon copy of OpenSubDiv's #PatchCoord.QuadNode.
  * Each child is a bit-field. */
-struct QuadNode {
+struct [[host_shared]] QuadNode {
   uint4 child;
 };

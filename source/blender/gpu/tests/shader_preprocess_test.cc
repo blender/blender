@@ -145,6 +145,7 @@ struct [[host_shared]] T {
 #line 3
 
 #define T_union0_host_shared_ T_union0
+#define T_union0_host_shared_uniform_ T_union0
 #line 3
 struct                 T_union0 {
   float4 data0;
@@ -153,6 +154,7 @@ struct                 T_union0 {
 #line 2
 
 #define T_host_shared_ T
+#define T_host_shared_uniform_ T
 #line 2
 struct                 T {
          T_union0_host_shared_ union0;
@@ -221,6 +223,7 @@ struct [[host_shared]] T {
 #line 5
 
 #define T_union0_host_shared_ T_union0
+#define T_union0_host_shared_uniform_ T_union0
 #line 5
 struct                 T_union0 {
   float4 data0;
@@ -229,6 +232,7 @@ struct                 T_union0 {
 #line 8
 
 #define T_union1_host_shared_ T_union1
+#define T_union1_host_shared_uniform_ T_union1
 #line 8
 struct                 T_union1 {
   float4 data0;
@@ -237,6 +241,7 @@ struct                 T_union1 {
 #line 2
 
 #define T_host_shared_ T
+#define T_host_shared_uniform_ T
 #line 2
 struct                 T {
   float2 foo;
@@ -299,6 +304,7 @@ struct [[host_shared]] T {
     string expect = R"(
 
 #define B_host_shared_ B
+#define B_host_shared_uniform_ B
 #line 2
 struct                 B {
   packed_float3 a;
@@ -306,6 +312,7 @@ struct                 B {
 };
 #line 8
 #define A_host_shared_ A
+#define A_host_shared_uniform_ A
 #line 7
 struct                 A {
          B_host_shared_ e;
@@ -313,6 +320,7 @@ struct                 A {
 #line 12
 
 #define T_union0_host_shared_ T_union0
+#define T_union0_host_shared_uniform_ T_union0
 #line 12
 struct                 T_union0 {
   float4 data0;
@@ -321,6 +329,7 @@ struct                 T_union0 {
 #line 11
 
 #define T_host_shared_ T
+#define T_host_shared_uniform_ T
 #line 11
 struct                 T {
          T_union0_host_shared_ union0;
@@ -361,6 +370,7 @@ struct [[host_shared]] T {
 #line 3
 
 #define T_union0_host_shared_ T_union0
+#define T_union0_host_shared_uniform_ T_union0
 #line 3
 struct                 T_union0 {
   float4 data0;
@@ -372,6 +382,7 @@ struct                 T_union0 {
 #line 2
 
 #define T_host_shared_ T
+#define T_host_shared_uniform_ T
 #line 2
 struct                 T {
          T_union0_host_shared_ union0;

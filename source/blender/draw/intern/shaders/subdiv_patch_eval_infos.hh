@@ -20,7 +20,6 @@
  * \{ */
 
 GPU_SHADER_CREATE_INFO(subdiv_patch_evaluation_basis)
-BUILTINS(BuiltinBits::NO_BUFFER_TYPE_LINTING)
 #ifdef __APPLE__
 /* Match definition from OPenSubdiv which defines OSD_PATCH_BASIS_METAL as 1. Matching it here
  * avoids possible re-definition warning at runtime. */

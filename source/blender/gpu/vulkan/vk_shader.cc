@@ -382,7 +382,8 @@ static void print_resource(std::ostream &os,
       break;
     case ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
       os << "uniform _" << res.uniformbuf.name.str_no_array() << " { "
-         << info.buffer_typename(res.uniformbuf.type_name) << " " << res.uniformbuf.name << "; };";
+         << info.buffer_typename(res.uniformbuf.type_name, true) << " " << res.uniformbuf.name
+         << "; };";
       break;
     case ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:
       print_qualifier(os, res.storagebuf.qualifiers);

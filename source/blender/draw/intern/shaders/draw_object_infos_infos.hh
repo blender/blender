@@ -49,7 +49,6 @@ GPU_SHADER_CREATE_END()
 /** \note Requires draw_object_infos. */
 GPU_SHADER_CREATE_INFO(draw_object_attributes)
 DEFINE("OBATTR_LIB")
-BUILTINS(BuiltinBits::NO_BUFFER_TYPE_LINTING)
 STORAGE_BUF(DRW_OBJ_ATTR_SLOT, read, ObjectAttribute, drw_attrs[])
 ADDITIONAL_INFO(draw_object_infos)
 GPU_SHADER_CREATE_END()

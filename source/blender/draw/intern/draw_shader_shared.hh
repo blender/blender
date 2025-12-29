@@ -257,10 +257,13 @@ struct [[host_shared]] CurvesInfos {
 };
 
 #pragma pack(push, 4)
-struct ObjectAttribute {
+struct [[host_shared]] ObjectAttribute {
   /* Workaround the padding cost from alignment requirements.
    * (see GL spec : 7.6.2.2 Standard Uniform Block Layout) */
-  float data_x, data_y, data_z, data_w;
+  float data_x;
+  float data_y;
+  float data_z;
+  float data_w;
   uint hash_code;
 
 #ifndef GPU_SHADER

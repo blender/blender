@@ -729,7 +729,7 @@ static void generate_resource(GeneratedStreams &generated,
     case ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
       generate_buffer(generated,
                       false,
-                      info.buffer_typename(res.uniformbuf.type_name),
+                      info.buffer_typename(res.uniformbuf.type_name, true),
                       res.uniformbuf.name,
                       MTL_UBO_SLOT_OFFSET + res.slot,
                       stage);

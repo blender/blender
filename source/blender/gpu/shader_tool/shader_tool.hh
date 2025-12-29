@@ -457,6 +457,7 @@ class Preprocessor {
   /* Add a prefix to all member functions so that they are not clashing with local variables. */
   static constexpr const char *method_call_prefix = "_";
   static constexpr const char *linted_struct_suffix = "_host_shared_";
+  static constexpr const char *uniform_struct_suffix = "uniform_";
 
   static SourceLanguage language_from_filename(const std::string &filename)
   {
@@ -3103,6 +3104,9 @@ class Preprocessor {
         return;
       }
 
+      bool is_std140_compatible = true;
+      bool has_vec3 = false;
+
       struct Type {
         size_t size;
         size_t alignment;
@@ -3194,6 +3198,10 @@ class Preprocessor {
           return;
         }
 
+        if (type_info.size == 12) {
+          has_vec3 = true;
+        }
+
         size_t align = type_info.alignment - (offset % type_info.alignment);
         if (align != type_info.alignment) {
           string err = "Misaligned member, missing " + to_string(align) + " padding bytes";
@@ -3202,6 +3210,11 @@ class Preprocessor {
 
         size_t array_size = 1;
         if (array.is_valid()) {
+          if (array_size > 1 && type_info.size < 16) {
+            /* Arrays of non-vec4 are padded and should not be used inside std140. */
+            is_std140_compatible = false;
+          }
+
           if (array.token_count() == 3 && array[1] == Number) {
             try {
               array_size = std::stol(array[1].str());
@@ -3215,20 +3228,30 @@ class Preprocessor {
             /* Can be macro or expression. Assume value is multiple of 4. */
             array_size = 4;
           }
-        };
+        }
 
         offset += type_info.size * array_size;
       });
-      if (offset % 16 != 0) {
+
+      /* Only check for std140 padding for bigger structs. Otherwise consider the struct to be for
+       * storage buffers. Eventually we could add an attribute for that usage. */
+      if (offset < 32) {
+        is_std140_compatible = ((offset % 16) == 0);
+      }
+      else if (offset % 16 != 0) {
         string err = "Alignment issue, missing " + to_string(16 - (offset % 16)) +
                      " padding bytes";
         report_error(ERROR_TOK(struct_name), err.c_str());
       }
       /* Insert an alias to the type that will get referenced for shaders that enforce usage of
        * linted types. */
-      parser.insert_directive(struct_keyword.prev(),
-                              "#define " + struct_name.str() + linted_struct_suffix + " " +
-                                  struct_name.str() + "\n");
+      string directive = "#define " + struct_name.str() + linted_struct_suffix + " " +
+                         struct_name.str() + "\n";
+      if (is_std140_compatible) {
+        directive += "#define " + struct_name.str() + linted_struct_suffix +
+                     uniform_struct_suffix + " " + struct_name.str() + "\n";
+      }
+      parser.insert_directive(struct_keyword.prev(), directive);
     });
     parser.apply_mutations();
   }
