@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'edd300f2e755')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2025-12-22 09:32+0000\n"
-"PO-Revision-Date: 2025-12-19 20:12+0000\n"
+"POT-Creation-Date: 2025-12-29 09:32+0000\n"
+"PO-Revision-Date: 2025-12-28 10:00+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -9901,7 +9901,7 @@ msgstr "Cria uma restrição tendo como base um relacionamento de envelopamento.
 
 
 msgid "Face Cull"
-msgstr "Ocluir face"
+msgstr "Omitir Faces"
 
 
 msgid "Stop vertices from projecting to a face on the target when facing towards/away"
@@ -9909,7 +9909,7 @@ msgstr "Faz com que os vértices parem de ser projetados em uma face do alvo qua
 
 
 msgid "No culling"
-msgstr "Sem ocultação"
+msgstr "Sem Omissão"
 
 
 msgid "Front"
@@ -10005,11 +10005,11 @@ msgstr "Eixo que é alinhado à normal"
 
 
 msgid "Invert Cull"
-msgstr "Inverter Ocultação"
+msgstr "Inverter Omissão"
 
 
 msgid "When projecting in the opposite direction invert the face cull mode"
-msgstr "Quando projectando na direcção oposta inverter modo de ocultação de faces"
+msgstr "Quando projectando na direcção oposta inverter modo de omissão de faces"
 
 
 msgid "Project Opposite"
@@ -14505,7 +14505,7 @@ msgstr "Rótulo"
 
 
 msgid "The file handler label"
-msgstr "Etiqueta do encarregado de ficheiros"
+msgstr "Legenda do encarregado de ficheiros"
 
 
 msgid "Open images"
@@ -17161,7 +17161,7 @@ msgstr "Raio da esfera para a computação de curvaturas."
 
 
 msgid "Culling"
-msgstr "Ocultação"
+msgstr "Omissão"
 
 
 msgid "If enabled, out-of-view edges are ignored"
@@ -17599,7 +17599,7 @@ msgstr "Profundidade 3D"
 
 
 msgid "Supports culled depth by other objects in the view"
-msgstr "Suporta profundidade separada por outros objectos no campo de visão"
+msgstr "Suporta profundidade omissa por outros objectos no campo de visão"
 
 
 msgid "Supports selection"
@@ -18602,7 +18602,7 @@ msgstr "Marcadores de pose"
 
 
 msgid "Markers specific to this action, for labeling poses"
-msgstr "Marcadores específicos para esta ação, para rotular poses."
+msgstr "Marcadores específicos desta acção, para legendar poses"
 
 
 msgid "The list of slots in this Action"
@@ -24871,7 +24871,7 @@ msgstr "Rugosidade do Material"
 
 
 msgid "Show Backface"
-msgstr "Mostrar Faces Reversas"
+msgstr "Mostrar Reverso de Faces"
 
 
 msgid "Render multiple transparent layers (may introduce transparency sorting problems) (Deprecated: use 'use_tranparency_overlap')"
@@ -24951,15 +24951,15 @@ msgstr "Aproximar objecto como uma chapa infinita, com espessura definida pela �
 
 
 msgid "Backface Culling"
-msgstr "Ocultação de Faces Reversas"
+msgstr "Omissão de Reverso de Faces"
 
 
 msgid "Use back face culling to hide the back side of faces"
-msgstr "Usar ocultação do reverso das faces para esconder o lado traseiro das faces"
+msgstr "Usar omissão do reverso das faces para esconder o lado das costas das faces"
 
 
 msgid "Light Probe Volume Backface Culling"
-msgstr "Ocultação de Faces Reversas de Volume de Sonda de Luz"
+msgstr "Omissão do Reverso de Faces de Volume por Sonda de Luz"
 
 
 msgid "Consider material single sided for light probe volume capture. Additionally helps rejecting probes inside the object to avoid light leaks."
@@ -24967,11 +24967,11 @@ msgstr "Considerar material com apenas um lado para captura de volume da sonda d
 
 
 msgid "Shadow Backface Culling"
-msgstr "Ocultação de Sombras de Faces Reversas"
+msgstr "Omissão de Sombras de Reverso de Faces"
 
 
 msgid "Use back face culling when casting shadows"
-msgstr "Usar ocultação de faces reversas na projecção de sombras"
+msgstr "Usar omissão reverso de faces na projecção de sombras"
 
 
 msgid "Use shader nodes to render the material"
@@ -25483,7 +25483,7 @@ msgstr "Dados de Anotação"
 
 
 msgid "The node tree label"
-msgstr "O rótulo da árvore de nós."
+msgstr "A legenda da árvore de nós"
 
 
 msgid "Use Group Interface"
@@ -34953,52 +34953,12 @@ msgid "Editor menu containing buttons"
 msgstr "Menu de editor contendo botões"
 
 
-msgid "Local View"
-msgstr "Visão local"
-
-
-msgid "Viewpoint"
-msgstr "Ponto de Vista"
-
-
-msgid "Navigation"
-msgstr "Navegação"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o activo"
-
-
-msgid "View Regions"
-msgstr "Regiões de Visualização"
+msgid "Assign Material"
+msgstr "Aplicar Material"
 
 
 msgid "Select More/Less"
 msgstr "Seleccionar mais ou menos"
-
-
-msgid "Select Similar"
-msgstr "Seleccionar por similaridades"
-
-
-msgid "Select All by Trait"
-msgstr "Seleccionar todos por características..."
-
-
-msgid "Select Linked"
-msgstr "Seleccionar vinculados(as)"
-
-
-msgid "Select Loops"
-msgstr "Seleccionar Anéis"
-
-
-msgid "Assign Material"
-msgstr "Aplicar Material"
 
 
 msgid "Metaball"
@@ -35011,10 +34971,6 @@ msgstr "Leve"
 
 msgid "Light Probe"
 msgstr "Sonda de Luz"
-
-
-msgid "Layout"
-msgstr "Organizar"
 
 
 msgid "Add Image"
@@ -35037,10 +34993,6 @@ msgid "Track"
 msgstr "Rastrear"
 
 
-msgid "Adjust"
-msgstr "Ajustar"
-
-
 msgid "Quick Effects"
 msgstr "Efeitos instantâneos"
 
@@ -35053,20 +35005,12 @@ msgid "Clean Up"
 msgstr "Limpeza"
 
 
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
 msgid "Asset"
 msgstr "Recurso"
 
 
 msgid "Make Single User"
 msgstr "Tornar utilizador único"
-
-
-msgid "Tracking"
-msgstr "Rastreamento"
 
 
 msgid "Convert"
@@ -35077,20 +35021,12 @@ msgid "Link/Transfer Data"
 msgstr "Vincular/Transferir Dados"
 
 
-msgid "Utilities"
-msgstr "Utilidades"
-
-
 msgid "Hooks"
 msgstr "Ganchos"
 
 
-msgid "Math"
-msgstr "Matemática"
-
-
-msgid "Creative"
-msgstr "Criativo"
+msgid "Layout"
+msgstr "Organizar"
 
 
 msgid "Vertex Group Locks"
@@ -35113,6 +35049,10 @@ msgid "Random Mask"
 msgstr "Máscara Aleatória"
 
 
+msgid "Adjust"
+msgstr "Ajustar"
+
+
 msgid "Clear Transform"
 msgstr "Limpar transformações"
 
@@ -35121,20 +35061,36 @@ msgid "In-Betweens"
 msgstr "Entre as continuidades"
 
 
-msgid "Render Preview"
-msgstr "Pré-Visualização da Render"
-
-
 msgid "Propagate"
 msgstr "Propagar"
+
+
+msgid "Keying"
+msgstr "Inserção de chaves"
 
 
 msgid "Bone Collections"
 msgstr "Colecções de Ossos"
 
 
+msgid "Tracking"
+msgstr "Rastreamento"
+
+
 msgid "Names"
 msgstr "Nomes"
+
+
+msgid "Utilities"
+msgstr "Utilidades"
+
+
+msgid "Math"
+msgstr "Matemática"
+
+
+msgid "Creative"
+msgstr "Criativo"
 
 
 msgid "Toggle Bone Options"
@@ -35165,24 +35121,32 @@ msgid "Set Face Strength"
 msgstr "Definir Força das Faces"
 
 
+msgid "Render Preview"
+msgstr "Pré-Visualização da Render"
+
+
 msgid "Merge"
 msgstr "Fundir"
-
-
-msgid "Read"
-msgstr "Ler"
 
 
 msgid "Special Characters"
 msgstr "Caracteres especiais"
 
 
-msgid "Sample"
-msgstr "Amostrar"
-
-
 msgid "Kerning"
 msgstr "Kerning"
+
+
+msgid "Bone Roll"
+msgstr "Rolagem do osso"
+
+
+msgid "Read"
+msgstr "Ler"
+
+
+msgid "Sample"
+msgstr "Amostrar"
 
 
 msgid "Write"
@@ -35191,22 +35155,6 @@ msgstr "Escrever"
 
 msgid "Primitives"
 msgstr "Primitivas"
-
-
-msgid "Bone Roll"
-msgstr "Rolagem do osso"
-
-
-msgid "Gizmo"
-msgstr "Apetrecho"
-
-
-msgid "Instances"
-msgstr "Instâncias"
-
-
-msgid "Import"
-msgstr "Importar"
 
 
 msgid "Pivot Point"
@@ -35221,10 +35169,6 @@ msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
 
 
-msgid "Deprecated"
-msgstr "Obsoleto"
-
-
 msgid "Mask Edit"
 msgstr "Edição de Máscara"
 
@@ -35237,12 +35181,20 @@ msgid "Face Sets Edit"
 msgstr "Edições de Conjuntos de Faces"
 
 
-msgid "List"
-msgstr "Lista"
+msgid "Gizmo"
+msgstr "Apetrecho"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Instances"
+msgstr "Instâncias"
+
+
+msgid "Import"
+msgstr "Importar"
+
+
+msgid "Deprecated"
+msgstr "Obsoleto"
 
 
 msgid "Mirror"
@@ -35251,6 +35203,54 @@ msgstr "Espelhar"
 
 msgid "UV Mapping"
 msgstr "Mapeamento UV"
+
+
+msgid "List"
+msgstr "Lista"
+
+
+msgid "Local View"
+msgstr "Visão local"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Viewpoint"
+msgstr "Ponto de Vista"
+
+
+msgid "Navigation"
+msgstr "Navegação"
+
+
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o activo"
+
+
+msgid "View Regions"
+msgstr "Regiões de Visualização"
+
+
+msgid "Select Similar"
+msgstr "Seleccionar por similaridades"
+
+
+msgid "Select All by Trait"
+msgstr "Seleccionar todos por características..."
+
+
+msgid "Select Linked"
+msgstr "Seleccionar vinculados(as)"
+
+
+msgid "Select Loops"
+msgstr "Seleccionar Anéis"
 
 
 msgid "Keyframe Insert Pie"
@@ -39562,7 +39562,7 @@ msgstr "Material Grease Pencil aplicado aos traços gerados"
 
 
 msgid "Back Face Culling"
-msgstr "Ocultação de Faces Reversas"
+msgstr "Omissão do Reverso das Faces"
 
 
 msgid "Remove all back faces to speed up calculation, this will create edges in different occlusion levels than when disabled"
@@ -40156,7 +40156,7 @@ msgstr "Alvo de malha no qual encolher"
 
 
 msgid "When projecting in the negative direction invert the face cull mode"
-msgstr "Quando projectar na direcção negativa inverter o modo de ocultação de faces"
+msgstr "Quando projectar na direcção negativa inverter o modo de omissão de faces"
 
 
 msgid "Allow vertices to move in the negative direction of axis"
@@ -44861,7 +44861,7 @@ msgstr "Nós em uma árvore de nós."
 
 
 msgid "The node label"
-msgstr "O rótulo do nó."
+msgstr "A legenda do nó"
 
 
 msgid "Static Type"
@@ -44901,7 +44901,7 @@ msgstr "Conexões internas de entrada-para-saída para silenciamento."
 
 
 msgid "Optional custom node label"
-msgstr "Rótulo personalizado para o nó (opcional)."
+msgstr "Legenda personalizada opcional para o nó"
 
 
 msgid "Location of the node within its parent frame"
@@ -49383,11 +49383,11 @@ msgstr "Agregar nós relacionados numa área comum. Útil para organização qua
 
 
 msgid "Label Font Size"
-msgstr "Tamanho do rótulo da fonte"
+msgstr "Tamanho da fonte da legenda"
 
 
 msgid "Font size to use for displaying the label"
-msgstr "Tamanho de fonte para mostrar os rótulos."
+msgstr "Tamanho de fonte usada para mostrar a legenda"
 
 
 msgid "Shrink the frame to minimal bounding box"
@@ -52199,7 +52199,7 @@ msgstr "Verdadeiro caso o conector esta indisponível"
 
 
 msgid "Custom dynamic defined UI label for the socket. Can be translated if translation is enabled in the preferences"
-msgstr "Etiqueta personalizada definida dinamicamente do interface do utilizador para o conector"
+msgstr "Legenda personalizada definida dinamicamente do interface do utilizador para o conector"
 
 
 msgid "Link Limit"
@@ -52663,11 +52663,11 @@ msgstr "Representar o conector de menu como um menu suspenso expandido"
 
 
 msgid "Optional Label"
-msgstr "Etiqueta Opcional"
+msgstr "Legenda Opcional"
 
 
 msgid "Indicate that the label of this socket is not necessary to understand its meaning. This may result in the label being skipped in some cases"
-msgstr "Indicar que a etiqueta deste conector não é necessária para compreender o seu significado. Pode fazer com que a etiqueta seja omitida em alguns casos"
+msgstr "Indicar que a legenda deste conector não é necessária para compreender o seu significado. Pode fazer com que a legenda seja omitida em alguns casos."
 
 
 msgid "Type of the socket generated by this interface item"
@@ -66927,7 +66927,7 @@ msgstr "Sombreador de Emissão"
 
 
 msgid "Use backface culling to hide the back side of faces"
-msgstr "Usar ocultação do reverso das faces para esconder o lado traseiro das faces"
+msgstr "Usar omissão do reverso das faces para esconder o lado das costas das faces"
 
 
 msgid "Use alpha channel for transparency"
@@ -67497,7 +67497,7 @@ msgstr "Preencher nova quadrícula com imagem gerada"
 
 
 msgid "Optional tile label"
-msgstr "Etiqueta opcional para a quadrícula"
+msgstr "Legenda opcional para a quadrícula"
 
 
 msgid "UDIM number of the tile"
@@ -72912,11 +72912,11 @@ msgstr "Limpar etiquetas dos nós seleccionados"
 
 
 msgid "Copy label from active to selected nodes"
-msgstr "Copia etiquetas do nó activo para seleccionados"
+msgstr "Copiar legenda do nó activo para seleccionados"
 
 
 msgid "Source of name of label"
-msgstr "Origem do nome da etiqueta"
+msgstr "Origem do nome da legenda"
 
 
 msgid "From Active"
@@ -90070,7 +90070,7 @@ msgstr "Definir a descrição de acessibilidade para a prim pré definida do pal
 
 
 msgid "Set the accessibility label for the exported stage's default prim"
-msgstr "Definir a etiqueta de acessibilidade para a prim pré definida do palco exportado"
+msgstr "Definir a legenda de acessibilidade para a prim pré definida do palco exportado"
 
 
 msgid "Allow Unicode"
@@ -91528,7 +91528,7 @@ msgstr "Imagem usada como estêncil."
 
 
 msgid "Cull"
-msgstr "Ocultar"
+msgstr "Omitir"
 
 
 msgid "Ignore faces pointing away from the view (faster)"
@@ -91759,50 +91759,6 @@ msgid "Panel containing UI elements"
 msgstr "Painel contendo elementos do Interface do Utilizador"
 
 
-msgid "Curve Edit Mode"
-msgstr "Modo Edição de Curva"
-
-
-msgid "Curves Edit Mode"
-msgstr "Modo Edição de Curvas"
-
-
-msgid "Transform Orientations"
-msgstr "Orientações de transformação"
-
-
-msgid "Stroke Placement"
-msgstr "Posicionamento de Traços"
-
-
-msgid "Drawing Plane"
-msgstr "Plano de Desenho"
-
-
-msgid "Guides"
-msgstr "Guias"
-
-
-msgid "Grease Pencil Options"
-msgstr "Opções Grease Pencil"
-
-
-msgid "Quad View"
-msgstr "Vista Quádrupla"
-
-
-msgid "Onion Skin"
-msgstr "Fotogramas Fantasma"
-
-
-msgid "Stereoscopy"
-msgstr "Estereoscopia"
-
-
-msgid "Multi Frame"
-msgstr "Multi Fotograma"
-
-
 msgid "Auto-Masking"
 msgstr "Auto-Máscara"
 
@@ -91887,6 +91843,10 @@ msgid "Overlays"
 msgstr "Sobreposições"
 
 
+msgid "Guides"
+msgstr "Guias"
+
+
 msgid "Viewer Node"
 msgstr "Nó de Visualização"
 
@@ -91901,6 +91861,46 @@ msgstr "Modo de Edição de Malha"
 
 msgid "Measurement"
 msgstr "Medição"
+
+
+msgid "Curve Edit Mode"
+msgstr "Modo Edição de Curva"
+
+
+msgid "Curves Edit Mode"
+msgstr "Modo Edição de Curvas"
+
+
+msgid "Transform Orientations"
+msgstr "Orientações de transformação"
+
+
+msgid "Stroke Placement"
+msgstr "Posicionamento de Traços"
+
+
+msgid "Drawing Plane"
+msgstr "Plano de Desenho"
+
+
+msgid "Grease Pencil Options"
+msgstr "Opções Grease Pencil"
+
+
+msgid "Quad View"
+msgstr "Vista Quádrupla"
+
+
+msgid "Onion Skin"
+msgstr "Fotogramas Fantasma"
+
+
+msgid "Stereoscopy"
+msgstr "Estereoscopia"
+
+
+msgid "Multi Frame"
+msgstr "Multi Fotograma"
 
 
 msgid "Import Settings"
@@ -97267,6 +97267,10 @@ msgid "Italian - Italiano"
 msgstr "Italiano - Italiano"
 
 
+msgid "Locale code: it_IT. Translation progress: 44%"
+msgstr "Código de língua: it_IT. Progresso de tradução: 44%"
+
+
 msgid "Japanese - 日本語"
 msgstr "Japonês - 日本語"
 
@@ -97311,6 +97315,10 @@ msgid "Norwegian (Bokmål) - Norsk bokmål"
 msgstr "Noreguês (Bokmål) - Norsk bokmål"
 
 
+msgid "Locale code: nb. Translation progress: 3%"
+msgstr "Código de língua: be. Progresso de tradução: 3%"
+
+
 msgid "Persian - ﯽﺳﺭﺎﻓ"
 msgstr "Pérsico - ﯽﺳﺭﺎﻓ"
 
@@ -97337,10 +97345,6 @@ msgstr "Código de língua: pt_BR. Progresso de tradução: 43%"
 
 msgid "Portuguese (Portugal) - Português europeu"
 msgstr "Português (Portugal) - Português Europeu"
-
-
-msgid "Locale code: pt_PT. Translation progress: 73%"
-msgstr "Código de língua: pt_PT. Progresso de tradução: 73%"
 
 
 msgid "Romanian - Român"
@@ -97411,6 +97415,10 @@ msgid "Swedish - Svenska"
 msgstr "Sueco - Svenska"
 
 
+msgid "Locale code: sv_SE. Translation progress: 21%"
+msgstr "Código de língua: sv_SE. Progresso de tradução: 21%"
+
+
 msgid "Tamil - தமிழ்"
 msgstr "Tamil - தமிழ்"
 
@@ -97453,6 +97461,10 @@ msgstr "Código de língua: ur. Progresso de tradução: 87%"
 
 msgid "Vietnamese - Tiếng Việt"
 msgstr "Vietnamita - Tiếng Việt"
+
+
+msgid "Locale code: vi_VN. Translation progress: 94%"
+msgstr "Código de língua: vi_VN. Progresso de tradução: 94%"
 
 
 msgid "Reference Sphere Size"
@@ -98515,6 +98527,10 @@ msgid "Group of ID properties"
 msgstr "Grupo de propriedades do identificador"
 
 
+msgid "Unique name used in the code and scripting, can be re-defined in Python sub-classes if needed"
+msgstr "Nome único usado no código e scripting, pode ser re-definido em sub classes Python se necessário"
+
+
 msgid "Action to apply to the rig via constraints"
 msgstr "Acção a aplicar à rig através de restrições"
 
@@ -98905,11 +98921,11 @@ msgstr "Controlar precisão do desfoque de movimento, mais passos causam maior u
 
 
 msgid "Use Camera Cull"
-msgstr "Usar Ocultação por Câmara"
+msgstr "Usar Omissão de Câmara"
 
 
 msgid "Allow this object and its duplicators to be culled by camera space culling"
-msgstr "Permite que este objecto e seus duplicadores sejam ocultos pela ocultação no espaço da câmara"
+msgstr "Permite que este objecto e seus duplicadores sejam omissos por omissão no espaço da câmara"
 
 
 msgid "Use Deformation Motion"
@@ -98921,11 +98937,11 @@ msgstr "Usa a deformação por desfoque de movimento para este objecto."
 
 
 msgid "Use Distance Cull"
-msgstr "Usar a distância para ocultação"
+msgstr "Usar Omissão por Distância"
 
 
 msgid "Allow this object and its duplicators to be culled by distance from camera"
-msgstr "Permite que este objecto e seus duplicadores sejam ocultos pela distância da câmara"
+msgstr "Permitir que este objecto e seus duplicadores sejam omissos pela distância à câmara"
 
 
 msgid "Use Motion Blur"
@@ -99057,11 +99073,11 @@ msgstr "Desfocar adaptativamente os sombreadores de lustro após reflexos desfoc
 
 
 msgid "Camera Cull Margin"
-msgstr "Margem de Ocultação pela Câmara"
+msgstr "Margem de Omissão pela Câmara"
 
 
 msgid "Margin for the camera space culling"
-msgstr "Margem para ocultação no espaço da câmara"
+msgstr "Margem para omissão no espaço da câmara"
 
 
 msgid "Reflective Caustics"
@@ -99333,11 +99349,11 @@ msgstr "Contribuições de luz directa são apenas amostradas usando Estimativa 
 
 
 msgid "Cull Distance"
-msgstr "Distância de Ocultação"
+msgstr "Distância de Omissão"
 
 
 msgid "Cull objects which are further away from camera than this distance"
-msgstr "Oculta objectos a uma distância da câmara maior que este valor"
+msgstr "Omite objectos que estejam a uma distância da câmara maior que este valor"
 
 
 msgid "Fast GI Method"
@@ -99793,7 +99809,7 @@ msgstr "Obsoleto, quadriculado sempre activo"
 
 
 msgid "Allow objects to be culled based on the camera frustum"
-msgstr "Permitir que os objectos sejam ocultos com base no frustum da câmara"
+msgstr "Permitir que os objectos sejam omissos com base no tronco de cone da câmara"
 
 
 msgid "Deterministic"
@@ -99805,7 +99821,7 @@ msgstr "Torna encaminhamento de raios determinístico, que significa que as rend
 
 
 msgid "Allow objects to be culled based on the distance from camera"
-msgstr "Permitir que os objectos sejam ocultos com base na distância da câmara"
+msgstr "Permitir que objectos sejam omissos com base na distância à câmara"
 
 
 msgid "Approximate diffuse indirect light with background tinted ambient occlusion. This provides fast alternative to full global illumination, for interactive viewport rendering or final renders with reduced quality"
@@ -100104,6 +100120,10 @@ msgid "World visibility for volume scatter rays"
 msgstr "Visibilidade do ambiente para os raios de dispersão de volume"
 
 
+msgid "World visibility for shadow rays"
+msgstr "Visibilidade do ambiente para os raios de sombra"
+
+
 msgid "World visibility for transmission rays"
 msgstr "Visibilidade do ambiente para os raios de transmissão"
 
@@ -100148,6 +100168,10 @@ msgid "Distance between volume shader samples when rendering the volume (lower v
 msgstr "Distância entre amostras de sombreadores de volume ao renderizar volume (valores mais baixos dão resultados mais precisos e detalhados, mas aumentam tempo de renderização)"
 
 
+msgid "Keep Animation"
+msgstr "Manter Animação"
+
+
 msgid "Settings/info about a language"
 msgstr "Definições e informações sobre uma tradução."
 
@@ -100156,12 +100180,44 @@ msgid "Language Name"
 msgstr "Nome da língua"
 
 
+msgid "Language label (eg. \"French (Français)\")"
+msgstr "Legenda da Língua (por exemplo \"Francês (Français)\")"
+
+
 msgid "Numeric ID"
 msgstr "Identificador numérico"
 
 
+msgid "Numeric ID (read only!)"
+msgstr "Identificador numérico (apenas leitura!)"
+
+
+msgid "PO Work File Path"
+msgstr "Caminho do ficheiro de trabalho PO"
+
+
+msgid "Path to the relevant po file in the work repository"
+msgstr "Caminho para o ficheiro po relevante no repositório de trabalho"
+
+
+msgid "PO Blender File Path"
+msgstr "Caminho de Ficheiro Ficheiro PO Blender"
+
+
+msgid "Path to the relevant po file in Blender's source repository"
+msgstr "O caminho do ficheiros po relevante no repositório de origem Blender"
+
+
 msgid "Language ID"
 msgstr "Identificador da língua"
+
+
+msgid "ISO code (eg. \"fr_FR\")"
+msgstr "Código ISO (por exemplo \"pt_PT\")"
+
+
+msgid "If this language should be used in the current operator"
+msgstr "Se esta língua deve ser usada no operador actual"
 
 
 msgid "Active Language"
@@ -100176,12 +100232,68 @@ msgid "Whether these settings have already been auto-set or not"
 msgstr "Caso estes ajustes já tenham sido definidos automaticamente ou não."
 
 
+msgid "Languages to update in work repository"
+msgstr "Línguas a actualizar no repositório de trabalho"
+
+
 msgid "POT File Path"
 msgstr "Caminho de ficheiro POT"
 
 
 msgid "Path to the pot template file"
 msgstr "O caminho para o ficheiro modelo tipo pot."
+
+
+msgid "Naming components for alpha maps"
+msgstr "Componentes de nome para mapas alfa"
+
+
+msgid "Naming components for AO maps"
+msgstr "Componentes de nome para mapas de Oclusão Ambiente"
+
+
+msgid "Naming components for base color maps"
+msgstr "Componentes de Nome para mapas de cor"
+
+
+msgid "Naming components for bump maps"
+msgstr "Componentes de Nome para mapas de relevo"
+
+
+msgid "Naming components for displacement maps"
+msgstr "Componentes de Nome para mapas de deslocamento"
+
+
+msgid "Naming components for emission maps"
+msgstr "Componentes de Nome para mapas de emissão"
+
+
+msgid "Gloss"
+msgstr "Lustro"
+
+
+msgid "Naming components for glossy maps"
+msgstr "Componentes de Nome para mapas de lustro"
+
+
+msgid "Naming components for metalness maps"
+msgstr "Componentes de Nome para mapas de metalicidade"
+
+
+msgid "Naming components for normal maps"
+msgstr "Componentes de Nome para mapas de normais"
+
+
+msgid "Naming components for roughness maps"
+msgstr "Componentes de Nome para mapas rugosidade"
+
+
+msgid "Naming components for specular maps"
+msgstr "Componentes de Nome para mapas especulares"
+
+
+msgid "Naming components for transmission maps"
+msgstr "Componentes de Nome para mapas de transmissão"
 
 
 msgid "Python expression to be evaluated as the initial node setting"
@@ -100216,6 +100328,10 @@ msgid "Is Stroke Start"
 msgstr "Definido como início de traço"
 
 
+msgid "Mouse Event"
+msgstr "Evento de Rato"
+
+
 msgid "Tablet pressure"
 msgstr "Pressão de mesa de desenho."
 
@@ -100224,12 +100340,148 @@ msgid "Brush Size"
 msgstr "Tamanho do pincel"
 
 
+msgid "Brush size in screen space"
+msgstr "Tamanho de pincel em espaço de ecrã"
+
+
+msgid "Tilt X"
+msgstr "Inclinação X"
+
+
+msgid "Pen tilt from left (-1.0) to right (+1.0)"
+msgstr "Inclinação da caneta da esquerda (-1.0) para a direita (+1.0)"
+
+
+msgid "Tilt Y"
+msgstr "Inclinação Y"
+
+
+msgid "Pen tilt from backward (-1.0) to forward (+1.0)"
+msgstr "Inclinação da caneta de trás (-1.0) para a frente (+1.0)"
+
+
+msgid "Max Lights"
+msgstr "Luzes Máximas"
+
+
+msgid "Limit maximum number of lights"
+msgstr "Limitar número máximo de luzes"
+
+
+msgid "Tiny Prim Culling"
+msgstr "Omissão de Prims Minúsculos"
+
+
+msgid "Hide small geometry primitives to improve performance"
+msgstr "Esconder geometria pequena para melhorar performace"
+
+
+msgid "Max Texture Memory Per Field"
+msgstr "Memória de Textura Máxima por Instrução"
+
+
+msgid "Maximum memory for a volume field texture in Mb (unless overridden by field prim)"
+msgstr "Memória máxima para uma textura de instrução de volume em Mb (a não ser que seja revogada pela instrução de prim)"
+
+
+msgid "Volume Raymarching Step Size"
+msgstr "Tamanho de Passo de Raymarching de Volume"
+
+
+msgid "Step size when raymarching volume"
+msgstr "Tamanho de passo ao fazer raymarching em volume"
+
+
+msgid "Volume Raymarching Step Size Lighting"
+msgstr "Tamanho de Passo para Raymarching de Volume"
+
+
+msgid "Step size when raymarching volume for lighting computation"
+msgstr "Tamanho de passo ao fazer raymarching em volume para computação de iluminação"
+
+
+msgid "Reference from a RigifyParameters field to a bone collection."
+msgstr "Referência de uma instrução RigifyParameters a uma colecção de ossos."
+
+
+msgid "Collection Name"
+msgstr "Nome da Colecção"
+
+
+msgid "Name of the referenced bone collection"
+msgstr "Nome da colecção de ossos referenciada"
+
+
+msgid "object_color"
+msgstr "object_color"
+
+
+msgid "Color picker"
+msgstr "Selector de Cores"
+
+
+msgid "Whether this feature-set is registered or not"
+msgstr "Se este conjunto de funcionalidades está registado ou não"
+
+
+msgid "Auto Align Extremity Bone"
+msgstr "Alinhar Automaticamente Osso de Extremidade"
+
+
 msgid "Number of B-Bone segments"
 msgstr "Número de segmentos B-Bone"
 
 
+msgid "Cluster controls"
+msgstr "Controlos de Aglomerado"
+
+
+msgid "Clusterize controls in the same position"
+msgstr "Aglomerar controlos na mesma posição"
+
+
+msgid "Connect chain"
+msgstr "Corrente de encadeamento"
+
+
 msgid "Connect the B-Bone chain to the parent rig"
 msgstr "Conectar a cadeia B-Bone à rig ascendente"
+
+
+msgid "Convergence bone"
+msgstr "Osso de Convergência"
+
+
+msgid "Add DEF on convergence"
+msgstr "Adicionar DEF na convergência"
+
+
+msgid "Automation axes"
+msgstr "Eixos de Automação"
+
+
+msgid "Prefer DEF parenting"
+msgstr "Preferir perfilhamento DEF"
+
+
+msgid "Layers for the optional IK controls to be on"
+msgstr "Camadas nas quais colocar controlos IK opcionais"
+
+
+msgid "Extra IK Layers"
+msgstr "Camadas IK Extra"
+
+
+msgid "Separate IK Toe"
+msgstr "Dedo do Pé IK Separado"
+
+
+msgid "Generate a separate IK toe control for better IK/FK snapping"
+msgstr "Gerar controlo de dedo do pé IK separado para melhor atracção IK/FK"
+
+
+msgid "Toe Tip Roll"
+msgstr "Inclinação da Ponta do Dedo do Pé"
 
 
 msgid "Create a smooth B-Bone transition if an end of the chain meets another chain going in the same direction"
@@ -100885,7 +101137,11 @@ msgstr "Inclui o número de fotogramas nos metadados da imagem."
 
 
 msgid "Stamp Labels"
-msgstr "Estampar rótulos"
+msgstr "Legendas de Carimbo"
+
+
+msgid "Display stamp labels (\"Camera\" in front of camera name, etc.)"
+msgstr "Mostrar legendas carimbo (Por exemplo \"Câmara\" em frente do nome da câmara, etc.)"
 
 
 msgid "Stamp Lens"
@@ -103562,6 +103818,14 @@ msgid "Show Tree Path"
 msgstr "Mostrar Caminho na Árvore"
 
 
+msgid "Show Reroute Auto Labels"
+msgstr "Mostrar Legendas Automáticas de Redireccionamento"
+
+
+msgid "Label reroute nodes based on the label of connected reroute nodes"
+msgstr "Legendar nós de redireccionamento com base nas legendas dos nós redireccionados conectados"
+
+
 msgid "Space UV Editor"
 msgstr "Espaço do editor UV"
 
@@ -106194,6 +106458,10 @@ msgid "Current Transform Orientation"
 msgstr "Orientação de transformação actual"
 
 
+msgid "Tile label"
+msgstr "Legenda da Quadricula"
+
+
 msgid "UI list containing the elements of a collection"
 msgstr "Lista contendo os elementos de uma Colecção."
 
@@ -106556,6 +106824,14 @@ msgstr "Mostra as normais dos vértices como linhas."
 
 msgid "Show Weights"
 msgstr "Mostrar pesos"
+
+
+msgid "Freeze Culling"
+msgstr "Congelar Omissão"
+
+
+msgid "Freeze view culling bounds"
+msgstr "Congelar limites de omissão da vista"
 
 
 msgid "Show ghosts of the keyframes before and after the current frame"
@@ -107336,6 +107612,14 @@ msgid "Cast Shadow"
 msgstr "Projetar sombras"
 
 
+msgid "Camera Culling"
+msgstr "Omissão por câmara"
+
+
+msgid "Distance Culling"
+msgstr "Omissão por Distância"
+
+
 msgid "Portal"
 msgstr "Portal"
 
@@ -107422,8 +107706,30 @@ msgid "Add Material Variant"
 msgstr "Adicionar Variante de Material"
 
 
+msgctxt "Operator"
+msgid "From Active Node's Label"
+msgstr "Da Legenda no Nó Activo"
+
+
+msgctxt "Operator"
+msgid "From Linked Node's Label"
+msgstr "Da Legenda no Nó Conectado"
+
+
 msgid "To Socket"
 msgstr "Conector de Destino"
+
+
+msgid "Clear Node Labels"
+msgstr "Limpar Legendas dos Nós"
+
+
+msgid "Modify Node Labels"
+msgstr "Modificar Legendas dos Nós"
+
+
+msgid "Copy label from active to selected"
+msgstr "Copia legenda do activo para seleccionados"
 
 
 msgid "Description:"
@@ -107868,6 +108174,10 @@ msgstr "Ocultar não seleccionados"
 
 msgid "Date"
 msgstr "Data"
+
+
+msgid "Include Labels"
+msgstr "Incluir Legendas"
 
 
 msgid "Buffer"
@@ -108575,6 +108885,10 @@ msgid "Fit"
 msgstr "Encaixar"
 
 
+msgid "Reroute Auto Labels"
+msgstr "Legendas Automáticas Redireccionamento"
+
+
 msgctxt "Operator"
 msgid "Activate Same Type Previous"
 msgstr "Ativar os anteriores do mesmo tipo"
@@ -108829,6 +109143,10 @@ msgstr "Comunidade de desenvolvedores"
 msgctxt "Operator"
 msgid "Python API Reference"
 msgstr "Referência de API Python"
+
+
+msgid "Node Label"
+msgstr "Legenda de Nó"
 
 
 msgid "New Data"
@@ -112751,6 +113069,10 @@ msgid "Select an existing NLA Track or an empty action line first"
 msgstr "Seleccionar primeiro uma Faixa de Animação Não Linear existente ou uma linha de acção vazia"
 
 
+msgid "Label Size"
+msgstr "Tamanho da legenda"
+
+
 msgid "Matte Objects:"
 msgstr "Objectos Máscara:"
 
@@ -114003,6 +114325,10 @@ msgstr "Envelopes de ossos"
 
 msgid "Settings are inside the Physics tab"
 msgstr "Definições estão localizadas nos painéis do contexto de físicas."
+
+
+msgid "Force Backface Culling"
+msgstr "Forçar Omissão do Reverso de Faces"
 
 
 msgid "Pack External"

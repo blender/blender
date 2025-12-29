@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'edd300f2e755')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-12-22 09:32+0000\n"
+"POT-Creation-Date: 2025-12-29 09:32+0000\n"
 "PO-Revision-Date: 2025-11-11 12:13+0000\n"
 "Last-Translator: Rafael Teixeira de Avila Soares <rafaeltas@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -21231,48 +21231,8 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Local View"
-msgstr "Visão local"
-
-
-msgid "Viewpoint"
-msgstr "Ponto de visualização"
-
-
-msgid "Navigation"
-msgstr "Navegação"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o ativo"
-
-
-msgid "View Regions"
-msgstr "Visualizar Regiões"
-
-
 msgid "Select More/Less"
 msgstr "Selecionar mais ou menos"
-
-
-msgid "Select Similar"
-msgstr "Selecionar por similaridades"
-
-
-msgid "Select All by Trait"
-msgstr "Selecionar todos por características..."
-
-
-msgid "Select Linked"
-msgstr "Selecionar vinculados(as)"
-
-
-msgid "Select Loops"
-msgstr "Selecionar anéis"
 
 
 msgid "Metaball"
@@ -21285,10 +21245,6 @@ msgstr "Luz"
 
 msgid "Light Probe"
 msgstr "Sonda de Luz"
-
-
-msgid "Layout"
-msgstr "Organizar"
 
 
 msgid "Add Image"
@@ -21323,16 +21279,8 @@ msgid "Clean Up"
 msgstr "Limpeza"
 
 
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
 msgid "Make Single User"
 msgstr "Tornar usuário único"
-
-
-msgid "Tracking"
-msgstr "Rastreamento"
 
 
 msgid "Convert"
@@ -21343,8 +21291,8 @@ msgid "Hooks"
 msgstr "Ganchos"
 
 
-msgid "Math"
-msgstr "Matemática"
+msgid "Layout"
+msgstr "Organizar"
 
 
 msgid "Random Mask"
@@ -21363,8 +21311,20 @@ msgid "Propagate"
 msgstr "Propagar"
 
 
+msgid "Keying"
+msgstr "Inserção de chaves"
+
+
+msgid "Tracking"
+msgstr "Rastreamento"
+
+
 msgid "Names"
 msgstr "Nomes"
+
+
+msgid "Math"
+msgstr "Matemática"
 
 
 msgid "Toggle Bone Options"
@@ -21399,14 +21359,6 @@ msgid "Bone Roll"
 msgstr "Rolagem dos ossos"
 
 
-msgid "Instances"
-msgstr "Instâncias"
-
-
-msgid "Import"
-msgstr "Importar"
-
-
 msgid "Pivot Point"
 msgstr "Pontos de pivô"
 
@@ -21419,8 +21371,12 @@ msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Instances"
+msgstr "Instâncias"
+
+
+msgid "Import"
+msgstr "Importar"
 
 
 msgid "Mirror"
@@ -21429,6 +21385,50 @@ msgstr "Espelhar"
 
 msgid "UV Mapping"
 msgstr "Mapeamento UV"
+
+
+msgid "Local View"
+msgstr "Visão local"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Viewpoint"
+msgstr "Ponto de visualização"
+
+
+msgid "Navigation"
+msgstr "Navegação"
+
+
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o ativo"
+
+
+msgid "View Regions"
+msgstr "Visualizar Regiões"
+
+
+msgid "Select Similar"
+msgstr "Selecionar por similaridades"
+
+
+msgid "Select All by Trait"
+msgstr "Selecionar todos por características..."
+
+
+msgid "Select Linked"
+msgstr "Selecionar vinculados(as)"
+
+
+msgid "Select Loops"
+msgstr "Selecionar anéis"
 
 
 msgid "Basic"
@@ -48295,6 +48295,14 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
+msgid "Render Pass"
+msgstr "Passo de renderização"
+
+
+msgid "Motion Tracking"
+msgstr "Captura de movimentos"
+
+
 msgid "Transform Orientations"
 msgstr "Orientações de transformação"
 
@@ -48305,14 +48313,6 @@ msgstr "Exibição Quadrante"
 
 msgid "Stereoscopy"
 msgstr "Estereoscopia"
-
-
-msgid "Render Pass"
-msgstr "Passo de renderização"
-
-
-msgid "Motion Tracking"
-msgstr "Captura de movimentos"
 
 
 msgid "Bone Constraints"

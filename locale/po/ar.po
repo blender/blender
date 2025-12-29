@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'edd300f2e755')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-22 09:32+0000\n"
+"POT-Creation-Date: 2025-12-29 09:32+0000\n"
 "PO-Revision-Date: 2025-07-23 14:53+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -15671,32 +15671,8 @@ msgid "Material slot name"
 msgstr "ﺔﻣﺎﺨﻟﺍ ﺔﺤﺘﻓ ﻢﺳﺇ"
 
 
-msgid "Navigation"
-msgstr "ﺢﻔّﺼﺗ"
-
-
-msgid "Align View"
-msgstr "ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
-
-
-msgid "Align View to Active"
-msgstr "ﻝﺎﻌّﻔﻠﻟ ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
-
-
 msgid "Select More/Less"
 msgstr "ﻞﻗﺍ/ﺮﺜﻛﺍ ﺭﺎﻴﺘﺧﺍ"
-
-
-msgid "Select Similar"
-msgstr "ﻞﺛﺎﻤﻤﻟﺍ ﺮﺘﺧﺇ"
-
-
-msgid "Select All by Trait"
-msgstr "ﺔﻤﺴﻟﺍ ﺐﺴﺣ ﻞﻛ ﺭﺎﻴﺘﺧﺍ"
-
-
-msgid "Select Linked"
-msgstr "ﺔﻄﺒﺗﺮﻤﻟﺍ ﺭﺎﺘﺧﺇ"
 
 
 msgid "Metaball"
@@ -15705,10 +15681,6 @@ msgstr "ﺔﻠﻋﺎﻔﺘﻣ ﺓﺮﻛ"
 
 msgid "Light"
 msgstr "ءﻮﺿ"
-
-
-msgid "Layout"
-msgstr "ﻖﻴﺴﻨﺗ"
 
 
 msgid "Relations"
@@ -15731,24 +15703,16 @@ msgid "Quick Effects"
 msgstr "ﺔﻌﻳﺮﺳ ﺕﺍﺮﻴﺛﺄﺗ"
 
 
-msgid "Keying"
-msgstr "ﺺﺤﻔﻟﺍ"
-
-
 msgid "Make Single User"
 msgstr "ﻡﺪﺨﺘﺴﻤﻟﺍ ﺪﻴﺣﻭ ﻪﻠﻌﺟﺍ"
-
-
-msgid "Tracking"
-msgstr "ﺔﻘﺣﻼ﻿ﻤﻟﺍ"
 
 
 msgid "Hooks"
 msgstr "ﺕﺎﻓﺎﻄﺧ"
 
 
-msgid "Math"
-msgstr "ﺏﺎﺴﺣ"
+msgid "Layout"
+msgstr "ﻖﻴﺴﻨﺗ"
 
 
 msgid "In-Betweens"
@@ -15759,8 +15723,20 @@ msgid "Propagate"
 msgstr "ﻢﻤﻋ"
 
 
+msgid "Keying"
+msgstr "ﺺﺤﻔﻟﺍ"
+
+
+msgid "Tracking"
+msgstr "ﺔﻘﺣﻼ﻿ﻤﻟﺍ"
+
+
 msgid "Names"
 msgstr "ءﺎﻤﺳﺃ"
+
+
+msgid "Math"
+msgstr "ﺏﺎﺴﺣ"
 
 
 msgid "Face Data"
@@ -15779,10 +15755,6 @@ msgid "Bone Roll"
 msgstr "ﺔﻤﻈﻌﻟﺍ ءﺍﻮﺘﻟﺍ"
 
 
-msgid "Import"
-msgstr "ﺩﺭﻮﺘﺳﺇ"
-
-
 msgid "Snap"
 msgstr "ﻱﺫﺎﺣ"
 
@@ -15791,8 +15763,8 @@ msgid "Proportional Editing Falloff"
 msgstr "ﻲﺒﺴﻨﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻲﺷﻼ﻿ﺗ"
 
 
-msgid "UV"
-msgstr "ﺭﻭﺎﺤﻣ"
+msgid "Import"
+msgstr "ﺩﺭﻮﺘﺳﺇ"
 
 
 msgid "Mirror"
@@ -15801,6 +15773,34 @@ msgstr "ﻞﺛﺎﻣ"
 
 msgid "UV Mapping"
 msgstr "UV ءﺎﺴﻛﺇ"
+
+
+msgid "UV"
+msgstr "ﺭﻭﺎﺤﻣ"
+
+
+msgid "Navigation"
+msgstr "ﺢﻔّﺼﺗ"
+
+
+msgid "Align View"
+msgstr "ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
+
+
+msgid "Align View to Active"
+msgstr "ﻝﺎﻌّﻔﻠﻟ ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
+
+
+msgid "Select Similar"
+msgstr "ﻞﺛﺎﻤﻤﻟﺍ ﺮﺘﺧﺇ"
+
+
+msgid "Select All by Trait"
+msgstr "ﺔﻤﺴﻟﺍ ﺐﺴﺣ ﻞﻛ ﺭﺎﻴﺘﺧﺍ"
+
+
+msgid "Select Linked"
+msgstr "ﺔﻄﺒﺗﺮﻤﻟﺍ ﺭﺎﺘﺧﺇ"
 
 
 msgctxt "MovieClip"
@@ -27779,16 +27779,16 @@ msgid "Palette Color"
 msgstr "ﻥﻮﻠﻟﺍ ﺔﺣﻮﻟ"
 
 
-msgid "Transform Orientations"
-msgstr "ﻝﻮﺤﺘﻟﺍ ﺕﺎﻫﺎﺠﺗﺍ"
-
-
 msgid "Render Pass"
 msgstr "ﺮﻴﻴﺼﺗ ﺮﻤﻣ"
 
 
 msgid "Motion Tracking"
 msgstr "ﺔﻛﺮﺤﻟﺍ ﺔﻘﺣﻼ﻿ﻣ"
+
+
+msgid "Transform Orientations"
+msgstr "ﻝﻮﺤﺘﻟﺍ ﺕﺎﻫﺎﺠﺗﺍ"
 
 
 msgid "Bone Constraints"

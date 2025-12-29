@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'edd300f2e755')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-22 09:32+0000\n"
+"POT-Creation-Date: 2025-12-29 09:32+0000\n"
 "PO-Revision-Date: 2025-11-14 10:59+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -28417,14 +28417,6 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
-msgid "Navigation"
-msgstr "Urambazaji"
-
-
-msgid "Select Linked"
-msgstr "Chagua Imeunganishwa"
-
-
 msgid "Metaball"
 msgstr "Mpira wa miguu"
 
@@ -28437,16 +28429,8 @@ msgid "Light Probe"
 msgstr "Uchunguzi wa Mwanga"
 
 
-msgid "Layout"
-msgstr "Mpangilio"
-
-
 msgid "Apply"
 msgstr "Tumia"
-
-
-msgid "Adjust"
-msgstr "Rekebisha"
 
 
 msgid "Show/Hide"
@@ -28457,12 +28441,24 @@ msgid "Clean Up"
 msgstr "Safisha"
 
 
+msgid "Asset"
+msgstr "Mali"
+
+
+msgid "Layout"
+msgstr "Mpangilio"
+
+
+msgid "Adjust"
+msgstr "Rekebisha"
+
+
 msgid "Keying"
 msgstr "Kuweka"
 
 
-msgid "Asset"
-msgstr "Mali"
+msgid "Bone Collections"
+msgstr "Mikusanyo ya Mifupa"
 
 
 msgid "Tracking"
@@ -28475,10 +28471,6 @@ msgstr "Huduma"
 
 msgid "Math"
 msgstr "Hisabati"
-
-
-msgid "Bone Collections"
-msgstr "Mikusanyo ya Mifupa"
 
 
 msgid "Merge"
@@ -28501,14 +28493,6 @@ msgid "Primitives"
 msgstr "Watu wa kwanza"
 
 
-msgid "Instances"
-msgstr "Matukio"
-
-
-msgid "Import"
-msgstr "Ingiza"
-
-
 msgid "Pivot Point"
 msgstr "Egemeo"
 
@@ -28517,12 +28501,28 @@ msgid "Snap"
 msgstr "Picha"
 
 
+msgid "Instances"
+msgstr "Matukio"
+
+
+msgid "Import"
+msgstr "Ingiza"
+
+
 msgid "Deprecated"
 msgstr "Imeacha kutumika"
 
 
 msgid "Mirror"
 msgstr "Kioo"
+
+
+msgid "Navigation"
+msgstr "Urambazaji"
+
+
+msgid "Select Linked"
+msgstr "Chagua Imeunganishwa"
 
 
 msgid "Keyframe Insert Pie"
@@ -72979,30 +72979,6 @@ msgid "Panel containing UI elements"
 msgstr "Paneli iliyo na vipengele vya UI"
 
 
-msgid "Curve Edit Mode"
-msgstr "Njia ya Kuhariri Curve"
-
-
-msgid "Transform Orientations"
-msgstr "Badilisha Mielekeo"
-
-
-msgid "Stroke Placement"
-msgstr "Uwekaji wa Kiharusi"
-
-
-msgid "Drawing Plane"
-msgstr "Ndege ya Kuchora"
-
-
-msgid "Quad View"
-msgstr "Mtazamo wa Quad"
-
-
-msgid "Multi Frame"
-msgstr "Fremu nyingi"
-
-
 msgid "Auto-Masking"
 msgstr "Kufunika Masking Kiotomatiki"
 
@@ -73053,6 +73029,30 @@ msgstr "Njia ya Kuhariri Mesh"
 
 msgid "Measurement"
 msgstr "Kipimo"
+
+
+msgid "Curve Edit Mode"
+msgstr "Njia ya Kuhariri Curve"
+
+
+msgid "Transform Orientations"
+msgstr "Badilisha Mielekeo"
+
+
+msgid "Stroke Placement"
+msgstr "Uwekaji wa Kiharusi"
+
+
+msgid "Drawing Plane"
+msgstr "Ndege ya Kuchora"
+
+
+msgid "Quad View"
+msgstr "Mtazamo wa Quad"
+
+
+msgid "Multi Frame"
+msgstr "Fremu nyingi"
 
 
 msgid "Motion Blur"
@@ -100723,10 +100723,6 @@ msgstr "Pete za makali hazijaunganishwa"
 
 msgid "color_index is invalid"
 msgstr "index_color ni batili"
-
-
-msgid "Compositor node tree has cyclic links!"
-msgstr "Mti wa nodi ya mtunzi una viungo vya mzunguko!"
 
 
 msgid "Workbench"

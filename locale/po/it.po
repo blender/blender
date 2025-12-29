@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'edd300f2e755')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-22 09:32+0000\n"
+"POT-Creation-Date: 2025-12-29 09:32+0000\n"
 "PO-Revision-Date: 2025-11-12 16:04+0000\n"
 "Last-Translator: blend-it <blend-it@users.noreply.translate.blender.org>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -24582,52 +24582,12 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Local View"
-msgstr "Vista Locale"
-
-
-msgid "Viewpoint"
-msgstr "Punto di vista"
-
-
-msgid "Navigation"
-msgstr "Navigazione"
-
-
-msgid "Align View"
-msgstr "Allinea Vista"
-
-
-msgid "Align View to Active"
-msgstr "Allinea Vista a Attivo"
-
-
-msgid "View Regions"
-msgstr "Regione Vista"
+msgid "Assign Material"
+msgstr "Assegna Materiale"
 
 
 msgid "Select More/Less"
 msgstr "Seleziona Più/Meno"
-
-
-msgid "Select Similar"
-msgstr "Seleziona Simili"
-
-
-msgid "Select All by Trait"
-msgstr "Seleziona Tutto per Caratteristica"
-
-
-msgid "Select Linked"
-msgstr "Seleziona Collegati"
-
-
-msgid "Select Loops"
-msgstr "Seleziona Anelli"
-
-
-msgid "Assign Material"
-msgstr "Assegna Materiale"
 
 
 msgid "Metaball"
@@ -24640,10 +24600,6 @@ msgstr "Luce"
 
 msgid "Light Probe"
 msgstr "Sensore di Luce"
-
-
-msgid "Layout"
-msgstr "Layout"
 
 
 msgid "Add Image"
@@ -24666,10 +24622,6 @@ msgid "Track"
 msgstr "Traccia"
 
 
-msgid "Adjust"
-msgstr "Regola"
-
-
 msgid "Quick Effects"
 msgstr "Effetti Veloci"
 
@@ -24682,20 +24634,12 @@ msgid "Clean Up"
 msgstr "Ripulisci"
 
 
-msgid "Keying"
-msgstr "Keying"
-
-
 msgid "Asset"
 msgstr "Risorsa"
 
 
 msgid "Make Single User"
 msgstr "Rendi Utilizzatore Singolo"
-
-
-msgid "Tracking"
-msgstr "Tracciamento"
 
 
 msgid "Convert"
@@ -24706,16 +24650,12 @@ msgid "Link/Transfer Data"
 msgstr "Collega/Trasferisci Dati"
 
 
-msgid "Utilities"
-msgstr "Utilità"
-
-
 msgid "Hooks"
 msgstr "Ganci"
 
 
-msgid "Math"
-msgstr "Matematica"
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Vertex Group Locks"
@@ -24730,6 +24670,10 @@ msgid "Random Mask"
 msgstr "Maschera Casuale"
 
 
+msgid "Adjust"
+msgstr "Regola"
+
+
 msgid "Clear Transform"
 msgstr "Cancella Trasformazione"
 
@@ -24742,12 +24686,28 @@ msgid "Propagate"
 msgstr "Propaga"
 
 
+msgid "Keying"
+msgstr "Keying"
+
+
 msgid "Bone Collections"
 msgstr "Raccolte di Ossa"
 
 
+msgid "Tracking"
+msgstr "Tracciamento"
+
+
 msgid "Names"
 msgstr "Nomi"
+
+
+msgid "Utilities"
+msgstr "Utilità"
+
+
+msgid "Math"
+msgstr "Matematica"
 
 
 msgid "Toggle Bone Options"
@@ -24782,20 +24742,24 @@ msgid "Merge"
 msgstr "Unisci"
 
 
-msgid "Read"
-msgstr "Lettura"
-
-
 msgid "Special Characters"
 msgstr "Caratteri Speciali"
 
 
-msgid "Sample"
-msgstr "Campione"
-
-
 msgid "Kerning"
 msgstr "Crenatura"
+
+
+msgid "Bone Roll"
+msgstr "Rollio Osso"
+
+
+msgid "Read"
+msgstr "Lettura"
+
+
+msgid "Sample"
+msgstr "Campione"
 
 
 msgid "Write"
@@ -24804,18 +24768,6 @@ msgstr "Scrittura"
 
 msgid "Primitives"
 msgstr "Primitive"
-
-
-msgid "Bone Roll"
-msgstr "Rollio Osso"
-
-
-msgid "Instances"
-msgstr "Istanze"
-
-
-msgid "Import"
-msgstr "Importa"
 
 
 msgid "Pivot Point"
@@ -24842,8 +24794,12 @@ msgid "Face Sets Edit"
 msgstr "Modifica Sets di Facce"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Instances"
+msgstr "Istanze"
+
+
+msgid "Import"
+msgstr "Importa"
 
 
 msgid "Mirror"
@@ -24852,6 +24808,50 @@ msgstr "Specchia"
 
 msgid "UV Mapping"
 msgstr "Mappatura UV"
+
+
+msgid "Local View"
+msgstr "Vista Locale"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Viewpoint"
+msgstr "Punto di vista"
+
+
+msgid "Navigation"
+msgstr "Navigazione"
+
+
+msgid "Align View"
+msgstr "Allinea Vista"
+
+
+msgid "Align View to Active"
+msgstr "Allinea Vista a Attivo"
+
+
+msgid "View Regions"
+msgstr "Regione Vista"
+
+
+msgid "Select Similar"
+msgstr "Seleziona Simili"
+
+
+msgid "Select All by Trait"
+msgstr "Seleziona Tutto per Caratteristica"
+
+
+msgid "Select Linked"
+msgstr "Seleziona Collegati"
+
+
+msgid "Select Loops"
+msgstr "Seleziona Anelli"
 
 
 msgid "Keyframe Insert Pie"
@@ -50304,22 +50304,6 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
-msgid "Transform Orientations"
-msgstr "Assi (Orientamenti Trasformazione)"
-
-
-msgid "Stroke Placement"
-msgstr "Giacitura Tratto"
-
-
-msgid "Guides"
-msgstr "Guide"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoscopia"
-
-
 msgid "Auto-Masking"
 msgstr "Auto-Mascheramento"
 
@@ -50352,6 +50336,10 @@ msgid "Overlays"
 msgstr "Sovrapposizioni"
 
 
+msgid "Guides"
+msgstr "Guide"
+
+
 msgid "Motion Tracking"
 msgstr "Tracciatura Movimento"
 
@@ -50362,6 +50350,18 @@ msgstr "Modalità Modifica Mesh"
 
 msgid "Measurement"
 msgstr "Misurazione"
+
+
+msgid "Transform Orientations"
+msgstr "Assi (Orientamenti Trasformazione)"
+
+
+msgid "Stroke Placement"
+msgstr "Giacitura Tratto"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoscopia"
 
 
 msgid "Chain Scaling"

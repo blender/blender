@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'edd300f2e755')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-22 09:32+0000\n"
+"POT-Creation-Date: 2025-12-29 09:32+0000\n"
 "PO-Revision-Date: 2025-10-14 21:59+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -34297,52 +34297,12 @@ msgid "Editor menu containing buttons"
 msgstr "Trình đơn của trình biên soạn có chứa các nút"
 
 
-msgid "Local View"
-msgstr "Góc Nhìn Cục Bộ"
-
-
-msgid "Viewpoint"
-msgstr "Điểm Nhìn"
-
-
-msgid "Navigation"
-msgstr "Điều Hướng"
-
-
-msgid "Align View"
-msgstr "Căn Chỉnh Góc Nhìn"
-
-
-msgid "Align View to Active"
-msgstr "Căn Chỉnh Góc Nhìn vào cái đang Hoạt Động"
-
-
-msgid "View Regions"
-msgstr "Vùng Góc Nhìn"
+msgid "Assign Material"
+msgstr "Ấn Định Nguyên Vật Liệu"
 
 
 msgid "Select More/Less"
 msgstr "Tăng/Giảm Lựa Chọn"
-
-
-msgid "Select Similar"
-msgstr "Chọn Tương Tự"
-
-
-msgid "Select All by Trait"
-msgstr "Chọn Toàn Bộ theo Đặc Điểm"
-
-
-msgid "Select Linked"
-msgstr "Chọn cái Kết Nối"
-
-
-msgid "Select Loops"
-msgstr "Chọn Vòng Mạch"
-
-
-msgid "Assign Material"
-msgstr "Ấn Định Nguyên Vật Liệu"
 
 
 msgid "Metaball"
@@ -34355,10 +34315,6 @@ msgstr "Nguồn/Ánh Sáng/Đèn"
 
 msgid "Light Probe"
 msgstr "Đầu Dò Ánh Sáng"
-
-
-msgid "Layout"
-msgstr "Bố Trí"
 
 
 msgid "Add Image"
@@ -34381,10 +34337,6 @@ msgid "Track"
 msgstr "Giám Sát"
 
 
-msgid "Adjust"
-msgstr "Điều Chỉnh"
-
-
 msgid "Quick Effects"
 msgstr "Hiệu Ứng Nhanh"
 
@@ -34397,20 +34349,12 @@ msgid "Clean Up"
 msgstr "Dọn Dẹp"
 
 
-msgid "Keying"
-msgstr "Khóa Hóa"
-
-
 msgid "Asset"
 msgstr "Tài Sản"
 
 
 msgid "Make Single User"
 msgstr "Biến Thành Đơn Người Dùng"
-
-
-msgid "Tracking"
-msgstr "Giám Sát"
 
 
 msgid "Convert"
@@ -34421,20 +34365,12 @@ msgid "Link/Transfer Data"
 msgstr "Kết Nối/Thuyên Chuyển Dữ Liệu"
 
 
-msgid "Utilities"
-msgstr "Thường Trình"
-
-
 msgid "Hooks"
 msgstr "Móc"
 
 
-msgid "Math"
-msgstr "Toán"
-
-
-msgid "Creative"
-msgstr "Kiến Tạo"
+msgid "Layout"
+msgstr "Bố Trí"
 
 
 msgid "Vertex Group Locks"
@@ -34457,6 +34393,10 @@ msgid "Random Mask"
 msgstr "Màn Chắn Lọc Ngẫu Nhiên"
 
 
+msgid "Adjust"
+msgstr "Điều Chỉnh"
+
+
 msgid "Clear Transform"
 msgstr "Xóa Biến Hóa"
 
@@ -34465,20 +34405,36 @@ msgid "In-Betweens"
 msgstr "Bước Trung Gian"
 
 
-msgid "Render Preview"
-msgstr "Góc Nhìn Kết Xuất"
-
-
 msgid "Propagate"
 msgstr "Lan Truyền"
+
+
+msgid "Keying"
+msgstr "Khóa Hóa"
 
 
 msgid "Bone Collections"
 msgstr "Bộ Sưu Tập Xương"
 
 
+msgid "Tracking"
+msgstr "Giám Sát"
+
+
 msgid "Names"
 msgstr "Tên"
+
+
+msgid "Utilities"
+msgstr "Thường Trình"
+
+
+msgid "Math"
+msgstr "Toán"
+
+
+msgid "Creative"
+msgstr "Kiến Tạo"
 
 
 msgid "Toggle Bone Options"
@@ -34509,24 +34465,32 @@ msgid "Set Face Strength"
 msgstr "Đặt Cường Độ Mặt"
 
 
+msgid "Render Preview"
+msgstr "Góc Nhìn Kết Xuất"
+
+
 msgid "Merge"
 msgstr "Hợp Nhất"
-
-
-msgid "Read"
-msgstr "Đọc"
 
 
 msgid "Special Characters"
 msgstr "Các Ký Tự Đặc Biệt"
 
 
-msgid "Sample"
-msgstr "Lấy Mẫu Vật"
-
-
 msgid "Kerning"
 msgstr "Tinh Chỉnh Khoảng Cách Ký Tự"
+
+
+msgid "Bone Roll"
+msgstr "Lăn Xương"
+
+
+msgid "Read"
+msgstr "Đọc"
+
+
+msgid "Sample"
+msgstr "Lấy Mẫu Vật"
 
 
 msgid "Write"
@@ -34535,22 +34499,6 @@ msgstr "Viết"
 
 msgid "Primitives"
 msgstr "Hình Cơ Bản"
-
-
-msgid "Bone Roll"
-msgstr "Lăn Xương"
-
-
-msgid "Gizmo"
-msgstr "Dụng Cụ"
-
-
-msgid "Instances"
-msgstr "Thực Thể"
-
-
-msgid "Import"
-msgstr "Nhập Khẩu"
 
 
 msgid "Pivot Point"
@@ -34565,10 +34513,6 @@ msgid "Proportional Editing Falloff"
 msgstr "Suy Giảm Dần trong Biên Soạn Cân Đối"
 
 
-msgid "Deprecated"
-msgstr "Lỗi Thời"
-
-
 msgid "Mask Edit"
 msgstr "Biên Soạn Màn Chắn Lọc"
 
@@ -34581,12 +34525,20 @@ msgid "Face Sets Edit"
 msgstr "Biên Soạn các Mặt Ấn Định"
 
 
-msgid "List"
-msgstr "Nâng"
+msgid "Gizmo"
+msgstr "Dụng Cụ"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Instances"
+msgstr "Thực Thể"
+
+
+msgid "Import"
+msgstr "Nhập Khẩu"
+
+
+msgid "Deprecated"
+msgstr "Lỗi Thời"
 
 
 msgid "Mirror"
@@ -34595,6 +34547,54 @@ msgstr "Phản Chiếu Đối Xứng"
 
 msgid "UV Mapping"
 msgstr "Ánh Xạ UV"
+
+
+msgid "List"
+msgstr "Nâng"
+
+
+msgid "Local View"
+msgstr "Góc Nhìn Cục Bộ"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Viewpoint"
+msgstr "Điểm Nhìn"
+
+
+msgid "Navigation"
+msgstr "Điều Hướng"
+
+
+msgid "Align View"
+msgstr "Căn Chỉnh Góc Nhìn"
+
+
+msgid "Align View to Active"
+msgstr "Căn Chỉnh Góc Nhìn vào cái đang Hoạt Động"
+
+
+msgid "View Regions"
+msgstr "Vùng Góc Nhìn"
+
+
+msgid "Select Similar"
+msgstr "Chọn Tương Tự"
+
+
+msgid "Select All by Trait"
+msgstr "Chọn Toàn Bộ theo Đặc Điểm"
+
+
+msgid "Select Linked"
+msgstr "Chọn cái Kết Nối"
+
+
+msgid "Select Loops"
+msgstr "Chọn Vòng Mạch"
 
 
 msgid "Keyframe Insert Pie"
@@ -89163,50 +89163,6 @@ msgid "Panel containing UI elements"
 msgstr "Bảng có chứa các phần tử Giao Diện Người Dùng (UI)"
 
 
-msgid "Curve Edit Mode"
-msgstr "Chế Độ Biên Soạn Đường Cong"
-
-
-msgid "Curves Edit Mode"
-msgstr "Chế Độ Biên Soạn Đường Cong"
-
-
-msgid "Transform Orientations"
-msgstr "Các Định Hướng Biến Hóa"
-
-
-msgid "Stroke Placement"
-msgstr "Phương Pháp Đặt Nét Vẽ"
-
-
-msgid "Drawing Plane"
-msgstr "Bề Diện Tác Họa"
-
-
-msgid "Guides"
-msgstr "Hướng Dẫn"
-
-
-msgid "Grease Pencil Options"
-msgstr "Các Tùy Chọn Bút Chì Dầu"
-
-
-msgid "Quad View"
-msgstr "Bốn Góc Nhìn"
-
-
-msgid "Onion Skin"
-msgstr "Bóc Vỏ Hành"
-
-
-msgid "Stereoscopy"
-msgstr "Lập Thể"
-
-
-msgid "Multi Frame"
-msgstr "Đa Khung Hình"
-
-
 msgid "Auto-Masking"
 msgstr "Tự Động Chắn Lọc"
 
@@ -89287,6 +89243,10 @@ msgid "Overlays"
 msgstr "Lớp Vẽ Lồng"
 
 
+msgid "Guides"
+msgstr "Hướng Dẫn"
+
+
 msgid "Viewer Node"
 msgstr "Nút Quan Sát"
 
@@ -89301,6 +89261,46 @@ msgstr "Chế Độ Biên Soạn Khung Lưới"
 
 msgid "Measurement"
 msgstr "Đo Lường"
+
+
+msgid "Curve Edit Mode"
+msgstr "Chế Độ Biên Soạn Đường Cong"
+
+
+msgid "Curves Edit Mode"
+msgstr "Chế Độ Biên Soạn Đường Cong"
+
+
+msgid "Transform Orientations"
+msgstr "Các Định Hướng Biến Hóa"
+
+
+msgid "Stroke Placement"
+msgstr "Phương Pháp Đặt Nét Vẽ"
+
+
+msgid "Drawing Plane"
+msgstr "Bề Diện Tác Họa"
+
+
+msgid "Grease Pencil Options"
+msgstr "Các Tùy Chọn Bút Chì Dầu"
+
+
+msgid "Quad View"
+msgstr "Bốn Góc Nhìn"
+
+
+msgid "Onion Skin"
+msgstr "Bóc Vỏ Hành"
+
+
+msgid "Stereoscopy"
+msgstr "Lập Thể"
+
+
+msgid "Multi Frame"
+msgstr "Đa Khung Hình"
 
 
 msgid "Import Settings"
@@ -127391,10 +127391,6 @@ msgstr "Các vành đai-cạnh không kết nối với nhau"
 
 msgid "color_index is invalid"
 msgstr "chỉ số màu (color_index) không hợp lệ"
-
-
-msgid "Compositor node tree has cyclic links!"
-msgstr "Cây nút trình tổng hợp có các liên kết tuần hoàn!"
 
 
 msgid "Error: Too many AOVs"

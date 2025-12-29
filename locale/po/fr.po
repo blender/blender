@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'edd300f2e755')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-22 09:32+0000\n"
+"POT-Creation-Date: 2025-12-29 09:32+0000\n"
 "PO-Revision-Date: 2025-12-13 05:12+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
@@ -34905,52 +34905,12 @@ msgid "Editor menu containing buttons"
 msgstr "Menu d’éditeur contenant des boutons"
 
 
-msgid "Local View"
-msgstr "Vue locale"
-
-
-msgid "Viewpoint"
-msgstr "Point de vue"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Align View"
-msgstr "Aligner la vue"
-
-
-msgid "Align View to Active"
-msgstr "Aligner la vue sur l’actif"
-
-
-msgid "View Regions"
-msgstr "Régions dans la vue"
+msgid "Assign Material"
+msgstr "Assigner un matériau"
 
 
 msgid "Select More/Less"
 msgstr "Sélectionner plus ou moins"
-
-
-msgid "Select Similar"
-msgstr "Sélectionner similaires"
-
-
-msgid "Select All by Trait"
-msgstr "Tout sélectionner par caractéristiques"
-
-
-msgid "Select Linked"
-msgstr "Sélectionner liés"
-
-
-msgid "Select Loops"
-msgstr "Sélectionner les boucles"
-
-
-msgid "Assign Material"
-msgstr "Assigner un matériau"
 
 
 msgid "Metaball"
@@ -34963,10 +34923,6 @@ msgstr "Éclairage"
 
 msgid "Light Probe"
 msgstr "Sonde d’éclairage"
-
-
-msgid "Layout"
-msgstr "Disposition"
 
 
 msgid "Add Image"
@@ -34989,10 +34945,6 @@ msgid "Track"
 msgstr "Suivi"
 
 
-msgid "Adjust"
-msgstr "Ajuster"
-
-
 msgid "Quick Effects"
 msgstr "Effets rapides"
 
@@ -35005,20 +34957,12 @@ msgid "Clean Up"
 msgstr "Nettoyer"
 
 
-msgid "Keying"
-msgstr "Incrustation"
-
-
 msgid "Asset"
 msgstr "Asset"
 
 
 msgid "Make Single User"
 msgstr "Rendre mono-utilisateur"
-
-
-msgid "Tracking"
-msgstr "Suivi"
 
 
 msgid "Convert"
@@ -35029,20 +34973,12 @@ msgid "Link/Transfer Data"
 msgstr "Lier/transférer des données"
 
 
-msgid "Utilities"
-msgstr "Utilitaires"
-
-
 msgid "Hooks"
 msgstr "Crochets"
 
 
-msgid "Math"
-msgstr "Maths"
-
-
-msgid "Creative"
-msgstr "Créatif"
+msgid "Layout"
+msgstr "Disposition"
 
 
 msgid "Vertex Group Locks"
@@ -35065,6 +35001,10 @@ msgid "Random Mask"
 msgstr "Masque aléatoire"
 
 
+msgid "Adjust"
+msgstr "Ajuster"
+
+
 msgid "Clear Transform"
 msgstr "Réinitialiser la transformation"
 
@@ -35073,20 +35013,36 @@ msgid "In-Betweens"
 msgstr "Intervalles"
 
 
-msgid "Render Preview"
-msgstr "Rendu de prévisualisation"
-
-
 msgid "Propagate"
 msgstr "Propager"
+
+
+msgid "Keying"
+msgstr "Incrustation"
 
 
 msgid "Bone Collections"
 msgstr "Collections d’os"
 
 
+msgid "Tracking"
+msgstr "Suivi"
+
+
 msgid "Names"
 msgstr "Noms"
+
+
+msgid "Utilities"
+msgstr "Utilitaires"
+
+
+msgid "Math"
+msgstr "Maths"
+
+
+msgid "Creative"
+msgstr "Créatif"
 
 
 msgid "Toggle Bone Options"
@@ -35117,24 +35073,32 @@ msgid "Set Face Strength"
 msgstr "Définir la force de face"
 
 
+msgid "Render Preview"
+msgstr "Rendu de prévisualisation"
+
+
 msgid "Merge"
 msgstr "Fusionner"
-
-
-msgid "Read"
-msgstr "Lecture"
 
 
 msgid "Special Characters"
 msgstr "Caractères spéciaux"
 
 
-msgid "Sample"
-msgstr "Échantillonner"
-
-
 msgid "Kerning"
 msgstr "Approche"
+
+
+msgid "Bone Roll"
+msgstr "Roulis de l’os"
+
+
+msgid "Read"
+msgstr "Lecture"
+
+
+msgid "Sample"
+msgstr "Échantillonner"
 
 
 msgid "Write"
@@ -35143,22 +35107,6 @@ msgstr "Écriture"
 
 msgid "Primitives"
 msgstr "Primitives"
-
-
-msgid "Bone Roll"
-msgstr "Roulis de l’os"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Instances"
-
-
-msgid "Import"
-msgstr "Importer"
 
 
 msgid "Pivot Point"
@@ -35173,10 +35121,6 @@ msgid "Proportional Editing Falloff"
 msgstr "Atténuation de l’édition proportionnelle"
 
 
-msgid "Deprecated"
-msgstr "Obsolète"
-
-
 msgid "Mask Edit"
 msgstr "Édition du masque"
 
@@ -35189,12 +35133,20 @@ msgid "Face Sets Edit"
 msgstr "Édition des ensembles de faces"
 
 
-msgid "List"
-msgstr "Liste"
+msgid "Gizmo"
+msgstr "Gizmo"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Instances"
+msgstr "Instances"
+
+
+msgid "Import"
+msgstr "Importer"
+
+
+msgid "Deprecated"
+msgstr "Obsolète"
 
 
 msgid "Mirror"
@@ -35203,6 +35155,54 @@ msgstr "Miroir"
 
 msgid "UV Mapping"
 msgstr "Placage UV"
+
+
+msgid "List"
+msgstr "Liste"
+
+
+msgid "Local View"
+msgstr "Vue locale"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Viewpoint"
+msgstr "Point de vue"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Align View"
+msgstr "Aligner la vue"
+
+
+msgid "Align View to Active"
+msgstr "Aligner la vue sur l’actif"
+
+
+msgid "View Regions"
+msgstr "Régions dans la vue"
+
+
+msgid "Select Similar"
+msgstr "Sélectionner similaires"
+
+
+msgid "Select All by Trait"
+msgstr "Tout sélectionner par caractéristiques"
+
+
+msgid "Select Linked"
+msgstr "Sélectionner liés"
+
+
+msgid "Select Loops"
+msgstr "Sélectionner les boucles"
 
 
 msgid "Keyframe Insert Pie"
@@ -91546,50 +91546,6 @@ msgid "Panel containing UI elements"
 msgstr "Panneau contenant des éléments d’interface"
 
 
-msgid "Curve Edit Mode"
-msgstr "Mode édition courbe"
-
-
-msgid "Curves Edit Mode"
-msgstr "Mode édition courbes"
-
-
-msgid "Transform Orientations"
-msgstr "Orientations de transformation"
-
-
-msgid "Stroke Placement"
-msgstr "Placement de trait"
-
-
-msgid "Drawing Plane"
-msgstr "Plan de dessin"
-
-
-msgid "Guides"
-msgstr "Guides"
-
-
-msgid "Grease Pencil Options"
-msgstr "Options du Grease Pencil"
-
-
-msgid "Quad View"
-msgstr "Vue quadrants"
-
-
-msgid "Onion Skin"
-msgstr "Pelures d’oignon"
-
-
-msgid "Stereoscopy"
-msgstr "Stéréoscopie"
-
-
-msgid "Multi Frame"
-msgstr "Multi-frames"
-
-
 msgid "Auto-Masking"
 msgstr "Masquage auto"
 
@@ -91674,6 +91630,10 @@ msgid "Overlays"
 msgstr "Surimpressions"
 
 
+msgid "Guides"
+msgstr "Guides"
+
+
 msgid "Viewer Node"
 msgstr "Nœud visualiseur"
 
@@ -91688,6 +91648,46 @@ msgstr "Mode édition maillage"
 
 msgid "Measurement"
 msgstr "Mesure"
+
+
+msgid "Curve Edit Mode"
+msgstr "Mode édition courbe"
+
+
+msgid "Curves Edit Mode"
+msgstr "Mode édition courbes"
+
+
+msgid "Transform Orientations"
+msgstr "Orientations de transformation"
+
+
+msgid "Stroke Placement"
+msgstr "Placement de trait"
+
+
+msgid "Drawing Plane"
+msgstr "Plan de dessin"
+
+
+msgid "Grease Pencil Options"
+msgstr "Options du Grease Pencil"
+
+
+msgid "Quad View"
+msgstr "Vue quadrants"
+
+
+msgid "Onion Skin"
+msgstr "Pelures d’oignon"
+
+
+msgid "Stereoscopy"
+msgstr "Stéréoscopie"
+
+
+msgid "Multi Frame"
+msgstr "Multi-frames"
 
 
 msgid "Import Settings"
@@ -131279,10 +131279,6 @@ msgstr "Les anneaux d’arêtes ne sont pas connectés"
 
 msgid "color_index is invalid"
 msgstr "Indice de couleur invalide"
-
-
-msgid "Compositor node tree has cyclic links!"
-msgstr "L’arborescence de nœuds de compositing a des liens cycliques !"
 
 
 msgid "Error: Too many AOVs"

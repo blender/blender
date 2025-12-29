@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'edd300f2e755')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-22 09:32+0000\n"
-"PO-Revision-Date: 2025-12-22 05:18+0000\n"
+"POT-Creation-Date: 2025-12-29 09:32+0000\n"
+"PO-Revision-Date: 2025-12-28 10:00+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
 "Language: zh_HANS\n"
@@ -34952,52 +34952,12 @@ msgid "Editor menu containing buttons"
 msgstr "包含按钮的编辑器菜单"
 
 
-msgid "Local View"
-msgstr "局部视图"
-
-
-msgid "Viewpoint"
-msgstr "视图"
-
-
-msgid "Navigation"
-msgstr "视图导航"
-
-
-msgid "Align View"
-msgstr "对齐视图"
-
-
-msgid "Align View to Active"
-msgstr "视图对齐活动项"
-
-
-msgid "View Regions"
-msgstr "视图框"
+msgid "Assign Material"
+msgstr "指定材质"
 
 
 msgid "Select More/Less"
 msgstr "扩展/缩减选择"
-
-
-msgid "Select Similar"
-msgstr "选择相似"
-
-
-msgid "Select All by Trait"
-msgstr "按特征全选"
-
-
-msgid "Select Linked"
-msgstr "选择相连元素"
-
-
-msgid "Select Loops"
-msgstr "选择循环"
-
-
-msgid "Assign Material"
-msgstr "指定材质"
 
 
 msgid "Metaball"
@@ -35010,10 +34970,6 @@ msgstr "灯光"
 
 msgid "Light Probe"
 msgstr "光照探头"
-
-
-msgid "Layout"
-msgstr "布局"
 
 
 msgid "Add Image"
@@ -35036,10 +34992,6 @@ msgid "Track"
 msgstr "追踪"
 
 
-msgid "Adjust"
-msgstr "校正"
-
-
 msgid "Quick Effects"
 msgstr "快速效果"
 
@@ -35052,20 +35004,12 @@ msgid "Clean Up"
 msgstr "清理"
 
 
-msgid "Keying"
-msgstr "抠像"
-
-
 msgid "Asset"
 msgstr "资产"
 
 
 msgid "Make Single User"
 msgstr "使其独立化"
-
-
-msgid "Tracking"
-msgstr "追踪"
 
 
 msgid "Convert"
@@ -35076,20 +35020,12 @@ msgid "Link/Transfer Data"
 msgstr "关联/传递数据"
 
 
-msgid "Utilities"
-msgstr "实用工具"
-
-
 msgid "Hooks"
 msgstr "钩挂"
 
 
-msgid "Math"
-msgstr "运算"
-
-
-msgid "Creative"
-msgstr "创意"
+msgid "Layout"
+msgstr "布局"
 
 
 msgid "Vertex Group Locks"
@@ -35112,6 +35048,10 @@ msgid "Random Mask"
 msgstr "随机遮罩"
 
 
+msgid "Adjust"
+msgstr "校正"
+
+
 msgid "Clear Transform"
 msgstr "清空变换"
 
@@ -35120,20 +35060,36 @@ msgid "In-Betweens"
 msgstr "间帧调整"
 
 
-msgid "Render Preview"
-msgstr "渲染预览"
-
-
 msgid "Propagate"
 msgstr "传导"
+
+
+msgid "Keying"
+msgstr "抠像"
 
 
 msgid "Bone Collections"
 msgstr "骨骼集合"
 
 
+msgid "Tracking"
+msgstr "追踪"
+
+
 msgid "Names"
 msgstr "名称"
+
+
+msgid "Utilities"
+msgstr "实用工具"
+
+
+msgid "Math"
+msgstr "运算"
+
+
+msgid "Creative"
+msgstr "创意"
 
 
 msgid "Toggle Bone Options"
@@ -35164,24 +35120,32 @@ msgid "Set Face Strength"
 msgstr "设置面强度"
 
 
+msgid "Render Preview"
+msgstr "渲染预览"
+
+
 msgid "Merge"
 msgstr "合并"
-
-
-msgid "Read"
-msgstr "读取"
 
 
 msgid "Special Characters"
 msgstr "特殊字符"
 
 
-msgid "Sample"
-msgstr "采样"
-
-
 msgid "Kerning"
 msgstr "字距"
+
+
+msgid "Bone Roll"
+msgstr "骨骼扭转"
+
+
+msgid "Read"
+msgstr "读取"
+
+
+msgid "Sample"
+msgstr "采样"
 
 
 msgid "Write"
@@ -35190,22 +35154,6 @@ msgstr "写入"
 
 msgid "Primitives"
 msgstr "基本体"
-
-
-msgid "Bone Roll"
-msgstr "骨骼扭转"
-
-
-msgid "Gizmo"
-msgstr "操控器"
-
-
-msgid "Instances"
-msgstr "实例"
-
-
-msgid "Import"
-msgstr "导入"
 
 
 msgid "Pivot Point"
@@ -35220,10 +35168,6 @@ msgid "Proportional Editing Falloff"
 msgstr "衰减编辑的衰减方式"
 
 
-msgid "Deprecated"
-msgstr "已弃用"
-
-
 msgid "Mask Edit"
 msgstr "遮罩编辑"
 
@@ -35236,12 +35180,20 @@ msgid "Face Sets Edit"
 msgstr "面组编辑"
 
 
-msgid "List"
-msgstr "列表"
+msgid "Gizmo"
+msgstr "操控器"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Instances"
+msgstr "实例"
+
+
+msgid "Import"
+msgstr "导入"
+
+
+msgid "Deprecated"
+msgstr "已弃用"
 
 
 msgid "Mirror"
@@ -35250,6 +35202,54 @@ msgstr "镜像"
 
 msgid "UV Mapping"
 msgstr "UV 映射"
+
+
+msgid "List"
+msgstr "列表"
+
+
+msgid "Local View"
+msgstr "局部视图"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Viewpoint"
+msgstr "视图"
+
+
+msgid "Navigation"
+msgstr "视图导航"
+
+
+msgid "Align View"
+msgstr "对齐视图"
+
+
+msgid "Align View to Active"
+msgstr "视图对齐活动项"
+
+
+msgid "View Regions"
+msgstr "视图框"
+
+
+msgid "Select Similar"
+msgstr "选择相似"
+
+
+msgid "Select All by Trait"
+msgstr "按特征全选"
+
+
+msgid "Select Linked"
+msgstr "选择相连元素"
+
+
+msgid "Select Loops"
+msgstr "选择循环"
 
 
 msgid "Keyframe Insert Pie"
@@ -91704,50 +91704,6 @@ msgid "Panel containing UI elements"
 msgstr "面板包含用户界面元素"
 
 
-msgid "Curve Edit Mode"
-msgstr "曲线编辑模式"
-
-
-msgid "Curves Edit Mode"
-msgstr "曲线编辑模式"
-
-
-msgid "Transform Orientations"
-msgstr "变换坐标系"
-
-
-msgid "Stroke Placement"
-msgstr "笔画放置"
-
-
-msgid "Drawing Plane"
-msgstr "绘制平面"
-
-
-msgid "Guides"
-msgstr "引导"
-
-
-msgid "Grease Pencil Options"
-msgstr "蜡笔选项"
-
-
-msgid "Quad View"
-msgstr "四格视图"
-
-
-msgid "Onion Skin"
-msgstr "洋葱皮"
-
-
-msgid "Stereoscopy"
-msgstr "立体视法"
-
-
-msgid "Multi Frame"
-msgstr "多帧"
-
-
 msgid "Auto-Masking"
 msgstr "自动遮罩"
 
@@ -91832,6 +91788,10 @@ msgid "Overlays"
 msgstr "叠加"
 
 
+msgid "Guides"
+msgstr "引导"
+
+
 msgid "Viewer Node"
 msgstr "预览器节点"
 
@@ -91846,6 +91806,46 @@ msgstr "网格编辑模式"
 
 msgid "Measurement"
 msgstr "测量"
+
+
+msgid "Curve Edit Mode"
+msgstr "曲线编辑模式"
+
+
+msgid "Curves Edit Mode"
+msgstr "曲线编辑模式"
+
+
+msgid "Transform Orientations"
+msgstr "变换坐标系"
+
+
+msgid "Stroke Placement"
+msgstr "笔画放置"
+
+
+msgid "Drawing Plane"
+msgstr "绘制平面"
+
+
+msgid "Grease Pencil Options"
+msgstr "蜡笔选项"
+
+
+msgid "Quad View"
+msgstr "四格视图"
+
+
+msgid "Onion Skin"
+msgstr "洋葱皮"
+
+
+msgid "Stereoscopy"
+msgstr "立体视法"
+
+
+msgid "Multi Frame"
+msgstr "多帧"
 
 
 msgid "Import Settings"
@@ -97204,6 +97204,10 @@ msgid "Italian - Italiano"
 msgstr "意大利语 - Italiano"
 
 
+msgid "Locale code: it_IT. Translation progress: 44%"
+msgstr "区域代码: it_IT. 翻译进度: 44%"
+
+
 msgid "Japanese - 日本語"
 msgstr "日语 - 日本語"
 
@@ -97248,6 +97252,10 @@ msgid "Norwegian (Bokmål) - Norsk bokmål"
 msgstr "挪威语 (书面) - Norsk bokmål"
 
 
+msgid "Locale code: nb. Translation progress: 3%"
+msgstr "区域代码: nb. 翻译进度: 3%"
+
+
 msgid "Persian - ﯽﺳﺭﺎﻓ"
 msgstr "波斯语 - ﯽﺳﺭﺎﻓ"
 
@@ -97274,10 +97282,6 @@ msgstr "区域代码: pt_BR. 翻译进度: 43%"
 
 msgid "Portuguese (Portugal) - Português europeu"
 msgstr "葡萄牙语 (葡萄牙) - Português europeu"
-
-
-msgid "Locale code: pt_PT. Translation progress: 73%"
-msgstr "区域代码: pt_PT. 翻译进度: 73%"
 
 
 msgid "Romanian - Român"
@@ -97348,6 +97352,10 @@ msgid "Swedish - Svenska"
 msgstr "瑞典语 - Svenska"
 
 
+msgid "Locale code: sv_SE. Translation progress: 21%"
+msgstr "区域代码: sv_SE. 翻译进度: 21%"
+
+
 msgid "Tamil - தமிழ்"
 msgstr "泰米尔语 - தமிழ்"
 
@@ -97390,6 +97398,10 @@ msgstr "区域代码: ur. 翻译进度: 87%"
 
 msgid "Vietnamese - Tiếng Việt"
 msgstr "越南语 - Tiếng Việt"
+
+
+msgid "Locale code: vi_VN. Translation progress: 94%"
+msgstr "区域代码: vi_VN. 翻译进度: 94%"
 
 
 msgid "Reference Sphere Size"
@@ -98452,6 +98464,10 @@ msgstr "ID 属性组"
 
 msgid "Group of ID properties"
 msgstr "ID 组的属性"
+
+
+msgid "Unique name used in the code and scripting, can be re-defined in Python sub-classes if needed"
+msgstr "代码及脚本中使用的唯一名称，必要时可在 Python 子类中重新定义"
 
 
 msgid "Action to apply to the rig via constraints"
@@ -109428,8 +109444,16 @@ msgid "Prioritize speed over audio quality"
 msgstr "优先考虑速度而非音质"
 
 
+msgid "Consistent"
+msgstr "一致"
+
+
+msgid "Prioritize consistency for dynamic pitch changes"
+msgstr "优先考虑动态音高变化的一致性"
+
+
 msgid "Factor by which the audio pitch is scaled."
-msgstr "音频音高缩放系数。"
+msgstr "音频音高缩放的系数。"
 
 
 msgid "Number of semitones to shift the pitch."
@@ -131975,10 +131999,6 @@ msgid "color_index is invalid"
 msgstr "color_index 无效"
 
 
-msgid "Compositor node tree has cyclic links!"
-msgstr "合成器节点树存在循环关联！"
-
-
 msgid "Error: Too many AOVs"
 msgstr "错误：AOV过多"
 
@@ -132121,6 +132141,10 @@ msgstr "未设置名称"
 
 msgid "Unexpected library type. Failed to create pose asset"
 msgstr "意外的库类型，创建姿态资产失败"
+
+
+msgid "Could not load Action for the active asset"
+msgstr "无法加载活动资产的动作"
 
 
 msgid "Action is not editable"
@@ -143516,6 +143540,10 @@ msgstr "无效的调色板索引：%d"
 
 msgid "%s is not supported, pass a Bone, PoseBone, or EditBone"
 msgstr "不支持 %s，请传递骨骼、姿态骨骼或编辑骨骼"
+
+
+msgid "Asset metadata from external libraries cannot be edited. Only assets stored in the current file can be edited."
+msgstr "来自外部库的资产元数据不可编辑，只有存储在当前文件的资产可以编辑。"
 
 
 msgid "Tag '%s' already present for given asset"

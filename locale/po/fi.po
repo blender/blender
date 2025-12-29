@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'edd300f2e755')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-22 09:32+0000\n"
+"POT-Creation-Date: 2025-12-29 09:32+0000\n"
 "PO-Revision-Date: 2025-07-23 15:32+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -7248,18 +7248,6 @@ msgid "Select More/Less"
 msgstr "Valitse enemmän/vähemmän"
 
 
-msgid "Select Similar"
-msgstr "Valitse samankaltainen"
-
-
-msgid "Select All by Trait"
-msgstr "Valitse kaikki piirteen mukaan"
-
-
-msgid "Select Loops"
-msgstr "Valitse silmukat"
-
-
 msgid "Metaball"
 msgstr "Metapallo"
 
@@ -7284,16 +7272,8 @@ msgid "Show/Hide"
 msgstr "Näytä/Piilota"
 
 
-msgid "Utilities"
-msgstr "Työkalut"
-
-
 msgid "Hooks"
 msgstr "Koukut"
-
-
-msgid "Math"
-msgstr "Matematiikka"
 
 
 msgid "Random Mask"
@@ -7302,6 +7282,14 @@ msgstr "Satunnainen maski"
 
 msgid "Names"
 msgstr "Nimet"
+
+
+msgid "Utilities"
+msgstr "Työkalut"
+
+
+msgid "Math"
+msgstr "Matematiikka"
 
 
 msgid "Mesh Select Mode"
@@ -7324,12 +7312,24 @@ msgid "Import"
 msgstr "Tuo"
 
 
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
+
+
 msgid "UV"
 msgstr "UV"
 
 
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
+msgid "Select Similar"
+msgstr "Valitse samankaltainen"
+
+
+msgid "Select All by Trait"
+msgstr "Valitse kaikki piirteen mukaan"
+
+
+msgid "Select Loops"
+msgstr "Valitse silmukat"
 
 
 msgid "Basic"

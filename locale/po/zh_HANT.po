@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'edd300f2e755')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-22 09:32+0000\n"
+"POT-Creation-Date: 2025-12-29 09:32+0000\n"
 "PO-Revision-Date: 2025-12-22 05:18+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -23966,40 +23966,8 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Local View"
-msgstr "區域檢視"
-
-
-msgid "Viewpoint"
-msgstr "視點"
-
-
-msgid "Navigation"
-msgstr "導覽"
-
-
-msgid "Align View"
-msgstr "對齊檢視"
-
-
-msgid "Align View to Active"
-msgstr "對齊檢視至作用項"
-
-
-msgid "View Regions"
-msgstr "檢視範圍"
-
-
 msgid "Select More/Less"
 msgstr "選取更多/更少"
-
-
-msgid "Select Similar"
-msgstr "選取相似者"
-
-
-msgid "Select Linked"
-msgstr "選取連結項"
 
 
 msgid "Metaball"
@@ -24012,10 +23980,6 @@ msgstr "燈光"
 
 msgid "Light Probe"
 msgstr "燈光採樣器"
-
-
-msgid "Layout"
-msgstr "配置"
 
 
 msgid "Add Image"
@@ -24038,10 +24002,6 @@ msgid "Track"
 msgstr "追蹤"
 
 
-msgid "Adjust"
-msgstr "調整"
-
-
 msgid "Quick Effects"
 msgstr "快速效果"
 
@@ -24054,20 +24014,12 @@ msgid "Clean Up"
 msgstr "清理"
 
 
-msgid "Keying"
-msgstr "鍵處理"
-
-
 msgid "Asset"
 msgstr "素材"
 
 
 msgid "Make Single User"
 msgstr "製作單一使用者"
-
-
-msgid "Tracking"
-msgstr "跟蹤"
 
 
 msgid "Convert"
@@ -24078,16 +24030,12 @@ msgid "Link/Transfer Data"
 msgstr "連結/傳輸資料"
 
 
-msgid "Utilities"
-msgstr "效用"
-
-
 msgid "Hooks"
 msgstr "鉤"
 
 
-msgid "Math"
-msgstr "數學公式"
+msgid "Layout"
+msgstr "配置"
 
 
 msgid "Face Sets Init"
@@ -24098,6 +24046,10 @@ msgid "Random Mask"
 msgstr "隨機遮罩"
 
 
+msgid "Adjust"
+msgstr "調整"
+
+
 msgid "Clear Transform"
 msgstr "清除變換"
 
@@ -24106,20 +24058,32 @@ msgid "In-Betweens"
 msgstr "內部之間"
 
 
-msgid "Render Preview"
-msgstr "算繪預覽"
-
-
 msgid "Propagate"
 msgstr "增生"
+
+
+msgid "Keying"
+msgstr "鍵處理"
 
 
 msgid "Bone Collections"
 msgstr "骨骼集盒"
 
 
+msgid "Tracking"
+msgstr "跟蹤"
+
+
 msgid "Names"
 msgstr "名稱"
+
+
+msgid "Utilities"
+msgstr "效用"
+
+
+msgid "Math"
+msgstr "數學公式"
 
 
 msgid "Toggle Bone Options"
@@ -24142,24 +24106,32 @@ msgid "Face Data"
 msgstr "面資料"
 
 
+msgid "Render Preview"
+msgstr "算繪預覽"
+
+
 msgid "Merge"
 msgstr "合併"
-
-
-msgid "Read"
-msgstr "讀取"
 
 
 msgid "Special Characters"
 msgstr "特殊字元"
 
 
-msgid "Sample"
-msgstr "取樣"
-
-
 msgid "Kerning"
 msgstr "字間微調"
+
+
+msgid "Bone Roll"
+msgstr "骨骼滾動"
+
+
+msgid "Read"
+msgstr "讀取"
+
+
+msgid "Sample"
+msgstr "取樣"
 
 
 msgid "Write"
@@ -24168,18 +24140,6 @@ msgstr "寫入"
 
 msgid "Primitives"
 msgstr "原形"
-
-
-msgid "Bone Roll"
-msgstr "骨骼滾動"
-
-
-msgid "Instances"
-msgstr "實例化"
-
-
-msgid "Import"
-msgstr "匯入"
 
 
 msgid "Pivot Point"
@@ -24206,8 +24166,12 @@ msgid "Face Sets Edit"
 msgstr "面集編輯"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Instances"
+msgstr "實例化"
+
+
+msgid "Import"
+msgstr "匯入"
 
 
 msgid "Mirror"
@@ -24216,6 +24180,42 @@ msgstr "鏡像"
 
 msgid "UV Mapping"
 msgstr "UV 映射處理"
+
+
+msgid "Local View"
+msgstr "區域檢視"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Viewpoint"
+msgstr "視點"
+
+
+msgid "Navigation"
+msgstr "導覽"
+
+
+msgid "Align View"
+msgstr "對齊檢視"
+
+
+msgid "Align View to Active"
+msgstr "對齊檢視至作用項"
+
+
+msgid "View Regions"
+msgstr "檢視範圍"
+
+
+msgid "Select Similar"
+msgstr "選取相似者"
+
+
+msgid "Select Linked"
+msgstr "選取連結項"
 
 
 msgid "Basic"
@@ -52893,50 +52893,6 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
-msgid "Curve Edit Mode"
-msgstr "曲線編輯模式"
-
-
-msgid "Curves Edit Mode"
-msgstr "曲線編輯模式"
-
-
-msgid "Transform Orientations"
-msgstr "變換方向"
-
-
-msgid "Stroke Placement"
-msgstr "筆觸放置"
-
-
-msgid "Drawing Plane"
-msgstr "描繪平面"
-
-
-msgid "Guides"
-msgstr "引導"
-
-
-msgid "Grease Pencil Options"
-msgstr "蠟筆選項"
-
-
-msgid "Quad View"
-msgstr "四格檢視"
-
-
-msgid "Onion Skin"
-msgstr "洋蔥皮"
-
-
-msgid "Stereoscopy"
-msgstr "立體視覺"
-
-
-msgid "Multi Frame"
-msgstr "多重畫框"
-
-
 msgid "Auto-Masking"
 msgstr "自動遮罩"
 
@@ -52993,6 +52949,10 @@ msgid "Overlays"
 msgstr "疊層"
 
 
+msgid "Guides"
+msgstr "引導"
+
+
 msgid "Viewer Node"
 msgstr "檢視器節點"
 
@@ -53007,6 +52967,46 @@ msgstr "網格編輯模式"
 
 msgid "Measurement"
 msgstr "測量"
+
+
+msgid "Curve Edit Mode"
+msgstr "曲線編輯模式"
+
+
+msgid "Curves Edit Mode"
+msgstr "曲線編輯模式"
+
+
+msgid "Transform Orientations"
+msgstr "變換方向"
+
+
+msgid "Stroke Placement"
+msgstr "筆觸放置"
+
+
+msgid "Drawing Plane"
+msgstr "描繪平面"
+
+
+msgid "Grease Pencil Options"
+msgstr "蠟筆選項"
+
+
+msgid "Quad View"
+msgstr "四格檢視"
+
+
+msgid "Onion Skin"
+msgstr "洋蔥皮"
+
+
+msgid "Stereoscopy"
+msgstr "立體視覺"
+
+
+msgid "Multi Frame"
+msgstr "多重畫框"
 
 
 msgid "Import Settings"

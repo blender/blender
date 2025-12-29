@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'edd300f2e755')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-22 09:32+0000\n"
+"POT-Creation-Date: 2025-12-29 09:32+0000\n"
 "PO-Revision-Date: 2025-11-18 20:05+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -9339,32 +9339,12 @@ msgid "Use Material Mask"
 msgstr "Använd materialmask"
 
 
-msgid "Local View"
-msgstr "Lokal vy"
-
-
-msgid "Viewpoint"
-msgstr "Visningspunkt"
-
-
-msgid "Navigation"
-msgstr "Navigering"
-
-
-msgid "Align View"
-msgstr "Justera vy"
-
-
-msgid "Align View to Active"
-msgstr "Justera vy till aktiv"
+msgid "Assign Material"
+msgstr "Tilldela material"
 
 
 msgid "Select More/Less"
 msgstr "Markera mera/mindre"
-
-
-msgid "Assign Material"
-msgstr "Tilldela material"
 
 
 msgid "Metaball"
@@ -9377,10 +9357,6 @@ msgstr "Ljus"
 
 msgid "Light Probe"
 msgstr "Ljussond"
-
-
-msgid "Layout"
-msgstr "Layout"
 
 
 msgid "Add Image"
@@ -9401,10 +9377,6 @@ msgstr "Applicera"
 
 msgid "Track"
 msgstr "Spår"
-
-
-msgid "Adjust"
-msgstr "Justera"
 
 
 msgid "Quick Effects"
@@ -9431,12 +9403,12 @@ msgid "Link/Transfer Data"
 msgstr "Länka/överför data"
 
 
-msgid "Utilities"
-msgstr "Verktyg"
+msgid "Layout"
+msgstr "Layout"
 
 
-msgid "Math"
-msgstr "Matematik"
+msgid "Adjust"
+msgstr "Justera"
 
 
 msgid "Propagate"
@@ -9447,16 +9419,24 @@ msgid "Names"
 msgstr "Namn"
 
 
+msgid "Utilities"
+msgstr "Verktyg"
+
+
+msgid "Math"
+msgstr "Matematik"
+
+
 msgid "Merge"
 msgstr "Sammanfoga"
 
 
-msgid "Read"
-msgstr "Läs"
-
-
 msgid "Special Characters"
 msgstr "Specialtecken"
+
+
+msgid "Read"
+msgstr "Läs"
 
 
 msgid "Write"
@@ -9467,14 +9447,6 @@ msgid "Primitives"
 msgstr "Primitiver"
 
 
-msgid "Instances"
-msgstr "Instanser"
-
-
-msgid "Import"
-msgstr "Importera"
-
-
 msgid "Pivot Point"
 msgstr "Fast punkt"
 
@@ -9483,16 +9455,44 @@ msgid "Snap"
 msgstr "Snäpp"
 
 
+msgid "Instances"
+msgstr "Instanser"
+
+
+msgid "Import"
+msgstr "Importera"
+
+
 msgid "Deprecated"
 msgstr "Föråldrad"
+
+
+msgid "Mirror"
+msgstr "Spegla"
+
+
+msgid "Local View"
+msgstr "Lokal vy"
 
 
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Mirror"
-msgstr "Spegla"
+msgid "Viewpoint"
+msgstr "Visningspunkt"
+
+
+msgid "Navigation"
+msgstr "Navigering"
+
+
+msgid "Align View"
+msgstr "Justera vy"
+
+
+msgid "Align View to Active"
+msgstr "Justera vy till aktiv"
 
 
 msgid "Animals"
@@ -21371,10 +21371,6 @@ msgid "Palette Color"
 msgstr "Palettfärg"
 
 
-msgid "Stroke Placement"
-msgstr "Streckplacering"
-
-
 msgid "VR"
 msgstr "VR"
 
@@ -21401,6 +21397,10 @@ msgstr "Visningsnod"
 
 msgid "Measurement"
 msgstr "Mätning"
+
+
+msgid "Stroke Placement"
+msgstr "Streckplacering"
 
 
 msgid "Import Settings"

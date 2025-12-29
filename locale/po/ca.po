@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'edd300f2e755')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-22 09:32+0000\n"
-"PO-Revision-Date: 2025-12-20 18:12+0000\n"
+"POT-Creation-Date: 2025-12-29 09:32+0000\n"
+"PO-Revision-Date: 2025-12-26 13:01+0000\n"
 "Last-Translator: Joan Pujolar <joan.pujolar@gmail.com>\n"
 "Language-Team: Catalan <https://translate.blender.org/projects/blender-ui/ui/ca/>\n"
 "Language: ca\n"
@@ -8457,7 +8457,7 @@ msgstr "[Child Of]: Fa que el referent sigui el pare «separable» del propietar
 
 
 msgid "Floor"
-msgstr "Basament"
+msgstr "Solera"
 
 
 msgid "Use position (and optionally rotation) of target to define a 'wall' or 'floor' that the owner cannot cross"
@@ -8469,7 +8469,7 @@ msgstr "Seguir trajectòria"
 
 
 msgid "Use to animate an object/bone following a path"
-msgstr "[Follow Path]: Fa que un objecte/os es mogui seguint el trajecte definit"
+msgstr "[Follow Path]: Fa que un objecte/os es mogui seguint la trajectòria definida"
 
 
 msgid "Geometry Attribute"
@@ -9195,15 +9195,15 @@ msgstr "[Track Axis]: Eix que apunta envers l'objecte referent"
 
 
 msgid "Floor Constraint"
-msgstr "Restricció de basament"
+msgstr "Restricció de solera"
 
 
 msgid "Use the target object for location limitation"
-msgstr "[Floor Constraint]: Usa l'objecte referit per a posar límits a la ubicació"
+msgstr "[Floor Constraint]: Usa l'objecte referent per a posar límits a la ubicació"
 
 
 msgid "Floor Location"
-msgstr "Ubicació del basament"
+msgstr "Ubicació de la solera"
 
 
 msgid "Location of target that object will not pass through"
@@ -9211,7 +9211,7 @@ msgstr "[Floor Location]: Ubicació del referent que l'objecte no podrà travess
 
 
 msgid "Offset of floor from object origin"
-msgstr "Distància entre el basament i l'origen de l'objecte"
+msgstr "Distància entre la solera i l'origen de l'objecte"
 
 
 msgid "Use Rotation"
@@ -9219,7 +9219,7 @@ msgstr "Usar rotació"
 
 
 msgid "Use the target's rotation to determine floor"
-msgstr "[Use Rotation]: Utilitza la rotació del referent per determinar el basament"
+msgstr "[Use Rotation]: Utilitza la rotació del referent per determinar la solera"
 
 
 msgid "Follow Path Constraint"
@@ -9227,7 +9227,7 @@ msgstr "Restricció seguir trajectòria"
 
 
 msgid "Lock motion to the target path"
-msgstr "[Follow Path Constraint]: Bloqueja el moviment al trajecte referent"
+msgstr "[Follow Path Constraint]: Bloqueja el moviment a la trajectòria del referent"
 
 
 msgid "Forward Axis"
@@ -22017,7 +22017,7 @@ msgstr "[Clamp the Z axis of the curve]: Permet que s'editi en l'eix Z d'aquesta
 
 
 msgid "Parametric position along the length of the curve that Objects 'following' it should be at (position is evaluated by dividing by the 'Path Length' value)"
-msgstr "Posició paramètrica al llarg de la longitud de la corba on caldria trobar-hi els objectes que la «segueixen» (la posició s'avalua dividint pel valor de «Longitud de trajecte»)"
+msgstr "Posició paramètrica al llarg de la longitud de la corba on caldria trobar-hi els objectes que la «segueixen» (la posició s'avalua dividint pel valor de «Longitud de trajectòria»)"
 
 
 msgid "Extrude"
@@ -22209,11 +22209,11 @@ msgstr "Seguir"
 
 
 msgid "Make curve path children rotate along the path"
-msgstr "[Follow]: Fa que els fills del trajecte de corba vagin rotant al llarg del trajecte"
+msgstr "[Follow]: Fa que els fills de la trajectòria de corba vagin rotant al llarg del trajecte"
 
 
 msgid "Option for paths and curve-deform: apply the curve radius to objects following it and to deformed objects"
-msgstr "Opció per a trajectes i deformació de corba: aplica el radi de la corba als objectes el segueixen i als objectes deformats"
+msgstr "Opció per a trajectòries i deformació de corba: aplica el radi de la corba als objectes el segueixen i als objectes deformats"
 
 
 msgid "Option for curve-deform: make deformed child stretch along entire path"
@@ -34677,7 +34677,7 @@ msgstr "[Alignment]: Defineix com alinear els punts i caixes amb el trajecte mar
 
 
 msgid "Follow stroke drawing path and object rotation"
-msgstr "Segueix el trajecte marcat pel traç i la rotació de l'objecte"
+msgstr "Segueix la trajectòria marcada pel traç i la rotació de l'objecte"
 
 
 msgid "Follow object rotation only"
@@ -34689,7 +34689,7 @@ msgstr "Fixat"
 
 
 msgid "Do not follow drawing path or object rotation and keeps aligned with viewport"
-msgstr "No seguir el trajecte marcat o rotació de l'objecte i es manté alineada amb el mirador"
+msgstr "No segueix la trajectòria marcada o la rotació de l'objecte i es manté alineada amb el mirador"
 
 
 msgid "Additional rotation applied to dots and square texture of strokes. Only applies in texture shading mode."
@@ -34950,52 +34950,12 @@ msgid "Editor menu containing buttons"
 msgstr "El menú d'edició que conté els botons"
 
 
-msgid "Local View"
-msgstr "Vista local"
-
-
-msgid "Viewpoint"
-msgstr "Punt de vista"
-
-
-msgid "Navigation"
-msgstr "Navegació"
-
-
-msgid "Align View"
-msgstr "Alinear vista"
-
-
-msgid "Align View to Active"
-msgstr "Alinear vista a actiu"
-
-
-msgid "View Regions"
-msgstr "Regions de visionat"
+msgid "Assign Material"
+msgstr "Assignar material"
 
 
 msgid "Select More/Less"
 msgstr "Seleccionar més/menys"
-
-
-msgid "Select Similar"
-msgstr "Seleccionar similar"
-
-
-msgid "Select All by Trait"
-msgstr "Seleccionar tot per trets"
-
-
-msgid "Select Linked"
-msgstr "Seleccionar connectats"
-
-
-msgid "Select Loops"
-msgstr "Seleccionar bucles"
-
-
-msgid "Assign Material"
-msgstr "Assignar material"
 
 
 msgid "Metaball"
@@ -35008,10 +34968,6 @@ msgstr "Llum"
 
 msgid "Light Probe"
 msgstr "Sonda de llum"
-
-
-msgid "Layout"
-msgstr "Disposició"
 
 
 msgid "Add Image"
@@ -35034,10 +34990,6 @@ msgid "Track"
 msgstr "Rastrejar"
 
 
-msgid "Adjust"
-msgstr "Ajustament"
-
-
 msgid "Quick Effects"
 msgstr "Efectes ràpids"
 
@@ -35050,20 +35002,12 @@ msgid "Clean Up"
 msgstr "Netejar"
 
 
-msgid "Keying"
-msgstr "Croma"
-
-
 msgid "Asset"
 msgstr "Recurs"
 
 
 msgid "Make Single User"
 msgstr "Forçar un únic usador"
-
-
-msgid "Tracking"
-msgstr "Trajectòria"
 
 
 msgid "Convert"
@@ -35074,20 +35018,12 @@ msgid "Link/Transfer Data"
 msgstr "Enllaçar/transferir dades"
 
 
-msgid "Utilities"
-msgstr "Utensilis"
-
-
 msgid "Hooks"
 msgstr "Ganxos"
 
 
-msgid "Math"
-msgstr "Matemàtica"
-
-
-msgid "Creative"
-msgstr "Creatiu"
+msgid "Layout"
+msgstr "Disposició"
 
 
 msgid "Vertex Group Locks"
@@ -35110,6 +35046,10 @@ msgid "Random Mask"
 msgstr "Màscara aleatòria"
 
 
+msgid "Adjust"
+msgstr "Ajustament"
+
+
 msgid "Clear Transform"
 msgstr "Retirar transformació"
 
@@ -35118,20 +35058,36 @@ msgid "In-Betweens"
 msgstr "Intermedis"
 
 
-msgid "Render Preview"
-msgstr "Previsionat de revelat"
-
-
 msgid "Propagate"
 msgstr "Propagar"
+
+
+msgid "Keying"
+msgstr "Croma"
 
 
 msgid "Bone Collections"
 msgstr "Col·leccions d'ossos"
 
 
+msgid "Tracking"
+msgstr "Trajectòria"
+
+
 msgid "Names"
 msgstr "Noms"
+
+
+msgid "Utilities"
+msgstr "Utensilis"
+
+
+msgid "Math"
+msgstr "Matemàtica"
+
+
+msgid "Creative"
+msgstr "Creatiu"
 
 
 msgid "Toggle Bone Options"
@@ -35162,24 +35118,32 @@ msgid "Set Face Strength"
 msgstr "Definir força de cara"
 
 
+msgid "Render Preview"
+msgstr "Previsionat de revelat"
+
+
 msgid "Merge"
 msgstr "Fusionar"
-
-
-msgid "Read"
-msgstr "Lectura"
 
 
 msgid "Special Characters"
 msgstr "Caràcters especials"
 
 
-msgid "Sample"
-msgstr "Mostreig"
-
-
 msgid "Kerning"
 msgstr "Interlletratge"
+
+
+msgid "Bone Roll"
+msgstr "Girar os"
+
+
+msgid "Read"
+msgstr "Lectura"
+
+
+msgid "Sample"
+msgstr "Mostreig"
 
 
 msgid "Write"
@@ -35188,22 +35152,6 @@ msgstr "Escriptura"
 
 msgid "Primitives"
 msgstr "Primitius"
-
-
-msgid "Bone Roll"
-msgstr "Girar os"
-
-
-msgid "Gizmo"
-msgstr "Flòstic"
-
-
-msgid "Instances"
-msgstr "Instàncies"
-
-
-msgid "Import"
-msgstr "Importar"
 
 
 msgid "Pivot Point"
@@ -35218,10 +35166,6 @@ msgid "Proportional Editing Falloff"
 msgstr "Decaïment a l'edició proporcional"
 
 
-msgid "Deprecated"
-msgstr "Obsolet"
-
-
 msgid "Mask Edit"
 msgstr "Edició de màscares"
 
@@ -35234,12 +35178,20 @@ msgid "Face Sets Edit"
 msgstr "Edició de jocs de cares"
 
 
-msgid "List"
-msgstr "Llistar"
+msgid "Gizmo"
+msgstr "Flòstic"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Instances"
+msgstr "Instàncies"
+
+
+msgid "Import"
+msgstr "Importar"
+
+
+msgid "Deprecated"
+msgstr "Obsolet"
 
 
 msgid "Mirror"
@@ -35248,6 +35200,54 @@ msgstr "Emmirallar"
 
 msgid "UV Mapping"
 msgstr "Mapejat UV"
+
+
+msgid "List"
+msgstr "Llistar"
+
+
+msgid "Local View"
+msgstr "Vista local"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Viewpoint"
+msgstr "Punt de vista"
+
+
+msgid "Navigation"
+msgstr "Navegació"
+
+
+msgid "Align View"
+msgstr "Alinear vista"
+
+
+msgid "Align View to Active"
+msgstr "Alinear vista a actiu"
+
+
+msgid "View Regions"
+msgstr "Regions de visionat"
+
+
+msgid "Select Similar"
+msgstr "Seleccionar similar"
+
+
+msgid "Select All by Trait"
+msgstr "Seleccionar tot per trets"
+
+
+msgid "Select Linked"
+msgstr "Seleccionar connectats"
+
+
+msgid "Select Loops"
+msgstr "Seleccionar bucles"
 
 
 msgid "Keyframe Insert Pie"
@@ -47350,7 +47350,7 @@ msgstr "Trajectes d'arestes a selecció"
 
 
 msgid "Output a selection of edges by following paths across mesh edges"
-msgstr "Egressa una selecció d'arestes a partir de camins que segueix a través d'arestes de malla"
+msgstr "Egressa una selecció d'arestes a partir de camins que travessen les arestes de malla"
 
 
 msgid "Edges of Corner"
@@ -50189,7 +50189,7 @@ msgstr "[Round]: Arrodoneix A a l'enter més proper. Arrodoneix cap amunt si la 
 
 
 msgid "The largest integer smaller than or equal A"
-msgstr "[Floor]: L'enter més gran més petit o igual a A"
+msgstr "[Floor]: L'enter més gran menor o igual a A"
 
 
 msgctxt "NodeTree"
@@ -53481,7 +53481,7 @@ msgstr "Afegir predefinit de roba"
 
 
 msgid "Evaluate the namespace up until the cursor and give a list of options or complete the name if there is only one"
-msgstr "Avalua l'espai de noms fins al cursor i dona una llista d'opcions o completa el nom si només n'hi ha un"
+msgstr "Avalua l'espai nominal fins al cursor i dona una llista d'opcions o completa el nom si només n'hi ha un"
 
 
 msgctxt "Operator"
@@ -59427,7 +59427,7 @@ msgstr "Pla disponible per a l'orientació"
 
 
 msgid "Set floor plane"
-msgstr "Definir pla de basament"
+msgstr "Definir pla de solera"
 
 
 msgid "Wall"
@@ -72869,7 +72869,7 @@ msgstr "Mode arrodonir"
 
 
 msgid "Floor Mode"
-msgstr "Mode terra"
+msgstr "Mode arrodonit"
 
 
 msgid "Ceil Mode"
@@ -90162,11 +90162,11 @@ msgstr "[Convert World Material]: Converteix el material del món en una llum de
 
 
 msgid "Namespace"
-msgstr "Espai de noms"
+msgstr "Espai denominatiu"
 
 
 msgid "If set, add the given namespace as a prefix to exported custom property names. This only applies to property names that do not already have a prefix (e.g., it would apply to name 'bar' but not 'foo:bar') and does not apply to blender object and data names which are always exported in the 'userProperties:blender' namespace"
-msgstr "Si està definit, afegiu l'espai de noms donat com a prefix als noms de propietats a mida exportades. Això només s'aplica als noms de propietats que encara no tenen un prefix (p. ex., s'aplicaria al nom 'bar' però no a 'foo:bar') i no s'aplica als noms d'objectes i dades del blender que sempre s'exporten a l'espai de noms 'userProperties:blender'"
+msgstr "Si està definit, afegiu l'espai de denominacions donat com a prefix als noms de propietats a mida exportades. Això només s'aplica als noms de propietats que encara no tenen un prefix (p. ex., s'aplicaria al nom 'bar' però no a 'foo:bar') i no s'aplica als noms d'objectes i dades del blender que sempre s'exporten a l'espai denominatiu 'userProperties:blender'"
 
 
 msgid "Use Settings for"
@@ -90631,7 +90631,7 @@ msgstr "No importar atributs USD personalitzats de color"
 
 
 msgid "Import USD attributes in the 'userProperties' namespace as Blender custom properties. The namespace will be stripped from the property names"
-msgstr "Importa els atributs USD a l'espai de noms \"userProperties\" com a propietats creades a mida de Blender. A l'espai de noms se li eliminaran dels noms de la propietat"
+msgstr "Importa els atributs USD a l'espai de denominacions \"userProperties\" com a propietats creades a mida de Blender. A l'espai denominatiu se li eliminaran dels noms de la propietat"
 
 
 msgid "All Custom"
@@ -90639,7 +90639,7 @@ msgstr "Tot personalitzat"
 
 
 msgid "Import all USD custom attributes as Blender custom properties. Namespaces will be retained in the property names"
-msgstr "Importa tots els atributs personalitzats d'USD com a propietats creades a mida de Blender. Els espais de noms es conservaran als noms de la propietat"
+msgstr "Importa tots els atributs personalitzats d'USD com a propietats creades a mida de Blender. Els espais denominatius es conservaran als noms de la propietat"
 
 
 msgid "Mesh Attributes"
@@ -91755,50 +91755,6 @@ msgid "Panel containing UI elements"
 msgstr "Plafó que conté elements de la IU"
 
 
-msgid "Curve Edit Mode"
-msgstr "Mode edició de corba"
-
-
-msgid "Curves Edit Mode"
-msgstr "Mode edició de corbes"
-
-
-msgid "Transform Orientations"
-msgstr "Orientacions de transformació"
-
-
-msgid "Stroke Placement"
-msgstr "Emplaçament del traç"
-
-
-msgid "Drawing Plane"
-msgstr "Pla de dibuix"
-
-
-msgid "Guides"
-msgstr "Guies"
-
-
-msgid "Grease Pencil Options"
-msgstr "Llapis de greix - Opcions"
-
-
-msgid "Quad View"
-msgstr "Vista de quadrant"
-
-
-msgid "Onion Skin"
-msgstr "Pell de ceba"
-
-
-msgid "Stereoscopy"
-msgstr "Estereoscòpia"
-
-
-msgid "Multi Frame"
-msgstr "Multifotograma"
-
-
 msgid "Auto-Masking"
 msgstr "Autoemmascarament"
 
@@ -91883,6 +91839,10 @@ msgid "Overlays"
 msgstr "Sobreimpressions"
 
 
+msgid "Guides"
+msgstr "Guies"
+
+
 msgid "Viewer Node"
 msgstr "Node visor"
 
@@ -91897,6 +91857,46 @@ msgstr "Mode edició de malla"
 
 msgid "Measurement"
 msgstr "Mesurament"
+
+
+msgid "Curve Edit Mode"
+msgstr "Mode edició de corba"
+
+
+msgid "Curves Edit Mode"
+msgstr "Mode edició de corbes"
+
+
+msgid "Transform Orientations"
+msgstr "Orientacions de transformació"
+
+
+msgid "Stroke Placement"
+msgstr "Emplaçament del traç"
+
+
+msgid "Drawing Plane"
+msgstr "Pla de dibuix"
+
+
+msgid "Grease Pencil Options"
+msgstr "Llapis de greix - Opcions"
+
+
+msgid "Quad View"
+msgstr "Vista de quadrant"
+
+
+msgid "Onion Skin"
+msgstr "Pell de ceba"
+
+
+msgid "Stereoscopy"
+msgstr "Estereoscòpia"
+
+
+msgid "Multi Frame"
+msgstr "Multifotograma"
 
 
 msgid "Import Settings"
@@ -97263,6 +97263,10 @@ msgid "Italian - Italiano"
 msgstr "Italià - Italiano"
 
 
+msgid "Locale code: it_IT. Translation progress: 44%"
+msgstr "Codi de localització: it_IT. Progrés de la traducció: 44%"
+
+
 msgid "Japanese - 日本語"
 msgstr "Japonès - 日本語"
 
@@ -97307,6 +97311,10 @@ msgid "Norwegian (Bokmål) - Norsk bokmål"
 msgstr "Noruec (Bokmål) - Norsk bokmål"
 
 
+msgid "Locale code: nb. Translation progress: 3%"
+msgstr "Codi de localització: nb. Progrés de la traducció: 3%"
+
+
 msgid "Persian - ﯽﺳﺭﺎﻓ"
 msgstr "Persa - ﯽﺳﺭﺎﻓ"
 
@@ -97333,10 +97341,6 @@ msgstr "Codi de localització: pt_BR. Progrés de la traducció: 43%"
 
 msgid "Portuguese (Portugal) - Português europeu"
 msgstr "Portuguès (Portugal) - Portuguès europeu"
-
-
-msgid "Locale code: pt_PT. Translation progress: 73%"
-msgstr "Codi de localització: pt_PT. Progrés de la traducció: 73%"
 
 
 msgid "Romanian - Român"
@@ -97407,6 +97411,10 @@ msgid "Swedish - Svenska"
 msgstr "Suec - Svenska"
 
 
+msgid "Locale code: sv_SE. Translation progress: 21%"
+msgstr "Codi de localització: sv_SE. Progrés de la traducció: 21%"
+
+
 msgid "Tamil - தமிழ்"
 msgstr "Tàmil - தமிழ்"
 
@@ -97449,6 +97457,10 @@ msgstr "Codi de localització: ur. Progrés de la traducció: 87%"
 
 msgid "Vietnamese - Tiếng Việt"
 msgstr "Vietnamita - Tiếng Việt"
+
+
+msgid "Locale code: vi_VN. Translation progress: 94%"
+msgstr "Codi de localització: vi_VN. Progrés de la traducció: 94%"
 
 
 msgid "Reference Sphere Size"
@@ -98511,6 +98523,10 @@ msgstr "Grup de propietats d'ID"
 
 msgid "Group of ID properties"
 msgstr "Grup de propietats de l'ID"
+
+
+msgid "Unique name used in the code and scripting, can be re-defined in Python sub-classes if needed"
+msgstr "Nom únic emprat en el codi i en els protocols i que es pot redefinir, si cal, amb les subclasses de Python"
 
 
 msgid "Action to apply to the rig via constraints"
@@ -115128,7 +115144,7 @@ msgstr "Alçada de vista"
 
 
 msgid "View distance from the floor when walking"
-msgstr "La distància de la vista des de la planta en caminar"
+msgstr "La distància de la vista des del terra en caminar"
 
 
 msgid "Walk Speed"
@@ -125119,7 +125135,7 @@ msgstr "Configurar fons de mirador"
 
 msgctxt "Operator"
 msgid "Set Floor"
-msgstr "Definir terra"
+msgstr "Definir solera"
 
 
 msgid "Display Thin"
@@ -125144,7 +125160,7 @@ msgstr "Ràtio d'aspecte"
 
 msgctxt "Operator"
 msgid "Floor"
-msgstr "Terra"
+msgstr "Solera"
 
 
 msgctxt "Operator"
@@ -129090,7 +129106,7 @@ msgstr "Mirar envers"
 
 msgctxt "View3D"
 msgid "Floor"
-msgstr "Terra"
+msgstr "Solera"
 
 
 msgid "General Info"
@@ -132056,10 +132072,6 @@ msgstr "Les anelles-aresta no estan connectades"
 
 msgid "color_index is invalid"
 msgstr "color_index no vàlid"
-
-
-msgid "Compositor node tree has cyclic links!"
-msgstr "L'arbre de nodes compositador té enllaços cíclics!"
 
 
 msgid "Error: Too many AOVs"
@@ -138724,7 +138736,7 @@ msgstr "No hi ha cap objecte on aplicar l'orientació"
 
 
 msgid "Three tracks with bundles are needed to orient the floor"
-msgstr "Es necessiten tres rastres amb agregats per orientar el basament"
+msgstr "Es necessiten tres rastres amb agregats per orientar la solera"
 
 
 msgid "Single track with bundle should be selected to define axis"
@@ -143603,6 +143615,10 @@ msgstr "Índex de paleta de color no vàlid: %d"
 
 msgid "%s is not supported, pass a Bone, PoseBone, or EditBone"
 msgstr "%s no és compatible, passar un os, os posa, o os en edició"
+
+
+msgid "Asset metadata from external libraries cannot be edited. Only assets stored in the current file can be edited."
+msgstr "No es poden editar les metadades de recursos de biblioteques externes. Només es poden editar els recursos d'aquest mateix document."
 
 
 msgid "Tag '%s' already present for given asset"

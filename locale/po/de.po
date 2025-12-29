@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'edd300f2e755')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-22 09:32+0000\n"
+"POT-Creation-Date: 2025-12-29 09:32+0000\n"
 "PO-Revision-Date: 2025-12-02 20:06+0000\n"
 "Last-Translator: Bastitron <bastitronhd@gmail.com>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -18714,52 +18714,12 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Local View"
-msgstr "Lokale Ansicht"
-
-
-msgid "Viewpoint"
-msgstr "Ansicht"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Align View"
-msgstr "Ansicht ausrichten"
-
-
-msgid "Align View to Active"
-msgstr "Ansicht auf Aktiv ausrichten"
-
-
-msgid "View Regions"
-msgstr "Vierfenster Ansicht"
+msgid "Assign Material"
+msgstr "Material zuweisen"
 
 
 msgid "Select More/Less"
 msgstr "Mehr/weniger anzeigen"
-
-
-msgid "Select Similar"
-msgstr "Ähnliche auswählen"
-
-
-msgid "Select All by Trait"
-msgstr "Alles nach Merkmal auswählen"
-
-
-msgid "Select Linked"
-msgstr "Verknüpfte auswählen"
-
-
-msgid "Select Loops"
-msgstr "Schleifen auswählen"
-
-
-msgid "Assign Material"
-msgstr "Material zuweisen"
 
 
 msgid "Metaball"
@@ -18772,10 +18732,6 @@ msgstr "Licht"
 
 msgid "Light Probe"
 msgstr "Lichtsonde"
-
-
-msgid "Layout"
-msgstr "Layout"
 
 
 msgid "Add Image"
@@ -18810,20 +18766,12 @@ msgid "Clean Up"
 msgstr "Aufräumen"
 
 
-msgid "Keying"
-msgstr "Schlüsselbilder"
-
-
 msgid "Asset"
 msgstr "Asset"
 
 
 msgid "Make Single User"
 msgstr "Einfachen Benutzer erzeugen"
-
-
-msgid "Tracking"
-msgstr "Verfolgen"
 
 
 msgid "Convert"
@@ -18834,8 +18782,8 @@ msgid "Hooks"
 msgstr "Haken"
 
 
-msgid "Math"
-msgstr "Mathematisch"
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Vertex Group Locks"
@@ -18854,8 +18802,20 @@ msgid "In-Betweens"
 msgstr "Dazwischen"
 
 
+msgid "Keying"
+msgstr "Schlüsselbilder"
+
+
+msgid "Tracking"
+msgstr "Verfolgen"
+
+
 msgid "Names"
 msgstr "Namen"
+
+
+msgid "Math"
+msgstr "Mathematisch"
 
 
 msgid "Toggle Bone Options"
@@ -18882,20 +18842,20 @@ msgid "Merge"
 msgstr "Zusammenführen"
 
 
-msgid "Read"
-msgstr "Lesen"
-
-
 msgid "Special Characters"
 msgstr "Sonderzeichen"
 
 
-msgid "Sample"
-msgstr "Beispiel"
-
-
 msgid "Kerning"
 msgstr "Kerning"
+
+
+msgid "Read"
+msgstr "Lesen"
+
+
+msgid "Sample"
+msgstr "Beispiel"
 
 
 msgid "Write"
@@ -18904,14 +18864,6 @@ msgstr "Schreiben"
 
 msgid "Primitives"
 msgstr "Grundkörper"
-
-
-msgid "Instances"
-msgstr "Instanzen"
-
-
-msgid "Import"
-msgstr "Importieren"
 
 
 msgid "Pivot Point"
@@ -18930,12 +18882,60 @@ msgid "Mask Edit"
 msgstr "Maskenbearbeitung"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Instances"
+msgstr "Instanzen"
+
+
+msgid "Import"
+msgstr "Importieren"
 
 
 msgid "Mirror"
 msgstr "Spiegeln"
+
+
+msgid "Local View"
+msgstr "Lokale Ansicht"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Viewpoint"
+msgstr "Ansicht"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Align View"
+msgstr "Ansicht ausrichten"
+
+
+msgid "Align View to Active"
+msgstr "Ansicht auf Aktiv ausrichten"
+
+
+msgid "View Regions"
+msgstr "Vierfenster Ansicht"
+
+
+msgid "Select Similar"
+msgstr "Ähnliche auswählen"
+
+
+msgid "Select All by Trait"
+msgstr "Alles nach Merkmal auswählen"
+
+
+msgid "Select Linked"
+msgstr "Verknüpfte auswählen"
+
+
+msgid "Select Loops"
+msgstr "Schleifen auswählen"
 
 
 msgid "Assets"
@@ -38903,34 +38903,6 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
-msgid "Curve Edit Mode"
-msgstr "Kurven-Bearbeitungsmodus"
-
-
-msgid "Transform Orientations"
-msgstr "Transformationsausrichtung"
-
-
-msgid "Drawing Plane"
-msgstr "Malfläche"
-
-
-msgid "Guides"
-msgstr "Hilfslinien"
-
-
-msgid "Quad View"
-msgstr "Vierfenster-Ansicht"
-
-
-msgid "Onion Skin"
-msgstr "Zwiebelhaut"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoskopie"
-
-
 msgid "Auto-Masking"
 msgstr "Automatisches Maskieren"
 
@@ -38971,6 +38943,10 @@ msgid "Overlays"
 msgstr "Überlagerungen"
 
 
+msgid "Guides"
+msgstr "Hilfslinien"
+
+
 msgid "Motion Tracking"
 msgstr "Bewegungsverfolgung"
 
@@ -38981,6 +38957,30 @@ msgstr "Maschenbearbeitungsmodus"
 
 msgid "Measurement"
 msgstr "Messung"
+
+
+msgid "Curve Edit Mode"
+msgstr "Kurven-Bearbeitungsmodus"
+
+
+msgid "Transform Orientations"
+msgstr "Transformationsausrichtung"
+
+
+msgid "Drawing Plane"
+msgstr "Malfläche"
+
+
+msgid "Quad View"
+msgstr "Vierfenster-Ansicht"
+
+
+msgid "Onion Skin"
+msgstr "Zwiebelhaut"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoskopie"
 
 
 msgid "Chain Scaling"

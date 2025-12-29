@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'edd300f2e755')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-22 09:32+0000\n"
+"POT-Creation-Date: 2025-12-29 09:32+0000\n"
 "PO-Revision-Date: 2025-12-11 18:12+0000\n"
 "Last-Translator: Jackson Zheng <business.jackson.zheng@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -34918,52 +34918,12 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
-msgid "Local View"
-msgstr "Local View"
-
-
-msgid "Viewpoint"
-msgstr "Viewpoint"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Align View"
-msgstr "Align View"
-
-
-msgid "Align View to Active"
-msgstr "Align View to Active"
-
-
-msgid "View Regions"
-msgstr "View Regions"
+msgid "Assign Material"
+msgstr "Assign Material"
 
 
 msgid "Select More/Less"
 msgstr "Select More/Less"
-
-
-msgid "Select Similar"
-msgstr "Select Similar"
-
-
-msgid "Select All by Trait"
-msgstr "Select All by Trait"
-
-
-msgid "Select Linked"
-msgstr "Select Linked"
-
-
-msgid "Select Loops"
-msgstr "Select Loops"
-
-
-msgid "Assign Material"
-msgstr "Assign Material"
 
 
 msgid "Metaball"
@@ -34976,10 +34936,6 @@ msgstr "Light"
 
 msgid "Light Probe"
 msgstr "Light Probe"
-
-
-msgid "Layout"
-msgstr "Layout"
 
 
 msgid "Add Image"
@@ -35002,10 +34958,6 @@ msgid "Track"
 msgstr "Track"
 
 
-msgid "Adjust"
-msgstr "Adjust"
-
-
 msgid "Quick Effects"
 msgstr "Quick Effects"
 
@@ -35018,20 +34970,12 @@ msgid "Clean Up"
 msgstr "Clean Up"
 
 
-msgid "Keying"
-msgstr "Keying"
-
-
 msgid "Asset"
 msgstr "Asset"
 
 
 msgid "Make Single User"
 msgstr "Make Single User"
-
-
-msgid "Tracking"
-msgstr "Tracking"
 
 
 msgid "Convert"
@@ -35042,20 +34986,12 @@ msgid "Link/Transfer Data"
 msgstr "Link/Transfer Data"
 
 
-msgid "Utilities"
-msgstr "Utilities"
-
-
 msgid "Hooks"
 msgstr "Hooks"
 
 
-msgid "Math"
-msgstr "Maths"
-
-
-msgid "Creative"
-msgstr "Creative"
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Vertex Group Locks"
@@ -35078,6 +35014,10 @@ msgid "Random Mask"
 msgstr "Random Mask"
 
 
+msgid "Adjust"
+msgstr "Adjust"
+
+
 msgid "Clear Transform"
 msgstr "Clear Transform"
 
@@ -35086,20 +35026,36 @@ msgid "In-Betweens"
 msgstr "In-Betweens"
 
 
-msgid "Render Preview"
-msgstr "Render Preview"
-
-
 msgid "Propagate"
 msgstr "Propagate"
+
+
+msgid "Keying"
+msgstr "Keying"
 
 
 msgid "Bone Collections"
 msgstr "Bone Collections"
 
 
+msgid "Tracking"
+msgstr "Tracking"
+
+
 msgid "Names"
 msgstr "Names"
+
+
+msgid "Utilities"
+msgstr "Utilities"
+
+
+msgid "Math"
+msgstr "Maths"
+
+
+msgid "Creative"
+msgstr "Creative"
 
 
 msgid "Toggle Bone Options"
@@ -35130,24 +35086,32 @@ msgid "Set Face Strength"
 msgstr "Set Face Strength"
 
 
+msgid "Render Preview"
+msgstr "Render Preview"
+
+
 msgid "Merge"
 msgstr "Merge"
-
-
-msgid "Read"
-msgstr "Read"
 
 
 msgid "Special Characters"
 msgstr "Special Characters"
 
 
-msgid "Sample"
-msgstr "Sample"
-
-
 msgid "Kerning"
 msgstr "Kerning"
+
+
+msgid "Bone Roll"
+msgstr "Bone Roll"
+
+
+msgid "Read"
+msgstr "Read"
+
+
+msgid "Sample"
+msgstr "Sample"
 
 
 msgid "Write"
@@ -35156,22 +35120,6 @@ msgstr "Write"
 
 msgid "Primitives"
 msgstr "Primitives"
-
-
-msgid "Bone Roll"
-msgstr "Bone Roll"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Instances"
-
-
-msgid "Import"
-msgstr "Import"
 
 
 msgid "Pivot Point"
@@ -35186,10 +35134,6 @@ msgid "Proportional Editing Falloff"
 msgstr "Proportional Editing Falloff"
 
 
-msgid "Deprecated"
-msgstr "Deprecated"
-
-
 msgid "Mask Edit"
 msgstr "Mask Edit"
 
@@ -35202,12 +35146,20 @@ msgid "Face Sets Edit"
 msgstr "Face Sets Edit"
 
 
-msgid "List"
-msgstr "List"
+msgid "Gizmo"
+msgstr "Gizmo"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Instances"
+msgstr "Instances"
+
+
+msgid "Import"
+msgstr "Import"
+
+
+msgid "Deprecated"
+msgstr "Deprecated"
 
 
 msgid "Mirror"
@@ -35216,6 +35168,54 @@ msgstr "Mirror"
 
 msgid "UV Mapping"
 msgstr "UV Mapping"
+
+
+msgid "List"
+msgstr "List"
+
+
+msgid "Local View"
+msgstr "Local View"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Viewpoint"
+msgstr "Viewpoint"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Align View"
+msgstr "Align View"
+
+
+msgid "Align View to Active"
+msgstr "Align View to Active"
+
+
+msgid "View Regions"
+msgstr "View Regions"
+
+
+msgid "Select Similar"
+msgstr "Select Similar"
+
+
+msgid "Select All by Trait"
+msgstr "Select All by Trait"
+
+
+msgid "Select Linked"
+msgstr "Select Linked"
+
+
+msgid "Select Loops"
+msgstr "Select Loops"
 
 
 msgid "Keyframe Insert Pie"
@@ -91565,50 +91565,6 @@ msgid "Panel containing UI elements"
 msgstr "Panel containing UI elements"
 
 
-msgid "Curve Edit Mode"
-msgstr "Curve Edit Mode"
-
-
-msgid "Curves Edit Mode"
-msgstr "Curves Edit Mode"
-
-
-msgid "Transform Orientations"
-msgstr "Transform Orientations"
-
-
-msgid "Stroke Placement"
-msgstr "Stroke Placement"
-
-
-msgid "Drawing Plane"
-msgstr "Drawing Plane"
-
-
-msgid "Guides"
-msgstr "Guides"
-
-
-msgid "Grease Pencil Options"
-msgstr "Grease Pencil Options"
-
-
-msgid "Quad View"
-msgstr "Quad View"
-
-
-msgid "Onion Skin"
-msgstr "Onion Skin"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoscopy"
-
-
-msgid "Multi Frame"
-msgstr "Multi Frame"
-
-
 msgid "Auto-Masking"
 msgstr "Auto-Masking"
 
@@ -91693,6 +91649,10 @@ msgid "Overlays"
 msgstr "Overlays"
 
 
+msgid "Guides"
+msgstr "Guides"
+
+
 msgid "Viewer Node"
 msgstr "Viewer Node"
 
@@ -91707,6 +91667,46 @@ msgstr "Mesh Edit Mode"
 
 msgid "Measurement"
 msgstr "Measurement"
+
+
+msgid "Curve Edit Mode"
+msgstr "Curve Edit Mode"
+
+
+msgid "Curves Edit Mode"
+msgstr "Curves Edit Mode"
+
+
+msgid "Transform Orientations"
+msgstr "Transform Orientations"
+
+
+msgid "Stroke Placement"
+msgstr "Stroke Placement"
+
+
+msgid "Drawing Plane"
+msgstr "Drawing Plane"
+
+
+msgid "Grease Pencil Options"
+msgstr "Grease Pencil Options"
+
+
+msgid "Quad View"
+msgstr "Quad View"
+
+
+msgid "Onion Skin"
+msgstr "Onion Skin"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoscopy"
+
+
+msgid "Multi Frame"
+msgstr "Multi Frame"
 
 
 msgid "Import Settings"
@@ -97123,10 +97123,6 @@ msgstr "Portuguese (Brazil) - Português brasileiro"
 
 msgid "Portuguese (Portugal) - Português europeu"
 msgstr "Portuguese (Portugal) - Português europeu"
-
-
-msgid "Locale code: pt_PT. Translation progress: 73%"
-msgstr "Locale code: pt_PT. Translation progress: 73%"
 
 
 msgid "Romanian - Român"
@@ -131775,10 +131771,6 @@ msgstr "Edge-rings are not connected"
 
 msgid "color_index is invalid"
 msgstr "color_index is invalid"
-
-
-msgid "Compositor node tree has cyclic links!"
-msgstr "Compositor node tree has cyclic links!"
 
 
 msgid "Error: Too many AOVs"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'edd300f2e755')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-22 09:32+0000\n"
+"POT-Creation-Date: 2025-12-29 09:32+0000\n"
 "PO-Revision-Date: 2025-07-23 15:08+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -26358,52 +26358,12 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
-msgid "Local View"
-msgstr "Огляд Локально"
-
-
-msgid "Viewpoint"
-msgstr "Точка зору"
-
-
-msgid "Navigation"
-msgstr "Навігація"
-
-
-msgid "Align View"
-msgstr "Вирівняти Огляд"
-
-
-msgid "Align View to Active"
-msgstr "Вирівняти Огляд за Активним"
-
-
-msgid "View Regions"
-msgstr "Регіони Огляду"
+msgid "Assign Material"
+msgstr "Призначити Матеріал"
 
 
 msgid "Select More/Less"
 msgstr "Вибрати більше/менше"
-
-
-msgid "Select Similar"
-msgstr "Вибрати подібні"
-
-
-msgid "Select All by Trait"
-msgstr "Вибрати все за рисою"
-
-
-msgid "Select Linked"
-msgstr "Виділити пов'язане"
-
-
-msgid "Select Loops"
-msgstr "Виділити петлі"
-
-
-msgid "Assign Material"
-msgstr "Призначити Матеріал"
 
 
 msgid "Metaball"
@@ -26416,10 +26376,6 @@ msgstr "Слабко"
 
 msgid "Light Probe"
 msgstr "Проба Освітлення"
-
-
-msgid "Layout"
-msgstr "Розстановка"
 
 
 msgid "Add Image"
@@ -26454,20 +26410,12 @@ msgid "Clean Up"
 msgstr "Вичищення"
 
 
-msgid "Keying"
-msgstr "Ключування"
-
-
 msgid "Asset"
 msgstr "Актив"
 
 
 msgid "Make Single User"
 msgstr "Зробити однокористувацьким"
-
-
-msgid "Tracking"
-msgstr "Стеження"
 
 
 msgid "Convert"
@@ -26478,16 +26426,12 @@ msgid "Link/Transfer Data"
 msgstr "Пов'язати/Перенести Дані"
 
 
-msgid "Utilities"
-msgstr "Утиліти"
-
-
 msgid "Hooks"
 msgstr "Гачки"
 
 
-msgid "Math"
-msgstr "Математика"
+msgid "Layout"
+msgstr "Розстановка"
 
 
 msgid "Vertex Group Locks"
@@ -26514,8 +26458,24 @@ msgid "Propagate"
 msgstr "Поширити"
 
 
+msgid "Keying"
+msgstr "Ключування"
+
+
+msgid "Tracking"
+msgstr "Стеження"
+
+
 msgid "Names"
 msgstr "Назви"
+
+
+msgid "Utilities"
+msgstr "Утиліти"
+
+
+msgid "Math"
+msgstr "Математика"
 
 
 msgid "Toggle Bone Options"
@@ -26554,24 +26514,20 @@ msgid "Special Characters"
 msgstr "Спеціальні символи"
 
 
-msgid "Sample"
-msgstr "Вибірка"
-
-
 msgid "Kerning"
 msgstr "Кернінг"
-
-
-msgid "Primitives"
-msgstr "Примітиви"
 
 
 msgid "Bone Roll"
 msgstr "Прокручення Кістки"
 
 
-msgid "Import"
-msgstr "Імпортувати"
+msgid "Sample"
+msgstr "Вибірка"
+
+
+msgid "Primitives"
+msgstr "Примітиви"
 
 
 msgid "Pivot Point"
@@ -26598,8 +26554,8 @@ msgid "Face Sets Edit"
 msgstr "Редагування Наборів Граней"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Import"
+msgstr "Імпортувати"
 
 
 msgid "Mirror"
@@ -26608,6 +26564,50 @@ msgstr "Дзеркалення"
 
 msgid "UV Mapping"
 msgstr "Розкладання UV"
+
+
+msgid "Local View"
+msgstr "Огляд Локально"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Viewpoint"
+msgstr "Точка зору"
+
+
+msgid "Navigation"
+msgstr "Навігація"
+
+
+msgid "Align View"
+msgstr "Вирівняти Огляд"
+
+
+msgid "Align View to Active"
+msgstr "Вирівняти Огляд за Активним"
+
+
+msgid "View Regions"
+msgstr "Регіони Огляду"
+
+
+msgid "Select Similar"
+msgstr "Вибрати подібні"
+
+
+msgid "Select All by Trait"
+msgstr "Вибрати все за рисою"
+
+
+msgid "Select Linked"
+msgstr "Виділити пов'язане"
+
+
+msgid "Select Loops"
+msgstr "Виділити петлі"
 
 
 msgid "Basic"
@@ -60931,42 +60931,6 @@ msgid "Panel containing UI elements"
 msgstr "Панель, що містить елементи Інтерфейсу Користувача"
 
 
-msgid "Curve Edit Mode"
-msgstr "Режим Редагування Кривої"
-
-
-msgid "Transform Orientations"
-msgstr "Орієнтації Трансформ"
-
-
-msgid "Stroke Placement"
-msgstr "Розміщення Штриха"
-
-
-msgid "Drawing Plane"
-msgstr "Площина Рисування"
-
-
-msgid "Guides"
-msgstr "Напрямні"
-
-
-msgid "Quad View"
-msgstr "Чотирибічний Огляд"
-
-
-msgid "Onion Skin"
-msgstr "Покрив Калькою"
-
-
-msgid "Stereoscopy"
-msgstr "Стереоскопія"
-
-
-msgid "Multi Frame"
-msgstr "Багато Кадр"
-
-
 msgid "Auto-Masking"
 msgstr "Авто-Маскування"
 
@@ -61003,6 +60967,10 @@ msgid "Overlays"
 msgstr "Накладки"
 
 
+msgid "Guides"
+msgstr "Напрямні"
+
+
 msgid "Motion Tracking"
 msgstr "Відстеження руху"
 
@@ -61013,6 +60981,38 @@ msgstr "Режим Редагування Сіті"
 
 msgid "Measurement"
 msgstr "Вимірювання"
+
+
+msgid "Curve Edit Mode"
+msgstr "Режим Редагування Кривої"
+
+
+msgid "Transform Orientations"
+msgstr "Орієнтації Трансформ"
+
+
+msgid "Stroke Placement"
+msgstr "Розміщення Штриха"
+
+
+msgid "Drawing Plane"
+msgstr "Площина Рисування"
+
+
+msgid "Quad View"
+msgstr "Чотирибічний Огляд"
+
+
+msgid "Onion Skin"
+msgstr "Покрив Калькою"
+
+
+msgid "Stereoscopy"
+msgstr "Стереоскопія"
+
+
+msgid "Multi Frame"
+msgstr "Багато Кадр"
 
 
 msgid "Chain Scaling"

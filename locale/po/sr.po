@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'edd300f2e755')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-22 09:32+0000\n"
+"POT-Creation-Date: 2025-12-29 09:32+0000\n"
 "PO-Revision-Date: 2025-07-23 15:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -8497,22 +8497,6 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
-msgid "Local View"
-msgstr "Локални поглед"
-
-
-msgid "Navigation"
-msgstr "Навигација"
-
-
-msgid "Align View"
-msgstr "Поравнај поглед"
-
-
-msgid "Select Linked"
-msgstr "Изабери повезано"
-
-
 msgid "Metaball"
 msgstr "Мета лопта"
 
@@ -8545,20 +8529,8 @@ msgid "Show/Hide"
 msgstr "Прикажи/сакриј"
 
 
-msgid "Keying"
-msgstr "Збирка тастера"
-
-
-msgid "Tracking"
-msgstr "Праћење"
-
-
 msgid "Hooks"
 msgstr "Удице"
-
-
-msgid "Math"
-msgstr "Математика"
 
 
 msgid "Clear Transform"
@@ -8573,8 +8545,20 @@ msgid "Propagate"
 msgstr "Пренеси"
 
 
+msgid "Keying"
+msgstr "Збирка тастера"
+
+
+msgid "Tracking"
+msgstr "Праћење"
+
+
 msgid "Names"
 msgstr "Имена"
+
+
+msgid "Math"
+msgstr "Математика"
 
 
 msgid "Toggle Bone Options"
@@ -8605,16 +8589,12 @@ msgid "Bone Roll"
 msgstr "Ролна костију"
 
 
-msgid "Import"
-msgstr "Увоз"
-
-
 msgid "Snap"
 msgstr "Лепљење"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Import"
+msgstr "Увоз"
 
 
 msgid "Mirror"
@@ -8623,6 +8603,26 @@ msgstr "Огледало"
 
 msgid "UV Mapping"
 msgstr "UV Мапирање"
+
+
+msgid "Local View"
+msgstr "Локални поглед"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Navigation"
+msgstr "Навигација"
+
+
+msgid "Align View"
+msgstr "Поравнај поглед"
+
+
+msgid "Select Linked"
+msgstr "Изабери повезано"
 
 
 msgid "Basic"
@@ -19135,12 +19135,12 @@ msgid "Restrict"
 msgstr "Ограничи"
 
 
-msgid "Transform Orientations"
-msgstr "Трансформација оријентација"
-
-
 msgid "Motion Tracking"
 msgstr "Праћење покрета"
+
+
+msgid "Transform Orientations"
+msgstr "Трансформација оријентација"
 
 
 msgid "Bone Constraints"

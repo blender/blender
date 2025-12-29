@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'4e205b56c72f')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'edd300f2e755')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-22 09:32+0000\n"
+"POT-Creation-Date: 2025-12-29 09:32+0000\n"
 "PO-Revision-Date: 2025-12-04 22:18+0000\n"
 "Last-Translator: Jackson Zheng <business.jackson.zheng@gmail.com>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -2605,10 +2605,6 @@ msgid "Show/Hide"
 msgstr "छुपाएँ / दिखाएँ"
 
 
-msgid "Keying"
-msgstr "कुंजीयन"
-
-
 msgid "Make Single User"
 msgstr "एकल प्रयोक्ता बनाएँ"
 
@@ -2617,12 +2613,16 @@ msgid "Hooks"
 msgstr "खूँटी"
 
 
-msgid "Math"
-msgstr "गणित"
+msgid "Keying"
+msgstr "कुंजीयन"
 
 
 msgid "Names"
 msgstr "नाम"
+
+
+msgid "Math"
+msgstr "गणित"
 
 
 msgid "Toggle Bone Options"
@@ -2641,20 +2641,20 @@ msgid "Bone Roll"
 msgstr "हड्डी पंजी"
 
 
-msgid "Import"
-msgstr "आयात करें"
-
-
 msgid "Snap"
 msgstr "स्नैप"
 
 
-msgid "UV"
-msgstr "यूवी"
+msgid "Import"
+msgstr "आयात करें"
 
 
 msgid "Mirror"
 msgstr "दर्पण"
+
+
+msgid "UV"
+msgstr "यूवी"
 
 
 msgid "Basic"
@@ -4441,12 +4441,12 @@ msgid "Lock Y"
 msgstr "तालाबंदी y"
 
 
-msgid "Transform Orientations"
-msgstr "दिक् विन्यास संरचनांतरण"
-
-
 msgid "Motion Tracking"
 msgstr "गति मार्गन"
+
+
+msgid "Transform Orientations"
+msgstr "दिक् विन्यास संरचनांतरण"
 
 
 msgid "Predefined tracking camera intrinsics"
