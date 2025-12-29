@@ -124,7 +124,8 @@ void BlenderSync::sync_background_light(::bScreen *b_screen, ::View3D *b_v3d)
     if (update) {
       /* Lights should be shadow catchers by default. */
       object->set_is_shadow_catcher(true);
-      object->set_lightgroup(ustring(b_world ? b_world->lightgroup->name : ""));
+      object->set_lightgroup(
+          ustring((b_world && b_world->lightgroup) ? b_world->lightgroup->name : ""));
     }
 
     object->set_asset_name(ustring(b_world->id.name + 2));
