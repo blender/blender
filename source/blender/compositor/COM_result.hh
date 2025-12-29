@@ -434,24 +434,11 @@ class Result {
            const Extension &extend_mode_x,
            const Extension &extend_mode_y) const;
 
-  /* Samples the result at the given normalized coordinates with nearest interpolation and extended
-   * boundary conditions. Assumes the result stores a value of the given template type. If the
-   * CouldBeSingleValue template argument is true and the result is a single value result, then
-   * that single value is returned for all coordinates. */
-  template<typename T, bool CouldBeSingleValue = false>
-  T sample_nearest_extended(const float2 &coordinates) const;
-
-  /* Samples the result at the given normalized coordinates with bilinear interpolation and zero
-   * boundary conditions. Assumes the result stores a value of the given template type. If the
-   * CouldBeSingleValue template argument is true and the result is a single value result, then
-   * that single value is returned for all coordinates. */
+  /* Shorthand for sample() with bilinear interpolation and zero boundary conditions. */
   template<typename T, bool CouldBeSingleValue = false>
   T sample_bilinear_zero(const float2 &coordinates) const;
 
-  /* Samples the result at the given normalized coordinates with bilinear interpolation and
-   * extended boundary conditions. Assumes the result stores a value of the given template type. If
-   * the CouldBeSingleValue template argument is true and the result is a single value result, then
-   * that single value is returned for all coordinates. */
+  /* Shorthand for sample() with bilinear interpolation and extended boundary conditions. */
   template<typename T, bool CouldBeSingleValue = false>
   T sample_bilinear_extended(const float2 &coordinates) const;
 
@@ -754,13 +741,6 @@ BLI_INLINE_METHOD T Result::sample_bilinear_zero(const float2 &coordinates) cons
 {
   return this->sample<T, CouldBeSingleValue>(
       coordinates, Interpolation::Bilinear, Extension::Clip, Extension::Clip);
-}
-
-template<typename T, bool CouldBeSingleValue>
-BLI_INLINE_METHOD T Result::sample_nearest_extended(const float2 &coordinates) const
-{
-  return this->sample<T, CouldBeSingleValue>(
-      coordinates, Interpolation::Nearest, Extension::Extend, Extension::Extend);
 }
 
 template<typename T, bool CouldBeSingleValue>

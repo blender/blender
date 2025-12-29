@@ -304,9 +304,13 @@ namespace blender::compositor {
 #define SMAASampleLevelZeroOffset(T, tex, coord, offset, size) \
   tex.sample_bilinear_extended<T>(coord + float2(offset) / float2(size))
 #define SMAASample(T, tex, coord) tex.sample_bilinear_extended<T>(coord)
-#define SMAASamplePoint(T, tex, coord) tex.sample_nearest_extended<T>(coord)
+#define SMAASamplePoint(T, tex, coord) \
+  tex.sample<T>(coord, Interpolation::Nearest, Extension::Extend, Extension::Extend)
 #define SMAASamplePointOffset(T, tex, coord, offset, size) \
-  tex.sample_nearest_extended<T>(coord + float2(offset) / float2(size))
+  tex.sample<T>(coord + float2(offset) / float2(size), \
+                Interpolation::Nearest, \
+                Extension::Extend, \
+                Extension::Extend)
 #define SMAASampleOffset(T, tex, coord, offset, size) \
   tex.sample_bilinear_extended<T>(coord + float2(offset) / float2(size))
 #define SMAA_FLATTEN
