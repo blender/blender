@@ -128,6 +128,24 @@ def Xform "root" (
         }
     }
 
+    def Xform "BoxUniformColor"
+    {
+        matrix4d xformOp:transform = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (4, 2, 0, 1) )
+        uniform token[] xformOpOrder = ["xformOp:transform"]
+
+        def Cube "cube_color"
+        {
+            double size = 0.5
+            color3f[] primvars:displayColor = [(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 0), (0, 1, 1), (1, 0, 1)] (
+                interpolation = "uniform"
+            )
+            color3f[] primvars:displayColor.timeSamples = {
+                1: [(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 0), (0, 1, 1), (1, 0, 1)],
+                2: [(0, 1, 0), (0, 0, 1), (1, 1, 0), (0, 1, 1), (1, 0, 1), (1, 0, 0)],
+            }
+        }
+    }
+
     def Xform "Tube"
     {
         matrix4d xformOp:transform = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (6, 0, 0, 1) )

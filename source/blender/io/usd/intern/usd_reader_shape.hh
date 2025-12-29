@@ -44,6 +44,7 @@ class USDShapeReader : public USDGeomReader {
    * also returning face_indices and counts for further loop processing. */
   Mesh *mesh_from_prim(Mesh *existing_mesh,
                        USDMeshReadParams params,
+                       pxr::VtVec3fArray &positions,
                        pxr::VtIntArray &face_indices,
                        pxr::VtIntArray &face_counts) const;
 
