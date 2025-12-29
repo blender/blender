@@ -1,0 +1,33 @@
+==== Meshes: 4
+- Mesh 'mesh_counts_but_no_indices' vtx:0 face:0 loop:0 edge:0
+
+- Mesh 'mesh_counts_but_no_points' vtx:0 face:0 loop:0 edge:0
+
+- Mesh 'mesh_empty_frame' vtx:0 face:0 loop:0 edge:0
+
+- Mesh 'mesh_too_few_points' vtx:0 face:0 loop:0 edge:0
+
+==== Objects: 5
+- Obj 'mesh_counts_but_no_indices' MESH data:'mesh_counts_but_no_indices' par:'root'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'mesh_counts_but_no_points' MESH data:'mesh_counts_but_no_points' par:'root'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'mesh_empty_frame' MESH data:'mesh_empty_frame' par:'root'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - 1 modifiers
+    - MESH_SEQUENCE_CACHE 'MeshSequenceCache'
+- Obj 'mesh_too_few_points' MESH data:'mesh_too_few_points' par:'root'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'root' EMPTY
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+
