@@ -509,8 +509,7 @@ set(GLSL_SRC
   shaders/gpu_shader_2D_vert.glsl
   shaders/gpu_shader_2D_area_borders_vert.glsl
   shaders/gpu_shader_2D_area_borders_frag.glsl
-  shaders/gpu_shader_2D_widget_base_vert.glsl
-  shaders/gpu_shader_2D_widget_base_frag.glsl
+  shaders/gpu_shader_2D_widget_base.bsl.hh
   shaders/gpu_shader_2D_widget_shadow_vert.glsl
   shaders/gpu_shader_2D_widget_shadow_frag.glsl
   shaders/gpu_shader_2D_node_socket_frag.glsl

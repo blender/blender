@@ -1092,7 +1092,7 @@ void widgetbase_draw_cache_flush()
   else {
     GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE_INST);
     GPU_batch_uniform_4fv_array(batch,
-                                "parameters",
+                                "parameters_inst",
                                 MAX_WIDGET_PARAMETERS * MAX_WIDGET_BASE_BATCH,
                                 (float (*)[4])g_widget_base_batch.params);
     GPU_batch_uniform_3fv(batch, "checkerColorAndSize", checker_params);

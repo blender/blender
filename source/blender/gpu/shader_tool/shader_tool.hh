@@ -2586,7 +2586,7 @@ class Preprocessor {
       }
 
       /* First output prototypes. Not needed on metal because of wrapper class. */
-      parser.insert_after(struct_end, "#ifndef GPU_METAL\n");
+      parser.insert_after(struct_end, "\n#ifndef GPU_METAL\n");
       struct_scope.foreach_function(
           [&](bool is_static, Token fn_type, Token, Scope fn_args, bool, Scope) {
             const Token fn_start = is_static ? fn_type.prev() : fn_type;
@@ -3858,7 +3858,7 @@ class Preprocessor {
     unordered_map<string, vector<Member>> union_members;
 
     /* First, lower anonymous unions into separate struct. */
-    parser().foreach_struct([&](Token struct_tok, Scope, Token struct_name, Scope body) {
+    parser().foreach_struct([&](Token struct_tok, Scope attrs, Token struct_name, Scope body) {
       int union_index = 0;
       body.foreach_match("o{..};", [&](const Tokens &t) {
         Scope union_body = t[1].scope();
@@ -3882,7 +3882,10 @@ class Preprocessor {
         }
         union_members.emplace(union_type, members);
 
-        string union_member = "struct " + union_type + " " + union_name + ";";
+        string union_member = union_type + " " + union_name + ";";
+        if (attrs.contains("host_shared")) {
+          union_member = "struct " + union_member;
+        }
         parser.insert_before(t.front(), union_member);
         parser.erase(t.front(), t.back());
 

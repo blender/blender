@@ -160,6 +160,7 @@ struct                 T {
          T_union0_host_shared_ union0;
 #line 38
 };
+
 #ifndef GPU_METAL
 uint4 _a(const T this_);
 void _a_set_(_ref(T ,this_), uint4 value);
@@ -251,6 +252,7 @@ struct                 T {
          T_union1_host_shared_ union1;
 #line 31
 };
+
 #ifndef GPU_METAL
 uint4 _a(const T this_);
 void _a_set_(_ref(T ,this_), uint4 value);
@@ -335,6 +337,7 @@ struct                 T {
          T_union0_host_shared_ union0;
 #line 27
 };
+
 #ifndef GPU_METAL
 A _a(const T this_);
 void _a_set_(_ref(T ,this_), A value);
@@ -388,6 +391,7 @@ struct                 T {
          T_union0_host_shared_ union0;
 #line 22
 };
+
 #ifndef GPU_METAL
 float4x4 _a(const T this_);
 void _a_set_(_ref(T ,this_), float4x4 value);
@@ -1000,6 +1004,7 @@ struct SRT {
                            T  a;
 #line 12
 };
+
 #ifndef GPU_METAL
 SRT SRT_new_();
 #endif
@@ -1089,6 +1094,7 @@ struct SRT {
                            T  a;
 #line 16
 };
+
 #ifndef GPU_METAL
 void _method(_ref(SRT ,this_), int t);
 SRT SRT_new_();
@@ -1542,7 +1548,7 @@ struct S {
 struct NS_S {
 #line 11
 int _pad;};
-
+#line 14
 #ifndef GPU_METAL
 NS_S NS_S_static_method(NS_S s);
 NS_S _other_method(_ref(NS_S ,this_), int s);
@@ -1855,6 +1861,7 @@ struct T {int _pad;};
 struct U {
 
 int _pad;};
+
 #ifndef GPU_METAL
 void U_fn();
 #endif
@@ -1929,7 +1936,7 @@ struct S {
   int another_member;
 #line 29
 };
-
+#line 32
 #ifndef GPU_METAL
 S S_construct();
 S _function(_ref(S ,this_), int i);
@@ -1992,6 +1999,7 @@ struct A {
   uint b;
 #line 8
 };
+
 #ifndef GPU_METAL
 float _fn1(_ref(A ,this_));
 float _fn2(_ref(A ,this_));

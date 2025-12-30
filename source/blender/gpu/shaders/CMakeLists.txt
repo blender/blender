@@ -25,7 +25,6 @@ set(SRC_GLSL_VERT
   gpu_shader_2D_point_varying_size_varying_color_vert.glsl
   gpu_shader_3D_polyline_vert.glsl
   gpu_shader_2D_vert.glsl
-  gpu_shader_2D_widget_base_vert.glsl
   gpu_shader_2D_widget_shadow_vert.glsl
   gpu_shader_3D_clipped_uniform_color_vert.glsl
   gpu_shader_3D_flat_color_vert.glsl
@@ -50,7 +49,7 @@ set(SRC_GLSL_FRAG
   gpu_shader_2D_area_borders_frag.glsl
   gpu_shader_2D_line_dashed_frag.glsl
   gpu_shader_2D_node_socket_frag.glsl
-  gpu_shader_2D_widget_base_frag.glsl
+  gpu_shader_2D_widget_base.bsl.hh
   gpu_shader_2D_widget_shadow_frag.glsl
   gpu_shader_3D_polyline_frag.glsl
   gpu_shader_3D_smooth_color_frag.glsl

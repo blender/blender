@@ -163,6 +163,12 @@ struct Scope {
     return parent == *this;
   }
 
+  /* Returns true if scope contains the substring. */
+  bool contains(const std::string &str) const
+  {
+    return this->str().find(str) != std::string::npos;
+  }
+
   std::string str_with_whitespace() const
   {
     if (this->is_invalid()) {
