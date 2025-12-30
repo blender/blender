@@ -37,7 +37,7 @@ static bool node_tree_interface_panel_poll(const bContext *C, PanelType * /*pt*/
   if (!ntree) {
     return false;
   }
-  if (ntree->flag & ID_FLAG_EMBEDDED_DATA) {
+  if (ntree->id.flag & ID_FLAG_EMBEDDED_DATA) {
     return false;
   }
   if (ntree->typeinfo->no_group_interface) {
