@@ -477,7 +477,6 @@ set(GLSL_SRC
   shaders/infos/gpu_shader_2D_image_rect_color_infos.hh
   shaders/infos/gpu_shader_2D_image_shuffle_color_infos.hh
   shaders/infos/gpu_shader_2D_node_socket_infos.hh
-  shaders/infos/gpu_shader_2D_nodelink_infos.hh
   shaders/infos/gpu_shader_2D_point_uniform_size_uniform_color_aa_infos.hh
   shaders/infos/gpu_shader_2D_point_uniform_size_uniform_color_outline_aa_infos.hh
   shaders/infos/gpu_shader_2D_point_varying_size_varying_color_infos.hh
@@ -516,8 +515,7 @@ set(GLSL_SRC
   shaders/gpu_shader_2D_widget_shadow_frag.glsl
   shaders/gpu_shader_2D_node_socket_frag.glsl
   shaders/gpu_shader_2D_node_socket_vert.glsl
-  shaders/gpu_shader_2D_nodelink_frag.glsl
-  shaders/gpu_shader_2D_nodelink_vert.glsl
+  shaders/gpu_shader_2D_nodelink.bsl.hh
   shaders/gpu_shader_2D_line_dashed_frag.glsl
   shaders/gpu_shader_2D_image_vert.glsl
   shaders/gpu_shader_2D_image_rect_vert.glsl
