@@ -1187,9 +1187,9 @@ void func(_ref(Resources ,srt))
   }
 #endif
 
-#if SRT_CONSTANT_use_color_band== 1
+#if SRT_CONSTANT_use_color_band == 1
 #line 8
-                                                                   {
+                                                                    {
     test;
   }
 #else
@@ -2289,6 +2289,7 @@ struct ns_VertInTfloat {
     string expect_infos = R"(#pragma once
 
 
+
 GPU_SHADER_CREATE_INFO(ns_VertInTfloat)
 VERTEX_IN(0, float, pos)
 GPU_SHADER_CREATE_END()
@@ -2303,7 +2304,6 @@ GPU_SHADER_CREATE_END()
 GPU_SHADER_INTERFACE_INFO(ns_VertOut_t)
 SMOOTH(float3, ns_VertOut_local_pos)
 GPU_SHADER_INTERFACE_END()
-
 
 
 

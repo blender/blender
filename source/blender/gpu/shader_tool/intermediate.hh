@@ -140,9 +140,17 @@ struct IntermediateForm {
     (void)success;
   }
   /* Replace everything from `from` to `to` (inclusive). */
-  void replace(Token from, Token to, const std::string &replacement)
+  void replace(Token from,
+               Token to,
+               const std::string &replacement,
+               bool keep_trailing_whitespaces = false)
   {
-    replace(from.str_index_start(), to.str_index_last(), replacement);
+    if (keep_trailing_whitespaces) {
+      replace(from.str_index_start(), to.str_index_last_no_whitespace(), replacement);
+    }
+    else {
+      replace(from.str_index_start(), to.str_index_last(), replacement);
+    }
   }
   /* Replace token by string. */
   void replace(Token tok, const std::string &replacement, bool keep_trailing_whitespaces = false)

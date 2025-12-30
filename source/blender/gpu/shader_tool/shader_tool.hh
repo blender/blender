@@ -189,7 +189,13 @@ struct ParsedResource {
       ss << res_condition_lambda << ")";
     }
     else if (res_type == "push_constant") {
-      ss << "PUSH_CONSTANT(" << var_type << ", " << var_name << ")";
+      if (!var_array.empty()) {
+        ss << "PUSH_CONSTANT_ARRAY(" << var_type << ", " << var_name << ", "
+           << var_array.substr(1, var_array.size() - 2) << ")";
+      }
+      else {
+        ss << "PUSH_CONSTANT(" << var_type << ", " << var_name << ")";
+      }
     }
     else if (res_type == "compilation_constant") {
       /* Needs to be defined on the shader declaration. */
@@ -225,7 +231,7 @@ struct ParsedAttribute {
     else if (interpolation_mode == "smooth") {
       ss << "SMOOTH(" << var_type << ", " << var_name << ")";
     }
-    else if (interpolation_mode == "smooth") {
+    else if (interpolation_mode == "no_perspective") {
       ss << "NO_PERSPECTIVE(" << var_type << ", " << var_name << ")";
     }
     return ss.str();
@@ -393,6 +399,10 @@ struct Source {
       ss << "#include \"" << dependency << "\"\n";
     }
     ss << "\n";
+    for (auto define : create_infos_defines) {
+      ss << define;
+    }
+    ss << "\n";
     for (auto vert_inputs : vertex_inputs) {
       ss << vert_inputs.serialize() << "\n";
     }
@@ -411,10 +421,6 @@ struct Source {
         ss << res.serialize() << "\n";
       }
       ss << "GPU_SHADER_CREATE_END()\n";
-    }
-    ss << "\n";
-    for (auto define : create_infos_defines) {
-      ss << define;
     }
     ss << "\n";
     for (auto declaration : create_infos_declarations) {
@@ -1499,7 +1505,7 @@ class Preprocessor {
 
     Token before_body = body.front().prev();
 
-    string test = "SRT_CONSTANT_" + condition[5].str();
+    string test = "SRT_CONSTANT_" + condition[5].str() + " ";
     if (condition[7] != condition.back().prev()) {
       test += parser.substr_range_inclusive(condition[7], condition.back().prev());
     }
@@ -2485,7 +2491,10 @@ class Preprocessor {
           return;
         }
         fn_body.foreach_token(Word, [&](Token tok) {
-          if (tok.prev() != Deref && tok.prev() != Dot && tok.prev() != Colon) {
+          if (tok.prev() != Deref && tok.prev() != Dot &&
+              /* Reject namespace qualified symbols. */
+              (tok.prev() != Colon || tok.prev().prev() != Colon))
+          {
             if (tok.next() == '(') {
               if (!is_class_token(methods_tokens, tok.str())) {
                 return;
@@ -2511,8 +2520,12 @@ class Preprocessor {
     using namespace std;
     using namespace shader::parser;
 
-    /* `*this` -> `this_` */
-    parser().foreach_match("*T", [&](const Tokens &t) { parser.replace(t[0], t[1], "this_"); });
+    /* NOTE: We need to avoid the case of `a * this->b` being replaced as 2 dereferences. */
+
+    /* `(*this)` -> `(this_)` */
+    parser().foreach_match("*T)", [&](const Tokens &t) { parser.replace(t[0], t[1], "this_"); });
+    /* `return *this;` -> `return this_;` */
+    parser().foreach_match("*T;", [&](const Tokens &t) { parser.replace(t[0], t[1], "this_"); });
     /* `this->` -> `this_.` */
     parser().foreach_match("TD", [&](const Tokens &t) { parser.replace(t[0], t[1], "this_."); });
 
@@ -3097,7 +3110,7 @@ class Preprocessor {
       }
 
       Token comma = body.find_token(',');
-      if (comma.is_valid()) {
+      if (comma.is_valid() && comma.scope() == body) {
         report_error(
             ERROR_TOK(comma),
             "comma declaration is not supported in shared struct, expand to multiple definition");
@@ -3969,19 +3982,46 @@ class Preprocessor {
       }
       vector<Member> members;
       size_t offset = 0;
-      body.foreach_declaration([&](Scope, Token, Token type, Scope, Token name, Scope, Token) {
-        size_t size = 4;
-        if (type.prev() != Enum) {
-          size = type_size_get(type);
-          if (size != 0) {
-            members.emplace_back(Member{type.str(), "." + name.str(), offset, size});
-          }
-        }
-        else {
-          members.emplace_back(Member{type.str(), "." + name.str(), offset, size, true});
-        }
-        offset += size;
-      });
+      body.foreach_declaration(
+          [&](Scope, Token, Token type, Scope, Token name, Scope array, Token) {
+            size_t size = 4;
+
+            size_t array_size = 0;
+            if (array.is_valid()) {
+              if (array.token_count() == 3 && array[1] == Number) {
+                try {
+                  array_size = std::stol(array[1].str());
+                }
+                catch (std::invalid_argument const & /*ex*/) {
+                  report_error(ERROR_TOK(array.front()),
+                               "Invalid array size, expecting integer literal");
+                }
+              }
+              else {
+                /* Assume size to be zero. It will create invalid size error later on. */
+              }
+            }
+            else {
+              array_size = 1;
+            }
+
+            for (int i = 0; i < array_size; i++) {
+              string name_str = name.str();
+              if (array.is_valid()) {
+                name_str += "[" + to_string(i) + "]";
+              }
+              if (type.prev() != Enum) {
+                size = type_size_get(type);
+                if (size != 0) {
+                  members.emplace_back(Member{type.str(), "." + name_str, offset, size});
+                }
+              }
+              else {
+                members.emplace_back(Member{type.str(), "." + name_str, offset, size, true});
+              }
+              offset += size;
+            }
+          });
 
       struct_members.emplace(struct_name.str(), members);
     });
@@ -4354,7 +4394,8 @@ class Preprocessor {
         if (toks[0].str() != srt_var) {
           return;
         }
-        parser.replace(toks[0], toks[2], "srt_access(" + srt_type + ", " + toks[2].str() + ")");
+        parser.replace(
+            toks[0], toks[2], "srt_access(" + srt_type + ", " + toks[2].str() + ")", true);
       });
     };
 
