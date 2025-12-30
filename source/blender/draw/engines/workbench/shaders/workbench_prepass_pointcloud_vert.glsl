@@ -20,14 +20,16 @@ VERTEX_SHADER_CREATE_INFO(workbench_pointcloud)
 
 void main()
 {
-  float3 world_pos;
-  pointcloud_get_pos_and_nor(world_pos, normal_interp);
+  const pointcloud::Point ls_pt = pointcloud::point_get(uint(gl_VertexID));
+  const pointcloud::Point ws_pt = pointcloud::object_to_world(ls_pt, drw_modelmat());
+  const pointcloud::ShapePoint pt = pointcloud::shape_point_get(
+      ws_pt, drw_world_incident_vector(ws_pt.P), drw_view_up());
 
-  normal_interp = normalize(drw_normal_world_to_view(normal_interp));
+  normal_interp = normalize(drw_normal_world_to_view(pt.N));
 
-  gl_Position = drw_point_world_to_homogenous(world_pos);
+  gl_Position = drw_point_world_to_homogenous(pt.P);
 
-  view_clipping_distances(world_pos);
+  view_clipping_distances(pt.P);
 
   uv_interp = float2(0.0f);
 

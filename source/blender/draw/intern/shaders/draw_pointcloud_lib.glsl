@@ -4,144 +4,142 @@
 
 #pragma once
 
-#include "draw_defines.hh"
+#include "draw_object_infos_infos.hh"
 
+#include "draw_defines.hh"
 #include "draw_model_lib.glsl"
 #include "draw_view_lib.glsl"
 
+#include "gpu_shader_math_constants_lib.glsl"
+#include "gpu_shader_math_matrix_conversion_lib.glsl"
+#include "gpu_shader_math_matrix_transform_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
-#ifdef POINTCLOUD_SHADER
-#  define COMMON_POINTCLOUD_LIB
+namespace pointcloud {
 
-#  ifndef DRW_POINTCLOUD_INFO
-#    error Ensure createInfo includes draw_pointcloud.
-#  endif
+struct Point {
+  float3 P;
+  float radius;
+  /* Point index for attribute loading. */
+  int point_id;
+  /* Position on shape facing the camera. */
+  float3 shape_pos;
+};
 
-int pointcloud_get_point_id()
+int point_id_get(uint vert_id)
 {
-#  ifdef GPU_VERTEX_SHADER
   /* Remove shape indices. */
-  return gl_VertexID / DRW_POINTCLOUD_STRIP_TILE_SIZE;
-#  endif
-  return 0;
+  return int(vert_id / uint(DRW_POINTCLOUD_STRIP_TILE_SIZE));
 }
 
-float3x3 pointcloud_get_facing_matrix(float3 p)
+/* Return data about the pointcloud point. */
+Point point_get(uint vert_id)
+{
+  Point pt;
+  pt.point_id = point_id_get(vert_id);
+
+  float4 pos_rad = texelFetch(sampler_get(draw_pointcloud, ptcloud_pos_rad_tx), pt.point_id);
+  pt.P = pos_rad.xyz;
+  pt.radius = pos_rad.w;
+  pt.shape_pos = float3(NAN_FLT);
+  switch (vert_id % DRW_POINTCLOUD_STRIP_TILE_SIZE) {
+    case 0:
+      pt.shape_pos = float3(-1.0, 0.0, 0.0);
+      break;
+    case 1:
+      pt.shape_pos = float3(0.0, -1.0, 0.0);
+      break;
+    case 2:
+      pt.shape_pos = float3(0.0, 0.0, 1.0);
+      break;
+    case 3:
+      pt.shape_pos = float3(1.0, 0.0, 0.0);
+      break;
+    case 4:
+      pt.shape_pos = float3(0.0, 0.0, 1.0);
+      break;
+    case 5:
+      pt.shape_pos = float3(0.0, 1.0, 0.0);
+      break;
+    case 6:
+      pt.shape_pos = float3(-1.0, 0.0, 0.0);
+      break;
+    default:
+      break;
+  }
+  return pt;
+}
+
+Point object_to_world(Point pt, float4x4 object_to_world)
+{
+  pt.P = transform_point(object_to_world, pt.P);
+  pt.radius *= length(to_scale(object_to_world)) * M_SQRT1_3;
+  return pt;
+}
+
+struct ShapePoint {
+  /* Position on the shape. */
+  float3 P;
+  /* Shading normal at the position on the shape. */
+  float3 N;
+};
+
+float3x3 facing_matrix(const float3 V, const float3 up_axis)
 {
   float3x3 facing_mat;
-  facing_mat[2] = drw_world_incident_vector(p);
-#  ifdef MAT_GEOM_POINTCLOUD
+  facing_mat[2] = V;
+#ifdef MAT_GEOM_POINTCLOUD
   if (ptcloud_backface) {
     facing_mat[2] = -facing_mat[2];
   }
-#  endif
-  facing_mat[1] = normalize(cross(drw_view().viewinv[0].xyz, facing_mat[2]));
+#endif
+  facing_mat[1] = normalize(cross(up_axis, facing_mat[2]));
   facing_mat[0] = cross(facing_mat[1], facing_mat[2]);
   return facing_mat;
 }
 
-/* Returns world center position and radius. */
-void pointcloud_get_pos_and_radius(float3 &outpos, float &outradius)
+/**
+ * Return the normal of the expanded position in world-space.
+ * \arg pt : world space curve point.
+ * \arg V : world space view vector (toward viewer) at `pt.P`.
+ */
+ShapePoint shape_point_get(const Point pt, const float3 V, const float3 up_axis)
 {
-  int id = pointcloud_get_point_id();
-  float4 pos_rad = texelFetch(ptcloud_pos_rad_tx, id);
-  outpos = drw_point_object_to_world(pos_rad.xyz);
-  outradius = dot(abs(to_float3x3(drw_modelmat()) * pos_rad.www), float3(1.0f / 3.0f));
+  ShapePoint shape;
+  shape.N = facing_matrix(V, up_axis) * pt.shape_pos;
+  shape.P = pt.P + shape.N * pt.radius;
+  return shape;
 }
 
-/* Return world position and normal. */
-void pointcloud_get_pos_nor_radius(float3 &outpos, float3 &outnor, float &outradius)
+float3 get_point_position(const int point_id)
 {
-  float3 p;
-  float radius = 0.0f;
-  pointcloud_get_pos_and_radius(p, radius);
-
-  float3x3 facing_mat = pointcloud_get_facing_matrix(p);
-
-  uint vert_id = 0u;
-#  ifdef GPU_VERTEX_SHADER
-  vert_id = gl_VertexID % DRW_POINTCLOUD_STRIP_TILE_SIZE;
-#  endif
-
-  float3 pos_inst = float3(0.0f);
-
-  switch (vert_id) {
-    case 0:
-      pos_inst = float3(-1.0, 0.0, 0.0);
-      break;
-    case 1:
-      pos_inst = float3(0.0, -1.0, 0.0);
-      break;
-    case 2:
-      pos_inst = float3(0.0, 0.0, 1.0);
-      break;
-    case 3:
-      pos_inst = float3(1.0, 0.0, 0.0);
-      break;
-    case 4:
-      pos_inst = float3(0.0, 0.0, 1.0);
-      break;
-    case 5:
-      pos_inst = float3(0.0, 1.0, 0.0);
-      break;
-    case 6:
-      pos_inst = float3(-1.0, 0.0, 0.0);
-      break;
-    case 7:
-      pos_inst = float3(NAN_FLT);
-      break;
-  }
-
-  outnor = facing_mat * pos_inst;
-  outpos = p + outnor * radius;
-  outradius = radius;
+  return texelFetch(sampler_get(draw_pointcloud, ptcloud_pos_rad_tx), point_id).xyz;
 }
 
-/* Return world position and normal. */
-void pointcloud_get_pos_and_nor(float3 &outpos, float3 &outnor)
+float get_customdata_float(const int point_id, const samplerBuffer cd_buf)
 {
-  float3 nor, pos;
-  float radius = 0.0f;
-  pointcloud_get_pos_nor_radius(pos, nor, radius);
-  outpos = pos;
-  outnor = nor;
+  return texelFetch(cd_buf, point_id).r;
 }
 
-float3 pointcloud_get_pos()
+float2 get_customdata_vec2(const int point_id, const samplerBuffer cd_buf)
 {
-  float3 outpos, outnor;
-  pointcloud_get_pos_and_nor(outpos, outnor);
-  return outpos;
+  return texelFetch(cd_buf, point_id).rg;
 }
 
-float pointcloud_get_customdata_float(const samplerBuffer cd_buf)
+float3 get_customdata_vec3(const int point_id, const samplerBuffer cd_buf)
 {
-  int id = pointcloud_get_point_id();
-  return texelFetch(cd_buf, id).r;
+  return texelFetch(cd_buf, point_id).rgb;
 }
 
-float2 pointcloud_get_customdata_vec2(const samplerBuffer cd_buf)
+float4 get_customdata_vec4(const int point_id, const samplerBuffer cd_buf)
 {
-  int id = pointcloud_get_point_id();
-  return texelFetch(cd_buf, id).rg;
+  return texelFetch(cd_buf, point_id).rgba;
 }
 
-float3 pointcloud_get_customdata_vec3(const samplerBuffer cd_buf)
-{
-  int id = pointcloud_get_point_id();
-  return texelFetch(cd_buf, id).rgb;
-}
-
-float4 pointcloud_get_customdata_vec4(const samplerBuffer cd_buf)
-{
-  int id = pointcloud_get_point_id();
-  return texelFetch(cd_buf, id).rgba;
-}
-
-float2 pointcloud_get_barycentric()
+float2 get_barycentric()
 {
   /* TODO: To be implemented. */
   return float2(0.0f);
 }
-#endif
+
+}  // namespace pointcloud
