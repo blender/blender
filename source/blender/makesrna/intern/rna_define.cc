@@ -189,7 +189,7 @@ static void rna_brna_structs_add(BlenderRNA *brna, StructRNA *srna)
 #ifdef RNA_RUNTIME
 static void rna_brna_structs_remove_and_free(BlenderRNA *brna, StructRNA *srna)
 {
-  if (!brna->structs.is_empty()) {
+  if (!brna->structs_map.is_empty()) {
     if ((srna->flag & STRUCT_PUBLIC_NAMESPACE)) {
       if (srna->identifier[0] != '\0') {
         brna->structs_map.remove(srna->identifier);
