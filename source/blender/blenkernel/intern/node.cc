@@ -4314,6 +4314,8 @@ static bNodeTree *node_tree_add_tree_do(Main *bmain,
     bNodeTree **ntree_owner_ptr = node_tree_ptr_from_id(owner_id);
     BLI_assert(ntree_owner_ptr != nullptr);
     *ntree_owner_ptr = ntree;
+    ntree->id.lib = owner_id->lib;
+    ntree->id.tag |= owner_id->tag & int(ID_TAG_EXTERN | ID_TAG_INDIRECT);
   }
   else {
     BLI_assert(owner_id == nullptr);
