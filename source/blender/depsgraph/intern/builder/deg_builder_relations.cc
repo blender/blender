@@ -3076,17 +3076,17 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
     }
     ID_Type id_type = GS(id->name);
     if (id_type == ID_MA) {
-      build_material((Material *)bnode->id);
+      build_material((Material *)id);
       ComponentKey material_key(id, NodeType::SHADING);
       add_relation(material_key, ntree_output_key, "Material -> Node");
     }
     else if (id_type == ID_TE) {
-      build_texture((Tex *)bnode->id);
+      build_texture((Tex *)id);
       ComponentKey texture_key(id, NodeType::GENERIC_DATABLOCK);
       add_relation(texture_key, ntree_output_key, "Texture -> Node");
     }
     else if (id_type == ID_IM) {
-      build_image((Image *)bnode->id);
+      build_image((Image *)id);
       ComponentKey image_key(id, NodeType::GENERIC_DATABLOCK);
       add_relation(image_key, ntree_output_key, "Image -> Node");
     }
