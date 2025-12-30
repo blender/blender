@@ -414,12 +414,6 @@ void Parser::parse_scopes(report_callback &report_error)
           else if (keyword == Namespace) {
             enter_scope(ScopeType::Namespace, tok_id);
           }
-          else if (ScopeType(scope_types.back()) == ScopeType::LoopArg) {
-            enter_scope(ScopeType::LoopBody, tok_id);
-          }
-          else if (ScopeType(scope_types.back()) == ScopeType::SwitchArg) {
-            enter_scope(ScopeType::SwitchBody, tok_id);
-          }
           else if (scopes.top().type == ScopeType::Global) {
             enter_scope(ScopeType::Function, tok_id);
           }

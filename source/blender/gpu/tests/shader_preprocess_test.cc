@@ -438,7 +438,7 @@ static void test_preprocess_unroll()
 
   {
     string input = R"(
-[[unroll]] for (int i = 2; i < 4; i++) { content += i; })";
+for (int i = 2; i < 4; i++) [[unroll]] { content += i; })";
     string expect = R"(
 
 {
@@ -455,17 +455,17 @@ static void test_preprocess_unroll()
   }
   {
     string input = R"(
-[[unroll]] for (int i = 2; i < 4; i++, y++) { content += i; })";
+for (int i = 2; i < 4; i++, y++) [[unroll]] { content += i; })";
     string expect = R"(
-               {int i = 2;
+    {int i = 2;
 #line 2
                                             { content += i; }
 #line 2
-                                  i++, y++;
+                       i++, y++;
 #line 2
                                             { content += i; }
 #line 2
-                                  i++, y++;
+                       i++, y++;
 #line 2
                                                             })";
     string error;
@@ -475,21 +475,21 @@ static void test_preprocess_unroll()
   }
   {
     string input = R"(
-[[unroll]] for (int i = 2; i < 4 && i < y; i++, y++) { cont += i; })";
+for (int i = 2; i < 4 && i < y; i++, y++) [[unroll]] { cont += i; })";
     string expect = R"(
-               {int i = 2;
+    {int i = 2;
 #line 2
-                        if(i < 4 && i < y)
-#line 2
-                                                     { cont += i; }
-#line 2
-                                           i++, y++;
-#line 2
-                        if(i < 4 && i < y)
+             if(i < 4 && i < y)
 #line 2
                                                      { cont += i; }
 #line 2
-                                           i++, y++;
+                                i++, y++;
+#line 2
+             if(i < 4 && i < y)
+#line 2
+                                                     { cont += i; }
+#line 2
+                                i++, y++;
 #line 2
                                                                   })";
     string error;
@@ -499,16 +499,16 @@ static void test_preprocess_unroll()
   }
   {
     string input = R"(
-[[unroll_n(2)]] for (; i < j;) { content += i; })";
+for (; i < j;) [[unroll_n(2)]] { content += i; })";
     string expect = R"(
 
 {
 #line 2
-                    if(i < j)
+    if(i < j)
 #line 2
                                { content += i; }
 #line 2
-                    if(i < j)
+    if(i < j)
 #line 2
                                { content += i; }
 #line 2
@@ -520,36 +520,36 @@ static void test_preprocess_unroll()
   }
   {
     string input = R"(
-[[unroll_n(2)]] for (; i < j;) { [[unroll_n(2)]] for (; j < k;) {} })";
+for (; i < j;) [[unroll_n(2)]] { for (; j < k;) [[unroll_n(2)]] {} })";
     string expect = R"(
 
 {
 #line 2
-                    if(i < j)
+    if(i < j)
 #line 2
                                {
 {
 #line 2
-                                                     if(j < k)
+                                     if(j < k)
 #line 2
                                                                 {}
 #line 2
-                                                     if(j < k)
+                                     if(j < k)
 #line 2
                                                                 {}
 #line 2
                                                                  } }
 #line 2
-                    if(i < j)
+    if(i < j)
 #line 2
                                {
 {
 #line 2
-                                                     if(j < k)
+                                     if(j < k)
 #line 2
                                                                 {}
 #line 2
-                                                     if(j < k)
+                                     if(j < k)
 #line 2
                                                                 {}
 #line 2
@@ -562,29 +562,29 @@ static void test_preprocess_unroll()
     EXPECT_EQ(error, "");
   }
   {
-    string input = R"([[unroll_n(2)]] for (; i < j;) { break; })";
+    string input = R"(for (; i < j;) [[unroll_n(2)]] { break; })";
     string error;
     string output = process_test_string(input, error);
     EXPECT_EQ(error, "Unrolled loop cannot contain \"break\" statement.");
   }
   {
-    string input = R"([[unroll_n(2)]] for (; i < j;) { continue; })";
+    string input = R"(for (; i < j;) [[unroll_n(2)]] { continue; })";
     string error;
     string output = process_test_string(input, error);
     EXPECT_EQ(error, "Unrolled loop cannot contain \"continue\" statement.");
   }
   {
     string input = R"(
-[[unroll_n(2)]] for (; i < j;) { for (; j < k;) {break;continue;} })";
+for (; i < j;) [[unroll_n(2)]] { for (; j < k;) {break;continue;} })";
     string expect = R"(
 
 {
 #line 2
-                    if(i < j)
+    if(i < j)
 #line 2
                                { for (; j < k;) {break;continue;} }
 #line 2
-                    if(i < j)
+    if(i < j)
 #line 2
                                { for (; j < k;) {break;continue;} }
 #line 2
@@ -595,31 +595,10 @@ static void test_preprocess_unroll()
     EXPECT_EQ(error, "");
   }
   {
-    string input = R"([[unroll]] for (int i = 3; i > 2; i++) {})";
+    string input = R"(for (int i = 3; i > 2; i++) [[unroll]] {})";
     string error;
     string output = process_test_string(input, error);
     EXPECT_EQ(error, "Unsupported condition in unrolled loop.");
-  }
-  {
-    string input = R"(
-[[unroll_define(2)]] for (int i = 0; i < DEFINE; i++) { a = i; })";
-    string expect = R"(
-
-{
-#if DEFINE > 0
-#line 2
-                                                      { a = 0; }
-#endif
-#if DEFINE > 1
-#line 2
-                                                      { a = 1; }
-#endif
-#line 2
-                                                               })";
-    string error;
-    string output = process_test_string(input, error);
-    EXPECT_EQ(output, expect);
-    EXPECT_EQ(error, "");
   }
 }
 GPU_TEST(preprocess_unroll);

@@ -150,8 +150,7 @@ void main()
     /* Encode 4 cells into one volume sample. */
     int4 cell_validity_bits = int4(0);
     /* Encode validity of each samples in the grid cell. */
-    [[unroll]] for (int cell = 0; cell < 4; cell++)
-    {
+    for (int cell = 0; cell < 4; cell++) [[unroll]] {
       for (int i = 0; i < 8; i++) {
         int3 sample_position = lightprobe_volume_grid_cell_corner(i);
         int3 coord_texel = texel_coord + int3(0, 0, cell) + sample_position;

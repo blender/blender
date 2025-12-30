@@ -77,8 +77,7 @@ float3 get_world_lighting([[resource_table]] const workbench::World &world,
     float3 R = -reflect(I, N);
 
     float4 spec_angle, spec_NL, wrapped_NL;
-    [[unroll]] for (int i = 0; i < 4; i++)
-    {
+    for (int i = 0; i < 4; i++) [[unroll]] {
       float3 L = world_data.lights[i].direction.xyz;
       float3 half_dir = normalize(L + I);
       wrapped_NL[i] = dot(L, R);
@@ -100,8 +99,7 @@ float3 get_world_lighting([[resource_table]] const workbench::World &world,
     spec_light = mix(spec_light, spec_env, wrap * wrap);
 
     /* Multiply result by lights specular colors. */
-    [[unroll]] for (int i = 0; i < 4; i++)
-    {
+    for (int i = 0; i < 4; i++) [[unroll]] {
       specular_light += spec_light[i] * world_data.lights[i].specular_color.rgb;
     }
 
@@ -112,16 +110,14 @@ float3 get_world_lighting([[resource_table]] const workbench::World &world,
 
   /* Prepare diffuse computation. Eval 4 lights at once. */
   float4 diff_NL;
-  [[unroll]] for (int i = 0; i < 4; i++)
-  {
+  for (int i = 0; i < 4; i++) [[unroll]] {
     diff_NL[i] = dot(world_data.lights[i].direction.xyz, N);
   }
 
   float4 diff_light = wrapped_lighting(diff_NL, wrap);
 
   /* Multiply result by lights diffuse colors. */
-  [[unroll]] for (int i = 0; i < 4; i++)
-  {
+  for (int i = 0; i < 4; i++) [[unroll]] {
     diffuse_light += diff_light[i] * world_data.lights[i].diffuse_color_wrap.rgb;
   }
 

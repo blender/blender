@@ -1311,13 +1311,26 @@ class Preprocessor {
     };
 
     do {
+      /* WORKAROUND: We need to differentiate for and switch statements apart for proper break and
+       * continue statement usage linting. For this, we modify the body scope types to be able to
+       * detect which loop or switch body the break and continue statements are part of. */
+      parser().foreach_match("f(..)[[..]]{..}", [&](const std::vector<Token> tokens) {
+        tokens[11].scope().set_type(ScopeType::LoopBody);
+      });
+      parser().foreach_match("f(..){..}", [&](const std::vector<Token> tokens) {
+        tokens[5].scope().set_type(ScopeType::LoopBody);
+      });
+      parser().foreach_match("h(..){..}", [&](const std::vector<Token> tokens) {
+        tokens[5].scope().set_type(ScopeType::SwitchBody);
+      });
+
       /* [[unroll]]. */
-      parser().foreach_match("[[w]]f(..){..}", [&](const std::vector<Token> tokens) {
-        if (tokens[1].scope().str_with_whitespace() != "[unroll]") {
+      parser().foreach_match("f(..)[[w]]{..}", [&](const std::vector<Token> tokens) {
+        if (tokens[6].scope().str_with_whitespace() != "[unroll]") {
           return;
         }
-        const Token for_tok = tokens[5];
-        const Scope loop_args = tokens[6].scope();
+        const Token for_tok = tokens[0];
+        const Scope loop_args = tokens[1].scope();
         const Scope loop_body = tokens[10].scope();
 
         Scope init, cond, iter;
@@ -1408,66 +1421,19 @@ class Preprocessor {
       });
 
       /* [[unroll_n(n)]]. */
-      parser().foreach_match("[[w(0)]]f(..){..}", [&](const std::vector<Token> tokens) {
-        if (tokens[2].str() != "unroll_n") {
+      parser().foreach_match("f(..)[[w(0)]]{..}", [&](const std::vector<Token> tokens) {
+        if (tokens[7].str() != "unroll_n") {
           return;
         }
-        const Scope loop_args = tokens[9].scope();
+        const Scope loop_args = tokens[1].scope();
         const Scope loop_body = tokens[13].scope();
 
         Scope init, cond, iter;
         parse_for_args(loop_args, init, cond, iter);
 
-        int iter_count = std::stol(tokens[4].str());
+        int iter_count = std::stol(tokens[9].str());
 
         process_loop(tokens[0], iter_count, 0, 0, false, false, init, cond, iter, loop_body);
-      });
-
-      /* [[unroll_define(max_n)]]. */
-      parser().foreach_match("[[w(0)]]f(..){..}", [&](const std::vector<Token> tokens) {
-        if (tokens[2].str() != "unroll_define") {
-          return;
-        }
-        const Scope loop_args = tokens[9].scope();
-        const Scope loop_body = tokens[13].scope();
-
-        /* Validate format. */
-        Token define_name = Token::invalid();
-        Token iter_var = Token::invalid();
-        loop_args.foreach_match("ww=0;w<w;wP", [&](const std::vector<Token> tokens) {
-          if (tokens[1].str() != tokens[5].str() || tokens[5].str() != tokens[9].str()) {
-            return;
-          }
-          iter_var = tokens[1];
-          define_name = tokens[7];
-        });
-
-        if (define_name.is_invalid()) {
-          report_error(ERROR_TOK(loop_args.front()),
-                       "Incompatible loop format for [[unroll_define(max_n)]], expected "
-                       "'(int i = 0; i < DEFINE; i++)'");
-          return;
-        }
-
-        Scope init, cond, iter;
-        parse_for_args(loop_args, init, cond, iter);
-
-        int iter_count = std::stol(tokens[4].str());
-
-        string body_prefix = "#if " + define_name.str() + " > " + iter_var.str() + "\n";
-
-        process_loop(tokens[0],
-                     iter_count,
-                     0,
-                     1,
-                     true,
-                     true,
-                     init,
-                     cond,
-                     iter,
-                     loop_body,
-                     body_prefix,
-                     "#endif\n");
       });
     } while (parser.apply_mutations());
 
@@ -3383,10 +3349,10 @@ class Preprocessor {
           /* Placement already checked. */
           return;
         }
-        else if (attr_str == "unroll" || attr_str == "unroll_n" || attr_str == "unroll_define") {
-          if (attributes.back().next().next() != For) {
+        else if (attr_str == "unroll" || attr_str == "unroll_n") {
+          if (attributes.front().prev().prev().scope().front().prev() != For) {
             report_error(ERROR_TOK(attr),
-                         "unroll attributes must be declared before a 'for' loop keyword");
+                         "[[unroll]] attribute must be declared after a 'for' statement");
             invalid = true;
           }
           /* Placement already checked. */

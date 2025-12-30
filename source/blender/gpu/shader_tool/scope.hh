@@ -117,6 +117,13 @@ struct Scope {
     return is_invalid() ? ScopeType::Invalid : ScopeType(data->scope_types[index]);
   }
 
+  /* WORKAROUND: Only used for semantic tagging of scopes after parsing pass.
+   * The type is only retained until the next parsing pass. */
+  void set_type(ScopeType type)
+  {
+    const_cast<Parser *>(data)->scope_types[index] = char(type);
+  }
+
   /* Returns the scope that contains this scope. */
   Scope scope() const
   {
