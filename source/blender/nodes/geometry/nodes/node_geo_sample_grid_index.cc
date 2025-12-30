@@ -114,7 +114,7 @@ void sample_grid(const bke::OpenvdbGridType<T> &grid,
    * it here. This reduces a significant amount of overhead. */
   AccessorT accessor = grid.getConstUnsafeAccessor();
 
-  mask.foreach_index([&](const int64_t i) {
+  mask.foreach_index_optimized<int64_t>([&](const int64_t i) {
     GridValueT value = accessor.getValue(openvdb::Coord(x[i], y[i], z[i]));
     dst[i] = TraitsT::to_blender(value);
   });

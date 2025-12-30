@@ -258,9 +258,8 @@ class WeightPaintOperation : public GreasePencilStrokeOperation {
         IndexMaskMemory memory;
         const IndexMask editable_points = ed::greasepencil::retrieve_editable_points(
             *this->object, drawing_info.drawing, drawing_info.layer_index, memory);
-        editable_points.foreach_index(GrainSize(1024), [&](const int64_t index) {
-          drawing_weight_data.point_is_read_only[index] = false;
-        });
+        index_mask::masked_fill(
+            drawing_weight_data.point_is_read_only.as_mutable_span(), false, editable_points);
 
         /* Initialize the flag for stroke points being touched by the brush. */
         drawing_weight_data.points_touched_by_brush_num = 0;

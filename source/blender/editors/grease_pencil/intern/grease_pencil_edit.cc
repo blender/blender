@@ -1076,9 +1076,7 @@ static wmOperatorStatus grease_pencil_set_uniform_opacity_exec(bContext *C, wmOp
             AttrDomain::Curve,
             bke::AttributeInitVArray(VArray<float>::from_single(1.0f, curves.curves_num()))))
     {
-      strokes.foreach_index(GrainSize(2048), [&](const int64_t curve) {
-        fill_opacities.span[curve] = opacity_fill;
-      });
+      index_mask::masked_fill(fill_opacities.span, opacity_fill, strokes);
       fill_opacities.finish();
     }
 
@@ -3624,7 +3622,7 @@ static wmOperatorStatus grease_pencil_snap_to_cursor_exec(bContext *C, wmOperato
 
         /* Offset from first point of the curve. */
         const float3 offset = cursor_layer - positions[points.first()];
-        selected_points.slice_content(points).foreach_index(
+        selected_points.slice_content(points).foreach_index_optimized<int>(
             GrainSize(4096), [&](const int point_i) { positions[point_i] += offset; });
       });
     }

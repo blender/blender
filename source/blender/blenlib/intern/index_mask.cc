@@ -789,8 +789,7 @@ void IndexMask::to_bools(MutableSpan<bool> r_bools) const
 {
   BLI_assert(r_bools.size() >= this->min_array_size());
   r_bools.fill(false);
-  this->foreach_index_optimized<int64_t>(GrainSize(2048),
-                                         [&](const int64_t i) { r_bools[i] = true; });
+  index_mask::masked_fill(r_bools, true, *this);
 }
 
 Vector<IndexRange> IndexMask::to_ranges() const

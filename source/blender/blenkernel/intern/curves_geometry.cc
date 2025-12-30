@@ -1476,7 +1476,7 @@ CurvesGeometry curves_copy_point_selection(const CurvesGeometry &curves,
 {
   const Array<int> point_to_curve_map = curves.point_to_curve_map();
   Array<int> curve_point_counts(curves.curves_num(), 0);
-  points_to_copy.foreach_index(
+  points_to_copy.foreach_index_optimized<int64_t>(
       [&](const int64_t point_i) { curve_point_counts[point_to_curve_map[point_i]]++; });
 
   IndexMaskMemory memory;

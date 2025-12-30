@@ -29,7 +29,7 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
   /* Create the KD tree based on only the selected points, to speed up merge detection and
    * balancing. */
   KDTree_3d *tree = kdtree_3d_new(selection.size());
-  selection.foreach_index_optimized<int64_t>(
+  selection.foreach_index(
       [&](const int64_t i, const int64_t pos) { kdtree_3d_insert(tree, pos, positions[i]); });
   kdtree_3d_balance(tree);
 

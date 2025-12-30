@@ -114,7 +114,7 @@ void copy_with_clamped_indices(const VArray<T> &src,
 {
   const int last_index = src.index_range().last();
   devirtualize_varray2(src, indices, [&](const auto src, const auto indices) {
-    mask.foreach_index(GrainSize(4096), [&](const int i) {
+    mask.foreach_index_optimized<int>(GrainSize(4096), [&](const int i) {
       const int index = indices[i];
       dst[i] = src[std::clamp(index, 0, last_index)];
     });

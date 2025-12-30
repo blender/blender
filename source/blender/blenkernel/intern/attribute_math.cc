@@ -87,7 +87,7 @@ ColorGeometry4fMixer::ColorGeometry4fMixer(MutableSpan<ColorGeometry4f> buffer,
     : buffer_(buffer), default_color_(default_color), total_weights_(buffer.size(), 0.0f)
 {
   const ColorGeometry4f zero{0.0f, 0.0f, 0.0f, 0.0f};
-  mask.foreach_index([&](const int64_t i) { buffer_[i] = zero; });
+  index_mask::masked_fill(buffer_, zero, mask);
 }
 
 void ColorGeometry4fMixer::set(const int64_t index,
@@ -151,7 +151,7 @@ ColorGeometry4bMixer::ColorGeometry4bMixer(MutableSpan<ColorGeometry4b> buffer,
       accumulation_buffer_(buffer.size(), float4(0, 0, 0, 0))
 {
   const ColorGeometry4b zero{0, 0, 0, 0};
-  mask.foreach_index([&](const int64_t i) { buffer_[i] = zero; });
+  index_mask::masked_fill(buffer_, zero, mask);
 }
 
 void ColorGeometry4bMixer::ColorGeometry4bMixer::set(int64_t index,

@@ -598,7 +598,8 @@ void curve_populate_trans_data_structs(const TransInfo &t,
         return;
       }
       float3 center(0.0f);
-      selection.foreach_index([&](const int64_t point_i) { center += point_positions[point_i]; });
+      selection.foreach_index_optimized<int64_t>(
+          [&](const int64_t point_i) { center += point_positions[point_i]; });
       center /= selection.size();
       mean_center_point_per_curve[curve_i] = center;
     });

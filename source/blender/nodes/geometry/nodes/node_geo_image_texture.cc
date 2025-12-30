@@ -370,13 +370,13 @@ class ImageFieldsFunction : public mf::MultiFunction {
       }
       case IMA_ALPHA_IGNORE: {
         /* The image should be treated as being opaque. */
-        mask.foreach_index([&](const int64_t i) { color_data[i].w = 1.0f; });
+        mask.foreach_index_optimized<int64_t>([&](const int64_t i) { color_data[i].w = 1.0f; });
         break;
       }
     }
 
     if (!r_alpha.is_empty()) {
-      mask.foreach_index([&](const int64_t i) { r_alpha[i] = r_color[i].a; });
+      mask.foreach_index_optimized<int64_t>([&](const int64_t i) { r_alpha[i] = r_color[i].a; });
     }
   }
 };

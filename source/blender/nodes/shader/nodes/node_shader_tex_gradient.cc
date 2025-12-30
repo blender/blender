@@ -85,19 +85,19 @@ class GradientFunction : public mf::MultiFunction {
 
     switch (gradient_type_) {
       case SHD_BLEND_LINEAR: {
-        mask.foreach_index(
+        mask.foreach_index_optimized<int64_t>(
             [&](const int64_t i) { fac[i] = math::clamp(vector[i].x, 0.0f, 1.0f); });
         break;
       }
       case SHD_BLEND_QUADRATIC: {
-        mask.foreach_index([&](const int64_t i) {
+        mask.foreach_index_optimized<int64_t>([&](const int64_t i) {
           const float r = std::max(vector[i].x, 0.0f);
           fac[i] = math::clamp(r * r, 0.0f, 1.0f);
         });
         break;
       }
       case SHD_BLEND_EASING: {
-        mask.foreach_index([&](const int64_t i) {
+        mask.foreach_index_optimized<int64_t>([&](const int64_t i) {
           const float r = std::min(std::max(vector[i].x, 0.0f), 1.0f);
           const float t = r * r;
           fac[i] = (3.0f * t - 2.0f * t * r);
@@ -105,20 +105,20 @@ class GradientFunction : public mf::MultiFunction {
         break;
       }
       case SHD_BLEND_DIAGONAL: {
-        mask.foreach_index([&](const int64_t i) {
+        mask.foreach_index_optimized<int64_t>([&](const int64_t i) {
           fac[i] = (vector[i].x + vector[i].y) * 0.5f;
           fac[i] = math::clamp(fac[i], 0.0f, 1.0f);
         });
         break;
       }
       case SHD_BLEND_RADIAL: {
-        mask.foreach_index([&](const int64_t i) {
+        mask.foreach_index_optimized<int64_t>([&](const int64_t i) {
           fac[i] = atan2f(vector[i].y, vector[i].x) / (M_PI * 2.0f) + 0.5f;
         });
         break;
       }
       case SHD_BLEND_QUADRATIC_SPHERE: {
-        mask.foreach_index([&](const int64_t i) {
+        mask.foreach_index_optimized<int64_t>([&](const int64_t i) {
           /* Bias a little bit for the case where input is a unit length vector,
            * to get exactly zero instead of a small random value depending
            * on float precision. */
@@ -128,7 +128,7 @@ class GradientFunction : public mf::MultiFunction {
         break;
       }
       case SHD_BLEND_SPHERICAL: {
-        mask.foreach_index([&](const int64_t i) {
+        mask.foreach_index_optimized<int64_t>([&](const int64_t i) {
           /* Bias a little bit for the case where input is a unit length vector,
            * to get exactly zero instead of a small random value depending
            * on float precision. */
@@ -138,7 +138,7 @@ class GradientFunction : public mf::MultiFunction {
       }
     }
     if (compute_color) {
-      mask.foreach_index(
+      mask.foreach_index_optimized<int64_t>(
           [&](const int64_t i) { r_color[i] = ColorGeometry4f(fac[i], fac[i], fac[i], 1.0f); });
     }
   }

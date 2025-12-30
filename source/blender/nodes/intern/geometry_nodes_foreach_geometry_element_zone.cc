@@ -496,7 +496,7 @@ class LazyFunctionForForeachGeometryElementZone : public LazyFunction {
 
       /* Prepare indices that are passed into each iteration. */
       component_info.index_values.reinitialize(mask.size());
-      mask.foreach_index(
+      mask.foreach_index_optimized<int>(
           [&](const int i, const int pos) { component_info.index_values[pos].set(i); });
 
       if (create_element_geometries) {

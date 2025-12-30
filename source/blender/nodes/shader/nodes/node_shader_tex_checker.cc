@@ -97,7 +97,7 @@ class NodeTexChecker : public mf::MultiFunction {
     });
 
     if (!r_color.is_empty()) {
-      mask.foreach_index(
+      mask.foreach_index_optimized<int64_t>(
           [&](const int64_t i) { r_color[i] = (r_fac[i] == 1.0f) ? color1[i] : color2[i]; });
     }
   }

@@ -141,7 +141,8 @@ class MixRGBFunction : public mf::MultiFunction {
     });
 
     if (clamp_) {
-      mask.foreach_index([&](const int64_t i) { clamp_v4(results[i], 0.0f, 1.0f); });
+      mask.foreach_index_optimized<int64_t>(
+          [&](const int64_t i) { clamp_v4(results[i], 0.0f, 1.0f); });
     }
   }
 };

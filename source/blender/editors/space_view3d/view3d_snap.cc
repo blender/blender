@@ -1140,7 +1140,7 @@ static std::optional<blender::Bounds<blender::float3>> bounds_min_max_with_trans
       1024,
       Bounds<float3>(math::transform_point(transform, positions[mask.first()])),
       [&](const IndexRange range, Bounds<float3> init) {
-        mask.slice(range).foreach_index([&](const int i) {
+        mask.slice(range).foreach_index_optimized<int>([&](const int i) {
           math::min_max(math::transform_point(transform, positions[i]), init.min, init.max);
         });
         return init;

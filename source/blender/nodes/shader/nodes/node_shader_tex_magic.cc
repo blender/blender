@@ -161,7 +161,7 @@ class MagicFunction : public mf::MultiFunction {
       r_color[i] = ColorGeometry4f(0.5f - x, 0.5f - y, 0.5f - z, 1.0f);
     });
     if (compute_factor) {
-      mask.foreach_index([&](const int64_t i) {
+      mask.foreach_index_optimized<int64_t>([&](const int64_t i) {
         r_fac[i] = (r_color[i].r + r_color[i].g + r_color[i].b) * (1.0f / 3.0f);
       });
     }

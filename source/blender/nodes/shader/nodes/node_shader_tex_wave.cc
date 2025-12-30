@@ -222,7 +222,7 @@ class WaveFunction : public mf::MultiFunction {
       r_fac[i] = val;
     });
     if (!r_color.is_empty()) {
-      mask.foreach_index([&](const int64_t i) {
+      mask.foreach_index_optimized<int64_t>([&](const int64_t i) {
         r_color[i] = ColorGeometry4f(r_fac[i], r_fac[i], r_fac[i], 1.0f);
       });
     }
