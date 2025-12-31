@@ -132,14 +132,12 @@ ccl_device_inline
                                             kernel_data_fetch(prim_object, prim_addr) :
                                             object;
                 const int prim = kernel_data_fetch(prim_index, prim_addr);
-                if (intersection_skip_self(ray->self, prim_object, prim)) {
+                if (bvh_volume_anyhit_triangle_filter<false>(
+                        kg, prim_object, prim, ray->self, visibility))
+                {
                   continue;
                 }
 
-                const int shader_flag = intersection_get_shader_flags(kg, prim, type);
-                if ((shader_flag & SD_HAS_VOLUME) == 0) {
-                  continue;
-                }
                 triangle_intersect(
                     kg, isect, P, dir, tmin, isect->t, visibility, prim_object, prim, prim_addr);
               }
@@ -155,11 +153,9 @@ ccl_device_inline
                                             kernel_data_fetch(prim_object, prim_addr) :
                                             object;
                 const int prim = kernel_data_fetch(prim_index, prim_addr);
-                if (intersection_skip_self(ray->self, prim_object, prim)) {
-                  continue;
-                }
-                const int shader_flag = intersection_get_shader_flags(kg, prim, type);
-                if ((shader_flag & SD_HAS_VOLUME) == 0) {
+                if (bvh_volume_anyhit_triangle_filter<false>(
+                        kg, prim_object, prim, ray->self, visibility))
+                {
                   continue;
                 }
                 motion_triangle_intersect(kg,

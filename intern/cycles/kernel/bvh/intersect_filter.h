@@ -252,4 +252,44 @@ ccl_device_forceinline bool bvh_shadow_all_anyhit_filter(
 #endif
 }
 
+/* Filter intersection to intersections with only primitives with volume shader.
+ *
+ * Expected to be called only on a triangle primitive. The caller is to filter out intersections
+ * with non-triangle primitives.
+ *
+ * Returns false if the primitive is not to be filtered out (accepted), true if the primitive is to
+ * be ignored. */
+template<bool do_visibility_check = true>
+ccl_device_forceinline bool bvh_volume_anyhit_triangle_filter(
+    KernelGlobals kg,
+    const int object,
+    const int prim,
+    const ccl_ray_data RaySelfPrimitives &ccl_restrict ray_self,
+    const uint ray_visibility)
+{
+#ifdef __VISIBILITY_FLAG__
+  if constexpr (do_visibility_check) {
+    if ((kernel_data_fetch(objects, object).visibility & ray_visibility) == 0) {
+      return true;
+    }
+  }
+#endif
+
+  if ((kernel_data_fetch(object_flag, object) & SD_OBJECT_HAS_VOLUME) == 0) {
+    return true;
+  }
+
+  if (intersection_skip_self(ray_self, object, prim)) {
+    return true;
+  }
+
+  const int shader = kernel_data_fetch(tri_shader, prim);
+  const int shader_flag = kernel_data_fetch(shaders, (shader & SHADER_MASK)).flags;
+  if (!(shader_flag & SD_HAS_VOLUME)) {
+    return true;
+  }
+
+  return false;
+}
+
 CCL_NAMESPACE_END

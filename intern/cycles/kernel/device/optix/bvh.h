@@ -232,27 +232,14 @@ extern "C" __global__ void __anyhit__kernel_optix_volume_test()
   }
 #endif
 
-  const uint object = get_object_id();
-#ifdef __VISIBILITY_FLAG__
-  const uint visibility = optixGetPayload_4();
-  if ((kernel_data_fetch(objects, object).visibility & visibility) == 0) {
-    return optixIgnoreIntersection();
-  }
-#endif
+  KernelGlobals kg = nullptr;
 
-  if ((kernel_data_fetch(object_flag, object) & SD_OBJECT_HAS_VOLUME) == 0) {
-    return optixIgnoreIntersection();
-  }
-
+  const int object = get_object_id();
   const int prim = optixGetPrimitiveIndex();
   ccl_private Ray *const ray = get_payload_ptr_6<Ray>();
-  if (intersection_skip_self(ray->self, object, prim)) {
-    return optixIgnoreIntersection();
-  }
+  const uint ray_visibility = optixGetPayload_4();
 
-  const int shader = kernel_data_fetch(tri_shader, prim);
-  const int shader_flag = kernel_data_fetch(shaders, (shader & SHADER_MASK)).flags;
-  if (!(shader_flag & SD_HAS_VOLUME)) {
+  if (bvh_volume_anyhit_triangle_filter(kg, object, prim, ray->self, ray_visibility)) {
     return optixIgnoreIntersection();
   }
 }

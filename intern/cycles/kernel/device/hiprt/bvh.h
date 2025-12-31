@@ -211,26 +211,18 @@ ccl_device_inline bool motion_triangle_custom_volume_intersect(const hiprtRay &r
 #ifdef __OBJECT_MOTION__
   KernelGlobals kg = nullptr;
 
-  const int object_id = kernel_data_fetch(user_instance_id, hit.instanceID);
-  const uint object_flag = kernel_data_fetch(object_flag, object_id);
+  const int object = kernel_data_fetch(user_instance_id, hit.instanceID);
 
-  if (!(object_flag & SD_OBJECT_HAS_VOLUME)) {
-    return false;
-  }
-
-  const int2 data_offset = kernel_data_fetch(custom_prim_info_offset, object_id);
-  const int prim_offset = kernel_data_fetch(object_prim_offset, object_id);
+  const int2 data_offset = kernel_data_fetch(custom_prim_info_offset, object);
+  const int prim_offset = kernel_data_fetch(object_prim_offset, object);
 
   const int prim_id_local = kernel_data_fetch(custom_prim_info, hit.primID + data_offset.x).x;
-  const int prim_id_global = prim_id_local + prim_offset;
+  const int prim = prim_id_local + prim_offset;
 
-  if (intersection_skip_self_shadow(payload->ray_self, object_id, prim_id_global)) {
-    return false;
-  }
-
-  const int shader_flag = intersection_get_shader_flags(kg, prim_id_global, PRIMITIVE_TRIANGLE);
-  if (!(shader_flag & SD_HAS_VOLUME)) {
-    return false;
+  if (bvh_volume_anyhit_triangle_filter(
+          kg, object, prim, payload->ray_self, payload->ray_visibility))
+  {
+    return true;
   }
 
   Intersection isect;
@@ -242,8 +234,8 @@ ccl_device_inline bool motion_triangle_custom_volume_intersect(const hiprtRay &r
                                                ray.maxT,
                                                payload->ray_time,
                                                payload->ray_visibility,
-                                               object_id,
-                                               prim_id_global,
+                                               object,
+                                               prim,
                                                prim_id_local);
 
   if (b_hit) {
@@ -426,23 +418,22 @@ ccl_device_inline bool local_intersection_filter(const hiprtRay &ray,
 #endif
 }
 
-ccl_device_inline bool volume_intersection_filter(const hiprtRay &ray,
-                                                  BVHPayload *payload,
-                                                  const hiprtHit &hit)
+ccl_device_inline bool volume_triangle_intersection_filter(const hiprtRay &ray,
+                                                           BVHPayload *payload,
+                                                           const hiprtHit &hit)
 {
   KernelGlobals kg = nullptr;
 
-  const int object_id = kernel_data_fetch(user_instance_id, hit.instanceID);
-  const int prim_offset = kernel_data_fetch(object_prim_offset, object_id);
+  const int object = kernel_data_fetch(user_instance_id, hit.instanceID);
+  const int prim_offset = kernel_data_fetch(object_prim_offset, object);
   const int prim = hit.primID + prim_offset;
-  if (intersection_skip_self(payload->ray_self, object_id, prim)) {
+
+  if (bvh_volume_anyhit_triangle_filter(
+          kg, object, prim, payload->ray_self, payload->ray_visibility))
+  {
     return true;
   }
 
-  const int shader_flag = intersection_get_shader_flags(kg, prim, PRIMITIVE_TRIANGLE);
-  if (!(shader_flag & SD_HAS_VOLUME)) {
-    return true;
-  }
   return false;
 }
 
@@ -495,8 +486,10 @@ HIPRT_DEVICE bool filterFunc(const uint geom_type,
     case Motion_Triangle_Filter_Local:
       return local_intersection_filter(ray, (LocalPayload *)payload, hit);
     case Triangle_Filter_Volume:
+      return volume_triangle_intersection_filter(ray, (BVHPayload *)payload, hit);
     case Motion_Triangle_Filter_Volume:
-      return volume_intersection_filter(ray, (BVHPayload *)payload, hit);
+      /* Motion triangle volume filtering is done in the custom intersection function. */
+      return false;
     default:
       break;
   }
