@@ -840,6 +840,16 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &orig_info, bool 
 
   defines += info.resource_guard_defines(info.compilation_constants_);
 
+  if (!info.compute_entry_fn_.is_empty()) {
+    defines += "#define ENTRY_POINT_" + info.compute_entry_fn_ + "\n";
+  }
+  if (!info.fragment_entry_fn_.is_empty()) {
+    defines += "#define ENTRY_POINT_" + info.fragment_entry_fn_ + "\n";
+  }
+  if (!info.vertex_entry_fn_.is_empty()) {
+    defines += "#define ENTRY_POINT_" + info.vertex_entry_fn_ + "\n";
+  }
+
   /* Compilation constants declaration for static branches evaluation.
    * In the future, these can be compiled using function constants on metal to reduce compilation
    * time. */

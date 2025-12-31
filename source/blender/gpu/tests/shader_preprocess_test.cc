@@ -1096,14 +1096,14 @@ struct SRT {
 };
 
 #ifndef GPU_METAL
-void _method(_ref(SRT ,this_), int t);
+void _method(SRT  this_, int t);
 SRT SRT_new_();
 #endif
 #line 5
 
 #if defined(CREATE_INFO_SRT)
 #line 5
-  void _method(_ref(SRT ,this_), int t) {
+  void _method(SRT  this_, int t) {
     srt_access(SRT, a);
   }
 #endif
@@ -1162,7 +1162,7 @@ void func([[resource_table]] Resources &srt)
 
 #if defined(CREATE_INFO_Resources)
 #line 2
-void func(_ref(Resources ,srt))
+void func(Resources  srt)
 {
 
 #if SRT_CONSTANT_use_color_band
@@ -2072,7 +2072,7 @@ float fn([[resource_table]] SRT &srt) {
 
 #if defined(CREATE_INFO_SRT)
 #line 2
-float fn(_ref(SRT ,srt)) {
+float fn(SRT  srt) {
   return srt_access(SRT, member);
 }
 
@@ -2105,7 +2105,7 @@ float fn([[resource_table]] SRT &srt) {
 
 #if defined(CREATE_INFO_SRT)
 #line 2
-float fn(_ref(SRT ,srt)) {
+float fn(SRT  srt) {
 
   return srt_access(OtherSRT, member);
 }
@@ -2217,6 +2217,12 @@ struct ns_VertInTfloat {
                    float pos;
 };
 #line 20
+
+#if defined(CREATE_INFO_Resources)
+#line 20
+
+#if defined(ENTRY_POINT_ns_vertex_function)
+#line 20
            void ns_vertex_function(
 #line 28
                                                                  )
@@ -2234,7 +2240,15 @@ struct ns_VertInTfloat {
 #endif
 #line 36
 }
+#endif
+#endif
+#line 38
 
+#if defined(CREATE_INFO_Resources)
+#line 38
+
+#if defined(ENTRY_POINT_ns_fragment_function)
+#line 38
              void ns_fragment_function(
 #line 47
                                                                            )
@@ -2253,7 +2267,15 @@ struct ns_VertInTfloat {
 #endif
 #line 56
 }
+#endif
+#endif
+#line 58
 
+#if defined(CREATE_INFO_Resources)
+#line 58
+
+#if defined(ENTRY_POINT_ns_compute_function)
+#line 58
             void ns_compute_function(
 #line 63
                                                                                   )
@@ -2270,8 +2292,8 @@ struct ns_VertInTfloat {
 #endif
 #line 70
 }
-
-
+#endif
+#endif
 )";
     string expect_infos = R"(#pragma once
 

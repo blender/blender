@@ -525,7 +525,6 @@ void Parser::parse_scopes(report_callback &report_error)
           if (scopes.top().type == ScopeType::LoopArgs ||
               scopes.top().type == ScopeType::SwitchArg ||
               scopes.top().type == ScopeType::FunctionArgs ||
-              scopes.top().type == ScopeType::FunctionArgs ||
               scopes.top().type == ScopeType::FunctionCall ||
               scopes.top().type == ScopeType::Local)
           {

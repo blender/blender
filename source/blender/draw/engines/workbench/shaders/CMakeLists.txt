@@ -25,9 +25,6 @@ set(INC_GLSL
 set(SRC_GLSL_VERT
   workbench_effect_smaa_vert.glsl
   workbench_fullscreen_vert.glsl
-  workbench_prepass_hair_vert.glsl
-  workbench_prepass_pointcloud_vert.glsl
-  workbench_prepass_vert.glsl
   workbench_shadow_caps_vert.glsl
   workbench_shadow_vert.glsl
 
@@ -47,10 +44,9 @@ set(SRC_GLSL_FRAG
   workbench_effect_taa_frag.glsl
   workbench_merge_depth_frag.glsl
   workbench_overlay_depth_frag.glsl
-  workbench_prepass_frag.glsl
+  workbench_prepass.bsl.hh
   workbench_shadow_frag.glsl
   workbench_shadow_debug_frag.glsl
-  workbench_transparent_accum_frag.glsl
   workbench_transparent_resolve_frag.glsl
 )
 
@@ -65,9 +61,10 @@ set(SRC_GLSL_LIB
   workbench_common.bsl.hh
   workbench_curvature.bsl.hh
   workbench_image_lib.glsl
+  workbench_image.bsl.hh
   workbench_matcap_lib.glsl
   workbench_matcap.bsl.hh
-  workbench_material_lib.glsl
+  workbench_material.bsl.hh
   workbench_shadow_lib.glsl
   workbench_world_light_lib.glsl
   workbench_world_light.bsl.hh

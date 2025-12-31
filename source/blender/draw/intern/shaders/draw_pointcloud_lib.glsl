@@ -24,6 +24,11 @@ struct Point {
   int point_id;
   /* Position on shape facing the camera. */
   float3 shape_pos;
+
+  static Point zero()
+  {
+    return {float3(0), 0.0f, 0, float3(0)};
+  }
 };
 
 int point_id_get(uint vert_id)
@@ -38,7 +43,8 @@ Point point_get(uint vert_id)
   Point pt;
   pt.point_id = point_id_get(vert_id);
 
-  float4 pos_rad = texelFetch(sampler_get(draw_pointcloud, ptcloud_pos_rad_tx), pt.point_id);
+  auto &buf = sampler_get(draw_pointcloud, ptcloud_pos_rad_tx);
+  float4 pos_rad = texelFetch(buf, pt.point_id);
   pt.P = pos_rad.xyz;
   pt.radius = pos_rad.w;
   pt.shape_pos = float3(NAN_FLT);
@@ -113,7 +119,8 @@ ShapePoint shape_point_get(const Point pt, const float3 V, const float3 up_axis)
 
 float3 get_point_position(const int point_id)
 {
-  return texelFetch(sampler_get(draw_pointcloud, ptcloud_pos_rad_tx), point_id).xyz;
+  auto &buf = sampler_get(draw_pointcloud, ptcloud_pos_rad_tx);
+  return texelFetch(buf, point_id).xyz;
 }
 
 float get_customdata_float(const int point_id, const samplerBuffer cd_buf)
