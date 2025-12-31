@@ -16,7 +16,6 @@ set(SRC_KERNEL_DEVICE_HIPRT
 
 set(SRC_KERNEL_DEVICE_HIPRT_HEADERS
   bvh.h
-  common.h
   globals.h
 )
 
