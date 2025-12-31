@@ -32,11 +32,6 @@ struct ClosureLight {
   /* Output both shadowed and unshadowed for shadow denoising. */
   packed_float3 light_shadowed;
   packed_float3 light_unshadowed;
-
-  static ClosureLight zero()
-  {
-    return {float4(0), float3(0), LIGHT_DIFFUSE, float3(0), float3(0)};
-  }
 };
 
 /* Represent an approximation of a bunch of rays from a BSDF. */

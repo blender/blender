@@ -26,12 +26,6 @@ struct Segment {
   uint v_idx;
   /* Restart triangle strip if true. Only for cylinder topology. */
   bool is_end_of_segment;
-
-  /* For stubs. */
-  static Segment zero()
-  {
-    return {0u, 0u, false};
-  }
 };
 
 /* Indirection buffer indexing. */
@@ -66,12 +60,6 @@ struct Indirection {
   bool is_end_of_curve;
   /* Does these vertices correspond to the last point of a cyclic curve (duplicate of start). */
   bool is_cyclic_point;
-
-  /* For stubs. */
-  static Indirection zero()
-  {
-    return {0, 0, false, false};
-  }
 };
 
 Indirection indirection_get(Segment segment)
@@ -181,12 +169,6 @@ struct Point {
   int point_id;
   int curve_id;
   int curve_segment;
-
-  /* For stubs. */
-  static Point zero()
-  {
-    return {float3(0), float3(0), 0.0f, 0.0f, 0, 0, 0};
-  }
 };
 
 /* Return data about the curve point. */
@@ -238,12 +220,6 @@ struct ShapePoint {
   float3 P;
   /* Shading normal at the position on the curve shape. */
   float3 N;
-
-  /* For stubs. */
-  static ShapePoint zero()
-  {
-    return {float3(0), float3(0), float3(0), float3(0), float3(0)};
-  }
 };
 
 /**

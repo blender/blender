@@ -21,11 +21,6 @@
 struct InterpPosition {
   /* Position, Radius. */
   float4 data;
-
-  static InterpPosition zero()
-  {
-    return {float4(0)};
-  }
 };
 
 /** Input Load. */

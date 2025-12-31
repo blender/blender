@@ -24,11 +24,6 @@ struct Point {
   int point_id;
   /* Position on shape facing the camera. */
   float3 shape_pos;
-
-  static Point zero()
-  {
-    return {float3(0), 0.0f, 0, float3(0)};
-  }
 };
 
 int point_id_get(uint vert_id)
