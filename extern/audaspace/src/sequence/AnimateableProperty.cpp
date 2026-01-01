@@ -223,8 +223,7 @@ void AnimateableProperty::read(float position, float* out)
 			m0 = (p2[i] - p0[i]) / 2.0f;
 			m1 = (p3[i] - p1[i]) / 2.0f;
 
-			out[i] = (2 * t3 - 3 * t2 + 1) * p0[i] + (-2 * t3 + 3 * t2) * p1[i] +
-					 (t3 - 2 * t2 + t) * m0 + (t3 - t2) * m1;
+			out[i] = (2 * t3 - 3 * t2 + 1) * p1[i] + (-2 * t3 + 3 * t2) * p2[i] + (t3 - 2 * t2 + t) * m0 + (t3 - t2) * m1;
 		}
 	}
 }
