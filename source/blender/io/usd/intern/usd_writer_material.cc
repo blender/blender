@@ -204,7 +204,7 @@ static void process_inputs(const USDExporterContext &usd_export_context,
         continue;
       }
 
-      input_scale = ((bNodeSocketValueFloat *)emission_strength_sock->default_value)->value;
+      input_scale = emission_strength_sock->default_value_typed<bNodeSocketValueFloat>()->value;
       if (input_scale == 0.0f) {
         continue;
       }
@@ -282,14 +282,14 @@ static void process_inputs(const USDExporterContext &usd_export_context,
               vector_math_node = temp_link->fromnode;
             }
 
-            bNodeSocket *sock_scale = bke::node_find_socket(
+            const bNodeSocket *sock_scale = bke::node_find_socket(
                 *vector_math_node, SOCK_IN, "Vector_001");
-            bNodeSocket *sock_bias = bke::node_find_socket(
+            const bNodeSocket *sock_bias = bke::node_find_socket(
                 *vector_math_node, SOCK_IN, "Vector_002");
             const float *scale_value =
-                static_cast<bNodeSocketValueVector *>(sock_scale->default_value)->value;
+                sock_scale->default_value_typed<bNodeSocketValueVector>()->value;
             const float *bias_value =
-                static_cast<bNodeSocketValueVector *>(sock_bias->default_value)->value;
+                sock_bias->default_value_typed<bNodeSocketValueVector>()->value;
 
             const pxr::GfVec4f scale(scale_value[0], scale_value[1], scale_value[2], 1.0f);
             const pxr::GfVec4f bias(bias_value[0], bias_value[1], bias_value[2], 0.0f);
@@ -335,7 +335,7 @@ static void process_inputs(const USDExporterContext &usd_export_context,
           else if (math_node->custom1 == NODE_MATH_SUBTRACT) {
             /* If this is the 1-minus node, we need to search upstream to find the less-than. */
             bNodeSocket *math_sock = blender::bke::node_find_socket(*math_node, SOCK_IN, "Value");
-            if (((bNodeSocketValueFloat *)math_sock->default_value)->value == 1.0f) {
+            if (math_sock->default_value_typed<bNodeSocketValueFloat>()->value == 1.0f) {
               math_sock = blender::bke::node_find_socket(*math_node, SOCK_IN, "Value_001");
               math_link = traverse_channel(math_sock, SH_NODE_MATH);
               if (math_link && math_link->fromnode) {
@@ -345,7 +345,7 @@ static void process_inputs(const USDExporterContext &usd_export_context,
                   /* We found the upstream less-than with the threshold value. */
                   bNodeSocket *threshold_sock = blender::bke::node_find_socket(
                       *math_node, SOCK_IN, "Value_001");
-                  threshold = ((bNodeSocketValueFloat *)threshold_sock->default_value)->value;
+                  threshold = threshold_sock->default_value_typed<bNodeSocketValueFloat>()->value;
                 }
               }
             }
@@ -663,19 +663,19 @@ static void create_transform2d_shader(const USDExporterContext &usd_export_conte
   float rot[3] = {0.0f, 0.0f, 0.0f};
 
   if (bNodeSocket *scale_socket = bke::node_find_socket(*mapping_node, SOCK_IN, "Scale")) {
-    copy_v3_v3(scale, ((bNodeSocketValueVector *)scale_socket->default_value)->value);
+    copy_v3_v3(scale, scale_socket->default_value_typed<bNodeSocketValueVector>()->value);
     /* Ignore the Z scale. */
     scale[2] = 1.0f;
   }
 
   if (bNodeSocket *loc_socket = bke::node_find_socket(*mapping_node, SOCK_IN, "Location")) {
-    copy_v3_v3(loc, ((bNodeSocketValueVector *)loc_socket->default_value)->value);
+    copy_v3_v3(loc, loc_socket->default_value_typed<bNodeSocketValueVector>()->value);
     /* Ignore the Z translation. */
     loc[2] = 0.0f;
   }
 
   if (bNodeSocket *rot_socket = bke::node_find_socket(*mapping_node, SOCK_IN, "Rotation")) {
-    copy_v3_v3(rot, ((bNodeSocketValueVector *)rot_socket->default_value)->value);
+    copy_v3_v3(rot, rot_socket->default_value_typed<bNodeSocketValueVector>()->value);
     /* Ignore the X and Y rotations. */
     rot[0] = 0.0f;
     rot[1] = 0.0f;

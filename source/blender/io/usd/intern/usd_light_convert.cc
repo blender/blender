@@ -267,7 +267,8 @@ void dome_light_to_world_material(const USDImportParams &params,
 
     /* Set the default background color. */
     bNodeSocket *color_sock = bke::node_find_socket(*bgshader, SOCK_IN, "Color");
-    copy_v3_v3(((bNodeSocketValueRGBA *)color_sock->default_value)->value, &scene->world->horr);
+    copy_v3_v3(color_sock->default_value_typed<bNodeSocketValueRGBA>()->value,
+               &scene->world->horr);
   }
 
   /* Make sure the first input to the shader node is disconnected. */
@@ -281,14 +282,14 @@ void dome_light_to_world_material(const USDImportParams &params,
   float intensity = dome_light_data.intensity * params.light_intensity_scale;
 
   bNodeSocket *strength_sock = bke::node_find_socket(*bgshader, SOCK_IN, "Strength");
-  ((bNodeSocketValueFloat *)strength_sock->default_value)->value = intensity;
+  strength_sock->default_value_typed<bNodeSocketValueFloat>()->value = intensity;
 
   if (!dome_light_data.has_tex) {
     /* No texture file is authored on the dome light.  Set the color, if it was authored,
      * and return early. */
     if (dome_light_data.has_color) {
       bNodeSocket *color_sock = bke::node_find_socket(*bgshader, SOCK_IN, "Color");
-      copy_v3_v3(((bNodeSocketValueRGBA *)color_sock->default_value)->value,
+      copy_v3_v3(color_sock->default_value_typed<bNodeSocketValueRGBA>()->value,
                  dome_light_data.color.data());
     }
 
@@ -313,7 +314,7 @@ void dome_light_to_world_material(const USDImportParams &params,
     }
 
     if (vec_sock) {
-      copy_v3_v3(((bNodeSocketValueVector *)vec_sock->default_value)->value,
+      copy_v3_v3(vec_sock->default_value_typed<bNodeSocketValueVector>()->value,
                  dome_light_data.color.data());
     }
     else {
@@ -447,14 +448,14 @@ static bool node_search(bNode *fromnode, bNode * /*tonode*/, void *userdata, boo
       }
 
       if (vec_sock) {
-        copy_v3_v3(res.color_mult, ((bNodeSocketValueVector *)vec_sock->default_value)->value);
+        copy_v3_v3(res.color_mult, vec_sock->default_value_typed<bNodeSocketValueVector>()->value);
       }
     }
   }
   else if (res.image && fromnode->type_legacy == SH_NODE_MAPPING) {
     if (bNodeSocket *socket = bke::node_find_socket(*fromnode, SOCK_IN, "Rotation")) {
-      const bNodeSocketValueVector *rot_value = static_cast<bNodeSocketValueVector *>(
-          socket->default_value);
+      const bNodeSocketValueVector *rot_value =
+          socket->default_value_typed<bNodeSocketValueVector>();
       /* Convert radians to degrees. */
       pxr::GfVec3f rot(rot_value->value);
       rot *= 180.0f / M_PI;

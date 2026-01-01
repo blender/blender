@@ -14,6 +14,7 @@
 #include "BKE_material.hh"
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_report.hh"
 
@@ -29,6 +30,7 @@
 #include "BLI_vector.hh"
 
 #include "DNA_material_types.h"
+#include "DNA_node_types.h"
 
 #include "IMB_colormanagement.hh"
 
@@ -587,7 +589,7 @@ void USDMaterialReader::set_principled_node_inputs(bNode *principled,
 
   bNodeSocket *emission_strength_sock = blender::bke::node_find_socket(
       *principled, SOCK_IN, "Emission Strength");
-  ((bNodeSocketValueFloat *)emission_strength_sock->default_value)->value = emission_strength;
+  emission_strength_sock->default_value_typed<bNodeSocketValueFloat>()->value = emission_strength;
 
   if (pxr::UsdShadeInput specular_input = usd_shader.GetInput(usdtokens::specularColor)) {
     set_node_input(specular_input, principled, "Specular Tint", ntree, column, context);
@@ -658,9 +660,9 @@ bool USDMaterialReader::set_displacement_node_inputs(bNodeTree *ntree,
         *displacement_node, SOCK_IN, "Midlevel");
     bNodeSocket *sock_scale = blender::bke::node_find_socket(*displacement_node, SOCK_IN, "Scale");
 
-    ((bNodeSocketValueFloat *)sock_height->default_value)->value += 0.5f;
-    ((bNodeSocketValueFloat *)sock_mid->default_value)->value = 0.5f;
-    ((bNodeSocketValueFloat *)sock_scale->default_value)->value = 1.0f;
+    sock_height->default_value_typed<bNodeSocketValueFloat>()->value += 0.5f;
+    sock_mid->default_value_typed<bNodeSocketValueFloat>()->value = 0.5f;
+    sock_scale->default_value_typed<bNodeSocketValueFloat>()->value = 1.0f;
   }
 
   /* Connect the Displacement node to the output node. */
@@ -705,32 +707,32 @@ bool USDMaterialReader::set_node_input(const pxr::UsdShadeInput &usd_input,
   switch (sock->type) {
     case SOCK_FLOAT:
       if (val.IsHolding<float>()) {
-        ((bNodeSocketValueFloat *)sock->default_value)->value = val.UncheckedGet<float>();
+        sock->default_value_typed<bNodeSocketValueFloat>()->value = val.UncheckedGet<float>();
         return true;
       }
       else if (val.IsHolding<pxr::GfVec3f>()) {
         pxr::GfVec3f v3f = val.UncheckedGet<pxr::GfVec3f>();
         float average = (v3f[0] + v3f[1] + v3f[2]) / 3.0f;
-        ((bNodeSocketValueFloat *)sock->default_value)->value = average;
+        sock->default_value_typed<bNodeSocketValueFloat>()->value = average;
         return true;
       }
       break;
     case SOCK_RGBA:
       if (val.IsHolding<pxr::GfVec3f>()) {
         pxr::GfVec3f v3f = val.UncheckedGet<pxr::GfVec3f>();
-        copy_v3_v3(((bNodeSocketValueRGBA *)sock->default_value)->value, v3f.data());
+        copy_v3_v3(sock->default_value_typed<bNodeSocketValueRGBA>()->value, v3f.data());
         return true;
       }
       break;
     case SOCK_VECTOR:
       if (val.IsHolding<pxr::GfVec3f>()) {
         pxr::GfVec3f v3f = val.UncheckedGet<pxr::GfVec3f>();
-        copy_v3_v3(((bNodeSocketValueVector *)sock->default_value)->value, v3f.data());
+        copy_v3_v3(sock->default_value_typed<bNodeSocketValueVector>()->value, v3f.data());
         return true;
       }
       else if (val.IsHolding<pxr::GfVec2f>()) {
         pxr::GfVec2f v2f = val.UncheckedGet<pxr::GfVec2f>();
-        copy_v2_v2(((bNodeSocketValueVector *)sock->default_value)->value, v2f.data());
+        copy_v2_v2(sock->default_value_typed<bNodeSocketValueVector>()->value, v2f.data());
         return true;
       }
       break;
@@ -821,8 +823,8 @@ static IntermediateNode add_scale_bias(const pxr::UsdShadeShader &usd_shader,
   bNodeSocket *sock_scale = blender::bke::node_find_socket(
       *scale_bias.node, SOCK_IN, "Vector_001");
   bNodeSocket *sock_bias = blender::bke::node_find_socket(*scale_bias.node, SOCK_IN, "Vector_002");
-  copy_v3_v3(((bNodeSocketValueVector *)sock_scale->default_value)->value, scale.data());
-  copy_v3_v3(((bNodeSocketValueVector *)sock_bias->default_value)->value, bias.data());
+  copy_v3_v3(sock_scale->default_value_typed<bNodeSocketValueVector>()->value, scale.data());
+  copy_v3_v3(sock_bias->default_value_typed<bNodeSocketValueVector>()->value, bias.data());
 
   return scale_bias;
 }
@@ -841,8 +843,8 @@ static IntermediateNode add_scale_bias_adjust(bNodeTree *ntree,
 
   bNodeSocket *sock_scale = blender::bke::node_find_socket(*adjust.node, SOCK_IN, "Vector_001");
   bNodeSocket *sock_bias = blender::bke::node_find_socket(*adjust.node, SOCK_IN, "Vector_002");
-  copy_v3_fl3(((bNodeSocketValueVector *)sock_scale->default_value)->value, 0.5f, 0.5f, 0.5f);
-  copy_v3_fl3(((bNodeSocketValueVector *)sock_bias->default_value)->value, 0.5f, 0.5f, 0.5f);
+  copy_v3_fl3(sock_scale->default_value_typed<bNodeSocketValueVector>()->value, 0.5f, 0.5f, 0.5f);
+  copy_v3_fl3(sock_bias->default_value_typed<bNodeSocketValueVector>()->value, 0.5f, 0.5f, 0.5f);
 
   return adjust;
 }
@@ -899,7 +901,7 @@ static IntermediateNode add_lessthan(bNodeTree *ntree,
   lessthan.sock_output_name = "Value";
 
   bNodeSocket *thresh_sock = blender::bke::node_find_socket(*lessthan.node, SOCK_IN, "Value_001");
-  ((bNodeSocketValueFloat *)thresh_sock->default_value)->value = threshold;
+  thresh_sock->default_value_typed<bNodeSocketValueFloat>()->value = threshold;
 
   return lessthan;
 }
@@ -916,7 +918,7 @@ static IntermediateNode add_oneminus(bNodeTree *ntree, int column, NodePlacement
   oneminus.sock_output_name = "Value";
 
   bNodeSocket *val_sock = blender::bke::node_find_socket(*oneminus.node, SOCK_IN, "Value");
-  ((bNodeSocketValueFloat *)val_sock->default_value)->value = 1.0f;
+  val_sock->default_value_typed<bNodeSocketValueFloat>()->value = 1.0f;
 
   return oneminus;
 }
@@ -943,8 +945,8 @@ static void configure_displacement(const pxr::UsdShadeShader &usd_shader, bNode 
 
   bNodeSocket *sock_mid = blender::bke::node_find_socket(*displacement_node, SOCK_IN, "Midlevel");
   bNodeSocket *sock_scale = blender::bke::node_find_socket(*displacement_node, SOCK_IN, "Scale");
-  ((bNodeSocketValueFloat *)sock_mid->default_value)->value = -1.0f * (bias_avg / scale_avg);
-  ((bNodeSocketValueFloat *)sock_scale->default_value)->value = scale_avg;
+  sock_mid->default_value_typed<bNodeSocketValueFloat>()->value = -1.0f * (bias_avg / scale_avg);
+  sock_scale->default_value_typed<bNodeSocketValueFloat>()->value = scale_avg;
 }
 
 static pxr::UsdShadeShader node_graph_output_source(const pxr::UsdShadeNodeGraph &node_graph,
@@ -1235,7 +1237,7 @@ void USDMaterialReader::convert_usd_transform_2d(const pxr::UsdShadeShader &usd_
         if (scale_input.Get(&val) && val.CanCast<pxr::GfVec2f>()) {
           pxr::GfVec2f scale_val = val.Cast<pxr::GfVec2f>().UncheckedGet<pxr::GfVec2f>();
           float scale[3] = {scale_val[0], scale_val[1], 1.0f};
-          copy_v3_v3(((bNodeSocketValueVector *)scale_socket->default_value)->value, scale);
+          copy_v3_v3(scale_socket->default_value_typed<bNodeSocketValueVector>()->value, scale);
         }
       }
     }
@@ -1246,7 +1248,7 @@ void USDMaterialReader::convert_usd_transform_2d(const pxr::UsdShadeShader &usd_
         if (trans_input.Get(&val) && val.CanCast<pxr::GfVec2f>()) {
           pxr::GfVec2f trans_val = val.Cast<pxr::GfVec2f>().UncheckedGet<pxr::GfVec2f>();
           float location[3] = {trans_val[0], trans_val[1], 0.0f};
-          copy_v3_v3(((bNodeSocketValueVector *)loc_socket->default_value)->value, location);
+          copy_v3_v3(loc_socket->default_value_typed<bNodeSocketValueVector>()->value, location);
         }
       }
     }
@@ -1257,7 +1259,7 @@ void USDMaterialReader::convert_usd_transform_2d(const pxr::UsdShadeShader &usd_
         if (rot_input.Get(&val) && val.CanCast<float>()) {
           float rot_val = val.Cast<float>().UncheckedGet<float>() * M_PI / 180.0f;
           float rot[3] = {0.0f, 0.0f, rot_val};
-          copy_v3_v3(((bNodeSocketValueVector *)rot_socket->default_value)->value, rot);
+          copy_v3_v3(rot_socket->default_value_typed<bNodeSocketValueVector>()->value, rot);
         }
       }
     }
