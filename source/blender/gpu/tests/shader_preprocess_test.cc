@@ -1425,7 +1425,7 @@ void A_a() {}
 
 void A_B_b() { A_a(); }
 
-void A_f() { B_b(); }
+void A_f() { A_B_b(); }
 
 )";
     string error;

@@ -124,7 +124,7 @@ struct Mesh {
 };
 
 [[vertex]] void vert_mesh([[resource_table]] Mesh &mesh,
-                          [[resource_table]] workbench::color::Materials &materials,
+                          [[resource_table]] color::Materials &materials,
                           [[in]] const MeshIn &v_in,
                           [[out]] VertOut &v_out,
                           [[position]] float4 &out_position)
@@ -165,7 +165,7 @@ struct Curves {
 };
 
 [[vertex]] void vert_curves([[resource_table]] Curves &curves,
-                            [[resource_table]] workbench::color::Materials &materials,
+                            [[resource_table]] color::Materials &materials,
                             [[vertex_id]] const int vert_id,
                             [[out]] VertOut &v_out,
                             [[position]] float4 &out_position)
@@ -231,7 +231,7 @@ struct PointCloud {
 };
 
 [[vertex]] void vert_pointcloud([[resource_table]] PointCloud &point_cloud,
-                                [[resource_table]] workbench::color::Materials &materials,
+                                [[resource_table]] color::Materials &materials,
                                 [[vertex_id]] const int vert_id,
                                 [[out]] VertOut &v_out,
                                 [[position]] float4 &out_position)
@@ -269,7 +269,7 @@ struct Resources {
 
   [[push_constant]] const bool force_shadowing;
 
-  [[resource_table, condition(use_texture)]] srt_t<workbench::color::Texture> texture;
+  [[resource_table, condition(use_texture)]] srt_t<color::Texture> texture;
 
   [[sampler(WB_MATCAP_SLOT), condition(lighting_mode == 1 /* WORKBENCH_LIGHTING_MATCAP */)]]
   sampler2DArray matcap_tx;
@@ -286,13 +286,12 @@ struct OpaqueOut {
                               [[out]] OpaqueOut &frag_out)
 {
   frag_out.object_id = uint(v_out.object_id);
-  frag_out.normal = workbench::normal_encode(gl_FrontFacing, v_out.normal);
+  frag_out.normal = normal_encode(gl_FrontFacing, v_out.normal);
 
-  frag_out.material = float4(v_out.color,
-                             workbench::float_pair_encode(v_out.roughness, v_out.metallic));
+  frag_out.material = float4(v_out.color, float_pair_encode(v_out.roughness, v_out.metallic));
 
   if (srt.use_texture) [[static_branch]] {
-    frag_out.material.rgb = workbench::color::image_color(srt.texture, v_out.uv);
+    frag_out.material.rgb = color::image_color(srt.texture, v_out.uv);
   }
 
   if (srt.lighting_mode == WORKBENCH_LIGHTING_MATCAP) [[static_branch]] {
@@ -308,7 +307,7 @@ struct TransparentOut {
 };
 
 [[fragment]] void frag_transparent([[resource_table]] Resources &srt,
-                                   [[resource_table]] workbench::World &world,
+                                   [[resource_table]] World &world,
                                    [[frag_coord]] const float4 frag_co,
                                    [[in]] const VertOut &v_out,
                                    [[out]] TransparentOut &frag_out)
@@ -322,22 +321,21 @@ struct TransparentOut {
   float3 color = v_out.color;
 
   if (srt.use_texture) [[static_branch]] {
-    color = workbench::color::image_color(srt.texture, v_out.uv);
+    color = color::image_color(srt.texture, v_out.uv);
   }
 
   float3 shaded_color = float3(0.0f, 1.0f, 1.0f);
   if (srt.lighting_mode == WORKBENCH_LIGHTING_MATCAP) [[static_branch]] {
-    shaded_color = workbench::get_matcap_lighting(world, srt.matcap_tx, color, N, I);
+    shaded_color = get_matcap_lighting(world, srt.matcap_tx, color, N, I);
   }
   else if (srt.lighting_mode == WORKBENCH_LIGHTING_STUDIO) [[static_branch]] {
-    shaded_color = workbench::get_world_lighting(
-        world, color, v_out.roughness, v_out.metallic, N, I);
+    shaded_color = get_world_lighting(world, color, v_out.roughness, v_out.metallic, N, I);
   }
   else if (srt.lighting_mode == WORKBENCH_LIGHTING_FLAT) [[static_branch]] {
     shaded_color = color;
   }
 
-  shaded_color *= workbench::get_shadow(world, N, srt.force_shadowing);
+  shaded_color *= get_shadow(world, N, srt.force_shadowing);
 
   /* Listing 4 */
   float alpha = v_out.alpha * world.world_data.xray_alpha;
