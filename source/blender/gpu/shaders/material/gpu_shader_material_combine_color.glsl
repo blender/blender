@@ -4,16 +4,19 @@
 
 #include "gpu_shader_common_color_utils.glsl"
 
+[[node]]
 void combine_color_rgb(float r, float g, float b, float4 &col)
 {
   col = float4(r, g, b, 1.0f);
 }
 
+[[node]]
 void combine_color_hsv(float h, float s, float v, float4 &col)
 {
   hsv_to_rgb(float4(h, s, v, 1.0f), col);
 }
 
+[[node]]
 void combine_color_hsl(float h, float s, float l, float4 &col)
 {
   hsl_to_rgb(float4(h, s, l, 1.0f), col);

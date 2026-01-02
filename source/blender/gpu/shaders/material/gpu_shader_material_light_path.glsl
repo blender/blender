@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+[[node]]
 void node_light_path(float &is_camera_ray,
                      float &is_shadow_ray,
                      float &is_diffuse_ray,

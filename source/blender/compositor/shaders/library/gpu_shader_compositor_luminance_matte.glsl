@@ -4,6 +4,7 @@
 
 #include "gpu_shader_common_color_utils.glsl"
 
+[[node]]
 void node_composite_luminance_matte(float4 color,
                                     float minimum,
                                     float maximum,

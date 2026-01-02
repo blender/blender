@@ -4,6 +4,7 @@
 
 #include "gpu_shader_material_transform_utils.glsl"
 
+[[node]]
 void camera(float3 &outview, float &outdepth, float &outdist)
 {
   float3 vP;

@@ -29,6 +29,7 @@ float ior_from_F0(float F0)
   return (-f - 1.0f) / (f - 1.0f);
 }
 
+[[node]]
 void node_bsdf_principled(float4 base_color,
                           float metallic,
                           float roughness,

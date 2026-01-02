@@ -6,6 +6,7 @@
 
 #include "gpu_shader_compat.hh"
 
+[[node]]
 void rgb_to_hsv(float4 rgb, float4 &outcol)
 {
   float cmax, cmin, h, s, v, cdelta;
@@ -50,6 +51,7 @@ void rgb_to_hsv(float4 rgb, float4 &outcol)
   outcol = float4(h, s, v, rgb.w);
 }
 
+[[node]]
 void hsv_to_rgb(float4 hsv, float4 &outcol)
 {
   float i, f, p, q, t, h, s, v;
@@ -98,6 +100,7 @@ void hsv_to_rgb(float4 hsv, float4 &outcol)
   outcol = float4(rgb, hsv.w);
 }
 
+[[node]]
 void rgb_to_hsl(float4 rgb, float4 &outcol)
 {
   float cmax, cmin, h, s, l;
@@ -127,6 +130,7 @@ void rgb_to_hsl(float4 rgb, float4 &outcol)
   outcol = float4(h, s, l, rgb.w);
 }
 
+[[node]]
 void hsl_to_rgb(float4 hsl, float4 &outcol)
 {
   float nr, ng, nb, chroma, h, s, l;
@@ -151,6 +155,7 @@ void hsl_to_rgb(float4 hsl, float4 &outcol)
 
 /* ** YCCA to RGBA ** */
 
+[[node]]
 void ycca_to_rgba_itu_601(float4 ycca, float4 &color)
 {
   ycca.xyz *= 255.0f;
@@ -161,6 +166,7 @@ void ycca_to_rgba_itu_601(float4 ycca, float4 &color)
   color.a = ycca.a;
 }
 
+[[node]]
 void ycca_to_rgba_itu_709(float4 ycca, float4 &color)
 {
   ycca.xyz *= 255.0f;
@@ -171,6 +177,7 @@ void ycca_to_rgba_itu_709(float4 ycca, float4 &color)
   color.a = ycca.a;
 }
 
+[[node]]
 void ycca_to_rgba_jpeg(float4 ycca, float4 &color)
 {
   ycca.xyz *= 255.0f;
@@ -183,6 +190,7 @@ void ycca_to_rgba_jpeg(float4 ycca, float4 &color)
 
 /* ** RGBA to YCCA ** */
 
+[[node]]
 void rgba_to_ycca_itu_601(float4 rgba, float4 &ycca)
 {
   rgba.rgb *= 255.0f;
@@ -193,6 +201,7 @@ void rgba_to_ycca_itu_601(float4 rgba, float4 &ycca)
   ycca.a = rgba.a;
 }
 
+[[node]]
 void rgba_to_ycca_itu_709(float4 rgba, float4 &ycca)
 {
   rgba.rgb *= 255.0f;
@@ -203,6 +212,7 @@ void rgba_to_ycca_itu_709(float4 rgba, float4 &ycca)
   ycca.a = rgba.a;
 }
 
+[[node]]
 void rgba_to_ycca_jpeg(float4 rgba, float4 &ycca)
 {
   rgba.rgb *= 255.0f;
@@ -216,6 +226,7 @@ void rgba_to_ycca_jpeg(float4 rgba, float4 &ycca)
 
 /* ** YUVA to RGBA ** */
 
+[[node]]
 void yuva_to_rgba_itu_709(float4 yuva, float4 &color)
 {
   color.rgb = float3x3(1.0f, 1.0f, 1.0f, 0.0f, -0.21482f, 2.12798f, 1.28033f, -0.38059f, 0.0f) *
@@ -225,6 +236,7 @@ void yuva_to_rgba_itu_709(float4 yuva, float4 &color)
 
 /* ** RGBA to YUVA ** */
 
+[[node]]
 void rgba_to_yuva_itu_709(float4 rgba, float4 &yuva)
 {
   yuva.xyz =
@@ -236,16 +248,19 @@ void rgba_to_yuva_itu_709(float4 rgba, float4 &yuva)
 
 /* ** Alpha Handling ** */
 
+[[node]]
 void color_alpha_clear(float4 color, float4 &result)
 {
   result = float4(color.rgb, 1.0f);
 }
 
+[[node]]
 void color_alpha_premultiply(float4 color, float4 &result)
 {
   result = float4(color.rgb * color.a, color.a);
 }
 
+[[node]]
 void color_alpha_unpremultiply(float4 color, float4 &result)
 {
   if (color.a == 0.0f || color.a == 1.0f) {

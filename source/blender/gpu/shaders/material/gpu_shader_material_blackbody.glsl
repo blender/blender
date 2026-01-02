@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+[[node]]
 void node_blackbody(float temperature, sampler1DArray spectrummap, float layer, float4 &color)
 {
   float t = (temperature - 800.0f) / (12000.0f - 800.0f);

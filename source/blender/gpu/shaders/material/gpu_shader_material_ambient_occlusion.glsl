@@ -4,6 +4,7 @@
 
 #include "gpu_shader_math_vector_safe_lib.glsl"
 
+[[node]]
 void node_ambient_occlusion(float4 color,
                             float dist,
                             float3 normal,

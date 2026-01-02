@@ -8,24 +8,28 @@
 
 #include "gpu_shader_common_color_utils.glsl"
 
+[[node]]
 void mix_blend(float fac, float4 col1, float4 col2, float4 &outcol)
 {
   outcol = mix(col1, col2, fac);
   outcol.a = col1.a;
 }
 
+[[node]]
 void mix_add(float fac, float4 col1, float4 col2, float4 &outcol)
 {
   outcol = mix(col1, col1 + col2, fac);
   outcol.a = col1.a;
 }
 
+[[node]]
 void mix_mult(float fac, float4 col1, float4 col2, float4 &outcol)
 {
   outcol = mix(col1, col1 * col2, fac);
   outcol.a = col1.a;
 }
 
+[[node]]
 void mix_screen(float fac, float4 col1, float4 col2, float4 &outcol)
 {
   float facm = 1.0f - fac;
@@ -34,6 +38,7 @@ void mix_screen(float fac, float4 col1, float4 col2, float4 &outcol)
   outcol.a = col1.a;
 }
 
+[[node]]
 void mix_overlay(float fac, float4 col1, float4 col2, float4 &outcol)
 {
   float facm = 1.0f - fac;
@@ -62,12 +67,14 @@ void mix_overlay(float fac, float4 col1, float4 col2, float4 &outcol)
   }
 }
 
+[[node]]
 void mix_sub(float fac, float4 col1, float4 col2, float4 &outcol)
 {
   outcol = mix(col1, col1 - col2, fac);
   outcol.a = col1.a;
 }
 
+[[node]]
 void mix_div(float fac, float4 col1, float4 col2, float4 &outcol)
 {
   float facm = 1.0f - fac;
@@ -86,6 +93,7 @@ void mix_div(float fac, float4 col1, float4 col2, float4 &outcol)
 }
 
 /* A variant of mix_div that fallback to the first color upon zero division. */
+[[node]]
 void mix_div_fallback(float fac, float4 col1, float4 col2, float4 &outcol)
 {
   float facm = 1.0f - fac;
@@ -103,30 +111,35 @@ void mix_div_fallback(float fac, float4 col1, float4 col2, float4 &outcol)
   }
 }
 
+[[node]]
 void mix_diff(float fac, float4 col1, float4 col2, float4 &outcol)
 {
   outcol = mix(col1, abs(col1 - col2), fac);
   outcol.a = col1.a;
 }
 
+[[node]]
 void mix_exclusion(float fac, float4 col1, float4 col2, float4 &outcol)
 {
   outcol = max(mix(col1, col1 + col2 - 2.0f * col1 * col2, fac), 0.0f);
   outcol.a = col1.a;
 }
 
+[[node]]
 void mix_dark(float fac, float4 col1, float4 col2, float4 &outcol)
 {
   outcol.rgb = mix(col1.rgb, min(col1.rgb, col2.rgb), fac);
   outcol.a = col1.a;
 }
 
+[[node]]
 void mix_light(float fac, float4 col1, float4 col2, float4 &outcol)
 {
   outcol.rgb = mix(col1.rgb, max(col1.rgb, col2.rgb), fac);
   outcol.a = col1.a;
 }
 
+[[node]]
 void mix_dodge(float fac, float4 col1, float4 col2, float4 &outcol)
 {
   outcol = col1;
@@ -169,6 +182,7 @@ void mix_dodge(float fac, float4 col1, float4 col2, float4 &outcol)
   }
 }
 
+[[node]]
 void mix_burn(float fac, float4 col1, float4 col2, float4 &outcol)
 {
   float tmp, facm = 1.0f - fac;
@@ -218,6 +232,7 @@ void mix_burn(float fac, float4 col1, float4 col2, float4 &outcol)
   }
 }
 
+[[node]]
 void mix_hue(float fac, float4 col1, float4 col2, float4 &outcol)
 {
   float facm = 1.0f - fac;
@@ -237,6 +252,7 @@ void mix_hue(float fac, float4 col1, float4 col2, float4 &outcol)
   }
 }
 
+[[node]]
 void mix_sat(float fac, float4 col1, float4 col2, float4 &outcol)
 {
   float facm = 1.0f - fac;
@@ -254,6 +270,7 @@ void mix_sat(float fac, float4 col1, float4 col2, float4 &outcol)
   }
 }
 
+[[node]]
 void mix_val(float fac, float4 col1, float4 col2, float4 &outcol)
 {
   float facm = 1.0f - fac;
@@ -266,6 +283,7 @@ void mix_val(float fac, float4 col1, float4 col2, float4 &outcol)
   hsv_to_rgb(hsv, outcol);
 }
 
+[[node]]
 void mix_color(float fac, float4 col1, float4 col2, float4 &outcol)
 {
   float facm = 1.0f - fac;
@@ -286,6 +304,7 @@ void mix_color(float fac, float4 col1, float4 col2, float4 &outcol)
   }
 }
 
+[[node]]
 void mix_soft(float fac, float4 col1, float4 col2, float4 &outcol)
 {
   float facm = 1.0f - fac;
@@ -296,17 +315,20 @@ void mix_soft(float fac, float4 col1, float4 col2, float4 &outcol)
   outcol.a = col1.a;
 }
 
+[[node]]
 void mix_linear(float fac, float4 col1, float4 col2, float4 &outcol)
 {
   outcol = col1 + fac * (2.0f * (col2 - float4(0.5f)));
   outcol.a = col1.a;
 }
 
+[[node]]
 void clamp_color(float4 vec, const float4 min, const float4 max, float4 &out_vec)
 {
   out_vec = clamp(vec, min, max);
 }
 
+[[node]]
 void multiply_by_alpha(float factor, float4 color, float &result)
 {
   result = factor * color.a;

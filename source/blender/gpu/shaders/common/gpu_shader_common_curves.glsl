@@ -57,6 +57,7 @@ float3 compute_curve_map_coordinates(float3 parameters)
   return parameters * sampler_scale + sampler_offset;
 }
 
+[[node]]
 void curves_combined_rgb(float factor,
                          float4 color,
                          float4 black_level,
@@ -98,6 +99,7 @@ void curves_combined_rgb(float factor,
   result = mix(color, result, factor);
 }
 
+[[node]]
 void curves_combined_rgb_compositor(float4 color,
                                     float factor,
                                     float4 black_level,
@@ -123,6 +125,7 @@ void curves_combined_rgb_compositor(float4 color,
                       result);
 }
 
+[[node]]
 void curves_combined_only(float factor,
                           float4 color,
                           float4 black_level,
@@ -154,6 +157,7 @@ void curves_combined_only(float factor,
   result = mix(color, result, factor);
 }
 
+[[node]]
 void curves_combined_only_compositor(float4 color,
                                      float factor,
                                      float4 black_level,
@@ -210,6 +214,7 @@ void curves_combined_only_compositor(float4 color,
  * change in the distance from the minimum to the maximum. Finally, each of the new minimum,
  * maximum, and median values are written to the color channel that they were originally extracted
  * from. */
+[[node]]
 void curves_film_like(float factor,
                       float4 color,
                       float4 black_level,
@@ -257,6 +262,7 @@ void curves_film_like(float factor,
   result = mix(color, result, clamp(factor, 0.0f, 1.0f));
 }
 
+[[node]]
 void curves_film_like_compositor(float4 color,
                                  float factor,
                                  float4 black_level,
@@ -282,6 +288,7 @@ void curves_film_like_compositor(float4 color,
                    result);
 }
 
+[[node]]
 void curves_vector(float3 vector,
                    sampler1DArray curve_map,
                    const float layer,
@@ -303,6 +310,7 @@ void curves_vector(float3 vector,
   result = extrapolate_if_needed(parameters, result, start_slopes, end_slopes);
 }
 
+[[node]]
 void curves_vector_mixed(float factor,
                          float3 vector,
                          sampler1DArray curve_map,
@@ -318,6 +326,7 @@ void curves_vector_mixed(float factor,
   result = mix(vector, result, factor);
 }
 
+[[node]]
 void curves_float(float value,
                   sampler1DArray curve_map,
                   const float layer,
@@ -336,6 +345,7 @@ void curves_float(float value,
   result = extrapolate_if_needed(parameter, result, start_slope, end_slope);
 }
 
+[[node]]
 void curves_float_mixed(float factor,
                         float value,
                         sampler1DArray curve_map,

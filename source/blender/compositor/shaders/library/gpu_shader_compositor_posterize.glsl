@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+[[node]]
 void node_composite_posterize(float4 color, float steps, float4 &result)
 {
   float sanitized_steps = clamp(steps, 2.0f, 1024.0f);

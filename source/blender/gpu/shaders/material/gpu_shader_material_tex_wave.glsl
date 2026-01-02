@@ -73,6 +73,7 @@ float calc_wave(float3 p,
   }
 }
 
+[[node]]
 void node_tex_wave(float3 co,
                    float scale,
                    float distortion,

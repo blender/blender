@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+[[node]]
 void node_bsdf_hair(float4 color,
                     float offset,
                     float roughness_u,
@@ -31,6 +32,7 @@ void node_bsdf_hair(float4 color,
   result = closure_eval(hair_data);
 }
 
+[[node]]
 void node_bsdf_hair_principled(float4 color,
                                float melanin,
                                float melanin_redness,

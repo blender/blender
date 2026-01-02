@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+[[node]]
 void node_wavelength(float wavelength, sampler1DArray spectrummap, float layer, float4 &color)
 {
   float t = (wavelength - 380.0f) / (780.0f - 380.0f);

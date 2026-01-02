@@ -37,6 +37,7 @@
 
 /* **** 1D Voronoi **** */
 
+[[node]]
 void node_tex_voronoi_f1_1d(float3 coord,
                             float w,
                             float scale,
@@ -67,6 +68,7 @@ void node_tex_voronoi_f1_1d(float3 coord,
   outW = Output.Position.w;
 }
 
+[[node]]
 void node_tex_voronoi_smooth_f1_1d(float3 coord,
                                    float w,
                                    float scale,
@@ -97,6 +99,7 @@ void node_tex_voronoi_smooth_f1_1d(float3 coord,
   outW = Output.Position.w;
 }
 
+[[node]]
 void node_tex_voronoi_f2_1d(float3 coord,
                             float w,
                             float scale,
@@ -127,6 +130,7 @@ void node_tex_voronoi_f2_1d(float3 coord,
   outW = Output.Position.w;
 }
 
+[[node]]
 void node_tex_voronoi_distance_to_edge_1d(float3 coord,
                                           float w,
                                           float scale,
@@ -154,6 +158,7 @@ void node_tex_voronoi_distance_to_edge_1d(float3 coord,
   outDistance = fractal_voronoi_distance_to_edge(params, w);
 }
 
+[[node]]
 void node_tex_voronoi_n_sphere_radius_1d(float3 coord,
                                          float w,
                                          float scale,
@@ -182,6 +187,7 @@ void node_tex_voronoi_n_sphere_radius_1d(float3 coord,
 
 /* **** 2D Voronoi **** */
 
+[[node]]
 void node_tex_voronoi_f1_2d(float3 coord,
                             float w,
                             float scale,
@@ -213,6 +219,7 @@ void node_tex_voronoi_f1_2d(float3 coord,
   outPosition = Output.Position.xyz;
 }
 
+[[node]]
 void node_tex_voronoi_smooth_f1_2d(float3 coord,
                                    float w,
                                    float scale,
@@ -244,6 +251,7 @@ void node_tex_voronoi_smooth_f1_2d(float3 coord,
   outPosition = Output.Position.xyz;
 }
 
+[[node]]
 void node_tex_voronoi_f2_2d(float3 coord,
                             float w,
                             float scale,
@@ -276,6 +284,7 @@ void node_tex_voronoi_f2_2d(float3 coord,
   outPosition = Output.Position.xyz;
 }
 
+[[node]]
 void node_tex_voronoi_distance_to_edge_2d(float3 coord,
                                           float w,
                                           float scale,
@@ -303,6 +312,7 @@ void node_tex_voronoi_distance_to_edge_2d(float3 coord,
   outDistance = fractal_voronoi_distance_to_edge(params, coord.xy);
 }
 
+[[node]]
 void node_tex_voronoi_n_sphere_radius_2d(float3 coord,
                                          float w,
                                          float scale,
@@ -331,6 +341,7 @@ void node_tex_voronoi_n_sphere_radius_2d(float3 coord,
 
 /* **** 3D Voronoi **** */
 
+[[node]]
 void node_tex_voronoi_f1_3d(float3 coord,
                             float w,
                             float scale,
@@ -362,6 +373,7 @@ void node_tex_voronoi_f1_3d(float3 coord,
   outPosition = Output.Position.xyz;
 }
 
+[[node]]
 void node_tex_voronoi_smooth_f1_3d(float3 coord,
                                    float w,
                                    float scale,
@@ -393,6 +405,7 @@ void node_tex_voronoi_smooth_f1_3d(float3 coord,
   outPosition = Output.Position.xyz;
 }
 
+[[node]]
 void node_tex_voronoi_f2_3d(float3 coord,
                             float w,
                             float scale,
@@ -425,6 +438,7 @@ void node_tex_voronoi_f2_3d(float3 coord,
   outPosition = Output.Position.xyz;
 }
 
+[[node]]
 void node_tex_voronoi_distance_to_edge_3d(float3 coord,
                                           float w,
                                           float scale,
@@ -452,6 +466,7 @@ void node_tex_voronoi_distance_to_edge_3d(float3 coord,
   outDistance = fractal_voronoi_distance_to_edge(params, coord);
 }
 
+[[node]]
 void node_tex_voronoi_n_sphere_radius_3d(float3 coord,
                                          float w,
                                          float scale,
@@ -480,6 +495,7 @@ void node_tex_voronoi_n_sphere_radius_3d(float3 coord,
 
 /* **** 4D Voronoi **** */
 
+[[node]]
 void node_tex_voronoi_f1_4d(float3 coord,
                             float w,
                             float scale,
@@ -513,6 +529,7 @@ void node_tex_voronoi_f1_4d(float3 coord,
   outW = Output.Position.w;
 }
 
+[[node]]
 void node_tex_voronoi_smooth_f1_4d(float3 coord,
                                    float w,
                                    float scale,
@@ -546,6 +563,7 @@ void node_tex_voronoi_smooth_f1_4d(float3 coord,
   outW = Output.Position.w;
 }
 
+[[node]]
 void node_tex_voronoi_f2_4d(float3 coord,
                             float w,
                             float scale,
@@ -580,6 +598,7 @@ void node_tex_voronoi_f2_4d(float3 coord,
   outW = Output.Position.w;
 }
 
+[[node]]
 void node_tex_voronoi_distance_to_edge_4d(float3 coord,
                                           float w,
                                           float scale,
@@ -608,6 +627,7 @@ void node_tex_voronoi_distance_to_edge_4d(float3 coord,
   outDistance = fractal_voronoi_distance_to_edge(params, float4(coord, w));
 }
 
+[[node]]
 void node_tex_voronoi_n_sphere_radius_4d(float3 coord,
                                          float w,
                                          float scale,

@@ -4,21 +4,25 @@
 
 #include "gpu_shader_material_transform_utils.glsl"
 
+[[node]]
 void node_output_material_surface(Closure surface, Closure &out_surface)
 {
   out_surface = surface;
 }
 
+[[node]]
 void node_output_material_volume(Closure volume, Closure &out_volume)
 {
   out_volume = volume;
 }
 
+[[node]]
 void node_output_material_displacement(float3 displacement, float3 &out_displacement)
 {
   out_displacement = displacement;
 }
 
+[[node]]
 void node_output_material_thickness(float thickness, float &out_thickness)
 {
   float3 ob_scale;

@@ -232,6 +232,7 @@ float4 white_point_variable(const float4 color,
   return float4(balanced, color.w);
 }
 
+[[node]]
 void node_composite_color_balance(const float4 color,
                                   const float factor,
                                   const float type,
@@ -278,6 +279,7 @@ void node_composite_color_balance(const float4 color,
   result = float4(mix(color.xyz(), result.xyz(), min(factor, 1.0f)), color.w);
 }
 
+[[node]]
 void node_composite_color_balance_white_point_constant(const float4 color,
                                                        const float factor,
                                                        const float type,

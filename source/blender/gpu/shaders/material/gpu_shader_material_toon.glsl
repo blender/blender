@@ -4,6 +4,7 @@
 
 #include "gpu_shader_math_vector_safe_lib.glsl"
 
+[[node]]
 void node_bsdf_toon(
     float4 color, float size, float tsmooth, float3 N, float weight, Closure &result)
 {

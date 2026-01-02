@@ -4,6 +4,7 @@
 
 #include "gpu_shader_common_hash.glsl"
 
+[[node]]
 void node_hair_info(float hair_intercept,
                     float hair_length,
                     float &is_strand,

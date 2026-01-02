@@ -5,6 +5,7 @@
 #define CMP_NODE_SETALPHA_MODE_APPLY 0
 #define CMP_NODE_SETALPHA_MODE_REPLACE_ALPHA 1
 
+[[node]]
 void node_composite_set_alpha(float4 color, float alpha, float type, float4 &result)
 {
   switch (int(type)) {

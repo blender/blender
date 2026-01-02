@@ -75,6 +75,7 @@ int2 compute_limit_channels(const int limit_method,
   return int2(limit_channel);
 }
 
+[[node]]
 void node_composite_channel_matte(const float4 color,
                                   const float minimum,
                                   const float maximum,

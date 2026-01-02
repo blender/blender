@@ -17,6 +17,7 @@ float3 smootherstep(float3 edge0, float3 edge1, float3 x)
   return x * x * x * (x * (x * 6.0f - 15.0f) + 10.0f);
 }
 
+[[node]]
 void vector_map_range_linear(float value,
                              float fromMin,
                              float fromMax,
@@ -45,6 +46,7 @@ void vector_map_range_linear(float value,
   }
 }
 
+[[node]]
 void vector_map_range_stepped(float value,
                               float fromMin,
                               float fromMax,
@@ -74,6 +76,7 @@ void vector_map_range_stepped(float value,
   }
 }
 
+[[node]]
 void vector_map_range_smoothstep(float value,
                                  float fromMin,
                                  float fromMax,
@@ -96,6 +99,7 @@ void vector_map_range_smoothstep(float value,
   v_result = v_to_min + factor * (v_to_max - v_to_min);
 }
 
+[[node]]
 void vector_map_range_smootherstep(float value,
                                    float fromMin,
                                    float fromMax,
@@ -118,6 +122,7 @@ void vector_map_range_smootherstep(float value,
   v_result = v_to_min + factor * (v_to_max - v_to_min);
 }
 
+[[node]]
 void map_range_linear(float value,
                       float fromMin,
                       float fromMax,
@@ -142,6 +147,7 @@ void map_range_linear(float value,
   }
 }
 
+[[node]]
 void map_range_stepped(float value,
                        float fromMin,
                        float fromMax,
@@ -168,6 +174,7 @@ void map_range_stepped(float value,
   }
 }
 
+[[node]]
 void map_range_smoothstep(float value,
                           float fromMin,
                           float fromMax,
@@ -194,6 +201,7 @@ void map_range_smoothstep(float value,
   }
 }
 
+[[node]]
 void map_range_smootherstep(float value,
                             float fromMin,
                             float fromMax,

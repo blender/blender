@@ -5,6 +5,7 @@
 #define CMP_NODE_ALPHA_CONVERT_PREMULTIPLY 0
 #define CMP_NODE_ALPHA_CONVERT_UNPREMULTIPLY 1
 
+[[node]]
 void node_composite_convert_alpha(const float4 color, const float type, float4 &result)
 {
   result = color;

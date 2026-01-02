@@ -4,11 +4,13 @@
 
 #include "gpu_shader_material_transform_utils.glsl"
 
+[[node]]
 void node_tex_coord_position(float3 &out_pos)
 {
   out_pos = g_data.P;
 }
 
+[[node]]
 void node_tex_coord(float4x4 obmatinv,
                     float3 attr_orco,
                     float4 attr_uv,

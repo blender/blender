@@ -6,6 +6,7 @@
 #include "gpu_shader_math_matrix_construct_lib.glsl"
 
 /* Algorithm from the book Video Demystified. Chapter 7. Chroma Keying. */
+[[node]]
 void node_composite_chroma_matte(float4 color,
                                  float4 key,
                                  float minimum,

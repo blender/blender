@@ -4,6 +4,7 @@
 
 #include "gpu_shader_material_fresnel.glsl"
 
+[[node]]
 void node_layer_weight(float blend, float3 N, float &fresnel, float &facing)
 {
   N = normalize(N);

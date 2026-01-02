@@ -4,6 +4,7 @@
 
 #include "gpu_shader_material_tangent.glsl"
 
+[[node]]
 void node_geometry(float3 orco_attr,
                    float3 &position,
                    float3 &normal,

@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+[[node]]
 void node_wireframe(float size, float &fac)
 {
   float3 barys = g_data.barycentric_coords.xyy;
@@ -13,6 +14,7 @@ void node_wireframe(float size, float &fac)
   fac = max(s.x, max(s.y, s.z));
 }
 
+[[node]]
 void node_wireframe_screenspace(float size, float &fac)
 {
   float3 barys = g_data.barycentric_coords.xyy;

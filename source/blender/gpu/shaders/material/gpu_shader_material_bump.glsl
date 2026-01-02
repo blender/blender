@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+[[node]]
+[[node]]
 void differentiate_texco(float3 v, float3 &df)
 {
   /* Implementation defined. */
@@ -9,12 +11,15 @@ void differentiate_texco(float3 v, float3 &df)
 }
 
 /* Overload for UVs which are loaded as generic attributes. */
+[[node]]
+[[node]]
 void differentiate_texco(float4 v, float3 &df)
 {
   /* Implementation defined. */
   df = v.xyz + dF_impl(v.xyz);
 }
 
+[[node]]
 void node_bump(float strength,
                float dist,
                float filter_width,

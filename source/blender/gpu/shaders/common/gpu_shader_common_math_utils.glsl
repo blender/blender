@@ -6,12 +6,14 @@
 
 #include "gpu_shader_compat.hh"
 
+[[node]]
 void invert_z(float3 v, float3 &outv)
 {
   v.z = -v.z;
   outv = v;
 }
 
+[[node]]
 void vector_normalize(float3 normal, float3 &outnormal)
 {
   /* Match the safe normalize function in Cycles by defaulting to float3(0.0f) */
@@ -19,6 +21,7 @@ void vector_normalize(float3 normal, float3 &outnormal)
   outnormal = (length_sqr > 1e-35f) ? normal * inversesqrt(length_sqr) : float3(0.0f);
 }
 
+[[node]]
 void vector_copy(float3 normal, float3 &outnormal)
 {
   outnormal = normal;

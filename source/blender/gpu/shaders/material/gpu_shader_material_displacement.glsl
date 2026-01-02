@@ -4,6 +4,7 @@
 
 #include "gpu_shader_material_transform_utils.glsl"
 
+[[node]]
 void node_displacement_object(float height, float midlevel, float scale, float3 N, float3 &result)
 {
   float3 lN;
@@ -13,6 +14,7 @@ void node_displacement_object(float height, float midlevel, float scale, float3 
   direction_transform_object_to_world(l_displacement, result);
 }
 
+[[node]]
 void node_displacement_world(float height, float midlevel, float scale, float3 N, float3 &result)
 {
   result = (height - midlevel) * scale * normalize(N);

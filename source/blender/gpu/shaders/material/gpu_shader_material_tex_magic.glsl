@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+[[node]]
 void node_tex_magic(
     float3 co, float scale, float distortion, float depth, float4 &color, float &fac)
 {

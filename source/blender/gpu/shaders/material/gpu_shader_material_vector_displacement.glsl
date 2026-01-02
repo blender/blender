@@ -5,6 +5,7 @@
 #include "gpu_shader_material_transform_utils.glsl"
 #include "gpu_shader_math_vector_safe_lib.glsl"
 
+[[node]]
 void node_vector_displacement_tangent(
     float4 vector, float midlevel, float scale, float4 T, float3 &result)
 {
@@ -20,12 +21,14 @@ void node_vector_displacement_tangent(
   direction_transform_object_to_world(disp, result);
 }
 
+[[node]]
 void node_vector_displacement_object(float4 vector, float midlevel, float scale, float3 &result)
 {
   float3 disp = (vector.xyz - midlevel) * scale;
   direction_transform_object_to_world(disp, result);
 }
 
+[[node]]
 void node_vector_displacement_world(float4 vector, float midlevel, float scale, float3 &result)
 {
   result = (vector.xyz - midlevel) * scale;

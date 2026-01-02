@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+[[node]]
 void node_emission(float4 color, float strength, float weight, Closure &result)
 {
   color = max(color, float4(0.0f));

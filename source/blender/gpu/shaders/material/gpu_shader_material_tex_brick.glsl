@@ -46,6 +46,7 @@ float2 calc_brick_texture(float3 p,
   }
 }
 
+[[node]]
 void node_tex_brick(float3 co,
                     float4 color1,
                     float4 color2,

@@ -49,13 +49,6 @@ SourceProcessor::Result SourceProcessor::convert(vector<Symbol> symbols_set)
 
   const string filename = regex_replace(filepath_, regex(R"((?:.*)\/(.*))"), "$1");
 
-  /* TODO(fclem): Remove, use attributes on functions. */
-  const bool is_glsl = filename.find(".glsl") != string::npos;
-  const bool do_parse_function = is_glsl &&
-                                 (filename.find("gpu_shader_material_") != string::npos ||
-                                  filename.find("gpu_shader_common_") != string::npos ||
-                                  filename.find("gpu_shader_compositor_") != string::npos);
-
   string str = this->source_;
 
   str = remove_comments(str);
@@ -79,9 +72,7 @@ SourceProcessor::Result SourceProcessor::convert(vector<Symbol> symbols_set)
       parse_includes(parser);
       parse_defines(parser);
       parse_legacy_create_info(parser);
-      if (do_parse_function) {
-        parse_library_functions(parser);
-      }
+      parse_library_functions(parser);
 
       lower_preprocessor(parser);
 
@@ -1490,42 +1481,48 @@ void SourceProcessor::parse_library_functions(Parser &parser)
 {
   using namespace metadata;
 
-  parser().foreach_function([&](bool, Token fn_type, Token fn_name, Scope fn_args, bool, Scope) {
-    /* Only match void function with parameters. */
-    if (fn_type.str() != "void" || fn_args.token_count() <= 3) {
-      return;
-    }
-    /* Reject main function. */
-    if (fn_name.str() == "main") {
-      return;
-    }
-    FunctionFormat fn;
-    fn.name = fn_name.str();
+  parser().foreach_function(
+      [&](bool is_static, Token fn_type, Token fn_name, Scope fn_args, bool, Scope) {
+        Token first_tok = is_static ? fn_type.prev() : fn_type;
+        Scope attributes = first_tok.attribute_before();
+        if (!attributes.contains("node")) {
+          return;
+        }
+        if (fn_type.str() != "void") {
+          report_error_(ERROR_TOK(fn_type), "Expected void return type for node function");
+          return;
+        }
+        if (fn_args.token_count() <= 3) {
+          report_error_(ERROR_TOK(fn_type), "Expected at least one argument for node function");
+          return;
+        }
+        FunctionFormat fn;
+        fn.name = fn_name.str();
 
-    fn_args.foreach_scope(ScopeType::FunctionArg, [&](Scope arg) {
-      /* Note: There is no array support. */
-      const Token name = arg.back();
-      const Token type = name.prev() == '&' ? name.prev().prev() : name.prev();
-      string qualifier = type.prev().str();
-      if (qualifier != "out" && qualifier != "inout" && qualifier != "in") {
-        if (name.prev() == '&') {
-          qualifier = "out";
-        }
-        else if (qualifier != "const" && qualifier != "(" && qualifier != ",") {
-          report_error_(ERROR_TOK(type.prev()),
-                        "Unrecognized qualifier, expecting 'const', 'in', 'out' or 'inout'.");
-          qualifier = "in";
-        }
-        else {
-          qualifier = "in";
-        }
-      }
-      fn.arguments.emplace_back(
-          ArgumentFormat{metadata::Qualifier(hash(qualifier)), metadata::Type(hash(type.str()))});
-    });
+        fn_args.foreach_scope(ScopeType::FunctionArg, [&](Scope arg) {
+          /* Note: There is no array support. */
+          const Token name = arg.back();
+          const Token type = name.prev() == '&' ? name.prev().prev() : name.prev();
+          string qualifier = type.prev().str();
+          if (qualifier != "out" && qualifier != "inout" && qualifier != "in") {
+            if (name.prev() == '&') {
+              qualifier = "out";
+            }
+            else if (qualifier != "const" && qualifier != "(" && qualifier != ",") {
+              report_error_(ERROR_TOK(type.prev()),
+                            "Unrecognized qualifier, expecting 'const', 'in', 'out' or 'inout'.");
+              qualifier = "in";
+            }
+            else {
+              qualifier = "in";
+            }
+          }
+          fn.arguments.emplace_back(ArgumentFormat{metadata::Qualifier(hash(qualifier)),
+                                                   metadata::Type(hash(type.str()))});
+        });
 
-    metadata_.functions.emplace_back(fn);
-  });
+        metadata_.functions.emplace_back(fn);
+      });
 }
 
 void SourceProcessor::parse_builtins(const string &str, const string &filename, bool pure_glsl)
@@ -2931,7 +2928,7 @@ void SourceProcessor::lint_attributes(Parser &parser)
           attr_str == "specialization_constant" || attr_str == "vertex_id" ||
           attr_str == "legacy_info" || attr_str == "vertex" || attr_str == "viewport_index" ||
           attr_str == "work_group_id" || attr_str == "maybe_unused" || attr_str == "fallthrough" ||
-          attr_str == "nodiscard")
+          attr_str == "nodiscard" || attr_str == "node")
       {
         if (attr_scope.is_valid()) {
           report_error_(ERROR_TOK(attr), "This attribute requires no argument");

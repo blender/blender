@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+[[node]]
 void node_volume_scatter(float4 color,
                          float density,
                          float anisotropy,

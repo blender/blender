@@ -4,11 +4,13 @@
 
 #include "gpu_shader_common_math.glsl"
 
+[[node]]
 void node_attribute_color(float4 attr, float4 &out_attr)
 {
   out_attr = attr_load_color_post(attr);
 }
 
+[[node]]
 void node_attribute_temperature(float4 attr, float4 &out_attr)
 {
   float temperature = attr_load_temperature_post(attr.x);
@@ -18,16 +20,19 @@ void node_attribute_temperature(float4 attr, float4 &out_attr)
   out_attr.w = 1.0f;
 }
 
+[[node]]
 void node_attribute_density(float4 attr, float &out_attr)
 {
   out_attr = attr.x;
 }
 
+[[node]]
 void node_attribute_flame(float4 attr, float &out_attr)
 {
   out_attr = attr.x;
 }
 
+[[node]]
 void node_attribute_uniform(float4 attr, const float attr_hash, float4 &out_attr)
 {
   /* Temporary solution to support both old UBO attributes and new SSBO loading.
@@ -60,6 +65,7 @@ float4 attr_load_layer(const uint attr_hash)
   return float4(0.0f);
 }
 
+[[node]]
 void node_attribute(float4 attr, float4 &outcol, float3 &outvec, float &outf, float &outalpha)
 {
   outcol = float4(attr.xyz, 1.0f);

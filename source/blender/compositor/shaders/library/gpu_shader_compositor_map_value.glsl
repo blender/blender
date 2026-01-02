@@ -5,6 +5,7 @@
 /* An arbitrary value determined by Blender. */
 #define BLENDER_ZMAX 10000.0f
 
+[[node]]
 void node_composite_map_range(float value,
                               float from_min,
                               float from_max,
@@ -39,6 +40,7 @@ void node_composite_map_range(float value,
   }
 }
 
+[[node]]
 void node_composite_map_value(float value,
                               float offset,
                               float size,

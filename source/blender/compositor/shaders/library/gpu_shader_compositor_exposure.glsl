@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+[[node]]
 void node_composite_exposure(float4 color, float exposure, float4 &result)
 {
   float multiplier = exp2(exposure);

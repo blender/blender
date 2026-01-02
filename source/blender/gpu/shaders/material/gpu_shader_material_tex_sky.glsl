@@ -53,6 +53,7 @@ float3 xyY_to_xyz(float x, float y, float Y)
   return float3(X, Y, Z);
 }
 
+[[node]]
 void node_tex_sky_preetham(float3 co,
                            float4 config_Y03,
                            float config_Y4,
@@ -108,6 +109,7 @@ float sky_radiance_hosekwilkie(
           config47[3] * zenith);
 }
 
+[[node]]
 void node_tex_sky_hosekwilkie(float3 co,
                               float4 config_x03,
                               float4 config_x47,
@@ -148,6 +150,7 @@ void node_tex_sky_hosekwilkie(float3 co,
   color = float4(dot(xyz_to_r, xyz), dot(xyz_to_g, xyz), dot(xyz_to_b, xyz), 1);
 }
 
+[[node]]
 void node_tex_sky_nishita(float3 co,
                           float sky_type,
                           float sun_rotation,

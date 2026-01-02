@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+[[node]]
 void node_object_info(float mat_index,
                       float3 &location,
                       float4 &color,

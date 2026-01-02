@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+[[node]]
 void node_shader_to_rgba(Closure cl, float4 &outcol, float &outalpha)
 {
   outcol = closure_to_rgba(cl);

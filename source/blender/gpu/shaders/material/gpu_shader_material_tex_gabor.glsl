@@ -284,6 +284,7 @@ float2 compute_3d_gabor_noise(float3 coordinates,
   return sum;
 }
 
+[[node]]
 void node_tex_gabor(float3 coordinates,
                     float scale,
                     float frequency,

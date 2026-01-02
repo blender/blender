@@ -37,6 +37,7 @@ float3 compute_spill_scale(const bool use_spill_strength,
   return scale;
 }
 
+[[node]]
 void node_composite_color_spill(float4 color,
                                 float factor,
                                 float spill_channel,

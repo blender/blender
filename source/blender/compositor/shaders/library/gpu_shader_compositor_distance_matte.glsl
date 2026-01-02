@@ -8,6 +8,7 @@
 #define CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_RGBA 0
 #define CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_YCCA 1
 
+[[node]]
 void node_composite_distance_matte(const float4 color,
                                    const float4 key,
                                    const float color_space,

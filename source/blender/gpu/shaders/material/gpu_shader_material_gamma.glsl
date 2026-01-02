@@ -4,6 +4,7 @@
 
 #include "gpu_shader_math_safe_lib.glsl"
 
+[[node]]
 void node_gamma(float4 col, float gamma, float4 &outcol)
 {
   outcol = col;

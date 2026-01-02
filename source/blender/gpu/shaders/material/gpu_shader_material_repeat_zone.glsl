@@ -16,7 +16,9 @@
  * Dummy functions for gpu_shader_dependency.
  * Functions need parameters to be reflected, but we don't really rely on the reflection data.
  */
+[[node]]
 void REPEAT_BEGIN(float dummy) {};
+[[node]]
 void REPEAT_END(float dummy) {};
 
 #endif

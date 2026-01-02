@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #ifdef OBINFO_LIB
+[[node]]
 void node_normal_map(float4 tangent, float strength, float3 texnormal, float3 &outnormal)
 {
   if (all(equal(tangent, float4(0.0f, 0.0f, 0.0f, 1.0f)))) {
@@ -22,16 +23,19 @@ void node_normal_map(float4 tangent, float strength, float3 texnormal, float3 &o
 }
 #endif
 
+[[node]]
 void color_to_normal_new_shading(float3 color, float3 &normal)
 {
   normal = float3(2.0f) * color - float3(1.0f);
 }
 
+[[node]]
 void color_to_blender_normal_new_shading(float3 color, float3 &normal)
 {
   normal = float3(2.0f, -2.0f, -2.0f) * color - float3(1.0f);
 }
 
+[[node]]
 void node_normal_map_mix(float strength, float3 newnormal, float3 &outnormal)
 {
   outnormal = normalize(mix(g_data.N, newnormal, max(0.0f, strength)));

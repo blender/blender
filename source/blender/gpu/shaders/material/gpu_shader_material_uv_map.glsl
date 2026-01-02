@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+[[node]]
 void node_uvmap(float4 attr_uv, float3 &outvec)
 {
   outvec = attr_uv.xyz;

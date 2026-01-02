@@ -4,17 +4,20 @@
 
 #include "gpu_shader_bicubic_sampler_lib.glsl"
 
+[[node]]
 void point_texco_remap_square(float3 vin, float3 &vout)
 {
   vout = vin * 2.0f - 1.0f;
 }
 
+[[node]]
 void point_texco_clamp(float3 vin, sampler2D ima, float3 &vout)
 {
   float2 half_texel_size = 0.5f / float2(textureSize(ima, 0).xy);
   vout = clamp(vin, half_texel_size.xyy, 1.0f - half_texel_size.xyy);
 }
 
+[[node]]
 void point_map_to_sphere(float3 vin, float3 &vout)
 {
   float len = length(vin);
@@ -36,6 +39,7 @@ void point_map_to_sphere(float3 vin, float3 &vout)
   vout = float3(u, v, 0.0f);
 }
 
+[[node]]
 void point_map_to_tube(float3 vin, float3 &vout)
 {
   float u, v;
@@ -51,6 +55,7 @@ void point_map_to_tube(float3 vin, float3 &vout)
   vout = float3(u, v, 0.0f);
 }
 
+[[node]]
 void node_tex_image_linear(float3 co, sampler2D ima, float4 &color, float &alpha)
 {
 #ifdef GPU_FRAGMENT_SHADER
@@ -65,12 +70,14 @@ void node_tex_image_linear(float3 co, sampler2D ima, float4 &color, float &alpha
   alpha = color.a;
 }
 
+[[node]]
 void node_tex_image_cubic(float3 co, sampler2D ima, float4 &color, float &alpha)
 {
   color = texture_bicubic(ima, co.xy);
   alpha = color.a;
 }
 
+[[node]]
 void tex_box_sample_linear(
     float3 texco, float3 N, sampler2D ima, float4 &color1, float4 &color2, float4 &color3)
 {
@@ -94,6 +101,7 @@ void tex_box_sample_linear(
   color3 = texture(ima, uv);
 }
 
+[[node]]
 void tex_box_sample_cubic(
     float3 texco, float3 N, sampler2D ima, float4 &color1, float4 &color2, float4 &color3)
 {
@@ -118,6 +126,7 @@ void tex_box_sample_cubic(
   node_tex_image_cubic(uv.xyy, ima, color3, alpha);
 }
 
+[[node]]
 void tex_box_blend(float3 N,
                    float4 color1,
                    float4 color2,
@@ -169,6 +178,7 @@ void tex_box_blend(float3 N,
   alpha = color.a;
 }
 
+[[node]]
 void node_tex_image_empty(float3 co, float4 &color, float &alpha)
 {
   color = float4(0.0f);
@@ -197,6 +207,7 @@ bool node_tex_tile_lookup(float3 &co, sampler2DArray ima, sampler1DArray map)
   return true;
 }
 
+[[node]]
 void node_tex_tile_linear(
     float3 co, sampler2DArray ima, sampler1DArray map, float4 &color, float &alpha)
 {
@@ -210,6 +221,7 @@ void node_tex_tile_linear(
   alpha = color.a;
 }
 
+[[node]]
 void node_tex_tile_cubic(
     float3 co, sampler2DArray ima, sampler1DArray map, float4 &color, float &alpha)
 {

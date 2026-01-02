@@ -20,6 +20,7 @@ float3 fresnel_conductor(float cosi, float3 eta, float3 k)
   return (Rparl2 + Rperp2) * 0.5f;
 }
 
+[[node]]
 void node_bsdf_metallic(float4 base_color,
                         float4 edge_tint,
                         float3 ior,

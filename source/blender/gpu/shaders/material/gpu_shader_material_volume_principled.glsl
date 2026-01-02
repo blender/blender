@@ -4,6 +4,7 @@
 
 #include "gpu_shader_material_blackbody.glsl"
 
+[[node]]
 void node_volume_principled(float4 color,
                             float density,
                             float anisotropy,

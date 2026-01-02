@@ -4,6 +4,7 @@
 
 #include "gpu_shader_common_color_utils.glsl"
 
+[[node]]
 void node_composite_hue_saturation_value(
     float4 color, float hue, float saturation, float value, float factor, float4 &result)
 {

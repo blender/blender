@@ -6,6 +6,7 @@
 
 #include "gpu_shader_compat.hh"
 
+[[node]]
 void valtorgb_opti_constant(
     float fac, float edge, float4 color1, float4 color2, float4 &outcol, float &outalpha)
 {
@@ -13,6 +14,7 @@ void valtorgb_opti_constant(
   outalpha = outcol.a;
 }
 
+[[node]]
 void valtorgb_opti_linear(
     float fac, float2 mulbias, float4 color1, float4 color2, float4 &outcol, float &outalpha)
 {
@@ -21,6 +23,7 @@ void valtorgb_opti_linear(
   outalpha = outcol.a;
 }
 
+[[node]]
 void valtorgb_opti_ease(
     float fac, float2 mulbias, float4 color1, float4 color2, float4 &outcol, float &outalpha)
 {
@@ -43,12 +46,14 @@ float compute_color_map_coordinate(float coordinate)
   return coordinate * sampler_scale + sampler_offset;
 }
 
+[[node]]
 void valtorgb(float fac, sampler1DArray colormap, float layer, float4 &outcol, float &outalpha)
 {
   outcol = texture(colormap, float2(compute_color_map_coordinate(fac), layer));
   outalpha = outcol.a;
 }
 
+[[node]]
 void valtorgb_nearest(
     float fac, sampler1DArray colormap, float layer, float4 &outcol, float &outalpha)
 {
