@@ -87,238 +87,282 @@ void TokenStream::tokenize()
     return;
   }
 
-  {
-    /* Tokenization. */
-    token_types.clear();
-    token_offsets.clear();
+  token_offsets_populate();
+  token_types_populate();
+}
 
-    token_types += char(to_type(str[0]));
-    token_offsets.offsets.emplace_back(0);
+void TokenStream::token_offsets_populate()
+{
+  std::vector<TokenType> token_types;
+  /* Tokenization. */
+  token_types.clear();
+  token_offsets.clear();
 
-    /* When doing white-space merging, keep knowledge about whether previous char was white-space.
-     * This allows to still split words on spaces. */
-    bool prev_was_whitespace = (token_types[0] == NewLine || token_types[0] == Space);
-    bool inside_preprocessor_directive = token_types[0] == Hash;
-    bool next_character_is_escape = false;
-    bool inside_string = false;
+  /* Reserve space inside the data structures. */
+  size_t predicted_token_count = str.size() / 4;
+  token_types.reserve(predicted_token_count);
+  token_offsets.offsets.reserve(predicted_token_count);
 
-    char curr_c = str[0];
-    char prev_c = str[0];
-    int offset = 0;
-    for (const char c : str.substr(1)) {
-      offset++;
-      TokenType type = to_type(c);
-      TokenType prev = TokenType(token_types.back());
+  token_types.emplace_back(to_type(str[0]));
+  token_offsets.offsets.emplace_back(0);
 
-      std::swap(curr_c, prev_c);
-      curr_c = c;
+  /* When doing white-space merging, keep knowledge about whether previous char was white-space.
+   * This allows to still split words on spaces. */
+  bool prev_was_whitespace = (token_types[0] == NewLine || token_types[0] == Space);
+  bool inside_preprocessor_directive = token_types[0] == Hash;
+  bool next_character_is_escape = false;
+  bool inside_string = false;
 
-      /* Merge string literal. */
-      if (inside_string) {
-        if (!next_character_is_escape && c == '\"') {
-          inside_string = false;
-        }
-        next_character_is_escape = c == '\\';
-        continue;
-      }
-      if (c == '\"') {
-        inside_string = true;
-      }
-      /* Detect preprocessor directive newlines `\\\n`. */
-      if (prev == Backslash && type == NewLine) {
-        token_types.back() = PreprocessorNewline;
-        continue;
-      }
-      /* Make sure to keep the ending newline for a preprocessor directive. */
-      if (inside_preprocessor_directive && type == NewLine) {
-        inside_preprocessor_directive = false;
-        token_types += char(type);
-        token_offsets.offsets.emplace_back(offset);
-        continue;
-      }
-      if (type == Hash) {
-        inside_preprocessor_directive = true;
-      }
-      /* Merge newlines and spaces with previous token. */
-      if ((type == NewLine || type == Space)) {
-        prev_was_whitespace = true;
-        continue;
-      }
-      /* Merge '=='. */
-      if (prev == Assign && type == Assign) {
-        token_types.back() = Equal;
-        continue;
-      }
-      /* Merge '!='. */
-      if (prev == '!' && type == Assign) {
-        token_types.back() = NotEqual;
-        continue;
-      }
-      /* Merge '>='. */
-      if (prev == '>' && type == Assign) {
-        token_types.back() = GEqual;
-        continue;
-      }
-      /* Merge '<='. */
-      if (prev == '<' && type == Assign) {
-        token_types.back() = LEqual;
-        continue;
-      }
-      /* Merge '->'. */
-      if (prev == '-' && type == '>') {
-        token_types.back() = Deref;
-        continue;
-      }
-      /* If digit is part of word. */
-      if (type == Number && prev == Word && !prev_was_whitespace) {
-        continue;
-      }
-      /* If 'x' is part of hex literal. */
-      if (c == 'x' && prev == Number) {
-        continue;
-      }
-      /* If 'A-F' is part of hex literal. */
-      if (c >= 'A' && c <= 'F' && prev == Number) {
-        continue;
-      }
-      /* If 'a-f' is part of hex literal. */
-      if (c >= 'a' && c <= 'f' && prev == Number) {
-        continue;
-      }
-      /* If 'u' is part of unsigned int literal. */
-      if (c == 'u' && prev == Number) {
-        continue;
-      }
-      /* If dot is part of float literal. */
-      if (type == Dot && prev == Number) {
-        continue;
-      }
-      /* If 'f' suffix is part of float literal. */
-      if (c == 'f' && prev == Number) {
-        continue;
-      }
-      /* If 'e' is part of float literal. */
-      if (c == 'e' && prev == Number) {
-        continue;
-      }
-      /* If sign is part of float literal after exponent. */
-      if ((c == '+' || c == '-') && prev_c == 'e') {
-        continue;
-      }
-      /* Detect increment. */
-      if (type == '+' && prev == '+') {
-        token_types.back() = Increment;
-        continue;
-      }
-      /* Detect decrement. */
-      if (type == '+' && prev == '+') {
-        token_types.back() = Decrement;
-        continue;
-      }
-      /* Only merge these token. Otherwise, always emit a token. */
-      if (type != Word && type != NewLine && type != Space && type != Number) {
-        prev = Word;
-      }
-      /* Split words on white-spaces even when merging. */
-      if (type == Word && prev_was_whitespace) {
-        prev = Space;
-        prev_was_whitespace = false;
-      }
-      /* Emit a token if we don't merge. */
-      if (type != prev) {
-        token_types += char(type);
-        token_offsets.offsets.emplace_back(offset);
-      }
-    }
+  char curr_c = str[0];
+  char prev_c = str[0];
+  int offset = 0;
+  for (const char c : str.substr(1)) {
     offset++;
-    token_offsets.offsets.emplace_back(offset);
+    TokenType type = to_type(c);
+    TokenType prev = token_types.back();
+
+    prev_c = curr_c;
+    curr_c = c;
+
+    /* Merge string literal. */
+    if (inside_string) {
+      if (!next_character_is_escape && c == '\"') {
+        inside_string = false;
+      }
+      next_character_is_escape = c == '\\';
+      continue;
+    }
+    if (c == '\"') {
+      inside_string = true;
+    }
+    /* Detect preprocessor directive newlines `\\\n`. */
+    if (prev == Backslash && type == NewLine) {
+      token_types.back() = PreprocessorNewline;
+      continue;
+    }
+    /* Make sure to keep the ending newline for a preprocessor directive. */
+    if (inside_preprocessor_directive && type == NewLine) {
+      inside_preprocessor_directive = false;
+      token_types.emplace_back(type);
+      token_offsets.offsets.emplace_back(offset);
+      continue;
+    }
+    if (type == Hash) {
+      inside_preprocessor_directive = true;
+    }
+    /* Merge newlines and spaces with previous token. */
+    if ((type == NewLine || type == Space)) {
+      prev_was_whitespace = true;
+      continue;
+    }
+    /* Merge '=='. */
+    if (prev == Assign && type == Assign) {
+      token_types.back() = Equal;
+      continue;
+    }
+    /* Merge '!='. */
+    if (prev == '!' && type == Assign) {
+      token_types.back() = NotEqual;
+      continue;
+    }
+    /* Merge '>='. */
+    if (prev == '>' && type == Assign) {
+      token_types.back() = GEqual;
+      continue;
+    }
+    /* Merge '<='. */
+    if (prev == '<' && type == Assign) {
+      token_types.back() = LEqual;
+      continue;
+    }
+    /* Merge '->'. */
+    if (prev == '-' && type == '>') {
+      token_types.back() = Deref;
+      continue;
+    }
+    /* If digit is part of word. */
+    if (type == Number && prev == Word && !prev_was_whitespace) {
+      continue;
+    }
+    /* If 'x' is part of hex literal. */
+    if (c == 'x' && prev == Number) {
+      continue;
+    }
+    /* If 'A-F' is part of hex literal. */
+    if (c >= 'A' && c <= 'F' && prev == Number) {
+      continue;
+    }
+    /* If 'a-f' is part of hex literal. */
+    if (c >= 'a' && c <= 'f' && prev == Number) {
+      continue;
+    }
+    /* If 'u' is part of unsigned int literal. */
+    if (c == 'u' && prev == Number) {
+      continue;
+    }
+    /* If dot is part of float literal. */
+    if (type == Dot && prev == Number) {
+      continue;
+    }
+    /* If 'f' suffix is part of float literal. */
+    if (c == 'f' && prev == Number) {
+      continue;
+    }
+    /* If 'e' is part of float literal. */
+    if (c == 'e' && prev == Number) {
+      continue;
+    }
+    /* If sign is part of float literal after exponent. */
+    if ((c == '+' || c == '-') && prev_c == 'e') {
+      continue;
+    }
+    /* Detect increment. */
+    if (type == '+' && prev == '+') {
+      token_types.back() = Increment;
+      continue;
+    }
+    /* Detect decrement. */
+    if (type == '+' && prev == '+') {
+      token_types.back() = Decrement;
+      continue;
+    }
+    /* Only merge these token. Otherwise, always emit a token. */
+    if (type != Word && type != NewLine && type != Space && type != Number) {
+      prev = Word;
+    }
+    /* Split words on white-spaces even when merging. */
+    if (type == Word && prev_was_whitespace) {
+      prev = Space;
+      prev_was_whitespace = false;
+    }
+    /* Emit a token if we don't merge. */
+    if (type != prev) {
+      token_types.emplace_back(type);
+      token_offsets.offsets.emplace_back(offset);
+    }
   }
-  {
-    /* Keywords detection. */
-    int tok_id = -1;
-    for (char &c : token_types) {
-      tok_id++;
-      if (TokenType(c) == Word) {
-        IndexRange range = token_offsets[tok_id];
-        std::string word = str.substr(range.start, range.size);
+  offset++;
+  token_offsets.offsets.emplace_back(offset);
 
-        size_t last_non_whitespace = word.find_last_not_of(" \n");
-        if (last_non_whitespace != std::string::npos) {
-          word = word.substr(0, last_non_whitespace + 1);
-        }
+  /* Convert vector of char to string for faster lookups. */
+  this->token_types = std::string(reinterpret_cast<char *>(token_types.data()),
+                                  token_types.size());
+}
 
-        if (word == "namespace") {
-          c = Namespace;
-        }
-        else if (word == "struct") {
-          c = Struct;
-        }
-        else if (word == "class") {
-          c = Class;
-        }
-        else if (word == "const") {
-          c = Const;
-        }
-        else if (word == "constexpr") {
-          c = Constexpr;
-        }
-        else if (word == "return") {
-          c = Return;
-        }
-        else if (word == "break") {
-          c = Break;
-        }
-        else if (word == "continue") {
-          c = Continue;
-        }
-        else if (word == "case") {
-          c = Case;
-        }
-        else if (word == "switch") {
-          c = Switch;
-        }
-        else if (word == "if") {
-          c = If;
-        }
-        else if (word == "else") {
-          c = Else;
-        }
-        else if (word == "while") {
-          c = While;
-        }
-        else if (word == "do") {
-          c = Do;
-        }
-        else if (word == "for") {
-          c = For;
-        }
-        else if (word == "template") {
-          c = Template;
-        }
-        else if (word == "this") {
-          c = This;
-        }
-        else if (word == "static") {
-          c = Static;
-        }
-        else if (word == "private") {
-          c = Private;
-        }
-        else if (word == "public") {
-          c = Public;
-        }
-        else if (word == "enum") {
-          c = Enum;
-        }
-        else if (word == "using") {
-          c = Using;
-        }
-        else if (word == "inline") {
-          c = Inline;
-        }
-        else if (word == "union") {
-          c = Union;
-        }
+static TokenType type_lookup(std::string_view s)
+{
+  switch (s.size()) {
+    case 2:
+      if (s == "do") {
+        return Do;
+      }
+      if (s == "if") {
+        return If;
+      }
+      break;
+    case 3:
+      if (s == "for") {
+        return For;
+      }
+      break;
+    case 4:
+      if (s == "case") {
+        return Case;
+      }
+      if (s == "else") {
+        return Else;
+      }
+      if (s == "enum") {
+        return Enum;
+      }
+      if (s == "this") {
+        return This;
+      }
+      break;
+    case 5:
+      if (s == "break") {
+        return Break;
+      }
+      if (s == "class") {
+        return Class;
+      }
+      if (s == "const") {
+        return Const;
+      }
+      if (s == "union") {
+        return Union;
+      }
+      if (s == "using") {
+        return Using;
+      }
+      if (s == "while") {
+        return While;
+      }
+      break;
+    case 6:
+      if (s == "inline") {
+        return Inline;
+      }
+      if (s == "public") {
+        return Public;
+      }
+      if (s == "return") {
+        return Return;
+      }
+      if (s == "static") {
+        return Static;
+      }
+      if (s == "struct") {
+        return Struct;
+      }
+      if (s == "switch") {
+        return Switch;
+      }
+      break;
+    case 7:
+      if (s == "private") {
+        return Private;
+      }
+      break;
+    case 8:
+      if (s == "continue") {
+        return Continue;
+      }
+      if (s == "template") {
+        return Template;
+      }
+      break;
+    case 9:
+      if (s == "constexpr") {
+        return Constexpr;
+      }
+      if (s == "namespace") {
+        return Namespace;
+      }
+      break;
+  }
+  return Invalid;
+}
+
+void TokenStream::token_types_populate()
+{
+  int tok_id = -1;
+  for (char &c : token_types) {
+    tok_id++;
+    if (TokenType(c) == Word) {
+      IndexRange range = token_offsets[tok_id];
+      std::string_view word(str.data() + range.start, range.size);
+
+      size_t last_non_whitespace = word.find_last_not_of(" \n");
+      if (last_non_whitespace == std::string::npos) {
+        continue;
+      }
+
+      word.remove_suffix(word.size() - last_non_whitespace - 1);
+
+      TokenType type = type_lookup(word);
+      if (type != Invalid) {
+        c = type;
       }
     }
   }
