@@ -291,7 +291,9 @@ void AssetClearHelper::reportResults(const bContext *C, ReportList &reports) con
   if (!wasSuccessful()) {
     /* Dedicated error message for when there is an active asset detected, but it's not an ID local
      * to this file. Helps users better understanding what's going on. */
-    if (AssetRepresentationHandle *active_asset = CTX_wm_asset(C); !active_asset->is_local_id()) {
+    if (asset_system::AssetRepresentation *active_asset = CTX_wm_asset(C);
+        !active_asset->is_local_id())
+    {
       BKE_report(&reports,
                  RPT_ERROR,
                  "No asset data-blocks from the current file selected (assets must be stored in "
@@ -1208,7 +1210,7 @@ static wmOperatorStatus screenshot_preview_exec(bContext *C, wmOperator *op)
     }
   }
 
-  const AssetRepresentationHandle *asset_handle = CTX_wm_asset(C);
+  const asset_system::AssetRepresentation *asset_handle = CTX_wm_asset(C);
   BLI_assert_msg(asset_handle != nullptr, "This is ensured by poll");
   AssetWeakReference asset_reference = asset_handle->make_weak_reference();
 
@@ -1458,7 +1460,7 @@ static bool screenshot_preview_poll(bContext *C)
     return false;
   }
 
-  const AssetRepresentationHandle *asset_handle = CTX_wm_asset(C);
+  const asset_system::AssetRepresentation *asset_handle = CTX_wm_asset(C);
   if (!asset_handle) {
     CTX_wm_operator_poll_msg_set(C, "No selected asset");
     return false;

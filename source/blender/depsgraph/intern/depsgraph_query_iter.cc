@@ -495,7 +495,7 @@ bool evil::DEG_iterator_temp_object_from_dupli(const Object *dupli_parent,
                                                eEvaluationMode eval_mode,
                                                bool do_matrix_setup,
                                                Object *r_temp_object,
-                                               ObjectRuntimeHandle *r_temp_runtime)
+                                               blender::bke::ObjectRuntime *r_temp_runtime)
 {
   *r_temp_object = blender::dna::shallow_copy(*dupli->ob);
   r_temp_object->runtime = r_temp_runtime;

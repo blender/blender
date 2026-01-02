@@ -10,14 +10,9 @@
 
 #include "DNA_vec_types.h"
 
-#ifdef __cplusplus
 namespace blender::ui {
 struct SmoothView2DStore;
 }
-using SmoothView2DStore = blender::ui::SmoothView2DStore;
-#else
-struct SmoothView2DStore;
-#endif
 
 /** View zooming restrictions, per axis (#View2D.keepzoom) */
 enum {
@@ -187,6 +182,6 @@ struct View2D {
   float page_size_y = 0;
 
   /* animated smooth view */
-  SmoothView2DStore *sms = nullptr;
+  blender::ui::SmoothView2DStore *sms = nullptr;
   struct wmTimer *smooth_timer = nullptr;
 };

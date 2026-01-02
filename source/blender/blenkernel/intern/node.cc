@@ -1455,7 +1455,7 @@ typedef struct bNodeSocketValueMenu_404 {
   /* #NodeSocketValueMenuRuntimeFlag */
   int runtime_flag;
   /* Immutable runtime enum definition. */
-  const RuntimeNodeEnumItemsHandle *enum_items;
+  const blender::bke::RuntimeNodeEnumItems *enum_items;
 } bNodeSocketValueMenu_404;
 
 /* Generic code handling the conversion between a legacy (pre-2.83) socket data, and its current

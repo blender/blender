@@ -296,8 +296,8 @@ wmDrag *WM_drag_data_create(bContext *C, int icon, eWM_DragDataType type, void *
     case WM_DRAG_ASSET_LIST: {
       blender::Vector<PointerRNA> asset_links = CTX_data_collection_get(C, "selected_assets");
       for (const PointerRNA &ptr : asset_links) {
-        const AssetRepresentationHandle *asset = static_cast<const AssetRepresentationHandle *>(
-            ptr.data);
+        const blender::asset_system::AssetRepresentation *asset =
+            static_cast<const blender::asset_system::AssetRepresentation *>(ptr.data);
         WM_drag_add_asset_list_item(drag, asset);
       }
       break;

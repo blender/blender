@@ -14,13 +14,13 @@
 #include "DNA_curves_types.h"
 #include "DNA_listBase.h"
 
-#ifdef __cplusplus
-#  include "BLI_bounds_types.hh"
-#  include "BLI_index_mask_fwd.hh"
-#  include "BLI_map.hh"
-#  include "BLI_math_vector_types.hh"
-#  include "BLI_memory_counter_fwd.hh"
-#  include "BLI_span.hh"
+#include "BLI_bounds_types.hh"
+#include "BLI_index_mask_fwd.hh"
+#include "BLI_map.hh"
+#include "BLI_math_vector_types.hh"
+#include "BLI_memory_counter_fwd.hh"
+#include "BLI_span.hh"
+
 namespace blender::bke {
 class AttributeAccessor;
 class MutableAttributeAccessor;
@@ -37,16 +37,6 @@ class LayerGroup;
 class LayerGroupRuntime;
 }  // namespace greasepencil
 }  // namespace blender::bke
-using GreasePencilRuntimeHandle = blender::bke::GreasePencilRuntime;
-using GreasePencilDrawingRuntimeHandle = blender::bke::greasepencil::DrawingRuntime;
-using GreasePencilLayerRuntimeHandle = blender::bke::greasepencil::LayerRuntime;
-using GreasePencilLayerGroupRuntimeHandle = blender::bke::greasepencil::LayerGroupRuntime;
-#else
-struct GreasePencilRuntimeHandle;
-struct GreasePencilDrawingRuntimeHandle;
-struct GreasePencilLayerRuntimeHandle;
-struct GreasePencilLayerGroupRuntimeHandle;
-#endif
 
 struct Main;
 struct GreasePencil;
@@ -226,7 +216,7 @@ struct GreasePencilDrawing {
   /**
    * Runtime data on the drawing.
    */
-  GreasePencilDrawingRuntimeHandle *runtime = nullptr;
+  blender::bke::greasepencil::DrawingRuntime *runtime = nullptr;
 #ifdef __cplusplus
   blender::bke::greasepencil::Drawing &wrap();
   const blender::bke::greasepencil::Drawing &wrap() const;
@@ -375,7 +365,7 @@ struct GreasePencilLayer {
   /**
    * Runtime struct pointer.
    */
-  GreasePencilLayerRuntimeHandle *runtime = nullptr;
+  blender::bke::greasepencil::LayerRuntime *runtime = nullptr;
 #ifdef __cplusplus
   blender::bke::greasepencil::Layer &wrap();
   const blender::bke::greasepencil::Layer &wrap() const;
@@ -393,7 +383,7 @@ struct GreasePencilLayerTreeGroup {
   /**
    * Runtime struct pointer.
    */
-  GreasePencilLayerGroupRuntimeHandle *runtime = nullptr;
+  blender::bke::greasepencil::LayerGroupRuntime *runtime = nullptr;
 #ifdef __cplusplus
   blender::bke::greasepencil::LayerGroup &wrap();
   const blender::bke::greasepencil::LayerGroup &wrap() const;
@@ -503,7 +493,7 @@ struct GreasePencil {
   /**
    * Runtime struct pointer.
    */
-  GreasePencilRuntimeHandle *runtime = nullptr;
+  blender::bke::GreasePencilRuntime *runtime = nullptr;
 #ifdef __cplusplus
   /* Root group. */
   const blender::bke::greasepencil::LayerGroup &root_group() const;

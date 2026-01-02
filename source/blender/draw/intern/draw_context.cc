@@ -759,7 +759,7 @@ static void foreach_obref_in_scene(DRWContext &draw_ctx,
   Map<InstancesKey, VectorList<DupliObject *>> dupli_map;
 
   Object tmp_object;
-  ObjectRuntimeHandle tmp_runtime;
+  bke::ObjectRuntime tmp_runtime;
 
   Depsgraph *depsgraph = draw_ctx.depsgraph;
   eEvaluationMode eval_mode = DEG_get_mode(depsgraph);

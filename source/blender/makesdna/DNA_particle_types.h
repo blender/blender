@@ -12,15 +12,11 @@
 #include "DNA_boid_types.h"
 #include "DNA_defs.h"
 
-#ifdef __cplusplus
 namespace blender {
 template<typename CoordT> struct KDTree;
 template<typename T, int Size> struct VecBase;
 }  // namespace blender
 using KDTree3d = blender::KDTree<blender::VecBase<float, 3>>;
-#else
-struct KDTree3d;
-#endif
 
 struct AnimData;
 

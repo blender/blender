@@ -145,7 +145,7 @@ static void idp_group_children_map_ensure(IDProperty &prop)
 {
   BLI_assert(prop.type == IDP_GROUP);
   if (!prop.data.children_map) {
-    prop.data.children_map = MEM_new<IDPropertyGroupChildrenSet>(__func__);
+    prop.data.children_map = MEM_new<blender::bke::idprop::IDPropertyGroupChildrenSet>(__func__);
   }
 }
 

@@ -11,14 +11,9 @@
 #include "DNA_listBase.h"
 #include "DNA_vec_defaults.h"
 
-#ifdef __cplusplus
 namespace blender::gpu {
 class Texture;
 }  // namespace blender::gpu
-using GPUTexture = blender::gpu::Texture;
-#else
-struct GPUTexture;
-#endif
 
 /**
  * #FluidDomainSettings.flags
@@ -551,19 +546,19 @@ struct FluidDomainSettings {
   struct Collection *fluid_group = nullptr;
   struct Collection *force_group = nullptr;    /* UNUSED */
   struct Collection *effector_group = nullptr; /* Effector objects group. */
-  GPUTexture *tex_density = nullptr;
-  GPUTexture *tex_color = nullptr;
-  GPUTexture *tex_wt = nullptr;
-  GPUTexture *tex_shadow = nullptr;
-  GPUTexture *tex_flame = nullptr;
-  GPUTexture *tex_flame_coba = nullptr;
-  GPUTexture *tex_coba = nullptr;
-  GPUTexture *tex_field = nullptr;
-  GPUTexture *tex_velocity_x = nullptr;
-  GPUTexture *tex_velocity_y = nullptr;
-  GPUTexture *tex_velocity_z = nullptr;
-  GPUTexture *tex_flags = nullptr;
-  GPUTexture *tex_range_field = nullptr;
+  blender::gpu::Texture *tex_density = nullptr;
+  blender::gpu::Texture *tex_color = nullptr;
+  blender::gpu::Texture *tex_wt = nullptr;
+  blender::gpu::Texture *tex_shadow = nullptr;
+  blender::gpu::Texture *tex_flame = nullptr;
+  blender::gpu::Texture *tex_flame_coba = nullptr;
+  blender::gpu::Texture *tex_coba = nullptr;
+  blender::gpu::Texture *tex_field = nullptr;
+  blender::gpu::Texture *tex_velocity_x = nullptr;
+  blender::gpu::Texture *tex_velocity_y = nullptr;
+  blender::gpu::Texture *tex_velocity_z = nullptr;
+  blender::gpu::Texture *tex_flags = nullptr;
+  blender::gpu::Texture *tex_range_field = nullptr;
   struct Object *guide_parent = nullptr;
   struct EffectorWeights *effector_weights = nullptr; /* #BKE_effector_add_weights. */
 

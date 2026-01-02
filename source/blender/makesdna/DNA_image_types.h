@@ -12,14 +12,9 @@
 #include "DNA_color_types.h" /* for color management */
 #include "DNA_defs.h"
 
-#ifdef __cplusplus
 namespace blender::bke {
 struct ImageRuntime;
 }  // namespace blender::bke
-using ImageRuntimeHandle = blender::bke::ImageRuntime;
-#else
-struct ImageRuntimeHandle;
-#endif
 
 struct MovieReader;
 struct MovieCache;
@@ -263,5 +258,5 @@ struct Image {
   ListBaseT<ImageView> views = {nullptr, nullptr};
   struct Stereo3dFormat *stereo3d_format = nullptr;
 
-  ImageRuntimeHandle *runtime = nullptr;
+  blender::bke::ImageRuntime *runtime = nullptr;
 };

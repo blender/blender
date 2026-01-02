@@ -31,25 +31,13 @@ struct wmDrawBuffer;
 struct wmTimer;
 struct wmTooltipState;
 struct Panel_Runtime;
-#ifdef __cplusplus
 namespace blender::bke {
 struct ARegionRuntime;
 struct FileHandlerType;
 }  // namespace blender::bke
-using ARegionRuntimeHandle = blender::bke::ARegionRuntime;
-
-using FileHandlerTypeHandle = blender::bke::FileHandlerType;
-
 namespace blender::ui {
-
 struct Layout;
 }  // namespace blender::ui
-using uiLayoutHandle = blender::ui::Layout;
-#else
-struct ARegionRuntimeHandle;
-struct FileHandlerTypeHandle;
-struct uiLayoutHandle;
-#endif
 
 /** #bScreen.flag */
 enum {
@@ -257,7 +245,7 @@ struct Panel {
   /** Runtime. */
   struct PanelType *type = nullptr;
   /** Runtime for drawing. */
-  uiLayoutHandle *layout = nullptr;
+  blender::ui::Layout *layout = nullptr;
 
   char panelname[/*BKE_ST_MAXNAME*/ 64] = "";
   /** Panel name is identifier for restoring location. */
@@ -820,7 +808,7 @@ struct ARegion {
   /** XXX 2.50, need spacedata equivalent? */
   void *regiondata = nullptr;
 
-  ARegionRuntimeHandle *runtime = nullptr;
+  blender::bke::ARegionRuntime *runtime = nullptr;
 };
 
 /* #AssetShelfSettings.display_flag */
@@ -909,5 +897,5 @@ struct RegionAssetShelf {
 struct FileHandler {
   DNA_DEFINE_CXX_METHODS(FileHandler)
   /** Runtime. */
-  FileHandlerTypeHandle *type = nullptr;
+  blender::bke::FileHandlerType *type = nullptr;
 };

@@ -14,13 +14,11 @@
 #include "DNA_theme_types.h"
 
 #include "BLI_enum_flags.hh"
+#include "BLI_span.hh"
 
-#ifdef __cplusplus
-#  include "BLI_span.hh"
 namespace blender::animrig {
 class BoneColor;
 }
-#endif
 
 struct AnimData;
 struct BoneCollection;

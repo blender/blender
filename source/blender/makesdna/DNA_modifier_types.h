@@ -11,6 +11,7 @@
 #include "BLI_enum_flags.hh"
 #include "BLI_implicit_sharing.h"
 #include "BLI_math_constants.h"
+#include "BLI_span.hh"
 
 #include "DNA_armature_types.h"
 #include "DNA_defs.h"
@@ -20,30 +21,19 @@
 #include "DNA_packedFile_types.h"
 #include "DNA_vec_defaults.h"
 
-#ifdef __cplusplus
-#  include "BLI_span.hh"
-
 namespace blender {
 struct NodesModifierRuntime;
 namespace bke {
 struct BVHTreeFromMesh;
 }
 }  // namespace blender
-using NodesModifierRuntimeHandle = blender::NodesModifierRuntime;
 
-using BVHTreeFromMeshHandle = blender::bke::BVHTreeFromMesh;
-#else
-
-struct NodesModifierRuntimeHandle;
-struct BVHTreeFromMeshHandle;
-#endif
 struct LineartModifierRuntime;
+struct Mesh;
 
 /* WARNING ALERT! TYPEDEF VALUES ARE WRITTEN IN FILES! SO DO NOT CHANGE!
  * (ONLY ADD NEW ITEMS AT THE END)
  */
-
-struct Mesh;
 
 enum ModifierType {
   eModifierType_None = 0,
@@ -998,7 +988,7 @@ struct SurfaceModifierData_Runtime {
   struct Mesh *mesh = nullptr;
 
   /** Bounding volume hierarchy of the mesh faces. */
-  BVHTreeFromMeshHandle *bvhtree = nullptr;
+  blender::bke::BVHTreeFromMesh *bvhtree = nullptr;
 
   int cfra_prev = 0, verts_num = 0;
 };
@@ -2595,7 +2585,7 @@ struct NodesModifierData {
   int panels_num = 0;
   NodesModifierPanel *panels = nullptr;
 
-  NodesModifierRuntimeHandle *runtime = nullptr;
+  blender::NodesModifierRuntime *runtime = nullptr;
 
 #ifdef __cplusplus
   NodesModifierBake *find_bake(int id);

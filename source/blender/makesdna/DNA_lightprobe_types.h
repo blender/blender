@@ -14,14 +14,9 @@
 
 struct AnimData;
 struct Object;
-#ifdef __cplusplus
 namespace blender::gpu {
 class Texture;
 }  // namespace blender::gpu
-using GPUTexture = blender::gpu::Texture;
-#else
-struct GPUTexture;
-#endif
 
 /* Bump the version number for lightcache data structure changes. */
 #define LIGHTCACHE_STATIC_VERSION 2
@@ -217,8 +212,8 @@ BLI_STATIC_ASSERT_ALIGN(LightGridCache, 16)
 /* ------ Eevee Lightcache ------- */
 
 struct LightCacheTexture {
-  GPUTexture *tex = nullptr;
-  /** Copy of GPU data to create GPUTextures on file read. */
+  blender::gpu::Texture *tex = nullptr;
+  /** Copy of GPU data to create blender::gpu::Textures on file read. */
   char *data = nullptr;
   int tex_size[3] = {};
   char data_type = 0;

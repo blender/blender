@@ -13,9 +13,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_listBase.h"
 
-#ifdef __cplusplus
-#  include <type_traits>
-#endif
+#include <type_traits>
 
 /* ************************************************ */
 /* F-Curve DataTypes */

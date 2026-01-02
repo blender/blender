@@ -12,17 +12,14 @@
 #include "DNA_attribute_types.h"
 #include "DNA_customdata_types.h"
 
-#ifdef __cplusplus
-#  include <optional>
+#include <optional>
 
-#  include "BLI_bounds_types.hh"
-#  include "BLI_math_vector_types.hh"
-#  include "BLI_memory_counter_fwd.hh"
-#  include "BLI_span.hh"
-#  include "BLI_virtual_array_fwd.hh"
-#endif
+#include "BLI_bounds_types.hh"
+#include "BLI_math_vector_types.hh"
+#include "BLI_memory_counter_fwd.hh"
+#include "BLI_span.hh"
+#include "BLI_virtual_array_fwd.hh"
 
-#ifdef __cplusplus
 namespace blender {
 template<typename T> class Span;
 namespace bke {
@@ -32,10 +29,6 @@ class MutableAttributeAccessor;
 struct PointCloudRuntime;
 }  // namespace bke
 }  // namespace blender
-using PointCloudRuntimeHandle = blender::bke::PointCloudRuntime;
-#else
-struct PointCloudRuntimeHandle;
-#endif
 
 /** #PointCloud.flag */
 enum {
@@ -93,7 +86,7 @@ struct PointCloud {
   void count_memory(blender::MemoryCounter &memory) const;
 #endif
 
-  PointCloudRuntimeHandle *runtime = nullptr;
+  blender::bke::PointCloudRuntime *runtime = nullptr;
 
   /* Draw Cache */
   void *batch_cache = nullptr;

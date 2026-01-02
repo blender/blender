@@ -10,9 +10,7 @@
 
 #include "DNA_ID.h"
 
-#ifdef __cplusplus
-#  include "BLI_set.hh"
-#endif
+#include "BLI_set.hh"
 
 /* CacheFile::type */
 enum eCacheFileType {
@@ -60,13 +58,8 @@ struct CacheFileLayer {
   int _pad = {};
 };
 
-#ifdef __cplusplus
-
 struct CacheReader;
 using CacheFileHandleReaderSet = blender::Set<CacheReader **>;
-#else
-struct CacheFileHandleReaderSet;
-#endif
 
 struct CacheFile {
 #ifdef __cplusplus

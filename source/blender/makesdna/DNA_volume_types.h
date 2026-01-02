@@ -12,14 +12,9 @@
 
 struct PackedFile;
 
-#ifdef __cplusplus
 namespace blender::bke {
 struct VolumeRuntime;
 }
-using VolumeRuntimeHandle = blender::bke::VolumeRuntime;
-#else
-struct VolumeRuntimeHandle;
-#endif
 
 /** #Volume.flag */
 enum {
@@ -152,7 +147,7 @@ struct Volume {
   void *batch_cache = nullptr;
 
   /* Runtime Data */
-  VolumeRuntimeHandle *runtime = nullptr;
+  blender::bke::VolumeRuntime *runtime = nullptr;
 };
 
 /* Only one material supported currently. */

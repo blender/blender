@@ -12,8 +12,7 @@
 #include "DNA_listBase.h"
 #include "DNA_uuid_types.h"
 
-#ifdef __cplusplus
-#  include <memory>
+#include <memory>
 
 namespace blender {
 class StringRef;
@@ -21,8 +20,6 @@ class StringRef;
 namespace blender::asset_system {
 class AssetLibrary;
 }  // namespace blender::asset_system
-
-#endif
 
 enum eAssetLibraryType {
   /** Display assets from the current session (current "Main"). */

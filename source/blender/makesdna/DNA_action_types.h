@@ -23,9 +23,7 @@
 
 #include "BLI_enum_flags.hh"
 
-#ifdef __cplusplus
-#  include <type_traits>
-#endif
+#include <type_traits>
 
 struct AnimData;
 struct Collection;
@@ -33,17 +31,10 @@ struct FCurve;
 struct GHash;
 struct Object;
 struct SpaceLink;
-#ifdef __cplusplus
 namespace blender::gpu {
 class VertBuf;
 class Batch;
 }  // namespace blender::gpu
-using GPUBatchHandle = blender::gpu::Batch;
-using GPUVertBufHandle = blender::gpu::VertBuf;
-#else
-struct GPUBatchHandle;
-struct GPUVertBufHandle;
-#endif
 
 /* Forward declarations so the actual declarations can happen top-down. */
 struct ActionLayer;
@@ -52,7 +43,6 @@ struct ActionStrip;
 struct ActionChannelbag;
 
 /* Declarations of the C++ wrappers. */
-#ifdef __cplusplus
 namespace blender::animrig {
 class Action;
 class Slot;
@@ -63,10 +53,6 @@ class Layer;
 class Strip;
 class StripKeyframeData;
 }  // namespace blender::animrig
-using ActionSlotRuntimeHandle = blender::animrig::SlotRuntime;
-#else
-struct ActionSlotRuntimeHandle;
-#endif
 
 /* The last_slot_handle is set to a high value to disambiguate slot handles from
  * array indices.
@@ -612,9 +598,9 @@ struct bMotionPath {
 
   char _pad2[4] = {};
   /* Used for drawing. */
-  GPUVertBufHandle *points_vbo = nullptr;
-  GPUBatchHandle *batch_line = nullptr;
-  GPUBatchHandle *batch_points = nullptr;
+  blender::gpu::VertBuf *points_vbo = nullptr;
+  blender::gpu::Batch *batch_line = nullptr;
+  blender::gpu::Batch *batch_points = nullptr;
   void *_pad = nullptr;
 };
 
@@ -1271,7 +1257,7 @@ struct ActionSlot {
   uint8_t _pad1[7] = {};
 
   /** Runtime data. Set to nullptr when writing to disk. */
-  ActionSlotRuntimeHandle *runtime = nullptr;
+  blender::animrig::SlotRuntime *runtime = nullptr;
 
 #ifdef __cplusplus
   blender::animrig::Slot &wrap();

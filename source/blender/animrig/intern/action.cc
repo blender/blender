@@ -3006,7 +3006,7 @@ Action *convert_to_layered_action(Main &bmain, const Action &legacy_action)
  */
 static void clone_slot(const Slot &from, Slot &to)
 {
-  ActionSlotRuntimeHandle *runtime = to.runtime;
+  SlotRuntime *runtime = to.runtime;
   slot_handle_t handle = to.handle;
   *reinterpret_cast<ActionSlot *>(&to) = *reinterpret_cast<const ActionSlot *>(&from);
   to.runtime = runtime;

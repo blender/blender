@@ -13,17 +13,12 @@
 #include "DNA_scene_enums.h"
 
 #include "BLI_enum_flags.hh"
+#include "BLI_map.hh"
 
 struct Base;
 struct Object;
 
-#ifdef __cplusplus
-#  include "BLI_map.hh"
-
 using ObjectBasesMap = blender::Map<const Object *, Base *>;
-#else
-struct ObjectBasesMap;
-#endif
 
 /**
  * Render-passes for EEVEE.

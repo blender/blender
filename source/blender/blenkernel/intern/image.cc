@@ -238,11 +238,11 @@ static void image_foreach_cache(ID *id,
   /* Ensure we don't collide with the identifiers used above. */
   constexpr size_t runtime_base_id = size_t(1) << 32u;
 
-  key.identifier = runtime_base_id + offsetof(ImageRuntimeHandle, cache);
+  key.identifier = runtime_base_id + offsetof(blender::bke::ImageRuntime, cache);
   function_callback(id, &key, (void **)&image->runtime->cache, 0, user_data);
 
   auto gputexture_offset = [image](int target, int eye) {
-    constexpr size_t base_offset = offsetof(ImageRuntimeHandle, gputexture);
+    constexpr size_t base_offset = offsetof(blender::bke::ImageRuntime, gputexture);
     blender::gpu::Texture **first = &image->runtime->gputexture[0][0];
     const size_t array_offset = sizeof(*first) *
                                 (&image->runtime->gputexture[target][eye] - first);

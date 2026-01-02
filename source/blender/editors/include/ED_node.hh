@@ -143,7 +143,7 @@ void ui_template_node_asset_menu_items(ui::Layout &layout,
                                        StringRef catalog_path,
                                        const blender::ui::NodeAssetMenuOperatorType operator_type);
 
-/** See #SpaceNode_Runtime::node_can_sync_states. */
+/** See #ed::space_node::SpaceNode_Runtime::node_can_sync_states. */
 Map<int, bool> &node_can_sync_cache_get(SpaceNode &snode);
 
 void node_tree_interface_draw(bContext &C, ui::Layout &layout, bNodeTree &tree);

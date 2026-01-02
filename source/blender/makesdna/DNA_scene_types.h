@@ -11,6 +11,7 @@
 #include "DNA_defs.h"
 
 #include "BLI_enum_flags.hh"
+#include "BLI_map.hh"
 #include "BLI_math_constants.h"
 
 /**
@@ -32,10 +33,6 @@
 #include "DNA_vec_types.h"
 #include "DNA_view3d_types.h"
 
-#ifdef __cplusplus
-#  include "BLI_map.hh"
-#endif
-
 struct AnimData;
 struct Brush;
 struct Collection;
@@ -54,8 +51,6 @@ struct Depsgraph;
 struct KeyingSet;
 struct TransformOrientation;
 
-/** Workaround to forward-declare C++ type in C header. */
-#ifdef __cplusplus
 namespace blender {
 namespace bke {
 struct PaintRuntime;
@@ -65,16 +60,7 @@ namespace ocio {
 class ColorSpace;
 }
 }  // namespace blender
-using PaintRuntimeHandle = blender::bke::PaintRuntime;
-using SceneRuntimeHandle = blender::bke::SceneRuntime;
-using ColorSpaceHandle = blender::ocio::ColorSpace;
 using SceneDepsgraphsMap = blender::Map<struct DepsgraphKey, Depsgraph *, 4>;
-#else   // __cplusplus
-struct PaintRuntimeHandle;
-struct SceneRuntimeHandle;
-struct ColorSpaceHandle;
-struct SceneDepsgraphsMap;
-#endif  // __cplusplus
 
 /* -------------------------------------------------------------------- */
 /** \name FFMPEG
@@ -1229,7 +1215,7 @@ struct Paint {
   float tile_offset[3] = {1.0f, 1.0f, 1.0f};
   struct UnifiedPaintSettings unified_paint_settings;
 
-  PaintRuntimeHandle *runtime = nullptr;
+  blender::bke::PaintRuntime *runtime = nullptr;
 };
 
 /** \} */
@@ -2836,7 +2822,7 @@ struct Scene {
   struct SceneGpencil grease_pencil_settings;
   struct SceneHydra hydra;
 
-  SceneRuntimeHandle *runtime = nullptr;
+  blender::bke::SceneRuntime *runtime = nullptr;
 #ifdef __cplusplus
   /* Return the frame rate of the scene. */
   double frames_per_second() const;

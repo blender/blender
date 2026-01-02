@@ -11,6 +11,7 @@
 
 #include "BLI_enum_flags.hh"
 #include "BLI_math_constants.h"
+#include "BLI_math_matrix_types.hh"
 
 #include "DNA_object_enums.h"
 
@@ -20,18 +21,9 @@
 #include "DNA_listBase.h"
 #include "DNA_vec_defaults.h"
 
-#ifdef __cplusplus
-#  include "BLI_math_matrix_types.hh"
-#endif
-
-#ifdef __cplusplus
 namespace blender::bke {
 struct ObjectRuntime;
 }
-using ObjectRuntimeHandle = blender::bke::ObjectRuntime;
-#else
-struct ObjectRuntimeHandle;
-#endif
 
 struct AnimData;
 struct BoundBox;
@@ -660,7 +652,7 @@ struct Object {
   /** Irradiance caches baked for this object (light-probes only). */
   struct LightProbeObjectCache *lightprobe_cache = nullptr;
 
-  ObjectRuntimeHandle *runtime = nullptr;
+  blender::bke::ObjectRuntime *runtime = nullptr;
 
 #ifdef __cplusplus
   const blender::float4x4 &object_to_world() const;

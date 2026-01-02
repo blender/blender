@@ -19,14 +19,9 @@ struct MovieClipProxy;
 struct MovieTrackingMarker;
 struct MovieTrackingTrack;
 struct bGPdata;
-#ifdef __cplusplus
 namespace blender::gpu {
 class Texture;
 }  // namespace blender::gpu
-using GPUTexture = blender::gpu::Texture;
-#else
-struct GPUTexture;
-#endif
 
 /** #MovieClipProxy.build_size_flag
  * NOTE: Keep in sync with #IMB_Proxy_Size. */
@@ -103,7 +98,7 @@ struct MovieClip_RuntimeGPUTexture {
   void *next = nullptr, *prev = nullptr;
   MovieClipUser user;
   /** Not written in file. */
-  GPUTexture *gputexture[/*TEXTARGET_COUNT*/ 3];
+  blender::gpu::Texture *gputexture[/*TEXTARGET_COUNT*/ 3];
 };
 
 struct MovieClip_Runtime {

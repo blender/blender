@@ -530,7 +530,7 @@ static bool is_pose_asset_blend_editable(const bAction &action, ReportList *repo
  */
 static bool pose_asset_potentially_editable_poll(bContext *C)
 {
-  const AssetRepresentationHandle *asset_handle = CTX_wm_asset(C);
+  const asset_system::AssetRepresentation *asset_handle = CTX_wm_asset(C);
   if (!asset_handle || asset_handle->get_id_type() != ID_AC) {
     CTX_wm_operator_poll_msg_set(C, "No selected pose asset");
     return false;

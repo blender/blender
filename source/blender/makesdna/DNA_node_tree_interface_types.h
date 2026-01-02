@@ -8,27 +8,17 @@
 
 #pragma once
 
+#include "BLI_color_types.hh"
 #include "BLI_enum_flags.hh"
+#include "BLI_function_ref.hh"
+#include "BLI_span.hh"
+#include "BLI_string_ref.hh"
 #include "BLI_sys_types.h"
 
-#ifdef __cplusplus
-#  include "BLI_color_types.hh"
-#  include "BLI_function_ref.hh"
-#  include "BLI_span.hh"
-#  include "BLI_string_ref.hh"
-#endif
-
-#ifdef __cplusplus
 namespace blender::bke {
 class bNodeTreeInterfaceRuntime;
 struct bNodeSocketType;
 }  // namespace blender::bke
-using bNodeTreeInterfaceRuntimeHandle = blender::bke::bNodeTreeInterfaceRuntime;
-using bNodeSocketTypeHandle = blender::bke::bNodeSocketType;
-#else
-struct bNodeTreeInterfaceRuntimeHandle;
-struct bNodeSocketTypeHandle;
-#endif
 
 struct bNodeSocket;
 struct bNodeTreeInterfaceItem;
@@ -152,7 +142,7 @@ struct bNodeTreeInterfaceSocket {
   char _pad[7] = {};
 
 #ifdef __cplusplus
-  bNodeSocketTypeHandle *socket_typeinfo() const;
+  blender::bke::bNodeSocketType *socket_typeinfo() const;
   blender::ColorGeometry4f socket_color() const;
 
   /**
@@ -285,7 +275,7 @@ struct bNodeTreeInterface {
   int active_index = 0;
   int next_uid = 0;
 
-  bNodeTreeInterfaceRuntimeHandle *runtime = nullptr;
+  blender::bke::bNodeTreeInterfaceRuntime *runtime = nullptr;
 
 #ifdef __cplusplus
 
