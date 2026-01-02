@@ -183,9 +183,9 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     set(cycles_kernel_oneapi_lib_suffix "_jit")
   endif()
   if(WIN32)
-    set(cycles_kernel_oneapi_lib ${CMAKE_CURRENT_BINARY_DIR}/../kernel/cycles_kernel_oneapi${cycles_kernel_oneapi_lib_suffix}.lib)
+    set(cycles_kernel_oneapi_lib ${CMAKE_CURRENT_BINARY_DIR}/../kernel/device/oneapi/cycles_kernel_oneapi${cycles_kernel_oneapi_lib_suffix}.lib)
   else()
-    set(cycles_kernel_oneapi_lib ${CMAKE_CURRENT_BINARY_DIR}/../kernel/libcycles_kernel_oneapi${cycles_kernel_oneapi_lib_suffix}.so)
+    set(cycles_kernel_oneapi_lib ${CMAKE_CURRENT_BINARY_DIR}/../kernel/device/oneapi/libcycles_kernel_oneapi${cycles_kernel_oneapi_lib_suffix}.so)
   endif()
   list(APPEND LIB
     ${cycles_kernel_oneapi_lib}
