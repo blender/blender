@@ -48,7 +48,7 @@ struct IKChainSegment {
 };
 
 struct IKChain {
-  Array<IKChainSegment> segments;
+  Vector<IKChainSegment> segments;
   float3 grab_delta_offset;
 };
 

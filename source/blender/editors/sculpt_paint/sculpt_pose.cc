@@ -1051,7 +1051,9 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_mesh(const Depsgraph &de
 
   const int symm = SCULPT_mesh_symmetry_xyz_get(object);
   Vector<int> neighbors;
+  int num_valid_segments = 0;
   for (const int i : ik_chain->segments.index_range()) {
+    num_valid_segments++;
     const bool is_first_iteration = i == 0;
 
     flood_fill::FillDataMesh flood_fill(vert_positions.size(),
@@ -1171,9 +1173,17 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_mesh(const Depsgraph &de
       ik_chain->segments[i].orig = float3(0);
     }
 
+    if (!next_segment_data) {
+      /* It is possible that when traversing neighbors that we no longer have any vertices that
+       * have not been assigned to a face set when trying to find the next segement's starting
+       * point. All further segments are invalid in this case. */
+      break;
+    }
+
     current_data = *next_segment_data;
   }
 
+  ik_chain->segments.resize(num_valid_segments);
   ik_chain_origin_heads_init(*ik_chain, vert_positions[std::get<int>(ss.active_vert())]);
 
   return ik_chain;
@@ -1212,7 +1222,9 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_grids(Object &object,
 
   const int symm = SCULPT_mesh_symmetry_xyz_get(object);
   SubdivCCGNeighbors neighbors;
+  int num_valid_segments = 0;
   for (const int i : ik_chain->segments.index_range()) {
+    num_valid_segments++;
     const bool is_first_iteration = i == 0;
 
     flood_fill::FillDataGrids flood_fill(grids_num, ss.fake_neighbors.fake_neighbor_index);
@@ -1340,9 +1352,17 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_grids(Object &object,
       ik_chain->segments[i].orig = float3(0);
     }
 
+    if (!next_segment_data) {
+      /* It is possible that when traversing neighbors that we no longer have any vertices that
+       * have not been assigned to a face set when trying to find the next segement's starting
+       * point. All further segments are invalid in this case. */
+      break;
+    }
+
     current_data = *next_segment_data;
   }
 
+  ik_chain->segments.resize(num_valid_segments);
   ik_chain_origin_heads_init(*ik_chain, positions[ss.active_vert_index()]);
 
   return ik_chain;
@@ -1371,7 +1391,9 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_bmesh(Object &object,
 
   const int symm = SCULPT_mesh_symmetry_xyz_get(object);
   BMeshNeighborVerts neighbors;
+  int num_valid_segments = 0;
   for (const int i : ik_chain->segments.index_range()) {
+    num_valid_segments++;
     const bool is_first_iteration = i == 0;
 
     flood_fill::FillDataBMesh flood_fill(verts_num, ss.fake_neighbors.fake_neighbor_index);
@@ -1488,9 +1510,17 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_bmesh(Object &object,
       ik_chain->segments[i].orig = float3(0);
     }
 
+    if (!next_segment_data) {
+      /* It is possible that when traversing neighbors that we no longer have any vertices that
+       * have not been assigned to a face set when trying to find the next segement's starting
+       * point. All further segments are invalid in this case. */
+      break;
+    }
+
     current_data = *next_segment_data;
   }
 
+  ik_chain->segments.resize(num_valid_segments);
   ik_chain_origin_heads_init(*ik_chain, std::get<BMVert *>(ss.active_vert())->co);
 
   return ik_chain;
