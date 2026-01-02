@@ -600,71 +600,6 @@ static void SCULPT_OT_sculptmode_toggle(wmOperatorType *ot)
 
 /** \} */
 
-/* -------------------------------------------------------------------- */
-/** \name Sample Color Operator
- * \{ */
-
-static wmOperatorStatus sample_color_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
-{
-  Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
-  Scene &scene = *CTX_data_scene(C);
-  Object &ob = *CTX_data_active_object(C);
-  Brush &brush = *BKE_paint_brush(&sd.paint);
-  SculptSession &ss = *ob.sculpt;
-
-  if (!color_supported_check(scene, ob, op->reports)) {
-    return OPERATOR_CANCELLED;
-  }
-
-  const View3D *v3d = CTX_wm_view3d(C);
-  const Base *base = CTX_data_active_base(C);
-  if (!BKE_base_is_visible(v3d, base)) {
-    return OPERATOR_CANCELLED;
-  }
-
-  BKE_sculpt_update_object_for_edit(CTX_data_depsgraph_pointer(C), &ob, false);
-
-  const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
-  const OffsetIndices<int> faces = mesh.faces();
-  const Span<int> corner_verts = mesh.corner_verts();
-  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
-  const bke::GAttributeReader color_attribute = color::active_color_attribute(mesh);
-
-  float4 active_vertex_color;
-  if (!color_attribute || std::holds_alternative<std::monostate>(ss.active_vert())) {
-    active_vertex_color = float4(1.0f);
-  }
-  else {
-    const GVArraySpan colors = *color_attribute;
-    active_vertex_color = color::color_vert_get(faces,
-                                                corner_verts,
-                                                vert_to_face_map,
-                                                colors,
-                                                color_attribute.domain,
-                                                std::get<int>(ss.active_vert()));
-  }
-
-  BKE_brush_color_set(&sd.paint, &brush, active_vertex_color);
-
-  WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, &brush);
-
-  return OPERATOR_FINISHED;
-}
-
-static void SCULPT_OT_sample_color(wmOperatorType *ot)
-{
-  ot->name = "Sample Color";
-  ot->idname = "SCULPT_OT_sample_color";
-  ot->description = "Sample the vertex color of the active vertex";
-
-  ot->invoke = sample_color_invoke;
-  ot->poll = SCULPT_mode_poll;
-
-  ot->flag = OPTYPE_REGISTER | OPTYPE_DEPENDS_ON_CURSOR;
-}
-
-/** \} */
-
 namespace mask {
 
 /* -------------------------------------------------------------------- */
@@ -1564,7 +1499,6 @@ void operatortypes_sculpt()
   WM_operatortype_append(trim::SCULPT_OT_trim_polyline_gesture);
   WM_operatortype_append(project::SCULPT_OT_project_line_gesture);
 
-  WM_operatortype_append(SCULPT_OT_sample_color);
   WM_operatortype_append(color::SCULPT_OT_color_filter);
   WM_operatortype_append(mask::SCULPT_OT_mask_by_color);
   WM_operatortype_append(dyntopo::SCULPT_OT_dyntopo_detail_size_edit);

@@ -2817,6 +2817,7 @@ def km_vertex_paint(params):
          {"properties": [("mode", 'SMOOTH')]}),
         # Colors
         ("paint.sample_color", {"type": 'I', "value": 'PRESS'}, {"properties": [("merged", False)]}),
+        ("paint.sample_color", {"type": 'I', "value": 'PRESS', "shift": True}, {"properties": [("merged", True)]}),
         ("paint.brush_colors_flip", {"type": 'X', "value": 'PRESS'}, None),
         ("paint.vertex_color_set", {"type": 'BACK_SPACE', "value": 'PRESS'}, None),
         # Brush properties
@@ -2994,7 +2995,8 @@ def km_sculpt(params):
         ("object.voxel_remesh", {"type": 'D', "value": 'PRESS', "ctrl": True}, None),
         ("object.voxel_size_edit", {"type": 'D', "value": 'PRESS', "shift": True, "ctrl": True}, None),
         # Color
-        ("sculpt.sample_color", {"type": 'I', "value": 'PRESS'}, None),
+        ("paint.sample_color", {"type": 'I', "value": 'PRESS'}, {"properties": [("merged", False)]}),
+        ("paint.sample_color", {"type": 'I', "value": 'PRESS', "shift": True}, {"properties": [("merged", True)]}),
         ("paint.brush_colors_flip", {"type": 'X', "value": 'PRESS'}, None),
         # Brush properties
         ("brush.scale_size", {"type": 'LEFT_BRACKET', "value": 'PRESS', "repeat": True},
