@@ -18,7 +18,7 @@
 #include "GPU_matrix.hh"
 #include "GPU_platform.hh"
 
-#include "shader_tool/shader_tool.hh"
+#include "shader_tool/processor.hh"
 
 #include "gpu_backend.hh"
 #include "gpu_context_private.hh"
@@ -234,9 +234,9 @@ std::string GPU_shader_preprocess_source(StringRefNull original,
   if (original.is_empty()) {
     return original;
   }
-  gpu::shader::Preprocessor processor;
-  gpu::shader::metadata::Source metadata;
-  std::string processed_str = processor.process(original, metadata);
+  gpu::shader::SourceProcessor processor(original, "python_shader.glsl", shader::Language::GLSL);
+  auto [processed_str, metadata] = processor.convert();
+
   for (auto builtin : metadata.builtins) {
     info.builtins(gpu::shader::convert_builtin_bit(builtin));
   }

@@ -9,8 +9,8 @@
 
 #pragma once
 
-#include "parser.hh"
 #include "token.hh"
+#include "token_stream.hh"
 
 #include <cassert>
 
@@ -52,10 +52,10 @@ struct Scope {
   std::string_view token_view;
   std::string_view str_view;
 
-  const Parser *data;
+  const TokenStream *data;
   int64_t index;
 
-  static Scope from_position(const Parser *data, int64_t index)
+  static Scope from_position(const TokenStream *data, int64_t index)
   {
     IndexRange index_range = data->scope_ranges[index];
     int str_start = data->token_offsets[index_range.start].start;
@@ -121,7 +121,7 @@ struct Scope {
    * The type is only retained until the next parsing pass. */
   void set_type(ScopeType type)
   {
-    const_cast<Parser *>(data)->scope_types[index] = char(type);
+    const_cast<TokenStream *>(data)->scope_types[index] = char(type);
   }
 
   /* Returns the scope that contains this scope. */

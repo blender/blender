@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include "shader_tool/shader_tool.hh"
+#include "shader_tool/processor.hh"
 
 #include "gpu_testing.hh"
 
@@ -11,23 +11,20 @@ namespace blender::gpu::tests {
 static std::string process_test_string(std::string str,
                                        std::string &first_error,
                                        shader::metadata::Source *r_metadata = nullptr,
-                                       shader::Preprocessor::SourceLanguage language =
-                                           shader::Preprocessor::SourceLanguage::BLENDER_GLSL)
+                                       shader::Language language = shader::Language::BLENDER_GLSL)
 {
   using namespace shader;
-  Preprocessor preprocessor;
-  shader::metadata::Source metadata;
-  std::string result = preprocessor.process(
-      language,
+  SourceProcessor processor(
       str,
-      "test.glsl",
-      false,
+      "test.bsl.hh",
+      language,
       [&](int /*err_line*/, int /*err_char*/, const std::string & /*line*/, const char *err_msg) {
         if (first_error.empty()) {
           first_error = err_msg;
         }
-      },
-      metadata);
+      });
+
+  auto [result, metadata] = processor.convert();
 
   if (r_metadata != nullptr) {
     *r_metadata = metadata;
@@ -1761,7 +1758,7 @@ static void test_preprocess_matrix_constructors()
     string input = R"(mat3(a); mat3 a; my_mat4x4(a); mat2x2(a); mat3x2(a);)";
     string expect = R"(__mat3x3(a); mat3 a; my_mat4x4(a); __mat2x2(a); mat3x2(a);)";
     string error;
-    string output = process_test_string(input, error, nullptr, Preprocessor::SourceLanguage::GLSL);
+    string output = process_test_string(input, error, nullptr, Language::GLSL);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }

@@ -13,8 +13,12 @@
 
 namespace blender::gpu::shader::parser {
 
-struct Parser {
-  /** The parser's input string. */
+/**
+ * This a tiny bit more than a token stream as it contains ranges or tokens (called scopes) from
+ * syntax. The scopes and tokens have bi-directional mapping.
+ */
+struct TokenStream {
+  /** The lexer's input string. */
   std::string str;
 
   /** Actually contains a sequence of #TokenType. */
@@ -28,8 +32,7 @@ struct Parser {
   /** Range of token per scope. */
   std::vector<IndexRange> scope_ranges;
 
-  /** If `keep_whitespace` is false, white-spaces are merged with the previous token. */
-  void tokenize(const bool keep_whitespace);
+  void tokenize();
 
   void parse_scopes(report_callback &report_error);
 };

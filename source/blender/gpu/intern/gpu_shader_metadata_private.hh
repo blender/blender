@@ -12,7 +12,7 @@
 #pragma once
 
 #include "gpu_shader_create_info.hh"
-#include "shader_tool/shader_tool.hh"
+#include "shader_tool/metadata.hh"
 
 namespace blender::gpu::shader {
 

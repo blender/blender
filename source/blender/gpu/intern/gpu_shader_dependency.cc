@@ -32,7 +32,7 @@
 #  include "opensubdiv_evaluator_capi.hh"
 #endif
 
-#include "../shader_tool/shader_tool.hh"
+#include "../shader_tool/metadata.hh"
 
 extern "C" {
 #define SHADER_SOURCE(filename_underscore, filename, filepath) \

@@ -7,10 +7,10 @@
  *
  */
 
-#include "parser.hh"
 #include "intermediate.hh"
 #include "scope.hh"
 #include "token.hh"
+#include "token_stream.hh"
 
 #include <algorithm>
 #include <stack>
@@ -80,8 +80,7 @@ Scope Token::attribute_after() const
   return Scope::invalid();
 }
 
-/** If `keep_whitespace` is false, white-spaces are merged with the previous token. */
-void Parser::tokenize(const bool keep_whitespace)
+void TokenStream::tokenize()
 {
   if (str.empty()) {
     *this = {};
@@ -141,7 +140,7 @@ void Parser::tokenize(const bool keep_whitespace)
         inside_preprocessor_directive = true;
       }
       /* Merge newlines and spaces with previous token. */
-      if (!keep_whitespace && (type == NewLine || type == Space)) {
+      if ((type == NewLine || type == Space)) {
         prev_was_whitespace = true;
         continue;
       }
@@ -221,7 +220,7 @@ void Parser::tokenize(const bool keep_whitespace)
         prev = Word;
       }
       /* Split words on white-spaces even when merging. */
-      if (!keep_whitespace && type == Word && prev_was_whitespace) {
+      if (type == Word && prev_was_whitespace) {
         prev = Space;
         prev_was_whitespace = false;
       }
@@ -242,11 +241,10 @@ void Parser::tokenize(const bool keep_whitespace)
       if (TokenType(c) == Word) {
         IndexRange range = token_offsets[tok_id];
         std::string word = str.substr(range.start, range.size);
-        if (!keep_whitespace) {
-          size_t last_non_whitespace = word.find_last_not_of(" \n");
-          if (last_non_whitespace != std::string::npos) {
-            word = word.substr(0, last_non_whitespace + 1);
-          }
+
+        size_t last_non_whitespace = word.find_last_not_of(" \n");
+        if (last_non_whitespace != std::string::npos) {
+          word = word.substr(0, last_non_whitespace + 1);
         }
 
         if (word == "namespace") {
@@ -326,7 +324,7 @@ void Parser::tokenize(const bool keep_whitespace)
   }
 }
 
-void Parser::parse_scopes(report_callback &report_error)
+void TokenStream::parse_scopes(report_callback &report_error)
 {
   {
     /* Scope detection. */

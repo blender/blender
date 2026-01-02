@@ -12,30 +12,26 @@
  * The goal of this representation is to output code that doesn't modify the style of the input
  * string and keep the same line numbers (to match compilation error with input source).
  *
- * The `Parser` class contain a copy of the given string to apply string substitutions (called
+ * The `TokenStream` class contain a copy of the given string to apply string substitutions (called
  * `Mutation`). It is usually faster to record all of them and apply them all at once after
  * scanning through the whole semantic representation. In the rare case where mutation need to
  * overlap (recursive processing), it is better to do them in passes until there is no mutation to
  * do.
  *
- * `Token` and `Scope` are read only interfaces to the data stored inside the `ParserData`.
+ * `Token` and `Scope` are read only interfaces to the data stored inside the `TokenStream`.
  * The data is stored as SoA (Structure of Arrays) for fast traversal.
  * The types of token and scopes are defined as readable chars to easily create sequences of token
  * type.
  *
- * The `Parser` object needs to be fed a well formed source (without preprocessor directive, see
- * below), otherwise a crash can occur. The `Parser` doesn't apply any preprocessor. All
- * preprocessor directive are parsed as `Preprocessor` scope but they are not expanded.
- *
- * By default, whitespaces are merged with the previous token. Only a handful of processing
- * requires access to whitespaces as individual tokens.
+ * The parsing phase doesn't apply any preprocessor. All  preprocessor directive are parsed as
+ * `Preprocessor` scope but they are not expanded.
  */
 
 #pragma once
 
-#include "parser.hh"
 #include "scope.hh"
 #include "token.hh"
+#include "token_stream.hh"
 #include "utils.hh"
 
 #include <algorithm>
@@ -48,11 +44,7 @@ namespace blender::gpu::shader::parser {
  * It is made for fast traversal and mutation of source code. */
 struct IntermediateForm {
  private:
-  Parser data_;
-
-  /* If false, the whitespaces are fused with the tokens. Otherwise they are kept as separate space
-   * and newline tokens. */
-  bool keep_whitespace_;
+  TokenStream data_;
 
   struct Mutation {
     /* Range of the original string to replace. */
@@ -77,10 +69,8 @@ struct IntermediateForm {
   report_callback &report_error;
 
  public:
-  IntermediateForm(const std::string &input,
-                   report_callback &report_error,
-                   bool keep_whitespace = false)
-      : keep_whitespace_(keep_whitespace), report_error(report_error)
+  IntermediateForm(const std::string &input, report_callback &report_error)
+      : report_error(report_error)
   {
     data_.str = input;
     parse(report_error);
@@ -294,7 +284,7 @@ struct IntermediateForm {
   }
 
   /* For testing. */
-  const Parser &data_get()
+  const TokenStream &data_get()
   {
     return data_;
   }
@@ -325,7 +315,7 @@ struct IntermediateForm {
   {
     {
       TimeIt time_it(parse_scope_time);
-      data_.tokenize(keep_whitespace_);
+      data_.tokenize();
     }
     {
       TimeIt time_it(tokenize_time);
