@@ -171,6 +171,10 @@ static void ntree_copy_data(Main * /*bmain*/,
     /* Don't find a unique name for every node, since they should have valid names already. */
     bNode *new_node = node_copy_with_mapping(
         ntree_dst, *src_node, flag_subdata, src_node->name, src_node->identifier, socket_map);
+    /* Parent remapping below relies on persistent identifier between the old and new tree.
+     * No changes should be needed to keep identifiers unique. */
+    BLI_assert(new_node->identifier == src_node->identifier);
+    BLI_assert(ntree_dst->runtime->nodes_by_id.contains(new_node));
     new_node->runtime->index_in_tree = i;
   }
 
@@ -190,6 +194,7 @@ static void ntree_copy_data(Main * /*bmain*/,
   /* update node->parent pointers */
   for (bNode *node : ntree_dst->all_nodes()) {
     if (node->parent) {
+      BLI_assert(ntree_src->runtime->nodes_by_id.contains(node->parent));
       node->parent = dst_runtime.nodes_by_id.lookup_key_as(node->parent->identifier);
     }
   }

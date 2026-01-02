@@ -2505,8 +2505,9 @@ static IDProperty **rna_Node_system_idprops(PointerRNA *ptr)
 static void rna_Node_parent_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
 {
   bNode *node = ptr->data_as<bNode>();
-  bNode *parent = static_cast<bNode *>(value.data);
+  bNode *parent = value.data_as<bNode>();
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
+  const bNodeTree *parent_ntree = reinterpret_cast<bNodeTree *>(value.owner_id);
 
   if (!parent) {
     blender::bke::node_detach_node(*ntree, *node);
@@ -2521,6 +2522,11 @@ static void rna_Node_parent_set(PointerRNA *ptr, PointerRNA value, ReportList * 
   }
 
   if (blender::bke::node_is_parent_and_child(*node, *parent)) {
+    return;
+  }
+
+  /* Only nodes from the same tree can be used as parents. */
+  if (parent_ntree != ntree) {
     return;
   }
 
