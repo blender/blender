@@ -8,12 +8,14 @@ import sys
 class COLORS_ANSI:
     RED = '\033[00;31m'
     GREEN = '\033[00;32m'
+    YELLOW = '\033[00;33m'
     ENDC = '\033[0m'
 
 
 class COLORS_NONE:
     RED = ''
     GREEN = ''
+    YELLOW = ''
     ENDC = ''
 
 
@@ -30,6 +32,13 @@ def print_message(message, type=None, status=''):
         print(COLORS.GREEN, end="")
     elif type == 'FAILURE':
         print(COLORS.RED, end="")
+    elif type == 'WARNING':
+        print(COLORS.YELLOW, end="")
+    if status == "RAW":
+        print("{}" . format(message))
+        print(COLORS.ENDC, end="")
+        sys.stdout.flush()
+        return
     status_text = ...
     if status == 'RUN':
         status_text = " RUN      "
