@@ -16,7 +16,7 @@ static std::string process_test_string(std::string str,
   using namespace shader;
   SourceProcessor processor(
       str,
-      "test.bsl.hh",
+      "test.bsl",
       language,
       [&](int /*err_line*/, int /*err_char*/, const std::string & /*line*/, const char *err_msg) {
         if (first_error.empty()) {
@@ -2486,7 +2486,7 @@ PipelineCompute compute_pipe(compute_func, Type{.a = true, .b = 8, .c = 7u});
 
 
 GPU_SHADER_CREATE_INFO(ns_graphic_pipe)
-GRAPHIC_SOURCE("test.glsl")
+GRAPHIC_SOURCE("test.bsl")
 VERTEX_FUNCTION("vertex_func")
 FRAGMENT_FUNCTION("fragment_func")
 ADDITIONAL_INFO(vertex_func_infos_)
@@ -2498,7 +2498,7 @@ DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(ns_compute_pipe)
-COMPUTE_SOURCE("test.glsl")
+COMPUTE_SOURCE("test.bsl")
 COMPUTE_FUNCTION("compute_func")
 ADDITIONAL_INFO(compute_func_infos_)
 COMPILATION_CONSTANT(bool, a, true)
