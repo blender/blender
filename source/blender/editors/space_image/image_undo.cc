@@ -786,25 +786,6 @@ static UndoImageBuf *ubuf_lookup_from_reference(ImageUndoStep *us_prev,
   return nullptr;
 }
 
-static bool image_undosys_poll(bContext *C)
-{
-  Object *obact = CTX_data_active_object(C);
-
-  ScrArea *area = CTX_wm_area(C);
-  if (area && (area->spacetype == SPACE_IMAGE)) {
-    SpaceImage *sima = (SpaceImage *)area->spacedata.first;
-    if ((obact && (obact->mode & OB_MODE_TEXTURE_PAINT)) || (sima->mode == SI_MODE_PAINT)) {
-      return true;
-    }
-  }
-  else {
-    if (obact && (obact->mode & OB_MODE_TEXTURE_PAINT)) {
-      return true;
-    }
-  }
-  return false;
-}
-
 static void image_undosys_step_encode_init(bContext * /*C*/, UndoStep *us_p)
 {
   ImageUndoStep *us = reinterpret_cast<ImageUndoStep *>(us_p);
@@ -1064,7 +1045,8 @@ static void image_undosys_foreach_ID_ref(UndoStep *us_p,
 void ED_image_undosys_type(UndoType *ut)
 {
   ut->name = "Image";
-  ut->poll = image_undosys_poll;
+  /* Note, we do not need the `poll` method overridden because of the `step_encode_init` callback
+   * and exposed #ED_image_undo_push_begin/end calls. */
   ut->step_encode_init = image_undosys_step_encode_init;
   ut->step_encode = image_undosys_step_encode;
   ut->step_decode = image_undosys_step_decode;
