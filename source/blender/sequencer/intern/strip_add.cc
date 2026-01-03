@@ -275,6 +275,12 @@ Strip *add_image_strip(Main *bmain, Scene *scene, ListBaseT<Strip> *seqbase, Loa
     IMB_freeImBuf(ibuf);
   }
 
+  /* Adjust starting length of strip from handle to handle.
+   * Note that this differs from the content `strip->len`, which is always 1 for single images. */
+  if (seq::transform_single_image_check(strip)) {
+    strip->right_handle_set(scene, load_data->start_frame + load_data->image.length);
+  }
+
   strip_add_set_view_transform(scene, strip, load_data);
   strip_add_set_name(scene, strip, load_data);
   strip_add_generic_update(scene, strip);

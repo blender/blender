@@ -1815,9 +1815,6 @@ static bool sequencer_add_image_sequence_force(bContext *C,
   RNA_END;
 
   seq::add_image_init_alpha_mode(bmain, scene, strip);
-  if (load_data.image.count == 1) {
-    strip->right_handle_set(scene, load_data.start_frame + load_data.image.length);
-  }
   seq_load_apply_generic_options(C, op, strip);
   return true;
 }
@@ -1849,7 +1846,6 @@ static bool sequencer_add_images(bContext *C, wmOperator *op, seq::LoadData &loa
     BLI_path_split_file_part(load_data.path, load_data.name, sizeof(load_data.name));
 
     Strip *strip = seq::add_image_strip(bmain, scene, ed->current_strips(), &load_data);
-    const bool is_sequence = !seq::transform_single_image_check(strip);
 
     char dirpath[sizeof(strip->data->dirpath)];
     BLI_path_split_dir_part(load_data.path, dirpath, sizeof(dirpath));
@@ -1861,14 +1857,9 @@ static bool sequencer_add_images(bContext *C, wmOperator *op, seq::LoadData &loa
 
     seq::add_image_init_alpha_mode(bmain, scene, strip);
 
-    /* Adjust starting length of strip.
-     * Note that this length differs from `strip->len`, which is always 1 for single images. */
-    if (!is_sequence) {
-      strip->right_handle_set(scene, load_data.start_frame + load_data.image.length);
-    }
-
     seq_load_apply_generic_options(C, op, strip);
-    load_data.start_frame += is_sequence ? load_data.image.count : load_data.image.length;
+    load_data.start_frame += seq::transform_single_image_check(strip) ? load_data.image.length :
+                                                                        load_data.image.count;
     BLI_freelistN(&range.frames);
   }
   BLI_freelistN(&ranges);
@@ -1901,7 +1892,8 @@ static wmOperatorStatus sequencer_add_image_strip_exec(bContext *C, wmOperator *
     }
   }
   else {
-    /* Note that `use_sequence_detection` is false for `ImageImport::Individual`.*/
+    /* Note that `use_sequence_detection` is false when import type is `ImageImport::Individual`.
+     * This is used by `ED_image_filesel_detect_sequences`, called from `sequencer_add_images`. */
     RNA_boolean_set(op->ptr, "use_sequence_detection", import_type == ImageImport::Detect);
     if (!sequencer_add_images(C, op, load_data)) {
       return OPERATOR_CANCELLED;
