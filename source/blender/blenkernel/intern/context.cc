@@ -385,7 +385,7 @@ static void ctx_member_log_access(const bContext *C,
                                   const eContextResult lookup_result)
 {
   const bool use_logging = CLOG_CHECK(BKE_LOG_CONTEXT, CLG_LEVEL_TRACE) ||
-                           (C && CTX_member_logging_get(C));
+                           CTX_member_logging_get(C);
 
   if (!use_logging) {
     return;
@@ -404,7 +404,7 @@ static void ctx_member_log_access(const bContext *C,
 #ifdef WITH_PYTHON
   /* Get current Python location if available and Python is properly initialized. */
   std::optional<std::string> python_location;
-  if (C && CTX_py_init_get(C)) {
+  if (CTX_py_init_get(C)) {
     python_location = BPY_python_current_file_and_line();
   }
   const char *location = python_location ? python_location->c_str() : "unknown:0";
@@ -417,7 +417,7 @@ static void ctx_member_log_access(const bContext *C,
   if (CLOG_CHECK(BKE_LOG_CONTEXT, CLG_LEVEL_TRACE)) {
     CLOG_TRACE(BKE_LOG_CONTEXT, format, location, member, value_desc);
   }
-  else if (C && CTX_member_logging_get(C)) {
+  else if (CTX_member_logging_get(C)) {
     /* Force output at TRACE level even if not enabled via command line. */
     CLOG_AT_LEVEL_NOCHECK(BKE_LOG_CONTEXT, CLG_LEVEL_TRACE, format, location, member, value_desc);
   }
@@ -432,7 +432,7 @@ static void *ctx_wm_python_context_get(const bContext *C,
   bool found_member = false;
 
 #ifdef WITH_PYTHON
-  if (UNLIKELY(C && CTX_py_dict_get(C))) {
+  if (UNLIKELY(CTX_py_dict_get(C))) {
     bContextDataResult result{};
     if (BPY_context_member_get(const_cast<bContext *>(C), member, &result)) {
       found_member = true;
@@ -578,7 +578,7 @@ static eContextResult ctx_data_get(bContext *C, const char *member, bContextData
 static void *ctx_data_pointer_get(const bContext *C, const char *member)
 {
   bContextDataResult result;
-  if (C && ctx_data_get(const_cast<bContext *>(C), member, &result) == CTX_RESULT_OK) {
+  if (ctx_data_get(const_cast<bContext *>(C), member, &result) == CTX_RESULT_OK) {
     BLI_assert(result.type == ContextDataType::Pointer);
     return result.ptr.data;
   }
@@ -588,12 +588,6 @@ static void *ctx_data_pointer_get(const bContext *C, const char *member)
 
 static bool ctx_data_pointer_verify(const bContext *C, const char *member, void **pointer)
 {
-  /* if context is nullptr, pointer must be nullptr too and that is a valid return */
-  if (C == nullptr) {
-    *pointer = nullptr;
-    return true;
-  }
-
   bContextDataResult result;
   if (ctx_data_get(const_cast<bContext *>(C), member, &result) == CTX_RESULT_OK) {
     BLI_assert(result.type == ContextDataType::Pointer);
