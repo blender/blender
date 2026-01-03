@@ -6551,7 +6551,7 @@ static const EnumPropertyItem *uv_select_similar_type_itemf(bContext *C,
   EnumPropertyItem *item = nullptr;
   int totitem = 0;
 
-  const ToolSettings *ts = CTX_data_tool_settings(C);
+  const ToolSettings *ts = (C) ? CTX_data_tool_settings(C) : nullptr;
   if (ts) {
     const bool use_select_linked = ED_uvedit_select_island_check(ts);
     const int selectmode = (ts->uv_flag & UV_FLAG_SELECT_SYNC) ? ts->selectmode :

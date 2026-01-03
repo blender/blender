@@ -1433,7 +1433,7 @@ static const EnumPropertyItem *modifier_add_itemf(bContext *C,
                                                   PropertyRNA * /*prop*/,
                                                   bool *r_free)
 {
-  Object *ob = context_active_object(C);
+  Object *ob = (C) ? context_active_object(C) : nullptr;
 
   if (!ob) {
     return rna_enum_object_modifier_type_items;

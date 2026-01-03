@@ -723,7 +723,7 @@ static const EnumPropertyItem *hook_mod_itemf(bContext *C,
                                               PropertyRNA * /*prop*/,
                                               bool *r_free)
 {
-  Object *ob = CTX_data_edit_object(C);
+  Object *ob = (C) ? CTX_data_edit_object(C) : nullptr;
   EnumPropertyItem tmp = {0, "", 0, "", ""};
   EnumPropertyItem *item = nullptr;
   ModifierData *md = nullptr;

@@ -3962,7 +3962,7 @@ static const EnumPropertyItem *shape_itemf(bContext *C,
                                            PropertyRNA * /*prop*/,
                                            bool *r_free)
 {
-  Object *obedit = CTX_data_edit_object(C);
+  Object *obedit = (C) ? CTX_data_edit_object(C) : nullptr;
   BMEditMesh *em;
   EnumPropertyItem *item = nullptr;
   int totitem = 0;

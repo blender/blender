@@ -61,15 +61,15 @@ static const EnumPropertyItem *collection_object_active_itemf(bContext *C,
                                                               PropertyRNA * /*prop*/,
                                                               bool *r_free)
 {
+  if (C == nullptr) {
+    return rna_enum_dummy_NULL_items;
+  }
+
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   Object *ob;
   EnumPropertyItem *item = nullptr, item_tmp = {0};
   int totitem = 0;
-
-  if (C == nullptr) {
-    return rna_enum_dummy_NULL_items;
-  }
 
   ob = context_object(C);
 

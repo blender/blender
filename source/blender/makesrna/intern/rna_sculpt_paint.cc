@@ -217,28 +217,30 @@ static const EnumPropertyItem *rna_ParticleEdit_tool_itemf(bContext *C,
                                                            PropertyRNA * /*prop*/,
                                                            bool * /*r_free*/)
 {
-  const Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
-  BKE_view_layer_synced_ensure(scene, view_layer);
-  Object *ob = BKE_view_layer_active_object_get(view_layer);
+  if (C) {
+    const Scene *scene = CTX_data_scene(C);
+    ViewLayer *view_layer = CTX_data_view_layer(C);
+    BKE_view_layer_synced_ensure(scene, view_layer);
+    Object *ob = BKE_view_layer_active_object_get(view_layer);
 #  if 0
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Scene *scene = CTX_data_scene(C);
   PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
   ParticleSystem *psys = edit ? edit->psys : nullptr;
 #  else
-  /* use this rather than PE_get_current() - because the editing cache is
-   * dependent on the cache being updated which can happen after this UI
-   * draws causing a glitch #28883. */
-  ParticleSystem *psys = psys_get_current(ob);
+    /* use this rather than PE_get_current() - because the editing cache is
+     * dependent on the cache being updated which can happen after this UI
+     * draws causing a glitch #28883. */
+    ParticleSystem *psys = psys_get_current(ob);
 #  endif
 
-  if (psys) {
-    if (psys->flag & PSYS_GLOBAL_HAIR) {
-      return rna_enum_particle_edit_disconnected_hair_brush_items;
-    }
-    else {
-      return rna_enum_particle_edit_hair_brush_items;
+    if (psys) {
+      if (psys->flag & PSYS_GLOBAL_HAIR) {
+        return rna_enum_particle_edit_disconnected_hair_brush_items;
+      }
+      else {
+        return rna_enum_particle_edit_hair_brush_items;
+      }
     }
   }
 

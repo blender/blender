@@ -317,7 +317,7 @@ static const EnumPropertyItem *shaderfx_add_itemf(bContext *C,
                                                   PropertyRNA * /*prop*/,
                                                   bool *r_free)
 {
-  Object *ob = context_active_object(C);
+  Object *ob = (C) ? context_active_object(C) : nullptr;
   EnumPropertyItem *item = nullptr;
   const EnumPropertyItem *fx_item, *group_item = nullptr;
   const ShaderFxTypeInfo *mti;

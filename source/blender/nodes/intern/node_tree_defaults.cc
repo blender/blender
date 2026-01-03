@@ -31,7 +31,7 @@ void node_tree_shader_default(const bContext *C, Main *bmain, ID *id)
 {
   if (GS(id->name) == ID_MA) {
     /* Materials */
-    Object *ob = CTX_data_active_object(C);
+    Object *ob = (C) ? CTX_data_active_object(C) : nullptr;
     Material *ma = reinterpret_cast<Material *>(id);
     Material *ma_default;
 

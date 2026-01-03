@@ -1199,12 +1199,12 @@ static const EnumPropertyItem *rna_KeyMapItem_type_itemf(bContext * /*C*/,
   }
 }
 
-static const EnumPropertyItem *rna_KeyMapItem_propvalue_itemf(bContext *C,
+static const EnumPropertyItem *rna_KeyMapItem_propvalue_itemf(bContext * /*C*/,
                                                               PointerRNA *ptr,
                                                               PropertyRNA * /*prop*/,
                                                               bool * /*r_free*/)
 {
-  wmWindowManager *wm = CTX_wm_manager(C);
+  wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
   wmKeyConfig *kc;
   wmKeyMap *km;
 

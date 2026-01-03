@@ -1646,6 +1646,10 @@ static const EnumPropertyItem *rna_3DViewShading_render_pass_itemf(bContext *C,
                                                                    PropertyRNA * /*prop*/,
                                                                    bool *r_free)
 {
+  if (C == nullptr) {
+    return rna_enum_dummy_NULL_items;
+  }
+
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
@@ -1756,9 +1760,9 @@ static const EnumPropertyItem *rna_SpaceView3D_stereo3d_camera_itemf(bContext *C
                                                                      PropertyRNA * /*prop*/,
                                                                      bool * /*r_free*/)
 {
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = (C) ? CTX_data_scene(C) : nullptr;
 
-  if (scene->r.views_format == SCE_VIEWS_FORMAT_MULTIVIEW) {
+  if (scene && scene->r.views_format == SCE_VIEWS_FORMAT_MULTIVIEW) {
     return multiview_camera_items;
   }
   else {
