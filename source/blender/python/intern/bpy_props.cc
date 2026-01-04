@@ -564,6 +564,7 @@ static int bpy_prop_array_length_parse(PyObject *o, void *p)
       array_len_info->dims_len = seq_len;
       array_len_info->len_total *= size;
     }
+    Py_DECREF(seq_fast);
   }
   return 1;
 }
