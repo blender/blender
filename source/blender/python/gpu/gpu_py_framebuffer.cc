@@ -500,9 +500,7 @@ PyDoc_STRVAR(
     "   :type x, y: int\n"
     "   :arg xsize, ysize: width and height of the viewport_set.\n"
     "   :type xsize, ysize: int\n");
-static PyObject *pygpu_framebuffer_viewport_set(BPyGPUFrameBuffer *self,
-                                                PyObject *args,
-                                                void * /*type*/)
+static PyObject *pygpu_framebuffer_viewport_set(BPyGPUFrameBuffer *self, PyObject *args)
 {
   int x, y, xsize, ysize;
   if (!PyArg_ParseTuple(args, "iiii:viewport_set", &x, &y, &xsize, &ysize)) {
@@ -519,7 +517,7 @@ PyDoc_STRVAR(
     ".. function:: viewport_get()\n"
     "\n"
     "   Returns position and dimension to current viewport.\n");
-static PyObject *pygpu_framebuffer_viewport_get(BPyGPUFrameBuffer *self, void * /*type*/)
+static PyObject *pygpu_framebuffer_viewport_get(BPyGPUFrameBuffer *self)
 {
   PYGPU_FRAMEBUFFER_CHECK_OBJ(self);
   int viewport[4];
@@ -771,7 +769,7 @@ static PyMethodDef pygpu_framebuffer__tp_methods[] = {
      pygpu_framebuffer_clear_doc},
     {"viewport_set",
      (PyCFunction)pygpu_framebuffer_viewport_set,
-     METH_NOARGS,
+     METH_VARARGS,
      pygpu_framebuffer_viewport_set_doc},
     {"viewport_get",
      (PyCFunction)pygpu_framebuffer_viewport_get,
