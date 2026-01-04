@@ -4574,7 +4574,7 @@ static PyObject *pyrna_struct_id_properties_ensure(BPy_StructRNA *self)
   /* This is a paranoid check that theoretically might not be necessary.
    * It allows the possibility that some structs can't ensure IDProperties. */
   if (idprops == nullptr) {
-    return Py_None;
+    Py_RETURN_NONE;
   }
 
   BPy_IDProperty *group = PyObject_New(BPy_IDProperty, &BPy_IDGroup_Type);
@@ -4612,7 +4612,7 @@ static PyObject *pyrna_struct_id_properties_ui(BPy_StructRNA *self, PyObject *ar
   /* This is a paranoid check that theoretically might not be necessary.
    * It allows the possibility that some structs can't ensure IDProperties. */
   if (parent_group == nullptr) {
-    return Py_None;
+    Py_RETURN_NONE;
   }
 
   IDProperty *property = IDP_GetPropertyFromGroup(parent_group, key);
