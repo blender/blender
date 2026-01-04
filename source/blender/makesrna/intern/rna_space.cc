@@ -8245,7 +8245,7 @@ static void rna_def_space_node(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Backdrop Zoom", "Backdrop zoom factor");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE_VIEW, nullptr);
 
-  prop = RNA_def_property(srna, "backdrop_offset", PROP_FLOAT, PROP_NONE);
+  prop = RNA_def_property(srna, "backdrop_offset", PROP_FLOAT, PROP_XYZ);
   RNA_def_property_float_sdna(prop, nullptr, "xof");
   RNA_def_property_array(prop, 2);
   RNA_def_property_ui_text(prop, "Backdrop Offset", "Backdrop offset");
