@@ -116,6 +116,7 @@ static int foreach_libblock_id_user_map_callback(LibraryIDLinkCallbackData *cb_d
     if ((set = PyDict_GetItem(data->user_map, key)) == nullptr) {
       /* limit to key's added already */
       if (data->is_subset) {
+        Py_DECREF(key);
         return IDWALK_RET_NOP;
       }
 
