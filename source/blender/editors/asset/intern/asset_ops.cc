@@ -1192,6 +1192,7 @@ static wmOperatorStatus screenshot_preview_exec(bContext *C, wmOperator *op)
                                                   false,
                                                   nullptr,
                                                   nullptr,
+                                                  false,
                                                   err_out);
 
     /* Convert crop rect into the space relative to the area. */

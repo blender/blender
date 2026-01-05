@@ -354,6 +354,7 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
                                                  true,
                                                  oglrender->ofs,
                                                  oglrender->viewport,
+                                                 true,
                                                  err_out);
 
       /* for stamp only */

@@ -1991,6 +1991,7 @@ static ImBuf *blend_file_thumb_from_camera(const bContext *C,
                                           true,
                                           nullptr,
                                           nullptr,
+                                          true,
                                           err_out);
   }
 
