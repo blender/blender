@@ -18,8 +18,8 @@ extern PyTypeObject ConstantColorShader_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&ConstantColorShader_Type))
 
 /*---------------------------Python BPy_ConstantColorShader structure definition----------*/
-typedef struct {
+struct BPy_ConstantColorShader {
   BPy_StrokeShader py_ss;
-} BPy_ConstantColorShader;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

@@ -76,10 +76,10 @@ struct ChannelDriver *fcurve_copy_driver(const struct ChannelDriver *driver);
  *
  * If the target property can not be resolved false is returned.
  */
-typedef struct DriverTargetContext {
+struct DriverTargetContext {
   struct Scene *scene;
   struct ViewLayer *view_layer;
-} DriverTargetContext;
+};
 bool driver_get_target_property(const DriverTargetContext *driver_target_context,
                                 struct DriverVar *dvar,
                                 struct DriverTarget *dtar,
@@ -132,7 +132,7 @@ float driver_get_variable_value(const struct AnimationEvalContext *anim_eval_con
                                 struct ChannelDriver *driver,
                                 struct DriverVar *dvar);
 
-typedef enum eDriverVariablePropertyResult {
+enum eDriverVariablePropertyResult {
   /** The property reference has been successfully resolved and can be accessed. */
   DRIVER_VAR_PROPERTY_SUCCESS,
   /** Evaluation should use the fallback value. */
@@ -144,7 +144,7 @@ typedef enum eDriverVariablePropertyResult {
    * but the array index is out of bounds.
    */
   DRIVER_VAR_PROPERTY_INVALID_INDEX
-} eDriverVariablePropertyResult;
+};
 
 /**
  * Same as 'dtar_get_prop_val'. but get the RNA property.

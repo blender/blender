@@ -65,7 +65,7 @@ struct Icon_Geom {
   const unsigned char *mem;
 };
 
-typedef struct Icon Icon;
+struct Icon;
 
 struct ID;
 struct ImBuf;

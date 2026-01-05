@@ -45,7 +45,7 @@ struct Object;
 struct Scene;
 
 /* Used for curves, nurbs, meta-balls. */
-typedef struct DispList {
+struct DispList {
   struct DispList *next, *prev;
   short type, flag;
   int parts, nr;
@@ -54,7 +54,7 @@ typedef struct DispList {
   int *index;
   int charidx;
   int totindex; /* indexed array drawing surfaces */
-} DispList;
+};
 
 DispList *BKE_displist_find(ListBaseT<DispList> *lb, int type);
 void BKE_displist_free(ListBaseT<DispList> *lb);

@@ -18,15 +18,15 @@ struct wmKeyMapItem;
 
 /** Actual data is stored in #wmKeyConfigPref. */
 #if defined(__RNA_TYPES_H__)
-typedef struct wmKeyConfigPrefType_Runtime {
+struct wmKeyConfigPrefType_Runtime {
   char idname[64];
 
   /* RNA integration */
   ExtensionRNA rna_ext;
-} wmKeyConfigPrefType_Runtime;
+};
 
 #else
-typedef struct wmKeyConfigPrefType_Runtime wmKeyConfigPrefType_Runtime;
+struct wmKeyConfigPrefType_Runtime;
 #endif
 
 /* KeyConfig preferences (#UserDef). */

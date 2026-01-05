@@ -12,7 +12,7 @@ struct Object;
 struct Scene;
 struct SoftBody;
 
-typedef struct BodyPoint {
+struct BodyPoint {
   float origS[3], origE[3], origT[3], pos[3], vec[3], force[3];
   float goal;
   float prevpos[3], prevvec[3], prevdx[3], prevdv[3]; /* used for Heun integration */
@@ -25,7 +25,7 @@ typedef struct BodyPoint {
   // char octantflag;
   float mass;
   float springweight;
-} BodyPoint;
+};
 
 /**
  * Allocates and initializes general main data.

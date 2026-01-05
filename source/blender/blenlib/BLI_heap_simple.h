@@ -13,7 +13,6 @@
 #include "BLI_sys_types.h"
 
 struct HeapSimple;
-typedef struct HeapSimple HeapSimple;
 
 typedef void (*HeapSimpleFreeFP)(void *ptr);
 

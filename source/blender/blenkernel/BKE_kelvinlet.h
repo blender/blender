@@ -12,7 +12,7 @@
 
 #define KELVINLET_MAX_ITERATIONS 3
 
-typedef struct KelvinletParams {
+struct KelvinletParams {
   float a;
   float b;
   float c;
@@ -20,7 +20,7 @@ typedef struct KelvinletParams {
   float f;
 
   float radius_scaled[KELVINLET_MAX_ITERATIONS];
-} KelvinletParams;
+};
 
 /* Initialize KelvinletParams to store the parameters that will affect the deformation produced by
  * a Kelvinlet */

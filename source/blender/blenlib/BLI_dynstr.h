@@ -21,7 +21,7 @@
 struct DynStr;
 
 /** The abstract DynStr type. */
-typedef struct DynStr DynStr;
+struct DynStr;
 
 /**
  * Create a new #DynStr.

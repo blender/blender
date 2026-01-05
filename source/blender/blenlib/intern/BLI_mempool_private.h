@@ -16,15 +16,15 @@
 #include "BLI_mempool.h"
 #include "BLI_task.h"
 
-typedef struct BLI_mempool_threadsafe_iter {
+struct BLI_mempool_threadsafe_iter {
   BLI_mempool_iter iter;
   struct BLI_mempool_chunk **curchunk_threaded_shared;
-} BLI_mempool_threadsafe_iter;
+};
 
-typedef struct ParallelMempoolTaskData {
+struct ParallelMempoolTaskData {
   BLI_mempool_threadsafe_iter ts_iter;
   TaskParallelTLS tls;
-} ParallelMempoolTaskData;
+};
 
 /**
  * Initialize an array of mempool iterators, #BLI_MEMPOOL_ALLOW_ITER flag must be set.

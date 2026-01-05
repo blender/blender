@@ -21,10 +21,10 @@ namespace Freestyle {
 using namespace Geometry;
 
 /* 2d point */
-typedef struct Point2Struct {
+struct Point2 {
   double coordinates[2];
 
-  Point2Struct()
+  Point2()
   {
     coordinates[0] = 0;
     coordinates[1] = 0;
@@ -49,9 +49,9 @@ typedef struct Point2Struct {
   {
     return coordinates[1];
   }
-} Point2;
+};
 
-typedef Point2 Vector2;
+using Vector2 = Point2;
 
 class FitCurveWrapper {
  private:

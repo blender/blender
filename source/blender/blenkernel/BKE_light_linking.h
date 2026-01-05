@@ -20,10 +20,10 @@ struct ReportList;
 struct Scene;
 struct ViewLayer;
 
-typedef enum LightLinkingType {
+enum LightLinkingType {
   LIGHT_LINKING_RECEIVER,
   LIGHT_LINKING_BLOCKER,
-} LightLinkingType;
+};
 
 /**
  * Add an empty LightLinking data to an Object.

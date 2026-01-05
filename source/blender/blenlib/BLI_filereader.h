@@ -30,13 +30,13 @@ typedef off64_t (*FileReaderSeekFn)(struct FileReader *reader, off64_t offset, i
 typedef void (*FileReaderCloseFn)(struct FileReader *reader);
 
 /** General structure for all #FileReaders, implementations add custom fields at the end. */
-typedef struct FileReader {
+struct FileReader {
   FileReaderReadFn read;
   FileReaderSeekFn seek;
   FileReaderCloseFn close;
 
   off64_t offset;
-} FileReader;
+};
 
 /* Functions for opening the various types of FileReader.
  * They either succeed and return a valid FileReader, or fail and return NULL.

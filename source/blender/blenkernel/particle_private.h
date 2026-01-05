@@ -12,7 +12,7 @@
 
 struct CurveMapping;
 
-typedef struct ParticleChildModifierContext {
+struct ParticleChildModifierContext {
   ParticleThreadContext *thread_ctx;
   ParticleSimulationData *sim;
   ParticleTexture *ptex;
@@ -23,7 +23,7 @@ typedef struct ParticleChildModifierContext {
   const float *par_orco; /* float3 */
   const float *orco;     /* float3 */
   ParticleCacheKey *parent_keys;
-} ParticleChildModifierContext;
+};
 
 void do_kink(ParticleKey *state,
              const float par_co[3],

@@ -12,7 +12,7 @@
 
 #include "BLI_compiler_attrs.h"
 
-typedef struct BLI_Stack BLI_Stack;
+struct BLI_Stack;
 
 BLI_Stack *BLI_stack_new_ex(size_t elem_size,
                             const char *description,

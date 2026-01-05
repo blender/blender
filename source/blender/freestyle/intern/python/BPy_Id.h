@@ -23,10 +23,10 @@ extern PyTypeObject Id_Type;
 #define BPy_Id_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&Id_Type))
 
 /*---------------------------Python BPy_Id structure definition----------*/
-typedef struct {
+struct BPy_Id {
   PyObject_HEAD
   Freestyle::Id *id;
-} BPy_Id;
+};
 
 /*---------------------------Python BPy_Id visible prototypes-----------*/
 

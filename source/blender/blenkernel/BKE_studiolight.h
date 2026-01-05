@@ -60,12 +60,12 @@ enum StudioLightFlag {
 
 typedef void StudioLightFreeFunction(struct StudioLight *, void *data);
 
-typedef struct StudioLightImage {
+struct StudioLightImage {
   struct ImBuf *ibuf;
   blender::gpu::Texture *gputexture;
-} StudioLightImage;
+};
 
-typedef struct StudioLight {
+struct StudioLight {
   struct StudioLight *next, *prev;
 
   int index;
@@ -90,7 +90,7 @@ typedef struct StudioLight {
    */
   StudioLightFreeFunction *free_function;
   void *free_function_data;
-} StudioLight;
+};
 
 /* API */
 

@@ -12,16 +12,16 @@
 struct bAddon;
 
 #ifdef __RNA_TYPES_H__
-typedef struct bAddonPrefType {
+struct bAddonPrefType {
   /** Type info, match #bAddon::module. */
   char idname[128];
 
   /* RNA integration */
   ExtensionRNA rna_ext;
-} bAddonPrefType;
+};
 
 #else
-typedef struct bAddonPrefType bAddonPrefType;
+struct bAddonPrefType;
 #endif
 
 bAddonPrefType *BKE_addon_pref_type_find(const char *idname, bool quiet);

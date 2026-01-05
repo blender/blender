@@ -22,7 +22,7 @@ struct EditMesh;
 /* Laplacian System */
 
 struct LaplacianSystem;
-typedef struct LaplacianSystem LaplacianSystem;
+struct LaplacianSystem;
 
 void laplacian_add_vertex(LaplacianSystem *sys, float *co, int pinned);
 void laplacian_add_triangle(LaplacianSystem *sys, int v1, int v2, int v3);

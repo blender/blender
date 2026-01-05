@@ -22,10 +22,10 @@ extern PyTypeObject UnaryPredicate0D_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&UnaryPredicate0D_Type))
 
 /*---------------------------Python BPy_UnaryPredicate0D structure definition----------*/
-typedef struct {
+struct BPy_UnaryPredicate0D {
   PyObject_HEAD
   Freestyle::UnaryPredicate0D *up0D;
-} BPy_UnaryPredicate0D;
+};
 
 /*---------------------------Python BPy_UnaryPredicate0D visible prototypes-----------*/
 

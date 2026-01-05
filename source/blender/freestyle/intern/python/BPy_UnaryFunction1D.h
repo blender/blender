@@ -22,10 +22,10 @@ extern PyTypeObject UnaryFunction1D_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&UnaryFunction1D_Type))
 
 /*---------------------------Python BPy_UnaryFunction1D structure definition----------*/
-typedef struct {
+struct BPy_UnaryFunction1D {
   PyObject_HEAD
   PyObject *py_uf1D;
-} BPy_UnaryFunction1D;
+};
 
 /*---------------------------Python BPy_UnaryFunction1D visible prototypes-----------*/
 

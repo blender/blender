@@ -16,7 +16,7 @@ struct ParticleSettings;
 struct ParticleSimulationData;
 struct RNG;
 
-typedef struct BoidBrainData {
+struct BoidBrainData {
   struct ParticleSimulationData *sim;
   struct ParticleSettings *part;
   float timestep, cfra, dfra;
@@ -29,7 +29,7 @@ typedef struct BoidBrainData {
   float goal_priority;
 
   struct RNG *rng;
-} BoidBrainData;
+};
 
 void boids_precalc_rules(struct ParticleSettings *part, float cfra);
 /**

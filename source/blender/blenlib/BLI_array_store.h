@@ -11,8 +11,8 @@
 
 #include "BLI_sys_types.h"
 
-typedef struct BArrayState BArrayState;
-typedef struct BArrayStore BArrayStore;
+struct BArrayState;
+struct BArrayStore;
 
 /**
  * Create a new array store, which can store any number of arrays

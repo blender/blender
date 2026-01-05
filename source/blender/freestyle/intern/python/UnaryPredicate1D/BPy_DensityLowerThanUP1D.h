@@ -18,8 +18,8 @@ extern PyTypeObject DensityLowerThanUP1D_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&DensityLowerThanUP1D_Type))
 
 /*---------------------------Python BPy_DensityLowerThanUP1D structure definition----------*/
-typedef struct {
+struct BPy_DensityLowerThanUP1D {
   BPy_UnaryPredicate1D py_up1D;
-} BPy_DensityLowerThanUP1D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

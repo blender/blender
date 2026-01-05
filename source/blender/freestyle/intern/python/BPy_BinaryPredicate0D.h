@@ -22,10 +22,10 @@ extern PyTypeObject BinaryPredicate0D_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&BinaryPredicate0D_Type))
 
 /*---------------------------Python BPy_BinaryPredicate0D structure definition----------*/
-typedef struct {
+struct BPy_BinaryPredicate0D {
   PyObject_HEAD
   Freestyle::BinaryPredicate0D *bp0D;
-} BPy_BinaryPredicate0D;
+};
 
 /*---------------------------Python BPy_BinaryPredicate0D visible prototypes-----------*/
 

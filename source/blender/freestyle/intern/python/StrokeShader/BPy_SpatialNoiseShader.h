@@ -18,8 +18,8 @@ extern PyTypeObject SpatialNoiseShader_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&SpatialNoiseShader_Type))
 
 /*---------------------------Python BPy_SpatialNoiseShader structure definition----------*/
-typedef struct {
+struct BPy_SpatialNoiseShader {
   BPy_StrokeShader py_ss;
-} BPy_SpatialNoiseShader;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

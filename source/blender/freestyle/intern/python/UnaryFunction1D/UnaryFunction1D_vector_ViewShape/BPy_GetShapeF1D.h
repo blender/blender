@@ -18,8 +18,8 @@ extern PyTypeObject GetShapeF1D_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&GetShapeF1D_Type))
 
 /*---------------------------Python BPy_GetShapeF1D structure definition----------*/
-typedef struct {
+struct BPy_GetShapeF1D {
   BPy_UnaryFunction1DVectorViewShape py_uf1D_vectorviewshape;
-} BPy_GetShapeF1D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

@@ -137,7 +137,7 @@ int64_t BLI_lseek(int fd, int64_t offset, int whence);
 int BLI_wstat(const wchar_t *path, BLI_stat_t *buffer);
 #endif
 
-typedef enum eFileAttributes {
+enum eFileAttributes {
   FILE_ATTR_READONLY = 1 << 0,        /* Read-only or Immutable. */
   FILE_ATTR_HIDDEN = 1 << 1,          /* Hidden or invisible. */
   FILE_ATTR_SYSTEM = 1 << 2,          /* Used by the Operating System. */
@@ -154,7 +154,7 @@ typedef enum eFileAttributes {
   FILE_ATTR_JUNCTION_POINT = 1 << 13, /* Folder Symbolic-link. */
   FILE_ATTR_MOUNT_POINT = 1 << 14,    /* Volume mounted as a folder. */
   FILE_ATTR_HARDLINK = 1 << 15,       /* Duplicated directory entry. */
-} eFileAttributes;
+};
 ENUM_OPERATORS(eFileAttributes);
 
 #define FILE_ATTR_ANY_LINK \
@@ -167,7 +167,7 @@ ENUM_OPERATORS(eFileAttributes);
 /** \name External File Operations
  * \{ */
 
-typedef enum FileExternalOperation {
+enum FileExternalOperation {
   FILE_EXTERNAL_OPERATION_OPEN = 1,
   FILE_EXTERNAL_OPERATION_FOLDER_OPEN,
   /* Following are Windows-only: */
@@ -184,7 +184,7 @@ typedef enum FileExternalOperation {
   FILE_EXTERNAL_OPERATION_PROPERTIES,
   FILE_EXTERNAL_OPERATION_FOLDER_FIND,
   FILE_EXTERNAL_OPERATION_FOLDER_CMD,
-} FileExternalOperation;
+};
 
 bool BLI_file_external_operation_supported(const char *filepath, FileExternalOperation operation);
 bool BLI_file_external_operation_execute(const char *filepath, FileExternalOperation operation);

@@ -18,8 +18,8 @@ extern PyTypeObject GetProjectedZF0D_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&GetProjectedZF0D_Type))
 
 /*---------------------------Python BPy_GetProjectedZF0D structure definition----------*/
-typedef struct {
+struct BPy_GetProjectedZF0D {
   BPy_UnaryFunction0DDouble py_uf0D_double;
-} BPy_GetProjectedZF0D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

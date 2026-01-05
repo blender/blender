@@ -21,7 +21,7 @@ struct AnimationEvalContext;
 /* --------------- NLA Evaluation DataTypes ----------------------- */
 
 /** Used for list of strips to accumulate at current time. */
-typedef struct NlaEvalStrip {
+struct NlaEvalStrip {
   struct NlaEvalStrip *next, *prev;
 
   /** Track that this strip belongs to. */
@@ -36,7 +36,7 @@ typedef struct NlaEvalStrip {
 
   /** Time at which this strip is being evaluated. */
   float strip_time;
-} NlaEvalStrip;
+};
 
 /** #NlaEvalStrip::strip_mode. */
 enum eNlaEvalStrip_StripMode {
@@ -54,7 +54,7 @@ struct NlaEvalChannel;
 struct NlaEvalData;
 
 /** Unique channel key for GHash. */
-typedef struct NlaEvalChannelKey {
+struct NlaEvalChannelKey {
   struct PointerRNA ptr;
   struct PropertyRNA *prop;
 
@@ -67,16 +67,16 @@ typedef struct NlaEvalChannelKey {
   {
     return blender::get_default_hash(this->ptr.data, this->prop);
   }
-} NlaEvalChannelKey;
+};
 
 /** Bitmask of array indices touched by actions. */
-typedef struct NlaValidMask {
+struct NlaValidMask {
   BLI_bitmap *ptr;
   BLI_bitmap buffer[sizeof(uint64_t) / sizeof(BLI_bitmap)];
-} NlaValidMask;
+};
 
 /** Set of property values for blending. */
-typedef struct NlaEvalChannelSnapshot {
+struct NlaEvalChannelSnapshot {
   struct NlaEvalChannel *channel;
 
   /** For an upper snapshot channel, marks values that should be blended. */
@@ -93,7 +93,7 @@ typedef struct NlaEvalChannelSnapshot {
 
   float values[]; /* Item values. */
   /* Memory over-allocated to provide space for values. */
-} NlaEvalChannelSnapshot;
+};
 
 /** #NlaEvalChannel::mix_mode */
 enum eNlaEvalChannel_MixMode {
@@ -107,7 +107,7 @@ enum eNlaEvalChannel_MixMode {
  * Temp channel for accumulating data from NLA for a single property.
  * Handles array properties as a unit to allow intelligent blending.
  */
-typedef struct NlaEvalChannel {
+struct NlaEvalChannel {
   struct NlaEvalChannel *next, *prev;
   struct NlaEvalData *owner;
 
@@ -125,19 +125,19 @@ typedef struct NlaEvalChannel {
   /* Base set of values. */
   NlaEvalChannelSnapshot base_snapshot;
   /* Memory over-allocated to provide space for base_snapshot.values. */
-} NlaEvalChannel;
+};
 
 /** Set of values for all channels. */
-typedef struct NlaEvalSnapshot {
+struct NlaEvalSnapshot {
   /* Snapshot this one defaults to. */
   struct NlaEvalSnapshot *base;
 
   int size;
   NlaEvalChannelSnapshot **channels;
-} NlaEvalSnapshot;
+};
 
 /** Set of all channels covered by NLA. */
-typedef struct NlaEvalData {
+struct NlaEvalData {
   ListBaseT<NlaEvalChannel> channels;
 
   /* Mapping of paths and NlaEvalChannelKeys to channels. */
@@ -150,10 +150,10 @@ typedef struct NlaEvalData {
 
   /* Evaluation result snapshot. */
   NlaEvalSnapshot eval_snapshot;
-} NlaEvalData;
+};
 
 /** Information about the currently edited strip and ones below it for keyframing. */
-typedef struct NlaKeyframingContext {
+struct NlaKeyframingContext {
   struct NlaKeyframingContext *next, *prev;
 
   /* AnimData for which this context was built. */
@@ -169,7 +169,7 @@ typedef struct NlaKeyframingContext {
   ListBaseT<NlaEvalStrip> upper_estrips;
   /* Evaluated NLA stack below the tweak strip. */
   NlaEvalData lower_eval_data;
-} NlaKeyframingContext;
+};
 
 /* --------------- NLA Functions (not to be used as a proper API) ----------------------- */
 

@@ -28,7 +28,7 @@ struct QueueChunk {
   char data[0];
 };
 
-struct _GSQueue {
+struct GSQueue {
   QueueChunk *chunk_first;  /* first active chunk to pop from */
   QueueChunk *chunk_last;   /* last active chunk to push onto */
   QueueChunk *chunk_free;   /* free chunks to reuse */

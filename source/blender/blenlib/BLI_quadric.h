@@ -10,9 +10,9 @@
 
 #include <stdbool.h>
 
-typedef struct Quadric {
+struct Quadric {
   double a2, ab, ac, ad, b2, bc, bd, c2, cd, d2;
-} Quadric;
+};
 
 /* Conversion. */
 

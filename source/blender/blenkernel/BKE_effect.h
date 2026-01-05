@@ -23,7 +23,7 @@ struct ViewLayer;
 struct EffectorWeights *BKE_effector_add_weights(struct Collection *collection);
 
 /* Input to effector code */
-typedef struct EffectedPoint {
+struct EffectedPoint {
   float *loc;
   float *vel;
   float *ave; /* angular velocity for particles with dynamic rotation */
@@ -38,14 +38,14 @@ typedef struct EffectedPoint {
   int index;
 
   struct ParticleSystem *psys; /* particle system the point belongs to */
-} EffectedPoint;
+};
 
-typedef struct GuideEffectorData {
+struct GuideEffectorData {
   float vec_to_point[3];
   float strength;
-} GuideEffectorData;
+};
 
-typedef struct EffectorData {
+struct EffectorData {
   /* Effector point */
   float loc[3];
   float nor[3];
@@ -61,10 +61,10 @@ typedef struct EffectorData {
   float nor2[3], vec_to_point2[3];
 
   int *index; /* point index */
-} EffectorData;
+};
 
 /* used for calculating the effector force */
-typedef struct EffectorCache {
+struct EffectorCache {
   struct EffectorCache *next, *prev;
 
   struct Depsgraph *depsgraph;
@@ -84,15 +84,15 @@ typedef struct EffectorCache {
 
   float frame;
   int flag;
-} EffectorCache;
+};
 
-typedef struct EffectorRelation {
+struct EffectorRelation {
   struct EffectorRelation *next, *prev;
 
   struct Object *ob;
   struct ParticleSystem *psys;
   struct PartDeflect *pd;
-} EffectorRelation;
+};
 
 struct PartDeflect *BKE_partdeflect_new(int type);
 struct PartDeflect *BKE_partdeflect_copy(const struct PartDeflect *pd_src);
@@ -197,7 +197,7 @@ unsigned int BKE_sim_debug_data_hash_combine(unsigned int kx, unsigned int ky);
 
 #define SIM_DEBUG_HASH(...) VA_NARGS_CALL_OVERLOAD(_VA_SIM_DEBUG_HASH, __VA_ARGS__)
 
-typedef struct SimDebugElement {
+struct SimDebugElement {
   unsigned int category_hash;
   unsigned int hash;
 
@@ -206,19 +206,19 @@ typedef struct SimDebugElement {
 
   float v1[3], v2[3];
   char str[64];
-} SimDebugElement;
+};
 
-typedef enum eSimDebugElement_Type {
+enum eSimDebugElement_Type {
   SIM_DEBUG_ELEM_DOT,
   SIM_DEBUG_ELEM_CIRCLE,
   SIM_DEBUG_ELEM_LINE,
   SIM_DEBUG_ELEM_VECTOR,
   SIM_DEBUG_ELEM_STRING,
-} eSimDebugElement_Type;
+};
 
-typedef struct SimDebugData {
+struct SimDebugData {
   struct GHash *gh;
-} SimDebugData;
+};
 
 extern SimDebugData *_sim_debug_data;
 

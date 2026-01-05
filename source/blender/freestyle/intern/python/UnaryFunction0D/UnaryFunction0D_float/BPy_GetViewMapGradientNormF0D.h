@@ -18,8 +18,8 @@ extern PyTypeObject GetViewMapGradientNormF0D_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&GetViewMapGradientNormF0D_Type))
 
 /*---------------------------Python BPy_GetViewMapGradientNormF0D structure definition----------*/
-typedef struct {
+struct BPy_GetViewMapGradientNormF0D {
   BPy_UnaryFunction0DFloat py_uf0D_float;
-} BPy_GetViewMapGradientNormF0D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

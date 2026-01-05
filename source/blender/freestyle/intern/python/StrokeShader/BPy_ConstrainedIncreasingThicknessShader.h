@@ -19,8 +19,8 @@ extern PyTypeObject ConstrainedIncreasingThicknessShader_Type;
 
 /*---------------------------Python BPy_ConstrainedIncreasingThicknessShader structure
  * definition----------*/
-typedef struct {
+struct BPy_ConstrainedIncreasingThicknessShader {
   BPy_StrokeShader py_ss;
-} BPy_ConstrainedIncreasingThicknessShader;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

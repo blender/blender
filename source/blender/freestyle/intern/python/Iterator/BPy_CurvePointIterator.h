@@ -20,9 +20,9 @@ extern PyTypeObject CurvePointIterator_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&CurvePointIterator_Type))
 
 /*---------------------------Python BPy_CurvePointIterator structure definition----------*/
-typedef struct {
+struct BPy_CurvePointIterator {
   BPy_Iterator py_it;
   Freestyle::CurveInternal::CurvePointIterator *cp_it;
-} BPy_CurvePointIterator;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

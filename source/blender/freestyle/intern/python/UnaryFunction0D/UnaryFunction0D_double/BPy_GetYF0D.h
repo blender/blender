@@ -17,8 +17,8 @@ extern PyTypeObject GetYF0D_Type;
 #define BPy_GetYF0D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&GetYF0D_Type))
 
 /*---------------------------Python BPy_GetYF0D structure definition----------*/
-typedef struct {
+struct BPy_GetYF0D {
   BPy_UnaryFunction0DDouble py_uf0D_double;
-} BPy_GetYF0D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

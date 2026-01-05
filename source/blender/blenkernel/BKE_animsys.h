@@ -35,7 +35,7 @@ struct bAction;
 struct bActionGroup;
 
 /** Container for data required to do FCurve and Driver evaluation. */
-typedef struct AnimationEvalContext {
+struct AnimationEvalContext {
   /* For drivers, so that they have access to the dependency graph and the current view layer. See
    * #77086. */
   struct Depsgraph *depsgraph;
@@ -44,7 +44,7 @@ typedef struct AnimationEvalContext {
    * example when evaluating NLA strips. This means that, even though the current time is stored in
    * the dependency graph, we need an explicit evaluation time. */
   float eval_time;
-} AnimationEvalContext;
+};
 
 AnimationEvalContext BKE_animsys_eval_context_construct(struct Depsgraph *depsgraph,
                                                         float eval_time) ATTR_WARN_UNUSED_RESULT;
@@ -249,7 +249,7 @@ void BKE_animdata_move_by_basepath(Main &bmain,
 
 /* ------------ NLA Keyframing --------------- */
 
-typedef struct NlaKeyframingContext NlaKeyframingContext;
+struct NlaKeyframingContext;
 
 /**
  * Prepare data necessary to compute correct keyframe values for NLA strips
@@ -301,11 +301,11 @@ void BKE_animsys_free_nla_keyframing_context_cache(ListBaseT<NlaKeyframingContex
 /* In general, these ones should be called to do all animation evaluation */
 
 /* Flags for recalc parameter, indicating which part to recalculate. */
-typedef enum eAnimData_Recalc {
+enum eAnimData_Recalc {
   ADT_RECALC_DRIVERS = (1 << 0),
   ADT_RECALC_ANIM = (1 << 1),
   ADT_RECALC_ALL = (ADT_RECALC_DRIVERS | ADT_RECALC_ANIM),
-} eAnimData_Recalc;
+};
 
 bool BKE_animsys_rna_path_resolve(struct PointerRNA *ptr,
                                   const char *rna_path,

@@ -15,7 +15,7 @@
 
 struct BLI_mmap_file;
 
-typedef struct BLI_mmap_file BLI_mmap_file;
+struct BLI_mmap_file;
 
 /* Prepares an opened file for memory-mapped IO.
  * May return NULL if the operation fails.

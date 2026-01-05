@@ -10,12 +10,12 @@
 
 #include <stdbool.h>
 
-typedef struct BLI_Iterator {
+struct BLI_Iterator {
   void *current; /* current pointer we iterate over */
   void *data;    /* stored data required for this iterator */
   bool skip;
   bool valid;
-} BLI_Iterator;
+};
 
 typedef void (*IteratorCb)(BLI_Iterator *iter);
 typedef void (*IteratorBeginCb)(BLI_Iterator *iter, void *data_in);

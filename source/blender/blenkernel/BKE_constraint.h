@@ -23,7 +23,7 @@ struct bPoseChannel;
 /* ---------------------------------------------------------------------------- */
 
 /* special struct for use in constraint evaluation */
-typedef struct bConstraintOb {
+struct bConstraintOb {
   /** to get evaluated armature. */
   struct Depsgraph *depsgraph;
   /** for system time, part of de-globalization, code nicer later with local time (ton) */
@@ -47,7 +47,7 @@ typedef struct bConstraintOb {
    * (as defined in #eEulerRotationOrders in BLI_math_rotation.h).
    */
   short rotOrder;
-} bConstraintOb;
+};
 
 /* ---------------------------------------------------------------------------- */
 
@@ -72,7 +72,7 @@ typedef void (*ConstraintIDFunc)(struct bConstraint *con,
  * as you'll have to edit quite a few #NUM_CONSTRAINT_TYPES of these
  * structs.
  */
-typedef struct bConstraintTypeInfo {
+struct bConstraintTypeInfo {
   /* Admin/identity. */
   /** CONSTRAINT_TYPE_### */
   short type;
@@ -132,7 +132,7 @@ typedef struct bConstraintTypeInfo {
   void (*evaluate_constraint)(struct bConstraint *con,
                               struct bConstraintOb *cob,
                               ListBaseT<bConstraintTarget> *targets);
-} bConstraintTypeInfo;
+};
 
 /* Function Prototypes for bConstraintTypeInfo's */
 

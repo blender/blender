@@ -22,10 +22,10 @@ extern PyTypeObject FrsMaterial_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&FrsMaterial_Type))
 
 /*---------------------------Python BPy_FrsMaterial structure definition----------*/
-typedef struct {
+struct BPy_FrsMaterial {
   PyObject_HEAD
   Freestyle::FrsMaterial *m;
-} BPy_FrsMaterial;
+};
 
 /*---------------------------Python BPy_FrsMaterial visible prototypes-----------*/
 

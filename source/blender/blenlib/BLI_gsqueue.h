@@ -10,7 +10,7 @@
 
 #include "BLI_utildefines.h"
 
-typedef struct _GSQueue GSQueue;
+struct GSQueue;
 
 GSQueue *BLI_gsqueue_new(size_t elem_size);
 /**

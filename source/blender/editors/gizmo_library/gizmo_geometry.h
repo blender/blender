@@ -16,13 +16,13 @@
 
 #include "BLI_sys_types.h"
 
-typedef struct GizmoGeomInfo {
+struct GizmoGeomInfo {
   int nverts;
   int ntris;
   const float (*verts)[3];
   const float (*normals)[3];
   const ushort *indices;
-} GizmoGeomInfo;
+};
 
 /* arrow gizmo */
 extern GizmoGeomInfo wm_gizmo_geom_data_arrow;

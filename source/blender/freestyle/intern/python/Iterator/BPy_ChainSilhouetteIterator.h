@@ -20,9 +20,9 @@ extern PyTypeObject ChainSilhouetteIterator_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&ChainSilhouetteIterator_Type))
 
 /*---------------------------Python BPy_ChainSilhouetteIterator structure definition----------*/
-typedef struct {
+struct BPy_ChainSilhouetteIterator {
   BPy_ChainingIterator py_c_it;
   Freestyle::ChainSilhouetteIterator *cs_it;
-} BPy_ChainSilhouetteIterator;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

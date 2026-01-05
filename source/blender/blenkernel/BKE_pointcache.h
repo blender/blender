@@ -80,7 +80,7 @@ struct SoftBody;
 struct ViewLayer;
 
 /* temp structure for read/write */
-typedef struct PTCacheData {
+struct PTCacheData {
   unsigned int index;
   float loc[3];
   float vel[3];
@@ -89,9 +89,9 @@ typedef struct PTCacheData {
   float size;
   float times[3];
   struct BoidData boids;
-} PTCacheData;
+};
 
-typedef struct PTCacheFile {
+struct PTCacheFile {
   FILE *fp;
 
   int frame, old_format;
@@ -100,7 +100,7 @@ typedef struct PTCacheFile {
 
   struct PTCacheData data;
   void *cur[BPHYS_TOT_DATA];
-} PTCacheFile;
+};
 
 #define PTCACHE_VEL_PER_SEC 1
 
@@ -108,7 +108,7 @@ enum {
   PTCACHE_FILE_PTCACHE = 0,
 };
 
-typedef struct PTCacheID {
+struct PTCacheID {
   struct PTCacheID *next, *prev;
 
   struct Scene *scene;
@@ -167,9 +167,9 @@ typedef struct PTCacheID {
   /** Used for setting the current cache from `ptcaches` list. */
   struct PointCache **cache_ptr;
   ListBaseT<PointCache> *ptcaches;
-} PTCacheID;
+};
 
-typedef struct PTCacheBaker {
+struct PTCacheBaker {
   struct Main *bmain;
   struct Scene *scene;
   struct ViewLayer *view_layer;
@@ -182,7 +182,7 @@ typedef struct PTCacheBaker {
 
   void (*update_progress)(void *data, float progress, int *cancel);
   void *bake_job;
-} PTCacheBaker;
+};
 
 /* PTCacheEditKey->flag */
 #define PEK_SELECT 1
@@ -190,7 +190,7 @@ typedef struct PTCacheBaker {
 #define PEK_HIDE 4
 #define PEK_USE_WCO 8
 
-typedef struct PTCacheEditKey {
+struct PTCacheEditKey {
   float *co;
   float *vel;
   float *rot;
@@ -200,7 +200,7 @@ typedef struct PTCacheEditKey {
   float ftime;
   float length;
   short flag;
-} PTCacheEditKey;
+};
 
 /* PTCacheEditPoint->flag */
 #define PEP_TAG 1
@@ -208,13 +208,13 @@ typedef struct PTCacheEditKey {
 #define PEP_TRANSFORM 4
 #define PEP_HIDE 8
 
-typedef struct PTCacheEditPoint {
+struct PTCacheEditPoint {
   struct PTCacheEditKey *keys;
   int totkey;
   short flag;
-} PTCacheEditPoint;
+};
 
-typedef struct PTCacheUndo {
+struct PTCacheUndo {
   struct PTCacheEditPoint *points;
 
   /* particles stuff */
@@ -229,7 +229,7 @@ typedef struct PTCacheUndo {
   int totpoint;
 
   size_t undo_size;
-} PTCacheUndo;
+};
 
 enum {
   /* Modifier stack got evaluated during particle edit mode, need to copy
@@ -238,7 +238,7 @@ enum {
   PT_CACHE_EDIT_UPDATE_PARTICLE_FROM_EVAL = (1 << 0),
 };
 
-typedef struct PTCacheEdit {
+struct PTCacheEdit {
   int flags;
 
   PTCacheEditPoint *points;
@@ -259,7 +259,7 @@ typedef struct PTCacheEdit {
   ListBaseT<LinkData> pathcachebufs;
 
   int totpoint, totframes, totcached, edited;
-} PTCacheEdit;
+};
 
 void BKE_ptcache_make_particle_key(struct ParticleKey *key, int index, void **data, float time);
 

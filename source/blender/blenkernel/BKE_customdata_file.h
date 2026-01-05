@@ -15,8 +15,8 @@
 
 #define CDF_LAYER_NAME_MAX 64
 
-typedef struct CDataFile CDataFile;
-typedef struct CDataFileLayer CDataFileLayer;
+struct CDataFile;
+struct CDataFileLayer;
 
 /* Create/Free */
 

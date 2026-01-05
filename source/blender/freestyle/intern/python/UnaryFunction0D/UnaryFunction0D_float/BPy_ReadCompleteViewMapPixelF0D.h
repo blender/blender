@@ -19,8 +19,8 @@ extern PyTypeObject ReadCompleteViewMapPixelF0D_Type;
 
 /*---------------------------Python BPy_ReadCompleteViewMapPixelF0D structure
  * definition----------*/
-typedef struct {
+struct BPy_ReadCompleteViewMapPixelF0D {
   BPy_UnaryFunction0DFloat py_uf0D_float;
-} BPy_ReadCompleteViewMapPixelF0D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

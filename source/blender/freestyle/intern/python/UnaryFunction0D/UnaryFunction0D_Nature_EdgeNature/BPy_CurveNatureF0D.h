@@ -18,8 +18,8 @@ extern PyTypeObject CurveNatureF0D_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&CurveNatureF0D_Type))
 
 /*---------------------------Python BPy_CurveNatureF0D structure definition----------*/
-typedef struct {
+struct BPy_CurveNatureF0D {
   BPy_UnaryFunction0DEdgeNature py_uf0D_edgenature;
-} BPy_CurveNatureF0D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

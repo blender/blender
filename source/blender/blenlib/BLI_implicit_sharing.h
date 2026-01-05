@@ -19,6 +19,6 @@ using ImplicitSharingInfoHandle = blender::ImplicitSharingInfo;
 
 #else
 
-typedef struct ImplicitSharingInfoHandle ImplicitSharingInfoHandle;
+struct ImplicitSharingInfoHandle;
 
 #endif

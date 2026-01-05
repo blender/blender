@@ -8,12 +8,12 @@
  * \ingroup bli
  */
 
-typedef struct LockfreeLinkNode {
+struct LockfreeLinkNode {
   struct LockfreeLinkNode *next;
   /* NOTE: "Subclass" this structure to add custom-defined data. */
-} LockfreeLinkNode;
+};
 
-typedef struct LockfreeLinkList {
+struct LockfreeLinkList {
   /* We keep a dummy node at the beginning of the list all the time.
    * This allows us to make sure head and tail pointers are always
    * valid, and saves from annoying exception cases in insert().
@@ -21,7 +21,7 @@ typedef struct LockfreeLinkList {
   LockfreeLinkNode dummy_node;
   /* NOTE: This fields might point to a dummy node. */
   LockfreeLinkNode *head, *tail;
-} LockfreeLinkList;
+};
 
 typedef void (*LockfreeeLinkNodeFreeFP)(void *link);
 

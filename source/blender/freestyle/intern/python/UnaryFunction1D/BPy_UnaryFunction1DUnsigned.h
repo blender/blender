@@ -18,10 +18,10 @@ extern PyTypeObject UnaryFunction1DUnsigned_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&UnaryFunction1DUnsigned_Type))
 
 /*---------------------------Python BPy_UnaryFunction1DUnsigned structure definition----------*/
-typedef struct {
+struct BPy_UnaryFunction1DUnsigned {
   BPy_UnaryFunction1D py_uf1D;
   Freestyle::UnaryFunction1D<uint> *uf1D_unsigned;
-} BPy_UnaryFunction1DUnsigned;
+};
 
 /*---------------------------Python BPy_UnaryFunction1DUnsigned visible prototypes-----------*/
 int UnaryFunction1DUnsigned_Init(PyObject *module);

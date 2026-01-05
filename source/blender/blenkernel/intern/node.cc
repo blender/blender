@@ -1390,73 +1390,73 @@ constexpr int MIN_BLENDFILE_VERSION_FOR_MODERN_NODE_SOCKET_DEFAULT_VALUE_READING
  *     2.83 would be totally pointless.
  */
 
-typedef struct bNodeSocketValueInt_404 {
+struct bNodeSocketValueInt_404 {
   /** RNA subtype. */
   int subtype;
   int value;
   int min, max;
-} bNodeSocketValueInt_404;
+};
 
-typedef struct bNodeSocketValueFloat_404 {
+struct bNodeSocketValueFloat_404 {
   /** RNA subtype. */
   int subtype;
   float value;
   float min, max;
-} bNodeSocketValueFloat_404;
+};
 
-typedef struct bNodeSocketValueBoolean_404 {
+struct bNodeSocketValueBoolean_404 {
   char value;
-} bNodeSocketValueBoolean_404;
+};
 
-typedef struct bNodeSocketValueVector_404 {
+struct bNodeSocketValueVector_404 {
   /** RNA subtype. */
   int subtype;
   float value[3];
   float min, max;
-} bNodeSocketValueVector_404;
+};
 
-typedef struct bNodeSocketValueRotation_404 {
+struct bNodeSocketValueRotation_404 {
   float value_euler[3];
-} bNodeSocketValueRotation_404;
+};
 
-typedef struct bNodeSocketValueRGBA_404 {
+struct bNodeSocketValueRGBA_404 {
   float value[4];
-} bNodeSocketValueRGBA_404;
+};
 
-typedef struct bNodeSocketValueString_404 {
+struct bNodeSocketValueString_404 {
   int subtype;
   char _pad[4];
   char value[/*FILE_MAX*/ 1024];
-} bNodeSocketValueString_404;
+};
 
-typedef struct bNodeSocketValueObject_404 {
+struct bNodeSocketValueObject_404 {
   Object *value;
-} bNodeSocketValueObject_404;
+};
 
-typedef struct bNodeSocketValueImage_404 {
+struct bNodeSocketValueImage_404 {
   Image *value;
-} bNodeSocketValueImage_404;
+};
 
-typedef struct bNodeSocketValueCollection_404 {
+struct bNodeSocketValueCollection_404 {
   Collection *value;
-} bNodeSocketValueCollection_404;
+};
 
-typedef struct bNodeSocketValueTexture_404 {
+struct bNodeSocketValueTexture_404 {
   Tex *value;
-} bNodeSocketValueTexture_404;
+};
 
-typedef struct bNodeSocketValueMaterial_404 {
+struct bNodeSocketValueMaterial_404 {
   Material *value;
-} bNodeSocketValueMaterial_404;
+};
 
-typedef struct bNodeSocketValueMenu_404 {
+struct bNodeSocketValueMenu_404 {
   /* Default input enum identifier. */
   int value;
   /* #NodeSocketValueMenuRuntimeFlag */
   int runtime_flag;
   /* Immutable runtime enum definition. */
   const blender::bke::RuntimeNodeEnumItems *enum_items;
-} bNodeSocketValueMenu_404;
+};
 
 /* Generic code handling the conversion between a legacy (pre-2.83) socket data, and its current
  * data. Currently used for `bNodeSocket.default_value`. */

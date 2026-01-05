@@ -18,10 +18,7 @@
  * the global RNG is not thread safe and will not give repeatable results.
  */
 struct RNG;
-typedef struct RNG RNG;
-
 struct RNG_THREAD_ARRAY;
-typedef struct RNG_THREAD_ARRAY RNG_THREAD_ARRAY;
 
 struct RNG *BLI_rng_new(unsigned int seed);
 /**

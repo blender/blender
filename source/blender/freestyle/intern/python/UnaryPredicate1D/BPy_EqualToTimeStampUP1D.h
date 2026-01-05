@@ -18,8 +18,8 @@ extern PyTypeObject EqualToTimeStampUP1D_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&EqualToTimeStampUP1D_Type))
 
 /*---------------------------Python BPy_EqualToTimeStampUP1D structure definition----------*/
-typedef struct {
+struct BPy_EqualToTimeStampUP1D {
   BPy_UnaryPredicate1D py_up1D;
-} BPy_EqualToTimeStampUP1D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

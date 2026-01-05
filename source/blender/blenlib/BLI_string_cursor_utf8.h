@@ -10,16 +10,16 @@
 
 #include "BLI_sys_types.h"
 
-typedef enum eStrCursorJumpType {
+enum eStrCursorJumpType {
   STRCUR_JUMP_NONE,
   STRCUR_JUMP_DELIM,
   STRCUR_JUMP_ALL,
-} eStrCursorJumpType;
+};
 
-typedef enum eStrCursorJumpDirection {
+enum eStrCursorJumpDirection {
   STRCUR_DIR_PREV,
   STRCUR_DIR_NEXT,
-} eStrCursorJumpDirection;
+};
 
 bool BLI_str_cursor_step_next_utf8(const char *str, int str_maxlen, int *pos);
 bool BLI_str_cursor_step_prev_utf8(const char *str, int str_maxlen, int *pos);

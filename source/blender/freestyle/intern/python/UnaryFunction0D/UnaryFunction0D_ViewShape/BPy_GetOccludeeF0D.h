@@ -18,8 +18,8 @@ extern PyTypeObject GetOccludeeF0D_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&GetOccludeeF0D_Type))
 
 /*---------------------------Python BPy_GetOccludeeF0D structure definition----------*/
-typedef struct {
+struct BPy_GetOccludeeF0D {
   BPy_UnaryFunction0DViewShape py_uf0D_viewshape;
-} BPy_GetOccludeeF0D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

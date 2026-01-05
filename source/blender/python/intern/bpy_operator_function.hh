@@ -20,11 +20,11 @@
  *
  * Exposed by `bpy.ops.{module}.{operator}()` to allow Blender operators to be called from Python.
  */
-typedef struct {
+struct BPyOpFunction {
   PyObject_HEAD
   /** Operator ID name (e.g., `OBJECT_OT_select_all`). */
   char idname[OP_MAX_TYPENAME];
-} BPyOpFunction;
+};
 
 extern PyTypeObject BPyOpFunctionType;
 

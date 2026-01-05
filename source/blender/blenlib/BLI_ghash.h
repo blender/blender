@@ -36,17 +36,17 @@ typedef void (*GHashValFreeFP)(void *val);
 typedef void *(*GHashKeyCopyFP)(const void *key);
 typedef void *(*GHashValCopyFP)(const void *val);
 
-typedef struct GHash GHash;
+struct GHash;
 
-typedef struct GHashIterator {
+struct GHashIterator {
   GHash *gh;
   struct Entry *curEntry;
   unsigned int curBucket;
-} GHashIterator;
+};
 
-typedef struct GHashIterState {
+struct GHashIterState {
   unsigned int curr_bucket _GHASH_INTERNAL_ATTR;
-} GHashIterState;
+};
 
 enum {
   GHASH_FLAG_ALLOW_DUPES = (1 << 0),  /* Only checked for in debug mode */
@@ -334,7 +334,7 @@ BLI_INLINE bool BLI_ghashIterator_done(const GHashIterator *ghi)
  * which is why this API's are in the same header & source file.
  * \{ */
 
-typedef struct GSet GSet;
+struct GSet;
 
 typedef GHashHashFP GSetHashFP;
 typedef GHashCmpFP GSetCmpFP;
@@ -432,13 +432,13 @@ void *BLI_gset_pop_key(GSet *gs, const void *key) ATTR_WARN_UNUSED_RESULT;
 /* Rely on inline API for now. */
 
 /** Use a GSet specific type so we can cast but compiler sees as different */
-typedef struct GSetIterator {
+struct GSetIterator {
   GHashIterator _ghi
 #if defined(__GNUC__) && !defined(__clang__)
       __attribute__((deprecated))
 #endif
       ;
-} GSetIterator;
+};
 
 BLI_INLINE GSetIterator *BLI_gsetIterator_new(GSet *gs)
 {
@@ -597,10 +597,10 @@ unsigned int BLI_ghashutil_uinthash_v4_murmur(const unsigned int key[4]);
 bool BLI_ghashutil_uinthash_v4_cmp(const void *a, const void *b);
 #define BLI_ghashutil_inthash_v4_cmp BLI_ghashutil_uinthash_v4_cmp
 
-typedef struct GHashPair {
+struct GHashPair {
   const void *first;
   const void *second;
-} GHashPair;
+};
 
 GHashPair *BLI_ghashutil_pairalloc(const void *first, const void *second);
 unsigned int BLI_ghashutil_pairhash(const void *ptr);
