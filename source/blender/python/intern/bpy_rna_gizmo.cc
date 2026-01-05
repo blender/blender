@@ -699,6 +699,7 @@ bool BPY_rna_gizmo_module(PyObject *mod_par)
     PyMethodDef *m = &method_def_array[i];
     PyObject *func = PyCFunction_New(m, nullptr);
     PyObject *func_inst = PyInstanceMethod_New(func);
+    Py_DECREF(func);
     char name_prefix[128];
     PyOS_snprintf(name_prefix, sizeof(name_prefix), "_rna_gizmo_%s", m->ml_name);
     /* TODO: return a type that binds nearly to a method. */
