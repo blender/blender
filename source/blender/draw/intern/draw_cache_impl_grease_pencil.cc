@@ -17,6 +17,7 @@
 #include "BLI_listbase.h"
 #include "BLI_offset_indices.hh"
 #include "BLI_task.hh"
+#include "BLI_task_size_hints.hh"
 
 #include "DNA_grease_pencil_types.h"
 
@@ -1333,14 +1334,80 @@ static void grease_pencil_geom_batch_ensure(Object &object,
       copy_v4_v4(c_vert.vcol, vertex_colors[point_i]);
       copy_v4_v4(c_vert.fcol, stroke_fill_colors[curve_i]);
       c_vert.fcol[3] = (int(c_vert.fcol[3] * 10000.0f) * 10.0f) + fill_opacities[curve_i];
-
-      int v_mat = (verts_range[idx] << GP_VERTEX_ID_SHIFT) | GP_IS_STROKE_VERTEX_BIT;
-      triangle_ibo_data[triangle_ibo_index] = uint3(v_mat + 0, v_mat + 1, v_mat + 2);
-      triangle_ibo_index++;
-      triangle_ibo_data[triangle_ibo_index] = uint3(v_mat + 2, v_mat + 1, v_mat + 3);
-      triangle_ibo_index++;
     };
 
+    threading::parallel_for(
+        visible_strokes.index_range(),
+        1024,
+        [&](const IndexRange range) {
+          visible_strokes.slice(range).foreach_index(
+              [&](const int64_t curve_i, const int64_t pos_i) {
+                const int64_t pos = range[pos_i];
+                const IndexRange points = points_by_curve[curve_i];
+                const bool is_cyclic = cyclic[curve_i] && (points.size() > 2);
+                const int verts_start_offset = verts_start_offsets[pos];
+                const int num_verts = 1 + points.size() + (is_cyclic ? 1 : 0) + 1;
+                const IndexRange verts_range = IndexRange(verts_start_offset, num_verts);
+                MutableSpan<GreasePencilStrokeVert> verts_slice = verts.slice(verts_range);
+                MutableSpan<GreasePencilColorVert> cols_slice = cols.slice(verts_range);
+                const float4x2 texture_matrix = texture_matrices[curve_i] *
+                                                object_space_to_layer_space;
+
+                const Span<float> lengths = curves.evaluated_lengths_for_curve(curve_i,
+                                                                               cyclic[curve_i]);
+
+                /* First vertex is not drawn. */
+                verts_slice.first().mat = -1;
+                /* The first vertex will have the index of the last vertex. */
+                verts_slice.first().stroke_id = verts_range.last();
+
+                /* Write all the point attributes to the vertex buffers. Create a quad for each
+                 * point.
+                 */
+                const float u_scale = u_scales[curve_i];
+                const float u_translation = u_translations[curve_i];
+                for (const int i : points.index_range()) {
+                  const int idx = i + 1;
+                  const float u_stroke = u_scale * (i > 0 ? lengths[i - 1] : 0.0f) + u_translation;
+                  populate_point(verts_range,
+                                 curve_i,
+                                 start_caps[curve_i],
+                                 end_caps[curve_i],
+                                 points[i],
+                                 idx,
+                                 u_stroke,
+                                 is_cyclic,
+                                 texture_matrix,
+                                 verts_slice[idx],
+                                 cols_slice[idx]);
+                }
+
+                if (is_cyclic) {
+                  const int idx = points.size() + 1;
+                  const float u = points.size() > 1 ? lengths[points.size() - 1] : 0.0f;
+                  const float u_stroke = u_scale * u + u_translation;
+                  populate_point(verts_range,
+                                 curve_i,
+                                 start_caps[curve_i],
+                                 end_caps[curve_i],
+                                 points[0],
+                                 idx,
+                                 u_stroke,
+                                 is_cyclic,
+                                 texture_matrix,
+                                 verts_slice[idx],
+                                 cols_slice[idx]);
+                }
+
+                /* Last vertex is not drawn. */
+                verts_slice.last().mat = -1;
+              });
+        },
+        threading::accumulated_task_sizes([&](const IndexRange range) {
+          return offset_indices::sum_group_sizes(points_by_curve, visible_strokes.slice(range));
+        }));
+
+    /* Fill in IBO in series. */
     visible_strokes.foreach_index([&](const int curve_i, const int pos) {
       const IndexRange points = points_by_curve[curve_i];
       const bool is_cyclic = cyclic[curve_i] && (points.size() > 2);
@@ -1348,16 +1415,6 @@ static void grease_pencil_geom_batch_ensure(Object &object,
       const int tris_start_offset = tris_start_offsets[pos];
       const int num_verts = 1 + points.size() + (is_cyclic ? 1 : 0) + 1;
       const IndexRange verts_range = IndexRange(verts_start_offset, num_verts);
-      MutableSpan<GreasePencilStrokeVert> verts_slice = verts.slice(verts_range);
-      MutableSpan<GreasePencilColorVert> cols_slice = cols.slice(verts_range);
-      const float4x2 texture_matrix = texture_matrices[curve_i] * object_space_to_layer_space;
-
-      const Span<float> lengths = curves.evaluated_lengths_for_curve(curve_i, cyclic[curve_i]);
-
-      /* First vertex is not drawn. */
-      verts_slice.first().mat = -1;
-      /* The first vertex will have the index of the last vertex. */
-      verts_slice.first().stroke_id = verts_range.last();
 
       /* If the stroke has more than 2 points, add the triangle indices to the index buffer. */
       if (points.size() >= 3) {
@@ -1371,44 +1428,24 @@ static void grease_pencil_geom_batch_ensure(Object &object,
         }
       }
 
-      /* Write all the point attributes to the vertex buffers. Create a quad for each point. */
-      const float u_scale = u_scales[curve_i];
-      const float u_translation = u_translations[curve_i];
-      for (const int i : IndexRange(points.size())) {
+      for (const int i : points.index_range()) {
         const int idx = i + 1;
-        const float u_stroke = u_scale * (i > 0 ? lengths[i - 1] : 0.0f) + u_translation;
-        populate_point(verts_range,
-                       curve_i,
-                       start_caps[curve_i],
-                       end_caps[curve_i],
-                       points[i],
-                       idx,
-                       u_stroke,
-                       is_cyclic,
-                       texture_matrix,
-                       verts_slice[idx],
-                       cols_slice[idx]);
+        int v_mat = (verts_range[idx] << GP_VERTEX_ID_SHIFT) | GP_IS_STROKE_VERTEX_BIT;
+        triangle_ibo_data[triangle_ibo_index] = uint3(v_mat + 0, v_mat + 1, v_mat + 2);
+        triangle_ibo_index++;
+        triangle_ibo_data[triangle_ibo_index] = uint3(v_mat + 2, v_mat + 1, v_mat + 3);
+        triangle_ibo_index++;
       }
 
       if (is_cyclic) {
         const int idx = points.size() + 1;
-        const float u = points.size() > 1 ? lengths[points.size() - 1] : 0.0f;
-        const float u_stroke = u_scale * u + u_translation;
-        populate_point(verts_range,
-                       curve_i,
-                       start_caps[curve_i],
-                       end_caps[curve_i],
-                       points[0],
-                       idx,
-                       u_stroke,
-                       is_cyclic,
-                       texture_matrix,
-                       verts_slice[idx],
-                       cols_slice[idx]);
-      }
 
-      /* Last vertex is not drawn. */
-      verts_slice.last().mat = -1;
+        int v_mat = (verts_range[idx] << GP_VERTEX_ID_SHIFT) | GP_IS_STROKE_VERTEX_BIT;
+        triangle_ibo_data[triangle_ibo_index] = uint3(v_mat + 0, v_mat + 1, v_mat + 2);
+        triangle_ibo_index++;
+        triangle_ibo_data[triangle_ibo_index] = uint3(v_mat + 2, v_mat + 1, v_mat + 3);
+        triangle_ibo_index++;
+      }
     });
   }
 
