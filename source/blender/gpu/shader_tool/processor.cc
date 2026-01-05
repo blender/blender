@@ -8,9 +8,7 @@
 
 #include <cctype>
 #include <cstdint>
-#include <functional>
 #include <iostream>
-#include <regex>
 #include <set>
 #include <string>
 #include <unordered_set>
@@ -39,7 +37,7 @@ SourceProcessor::Result SourceProcessor::convert(vector<Symbol> symbols_set)
   metadata_.symbol_table.insert(
       metadata_.symbol_table.end(), symbols_set.begin(), symbols_set.end());
 
-  const string filename = regex_replace(filepath_, regex(R"((?:.*)\/(.*))"), "$1");
+  const string filename = filepath_.substr(filepath_.find_last_of('/') + 1);
 
   string str = this->source_;
 
@@ -265,12 +263,12 @@ void SourceProcessor::cleanup_whitespace(Parser &parser)
   parser.apply_mutations();
 }
 
-/* Safer version without Parser. */
 string SourceProcessor::cleanup_whitespace(const string &str)
 {
   /* Remove trailing white space as they make the subsequent regex much slower. */
-  regex regex(R"((\ )*?\n)");
-  return regex_replace(str, regex, "\n");
+  Parser parser(str, report_error_, ParserStage::MergeTokens);
+  cleanup_whitespace(parser);
+  return parser.result_get();
 }
 
 /* Parse defines in order to output them with the create infos.
@@ -1404,13 +1402,41 @@ string SourceProcessor::matrix_constructor_mutation(const string &str)
   if (str.find("mat") == string::npos) {
     return str;
   }
-  /* Example: `mat2(x)` > `mat2x2(x)` */
-  regex regex_parenthesis(R"(\bmat([234])\()");
-  string out = regex_replace(str, regex_parenthesis, "mat$1x$1(");
-  /* Only process square matrices since this is the only types we overload the constructors. */
-  /* Example: `mat2x2(x)` > `__mat2x2(x)` */
-  regex regex(R"(\bmat(2x2|3x3|4x4)\()");
-  return regex_replace(out, regex, "__mat$1(");
+
+  Parser parser(str, report_error_, ParserStage::MergeTokens);
+  parser().foreach_token(ParOpen, [&](const Token t) {
+    if (t.prev() == Word) {
+      Token fn_name = t.prev();
+      string_view fn_name_str = fn_name.str_view();
+      bool is_mat = false;
+      if (fn_name_str.size() == 4) {
+        /* Example: `mat2(x)` > `mat2x2(x)` */
+        if (fn_name_str == "mat2") {
+          parser.replace(fn_name, "mat2x2", true);
+          is_mat = true;
+        }
+        if (fn_name_str == "mat3") {
+          parser.replace(fn_name, "mat3x3", true);
+          is_mat = true;
+        }
+        if (fn_name_str == "mat4") {
+          parser.replace(fn_name, "mat4x4", true);
+          is_mat = true;
+        }
+      }
+      else if (fn_name_str.size() == 6) {
+        if (fn_name_str == "mat2x2" || fn_name_str == "mat3x3" || fn_name_str == "mat4x4") {
+          is_mat = true;
+        }
+      }
+      /* Only process square matrices since this is the only types we overload the constructors. */
+      /* Example: `mat2x2(x)` > `__mat2x2(x)` */
+      if (is_mat) {
+        parser.insert_before(fn_name, "__");
+      }
+    }
+  });
+  return parser.result_get();
 }
 
 /* To be run before `argument_decorator_macro_injection()`. */
@@ -1561,14 +1587,35 @@ void SourceProcessor::lower_argument_qualifiers(Parser &parser)
 
 string SourceProcessor::argument_decorator_macro_injection(const string &str)
 {
-  regex regex(R"((out|inout|in|shared)\s+(\w+)\s+(\w+))");
-  return regex_replace(str, regex, "$1 $2 _$1_sta $3 _$1_end");
+  Parser parser(str, report_error_, ParserStage::MergeTokens);
+  /* Example: `out float foo` > `out float _out_sta foo _out_end` */
+  parser().foreach_match("www", [&](const Tokens &t) {
+    string_view qualifier = t[0].str_view();
+    if (qualifier == "out" || qualifier == "inout" || qualifier == "in" || qualifier == "shared") {
+      parser.insert_after(t[1], " _" + string(qualifier) + "_sta");
+      parser.insert_after(t[2], " _" + string(qualifier) + "_end");
+    }
+  });
+  return parser.result_get();
 }
 
 string SourceProcessor::array_constructor_macro_injection(const string &str)
 {
-  regex regex(R"(=\s*(\w+)\s*\[[^\]]*\]\s*\()");
-  return regex_replace(str, regex, "= ARRAY_T($1) ARRAY_V(");
+  Parser parser(str, report_error_, ParserStage::MergeTokens);
+  parser().foreach_match("=w[", [&](const Tokens toks) {
+    Token array_len_start = toks.back();
+    Token array_len_end = array_len_start.find_next(SquareClose);
+    if (array_len_end.is_valid()) {
+      Token type = toks[1];
+      Token array_start = array_len_end.next();
+      if (array_start == '(') {
+        parser.insert_before(type, " ARRAY_T(");
+        parser.replace(array_len_start, array_len_end, ") ");
+        parser.insert_before(array_start, "ARRAY_V");
+      }
+    }
+  });
+  return parser.result_get();
 }
 
 /* Assume formatted source with our code style. Cannot be applied to python shaders. */

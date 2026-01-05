@@ -95,7 +95,7 @@ struct TokenData {
   std::vector<uint32_t> sizes;
 };
 
-void TokenStream::lexical_analysis()
+void TokenStream::lexical_analysis(ParserStage stop_after)
 {
   if (str.empty()) {
     *this = {};
@@ -105,8 +105,19 @@ void TokenStream::lexical_analysis()
   TokenData data;
 
   tokenize(data);
+  if (stop_after == Tokenize) {
+    goto end;
+  }
+
   merge_tokens(data);
+  if (stop_after == MergeTokens) {
+    goto end;
+  }
+
   identify_keywords(data);
+
+end:
+  /* TODO(fclem): Get rid of this.*/
   /* Convert vector of char to string for faster lookups. */
   this->token_types = std::string(reinterpret_cast<char *>(data.types.data()), data.types.size());
   this->token_offsets = std::move(data.offsets);
@@ -627,9 +638,15 @@ void TokenStream::identify_keywords(TokenData &tokens)
   }
 }
 
-void TokenStream::semantic_analysis(report_callback &report_error)
+void TokenStream::semantic_analysis(ParserStage stop_after, report_callback &report_error)
 {
-  build_scope_tree(report_error);
+  if (stop_after == BuildScopeTree) {
+    build_scope_tree(report_error);
+  }
+  else {
+    this->scope_types = "G";
+    this->scope_ranges = {IndexRange(0, token_types.size())};
+  }
   build_token_to_scope_map();
 }
 
@@ -1017,16 +1034,16 @@ bool IntermediateForm::only_apply_mutations()
   return true;
 }
 
-void IntermediateForm::parse(report_callback &report_error)
+void IntermediateForm::parse(ParserStage stop_after, report_callback &report_error)
 {
   TimeIt::Duration lex_time, sem_time;
   {
     TimeIt time_it(lex_time);
-    data_.lexical_analysis();
+    data_.lexical_analysis(stop_after);
   }
   {
     TimeIt time_it(sem_time);
-    data_.semantic_analysis(report_error);
+    data_.semantic_analysis(stop_after, report_error);
   }
   lexical_time = lex_time.count();
   semantic_time = sem_time.count();

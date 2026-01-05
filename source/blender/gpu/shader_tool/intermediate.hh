@@ -70,12 +70,16 @@ struct IntermediateForm {
 
   report_callback &report_error;
 
+  ParserStage stop_parser_after_stage;
+
  public:
-  IntermediateForm(const std::string &input, report_callback &report_error)
-      : report_error(report_error)
+  IntermediateForm(const std::string &input,
+                   report_callback &report_error,
+                   ParserStage stop_parser_after_stage = ParserStage::BuildScopeTree)
+      : report_error(report_error), stop_parser_after_stage(stop_parser_after_stage)
   {
     data_.str = input;
-    parse(report_error);
+    parse(stop_parser_after_stage, report_error);
   }
 
   /* Main access operator. Returns the root scope (aka global scope). */
@@ -273,7 +277,7 @@ struct IntermediateForm {
   {
     bool applied = only_apply_mutations();
     if (applied) {
-      this->parse(report_error);
+      this->parse(stop_parser_after_stage, report_error);
     }
     return applied;
   }
@@ -319,7 +323,7 @@ struct IntermediateForm {
   uint64_t lexical_time;
   uint64_t semantic_time;
 
-  void parse(report_callback &report_error);
+  void parse(ParserStage stop_after, report_callback &report_error);
 
  public:
   void print_stats()

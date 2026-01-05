@@ -13,6 +13,15 @@
 
 namespace blender::gpu::shader::parser {
 
+/* Used to select at which stage to stop.
+ *  */
+enum ParserStage {
+  Tokenize,
+  MergeTokens,
+  IdentifyKeywords,
+  BuildScopeTree,
+};
+
 /**
  * This a tiny bit more than a token stream as it contains ranges or tokens (called scopes) from
  * syntax. The scopes and tokens have bi-directional mapping.
@@ -32,9 +41,9 @@ struct TokenStream {
   /** Range of token per scope. */
   std::vector<IndexRange> scope_ranges;
 
-  void lexical_analysis();
+  void lexical_analysis(ParserStage stop_after);
 
-  void semantic_analysis(report_callback &report_error);
+  void semantic_analysis(ParserStage stop_after, report_callback &report_error);
 
  private:
   /* Create tokens based on character stream. */
