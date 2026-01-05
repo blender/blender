@@ -91,6 +91,7 @@ class BitGroupVector {
   /** Get all the bits at an index. */
   BoundedBitSpan operator[](const int64_t i) const
   {
+    BLI_assert(this->index_range().contains(i));
     const int64_t offset = aligned_group_size_ * i;
     return {data_.data() + (offset >> BitToIntIndexShift),
             IndexRange(offset & BitIndexMask, group_size_)};
@@ -99,6 +100,7 @@ class BitGroupVector {
   /** Get all the bits at an index. */
   MutableBoundedBitSpan operator[](const int64_t i)
   {
+    BLI_assert(this->index_range().contains(i));
     const int64_t offset = aligned_group_size_ * i;
     return {data_.data() + (offset >> BitToIntIndexShift),
             IndexRange(offset & BitIndexMask, group_size_)};

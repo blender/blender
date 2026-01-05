@@ -1186,11 +1186,7 @@ static void node_group_make_insert_selected(const bContext &C,
 
   update_nested_node_refs_after_moving_nodes_into_group(ntree, group, *gnode, node_identifier_map);
 
-  if (ELEM(group.type, NTREE_GEOMETRY, NTREE_COMPOSIT)) {
-    BKE_ntree_update(*bmain, Span<bNodeTree *>{&group});
-  }
-
-  nodes::update_node_declaration_and_sockets(ntree, *gnode);
+  BKE_main_ensure_invariants(*bmain, Span<ID *>{&group.id});
 
   /* Add new links to inputs outside of the group. */
   for (const auto item : input_links.items()) {
