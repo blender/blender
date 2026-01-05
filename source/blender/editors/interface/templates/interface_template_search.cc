@@ -107,7 +107,12 @@ static void template_search_add_button_name(Block *block,
     name_prop = RNA_struct_name_property(type);
   }
 
-  const int width = template_search_textbut_width(active_ptr, name_prop);
+  int width = template_search_textbut_width(active_ptr, name_prop);
+  if (iconid != ICON_NONE) {
+    /* Widen a bit to make room for the icon. #152027. */
+    width += int(18.0f * UI_SCALE_FAC);
+  }
+
   const int height = template_search_textbut_height();
   uiDefAutoButR(block, active_ptr, name_prop, 0, "", iconid, 0, 0, width, height);
 }
