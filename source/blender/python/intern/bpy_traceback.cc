@@ -244,6 +244,9 @@ bool python_script_error_jump(
         {
           success = true;
         }
+        Py_DECREF(message);
+        Py_DECREF(filepath_exc_py);
+        Py_XDECREF(text_py);
       }
     }
   }
