@@ -469,7 +469,12 @@ bool AssetCatalogService::is_catalog_known_with_unsaved_changes(const CatalogID 
 
 bool AssetCatalogService::write_to_disk(const CatalogFilePath &blend_file_path)
 {
+  /* The caller should probably check this somewhat earlier and properly disable whatever operation
+   * triggers the writing. */
   BLI_assert(!is_read_only_);
+  if (is_read_only_) {
+    return false;
+  }
 
   if (!this->write_to_disk_ex(blend_file_path)) {
     return false;

@@ -388,7 +388,7 @@ void AssetLibrary::on_blend_save_post(Main *bmain,
                                       PointerRNA ** /*pointers*/,
                                       const int /*num_pointers*/)
 {
-  if (save_catalogs_when_file_is_saved) {
+  if (save_catalogs_when_file_is_saved && !this->catalog_service().is_read_only()) {
     this->catalog_service().write_to_disk(bmain->filepath);
   }
 }
