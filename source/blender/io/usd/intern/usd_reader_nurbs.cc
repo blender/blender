@@ -284,10 +284,10 @@ void USDNurbsReader::read_curve_sample(Curves *curves_id, const pxr::UsdTimeCode
   CurveData data = calc_curve_offsets(usd_points, usd_counts, usd_orders, usd_knots);
 
   // Check validity of curve counts
-  const int min_points = 2;
-  const bool all_valid = std::all_of(usd_counts.begin(),
-                                     usd_counts.end(),
-                                     [min_points](int count) { return count >= min_points; });
+  const bool all_valid = std::all_of(usd_counts.begin(), usd_counts.end(), [](int count) {
+    const int min_points = 2;
+    return count >= min_points;
+  });
 
   bke::CurvesGeometry &curves = curves_id->geometry.wrap();
   if (all_valid && curves_topology_changed(curves, data.blender_offsets)) {
