@@ -454,7 +454,7 @@ static void connect_nodes_to_aovs(const Span<bNodeTreePath *> treepath,
   }
   bNodeTree *main_nt = treepath.first()->nodetree;
   bNodeTree *active_nt = treepath.last()->nodetree;
-  for (NodeSocketPair nodesocket : nodesocket_span) {
+  for (const NodeSocketPair &nodesocket : nodesocket_span) {
     bNode *node_preview = nodesocket.first;
     bNodeSocket *socket_preview = nodesocket.second;
 
@@ -509,7 +509,7 @@ static bool prepare_viewlayer_update(void *pvl_data, ViewLayer *vl, Depsgraph *d
 {
   NodeSocketPair nodesocket = {nullptr, nullptr};
   ShaderNodesPreviewJob *job_data = static_cast<ShaderNodesPreviewJob *>(pvl_data);
-  for (NodeSocketPair nodesocket_iter : job_data->shader_nodes) {
+  for (const NodeSocketPair &nodesocket_iter : job_data->shader_nodes) {
     if (STREQ(vl->name, nodesocket_iter.first->name)) {
       nodesocket = nodesocket_iter;
       job_data->rendering_node = nodesocket_iter.first;
@@ -566,7 +566,7 @@ static void all_nodes_preview_update(void *npv, RenderResult *rr, rcti * /*rect*
     }
   }
   if (job_data->rendering_AOVs) {
-    for (NodeSocketPair nodesocket_iter : job_data->AOV_nodes) {
+    for (const NodeSocketPair &nodesocket_iter : job_data->AOV_nodes) {
       ImBuf *&image_cached = job_data->tree_previews->previews_map.lookup_or_add(
           nodesocket_iter.first->identifier, nullptr);
       ImBuf *image_latest = get_image_from_viewlayer_and_pass(
@@ -600,12 +600,12 @@ static void preview_render(ShaderNodesPreviewJob &job_data)
 
   /* Create the AOV passes for the viewlayer. */
   ViewLayer *AOV_layer = static_cast<ViewLayer *>(scene->view_layers.first);
-  for (NodeSocketPair nodesocket_iter : job_data.shader_nodes) {
+  for (const NodeSocketPair &nodesocket_iter : job_data.shader_nodes) {
     ViewLayer *vl = BKE_view_layer_add(
         scene, nodesocket_iter.first->name, AOV_layer, VIEWLAYER_ADD_COPY);
     STRNCPY_UTF8(vl->name, nodesocket_iter.first->name);
   }
-  for (NodeSocketPair nodesocket_iter : job_data.AOV_nodes) {
+  for (const NodeSocketPair &nodesocket_iter : job_data.AOV_nodes) {
     ViewLayerAOV *aov = BKE_view_layer_add_aov(AOV_layer);
     STRNCPY_UTF8(aov->name, nodesocket_iter.first->name);
   }

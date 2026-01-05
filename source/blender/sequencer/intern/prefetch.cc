@@ -416,7 +416,7 @@ static VectorSet<Strip *> query_scene_strips(Editing *ed)
   Map<const Scene *, VectorSet<Strip *>> &strips_by_scene = lookup_strips_by_scene_map_get(ed);
 
   VectorSet<Strip *> scene_strips;
-  for (VectorSet<Strip *> strips : strips_by_scene.values()) {
+  for (const VectorSet<Strip *> &strips : strips_by_scene.values()) {
     scene_strips.add_multiple(strips);
   }
   return scene_strips;

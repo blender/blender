@@ -3551,7 +3551,7 @@ void SourceProcessor::lower_unions(Parser &parser)
     }
 
     int total_size = 0;
-    for (Member member : value->second) {
+    for (const Member &member : value->second) {
       total_size += member.size;
     }
     return total_size;

@@ -1048,7 +1048,7 @@ static void execute_instances_tasks(
   auto &dst_component = r_realized_geometry.get_component_for_write<bke::InstancesComponent>();
 
   Vector<const bke::GeometryComponent *> for_join_attributes;
-  for (bke::GeometryComponentPtr component : src_components) {
+  for (const bke::GeometryComponentPtr &component : src_components) {
     for_join_attributes.append(component.get());
   }
   /* Join attribute values from the 'unselected' instances, as they aren't included otherwise.
