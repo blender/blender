@@ -20,13 +20,18 @@
 
 struct FSMenu;
 
-void fsmenu_macos_insert_entry(
-    FSMenu *fsmenu, const char *name, const char *default_path, const int icon, const char *home)
+void fsmenu_macos_insert_entry(FSMenu *fsmenu,
+                               const char *name,
+                               const char *default_path,
+                               const int icon,
+                               const char *home,
+                               const FSMenuCategory category = FS_CATEGORY_OTHER,
+                               const FSMenuInsert insert_flag = FS_INSERT_LAST)
 {
   char path[FILE_MAXDIR];
   SNPRINTF(path, default_path, home);
 
-  fsmenu_insert_entry(fsmenu, FS_CATEGORY_OTHER, path, name, icon, FS_INSERT_LAST);
+  fsmenu_insert_entry(fsmenu, category, path, name, icon, insert_flag);
 }
 
 void fsmenu_read_system(FSMenu *fsmenu, int read_bookmarks)
@@ -88,6 +93,17 @@ void fsmenu_read_system(FSMenu *fsmenu, int read_bookmarks)
                           icon,
                           FS_INSERT_SORTED);
     }
+  }
+
+  /* iCloud Drive support, shown as a network volume, similarly to how it's displayed in Finder. */
+  if (home) {
+    fsmenu_macos_insert_entry(fsmenu,
+                              N_("iCloud Drive"),
+                              "%s/Library/Mobile Documents/com~apple~CloudDocs/",
+                              ICON_NETWORK_DRIVE,
+                              home,
+                              FS_CATEGORY_SYSTEM,
+                              FS_INSERT_FIRST);
   }
 
   /* The LSSharedFileList API has been deprecated, and no replacement has been provided to obtain
