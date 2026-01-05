@@ -1,0 +1,28 @@
+# Definition of code owners for automatic assigment of reviewers.
+#
+# Blender is structured in modules, which do not always map directly to a
+# specific directory or a set of files. This means that if reviewers were
+# automatically assigned might not always be the ones to make the final
+# decision.
+#
+# Developers should consider adding themselves to files and directories they
+# are interested in review (or where they're often asked to do reviews).
+
+# Core module.
+/source/blender/depsgraph/              @sergey
+/source/blender/blenkernel/BKE_lib*     @mont29
+/source/blender/blenkernel/intern/lib*  @mont29
+
+# Motion tracking and Libmv.
+/intern/libmv/ @sergey
+/source/blender/blenkernel/BKE_tracking*     @sergey
+/source/blender/blenkernel/intern/tracking*  @sergey
+
+# Render and Cycles module.
+/intern/cycles/           @sergey @brecht
+/source/blender/render/   @sergey @brecht
+
+# Color management.
+/source/blender/imbuf/IMB_colormanagement.h    @sergey @brecht
+/source/blender/imbuf/intern/colormanagement*  @sergey @brecht
+/source/blender/imbuf/opencolorio/             @sergey @brecht
