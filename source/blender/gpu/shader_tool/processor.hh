@@ -55,6 +55,15 @@ class SourceProcessor {
   using Token = parser::Token;
   using Tokens = std::vector<parser::Token>;
 
+  /* Cannot use `__` because of some compilers complaining about reserved symbols. */
+  static constexpr const char *namespace_separator = "_";
+  /* Add a prefix to all member functions so that they are not clashing with local variables. */
+  static constexpr const char *method_call_prefix = "_";
+  static constexpr const char *linted_struct_suffix = "_host_shared_";
+  static constexpr const char *uniform_struct_suffix = "uniform_";
+
+#define ERROR_TOK(token) (token).line_number(), (token).char_number(), (token).line_str()
+
  private:
   const std::string source_;
   const std::string filepath_;

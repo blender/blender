@@ -316,26 +316,16 @@ struct IntermediateForm {
   }
 
  private:
-  TimeIt::Duration lexical_time;
-  TimeIt::Duration semantic_time;
+  uint64_t lexical_time;
+  uint64_t semantic_time;
 
-  void parse(report_callback &report_error)
-  {
-    {
-      TimeIt time_it(lexical_time);
-      data_.lexical_analysis();
-    }
-    {
-      TimeIt time_it(semantic_time);
-      data_.semantic_analysis(report_error);
-    }
-  }
+  void parse(report_callback &report_error);
 
  public:
   void print_stats()
   {
-    std::cout << "Lexical Analysis time: " << lexical_time.count() << " µs" << std::endl;
-    std::cout << "Semantic Analysis time:   " << semantic_time.count() << " µs" << std::endl;
+    std::cout << "Lexical Analysis time: " << lexical_time << " µs" << std::endl;
+    std::cout << "Semantic Analysis time:   " << semantic_time << " µs" << std::endl;
     std::cout << "String len: " << std::to_string(data_.str.size()) << std::endl;
     std::cout << "Token len:  " << std::to_string(data_.token_types.size()) << std::endl;
     std::cout << "Scope len:  " << std::to_string(data_.scope_types.size()) << std::endl;

@@ -9,6 +9,7 @@
 
 #include "intermediate.hh"
 #include "scope.hh"
+#include "time_it.hh"
 #include "token.hh"
 #include "token_stream.hh"
 
@@ -1014,6 +1015,21 @@ bool IntermediateForm::only_apply_mutations()
     data_.str.pop_back();
   }
   return true;
+}
+
+void IntermediateForm::parse(report_callback &report_error)
+{
+  TimeIt::Duration lex_time, sem_time;
+  {
+    TimeIt time_it(lex_time);
+    data_.lexical_analysis();
+  }
+  {
+    TimeIt time_it(sem_time);
+    data_.semantic_analysis(report_error);
+  }
+  lexical_time = lex_time.count();
+  semantic_time = sem_time.count();
 }
 
 }  // namespace blender::gpu::shader::parser

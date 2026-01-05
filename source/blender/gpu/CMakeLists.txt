@@ -106,9 +106,20 @@ set(SRC
   intern/gpu_viewport.cc
   intern/gpu_worker.cc
 
+  shader_tool/attribute.cc
+  shader_tool/enum.cc
+  shader_tool/flow_control.cc
+  shader_tool/function.cc
   shader_tool/intermediate.cc
   shader_tool/metadata.cc
+  shader_tool/namespace.cc
   shader_tool/processor.cc
+  shader_tool/resource_table.cc
+  shader_tool/shader_tool.cc
+  shader_tool/string.cc
+  shader_tool/struct.cc
+  shader_tool/template.cc
+  shader_tool/union.cc
 
   GPU_attribute_convert.hh
   GPU_batch.hh
