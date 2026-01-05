@@ -109,7 +109,7 @@ void HdCyclesSession::UpdateScene()
       have_lights = true;
 
       Light *light = static_cast<Light *>(object->get_geometry());
-      if (light->get_light_type() == LIGHT_BACKGROUND) {
+      if (light->is_background_light()) {
         background_light = light;
         break;
       }

@@ -16,6 +16,7 @@
 #include "util/task.h"
 
 #include "BKE_material.hh"
+#include "DNA_light_types.h"
 #include "DNA_material_types.h"
 
 CCL_NAMESPACE_BEGIN
@@ -23,7 +24,21 @@ CCL_NAMESPACE_BEGIN
 static Geometry::Type determine_geom_type(BObjectInfo &b_ob_info, bool use_particle_hair)
 {
   if (GS(b_ob_info.object_data->name) == blender::ID_LA) {
-    return Geometry::LIGHT;
+    blender::Light &b_light = *blender::id_cast<blender::Light *>(b_ob_info.object_data);
+    switch (b_light.type) {
+      case blender::LA_LOCAL:
+        return Geometry::POINT_LIGHT;
+      case blender::LA_SPOT:
+        return Geometry::SPOT_LIGHT;
+      case blender::LA_SUN:
+        return Geometry::SUN_LIGHT;
+      case blender::LA_AREA:
+        return Geometry::AREA_LIGHT;
+      default:
+        /* Should be handled in `sync_background_light()`. */
+        assert(false);
+        return Geometry::BACKGROUND_LIGHT;
+    }
   }
 
   if (GS(b_ob_info.object_data->name) == blender::ID_CV || use_particle_hair) {
@@ -108,8 +123,17 @@ Geometry *BlenderSync::sync_geometry(BObjectInfo &b_ob_info,
   bool sync = true;
   if (geom == nullptr) {
     /* Add new geometry if it did not exist yet. */
-    if (geom_type == Geometry::LIGHT) {
-      geom = scene->create_node<Light>();
+    if (geom_type == Geometry::POINT_LIGHT) {
+      geom = scene->create_light_node<PointLight>();
+    }
+    else if (geom_type == Geometry::SPOT_LIGHT) {
+      geom = scene->create_light_node<SpotLight>();
+    }
+    else if (geom_type == Geometry::SUN_LIGHT) {
+      geom = scene->create_light_node<SunLight>();
+    }
+    else if (geom_type == Geometry::AREA_LIGHT) {
+      geom = scene->create_light_node<AreaLight>();
     }
     else if (geom_type == Geometry::HAIR) {
       geom = scene->create_node<Hair>();
@@ -121,6 +145,7 @@ Geometry *BlenderSync::sync_geometry(BObjectInfo &b_ob_info,
       geom = scene->create_node<PointCloud>();
     }
     else {
+      assert(geom_type == Geometry::MESH);
       geom = scene->create_node<Mesh>();
     }
     geometry_map.add(key, geom);
@@ -172,7 +197,7 @@ Geometry *BlenderSync::sync_geometry(BObjectInfo &b_ob_info,
 
     progress.set_sync_status("Synchronizing object", BKE_id_name(b_ob_info.real_object->id));
 
-    if (geom_type == Geometry::LIGHT) {
+    if (geom->is_light()) {
       Light *light = static_cast<Light *>(geom);
       sync_light(b_ob_info, light);
     }

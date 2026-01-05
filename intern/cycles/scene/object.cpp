@@ -297,7 +297,7 @@ float Object::compute_volume_step_size(Progress &progress) const
 {
   if (geometry->is_light()) {
     /* World volume. */
-    assert(static_cast<const Light *>(geometry)->get_light_type() == LIGHT_BACKGROUND);
+    assert(static_cast<const Light *>(geometry)->is_background_light());
     for (const Node *node : geometry->get_used_shaders()) {
       const Shader *shader = static_cast<const Shader *>(node);
       if (shader->has_volume) {
@@ -878,7 +878,7 @@ void ObjectManager::device_update(Device *device,
       }
 
       const Light *light = static_cast<const Light *>(object->get_geometry());
-      if (light->get_light_type() == LIGHT_BACKGROUND) {
+      if (light->is_background_light()) {
         dscene->data.background.object_index = object->index;
       }
     }

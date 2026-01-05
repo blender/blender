@@ -27,6 +27,11 @@ class Device;
 class DeviceInfo;
 class Film;
 class Integrator;
+class PointLight;
+class SpotLight;
+class AreaLight;
+class SunLight;
+class BackgroundLight;
 class Light;
 class LightManager;
 class LookupTables;
@@ -233,6 +238,8 @@ class Scene : public NodeOwner {
    */
   template<typename T> void delete_nodes(const set<T *> &nodes, const NodeOwner *owner);
 
+  template<class T> T *create_light_node();
+
  protected:
   /* Check if some heavy data worth logging was updated.
    * Mainly used to suppress extra annoying logging.
@@ -262,7 +269,11 @@ class Scene : public NodeOwner {
   bool load_kernels(Progress &progress);
 };
 
-template<> Light *Scene::create_node<Light>();
+template<> PointLight *Scene::create_node<PointLight>();
+template<> SpotLight *Scene::create_node<SpotLight>();
+template<> AreaLight *Scene::create_node<AreaLight>();
+template<> SunLight *Scene::create_node<SunLight>();
+template<> BackgroundLight *Scene::create_node<BackgroundLight>();
 template<> Mesh *Scene::create_node<Mesh>();
 template<> Object *Scene::create_node<Object>();
 template<> Hair *Scene::create_node<Hair>();

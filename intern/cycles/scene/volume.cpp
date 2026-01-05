@@ -951,7 +951,7 @@ void VolumeManager::initialize_octree(const Scene *scene, Progress &progress)
       if (object_octrees_.find({object, shader}) == object_octrees_.end()) {
         if (geom->is_light()) {
           const Light *light = static_cast<const Light *>(geom);
-          if (light->get_light_type() == LIGHT_BACKGROUND) {
+          if (light->is_background_light()) {
             /* World volume is unbounded, use some practical large number instead. */
             const float3 size = make_float3(10000.0f);
             object_octrees_[{object, shader}] = std::make_shared<Octree>(BoundBox(-size, size));

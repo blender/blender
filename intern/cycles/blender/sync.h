@@ -216,6 +216,7 @@ class BlenderSync {
                             TaskPool *task_pool);
 
   /* Light */
+  Geometry *create_light(BObjectInfo &b_ob_info);
   void sync_light(BObjectInfo &b_ob_info, Light *light);
   void sync_background_light(blender::bScreen *b_screen, blender::View3D *b_v3d);
 
