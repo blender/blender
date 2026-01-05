@@ -591,12 +591,19 @@ void Strip::right_handle_set(const Scene *scene, int timeline_frame)
                                              blender::seq::lookup_meta_by_strip(scene->ed, this));
 }
 
-void Strip::handles_set(const Scene *scene,
-                        int left_handle_timeline_frame,
-                        int right_handle_timeline_frame)
+void Strip::handles_set(const Scene *scene, int left_frame, int right_frame)
 {
-  this->right_handle_set(scene, right_handle_timeline_frame);
-  this->left_handle_set(scene, left_handle_timeline_frame);
+  BLI_assert(left_frame < right_frame);
+
+  if (left_frame >= this->right_handle(scene)) {
+    /* Move right handle first to avoid clamping. */
+    this->right_handle_set(scene, right_frame);
+    this->left_handle_set(scene, left_frame);
+  }
+  else {
+    this->left_handle_set(scene, left_frame);
+    this->right_handle_set(scene, right_frame);
+  }
 }
 
 bool Strip::intersects_frame(const Scene *scene, const int timeline_frame) const
