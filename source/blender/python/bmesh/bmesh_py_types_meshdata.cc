@@ -81,6 +81,16 @@ static int bpy_bmloopuv_uv_set(BPy_BMLoopUV *self, PyObject *value, void * /*clo
   return -1;
 }
 
+static bool bpy_bmloopuv_pin_uv_ok_or_error(const BPy_BMLoopUV *self)
+{
+  if (self->pin == nullptr) {
+    PyErr_SetString(PyExc_RuntimeError,
+                    "active uv layer has no associated pin layer. This is a bug!");
+    return false;
+  }
+  return true;
+}
+
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmloopuv_pin_uv_doc,
@@ -90,8 +100,11 @@ PyDoc_STRVAR(
 
 static PyObject *bpy_bmloopuv_pin_uv_get(BPy_BMLoopUV *self, void * /*closure*/)
 {
-  /* A non existing pin layer means nothing is currently pinned */
-  return self->pin ? PyBool_FromLong(*self->pin) : nullptr;
+  /* A non existing pin layer means nothing is currently pinned. */
+  if (UNLIKELY(!bpy_bmloopuv_pin_uv_ok_or_error(self))) {
+    return nullptr;
+  }
+  return PyBool_FromLong(*self->pin);
 }
 
 static int bpy_bmloopuv_pin_uv_set(BPy_BMLoopUV *self, PyObject *value, void * /*closure*/)
@@ -102,14 +115,10 @@ static int bpy_bmloopuv_pin_uv_set(BPy_BMLoopUV *self, PyObject *value, void * /
    * existing python objects. So for now lazy allocation isn't done and self->pin should
    * never be nullptr. */
   BLI_assert(self->pin);
-  if (self->pin) {
-    *self->pin = PyC_Long_AsBool(value);
-  }
-  else {
-    PyErr_SetString(PyExc_RuntimeError,
-                    "active uv layer has no associated pin layer. This is a bug!");
+  if (UNLIKELY(!bpy_bmloopuv_pin_uv_ok_or_error(self))) {
     return -1;
   }
+  *self->pin = PyC_Long_AsBool(value);
   return 0;
 }
 
