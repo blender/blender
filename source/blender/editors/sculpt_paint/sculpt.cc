@@ -3911,16 +3911,14 @@ static void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache 
   }
 
   /* Switch to the smooth brush if possible. */
-  BKE_paint_brush_set_essentials(bmain, paint, "Smooth");
-  Brush *smooth_brush = BKE_paint_brush(paint);
-
-  if (!smooth_brush) {
+  if (!BKE_paint_brush_set_essentials(bmain, paint, "Smooth")) {
     BKE_paint_brush_set(paint, cur_brush);
-    CLOG_WARN(&LOG, "Switching to the smooth brush not possible, corresponding brush not");
+    CLOG_WARN(&LOG, "Unable to switch to the 'Smooth' essentials brush asset");
     cache->saved_active_brush = nullptr;
     return;
   }
 
+  Brush *smooth_brush = BKE_paint_brush(paint);
   int cur_brush_size = BKE_brush_size_get(paint, cur_brush);
 
   cache->saved_active_brush = cur_brush;
