@@ -387,7 +387,6 @@ static PyObject *bpy_op_fn_get_doc_impl(BPyOpFunction *self)
   /* Get RNA type and description using Blender format idname. */
   PyObject *idname_bl_obj = PyUnicode_FromString(self->idname);
   if (!idname_bl_obj) {
-    Py_DECREF(sig_result);
     return sig_result; /* Return just signature on failure. */
   }
 
