@@ -37,6 +37,9 @@ set(LIB
 )
 
 if(WITH_CYCLES_CUDA_BINARIES AND WITH_CYCLES_DEVICE_OPTIX)
+  # CUDA version
+  cuda_get_version(CUDA_VERSION)
+
   macro(cycles_optix_kernel_add name input flags)
     set(output "${CMAKE_CURRENT_BINARY_DIR}/${name}.ptx")
     set(output_compressed "${output}.zst")
