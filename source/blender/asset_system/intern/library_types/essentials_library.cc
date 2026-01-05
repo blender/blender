@@ -20,7 +20,8 @@ namespace blender::asset_system {
 EssentialsAssetLibrary::EssentialsAssetLibrary()
     : OnDiskAssetLibrary(ASSET_LIBRARY_ESSENTIALS,
                          {},
-                         utils::normalize_directory_path(essentials_directory_path()))
+                         utils::normalize_directory_path(essentials_directory_path()),
+                         AssetCatalogService::read_only_tag{})
 {
   import_method_ = ASSET_IMPORT_PACK;
   if (U.experimental.no_data_block_packing) {

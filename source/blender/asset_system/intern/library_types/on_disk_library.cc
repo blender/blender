@@ -10,10 +10,12 @@
 
 namespace blender::asset_system {
 
-OnDiskAssetLibrary::OnDiskAssetLibrary(eAssetLibraryType library_type,
-                                       StringRef name,
-                                       StringRef root_path)
-    : AssetLibrary(library_type, name, root_path)
+OnDiskAssetLibrary::OnDiskAssetLibrary(
+    eAssetLibraryType library_type,
+    StringRef name,
+    StringRef root_path,
+    std::optional<AssetCatalogService::read_only_tag> catalogs_read_only_tag)
+    : AssetLibrary(library_type, name, root_path, catalogs_read_only_tag)
 {
   this->on_blend_save_handler_register();
 }

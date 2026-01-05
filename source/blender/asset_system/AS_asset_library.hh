@@ -108,7 +108,11 @@ class AssetLibrary {
    *              #ASSET_LIBRARY_CUSTOM ones.
    * \param root_path: If this is an asset library on disk, the top-level directory path.
    */
-  AssetLibrary(eAssetLibraryType library_type, StringRef name = "", StringRef root_path = "");
+  AssetLibrary(
+      eAssetLibraryType library_type,
+      StringRef name = "",
+      StringRef root_path = "",
+      std::optional<AssetCatalogService::read_only_tag> catalogs_read_only_tag = std::nullopt);
   virtual ~AssetLibrary();
 
   /**

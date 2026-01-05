@@ -14,9 +14,11 @@ namespace blender::asset_system {
 
 class OnDiskAssetLibrary : public AssetLibrary {
  public:
-  OnDiskAssetLibrary(eAssetLibraryType library_type,
-                     StringRef name = "",
-                     StringRef root_path = "");
+  OnDiskAssetLibrary(
+      eAssetLibraryType library_type,
+      StringRef name = "",
+      StringRef root_path = "",
+      std::optional<AssetCatalogService::read_only_tag> catalogs_read_only_tag = std::nullopt);
 
   std::optional<AssetLibraryReference> library_reference() const override;
   void refresh_catalogs() override;
