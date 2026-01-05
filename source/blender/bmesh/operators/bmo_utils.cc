@@ -403,8 +403,8 @@ void bmo_smooth_vert_exec(BMesh * /*bm*/, BMOperator *op)
   BMIter iter;
   BMVert *v;
   BMEdge *e;
-  float (*cos)[3] = static_cast<float (*)[3]>(
-      MEM_mallocN(sizeof(*cos) * BMO_slot_buffer_len(op->slots_in, "verts"), __func__));
+  float (*cos)[3] = MEM_malloc_arrayN<float[3]>(BMO_slot_buffer_len(op->slots_in, "verts"),
+                                                __func__);
   float *co, *co2, clip_dist = BMO_slot_float_get(op->slots_in, "clip_dist");
   const float fac = BMO_slot_float_get(op->slots_in, "factor");
   int i, j, clipx, clipy, clipz;

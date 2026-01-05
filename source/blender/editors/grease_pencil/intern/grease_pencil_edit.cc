@@ -5148,8 +5148,8 @@ static void join_object_with_active(Main &bmain,
    * mapped to the new index range. */
   const int new_drawing_array_num = grease_pencil_dst.drawing_array_num +
                                     grease_pencil_src.drawing_array_num;
-  GreasePencilDrawingBase **new_drawing_array = static_cast<GreasePencilDrawingBase **>(
-      MEM_malloc_arrayN(new_drawing_array_num, sizeof(GreasePencilDrawingBase *), __func__));
+  GreasePencilDrawingBase **new_drawing_array = MEM_malloc_arrayN<GreasePencilDrawingBase *>(
+      new_drawing_array_num, __func__);
   MutableSpan<GreasePencilDrawingBase *> new_drawings = {new_drawing_array, new_drawing_array_num};
   const IndexRange new_drawings_dst = IndexRange::from_begin_size(
       0, grease_pencil_dst.drawing_array_num);

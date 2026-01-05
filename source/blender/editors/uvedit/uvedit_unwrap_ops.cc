@@ -3305,8 +3305,8 @@ static wmOperatorStatus smart_project_exec(bContext *C, wmOperator *op)
     }
 
     /* After finding projection vectors, we find the uv positions. */
-    LinkNode **thickface_project_groups = static_cast<LinkNode **>(
-        MEM_callocN(sizeof(*thickface_project_groups) * project_normal_array.size(), __func__));
+    LinkNode **thickface_project_groups = MEM_calloc_arrayN<LinkNode *>(
+        project_normal_array.size(), __func__);
 
     BLI_memarena_clear(arena);
 

@@ -237,8 +237,7 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
 
   /* Pointers to selected's #TransData.
    * Used to find #TransData from the index returned by #blender::kdtree_find_nearest. */
-  TransData **td_table = static_cast<TransData **>(
-      MEM_mallocN(sizeof(*td_table) * td_table_len, __func__));
+  TransData **td_table = MEM_malloc_arrayN<TransData *>(td_table_len, __func__);
 
   /* Create and fill KD-tree of selected's positions - in global or proj_vec space. */
   KDTree_3d *td_tree = kdtree_3d_new(td_table_len);

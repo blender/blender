@@ -234,8 +234,7 @@ static void bm_grid_fill_array(BMesh *bm,
 #endif
 
   if (use_interp_simple || use_vert_interp || use_loop_interp) {
-    weight_table = static_cast<float (*)[4]>(
-        MEM_mallocN(sizeof(*weight_table) * size_t(xtot * ytot), __func__));
+    weight_table = MEM_malloc_arrayN<float[4]>(xtot * ytot, __func__);
     barycentric_weights_v2_grid_cache(xtot, ytot, weight_table);
   }
   else {

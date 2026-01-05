@@ -1458,8 +1458,7 @@ void recalc_emitter_field(Depsgraph * /*depsgraph*/, Object * /*ob*/, ParticleSy
   totface = mesh->totface_legacy;
   // int totvert = dm->getNumVerts(dm); /* UNUSED */
 
-  edit->emitter_cosnos = static_cast<float *>(
-      MEM_callocN(sizeof(float[6]) * totface, "emitter cosnos"));
+  edit->emitter_cosnos = MEM_calloc_arrayN<float>(6 * totface, "emitter cosnos");
 
   edit->emitter_field = blender::kdtree_3d_new(totface);
 

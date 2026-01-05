@@ -434,8 +434,8 @@ static void gizmo_arrow_setup(wmGizmo *gz)
 static wmOperatorStatus gizmo_arrow_invoke(bContext * /*C*/, wmGizmo *gz, const wmEvent *event)
 {
   ArrowGizmo3D *arrow = (ArrowGizmo3D *)gz;
-  GizmoInteraction *inter = static_cast<GizmoInteraction *>(
-      MEM_callocN(sizeof(ArrowGizmoInteraction), __func__));
+  ArrowGizmoInteraction *arrow_inter = MEM_callocN<ArrowGizmoInteraction>(__func__);
+  GizmoInteraction *inter = &arrow_inter->inter;
   wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
 
   /* Some gizmos don't use properties. */
@@ -451,9 +451,9 @@ static wmOperatorStatus gizmo_arrow_invoke(bContext * /*C*/, wmGizmo *gz, const 
   gizmo_arrow_matrix_basis_get(gz, inter->init_matrix_basis);
   WM_gizmo_calc_matrix_final(gz, inter->init_matrix_final);
 
-  ((ArrowGizmoInteraction *)inter)->init_arrow_length = RNA_float_get(gz->ptr, "length");
+  arrow_inter->init_arrow_length = RNA_float_get(gz->ptr, "length");
 
-  gz->interaction_data = inter;
+  gz->interaction_data = arrow_inter;
 
   return OPERATOR_RUNNING_MODAL;
 }

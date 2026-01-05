@@ -329,8 +329,7 @@ void filelist_filter(FileList *filelist)
     filelist->prepare_filter_fn(filelist, &filelist->filter_data);
   }
 
-  filtered_tmp = static_cast<FileListInternEntry **>(
-      MEM_mallocN(sizeof(*filtered_tmp) * size_t(num_files), __func__));
+  filtered_tmp = MEM_malloc_arrayN<FileListInternEntry *>(num_files, __func__);
 
   /* Filter remap & count how many files are left after filter in a single loop. */
   for (FileListInternEntry &file : filelist->filelist_intern.entries) {
@@ -346,8 +345,8 @@ void filelist_filter(FileList *filelist)
     if (filelist->filelist_intern.filtered) {
       MEM_freeN(filelist->filelist_intern.filtered);
     }
-    filelist->filelist_intern.filtered = static_cast<FileListInternEntry **>(
-        MEM_mallocN(sizeof(*filelist->filelist_intern.filtered) * size_t(num_filtered), __func__));
+    filelist->filelist_intern.filtered = MEM_malloc_arrayN<FileListInternEntry *>(num_filtered,
+                                                                                  __func__);
     memcpy(filelist->filelist_intern.filtered,
            filtered_tmp,
            sizeof(*filelist->filelist_intern.filtered) * size_t(num_filtered));

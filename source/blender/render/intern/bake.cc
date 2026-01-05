@@ -460,8 +460,7 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *mesh, bool tangent, Mesh *mesh_
   const VArray<bool> sharp_faces =
       attributes.lookup_or_default<bool>("sharp_face", bke::AttrDomain::Face, false).varray;
 
-  blender::int3 *corner_tris = static_cast<blender::int3 *>(
-      MEM_mallocN(sizeof(*corner_tris) * tottri, __func__));
+  blender::int3 *corner_tris = MEM_malloc_arrayN<blender::int3>(tottri, __func__);
   triangles = MEM_calloc_arrayN<TriTessFace>(tottri, __func__);
 
   const bool calculate_normal = BKE_mesh_face_normals_are_dirty(mesh);

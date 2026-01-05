@@ -290,7 +290,7 @@ static void print_bfmatrix(fmatrix3x3 *m)
 {
   int tot = m[0].vcount + m[0].scount;
   int size = m[0].vcount * 3;
-  float *t = MEM_calloc_array<float>N(size * size, "bfmatrix");
+  float *t = MEM_calloc_arrayN<float>(size * size, "bfmatrix");
   int q, i, j;
 
   for (q = 0; q < tot; q++) {

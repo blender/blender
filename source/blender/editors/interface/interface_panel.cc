@@ -2806,7 +2806,7 @@ static void panel_handle_data_ensure(const bContext *C,
   BLI_assert(ELEM(state, PANEL_STATE_DRAG, PANEL_STATE_ANIMATION));
 
   if (panel->activedata == nullptr) {
-    panel->activedata = MEM_callocN(sizeof(HandlePanelData), __func__);
+    panel->activedata = MEM_callocN<HandlePanelData>(__func__);
     WM_event_add_ui_handler(C,
                             &win->runtime->modalhandlers,
                             ui_handler_panel,

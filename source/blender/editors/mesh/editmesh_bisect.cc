@@ -155,8 +155,7 @@ static wmOperatorStatus mesh_bisect_invoke(bContext *C, wmOperator *op, const wm
     gesture->user_data.data = opdata;
 
     opdata->backup_len = objects.size();
-    opdata->backup = static_cast<BisectData::BisectDataBackup *>(
-        MEM_callocN(sizeof(*opdata->backup) * objects.size(), __func__));
+    opdata->backup = MEM_calloc_arrayN<BisectData::BisectDataBackup>(objects.size(), __func__);
 
     /* Store the mesh backups. */
     for (const int ob_index : objects.index_range()) {

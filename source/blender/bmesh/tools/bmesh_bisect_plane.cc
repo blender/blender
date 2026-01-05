@@ -392,8 +392,7 @@ void BM_mesh_bisect_plane(BMesh *bm,
 {
   uint einput_len;
   uint i;
-  BMEdge **edges_arr = static_cast<BMEdge **>(
-      MEM_mallocN(sizeof(*edges_arr) * size_t(bm->totedge), __func__));
+  BMEdge **edges_arr = MEM_malloc_arrayN<BMEdge *>(size_t(bm->totedge), __func__);
 
   BLI_LINKSTACK_DECLARE(face_stack, BMFace *);
 

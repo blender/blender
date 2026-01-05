@@ -3884,8 +3884,7 @@ static char *vgroup_init_remap(Object *ob)
 {
   const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
   int defbase_tot = BLI_listbase_count(defbase);
-  char *name_array = static_cast<char *>(
-      MEM_mallocN(MAX_VGROUP_NAME * sizeof(char) * defbase_tot, "sort vgroups"));
+  char *name_array = MEM_malloc_arrayN<char>(MAX_VGROUP_NAME * defbase_tot, "sort vgroups");
   char *name;
 
   name = name_array;

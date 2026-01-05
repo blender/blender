@@ -94,7 +94,7 @@ static void create_color_ramp(const ColorBand *coba, float *data)
 
 static blender::gpu::Texture *create_transfer_function(int type, const ColorBand *coba)
 {
-  float *data = (float *)MEM_mallocN(sizeof(float[4]) * TFUNC_WIDTH, __func__);
+  float *data = MEM_malloc_arrayN<float>(4 * TFUNC_WIDTH, __func__);
 
   switch (type) {
     case TFUNC_FLAME_SPECTRUM:
@@ -133,7 +133,7 @@ static float *rescale_3d(const int dim[3],
   const uint fw = final_dim[0], fh = final_dim[1], fd = final_dim[2];
   const uint xf = w / fw, yf = h / fh, zf = d / fd;
   const uint pixel_count = fw * fh * fd;
-  float *nfpixels = (float *)MEM_mallocN(channels * sizeof(float) * pixel_count, __func__);
+  float *nfpixels = MEM_malloc_arrayN<float>(channels * pixel_count, __func__);
 
   if (nfpixels) {
     printf("Performance: You need to scale a 3D texture, feel the pain!\n");

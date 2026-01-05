@@ -3489,8 +3489,8 @@ static void print_adjust_stats(BoundVert *vstart)
  * But keep it here for a while in case performance issues demand that it be used sometimes. */
 static bool adjust_the_cycle_or_chain_fast(BoundVert *vstart, int np, bool iscycle)
 {
-  float *g = MEM_mallocN(np * sizeof(float), "beveladjust");
-  float *g_prod = MEM_mallocN(np * sizeof(float), "beveladjust");
+  float *g = MEM_malloc_arrayN<float>(np, "beveladjust");
+  float *g_prod = MEM_malloc_arrayN<float>(np, "beveladjust");
 
   BoundVert *v = vstart;
   float spec_sum = 0.0f;

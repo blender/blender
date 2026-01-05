@@ -5531,10 +5531,8 @@ static wmOperatorStatus uv_select_overlap(bContext *C, const bool extend)
   int data_index = 0;
 
   int face_len_alloc = 3;
-  float (*uv_verts)[2] = static_cast<float (*)[2]>(
-      MEM_mallocN(sizeof(*uv_verts) * face_len_alloc, "UvOverlapCoords"));
-  uint(*indices)[3] = static_cast<uint(*)[3]>(
-      MEM_mallocN(sizeof(*indices) * (face_len_alloc - 2), "UvOverlapTris"));
+  float (*uv_verts)[2] = MEM_malloc_arrayN<float[2]>(face_len_alloc, "UvOverlapCoords");
+  uint(*indices)[3] = MEM_malloc_arrayN<uint[3]>(face_len_alloc - 2, "UvOverlapTris");
 
   MemArena *arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
   Heap *heap = BLI_heap_new_ex(BLI_POLYFILL_ALLOC_NGON_RESERVE);
@@ -5562,10 +5560,8 @@ static wmOperatorStatus uv_select_overlap(bContext *C, const bool extend)
       if (face_len_alloc < face_len) {
         MEM_freeN(uv_verts);
         MEM_freeN(indices);
-        uv_verts = static_cast<float (*)[2]>(
-            MEM_mallocN(sizeof(*uv_verts) * face_len, "UvOverlapCoords"));
-        indices = static_cast<uint(*)[3]>(
-            MEM_mallocN(sizeof(*indices) * tri_len, "UvOverlapTris"));
+        uv_verts = MEM_malloc_arrayN<float[2]>(face_len, "UvOverlapCoords");
+        indices = MEM_malloc_arrayN<uint[3]>(tri_len, "UvOverlapTris");
         face_len_alloc = face_len;
       }
 
@@ -6346,8 +6342,7 @@ static wmOperatorStatus uv_select_similar_island_exec(bContext *C, wmOperator *o
         scene, bm, &island_list_ptr[ob_index], face_selected, false, false, aspect_y, offsets);
   }
 
-  FaceIsland **island_array = static_cast<FaceIsland **>(
-      MEM_callocN(sizeof(*island_array) * island_list_len, __func__));
+  FaceIsland **island_array = MEM_calloc_arrayN<FaceIsland *>(island_list_len, __func__);
 
   int tree_index = 0;
   blender::KDTree_1d *tree_1d = blender::kdtree_1d_new(island_list_len);

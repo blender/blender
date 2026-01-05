@@ -60,7 +60,7 @@ GPUMatrixState *GPU_matrix_state_create()
         {0.0f, 0.0f, 0.0f, 1.0f} \
   }
 
-  GPUMatrixState *state = (GPUMatrixState *)MEM_mallocN(sizeof(*state), __func__);
+  GPUMatrixState *state = MEM_mallocN<GPUMatrixState>(__func__);
   const MatrixStack identity_stack = {{MATRIX_4X4_IDENTITY}, 0};
 
   state->model_view_stack = state->projection_stack = identity_stack;

@@ -267,8 +267,7 @@ void ED_mesh_mirrtopo_init(BMEditMesh *em,
   MirrTopoVert_t *topo_pairs = MEM_calloc_arrayN<MirrTopoVert_t>(totvert, "MirrTopoPairs");
 
   /* since we are looping through verts, initialize these values here too */
-  intptr_t *index_lookup = static_cast<intptr_t *>(
-      MEM_mallocN(totvert * sizeof(*index_lookup), "mesh_topo_lookup"));
+  intptr_t *index_lookup = MEM_malloc_arrayN<intptr_t>(totvert, "mesh_topo_lookup");
 
   if (em) {
     if (skip_em_vert_array_init == false) {

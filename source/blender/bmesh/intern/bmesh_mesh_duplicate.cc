@@ -122,8 +122,7 @@ void BM_mesh_copy_arrays(BMesh *bm_src,
                                CustomData_bmesh_copy_map_calc(bm_src->ldata, bm_dst->ldata)};
 
   /* Vertices. */
-  BMVert **verts_dst = static_cast<BMVert **>(
-      MEM_mallocN(sizeof(*verts_dst) * verts_src_len, __func__));
+  BMVert **verts_dst = MEM_malloc_arrayN<BMVert *>(verts_src_len, __func__);
   for (uint i = 0; i < verts_src_len; i++) {
     BMVert *v_src = verts_src[i];
     BM_elem_index_set(v_src, i); /* set_dirty! */
@@ -136,8 +135,7 @@ void BM_mesh_copy_arrays(BMesh *bm_src,
   bm_dst->elem_index_dirty &= ~BM_VERT;
 
   /* Edges. */
-  BMEdge **edges_dst = static_cast<BMEdge **>(
-      MEM_mallocN(sizeof(*edges_dst) * edges_src_len, __func__));
+  BMEdge **edges_dst = MEM_malloc_arrayN<BMEdge *>(edges_src_len, __func__);
   for (uint i = 0; i < edges_src_len; i++) {
     BMEdge *e_src = edges_src[i];
     BM_elem_index_set(e_src, i); /* set_dirty! */

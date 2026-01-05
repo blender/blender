@@ -1397,8 +1397,7 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
   }
 
   const int side_faces_len = segs - 1;
-  BMFace **side_faces = static_cast<BMFace **>(
-      MEM_mallocN(sizeof(*side_faces) * side_faces_len, __func__));
+  BMFace **side_faces = MEM_malloc_arrayN<BMFace *>(side_faces_len, __func__);
 
   for (int i = 0; i < segs; i++) {
     /* Calculate with higher precision, see: #87779. */

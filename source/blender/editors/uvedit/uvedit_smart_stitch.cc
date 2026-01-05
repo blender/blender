@@ -975,8 +975,8 @@ static int stitch_process_data(StitchStateContainer *ssc,
     return 0;
   }
 
-  preview_position = static_cast<PreviewPosition *>(
-      MEM_mallocN(bm->totface * sizeof(*preview_position), "stitch_face_preview_position"));
+  preview_position = MEM_malloc_arrayN<PreviewPosition>(bm->totface,
+                                                        "stitch_face_preview_position");
   /* each face holds its position in the preview buffer in tmp. -1 is uninitialized */
   for (i = 0; i < bm->totface; i++) {
     preview_position[i].data_position = STITCH_NO_PREVIEW;
@@ -1062,11 +1062,10 @@ static int stitch_process_data(StitchStateContainer *ssc,
     int stitchBufferIndex = 0, unstitchBufferIndex = 0;
     int preview_size = (ssc->mode == STITCH_VERT) ? 2 : 4;
     /* initialize the preview buffers */
-    preview->preview_stitchable = (float *)MEM_mallocN(
-        preview->num_stitchable * sizeof(float) * preview_size, "stitch_preview_stitchable_data");
-    preview->preview_unstitchable = (float *)MEM_mallocN(preview->num_unstitchable *
-                                                             sizeof(float) * preview_size,
-                                                         "stitch_preview_unstitchable_data");
+    preview->preview_stitchable = MEM_malloc_arrayN<float>(preview->num_stitchable * preview_size,
+                                                           "stitch_preview_stitchable_data");
+    preview->preview_unstitchable = MEM_malloc_arrayN<float>(
+        preview->num_unstitchable * preview_size, "stitch_preview_unstitchable_data");
 
     /* will cause cancel and freeing of all data structures so OK */
     if (!preview->preview_stitchable || !preview->preview_unstitchable) {
@@ -1152,13 +1151,12 @@ static int stitch_process_data(StitchStateContainer *ssc,
     uint buffer_index = 0;
 
     /* initialize the preview buffers */
-    preview->preview_polys = static_cast<float *>(
-        MEM_mallocN(sizeof(float[2]) * preview->preview_uvs, "tri_uv_stitch_prev"));
+    preview->preview_polys = MEM_malloc_arrayN<float>(2 * preview->preview_uvs,
+                                                      "tri_uv_stitch_prev");
     preview->uvs_per_polygon = MEM_malloc_arrayN<uint>(preview->num_polys, "tri_uv_stitch_prev");
 
-    preview->static_tris = static_cast<float *>(
-        MEM_mallocN((sizeof(float[6]) * state->tris_per_island[ssc->static_island]),
-                    "static_island_preview_tris"));
+    preview->static_tris = MEM_malloc_arrayN<float>(6 * state->tris_per_island[ssc->static_island],
+                                                    "static_island_preview_tris");
 
     preview->num_static_tris = state->tris_per_island[ssc->static_island];
     /* will cause cancel and freeing of all data structures so OK */
@@ -1215,14 +1213,12 @@ static int stitch_process_data(StitchStateContainer *ssc,
    ******************************************************/
 
   if (ssc->mode == STITCH_VERT) {
-    final_position = static_cast<UVVertAverage *>(
-        MEM_callocN(state->selection_size * sizeof(*final_position), "stitch_uv_average"));
-    uvfinal_map = static_cast<uint *>(
-        MEM_mallocN(state->element_map->total_uvs * sizeof(*uvfinal_map), "stitch_uv_final_map"));
+    final_position = MEM_calloc_arrayN<UVVertAverage>(state->selection_size, "stitch_uv_average");
+    uvfinal_map = MEM_calloc_arrayN<uint>(state->element_map->total_uvs, "stitch_uv_final_map");
   }
   else {
-    final_position = static_cast<UVVertAverage *>(
-        MEM_callocN(state->total_separate_uvs * sizeof(*final_position), "stitch_uv_average"));
+    final_position = MEM_calloc_arrayN<UVVertAverage>(state->total_separate_uvs,
+                                                      "stitch_uv_average");
   }
 
   /* first pass, calculate final position for stitchable uvs of the static island */
@@ -1583,9 +1579,8 @@ static void stitch_set_selection_mode(StitchState *state, const char from_stitch
 
   if (from_stitch_mode == STITCH_VERT) {
     int i;
-    state->selection_stack = static_cast<void **>(
-        MEM_mallocN(state->total_separate_edges * sizeof(*state->selection_stack),
-                    "stitch_new_edge_selection_stack"));
+    state->selection_stack = MEM_malloc_arrayN<void *>(state->total_separate_edges,
+                                                       "stitch_new_edge_selection_stack");
 
     /* check if both elements of an edge are selected */
     for (i = 0; i < state->total_separate_edges; i++) {
@@ -1607,9 +1602,8 @@ static void stitch_set_selection_mode(StitchState *state, const char from_stitch
   }
   else {
     int i;
-    state->selection_stack = static_cast<void **>(
-        MEM_mallocN(state->total_separate_uvs * sizeof(*state->selection_stack),
-                    "stitch_new_vert_selection_stack"));
+    state->selection_stack = MEM_malloc_arrayN<void *>(state->total_separate_uvs,
+                                                       "stitch_new_vert_selection_stack");
 
     for (i = 0; i < old_selection_size; i++) {
       UvEdge *edge = static_cast<UvEdge *>(old_selection_stack[i]);
@@ -1873,8 +1867,7 @@ static StitchState *stitch_init(bContext *C,
   state->total_separate_uvs = unique_uvs;
 
   /* Allocate the unique uv buffers */
-  state->uvs = static_cast<UvElement **>(
-      MEM_mallocN(sizeof(*state->uvs) * unique_uvs, "uv_stitch_unique_uvs"));
+  state->uvs = MEM_malloc_arrayN<UvElement *>(unique_uvs, "uv_stitch_unique_uvs");
   /* internal uvs need no normals but it is hard and slow to keep a map of
    * normals only for boundary uvs, so allocating for all uvs.
    * Times 2 because each `float[2]` is stored as `{n[2 * i], n[2*i + 1]}`. */
@@ -2017,9 +2010,8 @@ static StitchState *stitch_init(bContext *C,
     int selected_count = state_init->uv_selected_count;
 
     if (stored_mode == STITCH_VERT) {
-      state->selection_stack = static_cast<void **>(
-          MEM_mallocN(sizeof(*state->selection_stack) * state->total_separate_uvs,
-                      "uv_stitch_selection_stack"));
+      state->selection_stack = MEM_malloc_arrayN<void *>(state->total_separate_uvs,
+                                                         "uv_stitch_selection_stack");
 
       while (selected_count--) {
         faceIndex = state_init->to_select[selected_count].faceIndex;
@@ -2032,9 +2024,8 @@ static StitchState *stitch_init(bContext *C,
       }
     }
     else {
-      state->selection_stack = static_cast<void **>(
-          MEM_mallocN(sizeof(*state->selection_stack) * state->total_separate_edges,
-                      "uv_stitch_selection_stack"));
+      state->selection_stack = MEM_malloc_arrayN<void *>(state->total_separate_edges,
+                                                         "uv_stitch_selection_stack");
 
       while (selected_count--) {
         UvEdge tmp_edge, *edge;
@@ -2075,9 +2066,8 @@ static StitchState *stitch_init(bContext *C,
   }
   else {
     if (ssc->mode == STITCH_VERT) {
-      state->selection_stack = static_cast<void **>(
-          MEM_mallocN(sizeof(*state->selection_stack) * state->total_separate_uvs,
-                      "uv_stitch_selection_stack"));
+      state->selection_stack = MEM_malloc_arrayN<void *>(state->total_separate_uvs,
+                                                         "uv_stitch_selection_stack");
 
       BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
         BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
@@ -2091,9 +2081,8 @@ static StitchState *stitch_init(bContext *C,
       }
     }
     else {
-      state->selection_stack = static_cast<void **>(
-          MEM_mallocN(sizeof(*state->selection_stack) * state->total_separate_edges,
-                      "uv_stitch_selection_stack"));
+      state->selection_stack = MEM_malloc_arrayN<void *>(state->total_separate_edges,
+                                                         "uv_stitch_selection_stack");
 
       BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
         if (!(ts->uv_flag & UV_FLAG_SELECT_SYNC) &&
@@ -2249,8 +2238,7 @@ static int stitch_init_all(bContext *C, wmOperator *op)
     /* Retrieve list of selected UVs, one list contains all selected UVs
      * for all objects. */
 
-    objs_selection_count = static_cast<int *>(
-        MEM_mallocN(sizeof(int *) * objects.size(), "objects_selection_count"));
+    objs_selection_count = MEM_malloc_arrayN<int>(objects.size(), "objects_selection_count");
     RNA_int_get_array(op->ptr, "objects_selection_count", objs_selection_count);
 
     int total_selected = 0;
@@ -2380,9 +2368,8 @@ static void stitch_exit(bContext *C, wmOperator *op, int finished)
 
     RNA_int_set(op->ptr, "static_island", ssc->static_island);
 
-    int *objs_selection_count = nullptr;
-    objs_selection_count = static_cast<int *>(
-        MEM_mallocN(sizeof(int *) * ssc->objects_len, "objects_selection_count"));
+    int *objs_selection_count = MEM_malloc_arrayN<int>(ssc->objects_len,
+                                                       "objects_selection_count");
 
     /* Store selection for re-execution of stitch
      * - Store all selected UVs in "selection"

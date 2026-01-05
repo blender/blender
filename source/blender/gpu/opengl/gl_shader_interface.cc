@@ -271,7 +271,7 @@ GLShaderInterface::GLShaderInterface(GLuint program)
   const uint32_t name_buffer_len = attr_len * max_attr_name_len + ubo_len * max_ubo_name_len +
                                    uniform_len * max_uniform_name_len +
                                    ssbo_len * max_ssbo_name_len;
-  name_buffer_ = (char *)MEM_mallocN(name_buffer_len, "name_buffer");
+  name_buffer_ = MEM_malloc_arrayN<char>(name_buffer_len, "name_buffer");
   uint32_t name_buffer_offset = 0;
 
   /* Attributes */
@@ -419,7 +419,7 @@ GLShaderInterface::GLShaderInterface(GLuint program, const shader::ShaderCreateI
   inputs_ = MEM_calloc_arrayN<ShaderInput>(input_tot_len, __func__);
   ShaderInput *input = inputs_;
 
-  name_buffer_ = (char *)MEM_mallocN(info.interface_names_size_, "name_buffer");
+  name_buffer_ = MEM_malloc_arrayN<char>(info.interface_names_size_, "name_buffer");
   uint32_t name_buffer_offset = 0;
 
   /* Necessary to make #glUniform works. TODO(fclem) Remove. */

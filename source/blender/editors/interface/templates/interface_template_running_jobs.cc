@@ -260,8 +260,7 @@ void template_running_jobs(Layout *layout, bContext *C)
     block = row->block();
 
     {
-      ProgressTooltip_Store *tip_arg = static_cast<ProgressTooltip_Store *>(
-          MEM_mallocN(sizeof(*tip_arg), __func__));
+      ProgressTooltip_Store *tip_arg = MEM_mallocN<ProgressTooltip_Store>(__func__);
       tip_arg->wm = wm;
       tip_arg->owner = owner;
       ButtonProgress *but_progress = (ButtonProgress *)uiDefIconTextBut(block,

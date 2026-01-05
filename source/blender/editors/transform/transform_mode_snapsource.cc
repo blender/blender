@@ -181,8 +181,7 @@ void transform_mode_snap_source_init(TransInfo *t, wmOperator * /*op*/)
     transform_mode_init(t, nullptr, TFM_TRANSLATION);
   }
 
-  SnapSouceCustomData *customdata = static_cast<SnapSouceCustomData *>(
-      MEM_callocN(sizeof(*customdata), __func__));
+  SnapSouceCustomData *customdata = MEM_callocN<SnapSouceCustomData>(__func__);
   customdata->mode_info_prev = t->mode_info;
 
   customdata->target_operation_prev = t->tsnap.target_operation;

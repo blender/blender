@@ -502,7 +502,7 @@ static void flyEvent(FlyInfo *fly, const wmEvent *event)
         fflush(stdout);
 #  endif
         if (fly->ndof == nullptr) {
-          // fly->ndof = MEM_mallocN(sizeof(wmNDOFMotionData), tag_name);
+          // fly->ndof = MEM_mallocNwmNDOFMotionData(tag_name);
           fly->ndof = static_cast<wmNDOFMotionData *>(MEM_dupallocN(incoming_ndof));
           // fly->ndof = malloc(sizeof(wmNDOFMotionData));
         }

@@ -498,7 +498,7 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select, const bool re
   if (totuv == 0) {
     return nullptr;
   }
-  UvVertMap *vmap = (UvVertMap *)MEM_callocN(sizeof(*vmap), "UvVertMap");
+  UvVertMap *vmap = MEM_callocN<UvVertMap>("UvVertMap");
   if (!vmap) {
     return nullptr;
   }
@@ -596,8 +596,7 @@ UvElement **BM_uv_element_map_ensure_head_table(UvElementMap *element_map)
   }
 
   /* For each UvElement, locate the "separate" UvElement that precedes it in the linked list. */
-  element_map->head_table = static_cast<UvElement **>(
-      MEM_mallocN(sizeof(*element_map->head_table) * element_map->total_uvs, __func__));
+  element_map->head_table = MEM_malloc_arrayN<UvElement *>(element_map->total_uvs, __func__);
   UvElement **head_table = element_map->head_table;
   for (int i = 0; i < element_map->total_uvs; i++) {
     UvElement *head = element_map->storage + i;
@@ -618,8 +617,7 @@ UvElement **BM_uv_element_map_ensure_head_table(UvElementMap *element_map)
 int *BM_uv_element_map_ensure_unique_index(UvElementMap *element_map)
 {
   if (!element_map->unique_index_table) {
-    element_map->unique_index_table = static_cast<int *>(
-        MEM_callocN(element_map->total_uvs * sizeof(*element_map->unique_index_table), __func__));
+    element_map->unique_index_table = MEM_calloc_arrayN<int>(element_map->total_uvs, __func__);
 
     int j = 0;
     for (int i = 0; i < element_map->total_uvs; i++) {
@@ -689,8 +687,7 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
   int nislands = 0;
   int islandbufsize = 0;
   int stack_upper_bound = total_uvs;
-  UvElement **stack_uv = static_cast<UvElement **>(
-      MEM_mallocN(sizeof(*stack_uv) * stack_upper_bound, __func__));
+  UvElement **stack_uv = MEM_malloc_arrayN<UvElement *>(stack_upper_bound, __func__);
   int stacksize_uv = 0;
   for (int i = 0; i < total_uvs; i++) {
     UvElement *element = element_map->storage + i;
@@ -1053,12 +1050,10 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
     return nullptr;
   }
 
-  UvElementMap *element_map = (UvElementMap *)MEM_callocN(sizeof(*element_map), "UvElementMap");
+  UvElementMap *element_map = MEM_callocN<UvElementMap>("UvElementMap");
   element_map->total_uvs = totuv;
-  element_map->vertex = (UvElement **)MEM_callocN(sizeof(*element_map->vertex) * bm->totvert,
-                                                  "UvElementVerts");
-  element_map->storage = (UvElement *)MEM_callocN(sizeof(*element_map->storage) * totuv,
-                                                  "UvElement");
+  element_map->vertex = MEM_calloc_arrayN<UvElement *>(bm->totvert, "UvElementVerts");
+  element_map->storage = MEM_calloc_arrayN<UvElement>(totuv, "UvElement");
 
   bool *winding = use_winding ? MEM_calloc_arrayN<bool>(bm->totface, "winding") : nullptr;
 

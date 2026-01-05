@@ -496,8 +496,7 @@ void BM_loop_interp_multires_ex(BMesh * /*bm*/,
     md_dst->totdisp = md_src->totdisp;
     md_dst->level = md_src->level;
     if (md_dst->totdisp) {
-      md_dst->disps = static_cast<float (*)[3]>(
-          MEM_callocN(sizeof(float[3]) * md_dst->totdisp, __func__));
+      md_dst->disps = MEM_calloc_arrayN<float[3]>(md_dst->totdisp, __func__);
     }
     else {
       return;

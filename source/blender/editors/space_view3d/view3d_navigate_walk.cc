@@ -753,7 +753,7 @@ static void walkEvent(WalkInfo *walk, const wmEvent *event)
         fflush(stdout);
 #  endif
         if (walk->ndof == nullptr) {
-          // walk->ndof = MEM_mallocN(sizeof(wmNDOFMotionData), tag_name);
+          // walk->ndof = MEM_mallocN<wmNDOFMotionData>(tag_name);
           walk->ndof = static_cast<wmNDOFMotionData *>(MEM_dupallocN(incoming_ndof));
           // walk->ndof = malloc(sizeof(wmNDOFMotionData));
         }

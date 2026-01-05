@@ -3913,8 +3913,7 @@ Block *block_begin(const bContext *C, ARegion *region, std::string name, EmbossT
 void block_add_dynamic_listener(Block *block,
                                 void (*listener_func)(const wmRegionListenerParams *params))
 {
-  BlockDynamicListener *listener = static_cast<BlockDynamicListener *>(
-      MEM_mallocN(sizeof(*listener), __func__));
+  BlockDynamicListener *listener = MEM_mallocN<BlockDynamicListener>(__func__);
   listener->listener_func = listener_func;
   BLI_addtail(&block->dynamic_listeners, listener);
 }

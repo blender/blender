@@ -114,8 +114,7 @@ enum {
 
 static LatticeRenderData *lattice_render_data_create(Lattice *lt, const int types)
 {
-  LatticeRenderData *rdata = static_cast<LatticeRenderData *>(
-      MEM_callocN(sizeof(*rdata), __func__));
+  LatticeRenderData *rdata = MEM_callocN<LatticeRenderData>(__func__);
   rdata->types = types;
 
   if (lt->editlatt) {
@@ -245,8 +244,7 @@ static void lattice_batch_cache_init(Lattice *lt)
   LatticeBatchCache *cache = static_cast<LatticeBatchCache *>(lt->batch_cache);
 
   if (!cache) {
-    cache = static_cast<LatticeBatchCache *>(
-        lt->batch_cache = MEM_callocN(sizeof(*cache), __func__));
+    lt->batch_cache = cache = MEM_callocN<LatticeBatchCache>(__func__);
   }
   else {
     memset(cache, 0, sizeof(*cache));

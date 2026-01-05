@@ -1416,8 +1416,7 @@ static wmOperatorStatus object_select_random_exec(bContext *C, wmOperator *op)
   Vector<PointerRNA> ctx_data_list;
   CTX_data_selectable_bases(C, &ctx_data_list);
   int elem_map_len = 0;
-  Base **elem_map = static_cast<Base **>(
-      MEM_mallocN(sizeof(*elem_map) * ctx_data_list.size(), __func__));
+  Base **elem_map = MEM_malloc_arrayN<Base *>(ctx_data_list.size(), __func__);
 
   for (PointerRNA &ptr : ctx_data_list) {
     elem_map[elem_map_len++] = static_cast<Base *>(ptr.data);

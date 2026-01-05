@@ -393,7 +393,7 @@ static wmOperatorStatus view_edge_pan_invoke(bContext *C,
                                              wmOperator *op,
                                              const wmEvent * /*event*/)
 {
-  op->customdata = MEM_callocN(sizeof(View2DEdgePanData), "View2DEdgePanData");
+  op->customdata = MEM_callocN<View2DEdgePanData>("View2DEdgePanData");
   View2DEdgePanData *vpd = static_cast<View2DEdgePanData *>(op->customdata);
   view2d_edge_pan_operator_init(C, vpd, op);
 

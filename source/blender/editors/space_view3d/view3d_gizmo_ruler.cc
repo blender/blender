@@ -558,8 +558,7 @@ static bool view3d_ruler_to_gpencil(bContext *C, wmGizmoGroup *gzgroup)
     gps = MEM_new_for_free<bGPDstroke>("gp_stroke");
     if (ruler_item->flag & RULERITEM_USE_ANGLE) {
       gps->totpoints = 3;
-      pt = gps->points = (bGPDspoint *)MEM_callocN(sizeof(bGPDspoint) * gps->totpoints,
-                                                   "gp_stroke_points");
+      pt = gps->points = MEM_new_array_for_free<bGPDspoint>(gps->totpoints, "gp_stroke_points");
       for (j = 0; j < 3; j++) {
         copy_v3_v3(&pt->x, ruler_item->co[j]);
         pt->pressure = 1.0f;
@@ -569,8 +568,7 @@ static bool view3d_ruler_to_gpencil(bContext *C, wmGizmoGroup *gzgroup)
     }
     else {
       gps->totpoints = 2;
-      pt = gps->points = (bGPDspoint *)MEM_callocN(sizeof(bGPDspoint) * gps->totpoints,
-                                                   "gp_stroke_points");
+      pt = gps->points = MEM_new_array_for_free<bGPDspoint>(gps->totpoints, "gp_stroke_points");
       for (j = 0; j < 3; j += 2) {
         copy_v3_v3(&pt->x, ruler_item->co[j]);
         pt->pressure = 1.0f;

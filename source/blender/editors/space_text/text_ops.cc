@@ -3378,7 +3378,7 @@ static wmOperatorStatus text_selection_set_invoke(bContext *C,
     return OPERATOR_PASS_THROUGH;
   }
 
-  op->customdata = MEM_callocN(sizeof(SetSelection), "SetCursor");
+  op->customdata = MEM_callocN<SetSelection>("SetCursor");
   ssel = static_cast<SetSelection *>(op->customdata);
 
   ssel->mval_prev[0] = event->mval[0];

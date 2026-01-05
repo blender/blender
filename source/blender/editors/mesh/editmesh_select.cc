@@ -5409,8 +5409,7 @@ static wmOperatorStatus edbm_select_random_exec(bContext *C, wmOperator *op)
 
     if (em->selectmode & SCE_SELECT_VERTEX) {
       int elem_map_len = 0;
-      BMVert **elem_map = static_cast<BMVert **>(
-          MEM_mallocN(sizeof(*elem_map) * em->bm->totvert, __func__));
+      BMVert **elem_map = MEM_malloc_arrayN<BMVert *>(em->bm->totvert, __func__);
       BMVert *eve;
       BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
         if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
@@ -5427,8 +5426,7 @@ static wmOperatorStatus edbm_select_random_exec(bContext *C, wmOperator *op)
     }
     else if (em->selectmode & SCE_SELECT_EDGE) {
       int elem_map_len = 0;
-      BMEdge **elem_map = static_cast<BMEdge **>(
-          MEM_mallocN(sizeof(*elem_map) * em->bm->totedge, __func__));
+      BMEdge **elem_map = MEM_malloc_arrayN<BMEdge *>(em->bm->totedge, __func__);
       BMEdge *eed;
       BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
         if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
@@ -5444,8 +5442,7 @@ static wmOperatorStatus edbm_select_random_exec(bContext *C, wmOperator *op)
     }
     else {
       int elem_map_len = 0;
-      BMFace **elem_map = static_cast<BMFace **>(
-          MEM_mallocN(sizeof(*elem_map) * em->bm->totface, __func__));
+      BMFace **elem_map = MEM_malloc_arrayN<BMFace *>(em->bm->totface, __func__);
       BMFace *efa;
       BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
         if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {

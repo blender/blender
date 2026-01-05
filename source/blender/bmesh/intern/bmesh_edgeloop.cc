@@ -494,8 +494,7 @@ void BM_mesh_edgeloops_calc_order(BMesh * /*bm*/,
 
 BMEdgeLoopStore *BM_edgeloop_copy(BMEdgeLoopStore *el_store)
 {
-  BMEdgeLoopStore *el_store_copy = static_cast<BMEdgeLoopStore *>(
-      MEM_mallocN(sizeof(*el_store), __func__));
+  BMEdgeLoopStore *el_store_copy = MEM_mallocN<BMEdgeLoopStore>(__func__);
   *el_store_copy = *el_store;
   BLI_duplicatelist(&el_store_copy->verts, &el_store->verts);
   return el_store_copy;
@@ -503,8 +502,7 @@ BMEdgeLoopStore *BM_edgeloop_copy(BMEdgeLoopStore *el_store)
 
 BMEdgeLoopStore *BM_edgeloop_from_verts(BMVert **v_arr, const int v_arr_tot, bool is_closed)
 {
-  BMEdgeLoopStore *el_store = static_cast<BMEdgeLoopStore *>(
-      MEM_callocN(sizeof(*el_store), __func__));
+  BMEdgeLoopStore *el_store = MEM_callocN<BMEdgeLoopStore>(__func__);
   int i;
   for (i = 0; i < v_arr_tot; i++) {
     LinkData *node = MEM_callocN<LinkData>(__func__);

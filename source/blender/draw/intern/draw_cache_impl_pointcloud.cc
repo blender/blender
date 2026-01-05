@@ -118,8 +118,8 @@ static void pointcloud_batch_cache_init(PointCloud &pointcloud)
   }
 
   cache->eval_cache.mat_len = BKE_id_material_used_with_fallback_eval(pointcloud.id);
-  cache->eval_cache.surface_per_mat = static_cast<gpu::Batch **>(
-      MEM_callocN(sizeof(gpu::Batch *) * cache->eval_cache.mat_len, __func__));
+  cache->eval_cache.surface_per_mat = MEM_calloc_arrayN<gpu::Batch *>(cache->eval_cache.mat_len,
+                                                                      __func__);
 
   cache->is_dirty = false;
 }

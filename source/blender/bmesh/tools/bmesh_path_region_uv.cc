@@ -179,7 +179,7 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
     const int side_other = !side;
 
     /* initialize depths to -1 (un-touched), fill in with the depth as we walk over the edges. */
-    depths[side] = static_cast<int *>(MEM_mallocN(sizeof(*depths[side]) * bm->totloop, __func__));
+    depths[side] = MEM_malloc_arrayN<int>(bm->totloop, __func__);
     copy_vn_i(depths[side], bm->totloop, -1);
 
     /* needed for second side */

@@ -513,8 +513,7 @@ static void draw_circle_in_quad(const float v1[3],
       {-1, +1},
   };
 
-  float (*coords)[3] = static_cast<float (*)[3]>(
-      MEM_mallocN(sizeof(float[3]) * (resolution + 1), __func__));
+  float (*coords)[3] = MEM_malloc_arrayN<float[3]>(resolution + 1, __func__);
   for (int i = 0; i <= resolution; i++) {
     float theta = ((2.0f * M_PI) * (float(i) / float(resolution))) + 0.01f;
     float x = cosf(theta);
@@ -919,8 +918,7 @@ static wmOperatorStatus view3d_interactive_add_invoke(bContext *C,
 {
   const bool wait_for_input = RNA_boolean_get(op->ptr, "wait_for_input");
 
-  InteractivePlaceData *ipd = static_cast<InteractivePlaceData *>(
-      MEM_callocN(sizeof(*ipd), __func__));
+  InteractivePlaceData *ipd = MEM_callocN<InteractivePlaceData>(__func__);
   op->customdata = ipd;
 
   ipd->scene = CTX_data_scene(C);

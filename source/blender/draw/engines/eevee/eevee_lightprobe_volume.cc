@@ -1438,19 +1438,16 @@ LightProbeGridCacheFrame *IrradianceBake::read_result_packed()
 
   int64_t sample_count = int64_t(irradiance_L0_tx_.width()) * irradiance_L0_tx_.height() *
                          irradiance_L0_tx_.depth();
-  size_t coefficient_texture_size = sizeof(*cache_frame->irradiance.L0) * sample_count;
-  size_t validity_texture_size = sizeof(*cache_frame->connectivity.validity) * sample_count;
-  cache_frame->irradiance.L0 = (float (*)[3])MEM_mallocN(coefficient_texture_size, __func__);
-  cache_frame->irradiance.L1_a = (float (*)[3])MEM_mallocN(coefficient_texture_size, __func__);
-  cache_frame->irradiance.L1_b = (float (*)[3])MEM_mallocN(coefficient_texture_size, __func__);
-  cache_frame->irradiance.L1_c = (float (*)[3])MEM_mallocN(coefficient_texture_size, __func__);
-  cache_frame->connectivity.validity = (uint8_t *)MEM_mallocN(validity_texture_size, __func__);
+  cache_frame->irradiance.L0 = MEM_malloc_arrayN<float[3]>(sample_count, __func__);
+  cache_frame->irradiance.L1_a = MEM_malloc_arrayN<float[3]>(sample_count, __func__);
+  cache_frame->irradiance.L1_b = MEM_malloc_arrayN<float[3]>(sample_count, __func__);
+  cache_frame->irradiance.L1_c = MEM_malloc_arrayN<float[3]>(sample_count, __func__);
+  cache_frame->connectivity.validity = MEM_malloc_arrayN<uint8_t>(sample_count, __func__);
 
-  size_t visibility_texture_size = sizeof(*cache_frame->irradiance.L0) * sample_count;
-  cache_frame->visibility.L0 = (float *)MEM_mallocN(visibility_texture_size, __func__);
-  cache_frame->visibility.L1_a = (float *)MEM_mallocN(visibility_texture_size, __func__);
-  cache_frame->visibility.L1_b = (float *)MEM_mallocN(visibility_texture_size, __func__);
-  cache_frame->visibility.L1_c = (float *)MEM_mallocN(visibility_texture_size, __func__);
+  cache_frame->visibility.L0 = MEM_malloc_arrayN<float>(sample_count, __func__);
+  cache_frame->visibility.L1_a = MEM_malloc_arrayN<float>(sample_count, __func__);
+  cache_frame->visibility.L1_b = MEM_malloc_arrayN<float>(sample_count, __func__);
+  cache_frame->visibility.L1_c = MEM_malloc_arrayN<float>(sample_count, __func__);
 
   /* TODO(fclem): This could be done on GPU if that's faster. */
   for (auto i : IndexRange(sample_count)) {

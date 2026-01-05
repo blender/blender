@@ -83,7 +83,7 @@ void sequencer_buttons_register(ARegionType *art)
   PanelType *pt;
 
 #if 0
-  pt = MEM_callocN(sizeof(PanelType), "spacetype sequencer panel gpencil");
+  pt = MEM_callocN<PanelType>("spacetype sequencer panel gpencil");
   STRNCPY_UTF8(pt->idname, "SEQUENCER_PT_gpencil");
   STRNCPY_UTF8(pt->label, N_("Grease Pencil"));
   STRNCPY_UTF8(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);

@@ -3834,8 +3834,7 @@ static void proj_paint_state_screen_coords_init(ProjPaintState *ps, const int di
 
   INIT_MINMAX2(ps->screenMin, ps->screenMax);
 
-  ps->screenCoords = static_cast<float (*)[4]>(
-      MEM_mallocN(sizeof(float) * ps->totvert_eval * 4, "ProjectPaint ScreenVerts"));
+  ps->screenCoords = MEM_malloc_arrayN<float[4]>(ps->totvert_eval, "ProjectPaint ScreenVerts");
   projScreenCo = *ps->screenCoords;
 
   if (ps->is_ortho) {
@@ -3912,8 +3911,7 @@ static void proj_paint_state_cavity_init(ProjPaintState *ps)
 
   if (ps->do_mask_cavity) {
     int *counter = MEM_calloc_arrayN<int>(ps->totvert_eval, "counter");
-    float (*edges)[3] = static_cast<float (*)[3]>(
-        MEM_callocN(sizeof(float[3]) * ps->totvert_eval, "edges"));
+    float (*edges)[3] = MEM_calloc_arrayN<float[3]>(ps->totvert_eval, "edges");
     ps->cavities = MEM_malloc_arrayN<float>(ps->totvert_eval, "ProjectPaint Cavities");
     cavities = ps->cavities;
 
@@ -4077,8 +4075,7 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   /* Build final material array, we use this a lot here. */
   /* materials start from 1, default material is 0 */
   const int totmat = ob->totcol + 1;
-  ps->mat_array = static_cast<Material **>(
-      MEM_malloc_arrayN(totmat, sizeof(*ps->mat_array), __func__));
+  ps->mat_array = MEM_malloc_arrayN<Material *>(totmat, __func__);
   /* We leave last material as empty - rationale here is being able to index
    * the materials by using the mf->mat_nr directly and leaving the last
    * material as nullptr in case no materials exist on mesh, so indexing will not fail. */
@@ -4133,8 +4130,8 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   ps->corner_tris_eval = ps->mesh_eval->corner_tris();
   ps->corner_tri_faces_eval = ps->mesh_eval->corner_tri_faces();
 
-  ps->poly_to_loop_uv = static_cast<const blender::float2 **>(
-      MEM_mallocN(ps->faces_num_eval * sizeof(const blender::float2 **), "proj_paint_mtfaces"));
+  ps->poly_to_loop_uv = MEM_malloc_arrayN<const blender::float2 *>(ps->faces_num_eval,
+                                                                   "proj_paint_mtfaces");
 
   return true;
 }
@@ -4154,8 +4151,8 @@ static void proj_paint_layer_clone_init(ProjPaintState *ps, ProjPaintLayerClone 
 
   /* use clone mtface? */
   if (ps->do_layer_clone) {
-    ps->poly_to_loop_uv_clone = static_cast<const blender::float2 **>(
-        MEM_mallocN(ps->faces_num_eval * sizeof(const blender::float2 **), "proj_paint_mtfaces"));
+    ps->poly_to_loop_uv_clone = MEM_malloc_arrayN<const blender::float2 *>(ps->faces_num_eval,
+                                                                           "proj_paint_mtfaces");
 
     if (const bke::GAttributeReader attr = attributes.lookup(mesh_orig.clone_uv_map_attribute)) {
       if (attr.domain == bke::AttrDomain::Corner && attr.varray.type().is<float2>()) {

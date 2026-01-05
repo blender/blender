@@ -508,8 +508,7 @@ static void um_arraystore_compact(UndoMesh *um, const UndoMesh *um_ref)
               &um_arraystore.bs_stride[ARRAY_STORE_INDEX_SHAPE],
               stride,
               array_chunk_size_calc(stride));
-          um->store.keyblocks = static_cast<BArrayState **>(
-              MEM_mallocN(mesh->key->totkey * sizeof(*um->store.keyblocks), __func__));
+          um->store.keyblocks = MEM_malloc_arrayN<BArrayState *>(mesh->key->totkey, __func__);
 
           KeyBlock *keyblock = static_cast<KeyBlock *>(mesh->key->block.first);
           for (int i = 0; i < mesh->key->totkey; i++, keyblock = keyblock->next) {

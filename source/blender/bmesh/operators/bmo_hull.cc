@@ -414,8 +414,7 @@ static BMVert **hull_input_verts_copy(BMOperator *op, const int num_input_verts)
 {
   BMOIter oiter;
   BMVert *v;
-  BMVert **input_verts = static_cast<BMVert **>(
-      MEM_callocN(sizeof(*input_verts) * num_input_verts, AT));
+  BMVert **input_verts = MEM_calloc_arrayN<BMVert *>(num_input_verts, AT);
   int i = 0;
 
   BMO_ITER (v, &oiter, op->slots_in, "input", BM_VERT) {
@@ -427,8 +426,7 @@ static BMVert **hull_input_verts_copy(BMOperator *op, const int num_input_verts)
 
 static float (*hull_verts_for_bullet(BMVert **input_verts, const int num_input_verts))[3]
 {
-  float (*coords)[3] = static_cast<float (*)[3]>(
-      MEM_callocN(sizeof(*coords) * num_input_verts, __func__));
+  float (*coords)[3] = MEM_calloc_arrayN<float[3]>(num_input_verts, __func__);
   int i;
 
   for (i = 0; i < num_input_verts; i++) {

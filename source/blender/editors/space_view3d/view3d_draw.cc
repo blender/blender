@@ -2825,8 +2825,7 @@ struct RV3DMatrixStore {
 
 RV3DMatrixStore *ED_view3d_mats_rv3d_backup(RegionView3D *rv3d)
 {
-  RV3DMatrixStore *rv3dmat = static_cast<RV3DMatrixStore *>(
-      MEM_mallocN(sizeof(*rv3dmat), __func__));
+  RV3DMatrixStore *rv3dmat = MEM_mallocN<RV3DMatrixStore>(__func__);
   copy_m4_m4(rv3dmat->winmat, rv3d->winmat);
   copy_m4_m4(rv3dmat->viewmat, rv3d->viewmat);
   copy_m4_m4(rv3dmat->persmat, rv3d->persmat);

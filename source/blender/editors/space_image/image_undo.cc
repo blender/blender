@@ -260,9 +260,14 @@ void *ED_image_paint_tile_push(PaintTileMap *paint_tile_map,
                                                         "PaintTile.mask");
   }
 
-  ptile->rect.pt = MEM_callocN((ibuf->float_buffer.data ? sizeof(float[4]) : sizeof(char[4])) *
-                                   square_i(ED_IMAGE_UNDO_TILE_SIZE),
-                               "PaintTile.rect");
+  if (ibuf->float_buffer.data) {
+    ptile->rect.pt = MEM_calloc_arrayN<float[4]>(square_i(ED_IMAGE_UNDO_TILE_SIZE),
+                                                 "PaintTile.rect");
+  }
+  else {
+    ptile->rect.pt = MEM_calloc_arrayN<char[4]>(square_i(ED_IMAGE_UNDO_TILE_SIZE),
+                                                "PaintTile.rect");
+  }
 
   ptile->use_float = has_float;
   ptile->valid = true;
@@ -382,15 +387,13 @@ struct UndoImageTile {
 
 static UndoImageTile *utile_alloc(bool has_float)
 {
-  UndoImageTile *utile = static_cast<UndoImageTile *>(
-      MEM_callocN(sizeof(*utile), "ImageUndoTile"));
+  UndoImageTile *utile = MEM_callocN<UndoImageTile>("ImageUndoTile");
   if (has_float) {
-    utile->rect.fp = static_cast<float *>(
-        MEM_mallocN(sizeof(float[4]) * square_i(ED_IMAGE_UNDO_TILE_SIZE), __func__));
+    utile->rect.fp = MEM_malloc_arrayN<float>(4 * square_i(ED_IMAGE_UNDO_TILE_SIZE), __func__);
   }
   else {
-    utile->rect.byte_ptr = static_cast<uint8_t *>(
-        MEM_mallocN(sizeof(uint32_t) * square_i(ED_IMAGE_UNDO_TILE_SIZE), __func__));
+    utile->rect.byte_ptr = MEM_malloc_arrayN<uint8_t>(4 * square_i(ED_IMAGE_UNDO_TILE_SIZE),
+                                                      __func__);
   }
   return utile;
 }
@@ -494,8 +497,7 @@ static UndoImageBuf *ubuf_from_image_no_tiles(Image *image, const ImBuf *ibuf)
   ubuf->tiles_dims[1] = ED_IMAGE_UNDO_TILE_NUMBER(ubuf->image_dims[1]);
 
   ubuf->tiles_len = ubuf->tiles_dims[0] * ubuf->tiles_dims[1];
-  ubuf->tiles = static_cast<UndoImageTile **>(
-      MEM_callocN(sizeof(*ubuf->tiles) * ubuf->tiles_len, __func__));
+  ubuf->tiles = MEM_calloc_arrayN<UndoImageTile *>(ubuf->tiles_len, __func__);
 
   STRNCPY(ubuf->ibuf_filepath, ibuf->filepath);
   ubuf->ibuf_fileframe = ibuf->fileframe;
@@ -827,8 +829,7 @@ static bool image_undosys_step_encode(bContext *C, Main * /*bmain*/, UndoStep *u
         UndoImageHandle *uh = uhandle_ensure(&us->handles, ptile->image, &ptile->iuser);
         UndoImageBuf *ubuf_pre = uhandle_ensure_ubuf(uh, ptile->image, ptile->ibuf);
 
-        UndoImageTile *utile = static_cast<UndoImageTile *>(
-            MEM_callocN(sizeof(*utile), "UndoImageTile"));
+        UndoImageTile *utile = MEM_callocN<UndoImageTile>("UndoImageTile");
         utile->users = 1;
         utile->rect.pt = ptile->rect.pt;
         ptile->rect.pt = nullptr;

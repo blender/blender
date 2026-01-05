@@ -131,9 +131,7 @@ struct EditMesh_PreSelEdgeRing {
 
 EditMesh_PreSelEdgeRing *EDBM_preselect_edgering_create()
 {
-  EditMesh_PreSelEdgeRing *psel = static_cast<EditMesh_PreSelEdgeRing *>(
-      MEM_callocN(sizeof(*psel), __func__));
-  return psel;
+  return MEM_callocN<EditMesh_PreSelEdgeRing>(__func__);
 }
 
 void EDBM_preselect_edgering_destroy(EditMesh_PreSelEdgeRing *psel)
@@ -225,7 +223,7 @@ static void view3d_preselect_mesh_edgering_update_verts_from_edge(
   float (*verts)[3];
   int i, tot = 0;
 
-  verts = static_cast<float (*)[3]>(MEM_mallocN(sizeof(*psel->verts) * previewlines, __func__));
+  verts = MEM_malloc_arrayN<float[3]>(previewlines, __func__);
 
   edgering_vcos_get_pair(&eed_start->v1, v_cos, vert_positions);
 

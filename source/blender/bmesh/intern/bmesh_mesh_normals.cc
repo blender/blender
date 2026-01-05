@@ -1604,8 +1604,7 @@ static void bm_mesh_loops_custom_normals_set(BMesh *bm,
   float (*custom_lnors)[3] = new_lnors;
 
   if (new_lnors == nullptr) {
-    custom_lnors = static_cast<float (*)[3]>(
-        MEM_mallocN(sizeof(*new_lnors) * bm->totloop, __func__));
+    custom_lnors = MEM_malloc_arrayN<float[3]>(bm->totloop, __func__);
 
     BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
       BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {

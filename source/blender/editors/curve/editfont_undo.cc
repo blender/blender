@@ -251,16 +251,14 @@ static void *undofont_from_editfont(UndoFont *uf, Curve *cu)
 
   size_t mem_used_prev = MEM_get_memory_in_use();
 
-  size_t final_size;
+  size_t alloc_len = ef->len + 1;
 
   BLI_assert(sizeof(*uf->textbuf) == sizeof(*ef->textbuf));
-  final_size = sizeof(*uf->textbuf) * (ef->len + 1);
-  uf->textbuf = static_cast<char32_t *>(MEM_mallocN(final_size, __func__));
-  memcpy(uf->textbuf, ef->textbuf, final_size);
+  uf->textbuf = MEM_malloc_arrayN<char32_t>(alloc_len, __func__);
+  memcpy(uf->textbuf, ef->textbuf, sizeof(char32_t) * alloc_len);
 
-  final_size = sizeof(CharInfo) * (ef->len + 1);
-  uf->textbufinfo = static_cast<CharInfo *>(MEM_mallocN(final_size, __func__));
-  memcpy(uf->textbufinfo, ef->textbufinfo, final_size);
+  uf->textbufinfo = MEM_new_array_for_free<CharInfo>(alloc_len, __func__);
+  memcpy(uf->textbufinfo, ef->textbufinfo, sizeof(CharInfo) * alloc_len);
 
   uf->pos = ef->pos;
   uf->selstart = ef->selstart;

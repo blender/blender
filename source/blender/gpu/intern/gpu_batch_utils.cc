@@ -32,9 +32,9 @@ blender::gpu::Batch *GPU_batch_tris_from_poly_2d_encoded(const uchar *polys_flat
   BLI_assert(polys_flat_len == polys_len * 2);
 
   /* Over alloc in both cases */
-  float (*verts)[2] = static_cast<float (*)[2]>(MEM_mallocN(sizeof(*verts) * polys_len, __func__));
+  float (*verts)[2] = MEM_malloc_arrayN<float[2]>(polys_len, __func__);
   float (*verts_step)[2] = verts;
-  uint(*tris)[3] = static_cast<uint(*)[3]>(MEM_mallocN(sizeof(*tris) * polys_len, __func__));
+  uint(*tris)[3] = MEM_malloc_arrayN<uint[3]>(polys_len, __func__);
   uint(*tris_step)[3] = tris;
 
   const float range_uchar[2] = {

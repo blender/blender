@@ -457,8 +457,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
     int boundary_edges_len = BMO_slot_map_len(dupeop.slots_out, "boundary_map.out");
     /* We do not know the real number of boundary vertices. */
     int boundary_verts_len_maybe = 2 * boundary_edges_len;
-    dissolve_verts = static_cast<BMVert **>(
-        MEM_mallocN(boundary_verts_len_maybe * sizeof(*dissolve_verts), __func__));
+    dissolve_verts = MEM_malloc_arrayN<BMVert *>(boundary_verts_len_maybe, __func__);
   }
 
   BMO_slot_copy(&dupeop, slots_out, "geom.out", op, slots_out, "geom.out");

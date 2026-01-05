@@ -58,26 +58,25 @@ bUserMenu *BKE_blender_user_menu_ensure(ListBaseT<bUserMenu> *lb,
 
 bUserMenuItem *BKE_blender_user_menu_item_add(ListBaseT<bUserMenuItem> *lb, int type)
 {
-  uint size;
+  bUserMenuItem *umi;
 
   if (type == USER_MENU_TYPE_SEP) {
-    size = sizeof(bUserMenuItem);
+    umi = MEM_new_for_free<bUserMenuItem>(__func__);
   }
   else if (type == USER_MENU_TYPE_OPERATOR) {
-    size = sizeof(bUserMenuItem_Op);
+    umi = reinterpret_cast<bUserMenuItem *>(MEM_new_for_free<bUserMenuItem_Op>(__func__));
   }
   else if (type == USER_MENU_TYPE_MENU) {
-    size = sizeof(bUserMenuItem_Menu);
+    umi = reinterpret_cast<bUserMenuItem *>(MEM_new_for_free<bUserMenuItem_Menu>(__func__));
   }
   else if (type == USER_MENU_TYPE_PROP) {
-    size = sizeof(bUserMenuItem_Prop);
+    umi = reinterpret_cast<bUserMenuItem *>(MEM_new_for_free<bUserMenuItem_Prop>(__func__));
   }
   else {
-    size = sizeof(bUserMenuItem);
+    umi = MEM_new_for_free<bUserMenuItem>(__func__);
     BLI_assert(0);
   }
 
-  bUserMenuItem *umi = static_cast<bUserMenuItem *>(MEM_callocN(size, __func__));
   umi->type = type;
   BLI_addtail(lb, umi);
   return umi;

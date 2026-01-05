@@ -2120,8 +2120,7 @@ int BM_mesh_calc_face_groups(BMesh *bm,
   int group_index_len = 32;
 #endif
 
-  int (*group_index)[2] = static_cast<int (*)[2]>(
-      MEM_mallocN(sizeof(*group_index) * group_index_len, __func__));
+  int (*group_index)[2] = MEM_malloc_arrayN<int[2]>(group_index_len, __func__);
 
   int *group_array = r_groups_array;
   STACK_DECLARE(group_array);
@@ -2275,8 +2274,7 @@ int BM_mesh_calc_edge_groups(BMesh *bm,
   int group_index_len = 32;
 #endif
 
-  int (*group_index)[2] = static_cast<int (*)[2]>(
-      MEM_mallocN(sizeof(*group_index) * group_index_len, __func__));
+  int (*group_index)[2] = MEM_malloc_arrayN<int[2]>(group_index_len, __func__);
 
   int *group_array = r_groups_array;
   STACK_DECLARE(group_array);

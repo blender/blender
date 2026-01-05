@@ -389,8 +389,7 @@ static wmOperatorStatus graph_slider_invoke(bContext *C, wmOperator *op, const w
   WM_cursor_modal_set(CTX_wm_window(C), WM_CURSOR_EW_SCROLL);
 
   /* Init slide-op data. */
-  gso = static_cast<tGraphSliderOp *>(
-      op->customdata = MEM_callocN(sizeof(tGraphSliderOp), "tGraphSliderOp"));
+  op->customdata = gso = MEM_callocN<tGraphSliderOp>("tGraphSliderOp");
 
   /* Get editor data. */
   if (ANIM_animdata_get_context(C, &gso->ac) == 0) {

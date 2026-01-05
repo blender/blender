@@ -170,8 +170,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   /* Many kinds of transform only use a single handle. */
   if (t->data_container == nullptr) {
-    t->data_container = static_cast<TransDataContainer *>(
-        MEM_callocN(sizeof(*t->data_container), __func__));
+    t->data_container = MEM_callocN<TransDataContainer>(__func__);
     t->data_container_len = 1;
   }
 

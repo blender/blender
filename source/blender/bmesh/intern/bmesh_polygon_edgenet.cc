@@ -506,13 +506,10 @@ bool BM_face_split_edgenet(BMesh *bm,
   edge_order = MEM_malloc_arrayN<VertOrder>(edge_order_len, __func__);
 
   /* use later */
-  face_verts = static_cast<BMVert **>(
-      MEM_mallocN(sizeof(*face_verts) * (edge_net_len + f->len), __func__));
-  face_edges = static_cast<BMEdge **>(
-      MEM_mallocN(sizeof(*face_edges) * (edge_net_len + f->len), __func__));
+  face_verts = MEM_malloc_arrayN<BMVert *>(edge_net_len + f->len, __func__);
+  face_edges = MEM_malloc_arrayN<BMEdge *>(edge_net_len + f->len, __func__);
 
-  vert_queue = static_cast<BMVert **>(
-      MEM_mallocN(sizeof(vert_queue) * (edge_net_len + f->len), __func__));
+  vert_queue = MEM_malloc_arrayN<BMVert *>(edge_net_len + f->len, __func__);
   STACK_INIT(vert_queue, f->len + edge_net_len);
 
   BLI_assert(BM_ELEM_API_FLAG_TEST(f, FACE_NET) == 0);

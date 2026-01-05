@@ -131,8 +131,7 @@ static bool edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
   {
     Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
         scene, view_layer, CTX_wm_view3d(C));
-    opdata->ob_store = static_cast<InsetObjectStore *>(
-        MEM_malloc_arrayN(objects.size(), sizeof(*opdata->ob_store), __func__));
+    opdata->ob_store = MEM_malloc_arrayN<InsetObjectStore>(objects.size(), __func__);
     for (uint ob_index = 0; ob_index < objects.size(); ob_index++) {
       Object *obedit = objects[ob_index];
       float scale = mat4_to_scale(obedit->object_to_world().ptr());

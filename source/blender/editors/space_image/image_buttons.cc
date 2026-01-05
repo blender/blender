@@ -165,8 +165,7 @@ struct ImageUI_Data {
 
 static ImageUI_Data *ui_imageuser_data_copy(const ImageUI_Data *rnd_pt_src)
 {
-  ImageUI_Data *rnd_pt_dst = static_cast<ImageUI_Data *>(
-      MEM_mallocN(sizeof(*rnd_pt_src), __func__));
+  ImageUI_Data *rnd_pt_dst = MEM_mallocN<ImageUI_Data>(__func__);
   memcpy(rnd_pt_dst, rnd_pt_src, sizeof(*rnd_pt_src));
   return rnd_pt_dst;
 }

@@ -592,8 +592,7 @@ void BM_mesh_elem_table_ensure(BMesh *bm, const char htype)
       if (bm->vtable) {
         MEM_freeN(bm->vtable);
       }
-      bm->vtable = static_cast<BMVert **>(
-          MEM_mallocN(sizeof(void **) * bm->totvert, "bm->vtable"));
+      bm->vtable = MEM_malloc_arrayN<BMVert *>(bm->totvert, "bm->vtable");
       bm->vtable_tot = bm->totvert;
     }
     BM_iter_as_array(bm, BM_VERTS_OF_MESH, nullptr, (void **)bm->vtable, bm->totvert);
@@ -606,8 +605,7 @@ void BM_mesh_elem_table_ensure(BMesh *bm, const char htype)
       if (bm->etable) {
         MEM_freeN(bm->etable);
       }
-      bm->etable = static_cast<BMEdge **>(
-          MEM_mallocN(sizeof(void **) * bm->totedge, "bm->etable"));
+      bm->etable = MEM_malloc_arrayN<BMEdge *>(bm->totedge, "bm->etable");
       bm->etable_tot = bm->totedge;
     }
     BM_iter_as_array(bm, BM_EDGES_OF_MESH, nullptr, (void **)bm->etable, bm->totedge);
@@ -620,8 +618,7 @@ void BM_mesh_elem_table_ensure(BMesh *bm, const char htype)
       if (bm->ftable) {
         MEM_freeN(bm->ftable);
       }
-      bm->ftable = static_cast<BMFace **>(
-          MEM_mallocN(sizeof(void **) * bm->totface, "bm->ftable"));
+      bm->ftable = MEM_malloc_arrayN<BMFace *>(bm->totface, "bm->ftable");
       bm->ftable_tot = bm->totface;
     }
     BM_iter_as_array(bm, BM_FACES_OF_MESH, nullptr, (void **)bm->ftable, bm->totface);

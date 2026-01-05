@@ -242,7 +242,7 @@ static void phash_insert(PHash *ph, PHashLink *link)
 
     ph->cursize = PHashSizes[++ph->cursize_id];
     MEM_freeN(ph->buckets);
-    ph->buckets = (PHashLink **)MEM_callocN(ph->cursize * sizeof(*ph->buckets), "PHashBuckets");
+    ph->buckets = MEM_calloc_arrayN<PHashLink *>(ph->cursize, "PHashBuckets");
     ph->size = 0;
     *(ph->list) = nullptr;
 
@@ -1450,10 +1450,10 @@ static void p_polygon_kernel_center(float (*points)[2], int npoints, float *cent
     if (nnewpoints * 2 > size) {
       size *= 2;
       MEM_freeN(oldpoints);
-      oldpoints = MEM_mallocN(sizeof(float[2]) * size, "oldpoints");
+      oldpoints = MEM_malloc_arrayN<float[2]>(size, "oldpoints");
       memcpy(oldpoints, newpoints, sizeof(float[2]) * nnewpoints);
       MEM_freeN(newpoints);
-      newpoints = MEM_mallocN(sizeof(float[2]) * size, "newpoints");
+      newpoints = MEM_malloc_arrayN<float[2]>(size, "newpoints");
     }
     else {
       float(*sw_points)[2] = oldpoints;

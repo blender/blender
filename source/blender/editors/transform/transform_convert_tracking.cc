@@ -355,8 +355,8 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 
   tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, "TransTracking TransData");
   tc->data_2d = MEM_calloc_arrayN<TransData2D>(tc->data_len, "TransTracking TransData2D");
-  tc->custom.type.data = MEM_callocN(tc->data_len * sizeof(TransDataTracking),
-                                     "TransTracking TransDataTracking");
+  tc->custom.type.data = MEM_calloc_arrayN<TransDataTracking>(tc->data_len,
+                                                              "TransTracking TransDataTracking");
   tc->custom.type.free_cb = transDataTrackingFree;
 
   init_context.current.td = tc->data;
@@ -489,8 +489,8 @@ static void flushTransTracking(TransInfo *t)
             float d[2], d2[2];
 
             if (!tdt->smarkers) {
-              tdt->smarkers = static_cast<float (*)[2]>(MEM_callocN(
-                  sizeof(*tdt->smarkers) * tdt->markersnr, "flushTransTracking markers"));
+              tdt->smarkers = MEM_calloc_arrayN<float[2]>(tdt->markersnr,
+                                                          "flushTransTracking markers");
               for (int a = 0; a < tdt->markersnr; a++) {
                 copy_v2_v2(tdt->smarkers[a], tdt->markers[a].pos);
               }

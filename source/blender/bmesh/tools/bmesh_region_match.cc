@@ -842,8 +842,7 @@ static BMFace **bm_mesh_region_match_pair(
     const uint faces_result_len = BLI_ghash_len(w_dst->faces_uid);
     uint i;
 
-    faces_result = static_cast<BMFace **>(
-        MEM_mallocN(sizeof(*faces_result) * (faces_result_len + 1), __func__));
+    faces_result = MEM_malloc_arrayN<BMFace *>(faces_result_len + 1, __func__);
     GHASH_ITER_INDEX (gh_iter, w_dst->faces_uid, i) {
       BMFace *f = static_cast<BMFace *>(BLI_ghashIterator_getKey(&gh_iter));
       faces_result[i] = f;

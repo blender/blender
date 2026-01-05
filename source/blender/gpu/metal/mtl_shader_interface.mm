@@ -68,7 +68,7 @@ MTLShaderInterface::MTLShaderInterface(const char *name,
   ShaderInput *input = inputs_;
 
   size_t names_size = info.interface_names_size_;
-  name_buffer_ = (char *)MEM_mallocN(names_size, "name_buffer");
+  name_buffer_ = MEM_malloc_arrayN<char>(names_size, "name_buffer");
   uint32_t name_buffer_offset = 0;
 
   /* Attributes */

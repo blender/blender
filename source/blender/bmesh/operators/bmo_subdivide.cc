@@ -800,8 +800,7 @@ static void tri_3edge_subdivide(BMesh *bm,
   int i, j, a, b, numcuts = params->numcuts;
 
   /* number of verts in each lin */
-  lines = static_cast<BMVert ***>(
-      MEM_callocN(sizeof(void *) * (numcuts + 2), "triangle vert table"));
+  lines = MEM_calloc_arrayN<BMVert **>((numcuts + 2), "triangle vert table");
 
   lines[0] = (BMVert **)stackarr;
   lines[0][0] = verts[numcuts * 2 + 1];

@@ -1114,8 +1114,7 @@ void ED_view3d_autodist_last_set(wmWindow *win,
   ED_view3d_autodist_last_clear(win);
 
   if (WM_event_consecutive_gesture_test(event)) {
-    View3D_AutoDistLast *autodepth_last = static_cast<View3D_AutoDistLast *>(
-        MEM_callocN(sizeof(*autodepth_last), __func__));
+    View3D_AutoDistLast *autodepth_last = MEM_callocN<View3D_AutoDistLast>(__func__);
 
     autodepth_last->has_depth = has_depth;
     copy_v3_v3(autodepth_last->ofs, ofs);

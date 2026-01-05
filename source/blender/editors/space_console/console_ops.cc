@@ -1346,7 +1346,7 @@ static wmOperatorStatus console_select_set_invoke(bContext *C,
     }
   }
 
-  op->customdata = MEM_callocN(sizeof(SetConsoleCursor), "SetConsoleCursor");
+  op->customdata = MEM_callocN<SetConsoleCursor>("SetConsoleCursor");
   scu = static_cast<SetConsoleCursor *>(op->customdata);
 
   scu->sel_old[0] = sc->sel_start;

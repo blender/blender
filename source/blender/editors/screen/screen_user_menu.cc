@@ -65,8 +65,7 @@ bUserMenu **ED_screen_user_menus_find(const bContext *C, uint *r_len)
   const char *context_mode = CTX_data_mode_string(C);
   const char *context = screen_menu_context_string(C, sl);
   uint array_len = 3;
-  bUserMenu **um_array = static_cast<bUserMenu **>(
-      MEM_calloc_arrayN(array_len, sizeof(*um_array), __func__));
+  bUserMenu **um_array = MEM_calloc_arrayN<bUserMenu *>(array_len, __func__);
   um_array[0] = BKE_blender_user_menu_find(&U.user_menus, sl->spacetype, context);
   um_array[1] = (sl->spacetype != SPACE_TOPBAR) ?
                     BKE_blender_user_menu_find(&U.user_menus, SPACE_TOPBAR, context_mode) :

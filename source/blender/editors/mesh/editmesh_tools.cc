@@ -7283,8 +7283,7 @@ static int edbm_bridge_edge_loops_for_single_editmesh(wmOperator *op,
     int i;
 
     totface_del = edbm_bridge_tag_boundary_edges(em->bm);
-    totface_del_arr = static_cast<BMFace **>(
-        MEM_mallocN(sizeof(*totface_del_arr) * totface_del, __func__));
+    totface_del_arr = MEM_malloc_arrayN<BMFace *>(totface_del, __func__);
 
     i = 0;
     BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
@@ -9578,8 +9577,7 @@ static wmOperatorStatus edbm_set_normals_from_faces_exec(bContext *C, wmOperator
 
     BKE_editmesh_lnorspace_update(em);
 
-    float (*vert_normals)[3] = static_cast<float (*)[3]>(
-        MEM_mallocN(sizeof(*vert_normals) * bm->totvert, __func__));
+    float (*vert_normals)[3] = MEM_malloc_arrayN<float[3]>(bm->totvert, __func__);
     {
       int v_index;
       BM_ITER_MESH_INDEX (v, &viter, bm, BM_VERTS_OF_MESH, v_index) {
@@ -9686,8 +9684,7 @@ static wmOperatorStatus edbm_smooth_normals_exec(bContext *C, wmOperator *op)
     BKE_editmesh_lnorspace_update(em);
     BMLoopNorEditDataArray *lnors_ed_arr = BM_loop_normal_editdata_array_init(bm, false);
 
-    float (*smooth_normal)[3] = static_cast<float (*)[3]>(
-        MEM_callocN(sizeof(*smooth_normal) * lnors_ed_arr->totloop, __func__));
+    float (*smooth_normal)[3] = MEM_calloc_arrayN<float[3]>(lnors_ed_arr->totloop, __func__);
 
     /* NOTE(@mont29): This is weird choice of operation, taking all loops of faces of current
      * vertex. Could lead to some rather far away loops weighting as much as very close ones

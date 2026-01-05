@@ -181,13 +181,12 @@ void BM_mesh_wireframe(BMesh *bm,
   BMVert **verts_pos = MEM_malloc_arrayN<BMVert *>(totvert_orig, __func__);
 
   /* Will over-allocate, but makes for easy lookups by index to keep aligned. */
-  BMVert **verts_boundary = static_cast<BMVert **>(
-      use_boundary ? MEM_mallocN(sizeof(BMVert *) * totvert_orig, __func__) : nullptr);
+  BMVert **verts_boundary = use_boundary ? MEM_malloc_arrayN<BMVert *>(totvert_orig, __func__) :
+                                           nullptr;
 
-  float *verts_relfac = static_cast<float *>(
-      (use_relative_offset || (cd_dvert_offset != -1)) ?
-          MEM_mallocN(sizeof(float) * totvert_orig, __func__) :
-          nullptr);
+  float *verts_relfac = (use_relative_offset || (cd_dvert_offset != -1)) ?
+                            MEM_malloc_arrayN<float>(totvert_orig, __func__) :
+                            nullptr;
 
   /* May over-allocate if not all faces have wire. */
   BMVert **verts_loop;

@@ -1032,8 +1032,7 @@ bool BM_mesh_intersect(BMesh *bm,
     float **cos;
     int i, j;
 
-    cos = static_cast<float **>(
-        MEM_mallocN(size_t(looptris.size()) * sizeof(*looptri_coords) * 3, __func__));
+    cos = MEM_malloc_arrayN<float *>(size_t(looptris.size()) * 3, __func__);
     for (i = 0, j = 0; i < int(looptris.size()); i++) {
       cos[j++] = looptris[i][0]->v->co;
       cos[j++] = looptris[i][1]->v->co;
@@ -1245,8 +1244,7 @@ bool BM_mesh_intersect(BMesh *bm,
       }
     }
 
-    splice_ls = static_cast<BMVert *(*)[2]>(
-        MEM_mallocN(size_t(s.wire_edges->size()) * sizeof(*splice_ls), __func__));
+    splice_ls = MEM_malloc_arrayN<BMVert *[2]>(size_t(s.wire_edges->size()), __func__);
     STACK_INIT(splice_ls, s.wire_edges->size());
 
     for (node = s.vert_dissolve; node; node = node->next) {

@@ -2268,8 +2268,7 @@ void ED_curve_editfont_make(Object *obedit)
   if (ef == nullptr) {
     ef = cu->editfont = MEM_callocN<EditFont>("editfont");
 
-    ef->textbuf = static_cast<char32_t *>(
-        MEM_callocN((MAXTEXT + 4) * sizeof(*ef->textbuf), "texteditbuf"));
+    ef->textbuf = MEM_calloc_arrayN<char32_t>((MAXTEXT + 4), "texteditbuf");
     ef->textbufinfo = MEM_new_array_for_free<CharInfo>((MAXTEXT + 4), "texteditbufinfo");
   }
 

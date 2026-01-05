@@ -653,17 +653,16 @@ static void space_text_update_drawcache(SpaceText *st, const ARegion *region)
 
     if (drawcache->update) {
       TextLine *line = static_cast<TextLine *>(st->text->lines.first);
-      int lineno = 0, size, lines_count;
+      int lineno = 0, lines_count;
       int *fp = drawcache->line_height, *new_tail, *old_tail;
 
       nlines = BLI_listbase_count(&txt->lines);
-      size = sizeof(int) * nlines;
 
       if (fp) {
-        fp = static_cast<int *>(MEM_reallocN(fp, size));
+        fp = static_cast<int *>(MEM_reallocN(fp, sizeof(int) * nlines));
       }
       else {
-        fp = static_cast<int *>(MEM_callocN(size, "text drawcache line_height"));
+        fp = MEM_calloc_arrayN<int>(nlines, "text drawcache line_height");
       }
 
       drawcache->valid_tail = drawcache->valid_head = 0;
