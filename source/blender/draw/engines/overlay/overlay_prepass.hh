@@ -122,7 +122,7 @@ class Prepass : Overlay {
       pointcloud_ps_ = &sub;
     }
     {
-      auto &sub = ps_.sub("GreasePencil");
+      auto &sub = ps_.sub(RE_PASSNAME_GREASE_PENCIL);
       sub.shader_set(res.shaders->depth_grease_pencil.get());
       grease_pencil_ps_ = &sub;
     }

@@ -175,7 +175,7 @@ void Instance::begin_sync()
 
   const bool use_viewport_compositor = draw_ctx->is_viewport_compositor_enabled();
   const bool has_grease_pencil_pass =
-      bke::compositor::get_used_passes(*scene, view_layer).contains("GreasePencil");
+      bke::compositor::get_used_passes(*scene, view_layer).contains(RE_PASSNAME_GREASE_PENCIL);
   this->use_separate_pass = use_viewport_compositor ? has_grease_pencil_pass : false;
   this->use_signed_fb = !this->is_viewport;
 
@@ -659,7 +659,8 @@ void Instance::acquire_resources()
 
   if (this->use_separate_pass) {
     const int2 size = int2(draw_ctx->viewport_size_get());
-    draw::TextureFromPool &output_pass_texture = DRW_viewport_pass_texture_get("GreasePencil");
+    draw::TextureFromPool &output_pass_texture = DRW_viewport_pass_texture_get(
+        RE_PASSNAME_GREASE_PENCIL);
     output_pass_texture.acquire(size, gpu::TextureFormat::SFLOAT_16_16_16_16);
     this->gpencil_pass_fb.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(output_pass_texture));
   }
