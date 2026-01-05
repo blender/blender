@@ -85,6 +85,13 @@ struct ObjectRuntime {
   GeometrySet *geometry_set_eval = nullptr;
 
   /**
+   * Bitflag where each bit at an index corresponds to a `GeometryComponent::Type`. When a bit is
+   * set, the geometry type is contained within #geometry_set_eval. This includes referenced
+   * geometry in instances.
+   */
+  uint16_t contained_geometry_types = 0;
+
+  /**
    * Mesh structure created during object evaluation.
    * It has deformation only modifiers applied on it.
    */
