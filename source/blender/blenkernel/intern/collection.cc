@@ -1324,14 +1324,15 @@ static void collection_gobject_assert_internal_consistency(Collection *collectio
      * so in theory the second loop below could be skipped. */
     collection_gobject_hash_create(collection);
   }
+#ifndef NDEBUG
   CollectionObjectMap *gobject_hash = collection->runtime->gobject_hash;
-  UNUSED_VARS_NDEBUG(gobject_hash);
   for (CollectionObject &cob : collection->gobject) {
     BLI_assert(cob.ob != nullptr);
     /* If there are more than one #CollectionObject for the same object,
      * at most one of them will pass this test. */
     BLI_assert(gobject_hash->lookup_default(cob.ob, nullptr) == &cob);
   }
+#endif
 }
 
 /**
