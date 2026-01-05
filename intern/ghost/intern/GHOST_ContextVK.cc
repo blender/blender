@@ -838,14 +838,13 @@ GHOST_TSuccess GHOST_ContextVK::swapBufferAcquire()
    * to be complete, it is also safe in the callback to clean up resources associated with the next
    * frame.
    */
-  GHOST_Frame &prev_frame_data = frame_data_[render_frame_];
   render_frame_ = (render_frame_ + 1) % frame_data_.size();
   GHOST_Frame &submission_frame_data = frame_data_[render_frame_];
   /* Wait for previous time that the frame was used to finish rendering. Presenting can
    * still happen in parallel, but acquiring needs can only happen when the frame acquire semaphore
    * has been signaled and waited for. */
-  if (prev_frame_data.submission_fence) {
-    vkWaitForFences(vk_device, 1, &prev_frame_data.submission_fence, true, UINT64_MAX);
+  if (submission_frame_data.submission_fence) {
+    vkWaitForFences(vk_device, 1, &submission_frame_data.submission_fence, true, UINT64_MAX);
   }
   for (VkSwapchainKHR swapchain : submission_frame_data.discard_pile.swapchains) {
     this->destroySwapchainPresentFences(swapchain);
@@ -1341,11 +1340,14 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain(bool use_hdr_swapchain)
     return GHOST_kFailure;
   }
 
-  /* We let the WSI implementation define the amount of buffers, we can assume only one frame is
-   * free at any one time, but we need 2 free frames to reduce jitter */
-  uint32_t image_count_requested = capabilities.minImageCount + 1;
+  /* Use double buffering when using FIFO. Increasing the number of images could stall when doing
+   * actions that require low latency (paint cursor, UI resizing). MAILBOX prefers triple
+   * buffering. */
+  uint32_t image_count_requested = present_mode == VK_PRESENT_MODE_MAILBOX_KHR ? 3 : 2;
   /* NOTE: maxImageCount == 0 means no limit. */
-
+  if (capabilities.minImageCount != 0 && image_count_requested < capabilities.minImageCount) {
+    image_count_requested = capabilities.minImageCount;
+  }
   if (capabilities.maxImageCount != 0 && image_count_requested > capabilities.maxImageCount) {
     image_count_requested = capabilities.maxImageCount;
   }
