@@ -3521,6 +3521,7 @@ static void mesh_data_to_grease_pencil(const Mesh &mesh_eval,
   });
 
   BKE_defgroup_copy_list(&grease_pencil.vertex_group_names, &mesh_copied->vertex_group_names);
+  grease_pencil.vertex_group_active_index = mesh_copied->vertex_group_active_index;
 
   curves.radius_for_write().fill(stroke_radius);
 
