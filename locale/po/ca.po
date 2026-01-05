@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'edd300f2e755')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-29 09:32+0000\n"
-"PO-Revision-Date: 2025-12-26 13:01+0000\n"
+"POT-Creation-Date: 2026-01-05 11:52+0000\n"
+"PO-Revision-Date: 2026-01-05 05:12+0000\n"
 "Last-Translator: Joan Pujolar <joan.pujolar@gmail.com>\n"
 "Language-Team: Catalan <https://translate.blender.org/projects/blender-ui/ui/ca/>\n"
 "Language: ca\n"
@@ -328,7 +328,7 @@ msgstr "[Action slot]: Identificador per a un conjunt de canals d'aquesta Acció
 
 
 msgid "Active"
-msgstr "Actiu"
+msgstr "Actiu -iva"
 
 
 msgid "Whether this is the active slot, can be set by assigning to action.slots.active"
@@ -16814,7 +16814,7 @@ msgstr "Selecciona arestes destacades que no satisfan les condicions del tipus d
 
 
 msgid "Border"
-msgstr "Exterior"
+msgstr "Limítrofes"
 
 
 msgid "Exclude border edges"
@@ -17198,7 +17198,7 @@ msgstr "[Suggestive Contours]: Habilita contorns suggestius"
 
 
 msgid "View Map Cache"
-msgstr "Caché de mapa de visionat"
+msgstr "Cache de mapa de visionat"
 
 
 msgid "Keep the computed view map and avoid recalculating it if mesh geometry is unchanged"
@@ -19227,7 +19227,7 @@ msgstr "Arrossegar"
 
 msgctxt "Brush"
 msgid "Push"
-msgstr "Empènyer"
+msgstr "Empenta"
 
 
 msgctxt "Brush"
@@ -34950,12 +34950,152 @@ msgid "Editor menu containing buttons"
 msgstr "El menú d'edició que conté els botons"
 
 
-msgid "Assign Material"
-msgstr "Assignar material"
+msgid "Show/Hide"
+msgstr "Mostrar/amagar"
+
+
+msgid "Names"
+msgstr "Noms"
+
+
+msgid "Bone Roll"
+msgstr "Girar os"
+
+
+msgid "Math"
+msgstr "Matemàtica"
+
+
+msgid "Utilities"
+msgstr "Utensilis"
+
+
+msgid "Clean Up"
+msgstr "Netejar"
+
+
+msgid "Pivot Point"
+msgstr "Punt de pivot"
+
+
+msgid "Snap"
+msgstr "Acoblament"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Decaïment a l'edició proporcional"
+
+
+msgid "Mask Edit"
+msgstr "Edició de màscares"
+
+
+msgid "Automasking"
+msgstr "Autoemmascarament"
+
+
+msgid "Read"
+msgstr "Lectura"
+
+
+msgid "Sample"
+msgstr "Mostreig"
+
+
+msgid "Face Sets Edit"
+msgstr "Edició de jocs de cares"
+
+
+msgid "Write"
+msgstr "Escriptura"
+
+
+msgid "Vertex Group Locks"
+msgstr "Blocatges de grup de vèrtexs"
+
+
+msgid "Primitives"
+msgstr "Primitius"
+
+
+msgid "Gizmo"
+msgstr "Flòstic"
+
+
+msgid "Instances"
+msgstr "Instàncies"
+
+
+msgid "Import"
+msgstr "Importar"
+
+
+msgid "Mirror"
+msgstr "Emmirallar"
+
+
+msgid "UV Mapping"
+msgstr "Mapejat UV"
+
+
+msgid "Local View"
+msgstr "Vista local"
+
+
+msgid "Viewpoint"
+msgstr "Punt de vista"
+
+
+msgid "Navigation"
+msgstr "Navegació"
+
+
+msgid "Deprecated"
+msgstr "Obsolet"
+
+
+msgid "Align View"
+msgstr "Alinear vista"
+
+
+msgid "Align View to Active"
+msgstr "Alinear vista a actiu"
+
+
+msgid "View Regions"
+msgstr "Regions de visionat"
 
 
 msgid "Select More/Less"
 msgstr "Seleccionar més/menys"
+
+
+msgid "List"
+msgstr "Llistar"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Select Similar"
+msgstr "Seleccionar similar"
+
+
+msgid "Select All by Trait"
+msgstr "Seleccionar tot per trets"
+
+
+msgid "Select Linked"
+msgstr "Seleccionar connectats"
+
+
+msgid "Select Loops"
+msgstr "Seleccionar bucles"
+
+
+msgid "Assign Material"
+msgstr "Assignar material"
 
 
 msgid "Metaball"
@@ -34994,14 +35134,6 @@ msgid "Quick Effects"
 msgstr "Efectes ràpids"
 
 
-msgid "Show/Hide"
-msgstr "Mostrar/amagar"
-
-
-msgid "Clean Up"
-msgstr "Netejar"
-
-
 msgid "Asset"
 msgstr "Recurs"
 
@@ -35022,14 +35154,6 @@ msgid "Hooks"
 msgstr "Ganxos"
 
 
-msgid "Layout"
-msgstr "Disposició"
-
-
-msgid "Vertex Group Locks"
-msgstr "Blocatges de grup de vèrtexs"
-
-
 msgid "Trim/Add"
 msgstr "Retallar/afegir"
 
@@ -35042,12 +35166,12 @@ msgid "Face Sets Init"
 msgstr "Jocs de cares inicials"
 
 
+msgid "Layout"
+msgstr "Disposició"
+
+
 msgid "Random Mask"
 msgstr "Màscara aleatòria"
-
-
-msgid "Adjust"
-msgstr "Ajustament"
 
 
 msgid "Clear Transform"
@@ -35062,32 +35186,12 @@ msgid "Propagate"
 msgstr "Propagar"
 
 
-msgid "Keying"
-msgstr "Croma"
-
-
 msgid "Bone Collections"
 msgstr "Col·leccions d'ossos"
 
 
-msgid "Tracking"
-msgstr "Trajectòria"
-
-
-msgid "Names"
-msgstr "Noms"
-
-
-msgid "Utilities"
-msgstr "Utensilis"
-
-
-msgid "Math"
-msgstr "Matemàtica"
-
-
-msgid "Creative"
-msgstr "Creatiu"
+msgid "Adjust"
+msgstr "Ajustament"
 
 
 msgid "Toggle Bone Options"
@@ -35098,8 +35202,16 @@ msgid "Enable Bone Options"
 msgstr "Habilitar opcions de l'os"
 
 
+msgid "Keying"
+msgstr "Croma"
+
+
 msgid "Disable Bone Options"
 msgstr "Deshabilitar opcions d'ossos"
+
+
+msgid "Tracking"
+msgstr "Trajectòria"
 
 
 msgid "Mesh Select Mode"
@@ -35110,6 +35222,10 @@ msgid "Face Data"
 msgstr "Dades de cares"
 
 
+msgid "Creative"
+msgstr "Creatiu"
+
+
 msgid "Select by Face Strength"
 msgstr "Seleccionar segons força de cara"
 
@@ -35118,12 +35234,12 @@ msgid "Set Face Strength"
 msgstr "Definir força de cara"
 
 
-msgid "Render Preview"
-msgstr "Previsionat de revelat"
-
-
 msgid "Merge"
 msgstr "Fusionar"
+
+
+msgid "Render Preview"
+msgstr "Previsionat de revelat"
 
 
 msgid "Special Characters"
@@ -35132,122 +35248,6 @@ msgstr "Caràcters especials"
 
 msgid "Kerning"
 msgstr "Interlletratge"
-
-
-msgid "Bone Roll"
-msgstr "Girar os"
-
-
-msgid "Read"
-msgstr "Lectura"
-
-
-msgid "Sample"
-msgstr "Mostreig"
-
-
-msgid "Write"
-msgstr "Escriptura"
-
-
-msgid "Primitives"
-msgstr "Primitius"
-
-
-msgid "Pivot Point"
-msgstr "Punt de pivot"
-
-
-msgid "Snap"
-msgstr "Acoblament"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Decaïment a l'edició proporcional"
-
-
-msgid "Mask Edit"
-msgstr "Edició de màscares"
-
-
-msgid "Automasking"
-msgstr "Autoemmascarament"
-
-
-msgid "Face Sets Edit"
-msgstr "Edició de jocs de cares"
-
-
-msgid "Gizmo"
-msgstr "Flòstic"
-
-
-msgid "Instances"
-msgstr "Instàncies"
-
-
-msgid "Import"
-msgstr "Importar"
-
-
-msgid "Deprecated"
-msgstr "Obsolet"
-
-
-msgid "Mirror"
-msgstr "Emmirallar"
-
-
-msgid "UV Mapping"
-msgstr "Mapejat UV"
-
-
-msgid "List"
-msgstr "Llistar"
-
-
-msgid "Local View"
-msgstr "Vista local"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Viewpoint"
-msgstr "Punt de vista"
-
-
-msgid "Navigation"
-msgstr "Navegació"
-
-
-msgid "Align View"
-msgstr "Alinear vista"
-
-
-msgid "Align View to Active"
-msgstr "Alinear vista a actiu"
-
-
-msgid "View Regions"
-msgstr "Regions de visionat"
-
-
-msgid "Select Similar"
-msgstr "Seleccionar similar"
-
-
-msgid "Select All by Trait"
-msgstr "Seleccionar tot per trets"
-
-
-msgid "Select Linked"
-msgstr "Seleccionar connectats"
-
-
-msgid "Select Loops"
-msgstr "Seleccionar bucles"
 
 
 msgid "Keyframe Insert Pie"
@@ -41967,7 +41967,7 @@ msgstr "[Soft Body Modifier]: Modificador de simulació de cos tou"
 
 
 msgid "Soft Body Point Cache"
-msgstr "Caché de punts de cos tou"
+msgstr "Cache de punts de cos tou"
 
 
 msgid "Solidify Modifier"
@@ -54550,7 +54550,7 @@ msgstr "[Quick Fur]: Afegir una configuració de pelatge als objectes selecciona
 
 msgctxt "Operator"
 msgid "Quick Fur"
-msgstr "Pelam ràpid"
+msgstr "Pelatge ràpid"
 
 
 msgid "Make selected objects liquid"
@@ -61469,6 +61469,14 @@ msgstr "Euler (ZYX)"
 
 msgid "Convert rotations to euler ZYX"
 msgstr "Convertir les rotacions a euler ZYX"
+
+
+msgid "Sort Children By Name"
+msgstr "Ordenar els fills per nom"
+
+
+msgid "Sort the children of each bone alphabetically"
+msgstr "[Sort Children By Name]: Ordena alfabèticament els fills de cada os"
 
 
 msgid "Add Leaf Bones"
@@ -76324,7 +76332,7 @@ msgstr "Precuinar memòria cau sobre tots els objectes seleccionats"
 
 msgctxt "Operator"
 msgid "Calculate Simulation to Frame"
-msgstr "Calcular simulació a fotograma"
+msgstr "Calcular simulació fins a fotograma"
 
 
 msgid "Calculate simulations in geometry nodes modifiers from the start to current frame"
@@ -82424,10 +82432,6 @@ msgstr "Projectar a línia amb el gest"
 
 msgid "Project the geometry onto a plane defined by a line"
 msgstr "[Project Line Gesture]: Projecta la geometria sobre un pla definit per una línia"
-
-
-msgid "Sample the vertex color of the active vertex"
-msgstr "Pescar el color de vèrtex del vèrtex actiu"
 
 
 msgctxt "Operator"
@@ -91755,34 +91759,6 @@ msgid "Panel containing UI elements"
 msgstr "Plafó que conté elements de la IU"
 
 
-msgid "Auto-Masking"
-msgstr "Autoemmascarament"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Afegir opcions de corbes a l'escultura amb corba"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Paràmetre de decaïment d'escultura amb corba"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "Engrandir/encongir escala de corbes"
-
-
-msgid "Viewport Debug"
-msgstr "Depuració de mirador"
-
-
-msgid "VR"
-msgstr "RV"
-
-
-msgid "VR Info"
-msgstr "Info RV"
-
-
 msgid "glTF Variants"
 msgstr "Variants glTF"
 
@@ -91897,6 +91873,34 @@ msgstr "Estereoscòpia"
 
 msgid "Multi Frame"
 msgstr "Multifotograma"
+
+
+msgid "Auto-Masking"
+msgstr "Autoemmascarament"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Afegir opcions de corbes a l'escultura amb corba"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Paràmetre de decaïment d'escultura amb corba"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "Engrandir/encongir escala de corbes"
+
+
+msgid "Viewport Debug"
+msgstr "Depuració de mirador"
+
+
+msgid "VR"
+msgstr "RV"
+
+
+msgid "VR Info"
+msgstr "Info RV"
 
 
 msgid "Import Settings"
@@ -95698,7 +95702,7 @@ msgstr "Nombre màxim de documents recents a recordar"
 
 
 msgid "Render Cache Path"
-msgstr "Ruta a caché de revelat"
+msgstr "Ruta a cache de revelat"
 
 
 msgid "Where to cache raw render results"
@@ -97255,10 +97259,6 @@ msgid "Indonesian - Bahasa indonesia"
 msgstr "Indonesi - Bahasa indonesia"
 
 
-msgid "Locale code: id_ID. Translation progress: 21%"
-msgstr "Codi de localització: id_ID. Progrés de la traducció: 21%"
-
-
 msgid "Italian - Italiano"
 msgstr "Italià - Italiano"
 
@@ -97341,6 +97341,10 @@ msgstr "Codi de localització: pt_BR. Progrés de la traducció: 43%"
 
 msgid "Portuguese (Portugal) - Português europeu"
 msgstr "Portuguès (Portugal) - Portuguès europeu"
+
+
+msgid "Locale code: pt_PT. Translation progress: 74%"
+msgstr "Codi de localització: pt_PT. Progrés de la traducció: 74%"
 
 
 msgid "Romanian - Român"
@@ -102324,11 +102328,11 @@ msgstr "[Placeholders]: Crea documents lloc-tinents buits mentre es revelen els 
 
 
 msgid "Cache Result"
-msgstr "Resultat en caché"
+msgstr "Resultat en cache"
 
 
 msgid "Save render cache to EXR files (useful for heavy compositing, Note: affects indirectly rendered scenes)"
-msgstr "[Cache Result]: Desa el chaché del revelat en documents EXR (útil per a compositació intensa, Nota: afecta indirectament les escenes revelades)"
+msgstr "[Cache Result]: Desa el chache del revelat en documents EXR (útil per a compositació intensa, Nota: afecta indirectament les escenes revelades)"
 
 
 msgid "Process the render (and composited) result through the video sequence editor pipeline, if sequencer strips exist"
@@ -105016,7 +105020,7 @@ msgstr "Deformació permanent"
 
 
 msgid "Pull"
-msgstr "Estirar"
+msgstr "Estirament"
 
 
 msgid "Edge spring stiffness when longer than rest length"
@@ -105024,7 +105028,7 @@ msgstr "Rigidesa dels tensors d'aresta quan són més llargs que la longitud de 
 
 
 msgid "Push"
-msgstr "Empènyer"
+msgstr "Empenta"
 
 
 msgid "Edge spring stiffness when shorter than rest length"
@@ -123349,12 +123353,12 @@ msgstr "Fer base"
 
 msgctxt "Operator"
 msgid "Apply All"
-msgstr "Aplicar-ho tot"
+msgstr "Aplicar-les totes"
 
 
 msgctxt "Operator"
 msgid "Delete All"
-msgstr "Eliminar-ho tot"
+msgstr "Eliminar-les totes"
 
 
 msgctxt "Operator"
@@ -124304,7 +124308,7 @@ msgstr "Precuinar (obligatori en memòria cau de disc)"
 
 msgctxt "Operator"
 msgid "Calculate to Frame"
-msgstr "Calcular a fotograma"
+msgstr "Calcular fins a fotograma"
 
 
 msgctxt "Operator"
@@ -124314,7 +124318,7 @@ msgstr "Precuinar totes les dinàmiques"
 
 msgctxt "Operator"
 msgid "Update All to Frame"
-msgstr "Actualitzar tot a fotogrames"
+msgstr "Actualitzar-ho tot fins al fotograma"
 
 
 msgid "Cache is disabled until the file is saved"
@@ -124634,7 +124638,7 @@ msgstr "Memòria cau"
 
 
 msgid "Calculate Selected to Frame"
-msgstr "Calcular selecció a fotograma"
+msgstr "Calcular selecció fins a fotograma"
 
 
 msgid "Bake Selected"
@@ -124642,7 +124646,7 @@ msgstr "Precuinar seleccionats"
 
 
 msgid "Calculate to Frame"
-msgstr "Calcular a fotograma"
+msgstr "Calcular fins a fotograma"
 
 
 msgid "Damping Translation"
@@ -127774,7 +127778,7 @@ msgstr "Egressió de revelat"
 
 
 msgid "Render Cache"
-msgstr "Caché de revelat"
+msgstr "Cache de revelat"
 
 
 msgid "Program"
@@ -128310,7 +128314,7 @@ msgstr "Pèl buit"
 
 msgctxt "Operator"
 msgid "Fur"
-msgstr "Pelam"
+msgstr "Pelatge"
 
 
 msgctxt "Operator"
@@ -132072,6 +132076,10 @@ msgstr "Les anelles-aresta no estan connectades"
 
 msgid "color_index is invalid"
 msgstr "color_index no vàlid"
+
+
+msgid "Compositor node tree has cyclic links."
+msgstr "L'arbre de nodes del compositador té enllaços cíclics."
 
 
 msgid "Error: Too many AOVs"
@@ -137299,7 +137307,7 @@ msgstr "Els blocs de dades vinculats o de sobreseïment de biblioteca no permete
 
 
 msgid "Baking point cache..."
-msgstr "Precuinat caché de punts..."
+msgstr "Precuinat de cache de punts..."
 
 
 msgid "No Rigid Body World to add Rigid Body Constraint to"

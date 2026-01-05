@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'edd300f2e755')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-29 09:32+0000\n"
-"PO-Revision-Date: 2025-12-22 05:18+0000\n"
-"Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
+"POT-Creation-Date: 2026-01-05 11:52+0000\n"
+"PO-Revision-Date: 2026-01-05 05:12+0000\n"
+"Last-Translator: 居樂行 <oscilloscope9705@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
 "Language: zh_HANT\n"
 "MIME-Version: 1.0\n"
@@ -1003,7 +1003,7 @@ msgstr "起始影格"
 
 
 msgid "Frame Step"
-msgstr "幀步"
+msgstr "影格步長"
 
 
 msgid "Number of frames between paths shown (not for 'On Keyframes' Onion-skinning method)"
@@ -1419,7 +1419,7 @@ msgstr "螢幕底部供一般狀態資訊使用的全域橫列"
 
 
 msgid "Outliner"
-msgstr "大綱管理器"
+msgstr "大綱編輯器"
 
 
 msgid "Overview of scene graph and all available data-blocks"
@@ -1972,7 +1972,7 @@ msgstr "位元組色彩"
 
 
 msgid "Domain"
-msgstr "領域"
+msgstr "域"
 
 
 msgid "Domain of the Attribute"
@@ -1988,7 +1988,7 @@ msgstr "點的特性"
 
 
 msgid "Edge"
-msgstr "邊線"
+msgstr "邊"
 
 
 msgid "Attribute on mesh edge"
@@ -3194,7 +3194,7 @@ msgstr "群集個體規則名稱"
 
 
 msgid "Goal"
-msgstr "目的"
+msgstr "目標"
 
 
 msgid "Go to assigned object or loudest assigned signal source"
@@ -4731,7 +4731,7 @@ msgstr "使用感壓來調整隨機值"
 
 
 msgid "Outline"
-msgstr "外框"
+msgstr "輪廓線"
 
 
 msgid "Use Post-Process Settings"
@@ -6532,7 +6532,7 @@ msgstr "變更變換的樞紐點 (本功能仍為試驗性質)"
 
 
 msgid "Shrinkwrap"
-msgstr "收縮"
+msgstr "緊縮包覆"
 
 
 msgid "Restrict movements to surface of target mesh"
@@ -10180,6 +10180,10 @@ msgid "Lowest Quality"
 msgstr "最低品質"
 
 
+msgid "CRF"
+msgstr "CRF"
+
+
 msgid "Encoding Speed"
 msgstr "編碼速度"
 
@@ -12239,6 +12243,10 @@ msgid "Collision"
 msgstr "碰撞"
 
 
+msgid "Guide"
+msgstr "引導"
+
+
 msgid "Guiding mode"
 msgstr "引導模式"
 
@@ -12562,7 +12570,7 @@ msgstr "排除皺摺邊線"
 
 
 msgid "Edge Mark"
-msgstr "邊線標記"
+msgstr "邊標記"
 
 
 msgid "Exclude edge marks"
@@ -13806,7 +13814,7 @@ msgstr "筆刷半徑"
 
 
 msgid "Loop"
-msgstr "迴圈"
+msgstr "循環"
 
 
 msgid "Boundary Origin Offset"
@@ -16686,6 +16694,10 @@ msgid "Light color"
 msgstr "燈光色彩"
 
 
+msgid "Diffuse Factor"
+msgstr "漫射係數"
+
+
 msgid "Normalize"
 msgstr "歸一化"
 
@@ -16863,6 +16875,10 @@ msgstr "解析度 X"
 
 msgid "Resolution Y"
 msgstr "解析度 Y"
+
+
+msgid "Resolution Z"
+msgstr "解析度 Z"
 
 
 msgid "Surface Offset"
@@ -17155,6 +17171,10 @@ msgstr "網格的邊線"
 
 msgid "Has Custom Normals"
 msgstr "有自訂法線"
+
+
+msgid "Triangle Faces"
+msgstr "三角面"
 
 
 msgid "Loops"
@@ -18006,6 +18026,10 @@ msgstr "四元數的旋轉"
 
 msgid "Scaling of the object"
 msgstr "物體的縮放"
+
+
+msgid "Shader Effects"
+msgstr "著色器效果"
 
 
 msgid "Display all edges for mesh objects"
@@ -21159,7 +21183,7 @@ msgstr "多層影像中的層"
 
 
 msgid "Pass"
-msgstr "通遞"
+msgstr "通道"
 
 
 msgid "Pass in multilayer image"
@@ -21973,7 +21997,7 @@ msgstr "數字鍵盤 Enter"
 
 
 msgid "PadEnter"
-msgstr "PadEnter"
+msgstr "數字鍵盤 Enter"
 
 
 msgctxt "UI_Events_KeyMaps"
@@ -23966,8 +23990,124 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
+msgid "Show/Hide"
+msgstr "顯示/隱藏"
+
+
+msgid "Names"
+msgstr "名稱"
+
+
+msgid "Bone Roll"
+msgstr "骨骼滾動"
+
+
+msgid "Math"
+msgstr "數學公式"
+
+
+msgid "Utilities"
+msgstr "效用"
+
+
+msgid "Clean Up"
+msgstr "清理"
+
+
+msgid "Pivot Point"
+msgstr "樞紐點"
+
+
+msgid "Snap"
+msgstr "吸附"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "比例化編輯衰落"
+
+
+msgid "Mask Edit"
+msgstr "遮罩編輯"
+
+
+msgid "Automasking"
+msgstr "自動遮罩"
+
+
+msgid "Read"
+msgstr "讀取"
+
+
+msgid "Sample"
+msgstr "取樣"
+
+
+msgid "Face Sets Edit"
+msgstr "面集編輯"
+
+
+msgid "Write"
+msgstr "寫入"
+
+
+msgid "Primitives"
+msgstr "原形"
+
+
+msgid "Instances"
+msgstr "實例化"
+
+
+msgid "Import"
+msgstr "匯入"
+
+
+msgid "Mirror"
+msgstr "鏡像"
+
+
+msgid "UV Mapping"
+msgstr "UV 映射處理"
+
+
+msgid "Local View"
+msgstr "區域檢視"
+
+
+msgid "Viewpoint"
+msgstr "視點"
+
+
+msgid "Navigation"
+msgstr "導覽"
+
+
+msgid "Align View"
+msgstr "對齊檢視"
+
+
+msgid "Align View to Active"
+msgstr "對齊檢視至作用項"
+
+
+msgid "View Regions"
+msgstr "檢視範圍"
+
+
 msgid "Select More/Less"
 msgstr "選取更多/更少"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Select Similar"
+msgstr "選取相似者"
+
+
+msgid "Select Linked"
+msgstr "選取連結項"
 
 
 msgid "Metaball"
@@ -24006,14 +24146,6 @@ msgid "Quick Effects"
 msgstr "快速效果"
 
 
-msgid "Show/Hide"
-msgstr "顯示/隱藏"
-
-
-msgid "Clean Up"
-msgstr "清理"
-
-
 msgid "Asset"
 msgstr "素材"
 
@@ -24034,20 +24166,16 @@ msgid "Hooks"
 msgstr "鉤"
 
 
-msgid "Layout"
-msgstr "配置"
-
-
 msgid "Face Sets Init"
 msgstr "面集初始化"
 
 
+msgid "Layout"
+msgstr "配置"
+
+
 msgid "Random Mask"
 msgstr "隨機遮罩"
-
-
-msgid "Adjust"
-msgstr "調整"
 
 
 msgid "Clear Transform"
@@ -24062,28 +24190,12 @@ msgid "Propagate"
 msgstr "增生"
 
 
-msgid "Keying"
-msgstr "鍵處理"
-
-
 msgid "Bone Collections"
 msgstr "骨骼集盒"
 
 
-msgid "Tracking"
-msgstr "跟蹤"
-
-
-msgid "Names"
-msgstr "名稱"
-
-
-msgid "Utilities"
-msgstr "效用"
-
-
-msgid "Math"
-msgstr "數學公式"
+msgid "Adjust"
+msgstr "調整"
 
 
 msgid "Toggle Bone Options"
@@ -24094,8 +24206,16 @@ msgid "Enable Bone Options"
 msgstr "啟用骨骼設定"
 
 
+msgid "Keying"
+msgstr "鍵處理"
+
+
 msgid "Disable Bone Options"
 msgstr "停用骨骼設定"
+
+
+msgid "Tracking"
+msgstr "跟蹤"
 
 
 msgid "Mesh Select Mode"
@@ -24106,12 +24226,12 @@ msgid "Face Data"
 msgstr "面資料"
 
 
-msgid "Render Preview"
-msgstr "算繪預覽"
-
-
 msgid "Merge"
 msgstr "合併"
+
+
+msgid "Render Preview"
+msgstr "算繪預覽"
 
 
 msgid "Special Characters"
@@ -24120,102 +24240,6 @@ msgstr "特殊字元"
 
 msgid "Kerning"
 msgstr "字間微調"
-
-
-msgid "Bone Roll"
-msgstr "骨骼滾動"
-
-
-msgid "Read"
-msgstr "讀取"
-
-
-msgid "Sample"
-msgstr "取樣"
-
-
-msgid "Write"
-msgstr "寫入"
-
-
-msgid "Primitives"
-msgstr "原形"
-
-
-msgid "Pivot Point"
-msgstr "樞紐點"
-
-
-msgid "Snap"
-msgstr "吸附"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "比例化編輯衰落"
-
-
-msgid "Mask Edit"
-msgstr "遮罩編輯"
-
-
-msgid "Automasking"
-msgstr "自動遮罩"
-
-
-msgid "Face Sets Edit"
-msgstr "面集編輯"
-
-
-msgid "Instances"
-msgstr "實例化"
-
-
-msgid "Import"
-msgstr "匯入"
-
-
-msgid "Mirror"
-msgstr "鏡像"
-
-
-msgid "UV Mapping"
-msgstr "UV 映射處理"
-
-
-msgid "Local View"
-msgstr "區域檢視"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Viewpoint"
-msgstr "視點"
-
-
-msgid "Navigation"
-msgstr "導覽"
-
-
-msgid "Align View"
-msgstr "對齊檢視"
-
-
-msgid "Align View to Active"
-msgstr "對齊檢視至作用項"
-
-
-msgid "View Regions"
-msgstr "檢視範圍"
-
-
-msgid "Select Similar"
-msgstr "選取相似者"
-
-
-msgid "Select Linked"
-msgstr "選取連結項"
 
 
 msgid "Basic"
@@ -24366,7 +24390,7 @@ msgstr "軌道"
 
 
 msgid "Node"
-msgstr "節點"
+msgstr "結點"
 
 
 msgctxt "NodeTree"
@@ -26884,6 +26908,10 @@ msgstr "評估時間單位為秒"
 
 msgid "Fixed Frame"
 msgstr "固定影格"
+
+
+msgid "Chain"
+msgstr "鏈"
 
 
 msgid "Custom Range"
@@ -30033,7 +30061,7 @@ msgstr "Cryptomatte"
 
 
 msgid "Placeholder"
-msgstr "佔位子"
+msgstr "佔位符"
 
 
 msgid "Use Object layer"
@@ -30197,7 +30225,7 @@ msgstr "影像資訊"
 
 
 msgid "Inpaint"
-msgstr "內繪"
+msgstr "修補"
 
 
 msgid "Keying Screen"
@@ -30861,6 +30889,10 @@ msgstr "儲存並命名屬性"
 
 msgid "Double precision"
 msgstr "雙倍精度"
+
+
+msgid "64-bit integer"
+msgstr "64位元整數"
 
 
 msgid "No data, boolean mask of active voxels"
@@ -32207,6 +32239,10 @@ msgid "Collection Node Socket"
 msgstr "集盒節點接口"
 
 
+msgid "Collection socket of a node"
+msgstr "節點的集盒接口"
+
+
 msgid "Color Node Socket"
 msgstr "色彩節點接口"
 
@@ -32223,8 +32259,20 @@ msgid "Floating-point number socket of a node"
 msgstr "節點的浮點數接口"
 
 
+msgid "Font Node Socket"
+msgstr "字型節點接口"
+
+
+msgid "Font socket of a node"
+msgstr "節點的字型接口"
+
+
 msgid "Geometry Node Socket"
 msgstr "幾何節點接口"
+
+
+msgid "Geometry socket of a node"
+msgstr "節點的幾何接口"
 
 
 msgid "Image Node Socket"
@@ -32239,24 +32287,60 @@ msgid "Integer number socket of a node"
 msgstr "節點的整數接口"
 
 
+msgid "Mask Node Socket"
+msgstr "遮罩節點接口"
+
+
+msgid "Mask socket of a node"
+msgstr "節點的遮罩接口"
+
+
 msgid "Material Node Socket"
 msgstr "材質節點接口"
+
+
+msgid "Material socket of a node"
+msgstr "節點的材質接口"
 
 
 msgid "Matrix Node Socket"
 msgstr "矩陣節點接口"
 
 
+msgid "Matrix value socket of a node"
+msgstr "節點的矩陣值接口"
+
+
 msgid "Menu Node Socket"
 msgstr "選單節點接口"
+
+
+msgid "Menu socket of a node"
+msgstr "節點的選單接口"
 
 
 msgid "Object Node Socket"
 msgstr "物體節點接口"
 
 
+msgid "Object socket of a node"
+msgstr "節點的物體接口"
+
+
 msgid "Rotation Node Socket"
 msgstr "旋轉節點接口"
+
+
+msgid "Rotation value socket of a node"
+msgstr "節點的旋轉值接口"
+
+
+msgid "Scene Node Socket"
+msgstr "場景節點接口"
+
+
+msgid "Scene socket of a node"
+msgstr "節點的場景接口"
 
 
 msgid "Shader Node Socket"
@@ -32267,6 +32351,14 @@ msgid "Shader socket of a node"
 msgstr "節點的著色器接口"
 
 
+msgid "Sound Node Socket"
+msgstr "聲音節點接口"
+
+
+msgid "Sound socket of a node"
+msgstr "節點的聲音接口"
+
+
 msgid "String Node Socket"
 msgstr "字串節點接口"
 
@@ -32275,8 +32367,20 @@ msgid "String socket of a node"
 msgstr "節點的字串接口"
 
 
+msgid "Text Node Socket"
+msgstr "文字節點接口"
+
+
+msgid "Text socket of a node"
+msgstr "節點的文字接口"
+
+
 msgid "Texture Node Socket"
 msgstr "紋理節點接口"
+
+
+msgid "Texture socket of a node"
+msgstr "節點的紋理接口"
 
 
 msgid "Vector Node Socket"
@@ -43291,6 +43395,11 @@ msgstr "混合"
 
 
 msgctxt "NodeTree"
+msgid "Difference"
+msgstr "差集"
+
+
+msgctxt "NodeTree"
 msgid "Darken"
 msgstr "變暗"
 
@@ -52754,7 +52863,7 @@ msgstr "作為油印蠟紙的影像"
 
 
 msgid "Cull"
-msgstr "淘選"
+msgstr "剔除"
 
 
 msgid "Ignore faces pointing away from the view (faster)"
@@ -52893,18 +53002,6 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
-msgid "Auto-Masking"
-msgstr "自動遮罩"
-
-
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR 資訊"
-
-
 msgid "glTF Variants"
 msgstr "glTF 變體"
 
@@ -53007,6 +53104,18 @@ msgstr "立體視覺"
 
 msgid "Multi Frame"
 msgstr "多重畫框"
+
+
+msgid "Auto-Masking"
+msgstr "自動遮罩"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR 資訊"
 
 
 msgid "Import Settings"
@@ -57890,6 +57999,26 @@ msgstr "光線追蹤管線的品質設定"
 
 msgid "Temporal Accumulation"
 msgstr "時序累積"
+
+
+msgid "1:1"
+msgstr "1:1"
+
+
+msgid "1:2"
+msgstr "1:2"
+
+
+msgid "1:4"
+msgstr "1:4"
+
+
+msgid "1:8"
+msgstr "1:8"
+
+
+msgid "1:16"
+msgstr "1:16"
 
 
 msgid "Read-only Integer"
@@ -67050,7 +67179,7 @@ msgstr "索引"
 
 
 msgid "Pipeline"
-msgstr "管線"
+msgstr "流程"
 
 
 msgid "Show In"
@@ -68497,6 +68626,10 @@ msgstr "片段名稱"
 
 msgid "Buffer"
 msgstr "緩衝"
+
+
+msgid "{:.4g} fps"
+msgstr "{:.4g} fps"
 
 
 msgid "Inch"
@@ -70037,6 +70170,16 @@ msgstr "全部重新整理"
 msgctxt "Operator"
 msgid "Path/Files"
 msgstr "路徑/檔案"
+
+
+msgctxt "Operator"
+msgid "Movie"
+msgstr "影片"
+
+
+msgctxt "Operator"
+msgid "Image/Sequence"
+msgstr "影像/序列"
 
 
 msgctxt "Operator"
@@ -72095,6 +72238,10 @@ msgid "Smooth Points"
 msgstr "平滑點"
 
 
+msgid "Multiframe"
+msgstr "多重影格"
+
+
 msgctxt "View3D"
 msgid "Mix"
 msgstr "混合"
@@ -72562,7 +72709,7 @@ msgstr "重構"
 
 
 msgid "ShapeKey"
-msgstr "外形鍵"
+msgstr "形狀鍵"
 
 
 msgid "Int8"
@@ -79164,6 +79311,10 @@ msgid "Element"
 msgstr "元素"
 
 
+msgid "BFECC"
+msgstr "BFECC"
+
+
 msgid "Background Value"
 msgstr "背景值"
 
@@ -80374,7 +80525,7 @@ msgstr "類比 IMAX"
 
 
 msgid "Fullframe"
-msgstr "全片幅"
+msgstr "全幅"
 
 
 msgid "MFT"
@@ -80813,6 +80964,18 @@ msgstr "ACES 2.0"
 
 msgid "AgX"
 msgstr "AgX"
+
+
+msgid "ACES 1.3 - SDR"
+msgstr "ACES 1.3 - SDR"
+
+
+msgid "ACES 2.0 - SDR"
+msgstr "ACES 2.0 - SDR"
+
+
+msgid "AgX - SDR"
+msgstr "AgX - SDR"
 
 
 msgid "Curve Sculpt"

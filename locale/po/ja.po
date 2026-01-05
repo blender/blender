@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'edd300f2e755')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-29 09:32+0000\n"
+"POT-Creation-Date: 2026-01-05 11:52+0000\n"
 "PO-Revision-Date: 2025-12-15 18:48+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
@@ -35426,12 +35426,152 @@ msgid "Editor menu containing buttons"
 msgstr "ボタンを含むエディターメニュー"
 
 
-msgid "Assign Material"
-msgstr "マテリアルを割り当て"
+msgid "Show/Hide"
+msgstr "表示/隠す"
+
+
+msgid "Names"
+msgstr "名前"
+
+
+msgid "Bone Roll"
+msgstr "ボーンロール"
+
+
+msgid "Math"
+msgstr "数式"
+
+
+msgid "Utilities"
+msgstr "ユーティリティ"
+
+
+msgid "Clean Up"
+msgstr "クリーンアップ"
+
+
+msgid "Pivot Point"
+msgstr "ピボットポイント"
+
+
+msgid "Snap"
+msgstr "スナップ"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "プロポーショナル編集の減衰タイプ"
+
+
+msgid "Mask Edit"
+msgstr "マスク編集"
+
+
+msgid "Automasking"
+msgstr "自動マスク"
+
+
+msgid "Read"
+msgstr "読込"
+
+
+msgid "Sample"
+msgstr "サンプル"
+
+
+msgid "Face Sets Edit"
+msgstr "面セット編集"
+
+
+msgid "Write"
+msgstr "書込"
+
+
+msgid "Vertex Group Locks"
+msgstr "頂点グループのロック"
+
+
+msgid "Primitives"
+msgstr "プリミティブ"
+
+
+msgid "Gizmo"
+msgstr "ギズモ"
+
+
+msgid "Instances"
+msgstr "インスタンス"
+
+
+msgid "Import"
+msgstr "インポート"
+
+
+msgid "Mirror"
+msgstr "ミラー"
+
+
+msgid "UV Mapping"
+msgstr "UVマッピング"
+
+
+msgid "Local View"
+msgstr "ローカルビュー"
+
+
+msgid "Viewpoint"
+msgstr "視点"
+
+
+msgid "Navigation"
+msgstr "視点の操作"
+
+
+msgid "Deprecated"
+msgstr "廃止予定"
+
+
+msgid "Align View"
+msgstr "視点を揃える"
+
+
+msgid "Align View to Active"
+msgstr "アクティブに視点を揃える"
+
+
+msgid "View Regions"
+msgstr "ビュー領域設定"
 
 
 msgid "Select More/Less"
 msgstr "選択の拡大縮小"
+
+
+msgid "List"
+msgstr "リスト"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Select Similar"
+msgstr "類似選択"
+
+
+msgid "Select All by Trait"
+msgstr "特徴で全選択"
+
+
+msgid "Select Linked"
+msgstr "リンク選択"
+
+
+msgid "Select Loops"
+msgstr "ループ選択"
+
+
+msgid "Assign Material"
+msgstr "マテリアルを割り当て"
 
 
 msgid "Metaball"
@@ -35470,14 +35610,6 @@ msgid "Quick Effects"
 msgstr "クイックエフェクト"
 
 
-msgid "Show/Hide"
-msgstr "表示/隠す"
-
-
-msgid "Clean Up"
-msgstr "クリーンアップ"
-
-
 msgid "Asset"
 msgstr "アセット"
 
@@ -35498,14 +35630,6 @@ msgid "Hooks"
 msgstr "フック"
 
 
-msgid "Layout"
-msgstr "レイアウト"
-
-
-msgid "Vertex Group Locks"
-msgstr "頂点グループのロック"
-
-
 msgid "Trim/Add"
 msgstr "トリム/追加"
 
@@ -35518,12 +35642,12 @@ msgid "Face Sets Init"
 msgstr "面セットを初期化"
 
 
+msgid "Layout"
+msgstr "レイアウト"
+
+
 msgid "Random Mask"
 msgstr "ランダムマスク"
-
-
-msgid "Adjust"
-msgstr "調整"
 
 
 msgid "Clear Transform"
@@ -35538,32 +35662,12 @@ msgid "Propagate"
 msgstr "伝播"
 
 
-msgid "Keying"
-msgstr "キーイング"
-
-
 msgid "Bone Collections"
 msgstr "ボーンコレクション"
 
 
-msgid "Tracking"
-msgstr "トラッキング"
-
-
-msgid "Names"
-msgstr "名前"
-
-
-msgid "Utilities"
-msgstr "ユーティリティ"
-
-
-msgid "Math"
-msgstr "数式"
-
-
-msgid "Creative"
-msgstr "クリエイティブ"
+msgid "Adjust"
+msgstr "調整"
 
 
 msgid "Toggle Bone Options"
@@ -35574,8 +35678,16 @@ msgid "Enable Bone Options"
 msgstr "ボーンオプションを有効化"
 
 
+msgid "Keying"
+msgstr "キーイング"
+
+
 msgid "Disable Bone Options"
 msgstr "ボーンオプションを無効化"
+
+
+msgid "Tracking"
+msgstr "トラッキング"
 
 
 msgid "Mesh Select Mode"
@@ -35586,6 +35698,10 @@ msgid "Face Data"
 msgstr "面データ"
 
 
+msgid "Creative"
+msgstr "クリエイティブ"
+
+
 msgid "Select by Face Strength"
 msgstr "面の強さで選択"
 
@@ -35594,12 +35710,12 @@ msgid "Set Face Strength"
 msgstr "面の強さを設定"
 
 
-msgid "Render Preview"
-msgstr "レンダープレビュー"
-
-
 msgid "Merge"
 msgstr "マージ"
+
+
+msgid "Render Preview"
+msgstr "レンダープレビュー"
 
 
 msgid "Special Characters"
@@ -35608,122 +35724,6 @@ msgstr "特殊文字"
 
 msgid "Kerning"
 msgstr "カーニング"
-
-
-msgid "Bone Roll"
-msgstr "ボーンロール"
-
-
-msgid "Read"
-msgstr "読込"
-
-
-msgid "Sample"
-msgstr "サンプル"
-
-
-msgid "Write"
-msgstr "書込"
-
-
-msgid "Primitives"
-msgstr "プリミティブ"
-
-
-msgid "Pivot Point"
-msgstr "ピボットポイント"
-
-
-msgid "Snap"
-msgstr "スナップ"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "プロポーショナル編集の減衰タイプ"
-
-
-msgid "Mask Edit"
-msgstr "マスク編集"
-
-
-msgid "Automasking"
-msgstr "自動マスク"
-
-
-msgid "Face Sets Edit"
-msgstr "面セット編集"
-
-
-msgid "Gizmo"
-msgstr "ギズモ"
-
-
-msgid "Instances"
-msgstr "インスタンス"
-
-
-msgid "Import"
-msgstr "インポート"
-
-
-msgid "Deprecated"
-msgstr "廃止予定"
-
-
-msgid "Mirror"
-msgstr "ミラー"
-
-
-msgid "UV Mapping"
-msgstr "UVマッピング"
-
-
-msgid "List"
-msgstr "リスト"
-
-
-msgid "Local View"
-msgstr "ローカルビュー"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Viewpoint"
-msgstr "視点"
-
-
-msgid "Navigation"
-msgstr "視点の操作"
-
-
-msgid "Align View"
-msgstr "視点を揃える"
-
-
-msgid "Align View to Active"
-msgstr "アクティブに視点を揃える"
-
-
-msgid "View Regions"
-msgstr "ビュー領域設定"
-
-
-msgid "Select Similar"
-msgstr "類似選択"
-
-
-msgid "Select All by Trait"
-msgstr "特徴で全選択"
-
-
-msgid "Select Linked"
-msgstr "リンク選択"
-
-
-msgid "Select Loops"
-msgstr "ループ選択"
 
 
 msgid "Keyframe Insert Pie"
@@ -83064,10 +83064,6 @@ msgid "Project the geometry onto a plane defined by a line"
 msgstr "線で定義された平面に形状を投影します"
 
 
-msgid "Sample the vertex color of the active vertex"
-msgstr "アクティブ頂点の頂点カラーを取得します"
-
-
 msgctxt "Operator"
 msgid "Sample Detail Size"
 msgstr "ディテールサイズを採取"
@@ -92388,34 +92384,6 @@ msgid "Panel containing UI elements"
 msgstr "UIの要素を含むパネル"
 
 
-msgid "Auto-Masking"
-msgstr "自動マスク"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "カーブスカルプトカーブ追加オプション"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "カーブスカルプトパラメーター減衰"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "カーブスケールを拡大/収縮"
-
-
-msgid "Viewport Debug"
-msgstr "ビューポートデバッグ"
-
-
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR情報"
-
-
 msgid "glTF Variants"
 msgstr "glTFバリアント"
 
@@ -92530,6 +92498,34 @@ msgstr "立体視"
 
 msgid "Multi Frame"
 msgstr "マルチフレーム"
+
+
+msgid "Auto-Masking"
+msgstr "自動マスク"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "カーブスカルプトカーブ追加オプション"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "カーブスカルプトパラメーター減衰"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "カーブスケールを拡大/収縮"
+
+
+msgid "Viewport Debug"
+msgstr "ビューポートデバッグ"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR情報"
 
 
 msgid "Import Settings"

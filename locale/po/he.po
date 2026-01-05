@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'edd300f2e755')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-29 09:32+0000\n"
-"PO-Revision-Date: 2025-12-21 01:12+0000\n"
+"POT-Creation-Date: 2026-01-05 11:52+0000\n"
+"PO-Revision-Date: 2026-01-05 05:12+0000\n"
 "Last-Translator: golden dragon <trmhtk2@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
 "Language: he\n"
@@ -468,6 +468,14 @@ msgstr "הלחתה תרגסמ"
 
 msgid "Frame Step"
 msgstr "תרגסמ דעצ"
+
+
+msgid "Paths Range"
+msgstr "םיביתנ חווט"
+
+
+msgid "Type of range to calculate for Motion Paths"
+msgstr "העונת יביתנ בושיחל חווט גוס"
 
 
 msgid "Scene Frame Range"
@@ -1975,6 +1983,10 @@ msgid "Grease Pencil Color"
 msgstr "Grease Pencil יאבצ"
 
 
+msgid "Mirror"
+msgstr "הארמ"
+
+
 msgid "Apply"
 msgstr "לחה"
 
@@ -1989,10 +2001,6 @@ msgstr "הסירפ"
 
 msgid "Face Data"
 msgstr "האפ ינותנ"
-
-
-msgid "Mirror"
-msgstr "הארמ"
 
 
 msgid "Proxy"

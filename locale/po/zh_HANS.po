@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'edd300f2e755')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-29 09:32+0000\n"
-"PO-Revision-Date: 2025-12-28 10:00+0000\n"
+"POT-Creation-Date: 2026-01-05 11:52+0000\n"
+"PO-Revision-Date: 2026-01-04 12:14+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
 "Language: zh_HANS\n"
@@ -25062,7 +25062,7 @@ msgstr "拐角法向"
 
 
 msgid "The \"slit\" normal direction of each face corner, influenced by vertex normals, sharp faces, sharp edges, and custom normals. May be empty."
-msgstr "每个面角的 “狭缝” 法线方向，受顶点法线、锐面、锐边和自定义法线的影响，可能是空的。"
+msgstr "每个面拐角的 “狭缝” 法线方向，受顶点法线、锐面、锐边和自定义法线的影响，可能是空的。"
 
 
 msgid "Edges"
@@ -26206,7 +26206,7 @@ msgid ""
 "Warning: Only takes into account object parenting, so e.g. in case of bone parenting you get a matrix relative to the Armature object, not to the actual parent bone"
 msgstr ""
 "父级相对变换矩阵。\n"
-"警告: 只考虑 ‘物体’ 的父级，因此例如在骨骼为父级的情况下，您会得到一个相对于骨架物体的矩阵，而非真实的父级骨骼"
+"警告：只考虑 ‘物体’ 的父级，因此例如在骨骼为父级的情况下，您会得到一个相对于骨架物体的矩阵，而非真实的父级骨骼"
 
 
 msgid "Parent Inverse Matrix"
@@ -32802,7 +32802,7 @@ msgstr "“后” 缓动的过冲稳定数量"
 
 
 msgid "Coordinates of the control point. Note: Changing this value also updates the handles similar to using the graph editor transform operator"
-msgstr "控制点的坐标。注意: 更改此值还会更新控制柄，类似于使用曲线编辑器的变换操作"
+msgstr "控制点的坐标。注意：更改此值还会更新控制柄，类似于使用曲线编辑器的变换操作"
 
 
 msgid "Which ends of the segment between this and the next keyframe easing interpolation is applied to"
@@ -34952,12 +34952,152 @@ msgid "Editor menu containing buttons"
 msgstr "包含按钮的编辑器菜单"
 
 
-msgid "Assign Material"
-msgstr "指定材质"
+msgid "Show/Hide"
+msgstr "显示 / 隐藏"
+
+
+msgid "Names"
+msgstr "名称"
+
+
+msgid "Bone Roll"
+msgstr "骨骼扭转"
+
+
+msgid "Math"
+msgstr "运算"
+
+
+msgid "Utilities"
+msgstr "实用工具"
+
+
+msgid "Clean Up"
+msgstr "清理"
+
+
+msgid "Pivot Point"
+msgstr "轴心点"
+
+
+msgid "Snap"
+msgstr "吸附"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "衰减编辑的衰减方式"
+
+
+msgid "Mask Edit"
+msgstr "遮罩编辑"
+
+
+msgid "Automasking"
+msgstr "自动遮罩"
+
+
+msgid "Read"
+msgstr "读取"
+
+
+msgid "Sample"
+msgstr "采样"
+
+
+msgid "Face Sets Edit"
+msgstr "面组编辑"
+
+
+msgid "Write"
+msgstr "写入"
+
+
+msgid "Vertex Group Locks"
+msgstr "顶点组锁"
+
+
+msgid "Primitives"
+msgstr "基本体"
+
+
+msgid "Gizmo"
+msgstr "操控器"
+
+
+msgid "Instances"
+msgstr "实例"
+
+
+msgid "Import"
+msgstr "导入"
+
+
+msgid "Mirror"
+msgstr "镜像"
+
+
+msgid "UV Mapping"
+msgstr "UV 映射"
+
+
+msgid "Local View"
+msgstr "局部视图"
+
+
+msgid "Viewpoint"
+msgstr "视图"
+
+
+msgid "Navigation"
+msgstr "视图导航"
+
+
+msgid "Deprecated"
+msgstr "已弃用"
+
+
+msgid "Align View"
+msgstr "对齐视图"
+
+
+msgid "Align View to Active"
+msgstr "视图对齐活动项"
+
+
+msgid "View Regions"
+msgstr "视图框"
 
 
 msgid "Select More/Less"
 msgstr "扩展/缩减选择"
+
+
+msgid "List"
+msgstr "列表"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Select Similar"
+msgstr "选择相似"
+
+
+msgid "Select All by Trait"
+msgstr "按特征全选"
+
+
+msgid "Select Linked"
+msgstr "选择相连元素"
+
+
+msgid "Select Loops"
+msgstr "选择循环"
+
+
+msgid "Assign Material"
+msgstr "指定材质"
 
 
 msgid "Metaball"
@@ -34996,14 +35136,6 @@ msgid "Quick Effects"
 msgstr "快速效果"
 
 
-msgid "Show/Hide"
-msgstr "显示 / 隐藏"
-
-
-msgid "Clean Up"
-msgstr "清理"
-
-
 msgid "Asset"
 msgstr "资产"
 
@@ -35024,14 +35156,6 @@ msgid "Hooks"
 msgstr "钩挂"
 
 
-msgid "Layout"
-msgstr "布局"
-
-
-msgid "Vertex Group Locks"
-msgstr "顶点组锁"
-
-
 msgid "Trim/Add"
 msgstr "修剪 / 添加"
 
@@ -35044,12 +35168,12 @@ msgid "Face Sets Init"
 msgstr "面组初始化"
 
 
+msgid "Layout"
+msgstr "布局"
+
+
 msgid "Random Mask"
 msgstr "随机遮罩"
-
-
-msgid "Adjust"
-msgstr "校正"
 
 
 msgid "Clear Transform"
@@ -35064,32 +35188,12 @@ msgid "Propagate"
 msgstr "传导"
 
 
-msgid "Keying"
-msgstr "抠像"
-
-
 msgid "Bone Collections"
 msgstr "骨骼集合"
 
 
-msgid "Tracking"
-msgstr "追踪"
-
-
-msgid "Names"
-msgstr "名称"
-
-
-msgid "Utilities"
-msgstr "实用工具"
-
-
-msgid "Math"
-msgstr "运算"
-
-
-msgid "Creative"
-msgstr "创意"
+msgid "Adjust"
+msgstr "校正"
 
 
 msgid "Toggle Bone Options"
@@ -35100,8 +35204,16 @@ msgid "Enable Bone Options"
 msgstr "启用骨骼设置"
 
 
+msgid "Keying"
+msgstr "抠像"
+
+
 msgid "Disable Bone Options"
 msgstr "禁用骨骼设置"
+
+
+msgid "Tracking"
+msgstr "追踪"
 
 
 msgid "Mesh Select Mode"
@@ -35112,6 +35224,10 @@ msgid "Face Data"
 msgstr "面数据"
 
 
+msgid "Creative"
+msgstr "创意"
+
+
 msgid "Select by Face Strength"
 msgstr "按面强度选择"
 
@@ -35120,12 +35236,12 @@ msgid "Set Face Strength"
 msgstr "设置面强度"
 
 
-msgid "Render Preview"
-msgstr "渲染预览"
-
-
 msgid "Merge"
 msgstr "合并"
+
+
+msgid "Render Preview"
+msgstr "渲染预览"
 
 
 msgid "Special Characters"
@@ -35134,122 +35250,6 @@ msgstr "特殊字符"
 
 msgid "Kerning"
 msgstr "字距"
-
-
-msgid "Bone Roll"
-msgstr "骨骼扭转"
-
-
-msgid "Read"
-msgstr "读取"
-
-
-msgid "Sample"
-msgstr "采样"
-
-
-msgid "Write"
-msgstr "写入"
-
-
-msgid "Primitives"
-msgstr "基本体"
-
-
-msgid "Pivot Point"
-msgstr "轴心点"
-
-
-msgid "Snap"
-msgstr "吸附"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "衰减编辑的衰减方式"
-
-
-msgid "Mask Edit"
-msgstr "遮罩编辑"
-
-
-msgid "Automasking"
-msgstr "自动遮罩"
-
-
-msgid "Face Sets Edit"
-msgstr "面组编辑"
-
-
-msgid "Gizmo"
-msgstr "操控器"
-
-
-msgid "Instances"
-msgstr "实例"
-
-
-msgid "Import"
-msgstr "导入"
-
-
-msgid "Deprecated"
-msgstr "已弃用"
-
-
-msgid "Mirror"
-msgstr "镜像"
-
-
-msgid "UV Mapping"
-msgstr "UV 映射"
-
-
-msgid "List"
-msgstr "列表"
-
-
-msgid "Local View"
-msgstr "局部视图"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Viewpoint"
-msgstr "视图"
-
-
-msgid "Navigation"
-msgstr "视图导航"
-
-
-msgid "Align View"
-msgstr "对齐视图"
-
-
-msgid "Align View to Active"
-msgstr "视图对齐活动项"
-
-
-msgid "View Regions"
-msgstr "视图框"
-
-
-msgid "Select Similar"
-msgstr "选择相似"
-
-
-msgid "Select All by Trait"
-msgstr "按特征全选"
-
-
-msgid "Select Linked"
-msgstr "选择相连元素"
-
-
-msgid "Select Loops"
-msgstr "选择循环"
 
 
 msgid "Keyframe Insert Pie"
@@ -36315,7 +36315,7 @@ msgstr "UV 编辑器中的 UV 钉固状态"
 
 
 msgid "UV coordinates on face corners"
-msgstr "面角上的 UV 坐标"
+msgstr "面拐角上的 UV 坐标"
 
 
 msgid "Mesh Vertex"
@@ -46875,6 +46875,10 @@ msgid "Output the bone pose relative to the armature object transform"
 msgstr "输出相对于骨架物体变换的骨骼姿态"
 
 
+msgid "Bring the bone pose into the modified object"
+msgstr "将骨骼姿态应用到修改后的物体上"
+
+
 msgid "Calculate the limits of a geometry's positions and generate a box mesh with those dimensions"
 msgstr "计算几何体的位置限制，并使用这些尺寸生成一个盒形网格"
 
@@ -49526,7 +49530,7 @@ msgid ""
 "Note: This node should only be used for the world surface output"
 msgstr ""
 "添加背景光发射。\n"
-"注意: 此节点应仅用于世界表面输出"
+"注意：此节点应仅用于世界表面输出"
 
 
 msgid ""
@@ -54570,7 +54574,7 @@ msgstr "快速烟雾"
 
 
 msgid "Randomize objects location, rotation, and scale"
-msgstr "随机化物体的位置/转动/缩放"
+msgstr "随机化物体的位置/旋转/缩放"
 
 
 msgctxt "Operator"
@@ -56708,11 +56712,19 @@ msgstr "自适应显示选择的帧范围"
 
 msgctxt "Operator"
 msgid "Change Frame"
-msgstr "更改选框"
+msgstr "变更帧"
 
 
 msgid "Interactively change the current frame number"
 msgstr "用交互方式改变当前帧序号"
+
+
+msgid "Pass Through on Strip Handles"
+msgstr "允许穿透片段控制柄"
+
+
+msgid "Allow another operator to operate on strip handles"
+msgstr "允许其它操作在此片段控制柄上操作"
 
 
 msgid "Strip Preview"
@@ -57769,7 +57781,7 @@ msgid ""
 "Warning: May result in incoherent naming in some cases"
 msgstr ""
 "尝试从翻转的名称中删除最右侧的点数。\n"
-"警告: 在某些情况下可能会导致不连贯的命名"
+"警告：在某些情况下可能会导致不连贯的命名"
 
 
 msgctxt "Operator"
@@ -61418,7 +61430,7 @@ msgstr "欧拉 (XYZ)"
 
 
 msgid "Convert rotations to euler XYZ"
-msgstr "转换转动至欧拉XYZ"
+msgstr "转换旋转至欧拉XYZ"
 
 
 msgid "Euler (XZY)"
@@ -61426,7 +61438,7 @@ msgstr "欧拉 (XZY)"
 
 
 msgid "Convert rotations to euler XZY"
-msgstr "转换转动至欧拉XZY"
+msgstr "转换旋转至欧拉XZY"
 
 
 msgid "Euler (YXZ)"
@@ -61434,7 +61446,7 @@ msgstr "欧拉 (YXZ)"
 
 
 msgid "Convert rotations to euler YXZ"
-msgstr "转换转动至欧拉YXZ"
+msgstr "转换旋转至欧拉YXZ"
 
 
 msgid "Euler (YZX)"
@@ -61442,7 +61454,7 @@ msgstr "欧拉 (YZX)"
 
 
 msgid "Convert rotations to euler YZX"
-msgstr "转换转动至欧拉YZX"
+msgstr "转换旋转至欧拉YZX"
 
 
 msgid "Euler (ZXY)"
@@ -61450,7 +61462,7 @@ msgstr "欧拉 (ZXY)"
 
 
 msgid "Convert rotations to euler ZXY"
-msgstr "转换转动至欧拉ZXY"
+msgstr "转换旋转至欧拉ZXY"
 
 
 msgid "Euler (ZYX)"
@@ -61458,7 +61470,15 @@ msgstr "欧拉 (ZYX)"
 
 
 msgid "Convert rotations to euler ZYX"
-msgstr "转换转动至欧拉ZYX"
+msgstr "转换旋转至欧拉ZYX"
+
+
+msgid "Sort Children By Name"
+msgstr "按名称排列子级"
+
+
+msgid "Sort the children of each bone alphabetically"
+msgstr "按字母顺序排列每根骨骼的子级"
 
 
 msgid "Add Leaf Bones"
@@ -63765,7 +63785,7 @@ msgstr "选择全部文本"
 
 
 msgid "Select word under cursor"
-msgstr "选定光标位置的文字"
+msgstr "选择光标处的单词"
 
 
 msgid "Set cursor selection"
@@ -71475,6 +71495,10 @@ msgid "After baking curves, remove redundant keys"
 msgstr "烘焙曲线后，移除冗余关键帧"
 
 
+msgid "Clear Local Constraints"
+msgstr "清除本地约束"
+
+
 msgid "Remove all constraints from keyed object/bones. To get a correct bake with this setting Visual Keying should be enabled"
 msgstr "从已插帧的 物体/骨骼 移除所有约束。要使用此设置获得正确的烘焙效果，应启用可视插帧 (偏好设置-动画)"
 
@@ -73902,7 +73926,7 @@ msgid ""
 "Warning: Results will never be as good as manual matching of objects"
 msgstr ""
 "自动计算变换，以获得源网格与目标网格之间最可能的匹配。\n"
-"警告: 其结果无法媲美手动匹配"
+"警告：其结果无法媲美手动匹配"
 
 
 msgid "Create Data"
@@ -74931,7 +74955,7 @@ msgstr "弃选材质槽"
 
 
 msgid "Deselect by active material slot"
-msgstr "按活动材质槽编号取消选择"
+msgstr "按活动材质槽取消选择"
 
 
 msgctxt "Operator"
@@ -82412,10 +82436,6 @@ msgid "Project the geometry onto a plane defined by a line"
 msgstr "将几何体投影到由线条定义的平面上"
 
 
-msgid "Sample the vertex color of the active vertex"
-msgstr "对活动顶点的顶点颜色取样"
-
-
 msgctxt "Operator"
 msgid "Sample Detail Size"
 msgstr "采样细节尺寸"
@@ -82724,6 +82744,15 @@ msgid "Add strips to muted or locked channels when adding movie strips"
 msgstr "添加影片片段时，将片段添加到屏蔽或锁定的通道"
 
 
+msgctxt "Operator"
+msgid "Box Blade"
+msgstr "框选刀片"
+
+
+msgid "Draw a box around the parts of strips you want to cut away"
+msgstr "在您想要剪切掉的片段部分周围画一个选框"
+
+
 msgid "Ignore Connections"
 msgstr "忽略连接"
 
@@ -82734,6 +82763,18 @@ msgstr "不将分割传递到相连的片段上"
 
 msgid "Ignore Selection"
 msgstr "忽略选中项"
+
+
+msgid "In box blade mode, make cuts to all strips, even if they are not selected"
+msgstr "在框选刀片模式下，会对所有片段进行切割，即使它们未被选中"
+
+
+msgid "Remove Gaps"
+msgstr "移除间隙"
+
+
+msgid "In box blade mode, close gaps between cut strips, rippling later strips on the same channel"
+msgstr "在框选刀片模式下，闭合已切割片段间的空隙，并接连移动同通道上的后续片段"
 
 
 msgid "The type of split operation to perform on strips"
@@ -84820,7 +84861,7 @@ msgstr "选择行"
 
 
 msgid "Select text by line"
-msgstr "根据行号选择文字"
+msgstr "按行选择文本"
 
 
 msgid "Set text selection"
@@ -88280,7 +88321,7 @@ msgstr "若开启, 更新场景的开始和结束帧以匹配 Alembic 文档的�
 
 
 msgid "Validate Meshes"
-msgstr "检查网格"
+msgstr "验证网格"
 
 
 msgid "Ensure the data is valid (when disabled, data may be imported which causes crashes displaying or editing)"
@@ -90026,6 +90067,14 @@ msgid "Export current scene in a USD archive"
 msgstr "将当前场景导出为USD档"
 
 
+msgid "Set the accessibility description for the exported stage's default prim"
+msgstr "为导出的舞台默认基元设置可访问性描述"
+
+
+msgid "Set the accessibility label for the exported stage's default prim"
+msgstr "为导出的舞台默认基元设置可访问性标签"
+
+
 msgid "Allow Unicode"
 msgstr "允许 Unicode"
 
@@ -91026,6 +91075,10 @@ msgid "Color of raycast when a fallback case succeeds"
 msgstr "回退成功时射线的颜色"
 
 
+msgid "Velocity force controlling the teleportation arc parabola in m/s"
+msgstr "控制瞬移抛物线弧度的速度力（米/秒）"
+
+
 msgid "Hit Color"
 msgstr "命中颜色"
 
@@ -91040,6 +91093,10 @@ msgstr "丢失颜色"
 
 msgid "Color of raycast when it misses"
 msgstr "射线未命中时的颜色"
+
+
+msgid "Time step range controlling the teleportation arc parabola"
+msgstr "控制瞬移抛物线弧度的时间步长范围"
 
 
 msgid "Ray Line Width"
@@ -91704,34 +91761,6 @@ msgid "Panel containing UI elements"
 msgstr "面板包含用户界面元素"
 
 
-msgid "Auto-Masking"
-msgstr "自动遮罩"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "曲线雕刻 添加曲线选项"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "曲线雕刻衰减参数"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "曲线生长/收缩缩放"
-
-
-msgid "Viewport Debug"
-msgstr "视口调试"
-
-
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR 信息"
-
-
 msgid "glTF Variants"
 msgstr "glTF 变体"
 
@@ -91846,6 +91875,34 @@ msgstr "立体视法"
 
 msgid "Multi Frame"
 msgstr "多帧"
+
+
+msgid "Auto-Masking"
+msgstr "自动遮罩"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "曲线雕刻 添加曲线选项"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "曲线雕刻衰减参数"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "曲线生长/收缩缩放"
+
+
+msgid "Viewport Debug"
+msgstr "视口调试"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR 信息"
 
 
 msgid "Import Settings"
@@ -95757,7 +95814,7 @@ msgid ""
 "Warning: Sculpt and edit mode data won't be saved"
 msgstr ""
 "使用进程编号自动保存临时文件至临时目录。\n"
-"警告: 不保存雕刻和编辑模式下的数据"
+"警告：不保存雕刻和编辑模式下的数据"
 
 
 msgid "Compress File"
@@ -95934,6 +95991,14 @@ msgstr "该模式就像将手伸入屏幕，将模型握在手中。向左按 3D
 
 msgid "Enables using the 3D Mouse as if it is a camera. Push into the scene and the camera moves forward into the scene. You are entering the scene as if flying around in it. This also inverts pan & zoom for 2D views"
 msgstr "可将 3D 鼠标当作摄像机使用。将鼠标推入场景，摄像机就会向前移动到场景中。您进入场景时就像在场景中飞行一样。这也会反转二维视图的平移与缩放"
+
+
+msgid "Drone"
+msgstr "无人机"
+
+
+msgid "Enables a Fly Mode navigation but pushing the cap forward while looking down will not change the altitude of the camera."
+msgstr "启用飞行模式导航，但向前推摇帽时，即使镜头朝下也不会改变摄像机的高度。"
 
 
 msgid "Auto sets the orbit center dynamically. When the complete model is in view, the center of volume of the whole model is used as the rotation point. When you move closer, the orbit center will be set on an object close to your center of the view."
@@ -97196,10 +97261,6 @@ msgid "Indonesian - Bahasa indonesia"
 msgstr "印度尼西亚语 - Bahasa indonesia"
 
 
-msgid "Locale code: id_ID. Translation progress: 21%"
-msgstr "区域代码: id_ID. 翻译进度: 21%"
-
-
 msgid "Italian - Italiano"
 msgstr "意大利语 - Italiano"
 
@@ -97282,6 +97343,10 @@ msgstr "区域代码: pt_BR. 翻译进度: 43%"
 
 msgid "Portuguese (Portugal) - Português europeu"
 msgstr "葡萄牙语 (葡萄牙) - Português europeu"
+
+
+msgid "Locale code: pt_PT. Translation progress: 74%"
+msgstr "区域代码: pt_PT. 翻译进度: 74%"
 
 
 msgid "Romanian - Român"
@@ -98868,7 +98933,7 @@ msgstr "允许此物体与它的副本被摄像机空间筛选剔除"
 
 
 msgid "Use Deformation Motion"
-msgstr "使用变形模糊"
+msgstr "使用形变运动"
 
 
 msgid "Use deformation motion blur for this object"
@@ -99116,7 +99181,7 @@ msgstr "OptiX模块调试"
 
 
 msgid "Load OptiX module in debug mode: lower logging verbosity level, enable validations, and lower optimization level"
-msgstr "以调试模式加载OptiX模块: 调低日志冗余级别，启用验证，并且调低优化级别"
+msgstr "以调试模式加载 OptiX 模块：调低日志冗余级别，启用验证，并且调低优化级别"
 
 
 msgid "Use Spatial Splits"
@@ -100872,7 +100937,7 @@ msgstr "控制衰减"
 
 
 msgid "Falloff curve coefficient: 0 is linear, and higher value is wider influence. Set to -10 to disable influence completely"
-msgstr "衰减曲线系数: 0是线性，值越大影响越大。设置为-10可完全禁用影响"
+msgstr "衰减曲线系数：0 是线性，值越大影响越大。设置为 -10 可完全禁用影响"
 
 
 msgid "Falloff Along Chain Curve"
@@ -109432,6 +109497,14 @@ msgid "Shift pitch using a direct ratio"
 msgstr "用直接比率调整音高"
 
 
+msgid "Preserve Vocal Formants"
+msgstr "保留人声共振峰"
+
+
+msgid "Whether to preserve the vocal formants when shifting the pitch."
+msgstr "变调时是否保留人声共振峰特性。"
+
+
 msgid "Quality of the pitch shifting"
 msgstr "音高偏移的品质"
 
@@ -113242,11 +113315,11 @@ msgstr "旋转单位"
 
 
 msgid "Unit to use for displaying/editing rotation values"
-msgstr "用于显示或编辑转动的数值单位"
+msgstr "用于显示或编辑旋转数值的单位"
 
 
 msgid "Use degrees for measuring angles and rotations"
-msgstr "使用角度来丈量角度和转动"
+msgstr "使用角度来丈量角度和旋转"
 
 
 msgid "Radians"
@@ -115848,6 +115921,14 @@ msgstr "位置追踪"
 
 msgid "Allow VR headsets to affect the location in virtual space, in addition to the rotation"
 msgstr "允许VR头戴设备影响虚拟环境中的位置和旋转"
+
+
+msgid "View Scale"
+msgstr "视图比例"
+
+
+msgid "Scaling factor applied on top of scene scale for adjustments to the VR view. When possible, prefer modifying the scene scale instead"
+msgstr "在场景比例之上额外施加的视图缩放系数，用于调节VR视野。如有可能，应优先调整场景比例本身"
 
 
 msgid "Session State"
@@ -131999,6 +132080,10 @@ msgid "color_index is invalid"
 msgstr "color_index 无效"
 
 
+msgid "Compositor node tree has cyclic links."
+msgstr "合成器节点树存在循环关联。"
+
+
 msgid "Error: Too many AOVs"
 msgstr "错误：AOV过多"
 
@@ -137124,7 +137209,7 @@ msgstr "烘焙失败: 未找到动态绘画修改器"
 
 
 msgid "Bake failed: invalid canvas"
-msgstr "烘焙失败：非法绘制"
+msgstr "烘焙失败：无效的画布"
 
 
 msgid "Baking canceled!"
@@ -144112,7 +144197,7 @@ msgstr "场景 '%s' 是最后一个本地场景, 无法删除"
 
 
 msgid "ID type '%s' is not valid for an object"
-msgstr "对这个物体的ID类型 '%s' 非法无效"
+msgstr "ID 类型 '%s' 对物体无效"
 
 
 msgid "Mask layer not found for given spline"
@@ -147828,6 +147913,10 @@ msgid "Bone not found"
 msgstr "找不到骨骼"
 
 
+msgid "Local Pose"
+msgstr "局部姿态"
+
+
 msgid "Transform Pose"
 msgstr "变换姿态"
 
@@ -147842,6 +147931,22 @@ msgstr "用于检索骨骼信息的骨架物体"
 
 msgid "Name of the bone to retrieve"
 msgstr "待检索骨骼的名称"
+
+
+msgid "Evaluated final transform of the bone in armature space"
+msgstr "评估骨架空间中骨骼的最终变换"
+
+
+msgid "Difference between the pose and rest pose relative to the parent bone"
+msgstr "相对于父级骨骼的姿态和静置之间的差异"
+
+
+msgid "Matrix representing the bone's location, rotation, and scale properties"
+msgstr "表示骨骼位置、旋转和缩放属性的矩阵"
+
+
+msgid "Original transform of the bone in armature space, defined in edit mode"
+msgstr "在编辑模式下定义的骨架空间中骨骼的原始变换"
 
 
 msgid "Original length of the bone"
@@ -153983,6 +154088,10 @@ msgid "Scale the image such that it fits entirely in the frame, leaving no empty
 msgstr "将图像缩放至完全适应画框，不留角落空白"
 
 
+msgid "The number of samples used to compute the blur. The more samples the smoother the result, at the expense of more compute time. The actual number of samples is two to the power of this input, so it increases exponentially"
+msgstr "用于计算模糊的采样数量。采样数越多，结果越平滑，但计算时间也相应增加。实际的采样数为该输入值的二次方，因此会呈指数级增长"
+
+
 msgid "Different styles of aberrations"
 msgstr "不同风格的色差"
 
@@ -154964,7 +155073,7 @@ msgstr "是否为UV接缝"
 
 
 msgid "Returns a selection of edges that make up a seam in the provided UV data. A seam is defined as a discontinuity of the data between connected face corners"
-msgstr "返回构成给定 UV 数据中接缝的一组边。缝合边被定义为相邻面角之间数据的不连续性"
+msgstr "返回构成给定 UV 数据中接缝的一组边。缝合边被定义为相邻面拐角之间数据的不连续性"
 
 
 msgid "Selection of edges that signify a discontinuity of the input vectors"
