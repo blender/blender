@@ -5335,7 +5335,7 @@ void MESH_OT_poke(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   RNA_def_float_distance(
-      ot->srna, "offset", 0.0f, -1e3f, 1e3f, "Poke Offset", "Poke Offset", -1.0f, 1.0f);
+      ot->srna, "offset", 0.0f, -1e3f, 1e3f, "Poke Offset", "Poke Offset", -10.0f, 10.0f);
   RNA_def_boolean(ot->srna,
                   "use_relative_offset",
                   false,
