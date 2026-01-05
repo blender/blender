@@ -1342,6 +1342,7 @@ void *PyC_RNA_AsPointer(PyObject *value, const char *type_name)
 
   PyObject *as_pointer = PyObject_GetAttrString(value, "as_pointer");
   if ((as_pointer == nullptr) || !PyCallable_Check(as_pointer)) {
+    Py_XDECREF(as_pointer);
     PyErr_Format(PyExc_TypeError, "Invalid %.200s pointer", type_name);
     return nullptr;
   }
