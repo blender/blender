@@ -6322,6 +6322,7 @@ static wmOperatorStatus texture_paint_image_from_view_exec(bContext *C, wmOperat
                                         false,
                                         nullptr,
                                         nullptr,
+                                        true,
                                         err_out);
 
   if (!ibuf) {

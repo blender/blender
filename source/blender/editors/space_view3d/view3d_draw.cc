@@ -1993,6 +1993,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
                                       const bool restore_rv3d_mats,
                                       GPUOffScreen *ofs,
                                       GPUViewport *viewport,
+                                      const bool use_camera_view_bounds,
                                       /* output vars */
                                       char err_out[256])
 {
@@ -2043,7 +2044,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
   ImBuf *ibuf = IMB_allocImBuf(sizex, sizey, 32, imbuf_flag);
 
   /* render 3d view */
-  if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
+  if (use_camera_view_bounds && rv3d->persp == RV3D_CAMOB && v3d->camera) {
     CameraParams params;
     Object *camera = BKE_camera_multiview_render(scene, v3d->camera, viewname);
     const Object *camera_eval = DEG_get_evaluated(depsgraph, camera);
@@ -2257,6 +2258,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
                                         true,
                                         ofs,
                                         viewport,
+                                        true,
                                         err_out);
 }
 
