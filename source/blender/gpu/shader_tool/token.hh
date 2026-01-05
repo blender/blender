@@ -84,86 +84,11 @@ enum TokenType : char {
   Union = 'o',
 };
 
-static inline TokenType to_type(const char c)
-{
-  switch (c) {
-    case '\n':
-      return TokenType::NewLine;
-    case ' ':
-      return TokenType::Space;
-    case '#':
-      return TokenType::Hash;
-    case '&':
-      return TokenType::Ampersand;
-    case '^':
-      return TokenType::Caret;
-    case '|':
-      return TokenType::Pipe;
-    case '%':
-      return TokenType::Percent;
-    case '.':
-      return TokenType::Dot;
-    case '(':
-      return TokenType::ParOpen;
-    case ')':
-      return TokenType::ParClose;
-    case '{':
-      return TokenType::BracketOpen;
-    case '}':
-      return TokenType::BracketClose;
-    case '[':
-      return TokenType::SquareOpen;
-    case ']':
-      return TokenType::SquareClose;
-    case '<':
-      return TokenType::AngleOpen;
-    case '>':
-      return TokenType::AngleClose;
-    case '=':
-      return TokenType::Assign;
-    case '!':
-      return TokenType::Not;
-    case '*':
-      return TokenType::Star;
-    case '-':
-      return TokenType::Minus;
-    case '+':
-      return TokenType::Plus;
-    case '/':
-      return TokenType::Divide;
-    case '~':
-      return TokenType::Tilde;
-    case '\\':
-      return TokenType::Backslash;
-    case '\"':
-      return TokenType::String;
-    case '?':
-      return TokenType::Question;
-    case ':':
-      return TokenType::Colon;
-    case ',':
-      return TokenType::Comma;
-    case ';':
-      return TokenType::SemiColon;
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9':
-      return TokenType::Number;
-    default:
-      return TokenType::Word;
-  }
-}
-
 struct Token {
+#ifdef NDEBUG
   /* String view for nicer debugging experience. Isn't actually used. */
   std::string_view str_view;
+#endif
 
   const TokenStream *data = nullptr;
   int64_t index = 0;
@@ -178,8 +103,12 @@ struct Token {
     if (data == nullptr || index < 0 || index > (data->token_offsets.offsets.size() - 2)) {
       return invalid();
     }
+#ifdef NDEBUG
     IndexRange index_range = data->token_offsets[index];
     return {std::string_view(data->str).substr(index_range.start, index_range.size), data, index};
+#else
+    return {data, index};
+#endif
   }
 
   bool is_valid() const
@@ -287,28 +216,44 @@ struct Token {
     return (pos == std::string::npos) ? (data->str.size() - 1) : (pos - 1);
   }
 
-  std::string str_with_whitespace() const
+  std::string_view str_view_with_whitespace() const
   {
-    return data->str.substr(index_range().start, index_range().size);
+    return std::string_view(data->str).substr(index_range().start, index_range().size);
   }
 
-  std::string str() const
+  std::string str_with_whitespace() const
+  {
+    return std::string(str_view_with_whitespace());
+  }
+
+  std::string_view str_view() const
   {
     if (is_invalid()) {
       return "";
     }
-    std::string str = this->str_with_whitespace();
+    std::string_view str = this->str_view_with_whitespace();
     return str.substr(0, str.find_last_not_of(" \n") + 1);
+  }
+
+  std::string str() const
+  {
+    return std::string(str_view());
+  }
+
+  /* Return the content without the first and last characters. */
+  std::string_view str_view_exclusive() const
+  {
+    std::string_view str = this->str_view();
+    if (str.length() < 2) {
+      return "";
+    }
+    return str.substr(1, str.length() - 2);
   }
 
   /* Return the content without the first and last characters. */
   std::string str_exclusive() const
   {
-    std::string str = this->str();
-    if (str.length() < 2) {
-      return "";
-    }
-    return str.substr(1, str.length() - 2);
+    return std::string(str_view_exclusive());
   }
 
   /* Return the line number this token is found at. Take into account the #line directives.

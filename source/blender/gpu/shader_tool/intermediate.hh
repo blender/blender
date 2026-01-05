@@ -55,6 +55,8 @@ struct IntermediateForm {
     Mutation(IndexRange src_range, std::string replacement)
         : src_range(src_range), replacement(replacement)
     {
+      assert(src_range.size >= 0);
+      assert(src_range.start >= 0);
     }
 
     /* Define operator in order to sort the mutation by starting position.
@@ -125,9 +127,15 @@ struct IntermediateForm {
   /* Replace everything from `from` to `to` (inclusive). */
   void replace(size_t from, size_t to, const std::string &replacement)
   {
+#ifdef NDEBUG
     bool success = replace_try(from, to, replacement);
     assert(success);
     (void)success;
+#else
+    /* No check in release. */
+    IndexRange range = IndexRange(from, to + 1 - from);
+    mutations_.emplace_back(range, replacement);
+#endif
   }
   /* Replace everything from `from` to `to` (inclusive). */
   void replace(Token from,
@@ -248,7 +256,7 @@ struct IntermediateForm {
   void insert_directive(Token at, const std::string directive)
   {
     insert_after(at, "\n" + directive + "\n");
-    std::string content = at.str_with_whitespace();
+    std::string_view content = at.str_view_with_whitespace();
     size_t lines = std::count(content.begin(), content.end(), '\n');
     insert_line_number(at, at.line_number() + lines);
     size_t line_break = data_.str.find_last_of("\n", at.str_index_last() + 1);
@@ -308,26 +316,26 @@ struct IntermediateForm {
   }
 
  private:
-  TimeIt::Duration tokenize_time;
-  TimeIt::Duration parse_scope_time;
+  TimeIt::Duration lexical_time;
+  TimeIt::Duration semantic_time;
 
   void parse(report_callback &report_error)
   {
     {
-      TimeIt time_it(parse_scope_time);
-      data_.tokenize();
+      TimeIt time_it(lexical_time);
+      data_.lexical_analysis();
     }
     {
-      TimeIt time_it(tokenize_time);
-      data_.parse_scopes(report_error);
+      TimeIt time_it(semantic_time);
+      data_.semantic_analysis(report_error);
     }
   }
 
  public:
   void print_stats()
   {
-    std::cout << "Tokenize time: " << tokenize_time.count() << " µs" << std::endl;
-    std::cout << "Parser time:   " << parse_scope_time.count() << " µs" << std::endl;
+    std::cout << "Lexical Analysis time: " << lexical_time.count() << " µs" << std::endl;
+    std::cout << "Semantic Analysis time:   " << semantic_time.count() << " µs" << std::endl;
     std::cout << "String len: " << std::to_string(data_.str.size()) << std::endl;
     std::cout << "Token len:  " << std::to_string(data_.token_types.size()) << std::endl;
     std::cout << "Scope len:  " << std::to_string(data_.scope_types.size()) << std::endl;

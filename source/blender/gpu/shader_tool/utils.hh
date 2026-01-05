@@ -28,7 +28,7 @@ struct IndexRange {
   int64_t start;
   int64_t size;
 
-  IndexRange(size_t start, size_t size) : start(start), size(size) {}
+  IndexRange(int64_t start, int64_t size) : start(start), size(size) {}
 
   bool overlaps(IndexRange other) const
   {
@@ -47,11 +47,11 @@ struct IndexRange {
 
 /** Poor man's OffsetIndices. */
 struct OffsetIndices {
-  std::vector<size_t> offsets;
+  std::vector<uint32_t> offsets;
 
   IndexRange operator[](const int64_t index) const
   {
-    return {offsets[index], offsets[index + 1] - offsets[index]};
+    return {int64_t(offsets[index]), int64_t(offsets[index + 1] - offsets[index])};
   }
 
   void clear()

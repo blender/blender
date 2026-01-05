@@ -48,15 +48,18 @@ enum class ScopeType : char {
 };
 
 struct Scope {
+#ifdef NDEBUG
   /* String view for nicer debugging experience. Isn't actually used. */
   std::string_view token_view;
   std::string_view str_view;
+#endif
 
   const TokenStream *data;
   int64_t index;
 
   static Scope from_position(const TokenStream *data, int64_t index)
   {
+#ifdef NDEBUG
     IndexRange index_range = data->scope_ranges[index];
     int str_start = data->token_offsets[index_range.start].start;
     int str_end = data->token_offsets[index_range.last()].last();
@@ -64,11 +67,18 @@ struct Scope {
             std::string_view(data->str).substr(str_start, str_end - str_start + 1),
             data,
             index};
+#else
+    return {data, index};
+#endif
   }
 
   static Scope invalid()
   {
+#ifdef NDEBUG
     return {"", "", nullptr, 0};
+#else
+    return {nullptr, 0};
+#endif
   }
 
   bool is_valid() const
@@ -348,10 +358,19 @@ struct Scope {
     });
   }
 
-  void foreach_token(const TokenType token_type, std::function<void(const Token)> callback) const
+  template<typename Callback>
+  void foreach_token(const TokenType token_type, Callback callback) const
   {
-    const char str[2] = {token_type, '\0'};
-    foreach_match(str, [&](const std::vector<Token> &tokens) { callback(tokens[0]); });
+    IndexRange index_range = data->scope_ranges[index];
+    std::string_view view(data->token_types);
+
+    size_t offset = index_range.start;
+    for (const char c : view.substr(index_range.start, index_range.size)) {
+      if (token_type == TokenType(c)) {
+        callback(Token::from_position(data, offset));
+      }
+      offset++;
+    }
   }
 
   /* Run a callback for all existing function scopes. */
