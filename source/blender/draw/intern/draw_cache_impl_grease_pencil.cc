@@ -1362,8 +1362,7 @@ static void grease_pencil_geom_batch_ensure(Object &object,
                 verts_slice.first().stroke_id = verts_range.last();
 
                 /* Write all the point attributes to the vertex buffers. Create a quad for each
-                 * point.
-                 */
+                 * point. */
                 const float u_scale = u_scales[curve_i];
                 const float u_translation = u_translations[curve_i];
                 for (const int i : points.index_range()) {
