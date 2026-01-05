@@ -204,8 +204,6 @@ const EnumPropertyItem rna_enum_attribute_curves_domain_items[] = {
 #  include "BKE_mesh_types.hh"
 #  include "BKE_report.hh"
 
-#  include "RNA_prototypes.hh"
-
 #  include "DEG_depsgraph.hh"
 
 #  include "BLT_translation.hh"

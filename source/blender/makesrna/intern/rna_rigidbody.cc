@@ -127,6 +127,8 @@ static const EnumPropertyItem rigidbody_mesh_source_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include "DNA_scene_types.h"
+
 #  ifdef WITH_BULLET
 #    include "RBI_api.h"
 #  endif

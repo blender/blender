@@ -277,6 +277,8 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #  include <fmt/format.h>
 
 #  include "BLI_bounds.hh"
+#  include "BLI_listbase.h"
+#  include "BLI_string.h"
 
 #  include "DNA_ID.h"
 #  include "DNA_constraint_types.h"
@@ -304,6 +306,7 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #  include "BKE_global.hh"
 #  include "BKE_key.hh"
 #  include "BKE_layer.hh"
+#  include "BKE_lib_id.hh"
 #  include "BKE_library.hh"
 #  include "BKE_light_linking.h"
 #  include "BKE_material.hh"

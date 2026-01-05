@@ -123,14 +123,16 @@ static const EnumPropertyItem part_fluid_type_items[] = {
 
 #  include <fmt/format.h>
 
-#  include "BLI_string_utils.hh"
-
 #  include "DNA_cloth_types.h"
 #  include "DNA_mesh_types.h"
 #  include "DNA_meshdata_types.h"
 
+#  include "BLI_listbase.h"
 #  include "BLI_math_matrix.h"
 #  include "BLI_math_vector.h"
+#  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
+#  include "BLI_string_utils.hh"
 
 #  include "BKE_boids.h"
 #  include "BKE_cloth.hh"
@@ -138,6 +140,8 @@ static const EnumPropertyItem part_fluid_type_items[] = {
 #  include "BKE_customdata.hh"
 #  include "BKE_deform.hh"
 #  include "BKE_effect.h"
+#  include "BKE_lib_id.hh"
+#  include "BKE_main.hh"
 #  include "BKE_material.hh"
 #  include "BKE_mesh.hh"
 #  include "BKE_mesh_legacy_convert.hh"

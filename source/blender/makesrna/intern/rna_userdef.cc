@@ -206,8 +206,11 @@ static const EnumPropertyItem rna_enum_preferences_asset_import_method_items[] =
 
 #ifdef RNA_RUNTIME
 
+#  include "BLI_listbase.h"
 #  include "BLI_math_vector.h"
 #  include "BLI_memory_cache.hh"
+#  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
 #  include "BLI_string_utils.hh"
 
 #  include "DNA_object_types.h"

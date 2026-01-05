@@ -20,18 +20,32 @@
 
 #ifdef RNA_RUNTIME
 
+#  include "DNA_screen_types.h"
+
+#  include "BLI_math_matrix.h"
+#  include "BLI_math_vector.h"
+
 #  include "BKE_editmesh.hh"
 #  include "BKE_global.hh"
 #  include "BKE_image.hh"
+#  include "BKE_image_format.hh"
+#  include "BKE_main.hh"
 #  include "BKE_scene.hh"
+#  include "BKE_screen.hh"
 
 #  include "DEG_depsgraph_query.hh"
 
+#  include "ED_mesh.hh"
 #  include "ED_transform.hh"
 #  include "ED_transform_snap_object_context.hh"
 #  include "ED_uvedit.hh"
 
 #  include "MOV_write.hh"
+
+#  include "SEQ_sequencer.hh"
+
+#  include "WM_api.hh"
+#  include "WM_types.hh"
 
 #  ifdef WITH_PYTHON
 #    include "BPY_extern.hh"

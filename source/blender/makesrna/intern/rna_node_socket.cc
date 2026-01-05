@@ -52,9 +52,12 @@ const EnumPropertyItem rna_enum_node_socket_type_items[] = {
 
 #  include "DNA_material_types.h"
 
+#  include "BLI_listbase.h"
 #  include "BLI_math_vector.h"
+#  include "BLI_string.h"
 #  include "BLI_string_ref.hh"
 
+#  include "BKE_context.hh"
 #  include "BKE_main_invariants.hh"
 #  include "BKE_node.hh"
 #  include "BKE_node_enum.hh"

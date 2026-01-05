@@ -711,6 +711,7 @@ static const EnumPropertyItem eevee_resolution_scale_items[] = {
 #  include <fmt/format.h>
 
 #  include "BLI_index_range.hh"
+#  include "BLI_string_utf8.h"
 #  include "BLI_string_utils.hh"
 
 #  include "DNA_anim_types.h"
@@ -746,6 +747,7 @@ static const EnumPropertyItem eevee_resolution_scale_items[] = {
 #  include "BKE_image.hh"
 #  include "BKE_image_format.hh"
 #  include "BKE_layer.hh"
+#  include "BKE_lib_id.hh"
 #  include "BKE_main.hh"
 #  include "BKE_main_invariants.hh"
 #  include "BKE_mesh.hh"

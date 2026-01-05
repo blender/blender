@@ -47,10 +47,15 @@ const EnumPropertyItem rna_enum_color_space_convert_default_items[] = {
 
 #  include "MEM_guardedalloc.h"
 
+#  include "BLI_listbase.h"
+#  include "BLI_string_utf8.h"
+
 #  include "BKE_colorband.hh"
 #  include "BKE_colortools.hh"
+#  include "BKE_context.hh"
 #  include "BKE_image.hh"
 #  include "BKE_linestyle.h"
+#  include "BKE_main.hh"
 #  include "BKE_main_invariants.hh"
 #  include "BKE_node_legacy_types.hh"
 #  include "BKE_node_tree_update.hh"

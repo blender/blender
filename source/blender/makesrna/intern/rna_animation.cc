@@ -88,11 +88,16 @@ const EnumPropertyItem rna_enum_keying_flag_api_items[] = {
 
 #  include <algorithm>
 
+#  include "BLI_listbase.h"
 #  include "BLI_math_base.h"
+#  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
 
 #  include "BKE_anim_data.hh"
 #  include "BKE_animsys.h"
+#  include "BKE_context.hh"
 #  include "BKE_fcurve.hh"
+#  include "BKE_lib_id.hh"
 #  include "BKE_nla.hh"
 
 #  include "ANIM_action.hh"

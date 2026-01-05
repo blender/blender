@@ -115,8 +115,11 @@ const EnumPropertyItem rna_enum_linestyle_geometry_modifier_type_items[] = {
 
 #  include <fmt/format.h>
 
+#  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
 #  include "BLI_string_utils.hh"
 
+#  include "BKE_context.hh"
 #  include "BKE_linestyle.h"
 #  include "BKE_texture.h"
 

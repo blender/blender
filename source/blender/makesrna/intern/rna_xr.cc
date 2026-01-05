@@ -20,8 +20,13 @@
 
 #ifdef RNA_RUNTIME
 
+#  include "BLI_listbase.h"
 #  include "BLI_math_rotation.h"
 #  include "BLI_math_vector.h"
+#  include "BLI_string.h"
+
+#  include "BKE_context.hh"
+#  include "BKE_main.hh"
 
 #  include "WM_api.hh"
 

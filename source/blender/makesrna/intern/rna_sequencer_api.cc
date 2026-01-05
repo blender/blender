@@ -24,7 +24,10 @@
 
 #  include "DNA_mask_types.h"
 
-#  include "BLI_path_utils.hh" /* #BLI_path_split_dir_file */
+#  include "BLI_listbase.h"
+#  include "BLI_path_utils.hh"
+#  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
 
 #  include "BKE_report.hh"
 
@@ -33,6 +36,10 @@
 #  include "SEQ_relations.hh"
 #  include "SEQ_render.hh"
 #  include "SEQ_retiming.hh"
+#  include "SEQ_utils.hh"
+
+#  include "DEG_depsgraph.hh"
+#  include "DEG_depsgraph_build.hh"
 
 #  include "WM_api.hh"
 

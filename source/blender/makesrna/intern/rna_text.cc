@@ -21,6 +21,10 @@
 
 #ifdef RNA_RUNTIME
 
+#  include "BLI_listbase.h"
+#  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
+
 #  include "BKE_text.h"
 
 #  include "ED_text.hh"

@@ -313,16 +313,22 @@ static const EnumPropertyItem target_space_object_items[] = {
 
 #  include "DNA_cachefile_types.h"
 
+#  include "BLI_listbase.h"
+#  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
+
 #  include "BKE_action.hh"
 #  include "BKE_animsys.h"
 #  include "BKE_constraint.h"
 #  include "BKE_context.hh"
+#  include "BKE_lib_id.hh"
 
 #  ifdef WITH_ALEMBIC
 #    include "ABC_alembic.h"
 #  endif
 
 #  include "ANIM_action.hh"
+
 #  include "rna_action_tools.hh"
 
 static StructRNA *rna_ConstraintType_refine(PointerRNA *ptr)

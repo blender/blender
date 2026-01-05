@@ -50,9 +50,12 @@ const EnumPropertyItem rna_enum_region_panel_category_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include "BLI_listbase.h"
+
 #  include "RNA_access.hh"
 
 #  include "BKE_global.hh"
+#  include "BKE_main.hh"
 #  include "BKE_screen.hh"
 #  include "BKE_workspace.hh"
 

@@ -22,6 +22,7 @@
 
 #  include "BKE_anim_data.hh"
 #  include "BKE_attribute.hh"
+#  include "BKE_customdata.hh"
 #  include "BKE_geometry_compare.hh"
 #  include "BKE_mesh.h"
 #  include "BKE_mesh.hh"

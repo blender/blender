@@ -645,6 +645,7 @@ static const EnumPropertyItem spreadsheet_table_id_type_items[] = {
 #  include "BLI_math_vector.h"
 #  include "BLI_path_utils.hh"
 #  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
 
 #  include "BKE_anim_data.hh"
 #  include "BKE_brush.hh"
@@ -655,6 +656,8 @@ static const EnumPropertyItem spreadsheet_table_id_type_items[] = {
 #  include "BKE_image.hh"
 #  include "BKE_key.hh"
 #  include "BKE_layer.hh"
+#  include "BKE_lib_id.hh"
+#  include "BKE_main.hh"
 #  include "BKE_nla.hh"
 #  include "BKE_node.hh"
 #  include "BKE_paint.hh"

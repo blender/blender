@@ -17,6 +17,11 @@
 
 #  include "DNA_vfont_types.h"
 
+#  include "BKE_lib_id.hh"
+#  include "BKE_library.hh"
+#  include "BKE_main.hh"
+#  include "BKE_report.hh"
+
 static void rna_VectorFont_pack(VFont *vfont, Main *bmain, ReportList *reports)
 {
   vfont->packedfile = BKE_packedfile_new(

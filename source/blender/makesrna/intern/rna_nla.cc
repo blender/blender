@@ -75,6 +75,10 @@ const EnumPropertyItem rna_enum_nla_mode_extend_items[] = {
 #  include <math.h>
 #  include <stdio.h>
 
+#  include "BLI_listbase.h"
+#  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
+
 /* needed for some of the validation stuff... */
 #  include "BKE_anim_data.hh"
 #  include "BKE_fcurve.hh"
@@ -86,6 +90,8 @@ const EnumPropertyItem rna_enum_nla_mode_extend_items[] = {
 
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"
+
+#  include "rna_action_tools.hh"
 
 static void rna_NlaStrip_name_set(PointerRNA *ptr, const char *value)
 {

@@ -47,7 +47,12 @@ static const EnumPropertyItem effector_shape_items[] = {
 
 #  include <fmt/format.h>
 
+#  include "BLI_listbase.h"
 #  include "BLI_math_base.h"
+#  include "BLI_path_utils.hh"
+#  include "BLI_string.h"
+
+#  include "BKE_lib_id.hh"
 
 #  include "RNA_access.hh"
 

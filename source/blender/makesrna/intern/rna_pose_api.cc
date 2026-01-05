@@ -34,6 +34,10 @@ using namespace blender;
 #  include "ANIM_action.hh"
 #  include "ANIM_pose.hh"
 
+#  include "DEG_depsgraph.hh"
+
+#  include "WM_api.hh"
+
 static float rna_PoseBone_do_envelope(bPoseChannel *chan, const float vec[3])
 {
   Bone *bone = chan->bone;

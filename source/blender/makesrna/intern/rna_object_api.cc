@@ -42,12 +42,18 @@ static const EnumPropertyItem space_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include "BLI_listbase.h"
+#  include "BLI_math_matrix.h"
+#  include "BLI_string.h"
+
 #  include "BKE_bvhutils.hh"
+#  include "BKE_camera.h"
 #  include "BKE_constraint.h"
 #  include "BKE_context.hh"
 #  include "BKE_crazyspace.hh"
 #  include "BKE_customdata.hh"
 #  include "BKE_global.hh"
+#  include "BKE_key.hh"
 #  include "BKE_layer.hh"
 #  include "BKE_main.hh"
 #  include "BKE_mball.hh"
@@ -63,6 +69,7 @@ static const EnumPropertyItem space_items[] = {
 #  include "ED_screen.hh"
 
 #  include "DNA_curve_types.h"
+#  include "DNA_key_types.h"
 #  include "DNA_mesh_types.h"
 #  include "DNA_scene_types.h"
 #  include "DNA_view3d_types.h"
@@ -70,6 +77,8 @@ static const EnumPropertyItem space_items[] = {
 #  include "DEG_depsgraph_query.hh"
 
 #  include "MEM_guardedalloc.h"
+
+#  include "WM_api.hh"
 
 static Base *find_view_layer_base_with_synced_ensure(
     Object *ob, bContext *C, PointerRNA *view_layer_ptr, Scene **r_scene, ViewLayer **r_view_layer)

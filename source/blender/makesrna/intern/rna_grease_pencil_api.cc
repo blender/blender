@@ -26,6 +26,8 @@ const EnumPropertyItem rna_enum_tree_node_move_type_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include "BLI_listbase.h"
+
 #  include "BKE_attribute.hh"
 #  include "BKE_context.hh"
 #  include "BKE_curves.hh"

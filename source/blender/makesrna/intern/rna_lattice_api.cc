@@ -15,6 +15,9 @@
 #ifdef RNA_RUNTIME
 
 #  include "BKE_geometry_compare.hh"
+#  include "BKE_lattice.hh"
+
+#  include "DEG_depsgraph.hh"
 
 static const char *rna_Lattice_unit_test_compare(Lattice *lt, Lattice *lt2, float threshold)
 {

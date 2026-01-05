@@ -29,8 +29,10 @@
 
 #  include "RNA_access.hh"
 
+#  include "BKE_context.hh"
 #  include "BKE_idprop.hh"
 #  include "BKE_layer.hh"
+#  include "BKE_main.hh"
 #  include "BKE_mesh.hh"
 #  include "BKE_node.hh"
 #  include "BKE_node_tree_update.hh"
@@ -39,6 +41,7 @@
 #  include "NOD_composite.hh"
 
 #  include "BLI_listbase.h"
+#  include "BLI_string.h"
 
 #  include "DEG_depsgraph_build.hh"
 #  include "DEG_depsgraph_query.hh"

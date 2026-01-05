@@ -14,11 +14,19 @@
 
 #ifdef RNA_RUNTIME
 
+#  include "BLI_listbase.h"
+
+#  include "BKE_context.hh"
 #  include "BKE_global.hh"
+#  include "BKE_scene.hh"
+#  include "BKE_screen.hh"
 
 #  include "ED_fileselect.hh"
 #  include "ED_screen.hh"
 #  include "ED_text.hh"
+#  include "ED_view3d.hh"
+
+#  include "WM_api.hh"
 
 int rna_object_type_visibility_icon_get_common(int object_type_exclude_viewport,
                                                const int *object_type_exclude_select)

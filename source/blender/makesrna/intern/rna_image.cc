@@ -47,6 +47,7 @@ static const EnumPropertyItem image_source_items[] = {
 #  include <algorithm>
 #  include <fmt/format.h>
 
+#  include "BLI_listbase.h"
 #  include "BLI_math_base.h"
 #  include "BLI_math_vector.h"
 

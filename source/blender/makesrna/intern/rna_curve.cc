@@ -151,10 +151,13 @@ static const EnumPropertyItem curve2d_fill_mode_items[] = {
 
 #  include "DNA_object_types.h"
 
+#  include "BLI_listbase.h"
 #  include "BLI_math_vector.h"
+#  include "BLI_string_utf8.h"
 
 #  include "BKE_curve.hh"
 #  include "BKE_curveprofile.h"
+#  include "BKE_lib_id.hh"
 #  include "BKE_main.hh"
 #  include "BKE_vfont.hh"
 

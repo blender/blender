@@ -15,6 +15,12 @@
 
 #ifdef RNA_RUNTIME
 
+#  include "DNA_sound_types.h"
+
+#  include "BKE_library.hh"
+#  include "BKE_main.hh"
+#  include "BKE_report.hh"
+
 static void rna_Sound_pack(bSound *sound, Main *bmain, ReportList *reports)
 {
   sound->packedfile = BKE_packedfile_new(

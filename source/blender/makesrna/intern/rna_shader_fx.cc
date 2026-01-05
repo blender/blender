@@ -82,6 +82,10 @@ static const EnumPropertyItem rna_enum_glow_blend_modes_items[] = {
 
 #  include <fmt/format.h>
 
+#  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
+
+#  include "BKE_lib_id.hh"
 #  include "BKE_shader_fx.hh"
 
 #  include "DEG_depsgraph.hh"

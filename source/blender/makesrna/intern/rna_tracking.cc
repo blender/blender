@@ -26,10 +26,10 @@
 
 #ifdef RNA_RUNTIME
 
-#  include "DNA_anim_types.h"
-#  include "DNA_movieclip_types.h"
-
+#  include "BLI_listbase.h"
 #  include "BLI_math_vector.h"
+#  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
 
 #  include "BKE_anim_data.hh"
 #  include "BKE_animsys.h"

@@ -842,12 +842,17 @@ static const EnumPropertyItem grease_pencil_build_time_mode_items[] = {
 #  include "DNA_object_force_types.h"
 #  include "DNA_particle_types.h"
 
+#  include "BLI_listbase.h"
+#  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
+
 #  include "BKE_cachefile.hh"
 #  include "BKE_compute_contexts.hh"
 #  include "BKE_context.hh"
 #  include "BKE_curveprofile.h"
 #  include "BKE_deform.hh"
 #  include "BKE_fluid.h"
+#  include "BKE_lib_id.hh"
 #  include "BKE_material.hh"
 #  include "BKE_mesh_runtime.hh"
 #  include "BKE_modifier.hh"

@@ -64,6 +64,7 @@ const EnumPropertyItem rna_enum_window_cursor_items[] = {
 
 #  include "DNA_userdef_types.h"
 
+#  include "BLI_listbase.h"
 #  include "BLI_string.h"
 #  include "BLI_string_utf8.h"
 
@@ -72,6 +73,8 @@ const EnumPropertyItem rna_enum_window_cursor_items[] = {
 #  include "BKE_main.hh"
 #  include "BKE_report.hh"
 #  include "BKE_undo_system.hh"
+
+#  include "UI_interface_c.hh"
 
 #  include "WM_types.hh"
 

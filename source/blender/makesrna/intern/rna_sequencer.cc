@@ -142,12 +142,18 @@ const EnumPropertyItem rna_enum_pitch_quality_items[] = {
 
 #  include <fmt/format.h>
 
+#  include "DNA_node_types.h"
 #  include "DNA_vfont_types.h"
 
 #  include "BLI_iterator.h"
+#  include "BLI_listbase.h"
+#  include "BLI_path_utils.hh"
+#  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
 #  include "BLI_string_utils.hh"
 
 #  include "BKE_anim_data.hh"
+#  include "BKE_context.hh"
 #  include "BKE_global.hh"
 #  include "BKE_report.hh"
 

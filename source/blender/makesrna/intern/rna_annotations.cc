@@ -22,6 +22,7 @@
 
 #  include "BLT_translation.hh"
 
+#  include "BLI_listbase.h"
 #  include "BLI_math_base.h"
 #  include "BLI_string.h"
 #  include "BLI_string_utf8.h"

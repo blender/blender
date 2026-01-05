@@ -14,6 +14,10 @@
 
 #ifdef RNA_RUNTIME
 
+#  include "DNA_text_types.h"
+
+#  include "BKE_text.h"
+
 #  include "WM_api.hh"
 #  include "WM_types.hh"
 

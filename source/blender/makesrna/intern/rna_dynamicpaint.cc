@@ -35,6 +35,7 @@ const EnumPropertyItem rna_enum_prop_dynamicpaint_type_items[] = {
 
 #  include <fmt/format.h>
 
+#  include "BLI_listbase.h"
 #  include "BLI_string.h"
 
 #  include "BKE_context.hh"

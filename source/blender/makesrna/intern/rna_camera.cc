@@ -26,7 +26,12 @@
 
 #  include <fmt/format.h>
 
+#  include "BLI_path_utils.hh"
+#  include "BLI_string.h"
+
 #  include "BKE_camera.h"
+#  include "BKE_lib_id.hh"
+#  include "BKE_main.hh"
 #  include "BKE_object.hh"
 #  include "BKE_report.hh"
 
