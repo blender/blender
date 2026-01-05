@@ -87,7 +87,7 @@ enum TokenType : char {
 struct Token {
 #ifdef NDEBUG
   /* String view for nicer debugging experience. Isn't actually used. */
-  std::string_view str_view;
+  std::string_view str_view_debug;
 #endif
 
   const TokenStream *data = nullptr;
