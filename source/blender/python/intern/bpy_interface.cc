@@ -708,6 +708,7 @@ void BPY_python_backtrace(FILE *fp)
     const char *filepath = PyUnicode_AsUTF8(code->co_filename);
     const char *funcname = PyUnicode_AsUTF8(code->co_name);
     fprintf(fp, "  File \"%s\", line %d in %s\n", filepath, line, funcname);
+    Py_DECREF(code);
   } while ((frame = PyFrame_GetBack(frame)));
 }
 

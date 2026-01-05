@@ -703,6 +703,8 @@ void PyC_FileAndNum(const char **r_filename, int *r_lineno)
   if (r_lineno) {
     *r_lineno = PyFrame_GetLineNumber(frame);
   }
+
+  Py_DECREF(code);
 }
 
 void PyC_FileAndNum_Safe(const char **r_filename, int *r_lineno)
