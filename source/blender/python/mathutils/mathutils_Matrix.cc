@@ -2319,25 +2319,29 @@ static PyObject *Matrix_repr(MatrixObject *self)
       PyTuple_SET_ITEM(rows[row], col, PyFloat_FromDouble(MATRIX_ITEM(self, row, col)));
     }
   }
+
+  PyObject *result = nullptr;
   switch (self->row_num) {
     case 2: {
-      return PyUnicode_FromFormat(
+      result = PyUnicode_FromFormat(
           "Matrix((%R,\n"
           "        %R))",
           rows[0],
           rows[1]);
+      break;
     }
     case 3: {
-      return PyUnicode_FromFormat(
+      result = PyUnicode_FromFormat(
           "Matrix((%R,\n"
           "        %R,\n"
           "        %R))",
           rows[0],
           rows[1],
           rows[2]);
+      break;
     }
     case 4: {
-      return PyUnicode_FromFormat(
+      result = PyUnicode_FromFormat(
           "Matrix((%R,\n"
           "        %R,\n"
           "        %R,\n"
@@ -2346,11 +2350,19 @@ static PyObject *Matrix_repr(MatrixObject *self)
           rows[1],
           rows[2],
           rows[3]);
+      break;
+    }
+    default: {
+      Py_FatalError("Matrix(): invalid row size!");
+      break;
     }
   }
 
-  Py_FatalError("Matrix(): invalid row size!");
-  return nullptr;
+  for (row = 0; row < self->row_num; row++) {
+    Py_DECREF(rows[row]);
+  }
+
+  return result;
 }
 
 #ifndef MATH_STANDALONE
