@@ -852,7 +852,12 @@ static PyObject *bpy_bm_utils_uv_select_check(PyObject * /*self*/, PyObject *arg
   PyObject *result = PyDict_New();
 
 #define DICT_ADD_INT_MEMBER(info_struct, member) \
-  PyDict_SetItemString(result, STRINGIFY(member), PyLong_FromLong(info_struct.member))
+  { \
+    PyObject *value = PyLong_FromLong(info_struct.member); \
+    PyDict_SetItemString(result, STRINGIFY(member), value); \
+    Py_DECREF(value); \
+  } \
+  ((void)0)
 
   {
     UVSelectValidateInfo_Sync &info_sub = info.sync;
