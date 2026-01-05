@@ -231,8 +231,12 @@ static std::optional<float3> sample_texture_paint_color(
     return std::nullopt;
   }
 
-  const float u = uv[0] * ibuf->x;
-  const float v = uv[1] * ibuf->y;
+  float u = uv[0] * ibuf->x;
+  float v = uv[1] * ibuf->y;
+  if (interp != SHD_INTERP_CLOSEST) {
+    u -= 0.5f;
+    v -= 0.5f;
+  }
 
   float4 rgba_f;
   if (ibuf->float_buffer.data) {
