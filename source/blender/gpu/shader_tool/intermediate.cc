@@ -566,7 +566,7 @@ static always_inline TokenType type_lookup(std::string_view s)
           }
           break;
         case 'r':
-          if (s == "return") [[likely]] {
+          if (s == "return") {
             return Return;
           }
           break;
@@ -574,7 +574,7 @@ static always_inline TokenType type_lookup(std::string_view s)
           if (s == "static") {
             return Static;
           }
-          if (s == "struct") [[likely]] {
+          if (s == "struct") {
             return Struct;
           }
           if (s == "switch") {
@@ -855,7 +855,7 @@ void TokenStream::build_scope_tree(report_callback &report_error)
         }
         else {
           error_token = Token::from_position(this, tok_id);
-          error_msg = "Unexpected ')' token";
+          error_msg = "Unexpected '}' token";
           goto error;
         }
         break;

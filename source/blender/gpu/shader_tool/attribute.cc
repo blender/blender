@@ -102,7 +102,6 @@ void SourceProcessor::lint_attributes(Parser &parser)
         return;
       }
       else {
-        cout << "attr_str " << attr_str << endl;
         report_error_(ERROR_TOK(attr), "Unrecognized attribute");
         invalid = true;
         /* Attribute already invalid, don't check placement. */
