@@ -27,7 +27,7 @@ source/blender/imbuf/IMB_colormanagement.h     @sergey @brecht
 source/blender/imbuf/intern/colormanagement.*  @sergey @brecht
 source/blender/imbuf/opencolorio/.*            @sergey @brecht
 
-# Grease Pencil
+# Grease Pencil.
 source/blender/editors/grease_pencil/.*           @filedescriptor
 source/blender/blenkernel/BKE_grease_pencil.*     @filedescriptor
 source/blender/blenkernel/intern/grease_pencil.*  @filedescriptor
