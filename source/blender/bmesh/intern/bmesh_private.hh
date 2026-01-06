@@ -14,6 +14,8 @@
 
 #include "bmesh_class.hh"
 
+namespace blender {
+
 /* returns positive nonzero on error */
 
 #ifdef NDEBUG
@@ -27,9 +29,6 @@
  * BMESH_TODO, when this raises an error the output is incredibly confusing.
  * need to have some nice way to print/debug what the heck's going on.
  */
-
-namespace blender {
-
 int bmesh_elem_check(void *element, char htype);
 #  define BM_CHECK_ELEMENT(el) \
     { \
