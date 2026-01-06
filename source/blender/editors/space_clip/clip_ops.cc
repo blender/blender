@@ -1247,7 +1247,9 @@ static void do_movie_proxy(void *pjv,
   MovieDistortion *distortion = nullptr;
 
   if (pj->proxy_builder) {
-    MOV_proxy_builder_process(pj->proxy_builder, stop, do_update, progress);
+    MOV_proxy_builder_process(pj->proxy_builder, stop, do_update, [&](const float new_progress) {
+      *progress = new_progress;
+    });
   }
 
   if (!build_undistort_count) {

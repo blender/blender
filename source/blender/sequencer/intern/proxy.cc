@@ -504,7 +504,9 @@ bool proxy_rebuild_context(Main *bmain,
   return true;
 }
 
-void proxy_rebuild(IndexBuildContext *context, wmJobWorkerStatus *worker_status)
+void proxy_rebuild(IndexBuildContext *context,
+                   wmJobWorkerStatus *worker_status,
+                   const FunctionRef<void(float progress)> set_progress_fn)
 {
   const bool overwrite = context->overwrite;
   RenderData render_context;
@@ -517,7 +519,7 @@ void proxy_rebuild(IndexBuildContext *context, wmJobWorkerStatus *worker_status)
       MOV_proxy_builder_process(context->proxy_builder,
                                 &worker_status->stop,
                                 &worker_status->do_update,
-                                &worker_status->progress);
+                                set_progress_fn);
     }
 
     return;

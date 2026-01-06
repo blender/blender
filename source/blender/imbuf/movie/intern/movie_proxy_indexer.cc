@@ -905,7 +905,7 @@ static void index_rebuild_ffmpeg_proc_decoded_frame(MovieProxyBuilder *context, 
 static int index_rebuild_ffmpeg(MovieProxyBuilder *context,
                                 const bool *stop,
                                 bool *do_update,
-                                float *progress)
+                                const blender::FunctionRef<void(float progress)> set_progress_fn)
 {
   AVFrame *in_frame = av_frame_alloc();
   AVPacket *next_packet = av_packet_alloc();
@@ -917,13 +917,17 @@ static int index_rebuild_ffmpeg(MovieProxyBuilder *context,
       av_guess_frame_rate(context->iFormatCtx, context->iStream, nullptr));
   context->pts_time_base = av_q2d(context->iStream->time_base);
 
+  float progress = 0.0f;
   while (av_read_frame(context->iFormatCtx, next_packet) >= 0) {
     float next_progress =
         float(int(floor(double(next_packet->pos) * 100 / double(stream_size) + 0.5))) / 100;
 
-    if (*progress != next_progress) {
-      *progress = next_progress;
+    if (progress != next_progress) {
+      progress = next_progress;
       *do_update = true;
+      if (set_progress_fn) {
+        set_progress_fn(progress);
+      }
     }
 
     if (*stop) {
@@ -1183,17 +1187,16 @@ void MOV_proxy_builder_process(MovieProxyBuilder *context,
                                bool *stop,
                                /* NOLINTNEXTLINE: readability-non-const-parameter. */
                                bool *do_update,
-                               /* NOLINTNEXTLINE: readability-non-const-parameter. */
-                               float *progress)
+                               const blender::FunctionRef<void(float progress)> set_progress_fn)
 {
 #ifdef WITH_FFMPEG
   if (context != nullptr) {
     if (indexer_need_to_build_proxy(context)) {
-      index_rebuild_ffmpeg(context, stop, do_update, progress);
+      index_rebuild_ffmpeg(context, stop, do_update, set_progress_fn);
     }
   }
 #endif
-  UNUSED_VARS(context, stop, do_update, progress);
+  UNUSED_VARS(context, stop, do_update, set_progress_fn);
 }
 
 void MOV_proxy_builder_finish(MovieProxyBuilder *context, const bool stop)

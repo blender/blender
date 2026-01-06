@@ -14,6 +14,7 @@
 
 #include "MOV_enums.hh"
 
+#include "BLI_function_ref.hh"
 #include "BLI_set.hh"
 
 #include <string>
@@ -190,7 +191,7 @@ MovieProxyBuilder *MOV_proxy_builder_start(MovieReader *anim,
 void MOV_proxy_builder_process(MovieProxyBuilder *context,
                                bool *stop,
                                bool *do_update,
-                               float *progress);
+                               blender::FunctionRef<void(float progress)> set_progress_fn);
 
 /**
  * Finish building proxies / time-codes indices, and delete the builder.

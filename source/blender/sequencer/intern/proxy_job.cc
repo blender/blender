@@ -39,11 +39,18 @@ static void proxy_freejob(void *pjv)
 static void proxy_startjob(void *pjv, wmJobWorkerStatus *worker_status)
 {
   ProxyJob *pj = static_cast<ProxyJob *>(pjv);
-
+  Vector<IndexBuildContext *> contexts;
   for (LinkData &link : pj->queue) {
-    IndexBuildContext *context = static_cast<IndexBuildContext *>(link.data);
+    contexts.append(static_cast<IndexBuildContext *>(link.data));
+  }
 
-    proxy_rebuild(context, worker_status);
+  for (const int i : contexts.index_range()) {
+    IndexBuildContext *context = contexts[i];
+    proxy_rebuild(context, worker_status, [&](const float new_progress) {
+      /* Remap the progress of the current proxy to the total progress. */
+      const float total_progress = (i + new_progress) / contexts.size();
+      worker_status->progress = total_progress;
+    });
 
     if (worker_status->stop) {
       pj->stop = true;

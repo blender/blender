@@ -118,7 +118,7 @@ static wmOperatorStatus sequencer_rebuild_proxy_exec(bContext *C, wmOperator * /
       wmJobWorkerStatus worker_status = {};
       for (LinkData &link : queue) {
         seq::IndexBuildContext *context = static_cast<seq::IndexBuildContext *>(link.data);
-        seq::proxy_rebuild(context, &worker_status);
+        seq::proxy_rebuild(context, &worker_status, nullptr);
         seq::proxy_rebuild_finish(context, false);
       }
       seq::relations_free_imbuf(scene, &ed->seqbase, false);
