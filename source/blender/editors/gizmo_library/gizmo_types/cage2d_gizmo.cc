@@ -645,7 +645,7 @@ static void cage2d_draw_rect_corner_handles(const rctf *r,
       immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
   const float rad[2] = {margin[0] / 3, margin[1] / 3};
 
-  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_COLOR);
   immUniformColor3fv(color);
 
   /* Should really divide by two, but looks too bulky. */
