@@ -7,8 +7,8 @@
 #
 # Developers should consider adding themselves to files and directories they
 # are interested in review (or where they're often asked to do reviews).
-# Core module.
 
+# Core module.
 source/blender/depsgraph/.*             @sergey
 source/blender/blenkernel/BKE_lib.*     @mont29
 source/blender/blenkernel/intern/lib.*  @mont29
@@ -26,3 +26,8 @@ source/blender/render/.*   @sergey @brecht
 source/blender/imbuf/IMB_colormanagement.h     @sergey @brecht
 source/blender/imbuf/intern/colormanagement.*  @sergey @brecht
 source/blender/imbuf/opencolorio/.*            @sergey @brecht
+
+# Grease Pencil
+source/blender/editors/grease_pencil/.*           @filedescriptor
+source/blender/blenkernel/BKE_grease_pencil.*     @filedescriptor
+source/blender/blenkernel/intern/grease_pencil.*  @filedescriptor
