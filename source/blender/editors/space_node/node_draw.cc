@@ -3688,6 +3688,47 @@ static void node_update_nodetree(const bContext &C,
   }
 }
 
+static void node_frame_get_color(const bNode &node, float r_color[4])
+{
+  if (node.flag & NODE_CUSTOM_COLOR) {
+    rgba_float_args_set(r_color, node.color[0], node.color[1], node.color[2], 1.0f);
+  }
+  else {
+    /* Checking for nested frames. */
+    int depth = 0;
+    for (const bNode *parent = node.parent; parent; parent = parent->parent) {
+      depth++;
+    }
+    if (depth % 2 == 0) {
+      ui::theme::get_color_4fv(TH_NODE_FRAME, r_color);
+    }
+    else {
+      ui::theme::get_color_shade_4fv(TH_NODE_FRAME, 20, r_color);
+    }
+  }
+}
+
+static void node_frame_get_label_color(const float bgcolor[4], uchar r_color[3])
+{
+  float text_color_rgb[3];
+  ui::theme::get_color_3fv(TH_TEXT, text_color_rgb);
+
+  float text_color_hsl[3];
+  rgb_to_hsl_v(text_color_rgb, text_color_hsl);
+
+  if (srgb_to_grayscale(bgcolor) > 0.5f) {
+    /* Light background -> dark text. */
+    text_color_hsl[2] = 0.05f;
+  }
+  else {
+    /* Dark background -> light text. */
+    text_color_hsl[2] = 0.95f;
+  }
+
+  hsl_to_rgb_v(text_color_hsl, text_color_rgb);
+  rgb_float_to_uchar(r_color, text_color_rgb);
+}
+
 static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
                                   const bNode &node,
                                   const SpaceNode &snode)
@@ -3706,11 +3747,14 @@ static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
 
   const FrameNodeLayout frame_layout = frame_node_layout(node);
 
-  /* Title color. */
-  int color_id = node_get_colorid(tree_draw_ctx, node);
-  uchar color[3];
-  ui::theme::get_color_blend_shade_3ubv(TH_TEXT, color_id, 0.4f, 10, color);
-  BLF_color3ubv(fontid, color);
+  /* Calculate frame background color to determine text contrast. */
+  float bgcolor[4];
+  node_frame_get_color(node, bgcolor);
+
+  /* The Text color changes according to background color. */
+  uchar text_color[3];
+  node_frame_get_label_color(bgcolor, text_color);
+  BLF_color3ubv(fontid, text_color);
 
   const float label_width = BLF_width(fontid, node.label, strlen(node.label));
 
@@ -3771,28 +3815,16 @@ static void frame_node_draw_background(const ARegion &region,
     return;
   }
 
+  /* Use opacity from theme, but color from the frame. */
+  float temp_theme_color[4];
+  ui::theme::get_color_4fv(TH_NODE_FRAME, temp_theme_color);
+  const float alpha = temp_theme_color[3];
+
   float color[4];
-  ui::theme::get_color_4fv(TH_NODE_FRAME, color);
-  const float alpha = color[3];
+  node_frame_get_color(node, color);
+  color[3] = alpha;
 
   node_draw_shadow(snode, node, BASIS_RAD, alpha);
-
-  if (node.flag & NODE_CUSTOM_COLOR) {
-    rgba_float_args_set(color, node.color[0], node.color[1], node.color[2], alpha);
-  }
-  else {
-    int depth = 0;
-    for (const bNode *parent = node.parent; parent; parent = parent->parent) {
-      depth++;
-    }
-
-    if (depth % 2 == 0) {
-      ui::theme::get_color_4fv(TH_NODE_FRAME, color);
-    }
-    else {
-      ui::theme::get_color_shade_4fv(TH_NODE_FRAME, 20, color);
-    }
-  }
 
   const rctf &rct = node.runtime->draw_bounds;
   draw_roundbox_corner_set(ui::CNR_ALL);
