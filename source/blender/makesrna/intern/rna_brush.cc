@@ -3130,8 +3130,11 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_float_default(prop, 0.0f);
   RNA_def_property_range(prop, 0, 1.0f);
   RNA_def_property_ui_range(prop, 0, 1.0f, 1, 3);
-  RNA_def_property_ui_text(
-      prop, "Stabilize Normal", "Stabilize the orientation of the brush plane.");
+  RNA_def_property_ui_text(prop,
+                           "Stabilize Normal",
+                           "How stable the plane normal is over the course of the stroke. "
+                           "A value of 0 corresponds to using the current normal, "
+                           "and a value of 1 corresponds to using the initial normal.");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "stabilize_plane", PROP_FLOAT, PROP_FACTOR);
@@ -3139,7 +3142,11 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_float_default(prop, 0.0f);
   RNA_def_property_range(prop, 0, 1.0f);
   RNA_def_property_ui_range(prop, 0, 1.0f, 1, 3);
-  RNA_def_property_ui_text(prop, "Stabilize Plane", "Stabilize the center of the brush plane.");
+  RNA_def_property_ui_text(prop,
+                           "Stabilize Center",
+                           "How stable the plane center is over the course of the stroke. "
+                           "A value of 0 corresponds to using the current center, "
+                           "and a value of 1 corresponds to using the initial center.");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "texture_sample_bias", PROP_FLOAT, PROP_DISTANCE);
