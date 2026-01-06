@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-/* create python module _cycles used by addon */
+/* Create python module _cycles used by addon. */
 
 void *CCL_python_module_init(void);
 
