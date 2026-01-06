@@ -423,6 +423,7 @@ class CLIP_PT_tracking_settings_extras(CLIP_PT_tracking_panel, Panel):
     bl_parent_id = "CLIP_PT_tracking_settings"
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
+    bl_category = "Track"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
