@@ -972,6 +972,22 @@ static bool rna_Space_show_region_ui_get(PointerRNA *ptr)
 }
 static void rna_Space_show_region_ui_set(PointerRNA *ptr, bool value)
 {
+  if (value) {
+    ScrArea *area = rna_area_from_space(ptr);
+    ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_UI);
+    const float aspect = (region->v2d.flag & V2D_IS_INIT) ?
+                             (BLI_rctf_size_x(&region->v2d.cur) /
+                              (BLI_rcti_size_x(&region->v2d.mask) + 1)) :
+                             1.0f;
+    if (BKE_regiontype_uses_category_tabs(region->runtime->type) &&
+        (float(region->sizex) <= (UI_PANEL_CATEGORY_MIN_WIDTH / aspect)))
+    {
+      /* If the region is showing only tabs, increase to full width. */
+      const int new_width = region->runtime->type->prefsizex ? region->runtime->type->prefsizex :
+                                                               250;
+      region->sizex = short(new_width / aspect);
+    }
+  }
   rna_Space_bool_from_region_flag_set_by_type(ptr, RGN_TYPE_UI, RGN_FLAG_HIDDEN, !value);
 }
 static void rna_Space_show_region_ui_update(bContext *C, PointerRNA *ptr)
