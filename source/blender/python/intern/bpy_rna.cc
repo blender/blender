@@ -9505,7 +9505,7 @@ static int bpy_class_validate_recursive(PointerRNA *dummy_ptr,
     func_arg_count = rna_function_register_arg_count(func, &func_arg_min_count);
 
     if (func_arg_count >= 0) { /* -1 if we don't care. */
-      arg_count = (reinterpret_cast<PyCodeObject *> PyFunction_GET_CODE(item))->co_argcount;
+      arg_count = (reinterpret_cast<PyCodeObject *>(PyFunction_GET_CODE(item))->co_argcount);
 
       /* NOTE: the number of args we check for and the number of args we give to
        * `@staticmethods` are different (quirk of Python),
@@ -9797,13 +9797,13 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
        * #rna_function_register_arg_count so there is no need to inspect the RNA function. */
 
       if (is_staticmethod) {
-        arg_count = (reinterpret_cast<PyCodeObject *> PyFunction_GET_CODE(
-                         ((PyMethodObject *)item)->im_func))
+        arg_count = (reinterpret_cast<PyCodeObject *>(
+                         PyFunction_GET_CODE(((PyMethodObject *)item)->im_func)))
                         ->co_argcount -
                     1;
       }
       else {
-        arg_count = (reinterpret_cast<PyCodeObject *> PyFunction_GET_CODE(item))->co_argcount;
+        arg_count = (reinterpret_cast<PyCodeObject *>(PyFunction_GET_CODE(item)))->co_argcount;
       }
       args = PyTuple_New(arg_count); /* First arg is included in 'item'. */
 

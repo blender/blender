@@ -2724,7 +2724,7 @@ static int bpy_prop_callback_check(PyObject *py_func, const char *keyword, int a
       return -1;
     }
 
-    PyCodeObject *f_code = reinterpret_cast<PyCodeObject *> PyFunction_GET_CODE(py_func);
+    PyCodeObject *f_code = reinterpret_cast<PyCodeObject *>(PyFunction_GET_CODE(py_func));
     if (f_code->co_argcount != argcount) {
       PyErr_Format(PyExc_TypeError,
                    "%s keyword: expected a function taking %d arguments, not %d",
@@ -5147,7 +5147,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
   /* Items can be a list or a callable.
    * NOTE: Don't use #PyCallable_Check because we need the function code for errors. */
   if (PyFunction_Check(items)) {
-    PyCodeObject *f_code = reinterpret_cast<PyCodeObject *> PyFunction_GET_CODE(items);
+    PyCodeObject *f_code = reinterpret_cast<PyCodeObject *>(PyFunction_GET_CODE(items));
     if (f_code->co_argcount != 2) {
       PyErr_Format(PyExc_ValueError,
                    "EnumProperty(...): expected 'items' function to take 2 arguments, not %d",
