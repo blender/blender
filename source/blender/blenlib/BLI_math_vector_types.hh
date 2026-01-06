@@ -31,6 +31,10 @@ template<typename T, int Size, bool is_trivial_type> struct vec_struct_base {
   std::array<T, Size> values;
 };
 
+template<typename T> struct vec_struct_base<T, 1, false> {
+  T x;
+};
+
 template<typename T> struct vec_struct_base<T, 2, false> : VecSwizzleFunc<T, 2> {
   T x, y;
 };
@@ -57,6 +61,18 @@ template<typename T> struct vec_struct_base<T, 4, false> : VecSwizzleFunc<T, 4> 
 #  pragma warning(push)
 #  pragma warning(disable : 4201)  // nonstandard extension used : nameless struct/union
 #endif
+
+template<typename T> struct vec_struct_base<T, 1, true> {
+  union {
+#ifndef NDEBUG
+    /* Easier to read inside a debugger. */
+    std::array<T, 1> debug_values_;
+#endif
+    T x;
+    /* Nesting to avoid readability issues inside a debugger. */
+    X_SWIZZLES;
+  };
+};
 
 template<typename T> struct vec_struct_base<T, 2, true> {
   union {
