@@ -25,7 +25,6 @@ class VKBuffer : public NonCopyable {
   size_t alloc_size_in_bytes_ = 0;
   VkBuffer vk_buffer_ = VK_NULL_HANDLE;
   VmaAllocation allocation_ = VK_NULL_HANDLE;
-  VkMemoryPropertyFlags vk_memory_property_flags_;
   TimelineValue async_timeline_ = 0;
   /** Has a previous allocation failed. Will skip reallocations. */
   bool allocation_failed_ = false;

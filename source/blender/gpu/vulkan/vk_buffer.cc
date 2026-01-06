@@ -100,8 +100,16 @@ bool VKBuffer::create(size_t size_in_bytes,
 
   device.resources.add_buffer(vk_buffer_);
 
-  vmaGetAllocationMemoryProperties(allocator, allocation_, &vk_memory_property_flags_);
-  if (vk_memory_property_flags_ & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
+  /* Check if the memory is mappable. Although the Vulkan specs allow to map any memory that is
+   * host visible, VMA checks for specific host access flags.
+   *
+   * Source:
+   * https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/memory_mapping.html
+   */
+  const bool is_mappable = bool(allocation_flags &
+                                (VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT |
+                                 VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT));
+  if (is_mappable) {
     return map();
   }
 
