@@ -63,6 +63,11 @@ namespace blender {
  */
 #define USE_FIND_FASTPATH
 
+/**
+ * Scan forward to find the first byte not equal to `value`.
+ *
+ * Used to find the end of a run of identical bytes (the extent of an RLE span).
+ */
 static size_t find_byte_not_equal_to(const uint8_t *data,
                                      size_t offset,
                                      const size_t size,
@@ -139,6 +144,55 @@ static size_t find_byte_not_equal_to(const uint8_t *data,
     offset += 1;
   }
   return offset;
+}
+
+/**
+ * Scan forward from a position where a span was too short to RLE encode,
+ * searching for the start of the next RLE-encodable span.
+ *
+ * \return The end position of the literal section (start of next RLE span, or `size` if none).
+ *
+ * \note The template is only to allow this to be forwarded as a `constexpr`.
+ */
+template<size_t RLE_SKIP_THRESHOLD>
+static size_t find_next_rle_span_start(const uint8_t *data,
+                                       const size_t offset,
+                                       const size_t size,
+                                       size_t *span_skip_next_p)
+{
+  /* The default expected value, no need to assign here. */
+  BLI_assert(*span_skip_next_p == 1);
+
+  constexpr size_t rle_skip_threshold = RLE_SKIP_THRESHOLD;
+  size_t ofs_test_start = offset;
+
+  /* Byte-level scan. */
+  size_t ofs_test = ofs_test_start + 1;
+  /* Check the offset isn't at the very end of the array. */
+  if (LIKELY(ofs_test < size)) {
+    /* The first value that changed, start searching here. */
+    uint8_t value = data[ofs_test_start];
+    do {
+      if (value == data[ofs_test]) {
+        ofs_test += 1;
+        const size_t span_test = ofs_test - ofs_test_start;
+        BLI_assert(span_test <= rle_skip_threshold);
+        if (span_test == rle_skip_threshold) {
+          /* Write the span of non-RLE data,
+           * then start scanning the magnitude of the RLE span at the start of the loop. */
+          *span_skip_next_p = span_test;
+          return ofs_test_start;
+        }
+      }
+      else {
+        BLI_assert(ofs_test - ofs_test_start < rle_skip_threshold);
+        value = data[ofs_test];
+        ofs_test_start = ofs_test;
+        ofs_test += 1;
+      }
+    } while (LIKELY(ofs_test < size));
+  }
+  return size;
 }
 
 /** \} */
@@ -292,42 +346,8 @@ uint8_t *BLI_array_store_rle_encode(const uint8_t *data_dec,
     else {
       /* A large enough span was not found,
        * scan ahead to detect the size of the non-RLE span. */
-
-      /* Check the offset isn't at the very end of the array. */
-      size_t ofs_dec_test = ofs_dec_next + 1;
-      if (LIKELY(ofs_dec_test < data_dec_len)) {
-        /* The first value that changed, start searching here. */
-        size_t ofs_dec_test_start = ofs_dec_next;
-        value_start = data_dec[ofs_dec_test_start];
-        while (true) {
-          if (value_start == data_dec[ofs_dec_test]) {
-            ofs_dec_test += 1;
-            const size_t span_test = ofs_dec_test - ofs_dec_test_start;
-            BLI_assert(span_test <= rle_skip_threshold);
-            if (span_test == rle_skip_threshold) {
-              /* Write the span of non-RLE data,
-               * then start scanning the magnitude of the RLE span at the start of the loop. */
-              span_skip_next = span_test;
-              ofs_dec_next = ofs_dec_test_start;
-              break;
-            }
-          }
-          else {
-            BLI_assert(ofs_dec_test - ofs_dec_test_start < rle_skip_threshold);
-            value_start = data_dec[ofs_dec_test];
-            ofs_dec_test_start = ofs_dec_test;
-            ofs_dec_test += 1;
-          }
-
-          if (UNLIKELY(ofs_dec_test == data_dec_len)) {
-            ofs_dec_next = data_dec_len;
-            break;
-          }
-        }
-      }
-      else {
-        ofs_dec_next = data_dec_len;
-      }
+      ofs_dec_next = find_next_rle_span_start<rle_skip_threshold>(
+          data_dec, ofs_dec_next, data_dec_len, &span_skip_next);
 
       /* Interleave the #RLE_Literal. */
       const size_t non_rle_span = ofs_dec_next - ofs_dec;
