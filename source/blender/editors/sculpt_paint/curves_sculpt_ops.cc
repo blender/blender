@@ -132,10 +132,16 @@ static std::unique_ptr<CurvesSculptStrokeOperation> start_brush_operation(
 
   const CurvesSculpt &curves_sculpt = *scene.toolsettings->curves_sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&curves_sculpt.paint);
-  const eBrushCurvesSculptType brush_type = (mode == BRUSH_STROKE_SMOOTH) ?
-                                                CURVES_SCULPT_BRUSH_TYPE_SMOOTH :
-                                                eBrushCurvesSculptType(
-                                                    brush.curves_sculpt_brush_type);
+  const eBrushCurvesSculptType brush_type = eBrushCurvesSculptType(brush.curves_sculpt_brush_type);
+  if (mode == BRUSH_STROKE_SMOOTH) {
+    if (brush_type == CURVES_SCULPT_BRUSH_TYPE_SELECTION_PAINT) {
+      /* The selection brush uses the BRUSH_STROKE_SMOOTH mode to indicate that the current
+       * selection should be added to. It should not toggle to the smooth brush itself. */
+    }
+    else {
+      return new_smooth_operation();
+    }
+  }
 
   switch (brush_type) {
     case CURVES_SCULPT_BRUSH_TYPE_COMB:
