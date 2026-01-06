@@ -716,6 +716,12 @@ using BMLoopPairFilterFunc = bool (*)(const BMLoop *, const BMLoop *, void *user
  * often used with #BM_iter_as_arrayN().
  */
 #define BM_DEFAULT_ITER_STACK_SIZE 16
+/**
+ * Size to use for stack arrays when gathering topology-related data
+ * (e.g. collecting edges, faces, or vertices during mesh operations).
+ * Prefer more specific defines (such as #BM_DEFAULT_NGON_STACK_SIZE) when applicable.
+ */
+#define BM_DEFAULT_TOPOLOGY_STACK_SIZE 64
 
 /** Avoid an eternal loop, this value is arbitrary but should not error on valid cases. */
 #define BM_LOOP_RADIAL_MAX 10000

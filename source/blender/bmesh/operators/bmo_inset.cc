@@ -11,7 +11,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
+#include "BLI_array.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
@@ -268,10 +268,10 @@ static void bmo_face_inset_individual(BMesh *bm,
   InterpFace *iface = nullptr;
 
   /* stores verts split away from the face (aligned with face verts) */
-  BMVert **verts = BLI_array_alloca(verts, f->len);
+  blender::Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> verts(f->len);
   /* store edge normals (aligned with face-loop-edges) */
-  float (*edge_nors)[3] = BLI_array_alloca(edge_nors, f->len);
-  float (*coords)[3] = BLI_array_alloca(coords, f->len);
+  blender::Array<blender::float3, BM_DEFAULT_NGON_STACK_SIZE> edge_nors(f->len);
+  blender::Array<blender::float3, BM_DEFAULT_NGON_STACK_SIZE> coords(f->len);
 
   BMLoop *l_iter, *l_first;
   BMLoop *l_other;

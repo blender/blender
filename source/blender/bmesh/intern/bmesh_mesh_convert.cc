@@ -79,7 +79,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
 #include "BLI_array.hh"
 #include "BLI_index_range.hh"
 #include "BLI_listbase.h"
@@ -345,9 +344,8 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
   if (is_new == false) {
     tot_shape_keys = min_ii(tot_shape_keys, CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY));
   }
-  const float (**shape_key_table)[3] = tot_shape_keys ? (const float (**)[3])BLI_array_alloca(
-                                                            shape_key_table, tot_shape_keys) :
-                                                        nullptr;
+  blender::Array<const float (*)[3], 32> shape_key_table_buf(tot_shape_keys);
+  const float (**shape_key_table)[3] = tot_shape_keys ? shape_key_table_buf.data() : nullptr;
 
   if ((params->active_shapekey != 0) && tot_shape_keys > 0) {
     actkey = static_cast<KeyBlock *>(BLI_findlink(&mesh->key->block, params->active_shapekey - 1));

@@ -10,7 +10,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
+#include "BLI_array.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
@@ -152,8 +152,8 @@ static BMFace *bmo_face_copy(BMOperator *op,
                              blender::Map<BMEdge *, BMEdge *> &ehash)
 {
   BMFace *f_dst;
-  BMVert **vtar = BLI_array_alloca(vtar, f_src->len);
-  BMEdge **edar = BLI_array_alloca(edar, f_src->len);
+  blender::Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> vtar(f_src->len);
+  blender::Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edar(f_src->len);
   BMLoop *l_iter_src, *l_iter_dst, *l_first_src;
   int i;
 
@@ -169,7 +169,7 @@ static BMFace *bmo_face_copy(BMOperator *op,
   } while ((l_iter_src = l_iter_src->next) != l_first_src);
 
   /* create new face */
-  f_dst = BM_face_create(bm_dst, vtar, edar, f_src->len, nullptr, BM_CREATE_SKIP_CD);
+  f_dst = BM_face_create(bm_dst, vtar.data(), edar.data(), f_src->len, nullptr, BM_CREATE_SKIP_CD);
   BMO_slot_map_elem_insert(op, slot_facemap_out, f_src, f_dst);
   BMO_slot_map_elem_insert(op, slot_facemap_out, f_dst, f_src);
 

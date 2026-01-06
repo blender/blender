@@ -10,12 +10,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
+#include "BLI_array.hh"
 #include "BLI_linklist_stack.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_memarena.h"
 
 #include "BKE_context.hh"
@@ -271,9 +272,8 @@ static void mesh_customdatacorrect_init_vert(TransCustomDataLayer *tcld,
   // BM_ITER_ELEM (l, &liter, sv->v, BM_LOOPS_OF_VERT) {
   BM_iter_init(&liter, bm, BM_LOOPS_OF_VERT, v);
   l_num = liter.count;
-  loop_weights = tcld->use_merge_group ?
-                     static_cast<float *>(BLI_array_alloca(loop_weights, l_num)) :
-                     nullptr;
+  Array<float, BM_DEFAULT_TOPOLOGY_STACK_SIZE> loop_weights_buf(tcld->use_merge_group ? l_num : 0);
+  loop_weights = tcld->use_merge_group ? loop_weights_buf.data() : nullptr;
   for (j = 0; j < l_num; j++) {
     BMLoop *l = static_cast<BMLoop *>(BM_iter_step(&liter));
     BMLoop *l_prev, *l_next;
@@ -541,8 +541,8 @@ static void mesh_customdatacorrect_apply_vert(TransCustomDataLayer *tcld,
   // BM_ITER_ELEM (l, &liter, sv->v, BM_LOOPS_OF_VERT)
   BM_iter_init(&liter, bm, BM_LOOPS_OF_VERT, v);
   l_num = liter.count;
-  loop_weights = do_loop_weight ? static_cast<float *>(BLI_array_alloca(loop_weights, l_num)) :
-                                  nullptr;
+  Array<float, BM_DEFAULT_TOPOLOGY_STACK_SIZE> loop_weights_buf(do_loop_weight ? l_num : 0);
+  loop_weights = do_loop_weight ? loop_weights_buf.data() : nullptr;
   for (j = 0; j < l_num; j++) {
     BMFace *f_copy; /* The copy of 'f'. */
     BMLoop *l = static_cast<BMLoop *>(BM_iter_step(&liter));
@@ -631,7 +631,7 @@ static void mesh_customdatacorrect_apply_vert(TransCustomDataLayer *tcld,
    */
   const bool update_loop_mdisps = is_moved && do_loop_mdisps && (tcld->cd_loop_mdisp_offset != -1);
   if (update_loop_mdisps) {
-    float (*faces_center)[3] = static_cast<float (*)[3]>(BLI_array_alloca(faces_center, l_num));
+    Array<float3, BM_DEFAULT_TOPOLOGY_STACK_SIZE> faces_center(l_num);
     BMLoop *l;
 
     BM_ITER_ELEM_INDEX (l, &liter, v, BM_LOOPS_OF_VERT, j) {

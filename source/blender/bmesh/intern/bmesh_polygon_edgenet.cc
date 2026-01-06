@@ -12,12 +12,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
 #include "BLI_kdopbvh.hh"
 #include "BLI_linklist_stack.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_memarena.h"
 #include "BLI_sort_utils.h"
 #include "BLI_utildefines_stack.h"
@@ -613,9 +613,11 @@ bool BM_face_split_edgenet(BMesh *bm,
     BMLoop *l_other;
 
     /* See: #BM_loop_interp_from_face for similar logic. */
-    void **blocks = BLI_array_alloca(blocks, f->len);
-    float (*cos_2d)[2] = BLI_array_alloca(cos_2d, f->len);
-    float *w = BLI_array_alloca(w, f->len);
+    blender::Array<void *, BM_DEFAULT_NGON_STACK_SIZE> blocks_buf(f->len);
+    blender::Array<blender::float2, BM_DEFAULT_NGON_STACK_SIZE> cos_2d_buf(f->len);
+    blender::Array<float, BM_DEFAULT_NGON_STACK_SIZE> w(f->len);
+    void **blocks = blocks_buf.data();
+    float (*cos_2d)[2] = reinterpret_cast<float (*)[2]>(cos_2d_buf.data());
     float axis_mat[3][3];
     float co[2];
 
@@ -653,9 +655,9 @@ bool BM_face_split_edgenet(BMesh *bm,
             if (BM_ELEM_API_FLAG_TEST(l_iter->f, FACE_NET)) {
               if (l_first == nullptr) {
                 mul_v2_m3v3(co, axis_mat, v->co);
-                interp_weights_poly_v2(w, cos_2d, f->len, co);
+                interp_weights_poly_v2(w.data(), cos_2d, f->len, co);
                 CustomData_bmesh_interp(
-                    &bm->ldata, (const void **)blocks, w, f->len, l_iter->head.data);
+                    &bm->ldata, (const void **)blocks, w.data(), f->len, l_iter->head.data);
                 l_first = l_iter;
               }
               else {

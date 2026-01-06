@@ -12,7 +12,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
+#include "BLI_array.hh"
 #include "BLI_enum_flags.hh"
 #include "BLI_heap.h"
 #include "BLI_linklist.h"
@@ -484,8 +484,8 @@ static bool bm_face_triangulate(BMesh *bm,
   const int f_base_len = f_base->len;
   int faces_array_tot = f_base_len - 3;
   int edges_array_tot = f_base_len - 3;
-  BMFace **faces_array = BLI_array_alloca(faces_array, faces_array_tot);
-  BMEdge **edges_array = BLI_array_alloca(edges_array, edges_array_tot);
+  blender::Array<BMFace *, BM_DEFAULT_NGON_STACK_SIZE> faces_array(faces_array_tot);
+  blender::Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edges_array(edges_array_tot);
   const int quad_method = 0, ngon_method = 0; /* beauty */
 
   bool has_cut = false;
@@ -494,9 +494,9 @@ static bool bm_face_triangulate(BMesh *bm,
 
   BM_face_triangulate(bm,
                       f_base,
-                      faces_array,
+                      faces_array.data(),
                       &faces_array_tot,
-                      edges_array,
+                      edges_array.data(),
                       &edges_array_tot,
                       r_faces_double,
                       quad_method,

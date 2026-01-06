@@ -11,7 +11,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
+#include "BLI_array.hh"
 #include "BLI_linklist.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines_stack.h"
@@ -117,6 +117,7 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
                                             const char path_htype)
 {
   int ele_verts_len[2];
+  blender::Vector<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> ele_verts_buf[2];
   BMVert **ele_verts[2];
 
   /* Get vertices from any `ele_src/ele_dst` elements. */
@@ -126,7 +127,8 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
 
     if (ele->head.htype == BM_FACE) {
       BMFace *f = (BMFace *)ele;
-      ele_verts[side] = BLI_array_alloca(ele_verts[side], f->len);
+      ele_verts_buf[side].resize(f->len);
+      ele_verts[side] = ele_verts_buf[side].data();
 
       BMLoop *l_first, *l_iter;
       l_iter = l_first = BM_FACE_FIRST_LOOP(f);
@@ -136,14 +138,16 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
     }
     else if (ele->head.htype == BM_EDGE) {
       BMEdge *e = (BMEdge *)ele;
-      ele_verts[side] = BLI_array_alloca(ele_verts[side], 2);
+      ele_verts_buf[side].resize(2);
+      ele_verts[side] = ele_verts_buf[side].data();
 
       ele_verts[side][j++] = e->v1;
       ele_verts[side][j++] = e->v2;
     }
     else if (ele->head.htype == BM_VERT) {
       BMVert *v = (BMVert *)ele;
-      ele_verts[side] = BLI_array_alloca(ele_verts[side], 1);
+      ele_verts_buf[side].resize(1);
+      ele_verts[side] = ele_verts_buf[side].data();
 
       ele_verts[side][j++] = v;
     }

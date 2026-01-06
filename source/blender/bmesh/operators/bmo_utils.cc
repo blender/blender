@@ -14,9 +14,10 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BLI_alloca.h"
+#include "BLI_array.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
 
 #include "BKE_attribute.h"
 #include "BKE_customdata.hh"
@@ -547,7 +548,7 @@ static void bm_face_reverse_uvs(BMFace *f, const int cd_loop_uv_offset)
   BMLoop *l;
   int i;
 
-  float (*uvs)[2] = BLI_array_alloca(uvs, f->len);
+  blender::Array<blender::float2, BM_DEFAULT_NGON_STACK_SIZE> uvs(f->len);
 
   BM_ITER_ELEM_INDEX (l, &iter, f, BM_LOOPS_OF_FACE, i) {
     float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);

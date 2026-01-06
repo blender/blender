@@ -13,9 +13,11 @@
  * of inspecting the mesh structure directly.
  */
 
+#include <array>
+
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
+#include "BLI_array.hh"
 #include "BLI_linklist.h"
 #include "BLI_math_base.h"
 #include "BLI_math_geom.h"
@@ -1811,15 +1813,15 @@ finally:
 
 bool BM_face_exists_multi_edge(BMEdge **earr, int len)
 {
-  BMVert **varr = BLI_array_alloca(varr, len);
+  blender::Array<BMVert *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> varr(len);
 
   /* first check if verts have edges, if not we can bail out early */
-  if (!BM_verts_from_edges(varr, earr, len)) {
+  if (!BM_verts_from_edges(varr.data(), earr, len)) {
     BMESH_ASSERT(0);
     return false;
   }
 
-  return BM_face_exists_multi(varr, earr, len);
+  return BM_face_exists_multi(varr.data(), earr, len);
 }
 
 BMFace *BM_face_exists_overlap(BMVert **varr, const int len)
@@ -2059,11 +2061,11 @@ bool BM_face_is_normal_valid(const BMFace *f)
 static double bm_mesh_calc_volume_face(const BMFace *f)
 {
   const int tottri = f->len - 2;
-  BMLoop **loops = BLI_array_alloca(loops, f->len);
-  uint(*index)[3] = BLI_array_alloca(index, tottri);
+  blender::Array<BMLoop *, BM_DEFAULT_NGON_STACK_SIZE> loops(f->len);
+  blender::Array<std::array<uint, 3>, BM_DEFAULT_NGON_STACK_SIZE> index(tottri);
   double vol = 0.0;
 
-  BM_face_calc_tessellation(f, false, loops, index);
+  BM_face_calc_tessellation(f, false, loops.data(), reinterpret_cast<uint(*)[3]>(index.data()));
 
   for (int j = 0; j < tottri; j++) {
     const float *p1 = loops[index[j][0]]->v->co;

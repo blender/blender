@@ -19,15 +19,15 @@
  * - No support for holes (cutting a hole into a single face).
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
 #include "BLI_linklist.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 #include "BLI_memarena.h"
 #include "BLI_set.hh"
-#include "BLI_sort_utils.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
@@ -166,7 +166,7 @@ static void edge_verts_sort(const float co[3], LinkBase *v_ls_base)
 {
   /* not optimal but list will be typically < 5 */
   uint i;
-  VertSort *vert_sort = BLI_array_alloca(vert_sort, v_ls_base->list_len);
+  blender::Array<VertSort, BM_DEFAULT_TOPOLOGY_STACK_SIZE> vert_sort(v_ls_base->list_len);
   LinkNode *node;
 
   BLI_assert(v_ls_base->list_len > 1);
@@ -178,7 +178,9 @@ static void edge_verts_sort(const float co[3], LinkBase *v_ls_base)
     vert_sort[i].v = v;
   }
 
-  qsort(vert_sort, v_ls_base->list_len, sizeof(*vert_sort), BLI_sortutil_cmp_float);
+  std::sort(vert_sort.begin(), vert_sort.end(), [](const VertSort &a, const VertSort &b) {
+    return a.val < b.val;
+  });
 
   for (i = 0, node = v_ls_base->list; i < v_ls_base->list_len; i++, node = node->next) {
     node->link = vert_sort[i].v;
@@ -213,7 +215,9 @@ static void face_edges_split(BMesh *bm,
 {
   uint i;
   uint edge_arr_len = e_ls_base->list_len;
-  BMEdge **edge_arr = BLI_array_alloca(edge_arr, edge_arr_len);
+  /* NOTE: `edge_arr` pointer may be reassigned to arena memory below. */
+  blender::Array<BMEdge *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> edge_arr_buf(edge_arr_len);
+  BMEdge **edge_arr = edge_arr_buf.data();
   LinkNode *node;
   BLI_assert(f->head.htype == BM_FACE);
 

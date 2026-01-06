@@ -13,7 +13,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
+#include "BLI_array.hh"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines_stack.h"
 
@@ -49,7 +49,8 @@ static BMFace *bm_face_split_walk_back(BMesh *bm, BMLoop *l_src, BMLoop **r_l)
 
   BLI_assert(num != 0);
 
-  cos = BLI_array_alloca(cos, num);
+  blender::Array<blender::float3, BM_DEFAULT_NGON_STACK_SIZE> cos_buf(num);
+  cos = reinterpret_cast<float (*)[3]>(cos_buf.data());
 
   for (l_dst = l_src->prev, i = 0; BM_elem_index_get(l_dst->prev->v) != -1;
        l_dst = l_dst->prev, i++)
@@ -228,7 +229,8 @@ void bmo_offset_edgeloops_exec(BMesh *bm, BMOperator *op)
 
 #ifdef USE_CAP_OPTION
   if (use_cap_endpoint == false) {
-    BMVert **varr = BLI_array_alloca(varr, v_edges_max);
+    blender::Array<BMVert *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> varr_buf(v_edges_max);
+    BMVert **varr = varr_buf.data();
     STACK_DECLARE(varr);
     BMVert *v;
 

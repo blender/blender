@@ -18,7 +18,6 @@
 
 #include "BLF_api.hh"
 
-#include "BLI_alloca.h"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
@@ -2076,10 +2075,12 @@ static void knife_make_face_cuts(KnifeTool_OpData *kcd,
   int edge_array_len = BLI_listbase_count(kfedges);
   int i;
 
-  BMEdge **edge_array = static_cast<BMEdge **>(BLI_array_alloca(edge_array, edge_array_len));
+  blender::Array<BMEdge *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> edge_array_buf(edge_array_len);
+  BMEdge **edge_array = edge_array_buf.data();
 
   /* Point to knife edges we've created edges in, edge_array aligned. */
-  KnifeEdge **kfe_array = static_cast<KnifeEdge **>(BLI_array_alloca(kfe_array, edge_array_len));
+  blender::Array<KnifeEdge *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> kfe_array_buf(edge_array_len);
+  KnifeEdge **kfe_array = kfe_array_buf.data();
 
   BLI_assert(kcd->edgenet.edge_visit->is_empty());
 

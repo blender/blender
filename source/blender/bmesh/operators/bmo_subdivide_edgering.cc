@@ -21,7 +21,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
+#include "BLI_array.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_rotation.h"
@@ -272,7 +272,7 @@ static void bm_edge_subdiv_as_loop(
     BMesh *bm, ListBaseT<BMEdgeLoopStore> *eloops, BMEdge *e, BMVert *v_a, const int cuts)
 {
   BMEdgeLoopStore *eloop;
-  BMVert **v_arr = BLI_array_alloca(v_arr, cuts + 2);
+  blender::Array<BMVert *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> v_arr(cuts + 2);
   BMVert *v_b;
   BLI_assert(BM_vert_in_edge(e, v_a));
 
@@ -288,7 +288,7 @@ static void bm_edge_subdiv_as_loop(
     v_arr[cuts + 1] = v_a;
   }
 
-  eloop = BM_edgeloop_from_verts(v_arr, cuts + 2, false);
+  eloop = BM_edgeloop_from_verts(v_arr.data(), cuts + 2, false);
 
   if (v_a == e->v1) {
     BM_edgeloop_flip(bm, eloop);
@@ -446,8 +446,8 @@ static LoopPairStore *bm_edgering_pair_store_create(BMesh *bm,
     const uint len_b = BM_edgeloop_length_get(el_store_b);
     const uint e_arr_a_len = len_a - (BM_edgeloop_is_closed(el_store_a) ? 0 : 1);
     const uint e_arr_b_len = len_b - (BM_edgeloop_is_closed(el_store_b) ? 0 : 1);
-    BMEdge **e_arr_a = BLI_array_alloca(e_arr_a, e_arr_a_len);
-    BMEdge **e_arr_b = BLI_array_alloca(e_arr_b, e_arr_b_len);
+    blender::Array<BMEdge *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> e_arr_a(e_arr_a_len);
+    blender::Array<BMEdge *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> e_arr_b(e_arr_b_len);
     uint i;
 
     BMEdgeLoopStore *el_store_pair[2] = {el_store_a, el_store_b};
@@ -455,8 +455,8 @@ static LoopPairStore *bm_edgering_pair_store_create(BMesh *bm,
     float (*nors_pair[2])[3];
     blender::Map<BMVert *, uint> *nors_gh_pair[2];
 
-    BM_edgeloop_edges_get(el_store_a, e_arr_a);
-    BM_edgeloop_edges_get(el_store_b, e_arr_b);
+    BM_edgeloop_edges_get(el_store_a, e_arr_a.data());
+    BM_edgeloop_edges_get(el_store_b, e_arr_b.data());
 
     lpair->nors_a = MEM_malloc_arrayN<float[3]>(len_a, __func__);
     lpair->nors_b = MEM_malloc_arrayN<float[3]>(len_b, __func__);
@@ -477,8 +477,8 @@ static LoopPairStore *bm_edgering_pair_store_create(BMesh *bm,
     bmo_edgeloop_vert_tag(bm, el_store_b, VERT_SHARED, true);
 
     /* tag all faces that are in-between both loops */
-    bm_faces_share_tag_flush(bm, e_arr_a, e_arr_a_len);
-    bm_faces_share_tag_flush(bm, e_arr_b, e_arr_b_len);
+    bm_faces_share_tag_flush(bm, e_arr_a.data(), e_arr_a_len);
+    bm_faces_share_tag_flush(bm, e_arr_b.data(), e_arr_b_len);
 
     /* now we have all data we need, calculate vertex spline nor! */
     for (side_index = 0; side_index < 2; side_index++) {
@@ -503,8 +503,8 @@ static LoopPairStore *bm_edgering_pair_store_create(BMesh *bm,
     bmo_edgeloop_vert_tag(bm, el_store_b, VERT_SHARED, false);
 
     /* cleanup faces share */
-    bm_faces_share_tag_clear(bm, e_arr_a, e_arr_a_len);
-    bm_faces_share_tag_clear(bm, e_arr_b, e_arr_b_len);
+    bm_faces_share_tag_clear(bm, e_arr_a.data(), e_arr_a_len);
+    bm_faces_share_tag_clear(bm, e_arr_b.data(), e_arr_b_len);
   }
   return lpair;
 }
@@ -972,8 +972,10 @@ static void bm_edgering_pair_subdiv(BMesh *bm,
   const int stack_max = max_ii(BM_edgeloop_length_get(el_store_a),
                                BM_edgeloop_length_get(el_store_b)) *
                         2;
-  BMEdge **edges_ring_arr = BLI_array_alloca(edges_ring_arr, stack_max);
-  BMFace **faces_ring_arr = BLI_array_alloca(faces_ring_arr, stack_max);
+  blender::Array<BMEdge *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> edges_ring_arr_buf(stack_max);
+  blender::Array<BMFace *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> faces_ring_arr_buf(stack_max);
+  BMEdge **edges_ring_arr = edges_ring_arr_buf.data();
+  BMFace **faces_ring_arr = faces_ring_arr_buf.data();
   STACK_DECLARE(edges_ring_arr);
   STACK_DECLARE(faces_ring_arr);
   BMEdgeLoopStore *el_store_ring;
@@ -1092,9 +1094,9 @@ void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
   /* optional 'shape' */
   const int profile_shape = BMO_slot_int_get(op->slots_in, "profile_shape");
   const float profile_shape_factor = BMO_slot_float_get(op->slots_in, "profile_shape_factor");
-  float *falloff_cache = (profile_shape_factor != 0.0f) ?
-                             BLI_array_alloca(falloff_cache, cuts + 2) :
-                             nullptr;
+  blender::Array<float, BM_DEFAULT_TOPOLOGY_STACK_SIZE> falloff_cache_buf(
+      (profile_shape_factor != 0.0f) ? cuts + 2 : 0);
+  float *falloff_cache = (profile_shape_factor != 0.0f) ? falloff_cache_buf.data() : nullptr;
 
   BMO_slot_buffer_flag_enable(bm, op->slots_in, "edges", BM_EDGE, EDGE_RING);
 
@@ -1195,7 +1197,9 @@ void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
       goto cleanup;
     }
 
-    lpair_arr = BLI_array_alloca(lpair_arr, eloop_pairs_gs.size());
+    blender::Array<LoopPairStore *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> lpair_arr_buf(
+        eloop_pairs_gs.size());
+    lpair_arr = lpair_arr_buf.data();
 
     /* first cache pairs */
     for (const int i : eloop_pairs_gs.index_range()) {

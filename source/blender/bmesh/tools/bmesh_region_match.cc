@@ -19,9 +19,10 @@
  *   (uniqueness is improved by re-hashing with connected data).
  */
 
+#include <algorithm>
 #include <cstring>
 
-#include "BLI_alloca.h"
+#include "BLI_array.hh"
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
 #include "BLI_linklist_stack.h"
@@ -544,25 +545,11 @@ static void bm_uidwalk_pass_add(UIDWalk *uidwalk, LinkNode *faces_pass, const ui
   uidwalk->cache.faces_step->clear();
 }
 
-static int bm_face_len_cmp(const void *v1, const void *v2)
-{
-  const BMFace *f1 = *((BMFace **)v1);
-  const BMFace *f2 = *((BMFace **)v2);
-
-  if (f1->len > f2->len) {
-    return 1;
-  }
-  if (f1->len < f2->len) {
-    return -1;
-  }
-  return 0;
-}
-
 static uint bm_uidwalk_init_from_edge(UIDWalk *uidwalk, BMEdge *e)
 {
   BMLoop *l_iter = e->l;
   uint f_arr_len = uint(BM_edge_face_count(e));
-  BMFace **f_arr = BLI_array_alloca(f_arr, f_arr_len);
+  blender::Array<BMFace *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> f_arr(f_arr_len);
   uint fstep_num = 0, i = 0;
 
   do {
@@ -574,7 +561,9 @@ static uint bm_uidwalk_init_from_edge(UIDWalk *uidwalk, BMEdge *e)
   BLI_assert(i <= f_arr_len);
   f_arr_len = i;
 
-  qsort(f_arr, f_arr_len, sizeof(*f_arr), bm_face_len_cmp);
+  std::sort(f_arr.begin(), f_arr.begin() + f_arr_len, [](BMFace *f1, BMFace *f2) {
+    return f1->len < f2->len;
+  });
 
   /* start us off! */
   {

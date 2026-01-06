@@ -12,11 +12,12 @@
 
 #include "DNA_meshdata_types.h"
 
-#include "BLI_alloca.h"
+#include "BLI_array.hh"
 #include "BLI_linklist.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_memarena.h"
 #include "BLI_task.h"
 
@@ -149,17 +150,17 @@ void BM_face_interp_from_face_ex(BMesh *bm,
   BMLoop *l_iter;
   BMLoop *l_first;
 
-  float *w = static_cast<float *>(BLI_array_alloca(w, f_src->len));
+  blender::Array<float, BM_DEFAULT_NGON_STACK_SIZE> w(f_src->len);
   float co[2];
 
   /* interpolate */
   l_iter = l_first = BM_FACE_FIRST_LOOP(f_dst);
   do {
     mul_v2_m3v3(co, axis_mat, l_iter->v->co);
-    interp_weights_poly_v2(w, cos_2d, f_src->len, co);
-    CustomData_bmesh_interp(&bm->ldata, blocks_l, w, f_src->len, l_iter->head.data);
+    interp_weights_poly_v2(w.data(), cos_2d, f_src->len, co);
+    CustomData_bmesh_interp(&bm->ldata, blocks_l, w.data(), f_src->len, l_iter->head.data);
     if (do_vertex) {
-      CustomData_bmesh_interp(&bm->vdata, blocks_v, w, f_src->len, l_iter->v->head.data);
+      CustomData_bmesh_interp(&bm->vdata, blocks_v, w.data(), f_src->len, l_iter->v->head.data);
     }
   } while ((l_iter = l_iter->next) != l_first);
 }
@@ -169,11 +170,13 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *f_dst, const BMFace *f_src, con
   BMLoop *l_iter;
   BMLoop *l_first;
 
-  const void **blocks_l = static_cast<const void **>(BLI_array_alloca(blocks_l, f_src->len));
-  const void **blocks_v = do_vertex ?
-                              static_cast<const void **>(BLI_array_alloca(blocks_v, f_src->len)) :
-                              nullptr;
-  float (*cos_2d)[2] = static_cast<float (*)[2]>(BLI_array_alloca(cos_2d, f_src->len));
+  blender::Array<const void *, BM_DEFAULT_NGON_STACK_SIZE> blocks_l_buf(f_src->len);
+  blender::Array<const void *, BM_DEFAULT_NGON_STACK_SIZE> blocks_v_buf(do_vertex ? f_src->len :
+                                                                                    0);
+  blender::Array<blender::float2, BM_DEFAULT_NGON_STACK_SIZE> cos_2d_buf(f_src->len);
+  const void **blocks_l = blocks_l_buf.data();
+  const void **blocks_v = do_vertex ? blocks_v_buf.data() : nullptr;
+  float (*cos_2d)[2] = reinterpret_cast<float (*)[2]>(cos_2d_buf.data());
   float axis_mat[3][3]; /* use normal to transform into 2d xy coords */
   int i;
 
@@ -686,12 +689,13 @@ void BM_loop_interp_from_face(
 {
   BMLoop *l_iter;
   BMLoop *l_first;
-  const void **vblocks = do_vertex ?
-                             static_cast<const void **>(BLI_array_alloca(vblocks, f_src->len)) :
-                             nullptr;
-  const void **blocks = static_cast<const void **>(BLI_array_alloca(blocks, f_src->len));
-  float (*cos_2d)[2] = static_cast<float (*)[2]>(BLI_array_alloca(cos_2d, f_src->len));
-  float *w = static_cast<float *>(BLI_array_alloca(w, f_src->len));
+  blender::Array<const void *, BM_DEFAULT_NGON_STACK_SIZE> vblocks_buf(do_vertex ? f_src->len : 0);
+  blender::Array<const void *, BM_DEFAULT_NGON_STACK_SIZE> blocks_buf(f_src->len);
+  blender::Array<blender::float2, BM_DEFAULT_NGON_STACK_SIZE> cos_2d_buf(f_src->len);
+  blender::Array<float, BM_DEFAULT_NGON_STACK_SIZE> w(f_src->len);
+  const void **vblocks = do_vertex ? vblocks_buf.data() : nullptr;
+  const void **blocks = blocks_buf.data();
+  float (*cos_2d)[2] = reinterpret_cast<float (*)[2]>(cos_2d_buf.data());
   float axis_mat[3][3]; /* use normal to transform into 2d xy coords */
   float co[2];
 
@@ -725,10 +729,10 @@ void BM_loop_interp_from_face(
   mul_v2_m3v3(co, axis_mat, l_dst->v->co);
 
   /* interpolate */
-  interp_weights_poly_v2(w, cos_2d, f_src->len, co);
-  CustomData_bmesh_interp(&bm->ldata, blocks, w, f_src->len, l_dst->head.data);
+  interp_weights_poly_v2(w.data(), cos_2d, f_src->len, co);
+  CustomData_bmesh_interp(&bm->ldata, blocks, w.data(), f_src->len, l_dst->head.data);
   if (do_vertex) {
-    CustomData_bmesh_interp(&bm->vdata, vblocks, w, f_src->len, l_dst->v->head.data);
+    CustomData_bmesh_interp(&bm->vdata, vblocks, w.data(), f_src->len, l_dst->v->head.data);
   }
 
   if (do_multires) {
@@ -740,9 +744,11 @@ void BM_vert_interp_from_face(BMesh *bm, BMVert *v_dst, const BMFace *f_src)
 {
   BMLoop *l_iter;
   BMLoop *l_first;
-  const void **blocks = static_cast<const void **>(BLI_array_alloca(blocks, f_src->len));
-  float (*cos_2d)[2] = static_cast<float (*)[2]>(BLI_array_alloca(cos_2d, f_src->len));
-  float *w = static_cast<float *>(BLI_array_alloca(w, f_src->len));
+  blender::Array<const void *, BM_DEFAULT_NGON_STACK_SIZE> blocks_buf(f_src->len);
+  blender::Array<blender::float2, BM_DEFAULT_NGON_STACK_SIZE> cos_2d_buf(f_src->len);
+  blender::Array<float, BM_DEFAULT_NGON_STACK_SIZE> w(f_src->len);
+  const void **blocks = blocks_buf.data();
+  float (*cos_2d)[2] = reinterpret_cast<float (*)[2]>(cos_2d_buf.data());
   float axis_mat[3][3]; /* use normal to transform into 2d xy coords */
   float co[2];
 
@@ -760,8 +766,8 @@ void BM_vert_interp_from_face(BMesh *bm, BMVert *v_dst, const BMFace *f_src)
   mul_v2_m3v3(co, axis_mat, v_dst->co);
 
   /* interpolate */
-  interp_weights_poly_v2(w, cos_2d, f_src->len, co);
-  CustomData_bmesh_interp(&bm->vdata, blocks, w, f_src->len, v_dst->head.data);
+  interp_weights_poly_v2(w.data(), cos_2d, f_src->len, co);
+  CustomData_bmesh_interp(&bm->vdata, blocks, w.data(), f_src->len, v_dst->head.data);
 }
 
 static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
@@ -1270,7 +1276,8 @@ static void bm_vert_loop_groups_data_layer_merge_weights__single(
   const float *data_weights;
 
   /* re-weight */
-  float *temp_weights = static_cast<float *>(BLI_array_alloca(temp_weights, lf->data_len));
+  blender::Array<float, BM_DEFAULT_TOPOLOGY_STACK_SIZE> temp_weights_buf(lf->data_len);
+  float *temp_weights = temp_weights_buf.data();
   float weight_accum = 0.0f;
 
   for (i = 0; i < lf->data_len; i++) {

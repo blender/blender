@@ -8,7 +8,7 @@
  * Connect verts non-planer faces iteratively (splits faces).
  */
 
-#include "BLI_alloca.h"
+#include "BLI_array.hh"
 #include "BLI_linklist_stack.h"
 #include "BLI_math_geom.h"
 
@@ -47,7 +47,7 @@ static float bm_face_subset_calc_planar(BMLoop *l_first, BMLoop *l_last, const f
 static bool bm_face_split_find(BMesh *bm, BMFace *f, BMLoop *l_pair[2], float *r_angle_cos)
 {
   BMLoop *l_iter, *l_first;
-  BMLoop **l_arr = BLI_array_alloca(l_arr, f->len);
+  blender::Array<BMLoop *, BM_DEFAULT_NGON_STACK_SIZE> l_arr(f->len);
   const uint f_len = f->len;
   uint i_a, i_b;
   bool found = false;
