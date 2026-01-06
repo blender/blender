@@ -421,12 +421,13 @@ static void ui_colorpicker_hex_rna_cb(bContext * /*C*/, void *bt1, void *bt2)
     zero_v4(rgba);
     RNA_property_float_get_array_at_most(&ptr, prop, rgba, ARRAY_SIZE(rgba));
   }
-  /* Override current color with parsed the Hex string to preserve the original Alpha if the
+  /* Override the current color with the parsed Hex string, preserving the original Alpha if the
    * hex string doesn't contain it. */
-  hex_to_rgba(hexcol, rgba, rgba + 1, rgba + 2, rgba + 3);
+  const bool is_parsed = hex_to_rgba(hexcol, rgba, rgba + 1, rgba + 2, rgba + 3);
 
-  /* Hex code is assumed to be in sRGB space (coming from other applications, web, etc...). */
-  if (!button_is_color_gamma(but)) {
+  /* Hex code is assumed to be in sRGB space (coming from other applications, web, etc...).
+   * Only apply conversion if the hex string was successfully parsed. */
+  if (is_parsed && !button_is_color_gamma(but)) {
     IMB_colormanagement_srgb_to_scene_linear_v3(rgba, rgba);
     ui_color_picker_rgb_round(rgba);
   }

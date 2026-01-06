@@ -187,48 +187,108 @@ void hex_to_rgb(const char *hexcol, float *r_r, float *r_g, float *r_b)
   hex_to_rgba(hexcol, r_r, r_g, r_b, nullptr);
 }
 
-void hex_to_rgba(const char *hexcol, float *r_r, float *r_g, float *r_b, float *r_a)
+/**
+ * Parse a hex color string into RGBA float values.
+ *
+ * \param hexcol The hex string to parse (e.g. "#RRGGBB", "RRGGBB", "#RGB").
+ * \param r_r, r_g, r_b Pointers to store the parsed RGB values (0.0 - 1.0).
+ * \param r_a Pointer to store the parsed Alpha value (0.0 - 1.0). Can be NULL.
+ *             If the hex string does not contain alpha, this value is NOT modified.
+ * \return True if the hex string was successfully parsed, false otherwise.
+ *         If false is returned, the output values are left unchanged.
+ */
+bool hex_to_rgba(const char *hexcol, float *r_r, float *r_g, float *r_b, float *r_a)
 {
-  uint ri, gi, bi, ai;
-  bool has_alpha = false;
-
   if (hexcol[0] == '#') {
     hexcol++;
   }
 
-  if (sscanf(hexcol, "%02x%02x%02x%02x", &ri, &gi, &bi, &ai) == 4) {
-    /* height digit hex colors with alpha */
-    has_alpha = true;
-  }
-  else if (sscanf(hexcol, "%02x%02x%02x", &ri, &gi, &bi) == 3) {
-    /* six digit hex colors */
-  }
-  else if (sscanf(hexcol, "%01x%01x%01x", &ri, &gi, &bi) == 3) {
-    /* three digit hex colors (#123 becomes #112233) */
-    ri += ri << 4;
-    gi += gi << 4;
-    bi += bi << 4;
-  }
-  else {
-    /* avoid using un-initialized vars */
-    *r_r = *r_g = *r_b = 0.0f;
-    if (r_a) {
-      *r_a = 0.0f;
-    }
-    return;
+  size_t hex_len = strlen(hexcol);
+  uint r, g, b, a;
+  bool alpha_parsed = false;
+
+  switch (hex_len) {
+    case 8: /* #RRGGBBAA */
+      if (sscanf(hexcol, "%2x%2x%2x%2x", &r, &g, &b, &a) != 4) {
+        return false;
+      }
+      alpha_parsed = true;
+      break;
+    case 7: /* #RRGGBBA -> #RRGGBBA0 */
+      if (sscanf(hexcol, "%2x%2x%2x%1x", &r, &g, &b, &a) != 4) {
+        return false;
+      }
+      a <<= 4;
+      alpha_parsed = true;
+      break;
+    case 6: /* #RRGGBB */
+      if (sscanf(hexcol, "%2x%2x%2x", &r, &g, &b) != 3) {
+        return false;
+      }
+      break;
+    case 5: /* #RGBAA -> #RRGGBBAA */
+      if (sscanf(hexcol, "%1x%1x%1x%2x", &r, &g, &b, &a) != 4) {
+        return false;
+      }
+      r = (r << 4) | r;
+      g = (g << 4) | g;
+      b = (b << 4) | b;
+      alpha_parsed = true;
+      break;
+    case 4: /* #RGBA -> #RRGGBBAA */
+      if (sscanf(hexcol, "%1x%1x%1x%1x", &r, &g, &b, &a) != 4) {
+        return false;
+      }
+      r = (r << 4) | r;
+      g = (g << 4) | g;
+      b = (b << 4) | b;
+      a = (a << 4) | a;
+      alpha_parsed = true;
+      break;
+    case 3: /* #RGB -> #RRGGBB */
+      if (sscanf(hexcol, "%1x%1x%1x", &r, &g, &b) != 3) {
+        return false;
+      }
+      r = (r << 4) | r;
+      g = (g << 4) | g;
+      b = (b << 4) | b;
+      break;
+    case 2: /* #AB -> #ABABAB */
+      if (sscanf(hexcol, "%2x", &r) != 1) {
+        return false;
+      }
+      g = r;
+      b = r;
+      break;
+    case 1: /* #A -> #AAAAAA */
+      if (sscanf(hexcol, "%1x", &r) != 1) {
+        return false;
+      }
+      r = (r << 4) | r;
+      g = r;
+      b = r;
+      break;
+    default:
+      /* Invalid hex color length - leave color unchanged. */
+      return false;
   }
 
-  *r_r = float(ri) * (1.0f / 255.0f);
-  *r_g = float(gi) * (1.0f / 255.0f);
-  *r_b = float(bi) * (1.0f / 255.0f);
+  /* Convert integer color channels to float. */
+  const float scale = 1.0f / 255.0f;
+  *r_r = float(r) * scale;
+  *r_g = float(g) * scale;
+  *r_b = float(b) * scale;
+
   CLAMP(*r_r, 0.0f, 1.0f);
   CLAMP(*r_g, 0.0f, 1.0f);
   CLAMP(*r_b, 0.0f, 1.0f);
 
-  if (r_a && has_alpha) {
-    *r_a = float(ai) * (1.0f / 255.0f);
+  /* Assign alpha if present. */
+  if (r_a && alpha_parsed) {
+    *r_a = float(a) * scale;
     CLAMP(*r_a, 0.0f, 1.0f);
   }
+  return true;
 }
 
 void rgb_to_hsv(float r, float g, float b, float *r_h, float *r_s, float *r_v)
