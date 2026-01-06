@@ -146,7 +146,6 @@ static void get_seq_strip_thumbnails(const View2D *v2d,
       clipped = true;
     }
 
-    float cropx_min = crop_x_multiplier;
     float cropx_max = (thumb_x_end - timeline_frame) * crop_x_multiplier;
     if (cropx_max < 1.0f) {
       break;
@@ -163,7 +162,6 @@ static void get_seq_strip_thumbnails(const View2D *v2d,
     thumb.cropx_min = 0;
     thumb.cropx_max = ibuf->x - 1;
     if (clipped) {
-      thumb.cropx_min = clamp_f(cropx_min, 0, ibuf->x - 1);
       thumb.cropx_max = clamp_f(cropx_max - 1 * 0, 0, ibuf->x - 1);
     }
     thumb.left_handle = strip.left_handle;
