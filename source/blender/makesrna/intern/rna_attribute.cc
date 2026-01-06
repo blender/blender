@@ -96,91 +96,119 @@ static const EnumPropertyItem rna_enum_attr_storage_type[] = {
 const EnumPropertyItem rna_enum_attribute_domain_items[] = {
     /* Not implement yet */
     // {ATTR_DOMAIN_GEOMETRY, "GEOMETRY", 0, "Geometry", "Attribute on (whole) geometry"},
-    {int(AttrDomain::Point), "POINT", 0, "Point", "Attribute on point"},
-    {int(AttrDomain::Edge), "EDGE", 0, "Edge", "Attribute on mesh edge"},
-    {int(AttrDomain::Face), "FACE", 0, "Face", "Attribute on mesh faces"},
-    {int(AttrDomain::Corner), "CORNER", 0, "Face Corner", "Attribute on mesh face corner"},
+    {int(AttrDomain::Point), "POINT", ICON_VERTEXSEL, "Point", "Attribute on point"},
+    {int(AttrDomain::Edge), "EDGE", ICON_EDGESEL, "Edge", "Attribute on mesh edge"},
+    {int(AttrDomain::Face), "FACE", ICON_FACESEL, "Face", "Attribute on mesh faces"},
+    {int(AttrDomain::Corner),
+     "CORNER",
+     ICON_FACE_CORNER,
+     "Face Corner",
+     "Attribute on mesh face corner"},
     /* Not implement yet */
     // {ATTR_DOMAIN_GRIDS, "GRIDS", 0, "Grids", "Attribute on mesh multires grids"},
-    {int(AttrDomain::Curve), "CURVE", 0, "Spline", "Attribute on spline"},
-    {int(AttrDomain::Instance), "INSTANCE", 0, "Instance", "Attribute on instance"},
-    {int(AttrDomain::Layer), "LAYER", 0, "Layer", "Attribute on Grease Pencil layer"},
+    {int(AttrDomain::Curve), "CURVE", ICON_CURVE_DATA, "Spline", "Attribute on spline"},
+    {int(AttrDomain::Instance), "INSTANCE", ICON_EMPTY_AXIS, "Instance", "Attribute on instance"},
+    {int(AttrDomain::Layer),
+     "LAYER",
+     ICON_OUTLINER_DATA_GP_LAYER,
+     "Layer",
+     "Attribute on Grease Pencil layer"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_attribute_domain_only_mesh_items[] = {
-    {int(AttrDomain::Point), "POINT", 0, "Point", "Attribute on point"},
-    {int(AttrDomain::Edge), "EDGE", 0, "Edge", "Attribute on mesh edge"},
-    {int(AttrDomain::Face), "FACE", 0, "Face", "Attribute on mesh faces"},
-    {int(AttrDomain::Corner), "CORNER", 0, "Face Corner", "Attribute on mesh face corner"},
+    {int(AttrDomain::Point), "POINT", ICON_VERTEXSEL, "Point", "Attribute on point"},
+    {int(AttrDomain::Edge), "EDGE", ICON_EDGESEL, "Edge", "Attribute on mesh edge"},
+    {int(AttrDomain::Face), "FACE", ICON_FACESEL, "Face", "Attribute on mesh faces"},
+    {int(AttrDomain::Corner),
+     "CORNER",
+     ICON_FACE_CORNER,
+     "Face Corner",
+     "Attribute on mesh face corner"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_attribute_domain_only_mesh_no_edge_items[] = {
-    {int(AttrDomain::Point), "POINT", 0, "Point", "Attribute on point"},
-    {int(AttrDomain::Face), "FACE", 0, "Face", "Attribute on mesh faces"},
-    {int(AttrDomain::Corner), "CORNER", 0, "Face Corner", "Attribute on mesh face corner"},
+    {int(AttrDomain::Point), "POINT", ICON_VERTEXSEL, "Point", "Attribute on point"},
+    {int(AttrDomain::Face), "FACE", ICON_FACESEL, "Face", "Attribute on mesh faces"},
+    {int(AttrDomain::Corner),
+     "CORNER",
+     ICON_FACE_CORNER,
+     "Face Corner",
+     "Attribute on mesh face corner"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_attribute_domain_only_mesh_no_corner_items[] = {
-    {int(AttrDomain::Point), "POINT", 0, "Point", "Attribute on point"},
-    {int(AttrDomain::Edge), "EDGE", 0, "Edge", "Attribute on mesh edge"},
-    {int(AttrDomain::Face), "FACE", 0, "Face", "Attribute on mesh faces"},
+    {int(AttrDomain::Point), "POINT", ICON_VERTEXSEL, "Point", "Attribute on point"},
+    {int(AttrDomain::Edge), "EDGE", ICON_EDGESEL, "Edge", "Attribute on mesh edge"},
+    {int(AttrDomain::Face), "FACE", ICON_FACESEL, "Face", "Attribute on mesh faces"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_attribute_domain_point_face_curve_items[] = {
-    {int(AttrDomain::Point), "POINT", 0, "Point", "Attribute on point"},
-    {int(AttrDomain::Face), "FACE", 0, "Face", "Attribute on mesh faces"},
-    {int(AttrDomain::Curve), "CURVE", 0, "Spline", "Attribute on spline"},
+    {int(AttrDomain::Point), "POINT", ICON_VERTEXSEL, "Point", "Attribute on point"},
+    {int(AttrDomain::Face), "FACE", ICON_FACESEL, "Face", "Attribute on mesh faces"},
+    {int(AttrDomain::Curve), "CURVE", ICON_CURVE_DATA, "Spline", "Attribute on spline"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_attribute_domain_point_edge_face_curve_items[] = {
-    {int(AttrDomain::Point), "POINT", 0, "Point", "Attribute on point"},
-    {int(AttrDomain::Edge), "EDGE", 0, "Edge", "Attribute on mesh edge"},
-    {int(AttrDomain::Face), "FACE", 0, "Face", "Attribute on mesh faces"},
-    {int(AttrDomain::Curve), "CURVE", 0, "Spline", "Attribute on spline"},
+    {int(AttrDomain::Point), "POINT", ICON_VERTEXSEL, "Point", "Attribute on point"},
+    {int(AttrDomain::Edge), "EDGE", ICON_EDGESEL, "Edge", "Attribute on mesh edge"},
+    {int(AttrDomain::Face), "FACE", ICON_FACESEL, "Face", "Attribute on mesh faces"},
+    {int(AttrDomain::Curve), "CURVE", ICON_CURVE_DATA, "Spline", "Attribute on spline"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_attribute_domain_edge_face_items[] = {
-    {int(AttrDomain::Edge), "EDGE", 0, "Edge", "Attribute on mesh edge"},
-    {int(AttrDomain::Face), "FACE", 0, "Face", "Attribute on mesh faces"},
+    {int(AttrDomain::Edge), "EDGE", ICON_EDGESEL, "Edge", "Attribute on mesh edge"},
+    {int(AttrDomain::Face), "FACE", ICON_FACESEL, "Face", "Attribute on mesh faces"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_attribute_domain_without_corner_items[] = {
-    {int(AttrDomain::Point), "POINT", 0, "Point", "Attribute on point"},
-    {int(AttrDomain::Edge), "EDGE", 0, "Edge", "Attribute on mesh edge"},
-    {int(AttrDomain::Face), "FACE", 0, "Face", "Attribute on mesh faces"},
-    {int(AttrDomain::Curve), "CURVE", 0, "Spline", "Attribute on spline"},
-    {int(AttrDomain::Instance), "INSTANCE", 0, "Instance", "Attribute on instance"},
-    {int(AttrDomain::Layer), "LAYER", 0, "Layer", "Attribute on Grease Pencil layer"},
+    {int(AttrDomain::Point), "POINT", ICON_VERTEXSEL, "Point", "Attribute on point"},
+    {int(AttrDomain::Edge), "EDGE", ICON_EDGESEL, "Edge", "Attribute on mesh edge"},
+    {int(AttrDomain::Face), "FACE", ICON_FACESEL, "Face", "Attribute on mesh faces"},
+    {int(AttrDomain::Curve), "CURVE", ICON_CURVE_DATA, "Spline", "Attribute on spline"},
+    {int(AttrDomain::Instance), "INSTANCE", ICON_EMPTY_AXIS, "Instance", "Attribute on instance"},
+    {int(AttrDomain::Layer),
+     "LAYER",
+     ICON_OUTLINER_DATA_GP_LAYER,
+     "Layer",
+     "Attribute on Grease Pencil layer"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_attribute_domain_with_auto_items[] = {
     {int(AttrDomain::Auto), "AUTO", 0, "Auto", ""},
-    {int(AttrDomain::Point), "POINT", 0, "Point", "Attribute on point"},
-    {int(AttrDomain::Edge), "EDGE", 0, "Edge", "Attribute on mesh edge"},
-    {int(AttrDomain::Face), "FACE", 0, "Face", "Attribute on mesh faces"},
-    {int(AttrDomain::Corner), "CORNER", 0, "Face Corner", "Attribute on mesh face corner"},
-    {int(AttrDomain::Curve), "CURVE", 0, "Spline", "Attribute on spline"},
-    {int(AttrDomain::Instance), "INSTANCE", 0, "Instance", "Attribute on instance"},
-    {int(AttrDomain::Layer), "LAYER", 0, "Layer", "Attribute on Grease Pencil layer"},
+    {int(AttrDomain::Point), "POINT", ICON_VERTEXSEL, "Point", "Attribute on point"},
+    {int(AttrDomain::Edge), "EDGE", ICON_EDGESEL, "Edge", "Attribute on mesh edge"},
+    {int(AttrDomain::Face), "FACE", ICON_FACESEL, "Face", "Attribute on mesh faces"},
+    {int(AttrDomain::Corner),
+     "CORNER",
+     ICON_FACE_CORNER,
+     "Face Corner",
+     "Attribute on mesh face corner"},
+    {int(AttrDomain::Curve), "CURVE", ICON_CURVE_DATA, "Spline", "Attribute on spline"},
+    {int(AttrDomain::Instance), "INSTANCE", ICON_EMPTY_AXIS, "Instance", "Attribute on instance"},
+    {int(AttrDomain::Layer),
+     "LAYER",
+     ICON_OUTLINER_DATA_GP_LAYER,
+     "Layer",
+     "Attribute on Grease Pencil layer"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_color_attribute_domain_items[] = {
-    {int(AttrDomain::Point), "POINT", 0, "Vertex", ""},
-    {int(AttrDomain::Corner), "CORNER", 0, "Face Corner", ""},
+    {int(AttrDomain::Point), "POINT", ICON_VERTEXSEL, "Vertex", ""},
+    {int(AttrDomain::Corner), "CORNER", ICON_FACE_CORNER, "Face Corner", ""},
     {0, nullptr, 0, nullptr, nullptr}};
 
 const EnumPropertyItem rna_enum_attribute_curves_domain_items[] = {
-    {int(AttrDomain::Point), "POINT", 0, "Control Point", ""},
-    {int(AttrDomain::Curve), "CURVE", 0, "Curve", ""},
+    {int(AttrDomain::Point), "POINT", ICON_VERTEXSEL, "Control Point", ""},
+    {int(AttrDomain::Curve), "CURVE", ICON_CURVE_DATA, "Curve", ""},
     {0, nullptr, 0, nullptr, nullptr}};
 
 #ifdef RNA_RUNTIME
