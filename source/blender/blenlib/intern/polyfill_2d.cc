@@ -58,6 +58,11 @@
 #  define USE_KDTREE
 #endif
 
+#ifdef USE_KDTREE
+/** Precompute edge vectors for point-in-triangle test. */
+#  define USE_PRECOMPUTED_ISECT
+#endif
+
 /* disable in production, it can fail on near zero area ngons */
 // #define USE_STRICT_ASSERT
 
@@ -151,6 +156,45 @@ struct PolyFill {
 };
 
 }  // namespace
+
+#ifdef USE_PRECOMPUTED_ISECT
+/**
+ * Precomputed edge vectors and constants for fast point-in-triangle test.
+ */
+struct TriIsectPrecomputed {
+  /** Edge vectors: `edge[i] = v[(i + 1) % 3] - v[i]`. */
+  float edge[3][2];
+  /** Precomputed constants: `c[i] = (edge[i].x * v[i].y) - v[i].x * edge[i].y`. */
+  float c[3];
+};
+
+/**
+ * Precompute edge vectors and constants for repeated point-in-triangle tests.
+ * Faster alternative to calling #span_tri_v2_sign three times per test.
+ */
+static void tri_isect_precomputed_init(TriIsectPrecomputed *t, const float *const vs[3])
+{
+  sub_v2_v2v2(t->edge[0], vs[1], vs[0]);
+  sub_v2_v2v2(t->edge[1], vs[2], vs[1]);
+  sub_v2_v2v2(t->edge[2], vs[0], vs[2]);
+  t->c[0] = (t->edge[0][0] * vs[0][1]) - (vs[0][0] * t->edge[0][1]);
+  t->c[1] = (t->edge[1][0] * vs[1][1]) - (vs[1][0] * t->edge[1][1]);
+  t->c[2] = (t->edge[2][0] * vs[2][1]) - (vs[2][0] * t->edge[2][1]);
+}
+
+/**
+ * Test if point is inside triangle using precomputed edge vectors.
+ * Check edge 1 (opposite edge `next` and `prev`) first as it fails most often.
+ *
+ * \return true if point is inside the triangle.
+ */
+static bool tri_isect_precomputed_test(const TriIsectPrecomputed *t, const float co[2])
+{
+  return ((t->edge[1][1] * co[0]) - (t->edge[1][0] * co[1]) + t->c[1] >= 0.0f) &&
+         ((t->edge[2][1] * co[0]) - (t->edge[2][0] * co[1]) + t->c[2] >= 0.0f) &&
+         ((t->edge[0][1] * co[0]) - (t->edge[0][0] * co[1]) + t->c[0] >= 0.0f);
+}
+#endif /* USE_PRECOMPUTED_ISECT */
 
 /* Based on LIBGDX 2013-11-28, APACHE 2.0 licensed. */
 
@@ -364,38 +408,46 @@ static void kdtree2d_node_remove(KDTree2D *tree, uint32_t index)
 
 static bool kdtree2d_isect_tri_recursive(const KDTree2D *tree,
                                          const uint32_t tri_index[3],
+#  ifdef USE_PRECOMPUTED_ISECT
+                                         const TriIsectPrecomputed *tri_isect,
+#  else
                                          const float *tri_coords[3],
+#  endif
                                          const float tri_center[2],
                                          const KDRange2D bounds[2],
                                          const KDTreeNode2D *node)
 {
   const float *co = tree->coords[node->index];
 
-  /* bounds then triangle intersect */
   if ((node->flag & KDNODE_FLAG_REMOVED) == 0) {
-    /* bounding box test first */
-    if ((co[0] >= bounds[0].min) && (co[0] <= bounds[0].max) && (co[1] >= bounds[1].min) &&
-        (co[1] <= bounds[1].max))
+#  ifdef USE_PRECOMPUTED_ISECT
+    if (tri_isect_precomputed_test(tri_isect, co))
+#  else
+    /* Check (tri_coords[1], tri_coords[2]) first as it's the "opposite edge"
+     * (next->prev in triangle terms) which fails most often for random points. */
+    if ((span_tri_v2_sign(tri_coords[1], tri_coords[2], co) != CONCAVE) &&
+        (span_tri_v2_sign(tri_coords[2], tri_coords[0], co) != CONCAVE) &&
+        (span_tri_v2_sign(tri_coords[0], tri_coords[1], co) != CONCAVE))
+#  endif
     {
-      if ((span_tri_v2_sign(tri_coords[0], tri_coords[1], co) != CONCAVE) &&
-          (span_tri_v2_sign(tri_coords[1], tri_coords[2], co) != CONCAVE) &&
-          (span_tri_v2_sign(tri_coords[2], tri_coords[0], co) != CONCAVE))
-      {
-        if (!ELEM(node->index, tri_index[0], tri_index[1], tri_index[2])) {
-          return true;
-        }
+      if (!ELEM(node->index, tri_index[0], tri_index[1], tri_index[2])) {
+        return true;
       }
     }
   }
 
+#  ifdef USE_PRECOMPUTED_ISECT
+#    define KDTREE2D_ISECT_ARGS tree, tri_index, tri_isect, tri_center, bounds
+#  else
+#    define KDTREE2D_ISECT_ARGS tree, tri_index, tri_coords, tri_center, bounds
+#  endif
+
 #  define KDTREE2D_ISECT_TRI_RECURSE_NEG \
     (((node->neg != KDNODE_UNSET) && (co[node->axis] >= bounds[node->axis].min)) && \
-     kdtree2d_isect_tri_recursive( \
-         tree, tri_index, tri_coords, tri_center, bounds, &tree->nodes[node->neg]))
+     kdtree2d_isect_tri_recursive(KDTREE2D_ISECT_ARGS, &tree->nodes[node->neg]))
 #  define KDTREE2D_ISECT_TRI_RECURSE_POS \
     (((node->pos != KDNODE_UNSET) && (co[node->axis] <= bounds[node->axis].max)) && \
-     kdtree2d_isect_tri_recursive( \
-         tree, tri_index, tri_coords, tri_center, bounds, &tree->nodes[node->pos]))
+     kdtree2d_isect_tri_recursive(KDTREE2D_ISECT_ARGS, &tree->nodes[node->pos]))
 
   if (tri_center[node->axis] > co[node->axis]) {
     if (KDTREE2D_ISECT_TRI_RECURSE_POS) {
@@ -416,6 +468,7 @@ static bool kdtree2d_isect_tri_recursive(const KDTree2D *tree,
 
 #  undef KDTREE2D_ISECT_TRI_RECURSE_NEG
 #  undef KDTREE2D_ISECT_TRI_RECURSE_POS
+#  undef KDTREE2D_ISECT_ARGS
 
   BLI_assert(node->index != KDNODE_UNSET);
 
@@ -440,7 +493,21 @@ static bool kdtree2d_isect_tri(KDTree2D *tree, const uint32_t ind[3])
       (vs[0][1] + vs[1][1] + vs[2][1]) * (1.0f / 3.0f),
   };
 
-  return kdtree2d_isect_tri_recursive(tree, ind, vs, tri_center, bounds, &tree->nodes[tree->root]);
+#  ifdef USE_PRECOMPUTED_ISECT
+  TriIsectPrecomputed tri_isect;
+  tri_isect_precomputed_init(&tri_isect, vs);
+#  endif
+
+  return kdtree2d_isect_tri_recursive(tree,
+                                      ind,
+#  ifdef USE_PRECOMPUTED_ISECT
+                                      &tri_isect,
+#  else
+                                      vs,
+#  endif
+                                      tri_center,
+                                      bounds,
+                                      &tree->nodes[tree->root]);
 }
 
 #endif /* USE_KDTREE */
