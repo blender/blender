@@ -1408,31 +1408,25 @@ string SourceProcessor::matrix_constructor_mutation(const string &str)
     if (t.prev() == Word) {
       Token fn_name = t.prev();
       string_view fn_name_str = fn_name.str_view();
-      bool is_mat = false;
       if (fn_name_str.size() == 4) {
-        /* Example: `mat2(x)` > `mat2x2(x)` */
+        /* Example: `mat2(x)` > `__mat2x2(x)` */
         if (fn_name_str == "mat2") {
-          parser.replace(fn_name, "mat2x2", true);
-          is_mat = true;
+          parser.replace(fn_name, "__mat2x2", true);
         }
-        if (fn_name_str == "mat3") {
-          parser.replace(fn_name, "mat3x3", true);
-          is_mat = true;
+        else if (fn_name_str == "mat3") {
+          parser.replace(fn_name, "__mat3x3", true);
         }
-        if (fn_name_str == "mat4") {
-          parser.replace(fn_name, "mat4x4", true);
-          is_mat = true;
+        else if (fn_name_str == "mat4") {
+          parser.replace(fn_name, "__mat4x4", true);
         }
       }
       else if (fn_name_str.size() == 6) {
         if (fn_name_str == "mat2x2" || fn_name_str == "mat3x3" || fn_name_str == "mat4x4") {
-          is_mat = true;
+          /* Only process square matrices since this is the only types we overload the
+           * constructors. */
+          /* Example: `mat2x2(x)` > `__mat2x2(x)` */
+          parser.insert_before(fn_name, "__");
         }
-      }
-      /* Only process square matrices since this is the only types we overload the constructors. */
-      /* Example: `mat2x2(x)` > `__mat2x2(x)` */
-      if (is_mat) {
-        parser.insert_before(fn_name, "__");
       }
     }
   });
