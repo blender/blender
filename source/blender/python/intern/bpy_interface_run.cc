@@ -31,6 +31,7 @@
 #include "bpy_capi_utils.hh"
 #include "bpy_traceback.hh"
 
+#include "../generic/idprop_py_api.hh"
 #include "../generic/py_capi_utils.hh"
 
 /* -------------------------------------------------------------------- */
@@ -299,6 +300,66 @@ bool BPY_run_string_eval(bContext *C, const char *imports[], const char *expr)
 bool BPY_run_string_exec(bContext *C, const char *imports[], const char *expr)
 {
   return bpy_run_string_impl(C, imports, expr, Py_file_input);
+}
+
+/**
+ * Run the given script with the given local variables.
+ *
+ * This assumes that the Python environment has been set up (i.e. the GIL has been acquired). In
+ * case of a Python exception, this function returns `false` and the caller is responsible for
+ * dealing with the exception.
+ */
+static bool bpy_run_string_exec_with_locals_impl(const blender::StringRefNull script,
+                                                 IDProperty &locals)
+{
+  /* Set up locals & globals. */
+  BLI_assert(locals.type == IDP_GROUP);
+  PyObject *py_locals = BPy_IDGroup_MapDataToPy(&locals);
+  if (!py_locals) {
+    /* Leave the printing of the exception to the caller. */
+    return false;
+  }
+
+  PyObject *py_globals = PyC_DefaultNameSpace("<BPY_run_string_exec_with_locals>");
+  BLI_assert(py_globals);
+
+  /* Run the script. The result object itself is not used, but its existence
+   * indicates that the script ran without uncaught exceptions. The printing of
+   * any exception is left to the caller. */
+  PyObject *result = PyRun_String(script.c_str(), Py_file_input, py_globals, py_locals);
+  const bool ok = (result != nullptr);
+  if (result) {
+    Py_DECREF(result);
+  }
+
+  /* Clean up references. */
+  Py_DECREF(py_globals);
+  Py_DECREF(py_locals);
+
+  return ok;
+}
+
+bool BPY_run_string_exec_with_locals(bContext *C,
+                                     const blender::StringRefNull script,
+                                     IDProperty &locals)
+{
+  PyGILState_STATE gilstate;
+  bpy_context_set(C, &gilstate);
+
+  PyObject *main_mod_backup = PyC_MainModule_Backup();
+
+  const bool ok = bpy_run_string_exec_with_locals_impl(script, locals);
+  if (!ok) {
+    if (ReportList *wm_reports = C ? CTX_wm_reports(C) : nullptr) {
+      BPy_errors_to_report(wm_reports);
+    }
+    PyErr_Print();
+  }
+
+  PyC_MainModule_Restore(main_mod_backup);
+  bpy_context_clear(C, &gilstate);
+
+  return ok;
 }
 
 /** \} */

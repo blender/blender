@@ -1356,8 +1356,13 @@ def _cleanup_main_file_attribute() -> Generator[None]:
     # that will cause problems. Python dunder variables like this can
     # trigger all kinds of unknown magics, so they should be left alone
     # as much as possible.
-    old_file = getattr(main_module, '__file__', None)
-    if old_file != "<blender string>":
+    old_file: str = getattr(main_module, '__file__', '') or ''
+
+    # Blender uses various `<...>` values for `__main__.__file__`. Usually
+    # concrete file paths aren't delimited by greater/less than symbols, so
+    # this seems a safe heuristic.
+    is_blender_string = old_file.startswith('<') and old_file.endswith('>')
+    if not is_blender_string:
         yield
         return
 

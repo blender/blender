@@ -398,6 +398,15 @@ IDProperty *IDP_NewString(const char *st,
   return IDP_NewStringMaxSize(st, 0, name, flags);
 }
 
+IDProperty *IDP_NewString(const blender::StringRef value,
+                          const blender::StringRef name,
+                          const eIDPropertyFlag flags)
+{
+  BLI_assert(value.size() >= 0);
+  /* Adding one is needed for the null byte. */
+  return IDP_NewStringMaxSize(value.data(), size_t(value.size()) + 1, name, flags);
+}
+
 static IDProperty *IDP_CopyString(const IDProperty *prop, const int flag)
 {
   BLI_assert(prop->type == IDP_STRING);

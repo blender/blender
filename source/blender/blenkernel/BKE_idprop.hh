@@ -96,6 +96,9 @@ IDProperty *IDP_NewStringMaxSize(const char *st,
 IDProperty *IDP_NewString(const char *st,
                           blender::StringRef name,
                           eIDPropertyFlag flags = {}) ATTR_WARN_UNUSED_RESULT;
+IDProperty *IDP_NewString(blender::StringRef value,
+                          blender::StringRef name,
+                          eIDPropertyFlag flags = {}) ATTR_WARN_UNUSED_RESULT;
 /**
  * \param st: The string to assign.
  * Doesn't need to be null terminated when clamped by `maxncpy`.
