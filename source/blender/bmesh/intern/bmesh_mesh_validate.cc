@@ -246,6 +246,6 @@ bool BM_mesh_is_valid(BMesh *bm)
   return is_valid;
 }
 
-#endif
-
 }  // namespace blender
+
+#endif
