@@ -492,7 +492,7 @@ def create(obj):  # noqa
     bone.parent = arm.edit_bones[bones['hand.R']]
     bones['palm.02.R'] = bone.name
     bone = arm.edit_bones.new('palm.03.R')
-    bone.head = -0.6963, 0.0544, 1.2874
+    bone.head = -0.6963, 0.0545, 1.2874
     bone.tail = -0.7540, 0.0521, 1.2482
     bone.roll = 2.5843
     bone.use_connect = False
@@ -661,7 +661,7 @@ def create(obj):  # noqa
     bones['f_pinky.01.L'] = bone.name
     bone = arm.edit_bones.new('f_index.01.R')
     bone.head = -0.7464, 0.0051, 1.2482
-    bone.tail = -0.7718, 0.0012, 1.2112
+    bone.tail = -0.7718, 0.0013, 1.2112
     bone.roll = 2.0315
     bone.use_connect = False
     bone.parent = arm.edit_bones[bones['palm.01.R']]
@@ -675,7 +675,7 @@ def create(obj):  # noqa
     bones['thumb.01.R'] = bone.name
     bone = arm.edit_bones.new('f_middle.01.R')
     bone.head = -0.7518, 0.0277, 1.2487
-    bone.tail = -0.7762, 0.0233, 1.2058
+    bone.tail = -0.7762, 0.0234, 1.2058
     bone.roll = 2.0067
     bone.use_connect = False
     bone.parent = arm.edit_bones[bones['palm.02.R']]
@@ -821,7 +821,7 @@ def create(obj):  # noqa
     bone.parent = arm.edit_bones[bones['f_pinky.01.L']]
     bones['f_pinky.02.L'] = bone.name
     bone = arm.edit_bones.new('f_index.02.R')
-    bone.head = -0.7718, 0.0012, 1.2112
+    bone.head = -0.7718, 0.0013, 1.2112
     bone.tail = -0.7840, -0.0003, 1.1858
     bone.roll = 1.8799
     bone.use_connect = True
@@ -835,7 +835,7 @@ def create(obj):  # noqa
     bone.parent = arm.edit_bones[bones['thumb.01.R']]
     bones['thumb.02.R'] = bone.name
     bone = arm.edit_bones.new('f_middle.02.R')
-    bone.head = -0.7762, 0.0233, 1.2058
+    bone.head = -0.7762, 0.0234, 1.2058
     bone.tail = -0.7851, 0.0218, 1.1749
     bone.roll = 1.8283
     bone.use_connect = True
