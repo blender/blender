@@ -382,27 +382,51 @@ static void kdtree2d_node_remove(KDTree2D *tree, uint32_t index)
   BLI_assert((node->flag & KDNODE_FLAG_REMOVED) == 0);
   node->flag |= KDNODE_FLAG_REMOVED;
 
-  while ((node->neg == KDNODE_UNSET) && (node->pos == KDNODE_UNSET) &&
-         (node->parent != KDNODE_UNSET))
-  {
-    KDTreeNode2D *node_parent = &tree->nodes[node->parent];
+  /* Walk up the tree, performing two operations to keep the tree compact:
+   * - Disconnect: Remove childless nodes from their parent.
+   * - Collapse: When a node has exactly one child, connect that child
+   *   directly to the grandparent, bypassing this removed node.
+   *
+   * Note that while this isn't a replacement for re-balancing,
+   * given the nature of polygon filling and it's use of the KD-tree
+   * the overhead of the rebalancing can't be justified.
+   * Only perform KD-tree manipulations that can be done efficiently as part of removal. */
+  while (node->parent != KDNODE_UNSET) {
+    uint32_t node_child;
+    if (node->neg == KDNODE_UNSET) {
+      node_child = node->pos;
+    }
+    else if (node->pos == KDNODE_UNSET) {
+      node_child = node->neg;
+    }
+    else {
+      /* Both children set, nothing to collapse. */
+      break;
+    }
 
+    /* Update parent's reference to this node:
+     * - If one child exists: collapse by connecting child directly to grandparent,
+     *   bypassing this removed node and shortening the tree path.
+     * - If no children: disconnect entirely (set parent's reference to #KDNODE_UNSET). */
     BLI_assert(uint32_t(node - tree->nodes) == node_index);
+    KDTreeNode2D *node_parent = &tree->nodes[node->parent];
     if (node_parent->neg == node_index) {
-      node_parent->neg = KDNODE_UNSET;
+      node_parent->neg = node_child;
     }
     else {
       BLI_assert(node_parent->pos == node_index);
-      node_parent->pos = KDNODE_UNSET;
+      node_parent->pos = node_child;
     }
 
-    if (node_parent->flag & KDNODE_FLAG_REMOVED) {
-      node_index = node->parent;
-      node = node_parent;
+    if (node_child != KDNODE_UNSET) {
+      tree->nodes[node_child].parent = node->parent;
     }
-    else {
+
+    if ((node_parent->flag & KDNODE_FLAG_REMOVED) == 0) {
       break;
     }
+    node_index = node->parent;
+    node = node_parent;
   }
 }
 
