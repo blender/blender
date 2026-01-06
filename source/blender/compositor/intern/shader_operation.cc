@@ -508,7 +508,7 @@ void ShaderOperation::populate_operation_result(DOutputSocket output_socket)
    * value is ignored since it is already written in the output, but it is used to track nodes that
    * contribute to the output of the compositor node tree. */
   GPUNodeLink *storer_output_link;
-  GPUNodeLink *id_link = GPU_constant((float *)&output_id);
+  GPUNodeLink *id_link = GPU_constant(reinterpret_cast<float *>(const_cast<uint *>(&output_id)));
   const char *store_function_name = get_store_function_name(result_type);
   GPU_link(material_, store_function_name, id_link, output_link, &storer_output_link);
 

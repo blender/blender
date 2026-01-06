@@ -4043,7 +4043,8 @@ bool BKE_lib_override_rna_property_find(PointerRNA *idpoin,
                                         PropertyRNA **r_override_prop,
                                         int *r_index)
 {
-  BLI_assert(RNA_struct_is_ID(idpoin->type) && ID_IS_OVERRIDE_LIBRARY(idpoin->data));
+  BLI_assert(RNA_struct_is_ID(idpoin->type) &&
+             ID_IS_OVERRIDE_LIBRARY(static_cast<ID *>(idpoin->data)));
   return RNA_path_resolve_property_full(
       idpoin, library_prop->rna_path, r_override_poin, r_override_prop, r_index);
 }
@@ -4526,8 +4527,9 @@ bool BKE_lib_override_library_status_check_local(Main *bmain, ID *local)
       Object *ob_reference = reinterpret_cast<Object *>(local->override_library->reference);
       BLI_assert(ob_local->data != nullptr);
       BLI_assert(ob_reference->data != nullptr);
-      BKE_pose_ensure(bmain, ob_local, static_cast<bArmature *>(ob_local->data), true);
-      BKE_pose_ensure(bmain, ob_reference, static_cast<bArmature *>(ob_reference->data), true);
+      BKE_pose_ensure(bmain, ob_local, blender::id_cast<bArmature *>(ob_local->data), true);
+      BKE_pose_ensure(
+          bmain, ob_reference, blender::id_cast<bArmature *>(ob_reference->data), true);
     }
   }
 
@@ -4581,8 +4583,9 @@ bool BKE_lib_override_library_status_check_reference(Main *bmain, ID *local)
       Object *ob_reference = reinterpret_cast<Object *>(local->override_library->reference);
       BLI_assert(ob_local->data != nullptr);
       BLI_assert(ob_reference->data != nullptr);
-      BKE_pose_ensure(bmain, ob_local, static_cast<bArmature *>(ob_local->data), true);
-      BKE_pose_ensure(bmain, ob_reference, static_cast<bArmature *>(ob_reference->data), true);
+      BKE_pose_ensure(bmain, ob_local, blender::id_cast<bArmature *>(ob_local->data), true);
+      BKE_pose_ensure(
+          bmain, ob_reference, blender::id_cast<bArmature *>(ob_reference->data), true);
     }
   }
 
@@ -4629,8 +4632,9 @@ static void lib_override_library_operations_create(Main *bmain,
       Object *ob_reference = reinterpret_cast<Object *>(local->override_library->reference);
       BLI_assert(ob_local->data != nullptr);
       BLI_assert(ob_reference->data != nullptr);
-      BKE_pose_ensure(bmain, ob_local, static_cast<bArmature *>(ob_local->data), true);
-      BKE_pose_ensure(bmain, ob_reference, static_cast<bArmature *>(ob_reference->data), true);
+      BKE_pose_ensure(bmain, ob_local, blender::id_cast<bArmature *>(ob_local->data), true);
+      BKE_pose_ensure(
+          bmain, ob_reference, blender::id_cast<bArmature *>(ob_reference->data), true);
     }
   }
 
@@ -4759,7 +4763,7 @@ void BKE_lib_override_library_main_operations_create(Main *bmain,
   for (Object &ob : bmain->objects) {
     if (ob.type == OB_ARMATURE) {
       BLI_assert(ob.data != nullptr);
-      BKE_pose_ensure(bmain, &ob, static_cast<bArmature *>(ob.data), true);
+      BKE_pose_ensure(bmain, &ob, blender::id_cast<bArmature *>(ob.data), true);
     }
   }
   /* Similar issue with view layers, some may not be up-to-date, and re-syncing them from a
@@ -4818,7 +4822,7 @@ void BKE_lib_override_library_main_operations_create(Main *bmain,
         Object *ob = reinterpret_cast<Object *>(id);
         if (ob->type == OB_ARMATURE) {
           BLI_assert(ob->data != nullptr);
-          BKE_pose_ensure(bmain, ob, static_cast<bArmature *>(ob->data), true);
+          BKE_pose_ensure(bmain, ob, blender::id_cast<bArmature *>(ob->data), true);
         }
       }
       /* Only check overrides if we do have the real reference data available, and not some empty

@@ -63,7 +63,7 @@ void bmo_extrude_discrete_faces_exec(BMesh *bm, BMOperator *op)
       BMEditSelection *ese;
       ese = static_cast<BMEditSelection *>(BLI_ghash_lookup(select_history_map, f_org));
       if (ese) {
-        ese->ele = (BMElem *)f_new;
+        ese->ele = reinterpret_cast<BMElem *>(f_new);
       }
     }
 
@@ -94,11 +94,11 @@ void bmo_extrude_discrete_faces_exec(BMesh *bm, BMOperator *op)
 
         ese = static_cast<BMEditSelection *>(BLI_ghash_lookup(select_history_map, l_org->v));
         if (ese) {
-          ese->ele = (BMElem *)l_new->v;
+          ese->ele = reinterpret_cast<BMElem *>(l_new->v);
         }
         ese = static_cast<BMEditSelection *>(BLI_ghash_lookup(select_history_map, l_org->e));
         if (ese) {
-          ese->ele = (BMElem *)l_new->e;
+          ese->ele = reinterpret_cast<BMElem *>(l_new->e);
         }
       }
 
@@ -258,7 +258,7 @@ void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
       BMEditSelection *ese;
       ese = static_cast<BMEditSelection *>(BLI_ghash_lookup(select_history_map, v));
       if (ese) {
-        ese->ele = (BMElem *)dupev;
+        ese->ele = reinterpret_cast<BMElem *>(dupev);
       }
     }
 

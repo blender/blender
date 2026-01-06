@@ -144,7 +144,7 @@ Camera *ED_view3d_camera_data_get(View3D *v3d, RegionView3D *rv3d)
   /* establish the camera object,
    * so we can default to view mapping if anything is wrong with it */
   if ((rv3d->persp == RV3D_CAMOB) && v3d->camera && (v3d->camera->type == OB_CAMERA)) {
-    return static_cast<Camera *>(v3d->camera->data);
+    return blender::id_cast<Camera *>(v3d->camera->data);
   }
   return nullptr;
 }
@@ -467,7 +467,7 @@ bool ED_view3d_boundbox_clip_ex(const RegionView3D *rv3d, const BoundBox *bb, fl
     return true;
   }
 
-  mul_m4_m4m4(persmatob, (float (*)[4])rv3d->persmat, obmat);
+  mul_m4_m4m4(persmatob, const_cast<float (*)[4]>(rv3d->persmat), obmat);
 
   return view3d_boundbox_clip_m4(bb, persmatob);
 }
@@ -1685,9 +1685,9 @@ static bool view3d_camera_to_view_selected_impl(Main *bmain,
     bool is_ortho_camera = false;
 
     if ((camera_ob_eval->type == OB_CAMERA) &&
-        (((Camera *)camera_ob_eval->data)->type == CAM_ORTHO))
+        ((blender::id_cast<Camera *>(camera_ob_eval->data))->type == CAM_ORTHO))
     {
-      ((Camera *)camera_ob->data)->ortho_scale = scale;
+      (blender::id_cast<Camera *>(camera_ob->data))->ortho_scale = scale;
       is_ortho_camera = true;
     }
 
@@ -1730,13 +1730,13 @@ bool ED_view3d_camera_to_view_selected_with_set_clipping(Main *bmain,
           bmain, depsgraph, scene, camera_ob, &clip_start, &clip_end))
   {
 
-    ((Camera *)camera_ob->data)->clip_start = clip_start;
-    ((Camera *)camera_ob->data)->clip_end = clip_end;
+    (blender::id_cast<Camera *>(camera_ob->data))->clip_start = clip_start;
+    (blender::id_cast<Camera *>(camera_ob->data))->clip_end = clip_end;
 
     /* TODO: Support update via #ID_RECALC_PARAMETERS. */
     Object *camera_ob_eval = DEG_get_evaluated(depsgraph, camera_ob);
-    ((Camera *)camera_ob_eval->data)->clip_start = clip_start;
-    ((Camera *)camera_ob_eval->data)->clip_end = clip_end;
+    (blender::id_cast<Camera *>(camera_ob_eval->data))->clip_start = clip_start;
+    (blender::id_cast<Camera *>(camera_ob_eval->data))->clip_end = clip_end;
 
     return true;
   }
@@ -1759,7 +1759,7 @@ struct ReadData {
 static bool depth_read_test_fn(const void *value, void *userdata)
 {
   ReadData *data = static_cast<ReadData *>(userdata);
-  float depth = *(float *)value;
+  float depth = *static_cast<float *>(const_cast<void *>(value));
   data->r_depth = std::min(depth, data->r_depth);
 
   if ((++data->count) >= data->count_max) {

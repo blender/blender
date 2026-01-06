@@ -61,7 +61,7 @@ UniformBuf::~UniformBuf()
  */
 static GPUType get_padded_gpu_type(LinkData *link)
 {
-  GPUInput *input = (GPUInput *)link->data;
+  GPUInput *input = static_cast<GPUInput *>(link->data);
   GPUType gputype = input->type;
   /* Metal cannot pack floats after vec3. */
   if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
@@ -69,7 +69,7 @@ static GPUType get_padded_gpu_type(LinkData *link)
   }
   /* Unless the vec3 is followed by a float we need to treat it as a vec4. */
   if (gputype == GPU_VEC3 && (link->next != nullptr) &&
-      (((GPUInput *)link->next->data)->type != GPU_FLOAT))
+      ((static_cast<GPUInput *>(link->next->data))->type != GPU_FLOAT))
   {
     gputype = GPU_VEC4;
   }
@@ -82,9 +82,10 @@ static GPUType get_padded_gpu_type(LinkData *link)
  */
 static int inputs_cmp(const void *a, const void *b)
 {
-  const LinkData *link_a = (const LinkData *)a, *link_b = (const LinkData *)b;
-  const GPUInput *input_a = (const GPUInput *)link_a->data;
-  const GPUInput *input_b = (const GPUInput *)link_b->data;
+  const LinkData *link_a = static_cast<const LinkData *>(a),
+                 *link_b = static_cast<const LinkData *>(b);
+  const GPUInput *input_a = static_cast<const GPUInput *>(link_a->data);
+  const GPUInput *input_b = static_cast<const GPUInput *>(link_b->data);
   return input_a->type < input_b->type ? 1 : 0;
 }
 
@@ -111,7 +112,7 @@ static void buffer_from_list_inputs_sort(ListBaseT<LinkData> *inputs)
   GPUType cur_type = static_cast<GPUType>(MAX_UBO_GPU_TYPE + 1);
 
   for (LinkData &link : *inputs) {
-    GPUInput *input = (GPUInput *)link.data;
+    GPUInput *input = static_cast<GPUInput *>(link.data);
 
     if (input->type == GPU_MAT3) {
       /* Alignment for mat3 is not handled currently, so not supported */
@@ -137,11 +138,11 @@ static void buffer_from_list_inputs_sort(ListBaseT<LinkData> *inputs)
   }
 
   LinkData *link = inputs_lookup[GPU_VEC3];
-  while (link != nullptr && ((GPUInput *)link->data)->type == GPU_VEC3) {
+  while (link != nullptr && (static_cast<GPUInput *>(link->data))->type == GPU_VEC3) {
     LinkData *link_next = link->next;
 
     /* If GPU_VEC3 is followed by nothing or a GPU_FLOAT, no need for alignment. */
-    if ((link_next == nullptr) || ((GPUInput *)link_next->data)->type == GPU_FLOAT) {
+    if ((link_next == nullptr) || (static_cast<GPUInput *>(link_next->data))->type == GPU_FLOAT) {
       break;
     }
 
@@ -176,9 +177,9 @@ static inline size_t buffer_size_from_list(ListBaseT<LinkData> *inputs)
 static inline void buffer_fill_from_list(void *data, ListBaseT<LinkData> *inputs)
 {
   /* Now that we know the total ubo size we can start populating it. */
-  float *offset = (float *)data;
+  float *offset = static_cast<float *>(data);
   for (LinkData &link : *inputs) {
-    GPUInput *input = (GPUInput *)link.data;
+    GPUInput *input = static_cast<GPUInput *>(link.data);
     memcpy(offset, input->vec, input->type * sizeof(float));
     offset += get_padded_gpu_type(&link);
   }

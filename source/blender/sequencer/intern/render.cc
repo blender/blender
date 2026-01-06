@@ -1269,8 +1269,8 @@ ImBuf *seq_render_mask(Depsgraph *depsgraph,
   Mask *mask_temp;
   MaskRasterHandle *mr_handle;
 
-  mask_temp = (Mask *)BKE_id_copy_ex(
-      nullptr, &mask->id, nullptr, LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_NO_ANIMDATA);
+  mask_temp = blender::id_cast<Mask *>(
+      BKE_id_copy_ex(nullptr, &mask->id, nullptr, LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_NO_ANIMDATA));
 
   BKE_mask_evaluate(mask_temp, mask->sfra + frame_index, true);
 

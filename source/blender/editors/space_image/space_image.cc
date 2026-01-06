@@ -60,7 +60,7 @@
 
 static void image_scopes_tag_refresh(ScrArea *area)
 {
-  SpaceImage *sima = (SpaceImage *)area->spacedata.first;
+  SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
 
   /* only while histogram is visible */
   for (ARegion &region : area->regionbase) {
@@ -177,13 +177,13 @@ static SpaceLink *image_create(const ScrArea * /*area*/, const Scene * /*scene*/
   BLI_addtail(&simage->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;
 
-  return (SpaceLink *)simage;
+  return reinterpret_cast<SpaceLink *>(simage);
 }
 
 /* Doesn't free the space-link itself. */
 static void image_free(SpaceLink *sl)
 {
-  SpaceImage *simage = (SpaceImage *)sl;
+  SpaceImage *simage = reinterpret_cast<SpaceImage *>(sl);
 
   BKE_scopes_free(&simage->scopes);
 }
@@ -205,7 +205,7 @@ static SpaceLink *image_duplicate(SpaceLink *sl)
 
   BKE_scopes_new(&simagen->scopes);
 
-  return (SpaceLink *)simagen;
+  return reinterpret_cast<SpaceLink *>(simagen);
 }
 
 static void image_operatortypes()
@@ -302,7 +302,7 @@ static void image_listener(const wmSpaceTypeListenerParams *params)
   wmWindow *win = params->window;
   ScrArea *area = params->area;
   const wmNotifier *wmn = params->notifier;
-  SpaceImage *sima = (SpaceImage *)area->spacedata.first;
+  SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
 
   /* context changes */
   switch (wmn->category) {
@@ -457,7 +457,7 @@ static int /*eContextResult*/ image_context(const bContext *C,
     // return CTX_RESULT_OK; /* TODO(@sybren). */
   }
   else if (CTX_data_equals(member, "edit_image")) {
-    CTX_data_id_pointer_set(result, (ID *)ED_space_image(sima));
+    CTX_data_id_pointer_set(result, blender::id_cast<ID *>(ED_space_image(sima)));
     return CTX_RESULT_OK;
   }
   else if (CTX_data_equals(member, "edit_mask")) {
@@ -1107,7 +1107,7 @@ static void image_id_remap(ScrArea * /*area*/,
                            SpaceLink *slink,
                            const blender::bke::id::IDRemapper &mappings)
 {
-  SpaceImage *simg = (SpaceImage *)slink;
+  SpaceImage *simg = reinterpret_cast<SpaceImage *>(slink);
 
   if (!mappings.contains_mappings_for_any(FILTER_ID_IM | FILTER_ID_GD_LEGACY | FILTER_ID_MSK)) {
     return;
@@ -1191,7 +1191,7 @@ static int image_space_icon_get(const ScrArea *area)
 
 static void image_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *sl)
 {
-  SpaceImage *sima = (SpaceImage *)sl;
+  SpaceImage *sima = reinterpret_cast<SpaceImage *>(sl);
 
   sima->iuser.scene = nullptr;
   sima->scopes.waveform_1 = nullptr;

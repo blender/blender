@@ -185,7 +185,7 @@ static void graph_bezt_get_transform_selection(const TransInfo *t,
                                                bool *r_key,
                                                bool *r_right_handle)
 {
-  SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
+  SpaceGraph *sipo = static_cast<SpaceGraph *>(t->area->spacedata.first);
   bool key = (bezt->f2 & SELECT) != 0;
   bool left = use_handle ? ((bezt->f1 & SELECT) != 0) : key;
   bool right = use_handle ? ((bezt->f3 & SELECT) != 0) : key;
@@ -244,7 +244,7 @@ static float graph_key_shortest_dist(
  */
 static void createTransGraphEditData(bContext *C, TransInfo *t)
 {
-  SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
+  SpaceGraph *sipo = static_cast<SpaceGraph *>(t->area->spacedata.first);
   Scene *scene = t->scene;
   ARegion *region = t->region;
   View2D *v2d = &region->v2d;
@@ -294,7 +294,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
   Set<FCurve *> visited_fcurves;
   Vector<bAnimListElem *> unique_fcu_anim_list_elements;
   for (bAnimListElem &ale : anim_data) {
-    FCurve *fcu = (FCurve *)ale.key_data;
+    FCurve *fcu = static_cast<FCurve *>(ale.key_data);
     /* If 2 or more objects share the same action, multiple bAnimListElem might reference the same
      * FCurve. */
     if (!visited_fcurves.add(fcu)) {
@@ -400,7 +400,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 
   /* Loop 2: build transdata arrays. */
   for (bAnimListElem *ale : unique_fcu_anim_list_elements) {
-    FCurve *fcu = (FCurve *)ale->key_data;
+    FCurve *fcu = static_cast<FCurve *>(ale->key_data);
     bool intvals = (fcu->flag & FCURVE_INT_VALUES) != 0;
     float unit_scale, offset;
 
@@ -585,7 +585,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
     td = tc->data;
 
     for (bAnimListElem *ale : unique_fcu_anim_list_elements) {
-      FCurve *fcu = (FCurve *)ale->key_data;
+      FCurve *fcu = static_cast<FCurve *>(ale->key_data);
       TransData *td_start = td;
 
       /* F-Curve may not have any keyframes. */
@@ -686,7 +686,7 @@ static void flushTransGraphData(TransInfo *t)
        a++, td++, td2d++, tdg++)
   {
     /* Pointers to relevant AnimData blocks are stored in the `td->extra` pointers. */
-    AnimData *adt = (AnimData *)td->extra;
+    AnimData *adt = static_cast<AnimData *>(td->extra);
 
     float inv_unit_scale = 1.0f / tdg->unit_scale;
 
@@ -864,7 +864,7 @@ static void update_transdata_bezt_pointers(TransDataContainer *tc,
  */
 static void remake_graph_transdata(TransInfo *t, const Span<FCurve *> fcurves)
 {
-  SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
+  SpaceGraph *sipo = static_cast<SpaceGraph *>(t->area->spacedata.first);
   const bool use_handle = (sipo->flag & SIPO_NOHANDLES) == 0;
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
@@ -904,7 +904,7 @@ static void remake_graph_transdata(TransInfo *t, const Span<FCurve *> fcurves)
 
 static void recalcData_graphedit(TransInfo *t)
 {
-  SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
+  SpaceGraph *sipo = static_cast<SpaceGraph *>(t->area->spacedata.first);
   ViewLayer *view_layer = t->view_layer;
 
   ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
@@ -939,7 +939,7 @@ static void recalcData_graphedit(TransInfo *t)
   Vector<FCurve *> unsorted_fcurves;
   /* Now test if there is a need to re-sort. */
   for (bAnimListElem &ale : anim_data) {
-    FCurve *fcu = (FCurve *)ale.key_data;
+    FCurve *fcu = static_cast<FCurve *>(ale.key_data);
 
     /* Ignore FC-Curves without any selected verts. */
     if (!fcu_test_selected(fcu)) {
@@ -978,7 +978,7 @@ static void recalcData_graphedit(TransInfo *t)
 
 static void special_aftertrans_update__graph(bContext *C, TransInfo *t)
 {
-  SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
+  SpaceGraph *sipo = static_cast<SpaceGraph *>(t->area->spacedata.first);
   bAnimContext ac;
   const bool use_handle = (sipo->flag & SIPO_NOHANDLES) == 0;
 
@@ -1000,7 +1000,7 @@ static void special_aftertrans_update__graph(bContext *C, TransInfo *t)
         &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
     for (bAnimListElem &ale : anim_data) {
-      FCurve *fcu = (FCurve *)ale.key_data;
+      FCurve *fcu = static_cast<FCurve *>(ale.key_data);
 
       /* 3 cases here for curve cleanups:
        * 1) NOTRANSKEYCULL on    -> cleanup of duplicates shouldn't be done.

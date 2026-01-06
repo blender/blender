@@ -90,7 +90,7 @@ std::optional<blender::StringRef> BKE_paint_canvas_uvmap_name_get(
         return std::nullopt;
       }
 
-      const Mesh *mesh = static_cast<Mesh *>(ob->data);
+      const Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
       if (!has_uv_map_attribute(*mesh, mesh->active_uv_map_name())) {
         return std::nullopt;
       }
@@ -111,7 +111,7 @@ std::optional<blender::StringRef> BKE_paint_canvas_uvmap_name_get(
         return std::nullopt;
       }
 
-      const Mesh *mesh = static_cast<Mesh *>(ob->data);
+      const Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
       if (!has_uv_map_attribute(*mesh, slot->uvname)) {
         return std::nullopt;
       }

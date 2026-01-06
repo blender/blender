@@ -280,7 +280,7 @@ static int filelist_geticon_file_type_ex(const FileList *filelist,
                                          const bool is_main,
                                          const bool ignore_libdir)
 {
-  const eFileSel_File_Types typeflag = (eFileSel_File_Types)file->typeflag;
+  const eFileSel_File_Types typeflag = eFileSel_File_Types(file->typeflag);
 
   if ((typeflag & FILE_TYPE_DIR) &&
       !(ignore_libdir && (typeflag & (FILE_TYPE_BLENDERLIB | FILE_TYPE_BLENDER))))
@@ -475,7 +475,7 @@ static bool filelist_checkdir_return_always_valid(const FileList * /*filelist*/,
 static void filelist_entry_clear(FileDirEntry *entry)
 {
   if (entry->name && ((entry->flags & FILE_ENTRY_NAME_FREE) != 0)) {
-    MEM_freeN((char *)entry->name);
+    MEM_freeN(const_cast<char *>(entry->name));
   }
   if (entry->relpath) {
     MEM_freeN(entry->relpath);
@@ -526,7 +526,7 @@ static void filelist_intern_entry_free(FileList *filelist, FileListInternEntry *
     MEM_freeN(entry->redirection_path);
   }
   if (entry->name && entry->free_name) {
-    MEM_freeN((char *)entry->name);
+    MEM_freeN(const_cast<char *>(entry->name));
   }
   MEM_delete(entry);
 }
@@ -860,7 +860,7 @@ void filelist_settype(FileList *filelist, short type)
     return;
   }
 
-  filelist->type = (eFileSelectType)type;
+  filelist->type = eFileSelectType(type);
   filelist->tags = 0;
   filelist->indexer = &file_indexer_noop;
   switch (filelist->type) {
@@ -1086,10 +1086,10 @@ static const char *fileentry_uiname(const char *root, FileListInternEntry *entry
   /* Depending on platforms, 'my_file.blend/..' might be viewed as dir or not... */
   if (!name) {
     if (typeflag & FILE_TYPE_DIR) {
-      name = (char *)relpath;
+      name = const_cast<char *>(relpath);
     }
     else {
-      name = (char *)BLI_path_basename(relpath);
+      name = const_cast<char *>(BLI_path_basename(relpath));
     }
   }
   BLI_assert(name);
@@ -1104,7 +1104,7 @@ const char *filelist_dir(const FileList *filelist)
 
 bool filelist_is_dir(const FileList *filelist, const char *path)
 {
-  return filelist->check_dir_fn(filelist, (char *)path, false);
+  return filelist->check_dir_fn(filelist, const_cast<char *>(path), false);
 }
 
 void filelist_setdir(FileList *filelist, char dirpath[FILE_MAX_LIBEXTRA])
@@ -2056,7 +2056,7 @@ static int groupname_to_code(const char *group)
   BLI_assert(group);
 
   STRNCPY(buf, group);
-  lslash = (char *)BLI_path_slash_rfind(buf);
+  lslash = const_cast<char *>(BLI_path_slash_rfind(buf));
   if (lslash) {
     lslash[0] = '\0';
   }
@@ -2277,7 +2277,7 @@ static int filelist_readjob_list_dir(FileListReadJob *job_params,
             BLI_path_slash_ensure(entry->redirection_path, FILE_MAXDIR);
           }
           else {
-            entry->typeflag = (eFileSel_File_Types)ED_path_extension_type(entry->redirection_path);
+            entry->typeflag = eFileSel_File_Types(ED_path_extension_type(entry->redirection_path));
           }
           target = entry->redirection_path;
 #ifdef WIN32
@@ -2302,7 +2302,7 @@ static int filelist_readjob_list_dir(FileListReadJob *job_params,
           }
         }
         else {
-          entry->typeflag = (eFileSel_File_Types)ED_path_extension_type(target);
+          entry->typeflag = eFileSel_File_Types(ED_path_extension_type(target));
           if (filter_glob[0] && BLI_path_extension_check_glob(target, filter_glob)) {
             entry->typeflag |= FILE_TYPE_OPERATOR;
           }

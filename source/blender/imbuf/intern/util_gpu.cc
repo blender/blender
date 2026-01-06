@@ -138,8 +138,8 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
 {
   bool is_float_rect = (ibuf->float_buffer.data != nullptr);
   const bool is_grayscale = allow_grayscale && imb_is_grayscale_texture_format_compatible(ibuf);
-  void *data_rect = (is_float_rect) ? (void *)ibuf->float_buffer.data :
-                                      (void *)ibuf->byte_buffer.data;
+  void *data_rect = (is_float_rect) ? static_cast<void *>(ibuf->float_buffer.data) :
+                                      static_cast<void *>(ibuf->byte_buffer.data);
   bool freedata = false;
 
   if (is_float_rect) {
@@ -155,7 +155,7 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
       }
 
       IMB_colormanagement_imbuf_to_float_texture(
-          (float *)data_rect, 0, 0, ibuf->x, ibuf->y, ibuf, store_premultiplied);
+          static_cast<float *>(data_rect), 0, 0, ibuf->x, ibuf->y, ibuf, store_premultiplied);
     }
   }
   else {
@@ -187,12 +187,12 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
       if (is_grayscale) {
         /* Convert to byte buffer to then pack as half floats reducing the buffer size by half. */
         IMB_colormanagement_imbuf_to_float_texture(
-            (float *)data_rect, 0, 0, ibuf->x, ibuf->y, ibuf, store_premultiplied);
+            static_cast<float *>(data_rect), 0, 0, ibuf->x, ibuf->y, ibuf, store_premultiplied);
         is_float_rect = true;
       }
       else {
         IMB_colormanagement_imbuf_to_byte_texture(
-            (uchar *)data_rect, 0, 0, ibuf->x, ibuf->y, ibuf, store_premultiplied);
+            static_cast<uchar *>(data_rect), 0, 0, ibuf->x, ibuf->y, ibuf, store_premultiplied);
       }
     }
     else {
@@ -211,13 +211,13 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
        * zero alpha areas, and appears generally closer to what game engines that we
        * want to be compatible with do. */
       IMB_colormanagement_imbuf_to_float_texture(
-          (float *)data_rect, 0, 0, ibuf->x, ibuf->y, ibuf, store_premultiplied);
+          static_cast<float *>(data_rect), 0, 0, ibuf->x, ibuf->y, ibuf, store_premultiplied);
     }
   }
 
   if (do_rescale) {
-    const uint8_t *rect = (is_float_rect) ? nullptr : (uint8_t *)data_rect;
-    const float *rect_float = (is_float_rect) ? (float *)data_rect : nullptr;
+    const uint8_t *rect = (is_float_rect) ? nullptr : static_cast<uint8_t *>(data_rect);
+    const float *rect_float = (is_float_rect) ? static_cast<float *>(data_rect) : nullptr;
 
     ImBuf *scale_ibuf = IMB_allocFromBuffer(rect, rect_float, ibuf->x, ibuf->y, 4);
     IMB_scale(scale_ibuf, UNPACK2(rescale_size), IMBScaleFilter::Box, false);
@@ -226,8 +226,8 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
       MEM_freeN(data_rect);
     }
 
-    data_rect = (is_float_rect) ? (void *)scale_ibuf->float_buffer.data :
-                                  (void *)scale_ibuf->byte_buffer.data;
+    data_rect = (is_float_rect) ? static_cast<void *>(scale_ibuf->float_buffer.data) :
+                                  static_cast<void *>(scale_ibuf->byte_buffer.data);
     *r_freedata = freedata = true;
     /* Steal the rescaled buffer to avoid double free. */
     (void)IMB_steal_byte_buffer(scale_ibuf);
@@ -253,12 +253,12 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
                                       size_t(ibuf->x) * size_t(ibuf->y);
     if (is_float_rect) {
       for (size_t i = 0; i < buffer_size; i++) {
-        ((float *)data_rect)[i] = ((float *)src_rect)[i * 4];
+        (static_cast<float *>(data_rect))[i] = (static_cast<float *>(src_rect))[i * 4];
       }
     }
     else {
       for (size_t i = 0; i < buffer_size; i++) {
-        ((uchar *)data_rect)[i] = ((uchar *)src_rect)[i * 4];
+        (static_cast<uchar *>(data_rect))[i] = (static_cast<uchar *>(src_rect))[i * 4];
       }
     }
   }

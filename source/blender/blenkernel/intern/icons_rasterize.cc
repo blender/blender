@@ -74,7 +74,7 @@ ImBuf *BKE_icon_geom_rasterize(const Icon_Geom *geom, const uint size_x, const u
   const int coords_len = geom->coords_len;
 
   const uchar(*pos)[2] = geom->coords;
-  const uint *col = static_cast<const uint *>((void *)geom->colors);
+  const uint *col = static_cast<const uint *>(static_cast<void *>(geom->colors));
 
   /* TODO(@ideasman42): Currently rasterizes to fixed size, then scales.
    * Should rasterize to double size for eg instead. */
@@ -87,7 +87,7 @@ ImBuf *BKE_icon_geom_rasterize(const Icon_Geom *geom, const uint size_x, const u
   data.rect_size[0] = rect_size[0];
   data.rect_size[1] = rect_size[1];
 
-  data.rect = (uint *)ibuf->byte_buffer.data;
+  data.rect = reinterpret_cast<uint *>(ibuf->byte_buffer.data);
 
   float scale[2];
   const bool use_scale = (rect_size[0] != 256) || (rect_size[1] != 256);

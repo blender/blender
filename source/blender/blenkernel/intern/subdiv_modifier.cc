@@ -43,7 +43,7 @@ bool BKE_subsurf_modifier_runtime_init(SubsurfModifierData *smd, const bool use_
 {
   subdiv::Settings settings = BKE_subsurf_modifier_settings_init(smd, use_render_params);
 
-  SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)smd->modifier.runtime;
+  SubsurfRuntimeData *runtime_data = static_cast<SubsurfRuntimeData *>(smd->modifier.runtime);
   if (settings.level == 0) {
     /* Modifier is effectively disabled, but still update settings if runtime data
      * was already allocated. */

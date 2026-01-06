@@ -43,7 +43,7 @@ const EnumPropertyItem rna_enum_velocity_unit_items[] = {
 
 static void rna_CacheFile_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  CacheFile *cache_file = (CacheFile *)ptr->data;
+  CacheFile *cache_file = static_cast<CacheFile *>(ptr->data);
 
   DEG_id_tag_update(&cache_file->id, ID_RECALC_SYNC_TO_EVAL);
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, nullptr);
@@ -51,7 +51,7 @@ static void rna_CacheFile_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA
 
 static void rna_CacheFileLayer_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  CacheFile *cache_file = (CacheFile *)ptr->owner_id;
+  CacheFile *cache_file = blender::id_cast<CacheFile *>(ptr->owner_id);
 
   DEG_id_tag_update(&cache_file->id, ID_RECALC_SYNC_TO_EVAL);
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, nullptr);
@@ -59,26 +59,26 @@ static void rna_CacheFileLayer_update(Main * /*bmain*/, Scene * /*scene*/, Point
 
 static void rna_CacheFile_object_paths_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  CacheFile *cache_file = (CacheFile *)ptr->data;
+  CacheFile *cache_file = static_cast<CacheFile *>(ptr->data);
   rna_iterator_listbase_begin(iter, ptr, &cache_file->object_paths, nullptr);
 }
 
 static PointerRNA rna_CacheFile_active_layer_get(PointerRNA *ptr)
 {
-  CacheFile *cache_file = (CacheFile *)ptr->owner_id;
+  CacheFile *cache_file = blender::id_cast<CacheFile *>(ptr->owner_id);
   return RNA_pointer_create_with_parent(
       *ptr, &RNA_CacheFileLayer, BKE_cachefile_get_active_layer(cache_file));
 }
 
 static void rna_CacheFile_active_layer_set(PointerRNA *ptr, PointerRNA value, ReportList *reports)
 {
-  CacheFile *cache_file = (CacheFile *)ptr->owner_id;
+  CacheFile *cache_file = blender::id_cast<CacheFile *>(ptr->owner_id);
   int index = BLI_findindex(&cache_file->layers, value.data);
   if (index == -1) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "Layer '%s' not found in object '%s'",
-                ((CacheFileLayer *)value.data)->filepath,
+                (static_cast<CacheFileLayer *>(value.data))->filepath,
                 cache_file->id.name + 2);
     return;
   }
@@ -88,20 +88,20 @@ static void rna_CacheFile_active_layer_set(PointerRNA *ptr, PointerRNA value, Re
 
 static int rna_CacheFile_active_layer_index_get(PointerRNA *ptr)
 {
-  CacheFile *cache_file = (CacheFile *)ptr->owner_id;
+  CacheFile *cache_file = blender::id_cast<CacheFile *>(ptr->owner_id);
   return cache_file->active_layer - 1;
 }
 
 static void rna_CacheFile_active_layer_index_set(PointerRNA *ptr, int value)
 {
-  CacheFile *cache_file = (CacheFile *)ptr->owner_id;
+  CacheFile *cache_file = blender::id_cast<CacheFile *>(ptr->owner_id);
   cache_file->active_layer = value + 1;
 }
 
 static void rna_CacheFile_active_layer_index_range(
     PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)
 {
-  CacheFile *cache_file = (CacheFile *)ptr->owner_id;
+  CacheFile *cache_file = blender::id_cast<CacheFile *>(ptr->owner_id);
 
   *min = 0;
   *max = max_ii(0, BLI_listbase_count(&cache_file->layers) - 1);
@@ -109,7 +109,7 @@ static void rna_CacheFile_active_layer_index_range(
 
 static void rna_CacheFileLayer_hidden_flag_set(PointerRNA *ptr, const bool value)
 {
-  CacheFileLayer *layer = (CacheFileLayer *)ptr->data;
+  CacheFileLayer *layer = static_cast<CacheFileLayer *>(ptr->data);
 
   if (value) {
     layer->flag |= CACHEFILE_LAYER_HIDDEN;

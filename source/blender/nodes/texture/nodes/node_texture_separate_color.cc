@@ -47,21 +47,21 @@ static void apply_color_space(float *out, NodeCombSepColorMode type)
 static void valuefn_r(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
   tex_input_rgba(out, in[0], p, thread);
-  apply_color_space(out, (NodeCombSepColorMode)node->custom1);
+  apply_color_space(out, NodeCombSepColorMode(node->custom1));
   *out = out[0];
 }
 
 static void valuefn_g(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
   tex_input_rgba(out, in[0], p, thread);
-  apply_color_space(out, (NodeCombSepColorMode)node->custom1);
+  apply_color_space(out, NodeCombSepColorMode(node->custom1));
   *out = out[1];
 }
 
 static void valuefn_b(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
   tex_input_rgba(out, in[0], p, thread);
-  apply_color_space(out, (NodeCombSepColorMode)node->custom1);
+  apply_color_space(out, NodeCombSepColorMode(node->custom1));
   *out = out[2];
 }
 
@@ -73,7 +73,7 @@ static void valuefn_a(float *out, TexParams *p, bNode * /*node*/, bNodeStack **i
 
 static void update(bNodeTree * /*ntree*/, bNode *node)
 {
-  node_combsep_color_label(&node->outputs, (NodeCombSepColorMode)node->custom1);
+  node_combsep_color_label(&node->outputs, NodeCombSepColorMode(node->custom1));
 }
 
 static void exec(void *data,

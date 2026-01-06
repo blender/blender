@@ -240,12 +240,12 @@ void init_session_data(const ToolSettings &ts, Object &ob)
     BLI_assert(ob.sculpt->mode_type == OB_MODE_WEIGHT_PAINT);
   }
   else {
-    ob.sculpt->mode_type = (eObjectMode)0;
+    ob.sculpt->mode_type = eObjectMode(0);
     BLI_assert(0);
     return;
   }
 
-  Mesh *mesh = (Mesh *)ob.data;
+  Mesh *mesh = blender::id_cast<Mesh *>(ob.data);
 
   /* Create average brush arrays */
   if (ob.mode == OB_MODE_WEIGHT_PAINT) {
@@ -320,7 +320,7 @@ void mode_enter_generic(
     const PaintMode paint_mode = PaintMode::Vertex;
     ED_mesh_color_ensure(mesh, nullptr);
 
-    BKE_paint_ensure(scene.toolsettings, (Paint **)&scene.toolsettings->vpaint);
+    BKE_paint_ensure(scene.toolsettings, reinterpret_cast<Paint **>(&scene.toolsettings->vpaint));
     paint = BKE_paint_get_active_from_paintmode(&scene, paint_mode);
     ED_paint_cursor_start(paint, vertex_paint_poll);
     BKE_paint_init(&bmain, &scene, paint_mode);
@@ -328,7 +328,7 @@ void mode_enter_generic(
   else if (mode_flag == OB_MODE_WEIGHT_PAINT) {
     const PaintMode paint_mode = PaintMode::Weight;
 
-    BKE_paint_ensure(scene.toolsettings, (Paint **)&scene.toolsettings->wpaint);
+    BKE_paint_ensure(scene.toolsettings, reinterpret_cast<Paint **>(&scene.toolsettings->wpaint));
     paint = BKE_paint_get_active_from_paintmode(&scene, paint_mode);
     ED_paint_cursor_start(paint, weight_paint_poll);
     BKE_paint_init(&bmain, &scene, paint_mode);
@@ -607,10 +607,10 @@ void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache *cache)
 bool vertex_paint_mode_poll(bContext *C)
 {
   const Object *ob = CTX_data_active_object(C);
-  if (!ob) {
+  if (!ob || ob->type != OB_MESH) {
     return false;
   }
-  const Mesh *mesh = static_cast<const Mesh *>(ob->data);
+  const Mesh *mesh = blender::id_cast<const Mesh *>(ob->data);
 
   if (!(ob->mode == OB_MODE_VERTEX_PAINT && mesh->faces_num)) {
     return false;
@@ -674,7 +674,7 @@ static Color vpaint_blend(const VPaint &vp,
   using Value = typename Traits::ValueType;
 
   const Brush &brush = *BKE_paint_brush_for_read(&vp.paint);
-  const IMB_BlendMode blend = (IMB_BlendMode)brush.blend;
+  const IMB_BlendMode blend = IMB_BlendMode(brush.blend);
 
   const Color color_blend = BLI_mix_colors<Color, Traits>(blend, color_curr, color_paint, alpha);
 
@@ -862,7 +862,7 @@ static wmOperatorStatus vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
   ToolSettings &ts = *scene.toolsettings;
 
   if (!is_mode_set) {
-    if (!blender::ed::object::mode_compat_set(C, &ob, (eObjectMode)mode_flag, op->reports)) {
+    if (!blender::ed::object::mode_compat_set(C, &ob, eObjectMode(mode_flag), op->reports)) {
       return OPERATOR_CANCELLED;
     }
   }
@@ -881,7 +881,7 @@ static wmOperatorStatus vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
     BKE_paint_brushes_validate(&bmain, &ts.vpaint->paint);
   }
 
-  BKE_mesh_batch_cache_dirty_tag((Mesh *)ob.data, BKE_MESH_BATCH_DIRTY_ALL);
+  BKE_mesh_batch_cache_dirty_tag(blender::id_cast<Mesh *>(ob.data), BKE_MESH_BATCH_DIRTY_ALL);
 
   /* update modifier stack for mapping requirements */
   DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
@@ -1233,10 +1233,10 @@ static void do_vpaint_brush_blur_loops(const bContext *C,
             const Color &col = colors[corner];
 
             /* Color is squared to compensate the `sqrt` color encoding. */
-            blend[0] += (Blend)col.r * (Blend)col.r;
-            blend[1] += (Blend)col.g * (Blend)col.g;
-            blend[2] += (Blend)col.b * (Blend)col.b;
-            blend[3] += (Blend)col.a * (Blend)col.a;
+            blend[0] += static_cast<Blend>(col.r) * static_cast<Blend>(col.r);
+            blend[1] += static_cast<Blend>(col.g) * static_cast<Blend>(col.g);
+            blend[2] += static_cast<Blend>(col.b) * static_cast<Blend>(col.b);
+            blend[3] += static_cast<Blend>(col.a) * static_cast<Blend>(col.a);
           }
         }
 
@@ -1387,10 +1387,10 @@ static void do_vpaint_brush_blur_verts(const bContext *C,
             const Color &col = colors[vert];
 
             /* Color is squared to compensate the `sqrt` color encoding. */
-            blend[0] += (Blend)col.r * (Blend)col.r;
-            blend[1] += (Blend)col.g * (Blend)col.g;
-            blend[2] += (Blend)col.b * (Blend)col.b;
-            blend[3] += (Blend)col.a * (Blend)col.a;
+            blend[0] += static_cast<Blend>(col.r) * static_cast<Blend>(col.r);
+            blend[1] += static_cast<Blend>(col.g) * static_cast<Blend>(col.g);
+            blend[2] += static_cast<Blend>(col.b) * static_cast<Blend>(col.b);
+            blend[3] += static_cast<Blend>(col.a) * static_cast<Blend>(col.a);
           }
         }
 
@@ -1952,7 +1952,7 @@ static void vpaint_paint_leaves(bContext *C,
 {
   const Brush &brush = *ob.sculpt->cache->brush;
 
-  switch ((eBrushVertexPaintType)brush.vertex_brush_type) {
+  switch (eBrushVertexPaintType(brush.vertex_brush_type)) {
     case VPAINT_BRUSH_TYPE_AVERAGE:
       calculate_average_color(vpd, ob, mesh, brush, attribute, nodes, node_mask);
       vpaint_do_draw(C, vp, vpd, ob, mesh, nodes, node_mask, attribute);
@@ -2028,7 +2028,7 @@ static void vpaint_do_symmetrical_brush_actions(bContext *C,
                                                 Object &ob)
 {
   const Brush &brush = *BKE_paint_brush_for_read(&vp.paint);
-  Mesh &mesh = *(Mesh *)ob.data;
+  Mesh &mesh = *blender::id_cast<Mesh *>(ob.data);
   SculptSession &ss = *ob.sculpt;
   StrokeCache &cache = *ss.cache;
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
@@ -2095,7 +2095,7 @@ void VertexPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
 
   swap_m4m4(vc.rv3d->persmat, mat);
 
-  BKE_mesh_batch_cache_dirty_tag((Mesh *)ob.data, BKE_MESH_BATCH_DIRTY_ALL);
+  BKE_mesh_batch_cache_dirty_tag(blender::id_cast<Mesh *>(ob.data), BKE_MESH_BATCH_DIRTY_ALL);
 
   Brush &brush = *BKE_paint_brush(&vp.paint);
   if (brush.vertex_brush_type == VPAINT_BRUSH_TYPE_SMEAR) {
@@ -2110,7 +2110,7 @@ void VertexPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
 
   ED_region_tag_redraw(vc.region);
 
-  DEG_id_tag_update((ID *)ob.data, ID_RECALC_GEOMETRY);
+  DEG_id_tag_update(static_cast<ID *>(ob.data), ID_RECALC_GEOMETRY);
 }
 
 void VertexPaintStroke::done(bool /*is_cancel*/)
@@ -2371,7 +2371,7 @@ static wmOperatorStatus vertex_color_set_exec(bContext *C, wmOperator *op)
   IndexMaskMemory memory;
   const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
 
-  Mesh &mesh = *static_cast<Mesh *>(obact.data);
+  Mesh &mesh = *blender::id_cast<Mesh *>(obact.data);
 
   fill_active_color(obact, paintcol, true, affect_alpha);
 

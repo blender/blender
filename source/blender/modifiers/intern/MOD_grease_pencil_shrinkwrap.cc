@@ -78,8 +78,8 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
 {
   auto *smd = reinterpret_cast<GreasePencilShrinkwrapModifierData *>(md);
   modifier::greasepencil::foreach_influence_ID_link(&smd->influence, ob, walk, user_data);
-  walk(user_data, ob, (ID **)&smd->target, IDWALK_CB_NOP);
-  walk(user_data, ob, (ID **)&smd->aux_target, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&smd->target), IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&smd->aux_target), IDWALK_CB_NOP);
 }
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)

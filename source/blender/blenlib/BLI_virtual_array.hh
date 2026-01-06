@@ -528,14 +528,14 @@ template<typename T> struct VArrayAnyExtraInfo {
      * #get_varray function is required. */
     if constexpr (std::is_base_of_v<VArrayImpl<T>, StorageT>) {
       return {[](const void *buffer) {
-        return static_cast<const VArrayImpl<T> *>((const StorageT *)buffer);
+        return static_cast<const VArrayImpl<T> *>(static_cast<const StorageT *>(buffer));
       }};
     }
     else if constexpr (std::is_same_v<StorageT, const VArrayImpl<T> *>) {
-      return {[](const void *buffer) { return *(const StorageT *)buffer; }};
+      return {[](const void *buffer) { return *static_cast<const StorageT *>(buffer); }};
     }
     else if constexpr (std::is_same_v<StorageT, std::shared_ptr<const VArrayImpl<T>>>) {
-      return {[](const void *buffer) { return ((const StorageT *)buffer)->get(); }};
+      return {[](const void *buffer) { return (static_cast<const StorageT *>(buffer))->get(); }};
     }
     else {
       BLI_assert_unreachable();
@@ -1084,7 +1084,7 @@ template<typename T> class VMutableArray : public VArrayCommon<T> {
   {
     /* This cast is valid by the invariant that a #VMutableArray->impl_ is always a
      * #VMutableArrayImpl. */
-    return (VMutableArrayImpl<T> *)this->impl_;
+    return reinterpret_cast<VMutableArrayImpl<T> *>(const_cast<VArrayImpl<T> *>((this->impl_)));
   }
 };
 

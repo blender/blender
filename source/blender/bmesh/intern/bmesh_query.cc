@@ -856,7 +856,7 @@ int BM_loop_region_loops_count(BMLoop *l)
 
 bool BM_vert_is_manifold_region(const BMVert *v)
 {
-  BMLoop *l_first = BM_vert_find_first_loop((BMVert *)v);
+  BMLoop *l_first = BM_vert_find_first_loop(const_cast<BMVert *>(v));
   if (l_first) {
     int count, count_total;
     count = BM_loop_region_loops_count_at_most(l_first, &count_total);

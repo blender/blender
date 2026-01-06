@@ -58,7 +58,7 @@ static void texture_get_from_context(const bContext *C,
     }
 
     if (brush) {
-      *r_from = (ID *)brush;
+      *r_from = reinterpret_cast<ID *>(brush);
       tx = give_current_brush_texture(brush);
       if (tx) {
         *r_id = &tx->id;
@@ -69,7 +69,7 @@ static void texture_get_from_context(const bContext *C,
   else if (snode->texfrom == SNODE_TEX_LINESTYLE) {
     FreestyleLineStyle *linestyle = BKE_linestyle_active_from_view_layer(view_layer);
     if (linestyle) {
-      *r_from = (ID *)linestyle;
+      *r_from = blender::id_cast<ID *>(linestyle);
       tx = give_current_linestyle_texture(linestyle);
       if (tx) {
         *r_id = &tx->id;
@@ -159,7 +159,7 @@ bNodeThreadStack *ntreeGetThreadStack(bNodeTreeExec *exec, int thread)
   ListBaseT<bNodeThreadStack> *lb = &exec->threadstack[thread];
   bNodeThreadStack *nts;
 
-  for (nts = (bNodeThreadStack *)lb->first; nts; nts = nts->next) {
+  for (nts = static_cast<bNodeThreadStack *>(lb->first); nts; nts = nts->next) {
     if (!nts->used) {
       nts->used = true;
       break;
@@ -168,7 +168,7 @@ bNodeThreadStack *ntreeGetThreadStack(bNodeTreeExec *exec, int thread)
 
   if (!nts) {
     nts = MEM_callocN<bNodeThreadStack>("bNodeThreadStack");
-    nts->stack = (bNodeStack *)MEM_dupallocN(exec->stack);
+    nts->stack = static_cast<bNodeStack *>(MEM_dupallocN(exec->stack));
     nts->used = true;
     BLI_addtail(lb, nts);
   }

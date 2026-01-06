@@ -74,7 +74,7 @@ static wmGizmo *tool_generic_create_gizmo(const bContext *C, wmGizmoGroup *gzgro
 
   RNA_enum_set(gz->ptr, "icon", ICON_NONE);
 
-  bToolRef *tref = WM_toolsystem_ref_from_context((bContext *)C);
+  bToolRef *tref = WM_toolsystem_ref_from_context(const_cast<bContext *>(C));
   PointerRNA gzgt_ptr;
   const bool gzgt_ptr_is_valid = WM_toolsystem_ref_properties_get_from_gizmo_group(
       tref, gzgroup->type, &gzgt_ptr);

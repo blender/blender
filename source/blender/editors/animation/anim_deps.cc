@@ -142,7 +142,7 @@ static void animchan_sync_group(bAnimContext *ac, bAnimListElem *ale, bActionGro
      */
     if (ob->pose) {
       bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, agrp->name);
-      bArmature *arm = static_cast<bArmature *>(ob->data);
+      bArmature *arm = blender::id_cast<bArmature *>(ob->data);
 
       if (pchan) {
         /* if one matches, sync the selection status */

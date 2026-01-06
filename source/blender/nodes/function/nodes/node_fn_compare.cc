@@ -71,9 +71,9 @@ static void node_update(bNodeTree *ntree, bNode *node)
 {
   NodeFunctionCompare *data = (NodeFunctionCompare *)node->storage;
 
-  bNodeSocket *sock_comp = (bNodeSocket *)BLI_findlink(&node->inputs, 10);
-  bNodeSocket *sock_angle = (bNodeSocket *)BLI_findlink(&node->inputs, 11);
-  bNodeSocket *sock_epsilon = (bNodeSocket *)BLI_findlink(&node->inputs, 12);
+  bNodeSocket *sock_comp = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 10));
+  bNodeSocket *sock_angle = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 11));
+  bNodeSocket *sock_epsilon = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 12));
 
   for (bNodeSocket &socket : node->inputs) {
     bke::node_set_socket_availability(

@@ -75,7 +75,7 @@ using blender::StringRef;
 
 static Mesh *rna_mesh(const PointerRNA *ptr)
 {
-  Mesh *mesh = (Mesh *)ptr->owner_id;
+  Mesh *mesh = blender::id_cast<Mesh *>(ptr->owner_id);
   return mesh;
 }
 
@@ -341,12 +341,12 @@ bool rna_Mesh_loop_triangle_polygons_lookup_int(PointerRNA *ptr, int index, Poin
 
 static void rna_MeshVertex_co_get(PointerRNA *ptr, float *value)
 {
-  copy_v3_v3(value, (const float *)ptr->data);
+  copy_v3_v3(value, static_cast<const float *>(ptr->data));
 }
 
 static void rna_MeshVertex_co_set(PointerRNA *ptr, const float *value)
 {
-  copy_v3_v3((float *)ptr->data, value);
+  copy_v3_v3(static_cast<float *>(ptr->data), value);
   Mesh *mesh = rna_mesh(ptr);
   mesh->tag_positions_changed();
 }
@@ -403,12 +403,12 @@ static void rna_MeshVertex_select_set(PointerRNA *ptr, bool value)
 
 static int rna_MeshLoop_vertex_index_get(PointerRNA *ptr)
 {
-  return *(int *)ptr->data;
+  return *static_cast<int *>(ptr->data);
 }
 
 static void rna_MeshLoop_vertex_index_set(PointerRNA *ptr, int value)
 {
-  *(int *)ptr->data = value;
+  *static_cast<int *>(ptr->data) = value;
 }
 
 static int rna_MeshLoop_edge_index_get(PointerRNA *ptr)
@@ -443,7 +443,7 @@ static void rna_MeshLoop_tangent_get(PointerRNA *ptr, float *values)
     zero_v3(values);
   }
   else {
-    copy_v3_v3(values, (const float *)(layer + index));
+    copy_v3_v3(values, reinterpret_cast<const float *>(layer + index));
   }
 }
 
@@ -477,8 +477,8 @@ static void rna_MeshPolygon_normal_get(PointerRNA *ptr, float *values)
 {
   using namespace blender;
   Mesh *mesh = rna_mesh(ptr);
-  const int poly_start = *((const int *)ptr->data);
-  const int poly_size = *(((const int *)ptr->data) + 1) - poly_start;
+  const int poly_start = *(static_cast<const int *>(ptr->data));
+  const int poly_size = *((static_cast<const int *>(ptr->data)) + 1) - poly_start;
   const Span<int> face_verts = mesh->corner_verts().slice(poly_start, poly_size);
   const float3 result = bke::mesh::face_normal_calc(mesh->vert_positions(), face_verts);
   copy_v3_v3(values, result);
@@ -572,8 +572,8 @@ static void rna_MeshPolygon_center_get(PointerRNA *ptr, float *values)
 {
   using namespace blender;
   Mesh *mesh = rna_mesh(ptr);
-  const int poly_start = *((const int *)ptr->data);
-  const int poly_size = *(((const int *)ptr->data) + 1) - poly_start;
+  const int poly_start = *(static_cast<const int *>(ptr->data));
+  const int poly_size = *((static_cast<const int *>(ptr->data)) + 1) - poly_start;
   const Span<int> face_verts = mesh->corner_verts().slice(poly_start, poly_size);
   const float3 result = bke::mesh::face_center_calc(mesh->vert_positions(), face_verts);
   copy_v3_v3(values, result);
@@ -582,9 +582,9 @@ static void rna_MeshPolygon_center_get(PointerRNA *ptr, float *values)
 static float rna_MeshPolygon_area_get(PointerRNA *ptr)
 {
   using namespace blender;
-  Mesh *mesh = (Mesh *)ptr->owner_id;
-  const int poly_start = *((const int *)ptr->data);
-  const int poly_size = *(((const int *)ptr->data) + 1) - poly_start;
+  Mesh *mesh = blender::id_cast<Mesh *>(ptr->owner_id);
+  const int poly_start = *(static_cast<const int *>(ptr->data));
+  const int poly_size = *((static_cast<const int *>(ptr->data)) + 1) - poly_start;
   const Span<int> face_verts = mesh->corner_verts().slice(poly_start, poly_size);
   return bke::mesh::face_area_calc(mesh->vert_positions(), face_verts);
 }
@@ -592,7 +592,7 @@ static float rna_MeshPolygon_area_get(PointerRNA *ptr)
 static void rna_MeshPolygon_flip(ID *id, MIntProperty *poly_offset_p)
 {
   using namespace blender;
-  Mesh *mesh = (Mesh *)id;
+  Mesh *mesh = blender::id_cast<Mesh *>(id);
   const int index = reinterpret_cast<int *>(poly_offset_p) - mesh->faces().data().data();
   bke::mesh_flip_faces(*mesh, IndexMask(IndexRange(index, 1)));
   BKE_mesh_tessface_clear(mesh);
@@ -603,7 +603,7 @@ static void rna_MeshLoopTriangle_verts_get(PointerRNA *ptr, int *values)
 {
   Mesh *mesh = rna_mesh(ptr);
   const blender::Span<int> corner_verts = mesh->corner_verts();
-  blender::int3 tri = *(blender::int3 *)ptr->data;
+  blender::int3 tri = *static_cast<blender::int3 *>(ptr->data);
   values[0] = corner_verts[tri[0]];
   values[1] = corner_verts[tri[1]];
   values[2] = corner_verts[tri[2]];
@@ -612,7 +612,7 @@ static void rna_MeshLoopTriangle_verts_get(PointerRNA *ptr, int *values)
 static void rna_MeshLoopTriangle_normal_get(PointerRNA *ptr, float *values)
 {
   Mesh *mesh = rna_mesh(ptr);
-  blender::int3 tri = *(blender::int3 *)ptr->data;
+  blender::int3 tri = *static_cast<blender::int3 *>(ptr->data);
   const blender::Span<blender::float3> positions = mesh->vert_positions();
   const blender::Span<int> corner_verts = mesh->corner_verts();
   const int v1 = corner_verts[tri[0]];
@@ -626,7 +626,7 @@ static void rna_MeshLoopTriangle_split_normals_get(PointerRNA *ptr, float *value
 {
   Mesh *mesh = rna_mesh(ptr);
   const blender::Span<blender::float3> corner_normals = mesh->corner_normals();
-  const blender::int3 tri = *(const blender::int3 *)ptr->data;
+  const blender::int3 tri = *static_cast<const blender::int3 *>(ptr->data);
   copy_v3_v3(values + 0, corner_normals[tri[0]]);
   copy_v3_v3(values + 3, corner_normals[tri[1]]);
   copy_v3_v3(values + 6, corner_normals[tri[2]]);
@@ -635,7 +635,7 @@ static void rna_MeshLoopTriangle_split_normals_get(PointerRNA *ptr, float *value
 static float rna_MeshLoopTriangle_area_get(PointerRNA *ptr)
 {
   Mesh *mesh = rna_mesh(ptr);
-  blender::int3 tri = *(blender::int3 *)ptr->data;
+  blender::int3 tri = *static_cast<blender::int3 *>(ptr->data);
   const blender::Span<blender::float3> positions = mesh->vert_positions();
   const blender::Span<int> corner_verts = mesh->corner_verts();
   const int v1 = corner_verts[tri[0]];
@@ -646,7 +646,7 @@ static float rna_MeshLoopTriangle_area_get(PointerRNA *ptr)
 
 static void rna_MeshLoopColor_color_get(PointerRNA *ptr, float *values)
 {
-  MLoopCol *mlcol = (MLoopCol *)ptr->data;
+  MLoopCol *mlcol = static_cast<MLoopCol *>(ptr->data);
 
   values[0] = mlcol->r / 255.0f;
   values[1] = mlcol->g / 255.0f;
@@ -656,7 +656,7 @@ static void rna_MeshLoopColor_color_get(PointerRNA *ptr, float *values)
 
 static void rna_MeshLoopColor_color_set(PointerRNA *ptr, const float *values)
 {
-  MLoopCol *mlcol = (MLoopCol *)ptr->data;
+  MLoopCol *mlcol = static_cast<MLoopCol *>(ptr->data);
 
   mlcol->r = round_fl_to_uchar_clamp(values[0] * 255.0f);
   mlcol->g = round_fl_to_uchar_clamp(values[1] * 255.0f);
@@ -666,13 +666,13 @@ static void rna_MeshLoopColor_color_set(PointerRNA *ptr, const float *values)
 
 static int rna_Mesh_texspace_editable(const PointerRNA *ptr, const char ** /*r_info*/)
 {
-  Mesh *mesh = (Mesh *)ptr->data;
+  Mesh *mesh = static_cast<Mesh *>(ptr->data);
   return (mesh->texspace_flag & ME_TEXSPACE_FLAG_AUTO) ? PropertyFlag(0) : PROP_EDITABLE;
 }
 
 static void rna_Mesh_texspace_size_get(PointerRNA *ptr, float values[3])
 {
-  Mesh *mesh = (Mesh *)ptr->data;
+  Mesh *mesh = static_cast<Mesh *>(ptr->data);
 
   BKE_mesh_texspace_ensure(mesh);
 
@@ -681,7 +681,7 @@ static void rna_Mesh_texspace_size_get(PointerRNA *ptr, float values[3])
 
 static void rna_Mesh_texspace_location_get(PointerRNA *ptr, float values[3])
 {
-  Mesh *mesh = (Mesh *)ptr->data;
+  Mesh *mesh = static_cast<Mesh *>(ptr->data);
 
   BKE_mesh_texspace_ensure(mesh);
 
@@ -707,7 +707,7 @@ static void rna_MeshVertex_groups_begin(CollectionPropertyIterator *iter, Pointe
 static void rna_MeshVertex_undeformed_co_get(PointerRNA *ptr, float values[3])
 {
   Mesh *mesh = rna_mesh(ptr);
-  const float *position = (const float *)ptr->data;
+  const float *position = static_cast<const float *>(ptr->data);
   const blender::float3 *orco = static_cast<const blender::float3 *>(
       CustomData_get_layer(&mesh->vert_data, CD_ORCO));
 
@@ -1060,13 +1060,13 @@ static void rna_Mesh_vertex_color_active_set(PointerRNA *ptr,
   if (RNA_pointer_is_null(&value)) {
     return;
   }
-  Mesh *mesh = (Mesh *)ptr->data;
+  Mesh *mesh = static_cast<Mesh *>(ptr->data);
   BKE_id_attributes_active_color_set(&mesh->id, rna_Attribute_name_get(value));
 }
 
 static int rna_Mesh_vertex_color_active_index_get(PointerRNA *ptr)
 {
-  Mesh *mesh = (Mesh *)ptr->data;
+  Mesh *mesh = static_cast<Mesh *>(ptr->data);
   AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
   return BKE_attribute_to_index(owner,
                                 mesh->active_color_attribute,
@@ -1077,7 +1077,7 @@ static int rna_Mesh_vertex_color_active_index_get(PointerRNA *ptr)
 
 static void rna_Mesh_vertex_color_active_index_set(PointerRNA *ptr, int value)
 {
-  Mesh *mesh = (Mesh *)ptr->data;
+  Mesh *mesh = static_cast<Mesh *>(ptr->data);
   AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
   const std::optional<StringRef> name = BKE_attribute_from_index(
       owner, value, ATTR_DOMAIN_MASK_CORNER, CD_MASK_PROP_BYTE_COLOR, false);
@@ -1118,7 +1118,7 @@ static void rna_mesh_color_active_set(PointerRNA *ptr, bool value)
 
 static bool rna_skin_vertice_check(CollectionPropertyIterator *, void *data)
 {
-  CustomDataLayer *layer = (CustomDataLayer *)data;
+  CustomDataLayer *layer = static_cast<CustomDataLayer *>(data);
   return (blender::bke::attribute_name_is_anonymous(layer->name) || layer->type != CD_MVERT_SKIN);
 }
 
@@ -1128,7 +1128,7 @@ static void rna_Mesh_skin_vertices_begin(CollectionPropertyIterator *iter, Point
   if (data) {
     rna_iterator_array_begin(iter,
                              ptr,
-                             (void *)data->layers,
+                             static_cast<void *>(data->layers),
                              sizeof(CustomDataLayer),
                              data->totlayer,
                              0,
@@ -1165,7 +1165,7 @@ static std::optional<std::string> rna_MeshSkinVertex_path(const PointerRNA *ptr)
 
 static void rna_MeshSkinVertexLayer_name_set(PointerRNA *ptr, const char *value)
 {
-  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
+  CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
   CustomData *cdata = rna_mesh_vdata(ptr);
   STRNCPY_UTF8(layer->name, value);
   CustomData_set_layer_unique_name(cdata, layer - cdata->layers);
@@ -1174,7 +1174,7 @@ static void rna_MeshSkinVertexLayer_name_set(PointerRNA *ptr, const char *value)
 static void rna_MeshSkinVertexLayer_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   Mesh *mesh = rna_mesh(ptr);
-  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
+  CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
   rna_iterator_array_begin(iter,
                            ptr,
                            layer->data,
@@ -1355,7 +1355,7 @@ static bool rna_MeshLoopTriangle_use_smooth_get(PointerRNA *ptr)
 static std::optional<std::string> rna_VertexGroupElement_path(const PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr); /* XXX not always! */
-  const MDeformWeight *dw = (MDeformWeight *)ptr->data;
+  const MDeformWeight *dw = static_cast<MDeformWeight *>(ptr->data);
   const MDeformVert *dvert = mesh->deform_verts().data();
   int a, b;
 
@@ -1407,7 +1407,8 @@ static std::optional<std::string> rna_VertCustomData_data_path(const PointerRNA 
 
   for (cdl = vdata->layers, a = 0; a < vdata->totlayer; cdl++, a++) {
     if (cdl->type == type) {
-      b = ((char *)ptr->data - ((char *)cdl->data)) / CustomData_sizeof(eCustomDataType(type));
+      b = (static_cast<char *>(ptr->data) - (static_cast<char *>(cdl->data))) /
+          CustomData_sizeof(eCustomDataType(type));
       if (b >= 0 && b < totvert) {
         char name_esc[sizeof(cdl->name) * 2];
         BLI_str_escape(name_esc, cdl->name, sizeof(name_esc));
@@ -1864,7 +1865,7 @@ static bool rna_Mesh_materials_override_apply(Main *bmain,
                  "Unsupported RNA override operation on collections' objects");
   UNUSED_VARS_NDEBUG(opop);
 
-  Mesh *mesh_dst = (Mesh *)ptr_dst->owner_id;
+  Mesh *mesh_dst = blender::id_cast<Mesh *>(ptr_dst->owner_id);
 
   if (ptr_item_dst->type == nullptr || ptr_item_src->type == nullptr) {
     // BLI_assert_msg(0, "invalid source or destination material.");

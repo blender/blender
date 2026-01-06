@@ -960,7 +960,7 @@ static void cloth_collision(void *__restrict userdata,
                             const int index,
                             const TaskParallelTLS *__restrict /*tls*/)
 {
-  ColDetectData *data = (ColDetectData *)userdata;
+  ColDetectData *data = static_cast<ColDetectData *>(userdata);
 
   ClothModifierData *clmd = data->clmd;
   CollisionModifierData *collmd = data->collmd;
@@ -1075,7 +1075,7 @@ static void cloth_selfcollision(void *__restrict userdata,
                                 const int index,
                                 const TaskParallelTLS *__restrict /*tls*/)
 {
-  SelfColDetectData *data = (SelfColDetectData *)userdata;
+  SelfColDetectData *data = static_cast<SelfColDetectData *>(userdata);
 
   ClothModifierData *clmd = data->clmd;
   CollPair *collpair = data->collisions;
@@ -1155,7 +1155,7 @@ static void hair_collision(void *__restrict userdata,
                            const int index,
                            const TaskParallelTLS *__restrict /*tls*/)
 {
-  ColDetectData *data = (ColDetectData *)userdata;
+  ColDetectData *data = static_cast<ColDetectData *>(userdata);
 
   ClothModifierData *clmd = data->clmd;
   CollisionModifierData *collmd = data->collmd;
@@ -1347,8 +1347,8 @@ ListBaseT<ColliderCache> *BKE_collider_cache_create(Depsgraph *depsgraph,
       continue;
     }
 
-    CollisionModifierData *cmd = (CollisionModifierData *)BKE_modifiers_findby_type(
-        ob, eModifierType_Collision);
+    CollisionModifierData *cmd = reinterpret_cast<CollisionModifierData *>(
+        BKE_modifiers_findby_type(ob, eModifierType_Collision));
     if (cmd && cmd->bvhtree) {
       if (cache == nullptr) {
         cache = MEM_callocN<ListBaseT<ColliderCache>>(__func__);
@@ -1446,8 +1446,8 @@ static int cloth_bvh_objcollisions_resolve(ClothModifierData *clmd,
 
     for (i = 0; i < numcollobj; i++) {
       Object *collob = collobjs[i];
-      CollisionModifierData *collmd = (CollisionModifierData *)BKE_modifiers_findby_type(
-          collob, eModifierType_Collision);
+      CollisionModifierData *collmd = reinterpret_cast<CollisionModifierData *>(
+          BKE_modifiers_findby_type(collob, eModifierType_Collision));
 
       if (collmd->bvhtree) {
         result += cloth_collision_response_static(
@@ -1519,7 +1519,7 @@ static int cloth_bvh_selfcollisions_resolve(ClothModifierData *clmd,
 
 static bool cloth_bvh_obj_overlap_cb(void *userdata, int index_a, int /*index_b*/, int /*thread*/)
 {
-  ClothModifierData *clmd = (ClothModifierData *)userdata;
+  ClothModifierData *clmd = static_cast<ClothModifierData *>(userdata);
   Cloth *clothObject = clmd->clothObject;
   const blender::int3 tri_a = clothObject->vert_tris[index_a];
 
@@ -1531,7 +1531,7 @@ static bool cloth_bvh_self_overlap_cb(void *userdata, int index_a, int index_b, 
   /* This shouldn't happen, but just in case. Note that equal combinations
    * (eg. (0,1) & (1,0)) would be filtered out by BLI_bvhtree_overlap_self. */
   if (index_a != index_b) {
-    ClothModifierData *clmd = (ClothModifierData *)userdata;
+    ClothModifierData *clmd = static_cast<ClothModifierData *>(userdata);
     Cloth *clothObject = clmd->clothObject;
     const blender::int3 tri_a = clothObject->vert_tris[index_a];
     const blender::int3 tri_b = clothObject->vert_tris[index_b];
@@ -1586,8 +1586,8 @@ int cloth_bvh_collision(
 
       for (i = 0; i < numcollobj; i++) {
         Object *collob = collobjs[i];
-        CollisionModifierData *collmd = (CollisionModifierData *)BKE_modifiers_findby_type(
-            collob, eModifierType_Collision);
+        CollisionModifierData *collmd = reinterpret_cast<CollisionModifierData *>(
+            BKE_modifiers_findby_type(collob, eModifierType_Collision));
 
         if (!collmd->bvhtree) {
           continue;
@@ -1626,8 +1626,8 @@ int cloth_bvh_collision(
 
       for (i = 0; i < numcollobj; i++) {
         Object *collob = collobjs[i];
-        CollisionModifierData *collmd = (CollisionModifierData *)BKE_modifiers_findby_type(
-            collob, eModifierType_Collision);
+        CollisionModifierData *collmd = reinterpret_cast<CollisionModifierData *>(
+            BKE_modifiers_findby_type(collob, eModifierType_Collision));
 
         if (!collmd->bvhtree) {
           continue;

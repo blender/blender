@@ -9,6 +9,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_sys_types.h"
 
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -82,7 +83,7 @@ static void make_prim_finish(bContext *C,
   params.calc_looptris = !exit_editmode;
   params.calc_normals = false;
   params.is_destructive = true;
-  EDBM_update(static_cast<Mesh *>(obedit->data), &params);
+  EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
 
   /* userdef */
   if (exit_editmode) {
@@ -116,7 +117,7 @@ static wmOperatorStatus add_primitive_plane_exec(bContext *C, wmOperator *op)
   em = BKE_editmesh_from_object(obedit);
 
   if (calc_uvs) {
-    ED_mesh_uv_ensure(static_cast<Mesh *>(obedit->data), nullptr);
+    ED_mesh_uv_ensure(blender::id_cast<Mesh *>(obedit->data), nullptr);
   }
 
   if (!EDBM_op_call_and_selectf(
@@ -182,7 +183,7 @@ static wmOperatorStatus add_primitive_cube_exec(bContext *C, wmOperator *op)
   em = BKE_editmesh_from_object(obedit);
 
   if (calc_uvs) {
-    ED_mesh_uv_ensure(static_cast<Mesh *>(obedit->data), nullptr);
+    ED_mesh_uv_ensure(blender::id_cast<Mesh *>(obedit->data), nullptr);
   }
 
   if (!EDBM_op_call_and_selectf(em,
@@ -257,7 +258,7 @@ static wmOperatorStatus add_primitive_circle_exec(bContext *C, wmOperator *op)
   em = BKE_editmesh_from_object(obedit);
 
   if (calc_uvs) {
-    ED_mesh_uv_ensure(static_cast<Mesh *>(obedit->data), nullptr);
+    ED_mesh_uv_ensure(blender::id_cast<Mesh *>(obedit->data), nullptr);
   }
 
   if (!EDBM_op_call_and_selectf(
@@ -330,7 +331,7 @@ static wmOperatorStatus add_primitive_cylinder_exec(bContext *C, wmOperator *op)
   em = BKE_editmesh_from_object(obedit);
 
   if (calc_uvs) {
-    ED_mesh_uv_ensure(static_cast<Mesh *>(obedit->data), nullptr);
+    ED_mesh_uv_ensure(blender::id_cast<Mesh *>(obedit->data), nullptr);
   }
 
   if (!EDBM_op_call_and_selectf(em,
@@ -407,7 +408,7 @@ static wmOperatorStatus add_primitive_cone_exec(bContext *C, wmOperator *op)
   em = BKE_editmesh_from_object(obedit);
 
   if (calc_uvs) {
-    ED_mesh_uv_ensure(static_cast<Mesh *>(obedit->data), nullptr);
+    ED_mesh_uv_ensure(blender::id_cast<Mesh *>(obedit->data), nullptr);
   }
 
   if (!EDBM_op_call_and_selectf(em,
@@ -484,7 +485,7 @@ static wmOperatorStatus add_primitive_grid_exec(bContext *C, wmOperator *op)
   em = BKE_editmesh_from_object(obedit);
 
   if (calc_uvs) {
-    ED_mesh_uv_ensure(static_cast<Mesh *>(obedit->data), nullptr);
+    ED_mesh_uv_ensure(blender::id_cast<Mesh *>(obedit->data), nullptr);
   }
 
   if (!EDBM_op_call_and_selectf(
@@ -562,7 +563,7 @@ static wmOperatorStatus add_primitive_monkey_exec(bContext *C, wmOperator *op)
   em = BKE_editmesh_from_object(obedit);
 
   if (calc_uvs) {
-    ED_mesh_uv_ensure(static_cast<Mesh *>(obedit->data), nullptr);
+    ED_mesh_uv_ensure(blender::id_cast<Mesh *>(obedit->data), nullptr);
   }
 
   if (!EDBM_op_call_and_selectf(em,
@@ -624,7 +625,7 @@ static wmOperatorStatus add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
   em = BKE_editmesh_from_object(obedit);
 
   if (calc_uvs) {
-    ED_mesh_uv_ensure(static_cast<Mesh *>(obedit->data), nullptr);
+    ED_mesh_uv_ensure(blender::id_cast<Mesh *>(obedit->data), nullptr);
   }
 
   if (!EDBM_op_call_and_selectf(
@@ -695,7 +696,7 @@ static wmOperatorStatus add_primitive_icosphere_exec(bContext *C, wmOperator *op
   em = BKE_editmesh_from_object(obedit);
 
   if (calc_uvs) {
-    ED_mesh_uv_ensure(static_cast<Mesh *>(obedit->data), nullptr);
+    ED_mesh_uv_ensure(blender::id_cast<Mesh *>(obedit->data), nullptr);
   }
 
   if (!EDBM_op_call_and_selectf(

@@ -235,7 +235,8 @@ static blender::VectorSet<BMEdgeLoopStorePair> bm_edgering_pair_calc(
     BMIter eiter;
     BMEdge *e;
 
-    BMVert *v = static_cast<BMVert *>(((LinkData *)BM_edgeloop_verts_get(el_store)->first)->data);
+    BMVert *v = static_cast<BMVert *>(
+        (static_cast<LinkData *>(BM_edgeloop_verts_get(el_store)->first))->data);
 
     BM_ITER_ELEM (e, &eiter, (BMVert *)v, BM_EDGES_OF_VERT) {
       if (BMO_edge_flag_test(bm, e, EDGE_RING)) {
@@ -608,7 +609,7 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
                                     handle_a[i],
                                     handle_b[i],
                                     el_store_b_co[i],
-                                    ((float *)coord_array_main) + i,
+                                    (reinterpret_cast<float *>(coord_array_main)) + i,
                                     resolu - 1,
                                     sizeof(float) * dims);
     }
@@ -635,9 +636,9 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
             if (i > 0 && i < resolu - 1) {
               /* shape */
               if (falloff_cache) {
-                interp_v3_v3v3(((BMVert *)v_iter->data)->co,
+                interp_v3_v3v3((static_cast<BMVert *>(v_iter->data))->co,
                                coord_array[i],
-                               ((BMVert *)v_iter->data)->co,
+                               (static_cast<BMVert *>(v_iter->data))->co,
                                falloff_cache[i]);
               }
             }
@@ -717,11 +718,12 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
         ListBaseT<LinkData> *lb_ring = BM_edgeloop_verts_get(el_store_ring);
         LinkData *v_iter;
 
-        BMVert *v_a = static_cast<BMVert *>(((LinkData *)lb_ring->first)->data);
-        BMVert *v_b = static_cast<BMVert *>(((LinkData *)lb_ring->last)->data);
+        BMVert *v_a = static_cast<BMVert *>((static_cast<LinkData *>(lb_ring->first))->data);
+        BMVert *v_b = static_cast<BMVert *>((static_cast<LinkData *>(lb_ring->last))->data);
 
         /* skip first and last */
-        for (v_iter = ((LinkData *)lb_ring->first)->next, i = 1; v_iter != lb_ring->last;
+        for (v_iter = (static_cast<LinkData *>(lb_ring->first))->next, i = 1;
+             v_iter != lb_ring->last;
              v_iter = v_iter->next, i++)
         {
           float co_a[3], co_b[3];
@@ -731,7 +733,8 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
           transform_point_by_tri_v3(co_a, v_a->co, UNPACK3(tri_tmp), UNPACK3(tri_sta));
           transform_point_by_tri_v3(co_b, v_b->co, UNPACK3(tri_tmp), UNPACK3(tri_end));
 
-          interp_v3_v3v3(((BMVert *)v_iter->data)->co, co_a, co_b, float(i) / float(resolu - 1));
+          interp_v3_v3v3(
+              (static_cast<BMVert *>(v_iter->data))->co, co_a, co_b, float(i) / float(resolu - 1));
         }
       }
 
@@ -750,8 +753,8 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
         ListBaseT<LinkData> *lb_ring = BM_edgeloop_verts_get(el_store_ring);
         LinkData *v_iter;
 
-        BMVert *v_a = static_cast<BMVert *>(((LinkData *)lb_ring->first)->data);
-        BMVert *v_b = static_cast<BMVert *>(((LinkData *)lb_ring->last)->data);
+        BMVert *v_a = static_cast<BMVert *>((static_cast<LinkData *>(lb_ring->first))->data);
+        BMVert *v_b = static_cast<BMVert *>((static_cast<LinkData *>(lb_ring->last))->data);
 
         float co_a[3], no_a[3], handle_a[3], co_b[3], no_b[3], handle_b[3];
         float handle_len;
@@ -786,23 +789,24 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
                                         handle_a[i],
                                         handle_b[i],
                                         co_b[i],
-                                        ((float *)coord_array) + i,
+                                        (reinterpret_cast<float *>(coord_array)) + i,
                                         resolu - 1,
                                         sizeof(float) * dims);
         }
 
         /* skip first and last */
-        for (v_iter = ((LinkData *)lb_ring->first)->next, i = 1; v_iter != lb_ring->last;
+        for (v_iter = (static_cast<LinkData *>(lb_ring->first))->next, i = 1;
+             v_iter != lb_ring->last;
              v_iter = v_iter->next, i++)
         {
           if (i > 0 && i < resolu - 1) {
-            copy_v3_v3(((BMVert *)v_iter->data)->co, coord_array[i]);
+            copy_v3_v3((static_cast<BMVert *>(v_iter->data))->co, coord_array[i]);
 
             /* shape */
             if (falloff_cache) {
-              interp_v3_v3v3(((BMVert *)v_iter->data)->co,
+              interp_v3_v3v3((static_cast<BMVert *>(v_iter->data))->co,
                              coord_array_main[i],
-                             ((BMVert *)v_iter->data)->co,
+                             (static_cast<BMVert *>(v_iter->data))->co,
                              falloff_cache[i]);
             }
           }
@@ -915,7 +919,7 @@ static void bm_edgering_pair_order(BMesh *bm,
 
     BM_ITER_ELEM (e, &eiter, (BMVert *)node->data, BM_EDGES_OF_VERT) {
       if (BMO_edge_flag_test(bm, e, EDGE_RING)) {
-        v_other = BM_edge_other_vert(e, (BMVert *)node->data);
+        v_other = BM_edge_other_vert(e, static_cast<BMVert *>(node->data));
         if (BM_elem_flag_test(v_other, BM_ELEM_TAG)) {
           break;
         }
@@ -945,8 +949,9 @@ static void bm_edgering_pair_order(BMesh *bm,
   }
   else {
     /* If we don't share and edge - flip. */
-    BMEdge *e = BM_edge_exists(static_cast<BMVert *>(((LinkData *)lb_a->first)->data),
-                               static_cast<BMVert *>(((LinkData *)lb_b->first)->data));
+    BMEdge *e = BM_edge_exists(
+        static_cast<BMVert *>((static_cast<LinkData *>(lb_a->first))->data),
+        static_cast<BMVert *>((static_cast<LinkData *>(lb_b->first))->data));
     if (e == nullptr || !BMO_edge_flag_test(bm, e, EDGE_RING)) {
       BM_edgeloop_flip(bm, el_store_b);
     }
@@ -993,7 +998,7 @@ static void bm_edgering_pair_subdiv(BMesh *bm,
 
     BM_ITER_ELEM (e, &eiter, (BMVert *)node.data, BM_EDGES_OF_VERT) {
       if (!BMO_edge_flag_test(bm, e, EDGE_IN_STACK)) {
-        BMVert *v_other = BM_edge_other_vert(e, (BMVert *)node.data);
+        BMVert *v_other = BM_edge_other_vert(e, static_cast<BMVert *>(node.data));
         if (BM_elem_flag_test(v_other, BM_ELEM_TAG)) {
           BMIter fiter;
 
@@ -1156,7 +1161,7 @@ void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
   /* -------------------------------------------------------------------- */
   /* Execute subdivision on all ring pairs */
 
-  count = BM_mesh_edgeloops_find(bm, &eloops_rim, bm_edge_rim_test_cb, (void *)bm);
+  count = BM_mesh_edgeloops_find(bm, &eloops_rim, bm_edge_rim_test_cb, static_cast<void *>(bm));
 
   if (count < 2) {
     BMO_error_raise(bm, op, BMO_ERROR_CANCEL, "No edge rings found");

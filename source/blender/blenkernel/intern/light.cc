@@ -43,7 +43,7 @@
 
 static void light_init_data(ID *id)
 {
-  Light *la = (Light *)id;
+  Light *la = blender::id_cast<Light *>(id);
   INIT_DEFAULT_STRUCT_AFTER(la, id);
 }
 
@@ -63,8 +63,8 @@ static void light_copy_data(Main *bmain,
                             const ID *id_src,
                             const int flag)
 {
-  Light *la_dst = (Light *)id_dst;
-  const Light *la_src = (const Light *)id_src;
+  Light *la_dst = blender::id_cast<Light *>(id_dst);
+  const Light *la_src = blender::id_cast<const Light *>(id_src);
 
   const bool is_localized = (flag & LIB_ID_CREATE_LOCAL) != 0;
   /* We always need allocation of our private ID data.
@@ -97,7 +97,7 @@ static void light_copy_data(Main *bmain,
 
 static void light_free_data(ID *id)
 {
-  Light *la = (Light *)id;
+  Light *la = blender::id_cast<Light *>(id);
 
   /* is no lib link block, but light extension */
   if (la->nodetree) {
@@ -124,14 +124,14 @@ static void light_foreach_id(ID *id, LibraryForeachIDData *data)
 
 static void light_foreach_working_space_color(ID *id, const IDTypeForeachColorFunctionCallback &fn)
 {
-  Light *la = (Light *)id;
+  Light *la = blender::id_cast<Light *>(id);
 
   fn.single(&la->r);
 }
 
 static void light_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  Light *la = (Light *)id;
+  Light *la = blender::id_cast<Light *>(id);
 
   /* Forward compatibility for energy. */
   la->energy_deprecated = la->energy * exp2f(la->exposure);
@@ -159,7 +159,7 @@ static void light_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 
 static void light_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  Light *la = (Light *)id;
+  Light *la = blender::id_cast<Light *>(id);
 
   BLO_read_struct(reader, PreviewImage, &la->preview);
   BKE_previewimg_blend_read(reader, la->preview);

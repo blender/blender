@@ -25,8 +25,8 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack ** /*in*/,
 {
   float x = p->co[0];
   float y = p->co[1];
-  Image *ima = (Image *)node->id;
-  ImageUser *iuser = (ImageUser *)node->storage;
+  Image *ima = blender::id_cast<Image *>(node->id);
+  ImageUser *iuser = static_cast<ImageUser *>(node->storage);
 
   if (ima) {
     ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, nullptr);

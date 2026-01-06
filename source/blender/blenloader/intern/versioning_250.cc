@@ -262,11 +262,11 @@ static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBaseT<AReg
     /* and we split view3d */
     switch (sl->spacetype) {
       case SPACE_VIEW3D:
-        BKE_screen_view3d_do_versions_250((View3D *)sl, lb);
+        BKE_screen_view3d_do_versions_250(reinterpret_cast<View3D *>(sl), lb);
         break;
 
       case SPACE_OUTLINER: {
-        SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
+        SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(sl);
 
         memcpy(&region->v2d, &space_outliner->v2d, sizeof(View2D));
 
@@ -280,7 +280,7 @@ static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBaseT<AReg
         break;
       }
       case SPACE_GRAPH: {
-        SpaceGraph *sipo = (SpaceGraph *)sl;
+        SpaceGraph *sipo = reinterpret_cast<SpaceGraph *>(sl);
         memcpy(&region->v2d, &sipo->v2d, sizeof(View2D));
 
         /* Initialize main-area view2d. */
@@ -297,7 +297,7 @@ static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBaseT<AReg
         break;
       }
       case SPACE_NLA: {
-        SpaceNla *snla = (SpaceNla *)sl;
+        SpaceNla *snla = reinterpret_cast<SpaceNla *>(sl);
         memcpy(&region->v2d, &snla->v2d, sizeof(View2D));
 
         region->v2d.tot.ymin = float(-area->winy) / 3.0f;
@@ -310,7 +310,7 @@ static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBaseT<AReg
         break;
       }
       case SPACE_ACTION: {
-        SpaceAction *saction = (SpaceAction *)sl;
+        SpaceAction *saction = reinterpret_cast<SpaceAction *>(sl);
 
         /* We totally reinitialize the view for the Action Editor,
          * as some old instances had some weird cruft set. */
@@ -345,7 +345,7 @@ static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBaseT<AReg
         break;
       }
       case SPACE_SEQ: {
-        SpaceSeq *sseq = (SpaceSeq *)sl;
+        SpaceSeq *sseq = reinterpret_cast<SpaceSeq *>(sl);
         memcpy(&region->v2d, &sseq->v2d, sizeof(View2D));
 
         region->v2d.scroll |= (V2D_SCROLL_BOTTOM | V2D_SCROLL_HORIZONTAL_HANDLES);
@@ -355,7 +355,7 @@ static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBaseT<AReg
         break;
       }
       case SPACE_NODE: {
-        SpaceNode *snode = (SpaceNode *)sl;
+        SpaceNode *snode = reinterpret_cast<SpaceNode *>(sl);
         memcpy(&region->v2d, &snode->v2d, sizeof(View2D));
 
         region->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
@@ -363,7 +363,7 @@ static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBaseT<AReg
         break;
       }
       case SPACE_PROPERTIES: {
-        SpaceProperties *sbuts = (SpaceProperties *)sl;
+        SpaceProperties *sbuts = reinterpret_cast<SpaceProperties *>(sl);
         memcpy(&region->v2d, &sbuts->v2d, sizeof(View2D));
 
         region->v2d.scroll |= (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
@@ -382,7 +382,7 @@ static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBaseT<AReg
         break;
       }
       case SPACE_TEXT: {
-        SpaceText *st = (SpaceText *)sl;
+        SpaceText *st = reinterpret_cast<SpaceText *>(sl);
         st->flags |= ST_FIND_WRAP;
       }
         // case SPACE_XXX: // FIXME... add other ones
@@ -439,7 +439,7 @@ static void versions_gpencil_add_main(Main *bmain,
   BLI_addtail(lb, id);
   id->us = 1;
   id->flag = ID_FLAG_FAKEUSER;
-  *((short *)id->name) = ID_GD_LEGACY;
+  *(reinterpret_cast<short *>(id->name)) = ID_GD_LEGACY;
 
   BKE_id_new_name_validate(
       *bmain, lb->cast<ID>(), *id, name, IDNewNameMode::RenameExistingNever, false);
@@ -460,28 +460,31 @@ static void do_versions_gpencil_2_50(Main *main, bScreen *screen)
   for (ScrArea &area : screen->areabase) {
     for (SpaceLink &sl : area.spacedata) {
       if (sl.spacetype == SPACE_VIEW3D) {
-        View3D *v3d = (View3D *)&sl;
+        View3D *v3d = reinterpret_cast<View3D *>(&sl);
         if (v3d->gpd) {
-          versions_gpencil_add_main(main, &main->gpencils, (ID *)v3d->gpd, "GPencil View3D");
+          versions_gpencil_add_main(
+              main, &main->gpencils, reinterpret_cast<ID *>(v3d->gpd), "GPencil View3D");
           v3d->gpd = nullptr;
         }
       }
       else if (sl.spacetype == SPACE_NODE) {
-        SpaceNode *snode = (SpaceNode *)&sl;
+        SpaceNode *snode = reinterpret_cast<SpaceNode *>(&sl);
         if (snode->gpd) {
-          versions_gpencil_add_main(main, &main->gpencils, (ID *)snode->gpd, "GPencil Node");
+          versions_gpencil_add_main(
+              main, &main->gpencils, reinterpret_cast<ID *>(snode->gpd), "GPencil Node");
           snode->gpd = nullptr;
         }
       }
       else if (sl.spacetype == SPACE_SEQ) {
-        SpaceSeq *sseq = (SpaceSeq *)&sl;
+        SpaceSeq *sseq = reinterpret_cast<SpaceSeq *>(&sl);
         if (sseq->gpd) {
-          versions_gpencil_add_main(main, &main->gpencils, (ID *)sseq->gpd, "GPencil Node");
+          versions_gpencil_add_main(
+              main, &main->gpencils, reinterpret_cast<ID *>(sseq->gpd), "GPencil Node");
           sseq->gpd = nullptr;
         }
       }
       else if (sl.spacetype == SPACE_IMAGE) {
-        SpaceImage *sima = (SpaceImage *)&sl;
+        SpaceImage *sima = reinterpret_cast<SpaceImage *>(&sl);
 #if 0 /* see comment on r28002 */
         if (sima->gpd) {
           versions_gpencil_add_main(main, &main->gpencil, (ID *)sima->gpd, "GPencil Image");
@@ -500,7 +503,7 @@ static void do_version_mdef_250(Main *main)
   for (Object &ob : main->objects) {
     for (ModifierData &md : ob.modifiers) {
       if (md.type == eModifierType_MeshDeform) {
-        MeshDeformModifierData *mmd = (MeshDeformModifierData *)&md;
+        MeshDeformModifierData *mmd = reinterpret_cast<MeshDeformModifierData *>(&md);
 
         if (mmd->bindcos) {
           /* make bindcos nullptr in order to trick older versions
@@ -838,8 +841,8 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
 
     for (Object &ob : bmain->objects) {
       /* fluid-sim stuff */
-      FluidsimModifierData *fluidmd = (FluidsimModifierData *)BKE_modifiers_findby_type(
-          &ob, eModifierType_Fluidsim);
+      FluidsimModifierData *fluidmd = reinterpret_cast<FluidsimModifierData *>(
+          BKE_modifiers_findby_type(&ob, eModifierType_Fluidsim));
       if (fluidmd) {
         fluidmd->fss->fmd = fluidmd;
       }
@@ -885,7 +888,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
       if (do_gravity) {
         for (ModifierData &md : ob.modifiers) {
           if (md.type == eModifierType_Cloth) {
-            ClothModifierData &clmd = (ClothModifierData &)md;
+            ClothModifierData &clmd = reinterpret_cast<ClothModifierData &>(md);
             clmd.sim_parms->effector_weights->global_gravity = clmd.sim_parms->gravity[2] / -9.81f;
           }
         }
@@ -944,8 +947,8 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
       if (key && key->refkey) {
         data = static_cast<const float *>(key->refkey->data);
         tot = std::min(me.verts_num, key->refkey->totelem);
-        MVert *verts = (MVert *)CustomData_get_layer_for_write(
-            &me.vert_data, CD_MVERT, me.verts_num);
+        MVert *verts = static_cast<MVert *>(
+            CustomData_get_layer_for_write(&me.vert_data, CD_MVERT, me.verts_num));
         for (a = 0; a < tot; a++, data += 3) {
           copy_v3_v3(verts[a].co_legacy, data);
         }
@@ -1044,7 +1047,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
         for (ScrArea &area : screen.areabase) {
           for (SpaceLink &sl : area.spacedata) {
             if (sl.spacetype == SPACE_VIEW3D) {
-              View3D *v3d = (View3D *)&sl;
+              View3D *v3d = reinterpret_cast<View3D *>(&sl);
               if (v3d->drawtype == OB_MATERIAL) {
                 v3d->drawtype = OB_SOLID;
               }
@@ -1083,7 +1086,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
 
         while (tex) {
           if (tex->coba) {
-            ColorBand *band = (ColorBand *)tex->coba;
+            ColorBand *band = static_cast<ColorBand *>(tex->coba);
             for (i = 0; i < band->tot; i++) {
               CBData *data = band->data + i;
               srgb_to_linearrgb_v3_v3(&data->r, &data->r);
@@ -1108,8 +1111,8 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
       }
 
       for (Object &ob : bmain->objects) {
-        MultiresModifierData *mmd = (MultiresModifierData *)BKE_modifiers_findby_type(
-            &ob, eModifierType_Multires);
+        MultiresModifierData *mmd = reinterpret_cast<MultiresModifierData *>(
+            BKE_modifiers_findby_type(&ob, eModifierType_Multires));
 
         if (mmd) {
           mmd->totlvl--;
@@ -1126,7 +1129,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
     for (Object &ob : bmain->objects) {
       for (ModifierData &md : ob.modifiers) {
         if (md.type == eModifierType_Cloth) {
-          ClothModifierData *clmd = (ClothModifierData *)&md;
+          ClothModifierData *clmd = reinterpret_cast<ClothModifierData *>(&md);
           if (clmd->sim_parms->velocity_smooth < 0.01f) {
             clmd->sim_parms->velocity_smooth = 0.0f;
           }
@@ -1174,7 +1177,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
           for (SpaceLink &sl : area.spacedata) {
             if (sl.spacetype == SPACE_SEQ) {
               ListBaseT<ARegion> *regionbase;
-              SpaceSeq *sseq = (SpaceSeq *)&sl;
+              SpaceSeq *sseq = reinterpret_cast<SpaceSeq *>(&sl);
 
               if (&sl == area.spacedata.first) {
                 regionbase = &area.regionbase;
@@ -1383,7 +1386,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
       for (ScrArea &area : screen.areabase) {
         for (SpaceLink &sl : area.spacedata) {
           if (sl.spacetype == SPACE_VIEW3D) {
-            View3D *v3d = (View3D *)&sl;
+            View3D *v3d = reinterpret_cast<View3D *>(&sl);
             v3d->flag2 &= ~V3D_HIDE_OVERLAYS;
           }
         }
@@ -1402,7 +1405,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
     for (Object &ob : bmain->objects) {
       for (ModifierData &md : ob.modifiers) {
         if (md.type == eModifierType_Fluidsim) {
-          FluidsimModifierData *fmd = (FluidsimModifierData *)&md;
+          FluidsimModifierData *fmd = reinterpret_cast<FluidsimModifierData *>(&md);
           fmd->fss->flag |= OB_FLUIDSIM_ACTIVE;
           fmd->fss->flag |= OB_FLUIDSIM_OVERRIDE_TIME;
         }
@@ -1416,7 +1419,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
 
         while (node) {
           if (node->type_legacy == CMP_NODE_COLORBALANCE) {
-            NodeColorBalance *n = (NodeColorBalance *)node->storage;
+            NodeColorBalance *n = static_cast<NodeColorBalance *>(node->storage);
             n->lift[0] += 1.0f;
             n->lift[1] += 1.0f;
             n->lift[2] += 1.0f;
@@ -1431,7 +1434,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
 
       while (node) {
         if (node->type_legacy == CMP_NODE_COLORBALANCE) {
-          NodeColorBalance *n = (NodeColorBalance *)node->storage;
+          NodeColorBalance *n = static_cast<NodeColorBalance *>(node->storage);
           n->lift[0] += 1.0f;
           n->lift[1] += 1.0f;
           n->lift[2] += 1.0f;
@@ -1455,7 +1458,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
       for (ScrArea &area : screen.areabase) {
         for (SpaceLink &sl : area.spacedata) {
           if (sl.spacetype == SPACE_IMAGE) {
-            SpaceImage *sima = (SpaceImage *)&sl;
+            SpaceImage *sima = reinterpret_cast<SpaceImage *>(&sl);
             BKE_scopes_new(&sima->scopes);
           }
         }
@@ -1468,7 +1471,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
       for (ScrArea &area : screen.areabase) {
         for (SpaceLink &sl : area.spacedata) {
           if (sl.spacetype == SPACE_NODE) {
-            SpaceNode *snode = (SpaceNode *)&sl;
+            SpaceNode *snode = reinterpret_cast<SpaceNode *>(&sl);
             ListBaseT<ARegion> *regionbase;
 
             if (&sl == area.spacedata.first) {
@@ -1497,16 +1500,17 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
     /* parent type to modifier */
     for (Object &ob : bmain->objects) {
       if (ob.parent) {
-        Object *parent = (Object *)blo_do_versions_newlibadr(
-            fd, &ob.id, ID_IS_LINKED(&ob), ob.parent);
+        Object *parent = static_cast<Object *>(
+            blo_do_versions_newlibadr(fd, &ob.id, ID_IS_LINKED(&ob), ob.parent));
         if (parent) { /* parent may not be in group */
           enum { PARCURVE = 1 };
           if (parent->type == OB_ARMATURE && ob.partype == PARSKEL) {
             ArmatureModifierData *amd;
-            bArmature *arm = (bArmature *)blo_do_versions_newlibadr(
-                fd, &parent->id, ID_IS_LINKED(parent), parent->data);
+            bArmature *arm = static_cast<bArmature *>(
+                blo_do_versions_newlibadr(fd, &parent->id, ID_IS_LINKED(parent), parent->data));
 
-            amd = (ArmatureModifierData *)BKE_modifier_new(eModifierType_Armature);
+            amd = reinterpret_cast<ArmatureModifierData *>(
+                BKE_modifier_new(eModifierType_Armature));
             amd->object = ob.parent;
             BLI_addtail((&ob.modifiers), amd);
             amd->deformflag = arm->deformflag;
@@ -1515,7 +1519,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
           else if (parent->type == OB_LATTICE && ob.partype == PARSKEL) {
             LatticeModifierData *lmd;
 
-            lmd = (LatticeModifierData *)BKE_modifier_new(eModifierType_Lattice);
+            lmd = reinterpret_cast<LatticeModifierData *>(BKE_modifier_new(eModifierType_Lattice));
             lmd->object = ob.parent;
             BLI_addtail((&ob.modifiers), lmd);
             ob.partype = PAROBJECT;
@@ -1523,7 +1527,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
           else if (parent->type == OB_CURVES_LEGACY && ob.partype == PARCURVE) {
             CurveModifierData *cmd;
 
-            cmd = (CurveModifierData *)BKE_modifier_new(eModifierType_Curve);
+            cmd = reinterpret_cast<CurveModifierData *>(BKE_modifier_new(eModifierType_Curve));
             cmd->object = ob.parent;
             BLI_addtail((&ob.modifiers), cmd);
             ob.partype = PAROBJECT;
@@ -1661,7 +1665,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
     for (Object &ob : bmain->objects) {
       for (ModifierData &md : ob.modifiers) {
         if (md.type == eModifierType_Fluid) {
-          FluidModifierData *fmd = (FluidModifierData *)&md;
+          FluidModifierData *fmd = reinterpret_cast<FluidModifierData *>(&md);
 
           if ((fmd->type & MOD_FLUID_TYPE_DOMAIN) && fmd->domain) {
             fmd->domain->vorticity = 2.0f;
@@ -1678,7 +1682,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
             for (Object &ob2 : bmain->objects) {
               for (ModifierData &md2 : ob2.modifiers) {
                 if (md2.type == eModifierType_Fluid) {
-                  FluidModifierData *fmd2 = (FluidModifierData *)&md2;
+                  FluidModifierData *fmd2 = reinterpret_cast<FluidModifierData *>(&md2);
 
                   if ((fmd2->type & MOD_FLUID_TYPE_FLOW) && fmd2->flow) {
                     fmd2->flow->flags |= FLUID_FLOW_INITVELOCITY;
@@ -1715,7 +1719,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
       for (ScrArea &area : screen.areabase) {
         for (SpaceLink &sl : area.spacedata) {
           if (sl.spacetype == SPACE_INFO) {
-            SpaceInfo *sinfo = (SpaceInfo *)&sl;
+            SpaceInfo *sinfo = reinterpret_cast<SpaceInfo *>(&sl);
 
             sinfo->rpt_mask = INFO_RPT_OP;
 
@@ -1741,7 +1745,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
     for (Object &ob : bmain->objects) {
       for (ModifierData &md : ob.modifiers) {
         if (md.type == eModifierType_Ocean) {
-          OceanModifierData *omd = (OceanModifierData *)&md;
+          OceanModifierData *omd = reinterpret_cast<OceanModifierData *>(&md);
           omd->resolution = 7;
           omd->oceancache = nullptr;
         }
@@ -1758,7 +1762,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
       while (area) {
         for (SpaceLink &sl : area->spacedata) {
           if (sl.spacetype == SPACE_IMAGE) {
-            SpaceImage *sima = (SpaceImage *)&sl;
+            SpaceImage *sima = reinterpret_cast<SpaceImage *>(&sl);
             if (sima->sample_line_hist.height == 0) {
               sima->sample_line_hist.height = 100;
             }
@@ -1902,7 +1906,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
     for (Object &ob : bmain->objects) {
       for (ModifierData &md : ob.modifiers) {
         if (md.type == eModifierType_Solidify) {
-          SolidifyModifierData *smd = (SolidifyModifierData *)&md;
+          SolidifyModifierData *smd = reinterpret_cast<SolidifyModifierData *>(&md);
           if (smd->flag & MOD_SOLIDIFY_RIM_MATERIAL) {
             smd->mat_ofs_rim = 1;
             smd->flag &= ~MOD_SOLIDIFY_RIM_MATERIAL;

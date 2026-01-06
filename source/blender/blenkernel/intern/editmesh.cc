@@ -61,7 +61,7 @@ BMEditMesh *BKE_editmesh_copy(BMEditMesh *em)
 BMEditMesh *BKE_editmesh_from_object(Object *ob)
 {
   BLI_assert(ob->type == OB_MESH);
-  return ((Mesh *)ob->data)->runtime->edit_mesh.get();
+  return (blender::id_cast<Mesh *>(ob->data))->runtime->edit_mesh.get();
 }
 
 bool BKE_editmesh_eval_orig_map_available(const Mesh &mesh_eval, const Mesh *mesh_orig)

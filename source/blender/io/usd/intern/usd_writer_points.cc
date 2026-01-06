@@ -25,7 +25,7 @@ void USDPointsWriter::do_write(HierarchyContext &context)
   const pxr::SdfPath &usd_path = usd_export_context_.usd_path;
   const pxr::UsdTimeCode time = get_export_time_code();
 
-  const PointCloud *points = static_cast<const PointCloud *>(context.object->data);
+  const PointCloud *points = blender::id_cast<const PointCloud *>(context.object->data);
   Span<pxr::GfVec3f> positions = points->positions().cast<pxr::GfVec3f>();
   VArray<float> radii = points->radius();
 

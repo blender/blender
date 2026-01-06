@@ -30,7 +30,7 @@
 
 static void init_data(ShaderFxData *md)
 {
-  SwirlShaderFxData *gpmd = (SwirlShaderFxData *)md;
+  SwirlShaderFxData *gpmd = reinterpret_cast<SwirlShaderFxData *>(md);
   gpmd->radius = 100;
   gpmd->angle = M_PI_2;
 }
@@ -42,7 +42,7 @@ static void copy_data(const ShaderFxData *md, ShaderFxData *target)
 
 static void update_depsgraph(ShaderFxData *fx, const ModifierUpdateDepsgraphContext *ctx)
 {
-  SwirlShaderFxData *fxd = (SwirlShaderFxData *)fx;
+  SwirlShaderFxData *fxd = reinterpret_cast<SwirlShaderFxData *>(fx);
   if (fxd->object != nullptr) {
     DEG_add_object_relation(ctx->node, fxd->object, DEG_OB_COMP_TRANSFORM, "Swirl ShaderFx");
   }
@@ -51,16 +51,16 @@ static void update_depsgraph(ShaderFxData *fx, const ModifierUpdateDepsgraphCont
 
 static bool is_disabled(ShaderFxData *fx, bool /*use_render_params*/)
 {
-  SwirlShaderFxData *fxd = (SwirlShaderFxData *)fx;
+  SwirlShaderFxData *fxd = reinterpret_cast<SwirlShaderFxData *>(fx);
 
   return !fxd->object;
 }
 
 static void foreach_ID_link(ShaderFxData *fx, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  SwirlShaderFxData *fxd = (SwirlShaderFxData *)fx;
+  SwirlShaderFxData *fxd = reinterpret_cast<SwirlShaderFxData *>(fx);
 
-  walk(user_data, ob, (ID **)&fxd->object, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&fxd->object), IDWALK_CB_NOP);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)

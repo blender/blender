@@ -265,7 +265,7 @@ static eContextResult screen_ctx_visible_or_editable_bones_(const bContext *C,
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
 
-  bArmature *arm = static_cast<bArmature *>(
+  bArmature *arm = blender::id_cast<bArmature *>(
       (obedit && obedit->type == OB_ARMATURE) ? obedit->data : nullptr);
   EditBone *flipbone = nullptr;
 
@@ -273,7 +273,7 @@ static eContextResult screen_ctx_visible_or_editable_bones_(const bContext *C,
     Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
         scene, view_layer, CTX_wm_view3d(C));
     for (Object *ob : objects) {
-      arm = static_cast<bArmature *>(ob->data);
+      arm = blender::id_cast<bArmature *>(ob->data);
 
       /* Attention: X-Axis Mirroring is also handled here... */
       for (EditBone &ebone : *arm->edbo) {
@@ -335,7 +335,7 @@ static eContextResult screen_ctx_selected_bones_(const bContext *C,
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
-  bArmature *arm = static_cast<bArmature *>(
+  bArmature *arm = blender::id_cast<bArmature *>(
       (obedit && obedit->type == OB_ARMATURE) ? obedit->data : nullptr);
   EditBone *flipbone = nullptr;
 
@@ -343,7 +343,7 @@ static eContextResult screen_ctx_selected_bones_(const bContext *C,
     Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
         scene, view_layer, CTX_wm_view3d(C));
     for (Object *ob : objects) {
-      arm = static_cast<bArmature *>(ob->data);
+      arm = blender::id_cast<bArmature *>(ob->data);
 
       /* Attention: X-Axis Mirroring is also handled here... */
       for (EditBone &ebone : *arm->edbo) {
@@ -438,7 +438,8 @@ static eContextResult screen_ctx_selected_pose_bones(const bContext *C, bContext
   if (obpose && obpose->pose && obpose->data) {
     if (obpose->pose->flag & POSE_RECALC) {
       /* Can happen with undo-redo, see #150451. */
-      BKE_pose_rebuild(CTX_data_main(C), obpose, (bArmature *)obpose->data, false);
+      BKE_pose_rebuild(
+          CTX_data_main(C), obpose, blender::id_cast<bArmature *>(obpose->data), false);
     }
     if (obpose != obact) {
       FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN (obpose, pchan) {
@@ -495,7 +496,7 @@ static eContextResult screen_ctx_active_bone(const bContext *C, bContextDataResu
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obact = BKE_view_layer_active_object_get(view_layer);
   if (obact && obact->type == OB_ARMATURE) {
-    bArmature *arm = static_cast<bArmature *>(obact->data);
+    bArmature *arm = blender::id_cast<bArmature *>(obact->data);
     if (arm->edbo) {
       if (arm->act_edbone) {
         CTX_data_pointer_set(result, &arm->id, &RNA_EditBone, arm->act_edbone);
@@ -703,7 +704,7 @@ static eContextResult screen_ctx_selected_nla_strips(const bContext *C, bContext
       if (ale.datatype != ALE_NLASTRIP) {
         continue;
       }
-      NlaTrack *nlt = (NlaTrack *)ale.data;
+      NlaTrack *nlt = static_cast<NlaTrack *>(ale.data);
       for (NlaStrip &strip : nlt->strips) {
         if (strip.flag & NLASTRIP_FLAG_SELECT) {
           CTX_data_list_add(result, ale.id, &RNA_NlaStrip, &strip);
@@ -747,7 +748,7 @@ static eContextResult screen_ctx_annotation_data(const bContext *C, bContextData
   bScreen *screen = CTX_wm_screen(C);
   ScrArea *area = CTX_wm_area(C);
   Scene *scene = WM_window_get_active_scene(win);
-  bGPdata *gpd = ED_annotation_data_get_active_direct((ID *)screen, area, scene);
+  bGPdata *gpd = ED_annotation_data_get_active_direct(blender::id_cast<ID *>(screen), area, scene);
 
   if (gpd) {
     CTX_data_id_pointer_set(result, &gpd->id);
@@ -765,7 +766,8 @@ static eContextResult screen_ctx_annotation_data_owner(const bContext *C,
 
   /* Pointer to which data/datablock owns the reference to the Grease Pencil data being used. */
   PointerRNA ptr;
-  bGPdata **gpd_ptr = ED_annotation_data_get_pointers_direct((ID *)screen, area, scene, &ptr);
+  bGPdata **gpd_ptr = ED_annotation_data_get_pointers_direct(
+      blender::id_cast<ID *>(screen), area, scene, &ptr);
 
   if (gpd_ptr) {
     CTX_data_pointer_set_ptr(result, &ptr);
@@ -780,7 +782,7 @@ static eContextResult screen_ctx_active_annotation_layer(const bContext *C,
   bScreen *screen = CTX_wm_screen(C);
   ScrArea *area = CTX_wm_area(C);
   Scene *scene = WM_window_get_active_scene(win);
-  bGPdata *gpd = ED_annotation_data_get_active_direct((ID *)screen, area, scene);
+  bGPdata *gpd = ED_annotation_data_get_active_direct(blender::id_cast<ID *>(screen), area, scene);
 
   if (gpd) {
     bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
@@ -800,7 +802,7 @@ static eContextResult screen_ctx_grease_pencil_data(const bContext *C, bContextD
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obact = BKE_view_layer_active_object_get(view_layer);
   if (obact && obact->type == OB_GREASE_PENCIL) {
-    GreasePencil *grease_pencil = static_cast<GreasePencil *>(obact->data);
+    GreasePencil *grease_pencil = blender::id_cast<GreasePencil *>(obact->data);
     CTX_data_id_pointer_set(result, &grease_pencil->id);
     return CTX_RESULT_OK;
   }
@@ -842,7 +844,7 @@ static eContextResult screen_ctx_sel_actions_impl(const bContext *C,
 
   /* In the Action and Shape Key editor always use the action field at the top. */
   if (ac.spacetype == SPACE_ACTION) {
-    SpaceAction *saction = (SpaceAction *)ac.sl;
+    SpaceAction *saction = reinterpret_cast<SpaceAction *>(ac.sl);
 
     if (ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY)) {
       ID *active_action_id = ac.active_action ? &ac.active_action->id : nullptr;
@@ -901,7 +903,7 @@ static eContextResult screen_ctx_sel_actions_impl(const bContext *C,
     }
 
     if (active_only) {
-      CTX_data_id_pointer_set(result, (ID *)action);
+      CTX_data_id_pointer_set(result, blender::id_cast<ID *>(action));
       break;
     }
     if (editable && !ID_IS_EDITABLE(action)) {
@@ -1034,7 +1036,7 @@ static eContextResult screen_ctx_selected_editable_keyframes(const bContext *C,
         continue;
       }
 
-      fcurve = (FCurve *)ale.data;
+      fcurve = static_cast<FCurve *>(ale.data);
       if (fcurve->bezt == nullptr) {
         /* Skip baked FCurves. */
         continue;

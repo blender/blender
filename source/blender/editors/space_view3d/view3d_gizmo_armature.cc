@@ -117,7 +117,7 @@ static bool WIDGETGROUP_armature_spline_poll(const bContext *C, wmGizmoGroupType
   if (base && BASE_SELECTABLE(v3d, base)) {
     Object *ob = BKE_object_pose_armature_get(base->object);
     if (ob) {
-      const bArmature *arm = static_cast<const bArmature *>(ob->data);
+      const bArmature *arm = blender::id_cast<const bArmature *>(ob->data);
       if (arm->drawtype == ARM_DRAW_TYPE_B_BONE) {
         bPoseChannel *pchan = BKE_pose_channel_active_if_bonecoll_visible(ob);
         if (pchan && pchan->bone->segments > 1) {

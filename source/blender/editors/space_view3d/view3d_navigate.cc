@@ -585,7 +585,7 @@ wmOperatorStatus view3d_navigate_invoke_impl(bContext *C,
   vod->init_context(C);
   wmOperatorStatus ret = view3d_navigation_invoke_generic(
       C, vod, event, op->ptr, nav_type, nullptr);
-  op->customdata = (void *)vod;
+  op->customdata = static_cast<void *>(vod);
 
   if (ret == OPERATOR_RUNNING_MODAL) {
     WM_event_add_modal_handler(C, op);
@@ -847,7 +847,7 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
     is_set = true;
   }
   else if (ob_act && (ob_act->mode & OB_MODE_EDIT) && (ob_act->type == OB_FONT)) {
-    Curve *cu = static_cast<Curve *>(ob_act_eval->data);
+    Curve *cu = blender::id_cast<Curve *>(ob_act_eval->data);
     EditFont *ef = cu->editfont;
 
     ofs = float3(0);

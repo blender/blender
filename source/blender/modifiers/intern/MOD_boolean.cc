@@ -65,13 +65,13 @@ using blender::VectorSet;
 
 static void init_data(ModifierData *md)
 {
-  BooleanModifierData *bmd = (BooleanModifierData *)md;
+  BooleanModifierData *bmd = reinterpret_cast<BooleanModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(bmd, modifier);
 }
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  BooleanModifierData *bmd = (BooleanModifierData *)md;
+  BooleanModifierData *bmd = reinterpret_cast<BooleanModifierData *>(md);
   Collection *col = bmd->collection;
 
   if (bmd->flag & eBooleanModifierFlag_Object) {
@@ -86,15 +86,15 @@ static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_re
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  BooleanModifierData *bmd = (BooleanModifierData *)md;
+  BooleanModifierData *bmd = reinterpret_cast<BooleanModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&bmd->collection, IDWALK_CB_USER);
-  walk(user_data, ob, (ID **)&bmd->object, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&bmd->collection), IDWALK_CB_USER);
+  walk(user_data, ob, reinterpret_cast<ID **>(&bmd->object), IDWALK_CB_NOP);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  BooleanModifierData *bmd = (BooleanModifierData *)md;
+  BooleanModifierData *bmd = reinterpret_cast<BooleanModifierData *>(md);
   if ((bmd->flag & eBooleanModifierFlag_Object) && bmd->object != nullptr) {
     DEG_add_object_relation(ctx->node, bmd->object, DEG_OB_COMP_TRANSFORM, "Boolean Modifier");
     DEG_add_object_relation(ctx->node, bmd->object, DEG_OB_COMP_GEOMETRY, "Boolean Modifier");
@@ -125,8 +125,8 @@ static Mesh *get_quick_mesh(
           result = mesh_self;
         }
         else {
-          result = (Mesh *)BKE_id_copy_ex(
-              nullptr, &mesh_operand_ob->id, nullptr, LIB_ID_COPY_LOCALIZE);
+          result = blender::id_cast<Mesh *>(
+              BKE_id_copy_ex(nullptr, &mesh_operand_ob->id, nullptr, LIB_ID_COPY_LOCALIZE));
 
           float imat[4][4];
           float omat[4][4];
@@ -165,7 +165,7 @@ static int bm_face_isect_pair(BMFace *f, void * /*user_data*/)
 
 static bool BMD_error_messages(const Object *ob, ModifierData *md)
 {
-  BooleanModifierData *bmd = (BooleanModifierData *)md;
+  BooleanModifierData *bmd = reinterpret_cast<BooleanModifierData *>(md);
   Collection *col = bmd->collection;
 
   bool error_returns_result = false;
@@ -267,7 +267,7 @@ static void BMD_mesh_intersection(BMesh *bm,
   SCOPED_TIMER(__func__);
 #endif
 
-  BooleanModifierData *bmd = (BooleanModifierData *)md;
+  BooleanModifierData *bmd = reinterpret_cast<BooleanModifierData *>(md);
 
   /* Main BMesh intersection setup. */
   /* Create tessellation & intersect. */
@@ -511,7 +511,7 @@ static Mesh *non_float_boolean_mesh(BooleanModifierData *bmd,
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-  BooleanModifierData *bmd = (BooleanModifierData *)md;
+  BooleanModifierData *bmd = reinterpret_cast<BooleanModifierData *>(md);
   Object *object = ctx->object;
   Mesh *result = mesh;
   Collection *collection = bmd->collection;

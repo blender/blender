@@ -532,7 +532,7 @@ static void mywrite(WriteData *wd, const void *adr, size_t len)
       do {
         const size_t writelen = std::min(len, wd->buffer.chunk_size);
         writedata_do_write(wd, adr, writelen);
-        adr = (const char *)adr + writelen;
+        adr = static_cast<const char *>(adr) + writelen;
         len -= writelen;
       } while (len > 0);
 
@@ -1182,18 +1182,18 @@ static void write_userdef(BlendWriter *writer, const UserDef *userdef)
     writer->write_struct(&um);
     for (const bUserMenuItem &umi : um.items) {
       if (umi.type == USER_MENU_TYPE_OPERATOR) {
-        const bUserMenuItem_Op *umi_op = (const bUserMenuItem_Op *)&umi;
+        const bUserMenuItem_Op *umi_op = reinterpret_cast<const bUserMenuItem_Op *>(&umi);
         writer->write_struct(umi_op);
         if (umi_op->prop) {
           IDP_BlendWrite(writer, umi_op->prop);
         }
       }
       else if (umi.type == USER_MENU_TYPE_MENU) {
-        const bUserMenuItem_Menu *umi_mt = (const bUserMenuItem_Menu *)&umi;
+        const bUserMenuItem_Menu *umi_mt = reinterpret_cast<const bUserMenuItem_Menu *>(&umi);
         writer->write_struct(umi_mt);
       }
       else if (umi.type == USER_MENU_TYPE_PROP) {
-        const bUserMenuItem_Prop *umi_pr = (const bUserMenuItem_Prop *)&umi;
+        const bUserMenuItem_Prop *umi_pr = reinterpret_cast<const bUserMenuItem_Prop *>(&umi);
         writer->write_struct(umi_pr);
       }
       else {

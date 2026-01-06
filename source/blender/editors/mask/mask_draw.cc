@@ -356,7 +356,7 @@ static void mask_color_active_tint(uchar r_rgb[4], const uchar rgb[4], const boo
     r_rgb[3] = rgb[3];
   }
   else {
-    *(uint *)r_rgb = *(const uint *)rgb;
+    *reinterpret_cast<uint *>(r_rgb) = *reinterpret_cast<const uint *>(rgb);
   }
 }
 

@@ -287,7 +287,7 @@ class UniformArrayBuffer : public detail::UniformCommon<T, len, false> {
   UniformArrayBuffer(const char *name = nullptr) : detail::UniformCommon<T, len, false>(name)
   {
     /* TODO(@fclem): We should map memory instead. */
-    this->data_ = (T *)MEM_mallocN_aligned(len * sizeof(T), 16, this->name_);
+    this->data_ = static_cast<T *>(MEM_mallocN_aligned(len * sizeof(T), 16, this->name_));
   }
   ~UniformArrayBuffer()
   {
@@ -334,7 +334,7 @@ class StorageArrayBuffer : public detail::StorageCommon<T, len, device_only> {
   StorageArrayBuffer(const char *name = nullptr) : detail::StorageCommon<T, len, device_only>(name)
   {
     /* TODO(@fclem): We should map memory instead. */
-    this->data_ = (T *)MEM_mallocN_aligned(len * sizeof(T), 16, this->name_);
+    this->data_ = static_cast<T *>(MEM_mallocN_aligned(len * sizeof(T), 16, this->name_));
   }
   ~StorageArrayBuffer()
   {
@@ -349,7 +349,7 @@ class StorageArrayBuffer : public detail::StorageCommon<T, len, device_only> {
     BLI_assert(new_size > 0);
     if (new_size != this->len_) {
       /* Manual realloc since MEM_reallocN_aligned does not exists. */
-      T *new_data_ = (T *)MEM_mallocN_aligned(new_size * sizeof(T), 16, this->name_);
+      T *new_data_ = static_cast<T *>(MEM_mallocN_aligned(new_size * sizeof(T), 16, this->name_));
       memcpy(reinterpret_cast<void *>(new_data_),
              this->data_,
              min_uu(this->len_, new_size) * sizeof(T));

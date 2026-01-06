@@ -178,8 +178,8 @@ static Curves *create_radius_circle_curve(const int resolution, const float radi
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometryCurvePrimitiveCircle &storage = node_storage(params.node());
-  const GeometryNodeCurvePrimitiveCircleMode mode = (GeometryNodeCurvePrimitiveCircleMode)
-                                                        storage.mode;
+  const GeometryNodeCurvePrimitiveCircleMode mode = GeometryNodeCurvePrimitiveCircleMode(
+      storage.mode);
 
   Curves *curves = nullptr;
   if (mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS) {

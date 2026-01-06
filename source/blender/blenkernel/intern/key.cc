@@ -67,8 +67,8 @@ static void shapekey_copy_data(Main * /*bmain*/,
                                const ID *id_src,
                                const int /*flag*/)
 {
-  Key *key_dst = (Key *)id_dst;
-  const Key *key_src = (const Key *)id_src;
+  Key *key_dst = blender::id_cast<Key *>(id_dst);
+  const Key *key_src = blender::id_cast<const Key *>(id_src);
   BLI_duplicatelist(&key_dst->block, &key_src->block);
 
   KeyBlock *kb_dst, *kb_src;
@@ -88,7 +88,7 @@ static void shapekey_copy_data(Main * /*bmain*/,
 
 static void shapekey_free_data(ID *id)
 {
-  Key *key = (Key *)id;
+  Key *key = blender::id_cast<Key *>(id);
   while (KeyBlock *kb = static_cast<KeyBlock *>(BLI_pophead(&key->block))) {
     if (kb->data) {
       MEM_freeN(kb->data);
@@ -105,7 +105,7 @@ static void shapekey_foreach_id(ID *id, LibraryForeachIDData *data)
 
 static ID **shapekey_owner_pointer_get(ID *id, const bool debug_relationship_assert)
 {
-  Key *key = (Key *)id;
+  Key *key = blender::id_cast<Key *>(id);
 
   if (debug_relationship_assert) {
     BLI_assert(key->from != nullptr);
@@ -117,7 +117,7 @@ static ID **shapekey_owner_pointer_get(ID *id, const bool debug_relationship_ass
 
 static void shapekey_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  Key *key = (Key *)id;
+  Key *key = blender::id_cast<Key *>(id);
   const bool is_undo = BLO_write_is_undo(writer);
 
   /* Write LibData. */
@@ -146,7 +146,7 @@ static void shapekey_blend_write(BlendWriter *writer, ID *id, const void *id_add
 
 static void shapekey_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  Key *key = (Key *)id;
+  Key *key = blender::id_cast<Key *>(id);
   BLO_read_struct_list(reader, KeyBlock, &(key->block));
 
   BLO_read_struct(reader, KeyBlock, &key->refkey);
@@ -545,7 +545,7 @@ static char *key_block_get_data(Key *key, KeyBlock *actkb, KeyBlock *kb, char **
      * edit mode with shape keys blending applied. */
     if (GS(key->from->name) == ID_ME) {
 
-      Mesh *mesh = (Mesh *)key->from;
+      Mesh *mesh = blender::id_cast<Mesh *>(key->from);
 
       if (mesh->runtime->edit_mesh && mesh->runtime->edit_mesh->bm->totvert == kb->totelem) {
         int a = 0;
@@ -560,8 +560,8 @@ static char *key_block_get_data(Key *key, KeyBlock *actkb, KeyBlock *kb, char **
           a++;
         }
 
-        *freedata = (char *)co;
-        return (char *)co;
+        *freedata = reinterpret_cast<char *>(co);
+        return reinterpret_cast<char *>(co);
       }
     }
   }
@@ -911,29 +911,29 @@ static void key_evaluate_absolute(const int start,
       switch (cp[1]) {
         case IPO_FLOAT:
           flerp(KEYELEM_FLOAT_LEN_COORD,
-                (float *)r_target,
-                (float *)k1,
-                (float *)k2,
-                (float *)k3,
-                (float *)k4,
+                reinterpret_cast<float *>(r_target),
+                reinterpret_cast<float *>(k1),
+                reinterpret_cast<float *>(k2),
+                reinterpret_cast<float *>(k3),
+                reinterpret_cast<float *>(k4),
                 weights);
           break;
         case IPO_BPOINT:
           flerp(KEYELEM_FLOAT_LEN_BPOINT,
-                (float *)r_target,
-                (float *)k1,
-                (float *)k2,
-                (float *)k3,
-                (float *)k4,
+                reinterpret_cast<float *>(r_target),
+                reinterpret_cast<float *>(k1),
+                reinterpret_cast<float *>(k2),
+                reinterpret_cast<float *>(k3),
+                reinterpret_cast<float *>(k4),
                 weights);
           break;
         case IPO_BEZTRIPLE:
           flerp(KEYELEM_FLOAT_LEN_BEZTRIPLE,
-                (float *)r_target,
-                (float *)k1,
-                (float *)k2,
-                (float *)k3,
-                (float *)k4,
+                reinterpret_cast<float *>(r_target),
+                reinterpret_cast<float *>(k1),
+                reinterpret_cast<float *>(k2),
+                reinterpret_cast<float *>(k3),
+                reinterpret_cast<float *>(k4),
                 weights);
           break;
         default:
@@ -1036,7 +1036,7 @@ static float *get_weights_array(Object *ob, const char *vgroup, WeightsArrayCach
   /* Gather dvert and totvert. */
   BMEditMesh *em = nullptr;
   if (ob->type == OB_MESH) {
-    Mesh *mesh = static_cast<Mesh *>(ob->data);
+    Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
     dvert = mesh->deform_verts().data();
     totvert = mesh->verts_num;
 
@@ -1045,7 +1045,7 @@ static float *get_weights_array(Object *ob, const char *vgroup, WeightsArrayCach
     }
   }
   else if (ob->type == OB_LATTICE) {
-    Lattice *lt = static_cast<Lattice *>(ob->data);
+    Lattice *lt = blender::id_cast<Lattice *>(ob->data);
     dvert = lt->dvert;
     totvert = lt->pntsu * lt->pntsv * lt->pntsw;
   }
@@ -1195,11 +1195,11 @@ static void do_cu_key(Curve *cu,
 
 static void do_curve_key(Object *ob, Key *key, char *out, const int tot)
 {
-  Curve *cu = static_cast<Curve *>(ob->data);
+  Curve *cu = blender::id_cast<Curve *>(ob->data);
   KeyBlock *actkb = BKE_keyblock_from_object(ob);
 
   if (key->type == KEY_RELATIVE) {
-    key_evaluate_relative_float3(key, actkb, tot, nullptr, (float *)out);
+    key_evaluate_relative_float3(key, actkb, tot, nullptr, reinterpret_cast<float *>(out));
   }
   else {
     const float ctime_scaled = key->ctime / 100.0f;
@@ -1219,7 +1219,7 @@ static void do_curve_key(Object *ob, Key *key, char *out, const int tot)
 
 static void do_latt_key(Object *ob, Key *key, char *out, const int tot)
 {
-  Lattice *lt = static_cast<Lattice *>(ob->data);
+  Lattice *lt = blender::id_cast<Lattice *>(ob->data);
   KeyBlock *actkb = BKE_keyblock_from_object(ob);
 
   if (key->type == KEY_RELATIVE) {
@@ -1269,19 +1269,19 @@ float *BKE_key_evaluate_object_ex(
   /* Compute size of output array. */
   int tot = 0, size = 0;
   if (ob->type == OB_MESH) {
-    Mesh *mesh = static_cast<Mesh *>(ob->data);
+    Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
 
     tot = mesh->verts_num;
     size = tot * sizeof(float[KEYELEM_FLOAT_LEN_COORD]);
   }
   else if (ob->type == OB_LATTICE) {
-    Lattice *lt = static_cast<Lattice *>(ob->data);
+    Lattice *lt = blender::id_cast<Lattice *>(ob->data);
 
     tot = lt->pntsu * lt->pntsv * lt->pntsw;
     size = tot * sizeof(float[KEYELEM_FLOAT_LEN_COORD]);
   }
   else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
-    Curve *cu = static_cast<Curve *>(ob->data);
+    Curve *cu = blender::id_cast<Curve *>(ob->data);
 
     tot = BKE_keyblock_curve_element_count(&cu->nurb);
     size = tot * sizeof(float[KEYELEM_ELEM_SIZE_CURVE]);
@@ -1302,7 +1302,7 @@ float *BKE_key_evaluate_object_ex(
       return nullptr;
     }
 
-    out = (char *)arr;
+    out = reinterpret_cast<char *>(arr);
   }
 
   if (ob->shapeflag & OB_SHAPE_LOCK) {
@@ -1348,7 +1348,7 @@ float *BKE_key_evaluate_object_ex(
   if (obdata != nullptr) {
     switch (GS(obdata->name)) {
       case ID_ME: {
-        Mesh *mesh = (Mesh *)obdata;
+        Mesh *mesh = blender::id_cast<Mesh *>(obdata);
         const int totvert = min_ii(tot, mesh->verts_num);
         mesh->vert_positions_for_write().take_front(totvert).copy_from(
             {reinterpret_cast<const blender::float3 *>(out), totvert});
@@ -1356,15 +1356,17 @@ float *BKE_key_evaluate_object_ex(
         break;
       }
       case ID_LT: {
-        Lattice *lattice = (Lattice *)obdata;
+        Lattice *lattice = blender::id_cast<Lattice *>(obdata);
         const int totpoint = min_ii(tot, lattice->pntsu * lattice->pntsv * lattice->pntsw);
-        keyblock_data_convert_to_lattice((const float (*)[3])out, lattice->def, totpoint);
+        keyblock_data_convert_to_lattice(
+            reinterpret_cast<const float (*)[3]>(out), lattice->def, totpoint);
         break;
       }
       case ID_CU_LEGACY: {
-        Curve *curve = (Curve *)obdata;
+        Curve *curve = blender::id_cast<Curve *>(obdata);
         const int totpoint = min_ii(tot, BKE_keyblock_curve_element_count(&curve->nurb));
-        keyblock_data_convert_to_curve((const float *)out, &curve->nurb, totpoint);
+        keyblock_data_convert_to_curve(
+            reinterpret_cast<const float *>(out), &curve->nurb, totpoint);
         break;
       }
       default:
@@ -1375,7 +1377,7 @@ float *BKE_key_evaluate_object_ex(
   if (r_totelem) {
     *r_totelem = tot;
   }
-  return (float *)out;
+  return reinterpret_cast<float *>(out);
 }
 
 float *BKE_key_evaluate_object(Object *ob, int *r_totelem)
@@ -1421,7 +1423,7 @@ void BKE_keyblock_data_get_from_shape(const Key *key,
                                       MutableSpan<float3> arr,
                                       const int shape_index)
 {
-  uint8_t *elements = (uint8_t *)arr.data();
+  uint8_t *elements = reinterpret_cast<uint8_t *>(arr.data());
 
   for (const auto [index, kb] : key->block.enumerate()) {
     if (ELEM(shape_index, -1, index)) {
@@ -1452,10 +1454,10 @@ void BKE_keyblock_data_set_with_mat4(Key *key,
   for (const auto [index, kb] : key->block.enumerate()) {
     if (ELEM(shape_index, -1, index)) {
       const int block_elem_len = kb.totelem;
-      float (*block_data)[3] = (float (*)[3])kb.data;
+      float (*block_data)[3] = static_cast<float (*)[3]>(kb.data);
       for (int data_offset = 0; data_offset < block_elem_len; ++data_offset) {
-        const float *src_data = (const float *)(elements + data_offset);
-        float *dst_data = (float *)(block_data + data_offset);
+        const float *src_data = reinterpret_cast<const float *>(elements + data_offset);
+        float *dst_data = reinterpret_cast<float *>(block_data + data_offset);
         mul_v3_m4v3(dst_data, transform.ptr(), src_data);
       }
       elements += block_elem_len;
@@ -1511,18 +1513,18 @@ Key **BKE_key_from_id_p(ID *id)
 {
   switch (GS(id->name)) {
     case ID_ME: {
-      Mesh *mesh = (Mesh *)id;
+      Mesh *mesh = blender::id_cast<Mesh *>(id);
       return &mesh->key;
     }
     case ID_CU_LEGACY: {
-      Curve *cu = (Curve *)id;
+      Curve *cu = blender::id_cast<Curve *>(id);
       if (cu->ob_type != OB_FONT) {
         return &cu->key;
       }
       break;
     }
     case ID_LT: {
-      Lattice *lt = (Lattice *)id;
+      Lattice *lt = blender::id_cast<Lattice *>(id);
       return &lt->key;
     }
     default:
@@ -1549,7 +1551,7 @@ Key **BKE_key_from_object_p(Object *ob)
     return nullptr;
   }
 
-  return BKE_key_from_id_p(static_cast<ID *>(ob->data));
+  return BKE_key_from_id_p(ob->data);
 }
 
 Key *BKE_key_from_object(Object *ob)
@@ -1706,7 +1708,8 @@ std::optional<std::string> BKE_keyblock_curval_rnapath_get(const Key *key, const
   if (ELEM(nullptr, key, kb)) {
     return std::nullopt;
   }
-  PointerRNA ptr = RNA_pointer_create_discrete((ID *)&key->id, &RNA_ShapeKey, (KeyBlock *)kb);
+  PointerRNA ptr = RNA_pointer_create_discrete(
+      const_cast<ID *>(&key->id), &RNA_ShapeKey, (KeyBlock *)kb);
   PropertyRNA *prop = RNA_struct_find_property(&ptr, "value");
   return RNA_path_from_ID_to_property(&ptr, prop);
 }

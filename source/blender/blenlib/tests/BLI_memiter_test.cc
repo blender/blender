@@ -85,7 +85,7 @@ static void memiter_string_test(const char *strings[], const int chunk_size)
   BLI_memiter_iter_init(mi, &it);
   uint elem_size;
   index = 0;
-  while ((data = (char *)BLI_memiter_iter_step_size(&it, &elem_size))) {
+  while ((data = static_cast<char *>(BLI_memiter_iter_step_size(&it, &elem_size)))) {
     EXPECT_EQ(strlen(strings[index]) + 1, elem_size);
     EXPECT_STREQ(strings[index], data);
     total_size += elem_size;
@@ -113,7 +113,7 @@ static void memiter_words10k_test(const char split_char, const int chunk_size)
   index = 0;
   while (c < c_end) {
     int elem_size = strlen(c) + 1;
-    data = (char *)BLI_memiter_alloc(mi, elem_size);
+    data = static_cast<char *>(BLI_memiter_alloc(mi, elem_size));
     memcpy(data, c, elem_size);
     c += elem_size;
     index += 1;
@@ -124,7 +124,7 @@ static void memiter_words10k_test(const char split_char, const int chunk_size)
   BLI_memiter_handle it;
   BLI_memiter_iter_init(mi, &it);
   index = 0;
-  while ((data = (char *)BLI_memiter_iter_step_size(&it, &size))) {
+  while ((data = static_cast<char *>(BLI_memiter_iter_step_size(&it, &size)))) {
     int size_expect = strlen(c) + 1;
     EXPECT_EQ(size_expect, size);
     EXPECT_STREQ(c, data);

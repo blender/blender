@@ -693,10 +693,10 @@ void block_bounds_set_explicit(Block *block, int minx, int miny, int maxx, int m
 static float ui_but_get_float_precision(Button *but)
 {
   if (but->type == ButtonType::Num) {
-    return ((ButtonNumber *)but)->precision;
+    return (static_cast<ButtonNumber *>(but))->precision;
   }
   if (but->type == ButtonType::NumSlider) {
-    return ((ButtonNumberSlider *)but)->precision;
+    return (static_cast<ButtonNumberSlider *>(but))->precision;
   }
   BLI_assert_unreachable();
   return 1.0f;
@@ -705,10 +705,10 @@ static float ui_but_get_float_precision(Button *but)
 static float ui_but_get_float_step_size(Button *but)
 {
   if (but->type == ButtonType::Num) {
-    return ((ButtonNumber *)but)->step_size;
+    return (static_cast<ButtonNumber *>(but))->step_size;
   }
   if (but->type == ButtonType::NumSlider) {
-    return ((ButtonNumberSlider *)but)->step_size;
+    return (static_cast<ButtonNumberSlider *>(but))->step_size;
   }
   BLI_assert_unreachable();
   return 1.0f;
@@ -832,8 +832,9 @@ static bool ui_but_equals_old(const Button *but, const Button *oldbut)
   if (but->block_create_func != oldbut->block_create_func) {
     return false;
   }
-  if (!but->funcN && ((but->poin != oldbut->poin && (Button *)oldbut->poin != oldbut) ||
-                      (but->pointype != oldbut->pointype)))
+  if (!but->funcN &&
+      ((but->poin != oldbut->poin && reinterpret_cast<Button *>(oldbut->poin) != oldbut) ||
+       (but->pointype != oldbut->pointype)))
   {
     return false;
   }
@@ -845,8 +846,8 @@ static bool ui_but_equals_old(const Button *but, const Button *oldbut)
   }
 
   if (but->type == ButtonType::ViewItem) {
-    ButtonViewItem *but_item = (ButtonViewItem *)but;
-    ButtonViewItem *oldbut_item = (ButtonViewItem *)oldbut;
+    ButtonViewItem *but_item = static_cast<ButtonViewItem *>(const_cast<Button *>(but));
+    ButtonViewItem *oldbut_item = static_cast<ButtonViewItem *>(const_cast<Button *>(oldbut));
     if (!but_item->view_item || !oldbut_item->view_item ||
         !view_item_matches(*but_item->view_item, *oldbut_item->view_item))
     {
@@ -958,7 +959,7 @@ static void ui_but_update_old_active_from_new(Button *oldbut, Button *but)
 
   /* typically the same pointers, but not on undo/redo */
   /* XXX some menu buttons store button itself in but->poin. Ugly */
-  if (oldbut->poin != (char *)oldbut) {
+  if (oldbut->poin != reinterpret_cast<char *>(oldbut)) {
     std::swap(oldbut->poin, but->poin);
     std::swap(oldbut->func_argN, but->func_argN);
   }
@@ -980,7 +981,8 @@ static void ui_but_update_old_active_from_new(Button *oldbut, Button *but)
   std::swap(but->extra_op_icons, oldbut->extra_op_icons);
 
   if (oldbut->type == ButtonType::SearchMenu) {
-    ButtonSearch *search_oldbut = (ButtonSearch *)oldbut, *search_but = (ButtonSearch *)but;
+    ButtonSearch *search_oldbut = static_cast<ButtonSearch *>(oldbut),
+                 *search_but = static_cast<ButtonSearch *>(but);
 
     std::swap(search_oldbut->arg_free_fn, search_but->arg_free_fn);
     std::swap(search_oldbut->arg, search_but->arg);
@@ -994,32 +996,32 @@ static void ui_but_update_old_active_from_new(Button *oldbut, Button *but)
 
   switch (oldbut->type) {
     case ButtonType::Progress: {
-      ButtonProgress *progress_oldbut = (ButtonProgress *)oldbut;
-      ButtonProgress *progress_but = (ButtonProgress *)but;
+      ButtonProgress *progress_oldbut = static_cast<ButtonProgress *>(oldbut);
+      ButtonProgress *progress_but = static_cast<ButtonProgress *>(but);
       progress_oldbut->progress_factor = progress_but->progress_factor;
       break;
     }
     case ButtonType::SeprLine: {
-      ButtonSeparatorLine *line_oldbut = (ButtonSeparatorLine *)oldbut;
-      ButtonSeparatorLine *line_but = (ButtonSeparatorLine *)but;
+      ButtonSeparatorLine *line_oldbut = static_cast<ButtonSeparatorLine *>(oldbut);
+      ButtonSeparatorLine *line_but = static_cast<ButtonSeparatorLine *>(but);
       line_oldbut->is_vertical = line_but->is_vertical;
       break;
     }
     case ButtonType::Label: {
-      ButtonLabel *label_oldbut = (ButtonLabel *)oldbut;
-      ButtonLabel *label_but = (ButtonLabel *)but;
+      ButtonLabel *label_oldbut = static_cast<ButtonLabel *>(oldbut);
+      ButtonLabel *label_but = static_cast<ButtonLabel *>(but);
       label_oldbut->alpha_factor = label_but->alpha_factor;
       break;
     }
     case ButtonType::Scroll: {
-      ButtonScrollBar *scroll_oldbut = (ButtonScrollBar *)oldbut;
-      ButtonScrollBar *scroll_but = (ButtonScrollBar *)but;
+      ButtonScrollBar *scroll_oldbut = static_cast<ButtonScrollBar *>(oldbut);
+      ButtonScrollBar *scroll_but = static_cast<ButtonScrollBar *>(but);
       scroll_oldbut->visual_height = scroll_but->visual_height;
       break;
     }
     case ButtonType::ViewItem: {
-      ButtonViewItem *view_item_oldbut = (ButtonViewItem *)oldbut;
-      ButtonViewItem *view_item_newbut = (ButtonViewItem *)but;
+      ButtonViewItem *view_item_oldbut = static_cast<ButtonViewItem *>(oldbut);
+      ButtonViewItem *view_item_newbut = static_cast<ButtonViewItem *>(but);
       view_item_swap_button_pointers(*view_item_newbut->view_item, *view_item_oldbut->view_item);
       std::swap(view_item_newbut->view_item, view_item_oldbut->view_item);
       break;
@@ -1172,7 +1174,7 @@ bool button_active_only_ex(
       button_active_free(C, old_active);
     }
 
-    button_activate_event((bContext *)C, region, but);
+    button_activate_event(const_cast<bContext *>(C), region, but);
   }
   else if ((found == true) && (isactive == false)) {
     if (remove_on_failure) {
@@ -1226,9 +1228,9 @@ bool block_active_only_flagged_buttons(const bContext *C, ARegion *region, Block
 void button_execute(const bContext *C, ARegion *region, Button *but)
 {
   void *active_back;
-  button_execute_begin((bContext *)C, region, but, &active_back);
+  button_execute_begin(const_cast<bContext *>(C), region, but, &active_back);
   /* Value is applied in begin. No further action required. */
-  button_execute_end((bContext *)C, region, but, active_back);
+  button_execute_end(const_cast<bContext *>(C), region, but, active_back);
 }
 
 /* use to check if we need to disable undo, but don't make any changes
@@ -1584,7 +1586,7 @@ static std::optional<std::string> ui_but_event_property_operator_string(const bC
       if (prop_enum_value_ok) {
         const EnumPropertyItem *item;
         bool free;
-        RNA_property_enum_items((bContext *)C, ptr, prop, &item, nullptr, &free);
+        RNA_property_enum_items(const_cast<bContext *>(C), ptr, prop, &item, nullptr, &free);
         const int index = RNA_enum_from_value(item, prop_enum_value);
         if (index != -1) {
           IDProperty *prop_value;
@@ -1851,7 +1853,7 @@ static bool ui_but_icon_extra_is_visible_bone_eyedropper(Button *but)
   if (!ELEM(RNA_property_type(but->rnaprop), PROP_STRING, PROP_POINTER)) {
     return false;
   }
-  ButtonSearch *search_but = (ButtonSearch *)but;
+  ButtonSearch *search_but = static_cast<ButtonSearch *>(but);
   if (!search_but->rnasearchprop) {
     return false;
   }
@@ -1974,7 +1976,7 @@ void block_update_from_old(const bContext *C, Block *block)
 
       /* redraw dynamic tooltip if we have one open */
       if (but->tip_func) {
-        button_tooltip_refresh((bContext *)C, but.get());
+        button_tooltip_refresh(const_cast<bContext *>(C), but.get());
       }
     }
   }
@@ -2000,7 +2002,7 @@ static void button_validate(const Button *but)
   /* Number buttons must have a click-step,
    * assert instead of correcting the value to ensure the caller knows what they're doing. */
   if (but->type == ButtonType::Num) {
-    ButtonNumber *number_but = (ButtonNumber *)but;
+    ButtonNumber *number_but = static_cast<ButtonNumber *>(const_cast<Button *>(but));
 
     if (ELEM(but->pointype, ButPointerType::Char, ButPointerType::Short, ButPointerType::Int)) {
       BLI_assert(int(number_but->step_size) > 0);
@@ -2082,13 +2084,16 @@ void block_end_ex(const bContext *C,
     if (but->optype) {
       wmOperatorType *ot = but->optype;
 
-      if (ot == nullptr || !button_context_poll_operator((bContext *)C, ot, but.get())) {
+      if (ot == nullptr || !button_context_poll_operator(const_cast<bContext *>(C), ot, but.get()))
+      {
         but->flag |= BUT_DISABLED;
       }
     }
 
     for (ButtonExtraOpIcon &op_icon : but->extra_op_icons) {
-      if (!button_context_poll_operator_ex((bContext *)C, but.get(), op_icon.optype_params)) {
+      if (!button_context_poll_operator_ex(
+              const_cast<bContext *>(C), but.get(), op_icon.optype_params))
+      {
         op_icon.disabled = true;
       }
     }
@@ -2098,7 +2103,7 @@ void block_end_ex(const bContext *C,
     button_anim_flag(but.get(), &anim_eval_context);
     button_override_flag(bmain, but.get());
     if (button_is_decorator(but)) {
-      button_anim_decorate_update_from_flag((ButtonDecorator *)but.get());
+      button_anim_decorate_update_from_flag(static_cast<ButtonDecorator *>(but.get()));
     }
 
 #ifndef NDEBUG
@@ -2429,7 +2434,7 @@ int button_is_pushed_ex(Button *but, double *value)
         }
         break;
       case ButtonType::ViewItem: {
-        const auto *view_item_but = (const ButtonViewItem *)but;
+        const auto *view_item_but = static_cast<const ButtonViewItem *>(but);
 
         is_push = -1;
         if (view_item_but->view_item) {
@@ -2734,7 +2739,8 @@ bool button_supports_cycling(const Button *but)
                ButtonType::NumSlider,
                ButtonType::ListBox) ||
           (but->type == ButtonType::Menu && button_menu_step_poll(but)) ||
-          (but->type == ButtonType::Color && ((ButtonColor *)but)->is_pallete_color) ||
+          (but->type == ButtonType::Color &&
+           (static_cast<ButtonColor *>(const_cast<Button *>(but)))->is_pallete_color) ||
           (but->menu_step_func != nullptr));
 }
 
@@ -2788,16 +2794,16 @@ double button_value_get(Button *but)
     }
   }
   else if (but->pointype == ButPointerType::Char) {
-    value = *(char *)but->poin;
+    value = *static_cast<char *>(but->poin);
   }
   else if (but->pointype == ButPointerType::Short) {
-    value = *(short *)but->poin;
+    value = *reinterpret_cast<short *>(but->poin);
   }
   else if (but->pointype == ButPointerType::Int) {
-    value = *(int *)but->poin;
+    value = *reinterpret_cast<int *>(but->poin);
   }
   else if (but->pointype == ButPointerType::Float) {
-    value = *(float *)but->poin;
+    value = *reinterpret_cast<float *>(but->poin);
   }
 
   return value;
@@ -2883,16 +2889,16 @@ void button_value_set(Button *but, double value)
       value = *but->editval = value;
     }
     else if (but->pointype == ButPointerType::Char) {
-      value = *((char *)but->poin) = char(value);
+      value = *(static_cast<char *>(but->poin)) = char(value);
     }
     else if (but->pointype == ButPointerType::Short) {
-      value = *((short *)but->poin) = short(value);
+      value = *(reinterpret_cast<short *>(but->poin)) = short(value);
     }
     else if (but->pointype == ButPointerType::Int) {
-      value = *((int *)but->poin) = int(value);
+      value = *(reinterpret_cast<int *>(but->poin)) = int(value);
     }
     else if (but->pointype == ButPointerType::Float) {
-      value = *((float *)but->poin) = float(value);
+      value = *(reinterpret_cast<float *>(but->poin)) = float(value);
     }
   }
 
@@ -3349,8 +3355,9 @@ bool button_string_set(bContext *C, Button *but, const char *str)
           return true;
         }
 
-        ButtonSearch *search_but = (but->type == ButtonType::SearchMenu) ? (ButtonSearch *)but :
-                                                                           nullptr;
+        ButtonSearch *search_but = (but->type == ButtonType::SearchMenu) ?
+                                       static_cast<ButtonSearch *>(but) :
+                                       nullptr;
         /* RNA pointer */
         PointerRNA rptr;
 
@@ -3631,7 +3638,7 @@ static void ui_but_free_type_specific(Button *but)
 {
   switch (but->type) {
     case ButtonType::SearchMenu: {
-      ButtonSearch *search_but = (ButtonSearch *)but;
+      ButtonSearch *search_but = static_cast<ButtonSearch *>(but);
       MEM_SAFE_FREE(search_but->item_active_str);
 
       if (search_but->arg_free_fn) {
@@ -3698,7 +3705,7 @@ static void ui_but_free(const bContext *C, Button *but)
   }
 
   if ((but->type == ButtonType::Image) && but->poin) {
-    IMB_freeImBuf((ImBuf *)but->poin);
+    IMB_freeImBuf(reinterpret_cast<ImBuf *>(but->poin));
   }
 
   button_drag_free(but);
@@ -4134,7 +4141,7 @@ static void ui_but_update_ex(Button *but, const bool validate)
     }
     case ButtonType::HotkeyEvent:
       if (but->flag & UI_SELECT) {
-        const ButtonHotkeyEvent *hotkey_but = (ButtonHotkeyEvent *)but;
+        const ButtonHotkeyEvent *hotkey_but = static_cast<ButtonHotkeyEvent *>(but);
 
         if (hotkey_but->modifier_key) {
           /* Rely on #KM_NOTHING being zero for `type`, `val` ... etc. */
@@ -4321,7 +4328,7 @@ static Button *ui_def_but(Block *block,
   but->rect.xmax = but->rect.xmin + width;
   but->rect.ymax = but->rect.ymin + height;
 
-  but->poin = (char *)poin;
+  but->poin = static_cast<char *>(poin);
   but->hardmin = but->softmin = min;
   but->hardmax = but->softmax = max;
   but->tip = tip.value_or("");
@@ -4455,7 +4462,7 @@ static void ui_def_but_rna__menu(bContext *C, Layout *layout, void *but_p)
 {
   Block *block = layout->block();
   PopupBlockHandle *handle = block->handle;
-  Button *but = (Button *)but_p;
+  Button *but = static_cast<Button *>(but_p);
   const int current_value = RNA_property_enum_get(&but->rnapoin, but->rnaprop);
 
   /* see comment in ui_item_enum_expand, re: `uiname`. */
@@ -4948,18 +4955,18 @@ static Button *ui_def_but_rna(Block *block,
   /* If this button uses units, calculate the step from this */
   if ((proptype == PROP_FLOAT) && button_is_unit(but)) {
     if (type == ButtonType::Num) {
-      ButtonNumber *number_but = (ButtonNumber *)but;
+      ButtonNumber *number_but = static_cast<ButtonNumber *>(but);
       number_but->step_size = ui_get_but_step_unit(but, number_but->step_size);
     }
     if (type == ButtonType::NumSlider) {
-      ButtonNumberSlider *number_but = (ButtonNumberSlider *)but;
+      ButtonNumberSlider *number_but = static_cast<ButtonNumberSlider *>(but);
       number_but->step_size = ui_get_but_step_unit(but, number_but->step_size);
     }
   }
 
   if (func) {
     but->menu_create_func = func;
-    but->poin = (char *)but;
+    but->poin = reinterpret_cast<char *>(but);
   }
 
   return but;
@@ -5274,8 +5281,17 @@ Button *uiDefButF(Block *block,
                   float max,
                   const std::optional<StringRef> tip)
 {
-  return uiDefBut(
-      block, {type, ButPointerType::Float}, str, x, y, width, height, (void *)poin, min, max, tip);
+  return uiDefBut(block,
+                  {type, ButPointerType::Float},
+                  str,
+                  x,
+                  y,
+                  width,
+                  height,
+                  static_cast<void *>(poin),
+                  min,
+                  max,
+                  tip);
 }
 Button *uiDefButI(Block *block,
                   ButtonType type,
@@ -5289,8 +5305,17 @@ Button *uiDefButI(Block *block,
                   float max,
                   const std::optional<StringRef> tip)
 {
-  return uiDefBut(
-      block, {type, ButPointerType::Int}, str, x, y, width, height, (void *)poin, min, max, tip);
+  return uiDefBut(block,
+                  {type, ButPointerType::Int},
+                  str,
+                  x,
+                  y,
+                  width,
+                  height,
+                  static_cast<void *>(poin),
+                  min,
+                  max,
+                  tip);
 }
 Button *uiDefButBitI(Block *block,
                      ButtonType type,
@@ -5313,7 +5338,7 @@ Button *uiDefButBitI(Block *block,
                      y,
                      width,
                      height,
-                     (void *)poin,
+                     static_cast<void *>(poin),
                      min,
                      max,
                      tip);
@@ -5330,8 +5355,17 @@ Button *uiDefButS(Block *block,
                   float max,
                   const std::optional<StringRef> tip)
 {
-  return uiDefBut(
-      block, {type, ButPointerType::Short}, str, x, y, width, height, (void *)poin, min, max, tip);
+  return uiDefBut(block,
+                  {type, ButPointerType::Short},
+                  str,
+                  x,
+                  y,
+                  width,
+                  height,
+                  static_cast<void *>(poin),
+                  min,
+                  max,
+                  tip);
 }
 Button *uiDefButBitS(Block *block,
                      ButtonType type,
@@ -5354,7 +5388,7 @@ Button *uiDefButBitS(Block *block,
                      y,
                      width,
                      height,
-                     (void *)poin,
+                     static_cast<void *>(poin),
                      min,
                      max,
                      tip);
@@ -5371,8 +5405,17 @@ Button *uiDefButC(Block *block,
                   float max,
                   const std::optional<StringRef> tip)
 {
-  return uiDefBut(
-      block, {type, ButPointerType::Char}, str, x, y, width, height, (void *)poin, min, max, tip);
+  return uiDefBut(block,
+                  {type, ButPointerType::Char},
+                  str,
+                  x,
+                  y,
+                  width,
+                  height,
+                  static_cast<void *>(poin),
+                  min,
+                  max,
+                  tip);
 }
 Button *uiDefButBitC(Block *block,
                      ButtonType type,
@@ -5395,7 +5438,7 @@ Button *uiDefButBitC(Block *block,
                      y,
                      width,
                      height,
-                     (void *)poin,
+                     static_cast<void *>(poin),
                      min,
                      max,
                      tip);
@@ -5555,8 +5598,17 @@ Button *uiDefIconButI(Block *block,
                       float max,
                       const std::optional<StringRef> tip)
 {
-  return uiDefIconBut(
-      block, {type, ButPointerType::Int}, icon, x, y, width, height, (void *)poin, min, max, tip);
+  return uiDefIconBut(block,
+                      {type, ButPointerType::Int},
+                      icon,
+                      x,
+                      y,
+                      width,
+                      height,
+                      static_cast<void *>(poin),
+                      min,
+                      max,
+                      tip);
 }
 Button *uiDefIconButBitI(Block *block,
                          ButtonType type,
@@ -5579,7 +5631,7 @@ Button *uiDefIconButBitI(Block *block,
                          y,
                          width,
                          height,
-                         (void *)poin,
+                         static_cast<void *>(poin),
                          min,
                          max,
                          tip);
@@ -5603,7 +5655,7 @@ Button *uiDefIconButS(Block *block,
                       y,
                       width,
                       height,
-                      (void *)poin,
+                      static_cast<void *>(poin),
                       min,
                       max,
                       tip);
@@ -5629,7 +5681,7 @@ Button *uiDefIconButBitS(Block *block,
                          y,
                          width,
                          height,
-                         (void *)poin,
+                         static_cast<void *>(poin),
                          min,
                          max,
                          tip);
@@ -5655,7 +5707,7 @@ Button *uiDefIconButBitC(Block *block,
                          y,
                          width,
                          height,
-                         (void *)poin,
+                         static_cast<void *>(poin),
                          min,
                          max,
                          tip);
@@ -5757,8 +5809,16 @@ Button *uiDefIconTextButI(Block *block,
                           int *poin,
                           const std::optional<StringRef> tip)
 {
-  return uiDefIconTextBut(
-      block, {type, ButPointerType::Int}, icon, str, x, y, width, height, (void *)poin, tip);
+  return uiDefIconTextBut(block,
+                          {type, ButPointerType::Int},
+                          icon,
+                          str,
+                          x,
+                          y,
+                          width,
+                          height,
+                          static_cast<void *>(poin),
+                          tip);
 }
 Button *uiDefIconTextButS(Block *block,
                           ButtonType type,
@@ -5771,8 +5831,16 @@ Button *uiDefIconTextButS(Block *block,
                           short *poin,
                           const std::optional<StringRef> tip)
 {
-  return uiDefIconTextBut(
-      block, {type, ButPointerType::Short}, icon, str, x, y, width, height, (void *)poin, tip);
+  return uiDefIconTextBut(block,
+                          {type, ButPointerType::Short},
+                          icon,
+                          str,
+                          x,
+                          y,
+                          width,
+                          height,
+                          static_cast<void *>(poin),
+                          tip);
 }
 
 Button *uiDefIconTextButR(Block *block,
@@ -6379,7 +6447,7 @@ void button_func_search_set(Button *but,
                             ButtonHandleFunc search_exec_fn,
                             void *active)
 {
-  ButtonSearch *search_but = (ButtonSearch *)but;
+  ButtonSearch *search_but = static_cast<ButtonSearch *>(but);
 
   BLI_assert(but->type == ButtonType::SearchMenu);
 
@@ -6430,7 +6498,7 @@ void button_func_search_set(Button *but,
 
 void button_func_search_set_context_menu(Button *but, ButtonSearchContextMenuFn context_menu_fn)
 {
-  ButtonSearch *but_search = (ButtonSearch *)but;
+  ButtonSearch *but_search = static_cast<ButtonSearch *>(but);
   BLI_assert(but->type == ButtonType::SearchMenu);
 
   but_search->item_context_menu_fn = context_menu_fn;
@@ -6438,7 +6506,7 @@ void button_func_search_set_context_menu(Button *but, ButtonSearchContextMenuFn 
 
 void button_func_search_set_sep_string(Button *but, const char *search_sep_string)
 {
-  ButtonSearch *but_search = (ButtonSearch *)but;
+  ButtonSearch *but_search = static_cast<ButtonSearch *>(but);
   BLI_assert(but->type == ButtonType::SearchMenu);
 
   but_search->item_sep_string = search_sep_string;
@@ -6446,7 +6514,7 @@ void button_func_search_set_sep_string(Button *but, const char *search_sep_strin
 
 void button_func_search_set_tooltip(Button *but, ButtonSearchTooltipFn tooltip_fn)
 {
-  ButtonSearch *but_search = (ButtonSearch *)but;
+  ButtonSearch *but_search = static_cast<ButtonSearch *>(but);
   BLI_assert(but->type == ButtonType::SearchMenu);
 
   but_search->item_tooltip_fn = tooltip_fn;
@@ -6454,14 +6522,14 @@ void button_func_search_set_tooltip(Button *but, ButtonSearchTooltipFn tooltip_f
 
 void button_func_search_set_listen(Button *but, ButtonSearchListenFn listen_fn)
 {
-  ButtonSearch *but_search = (ButtonSearch *)but;
+  ButtonSearch *but_search = static_cast<ButtonSearch *>(but);
   BLI_assert(but->type == ButtonType::SearchMenu);
   but_search->listen_fn = listen_fn;
 }
 
 void button_func_search_set_results_are_suggestions(Button *but, const bool value)
 {
-  ButtonSearch *but_search = (ButtonSearch *)but;
+  ButtonSearch *but_search = static_cast<ButtonSearch *>(but);
   BLI_assert(but->type == ButtonType::SearchMenu);
 
   but_search->results_are_suggestions = value;
@@ -6471,7 +6539,7 @@ void button_func_search_set_results_are_suggestions(Button *but, const bool valu
 static void operator_enum_search_update_fn(
     const bContext *C, void *but, const char *str, SearchItems *items, const bool /*is_first*/)
 {
-  wmOperatorType *ot = ((Button *)but)->optype;
+  wmOperatorType *ot = (static_cast<Button *>(but))->optype;
   PropertyRNA *prop = ot->prop;
 
   if (prop == nullptr) {
@@ -6489,7 +6557,8 @@ static void operator_enum_search_update_fn(
 
     bool do_free;
     const EnumPropertyItem *all_items;
-    RNA_property_enum_items_gettexted((bContext *)C, ptr, prop, &all_items, nullptr, &do_free);
+    RNA_property_enum_items_gettexted(
+        const_cast<bContext *>(C), ptr, prop, &all_items, nullptr, &do_free);
 
     string_search::StringSearch<const EnumPropertyItem> search;
 
@@ -6514,7 +6583,7 @@ static void operator_enum_search_update_fn(
 
 static void operator_enum_search_exec_fn(bContext * /*C*/, void *but, void *arg2)
 {
-  wmOperatorType *ot = ((Button *)but)->optype;
+  wmOperatorType *ot = (static_cast<Button *>(but))->optype;
   /* Will create it if needed! */
   PointerRNA *opptr = button_operator_ptr_ensure(static_cast<Button *>(but));
 
@@ -6595,7 +6664,7 @@ void button_node_link_set(Button *but, bNodeSocket *socket, const float draw_col
 
 void button_number_step_size_set(Button *but, float step_size)
 {
-  ButtonNumber *but_number = (ButtonNumber *)but;
+  ButtonNumber *but_number = static_cast<ButtonNumber *>(but);
   BLI_assert(but->type == ButtonType::Num);
 
   but_number->step_size = step_size;
@@ -6604,7 +6673,7 @@ void button_number_step_size_set(Button *but, float step_size)
 
 void button_number_precision_set(Button *but, float precision)
 {
-  ButtonNumber *but_number = (ButtonNumber *)but;
+  ButtonNumber *but_number = static_cast<ButtonNumber *>(but);
   BLI_assert(but->type == ButtonType::Num);
 
   but_number->precision = precision;
@@ -6614,7 +6683,7 @@ void button_number_precision_set(Button *but, float precision)
 
 void button_number_slider_step_size_set(Button *but, float step_size)
 {
-  ButtonNumberSlider *but_number = (ButtonNumberSlider *)but;
+  ButtonNumberSlider *but_number = static_cast<ButtonNumberSlider *>(but);
   BLI_assert(but->type == ButtonType::NumSlider);
 
   but_number->step_size = step_size;
@@ -6623,7 +6692,7 @@ void button_number_slider_step_size_set(Button *but, float step_size)
 
 void button_number_slider_precision_set(Button *but, float precision)
 {
-  ButtonNumberSlider *but_number = (ButtonNumberSlider *)but;
+  ButtonNumberSlider *but_number = static_cast<ButtonNumberSlider *>(but);
   BLI_assert(but->type == ButtonType::NumSlider);
 
   but_number->precision = precision;

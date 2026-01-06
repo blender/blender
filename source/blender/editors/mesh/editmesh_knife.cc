@@ -645,7 +645,7 @@ static void knifetool_draw_visible_angles(const KnifeTool_OpData *kcd)
     float angle = 0.0f;
     float *end;
 
-    kfe = static_cast<KnifeEdge *>(((LinkData *)kfv->edges.first)->data);
+    kfe = static_cast<KnifeEdge *>((static_cast<LinkData *>(kfv->edges.first))->data);
     for (LinkData &ref : kfv->edges) {
       tempkfe = static_cast<KnifeEdge *>(ref.data);
       if (tempkfe->v1 != kfv) {
@@ -728,7 +728,7 @@ static void knifetool_draw_visible_angles(const KnifeTool_OpData *kcd)
     }
     else {
       /* Choose minimum angle edge. */
-      kfe = static_cast<KnifeEdge *>(((LinkData *)kfv->edges.first)->data);
+      kfe = static_cast<KnifeEdge *>((static_cast<LinkData *>(kfv->edges.first))->data);
       for (LinkData &ref : kfv->edges) {
         tempkfe = static_cast<KnifeEdge *>(ref.data);
         if (tempkfe->v1 != kfv) {
@@ -1488,7 +1488,7 @@ static BMElem *bm_elem_from_knife_vert(KnifeVert *kfv, KnifeEdge **r_kfe)
   KnifeEdge *kfe = nullptr;
 
   /* vert? */
-  ele_test = (BMElem *)kfv->v;
+  ele_test = reinterpret_cast<BMElem *>(kfv->v);
 
   if (r_kfe || ele_test == nullptr) {
     if (kfv->v == nullptr) {
@@ -1507,14 +1507,14 @@ static BMElem *bm_elem_from_knife_vert(KnifeVert *kfv, KnifeEdge **r_kfe)
   /* edge? */
   if (ele_test == nullptr) {
     if (kfe) {
-      ele_test = (BMElem *)kfe->e;
+      ele_test = reinterpret_cast<BMElem *>(kfe->e);
     }
   }
 
   /* face? */
   if (ele_test == nullptr) {
     if (BLI_listbase_is_single(&kfe->faces)) {
-      ele_test = static_cast<BMElem *>(((LinkData *)kfe->faces.first)->data);
+      ele_test = static_cast<BMElem *>((static_cast<LinkData *>(kfe->faces.first))->data);
     }
   }
 
@@ -1525,10 +1525,10 @@ static BMElem *bm_elem_from_knife_edge(KnifeEdge *kfe)
 {
   BMElem *ele_test;
 
-  ele_test = (BMElem *)kfe->e;
+  ele_test = reinterpret_cast<BMElem *>(kfe->e);
 
   if (ele_test == nullptr) {
-    ele_test = (BMElem *)kfe->basef;
+    ele_test = reinterpret_cast<BMElem *>(kfe->basef);
   }
 
   return ele_test;
@@ -1601,7 +1601,7 @@ static BMFace *knife_find_common_face(ListBaseT<LinkData> *faces1, ListBaseT<Lin
   for (LinkData &ref1 : *faces1) {
     for (LinkData &ref2 : *faces2) {
       if (ref1.data == ref2.data) {
-        return (BMFace *)(ref1.data);
+        return static_cast<BMFace *>(ref1.data);
       }
     }
   }
@@ -1767,8 +1767,8 @@ static KnifeVert *knife_split_edge(KnifeTool_OpData *kcd,
 
   kcd->undo->splits++;
 
-  BLI_stack_push(kcd->splitstack, (void *)&kfe);
-  BLI_stack_push(kcd->splitstack, (void *)&newkfe);
+  BLI_stack_push(kcd->splitstack, static_cast<void *>(&kfe));
+  BLI_stack_push(kcd->splitstack, static_cast<void *>(&newkfe));
 
   *r_kfe = newkfe;
 
@@ -2183,8 +2183,10 @@ static void knife_make_face_cuts(KnifeTool_OpData *kcd,
 
 static int sort_verts_by_dist_cb(void *co_p, const void *cur_a_p, const void *cur_b_p)
 {
-  const KnifeVert *cur_a = static_cast<const KnifeVert *>(((const LinkData *)cur_a_p)->data);
-  const KnifeVert *cur_b = static_cast<const KnifeVert *>(((const LinkData *)cur_b_p)->data);
+  const KnifeVert *cur_a = static_cast<const KnifeVert *>(
+      (static_cast<const LinkData *>(cur_a_p))->data);
+  const KnifeVert *cur_b = static_cast<const KnifeVert *>(
+      (static_cast<const LinkData *>(cur_b_p))->data);
   const float *co = static_cast<const float *>(co_p);
   const float a_sq = len_squared_v3v3(co, cur_a->co);
   const float b_sq = len_squared_v3v3(co, cur_b->co);
@@ -2573,12 +2575,12 @@ static bool bm_ray_cast_cb_elem_not_in_face_check(BMFace *f, void *user_data)
   BMEdge *e, *e2;
   BMIter iter;
 
-  switch (((BMElem *)user_data)->head.htype) {
+  switch ((static_cast<BMElem *>(user_data))->head.htype) {
     case BM_FACE:
-      ans = (BMFace *)user_data != f;
+      ans = static_cast<BMFace *>(user_data) != f;
       break;
     case BM_EDGE:
-      e = (BMEdge *)user_data;
+      e = static_cast<BMEdge *>(user_data);
       ans = !BM_edge_in_face(e, f);
       if (ans) {
         /* Is it a boundary edge, coincident with a split edge? */
@@ -2593,7 +2595,7 @@ static bool bm_ray_cast_cb_elem_not_in_face_check(BMFace *f, void *user_data)
       }
       break;
     case BM_VERT:
-      ans = !BM_vert_in_face((BMVert *)user_data, f);
+      ans = !BM_vert_in_face(static_cast<BMVert *>(user_data), f);
       break;
     default:
       ans = true;
@@ -2752,7 +2754,7 @@ static bool knife_linehit_face_test(KnifeTool_OpData *kcd,
   if (!knife_ray_intersect_face(kcd, sco, ray_start, ray_end, ob_index, f, face_tol_sq, p, cage)) {
     return false;
   }
-  if (!point_is_visible(kcd, cage, sco, (BMElem *)f)) {
+  if (!point_is_visible(kcd, cage, sco, reinterpret_cast<BMElem *>(f))) {
     return false;
   }
   knife_linehit_set(kcd, s1, s2, sco, cage, ob_index, nullptr, nullptr, r_hit);
@@ -3455,7 +3457,7 @@ static bool knife_snap_angle_relative(KnifeTool_OpData *kcd,
   if (kcd->prev.vert) {
     int count = 0;
     for (LinkData &ref : kcd->prev.vert->edges) {
-      KnifeEdge *kfe = ((KnifeEdge *)(ref.data));
+      KnifeEdge *kfe = (static_cast<KnifeEdge *>(ref.data));
       if (kfe->is_invalid) {
         continue;
       }
@@ -3491,7 +3493,7 @@ static bool knife_snap_angle_relative(KnifeTool_OpData *kcd,
   int fprev_ob_index = kcd->prev.ob_index;
   if (kcd->prev.vert && kcd->prev.vert->v) {
     for (LinkData &ref : kcd->prev.vert->faces) {
-      BMFace *f = ((BMFace *)(ref.data));
+      BMFace *f = (static_cast<BMFace *>(ref.data));
       if (f == fcurr) {
         fprev = f;
       }
@@ -3499,7 +3501,7 @@ static bool knife_snap_angle_relative(KnifeTool_OpData *kcd,
   }
   else if (kcd->prev.edge) {
     for (LinkData &ref : kcd->prev.edge->faces) {
-      BMFace *f = ((BMFace *)(ref.data));
+      BMFace *f = (static_cast<BMFace *>(ref.data));
       if (f == fcurr) {
         fprev = f;
       }
@@ -3548,7 +3550,7 @@ static int knife_calculate_snap_ref_edges(KnifeTool_OpData *kcd,
 
   if (kcd->prev.vert) {
     for (LinkData &ref : kcd->prev.vert->edges) {
-      KnifeEdge *kfe = ((KnifeEdge *)(ref.data));
+      KnifeEdge *kfe = (static_cast<KnifeEdge *>(ref.data));
       if (kfe->is_invalid) {
         continue;
       }
@@ -3849,8 +3851,8 @@ static void knifetool_init_obinfo(KnifeTool_OpData *kcd,
 {
   Scene *scene_eval = DEG_get_evaluated(kcd->vc.depsgraph, kcd->scene);
   Object *obedit_eval = DEG_get_evaluated(kcd->vc.depsgraph, ob);
-  const Mesh &mesh_orig = *static_cast<const Mesh *>(ob->data);
-  const Mesh &mesh_eval = *static_cast<const Mesh *>(obedit_eval->data);
+  const Mesh &mesh_orig = *blender::id_cast<const Mesh *>(ob->data);
+  const Mesh &mesh_eval = *blender::id_cast<const Mesh *>(obedit_eval->data);
 
   KnifeObjectInfo *obinfo = &kcd->objects_info[ob_index];
 
@@ -4104,7 +4106,7 @@ static void knifetool_finish_single_post(KnifeTool_OpData * /*kcd*/, Object *ob)
   params.calc_looptris = true;
   params.calc_normals = true;
   params.is_destructive = true;
-  EDBM_update(static_cast<Mesh *>(ob->data), &params);
+  EDBM_update(blender::id_cast<Mesh *>(ob->data), &params);
 }
 
 /* Called on tool confirmation. */
@@ -4878,7 +4880,8 @@ void EDBM_mesh_knife(
               BM_face_calc_point_in_face(f, cent);
               mul_m4_v3(ob->object_to_world().ptr(), cent);
               knife_project_v2(kcd, cent, cent_ss);
-              if ((kcd->cut_through || point_is_visible(kcd, cent, cent_ss, (BMElem *)f)) &&
+              if ((kcd->cut_through ||
+                   point_is_visible(kcd, cent, cent_ss, reinterpret_cast<BMElem *>(f))) &&
                   edbm_mesh_knife_point_isect(polys, cent_ss))
               {
                 BM_elem_flag_enable(f, BM_ELEM_TAG);

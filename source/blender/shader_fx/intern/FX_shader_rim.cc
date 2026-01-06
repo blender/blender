@@ -27,7 +27,7 @@
 
 static void init_data(ShaderFxData *fx)
 {
-  RimShaderFxData *gpfx = (RimShaderFxData *)fx;
+  RimShaderFxData *gpfx = reinterpret_cast<RimShaderFxData *>(fx);
   ARRAY_SET_ITEMS(gpfx->offset, 50, -100);
   ARRAY_SET_ITEMS(gpfx->rim_rgb, 1.0f, 1.0f, 0.5f);
   ARRAY_SET_ITEMS(gpfx->mask_rgb, 0.0f, 0.0f, 0.0f);
@@ -89,7 +89,7 @@ static void panel_register(ARegionType *region_type)
 static void foreach_working_space_color(ShaderFxData *fx,
                                         const IDTypeForeachColorFunctionCallback &fn)
 {
-  RimShaderFxData *gpfx = (RimShaderFxData *)fx;
+  RimShaderFxData *gpfx = reinterpret_cast<RimShaderFxData *>(fx);
   fn.single(gpfx->rim_rgb);
   fn.single(gpfx->mask_rgb);
 }

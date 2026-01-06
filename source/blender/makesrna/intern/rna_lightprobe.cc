@@ -31,7 +31,7 @@
 
 static StructRNA *rna_LightProbe_refine(PointerRNA *ptr)
 {
-  LightProbe *probe = (LightProbe *)ptr->data;
+  LightProbe *probe = static_cast<LightProbe *>(ptr->data);
   switch (probe->type) {
     case LIGHTPROBE_TYPE_PLANE:
       return &RNA_LightProbePlane;

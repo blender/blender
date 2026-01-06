@@ -314,7 +314,7 @@ struct MTex {
 
   float ofs[3] = {0.0f, 0.0f, 0.0f};
   float size[3] = {1.0f, 1.0f, 1.0f};
-  float rot = 0, random_angle = 2.0f * (float)M_PI;
+  float rot = 0, random_angle = 2.0f * float(M_PI);
 
   float r = 1.0, g = 0.0, b = 1.0, k = 1.0;
   float def_var = 1.0;

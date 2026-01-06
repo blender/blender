@@ -10,6 +10,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_math_matrix.h"
@@ -415,7 +416,7 @@ static bool edbm_bevel_calc(wmOperator *op)
       params.calc_looptris = true;
       params.calc_normals = true;
       params.is_destructive = true;
-      EDBM_update(static_cast<Mesh *>(obedit->data), &params);
+      EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
     }
 
     changed_multi |= changed;
@@ -466,7 +467,7 @@ static void edbm_bevel_cancel(bContext *C, wmOperator *op)
       params.calc_looptris = false;
       params.calc_normals = true;
       params.is_destructive = true;
-      EDBM_update(static_cast<Mesh *>(obedit->data), &params);
+      EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
     }
   }
 

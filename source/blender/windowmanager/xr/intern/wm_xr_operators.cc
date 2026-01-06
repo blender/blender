@@ -832,7 +832,7 @@ static wmOperatorStatus wm_xr_navigation_fly_modal(bContext *C,
   data->time_prev = time_now;
 
   swap_hands = xr->runtime->session_state.swap_hands;
-  mode = (eXrFlyMode)RNA_enum_get(op->ptr, swap_hands ? "alt_mode" : "mode");
+  mode = eXrFlyMode(RNA_enum_get(op->ptr, swap_hands ? "alt_mode" : "mode"));
   turn = ELEM(mode, XR_FLY_TURNLEFT, XR_FLY_TURNRIGHT);
   snap_turn = U.xr_navigation.flag & USER_XR_NAV_SNAP_TURN;
   invert_rotation = U.xr_navigation.flag & USER_XR_NAV_INVERT_ROTATION;

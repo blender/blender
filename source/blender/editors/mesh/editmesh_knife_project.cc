@@ -93,7 +93,7 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C, Object *ob, Li
     BKE_nurbList_free(&nurbslist);
 
     if (mesh_eval_needs_free) {
-      BKE_id_free(nullptr, (ID *)mesh_eval);
+      BKE_id_free(nullptr, blender::id_cast<ID *>(const_cast<Mesh *>(mesh_eval)));
     }
   }
 

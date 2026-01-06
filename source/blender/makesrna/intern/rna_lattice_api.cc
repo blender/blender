@@ -33,7 +33,7 @@ static const char *rna_Lattice_unit_test_compare(Lattice *lt, Lattice *lt2, floa
 
 static void rna_Lattice_transform(Lattice *lt, const float mat[16], bool shape_keys)
 {
-  BKE_lattice_transform(lt, (const float (*)[4])mat, shape_keys);
+  BKE_lattice_transform(lt, reinterpret_cast<const float (*)[4]>(mat), shape_keys);
 
   DEG_id_tag_update(&lt->id, 0);
 }

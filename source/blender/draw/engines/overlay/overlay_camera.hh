@@ -10,6 +10,7 @@
 
 #include "BKE_camera.h"
 #include "BKE_tracking.hh"
+#include "BLI_math_color.h"
 #include "BLI_math_rotation.h"
 #include "DEG_depsgraph_query.hh"
 #include "DNA_camera_types.h"
@@ -688,7 +689,7 @@ class Cameras : Overlay {
                                                     bool &r_use_view_transform)
   {
     ::Image *image = bgpic->ima;
-    ImageUser *iuser = (ImageUser *)&bgpic->iuser;
+    ImageUser *iuser = const_cast<ImageUser *>(&bgpic->iuser);
     MovieClip *clip = nullptr;
     gpu::Texture *tex = nullptr;
     float aspect_x, aspect_y;
@@ -713,7 +714,7 @@ class Cameras : Overlay {
 
         Images::stereo_setup(state.scene, state.v3d, image, iuser);
 
-        iuser->scene = (Scene *)state.scene;
+        iuser->scene = const_cast<Scene *>(state.scene);
         tex = BKE_image_get_gpu_viewer_texture(image, iuser);
         iuser->scene = nullptr;
 
@@ -732,7 +733,8 @@ class Cameras : Overlay {
       case CAM_BGIMG_SOURCE_MOVIE: {
         if (bgpic->flag & CAM_BGIMG_FLAG_CAMERACLIP) {
           if (state.scene->camera) {
-            clip = BKE_object_movieclip_get((Scene *)state.scene, state.scene->camera, true);
+            clip = BKE_object_movieclip_get(
+                const_cast<Scene *>(state.scene), state.scene->camera, true);
           }
         }
         else {
@@ -743,8 +745,8 @@ class Cameras : Overlay {
           return nullptr;
         }
 
-        BKE_movieclip_user_set_frame((MovieClipUser *)&bgpic->cuser, ctime);
-        tex = BKE_movieclip_get_gpu_texture(clip, (MovieClipUser *)&bgpic->cuser);
+        BKE_movieclip_user_set_frame(const_cast<MovieClipUser *>(&bgpic->cuser), ctime);
+        tex = BKE_movieclip_get_gpu_texture(clip, const_cast<MovieClipUser *>(&bgpic->cuser));
         if (tex == nullptr) {
           return nullptr;
         }

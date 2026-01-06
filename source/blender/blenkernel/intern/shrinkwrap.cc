@@ -982,7 +982,7 @@ static void mesh_corner_tris_target_project(void *userdata,
                                             BVHTreeNearest *nearest)
 {
   using namespace blender;
-  const ShrinkwrapTreeData *tree = (ShrinkwrapTreeData *)userdata;
+  const ShrinkwrapTreeData *tree = static_cast<ShrinkwrapTreeData *>(userdata);
   const blender::bke::BVHTreeFromMesh *data = &tree->treeData;
   const int3 &tri = data->corner_tris[index];
   const int tri_verts[3] = {
@@ -1515,7 +1515,7 @@ void BKE_shrinkwrap_mesh_nearest_surface_deform(Depsgraph *depsgraph,
   ssmd.shrinkMode = MOD_SHRINKWRAP_ON_SURFACE;
   ssmd.keepDist = 0.0f;
 
-  Mesh *src_me = static_cast<Mesh *>(ob_source->data);
+  Mesh *src_me = blender::id_cast<Mesh *>(ob_source->data);
 
   shrinkwrapModifier_deform(
       &ssmd,

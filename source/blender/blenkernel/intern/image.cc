@@ -139,7 +139,7 @@ static void image_runtime_free_data(Image *image)
 
 static void image_init_data(ID *id)
 {
-  Image *image = (Image *)id;
+  Image *image = blender::id_cast<Image *>(id);
 
   if (image != nullptr) {
     image_init(image, IMA_SRC_GENERATED, IMA_TYPE_UV_TEST);
@@ -152,8 +152,8 @@ static void image_copy_data(Main * /*bmain*/,
                             const ID *id_src,
                             const int flag)
 {
-  const Image *image_src = (const Image *)id_src;
-  Image *image_dst = (Image *)id_dst;
+  const Image *image_src = blender::id_cast<const Image *>(id_src);
+  Image *image_dst = blender::id_cast<Image *>(id_dst);
   image_dst->runtime = MEM_new<blender::bke::ImageRuntime>(__func__);
 
   BKE_color_managed_colorspace_settings_copy(&image_dst->colorspace_settings,
@@ -187,7 +187,7 @@ static void image_copy_data(Main * /*bmain*/,
 
 static void image_free_data(ID *id)
 {
-  Image *image = (Image *)id;
+  Image *image = blender::id_cast<Image *>(id);
 
   /* Also frees animations (#Image.anims list). */
   BKE_image_free_buffers(image);
@@ -218,7 +218,7 @@ static void image_foreach_cache(ID *id,
                                 IDTypeForeachCacheFunctionCallback function_callback,
                                 void *user_data)
 {
-  Image *image = (Image *)id;
+  Image *image = blender::id_cast<Image *>(id);
   IDCacheKey key;
   key.id_session_uid = id->session_uid;
 
@@ -228,18 +228,18 @@ static void image_foreach_cache(ID *id,
   function_callback(id, &key, &image->anims.last, 0, user_data);
 
   key.identifier = offsetof(Image, rr);
-  function_callback(id, &key, (void **)&image->rr, 0, user_data);
+  function_callback(id, &key, reinterpret_cast<void **>(&image->rr), 0, user_data);
 
   for (RenderSlot &slot : image->renderslots) {
     key.identifier = size_t(BLI_ghashutil_strhash_p(slot.name));
-    function_callback(id, &key, (void **)&slot.render, 0, user_data);
+    function_callback(id, &key, reinterpret_cast<void **>(&slot.render), 0, user_data);
   }
 
   /* Ensure we don't collide with the identifiers used above. */
   constexpr size_t runtime_base_id = size_t(1) << 32u;
 
   key.identifier = runtime_base_id + offsetof(blender::bke::ImageRuntime, cache);
-  function_callback(id, &key, (void **)&image->runtime->cache, 0, user_data);
+  function_callback(id, &key, reinterpret_cast<void **>(&image->runtime->cache), 0, user_data);
 
   auto gputexture_offset = [image](int target, int eye) {
     constexpr size_t base_offset = offsetof(blender::bke::ImageRuntime, gputexture);
@@ -256,14 +256,15 @@ static void image_foreach_cache(ID *id,
         continue;
       }
       key.identifier = runtime_base_id + gputexture_offset(a, eye);
-      function_callback(id, &key, (void **)&image->runtime->gputexture[a][eye], 0, user_data);
+      function_callback(
+          id, &key, reinterpret_cast<void **>(&image->runtime->gputexture[a][eye]), 0, user_data);
     }
   }
 }
 
 static void image_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
-  Image *ima = (Image *)id;
+  Image *ima = blender::id_cast<Image *>(id);
   const eBPathForeachFlag flag = bpath_data->flag;
 
   if (BKE_image_has_packedfile(ima) && (flag & BKE_BPATH_FOREACH_PATH_SKIP_PACKED) != 0) {
@@ -290,7 +291,10 @@ static void image_foreach_path(ID *id, BPathForeachPathData *bpath_data)
     eUDIM_TILE_FORMAT tile_format;
     char *udim_pattern = BKE_image_get_tile_strformat(temp_path, &tile_format);
     BKE_image_set_filepath_from_tile_number(
-        temp_path, udim_pattern, tile_format, ((ImageTile *)ima->tiles.first)->tile_number);
+        temp_path,
+        udim_pattern,
+        tile_format,
+        (static_cast<ImageTile *>(ima->tiles.first))->tile_number);
     MEM_SAFE_FREE(udim_pattern);
 
     result = BKE_bpath_foreach_path_fixed_process(bpath_data, temp_path, sizeof(temp_path));
@@ -320,7 +324,7 @@ static void image_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 
 static void image_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  Image *ima = (Image *)id;
+  Image *ima = blender::id_cast<Image *>(id);
   const bool is_undo = BLO_write_is_undo(writer);
 
   /* Clear all data that isn't read to reduce false detection of changed image during memfile undo.
@@ -371,7 +375,7 @@ static void image_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 
 static void image_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  Image *ima = (Image *)id;
+  Image *ima = blender::id_cast<Image *>(id);
   BLO_read_struct_list(reader, ImageTile, &ima->tiles);
 
   BLO_read_struct_list(reader, RenderSlot, &(ima->renderslots));
@@ -1629,7 +1633,7 @@ static bool imagecache_check_free_anim(ImBuf *ibuf, void * /*userkey*/, void *us
   if (ibuf == nullptr) {
     return true;
   }
-  int except_frame = *(int *)userdata;
+  int except_frame = *static_cast<int *>(userdata);
   return (ibuf->userflags & IB_BITMAPDIRTY) == 0 && (ibuf->index != IMA_NO_INDEX) &&
          (except_frame != IMA_INDEX_ENTRY(ibuf->index));
 }
@@ -2501,7 +2505,7 @@ static void metadata_copy_custom_fields(const char *field, const char *value, vo
   if (BKE_stamp_is_known_field(field)) {
     return;
   }
-  RenderResult *rr = (RenderResult *)rr_v;
+  RenderResult *rr = static_cast<RenderResult *>(rr_v);
   BKE_render_result_stamp_data(rr, field, value);
 }
 
@@ -2777,12 +2781,12 @@ static void image_walk_ntree_all_users(
         if (node->id) {
           if (node->type_legacy == SH_NODE_TEX_IMAGE) {
             NodeTexImage *tex = static_cast<NodeTexImage *>(node->storage);
-            Image *ima = (Image *)node->id;
+            Image *ima = blender::id_cast<Image *>(node->id);
             callback(ima, id, &tex->iuser, customdata);
           }
           if (node->type_legacy == SH_NODE_TEX_ENVIRONMENT) {
             NodeTexImage *tex = static_cast<NodeTexImage *>(node->storage);
-            Image *ima = (Image *)node->id;
+            Image *ima = blender::id_cast<Image *>(node->id);
             callback(ima, id, &tex->iuser, customdata);
           }
         }
@@ -2791,7 +2795,7 @@ static void image_walk_ntree_all_users(
     case NTREE_TEXTURE:
       for (bNode *node : ntree->all_nodes()) {
         if (node->id && node->type_legacy == TEX_NODE_IMAGE) {
-          Image *ima = (Image *)node->id;
+          Image *ima = blender::id_cast<Image *>(node->id);
           ImageUser *iuser = static_cast<ImageUser *>(node->storage);
           callback(ima, id, iuser, customdata);
         }
@@ -2800,14 +2804,14 @@ static void image_walk_ntree_all_users(
     case NTREE_COMPOSIT:
       for (bNode *node : ntree->all_nodes()) {
         if (node->id && node->type_legacy == CMP_NODE_IMAGE) {
-          Image *ima = (Image *)node->id;
+          Image *ima = blender::id_cast<Image *>(node->id);
           ImageUser *iuser = static_cast<ImageUser *>(node->storage);
           callback(ima, id, iuser, customdata);
         }
         if (node->type_legacy == CMP_NODE_CRYPTOMATTE) {
           CMPNodeCryptomatteSource source = static_cast<CMPNodeCryptomatteSource>(node->custom1);
           if (source == CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE) {
-            Image *image = (Image *)node->id;
+            Image *image = blender::id_cast<Image *>(node->id);
             ImageUser *image_user = &static_cast<NodeCryptomatte *>(node->storage)->iuser;
             callback(image, id, image_user, customdata);
           }
@@ -2824,7 +2828,7 @@ static void image_walk_gpu_materials(
     void callback(Image *ima, ID *iuser_id, ImageUser *iuser, void *customdata))
 {
   for (LinkData &link : *gpu_materials) {
-    GPUMaterial *gpu_material = (GPUMaterial *)link.data;
+    GPUMaterial *gpu_material = static_cast<GPUMaterial *>(link.data);
     ListBaseT<GPUMaterialTexture> textures = GPU_material_textures(gpu_material);
     for (GPUMaterialTexture &gpu_material_texture : textures) {
       if (gpu_material_texture.iuser_available) {
@@ -2842,14 +2846,14 @@ static void image_walk_id_all_users(
 {
   switch (GS(id->name)) {
     case ID_OB: {
-      Object *ob = (Object *)id;
+      Object *ob = blender::id_cast<Object *>(id);
       if (ob->empty_drawtype == OB_EMPTY_IMAGE && ob->data) {
-        callback(static_cast<Image *>(ob->data), &ob->id, ob->iuser, customdata);
+        callback(blender::id_cast<Image *>(ob->data), &ob->id, ob->iuser, customdata);
       }
       break;
     }
     case ID_MA: {
-      Material *ma = (Material *)id;
+      Material *ma = blender::id_cast<Material *>(id);
       if (ma->nodetree && !skip_nested_nodes) {
         image_walk_ntree_all_users(ma->nodetree, &ma->id, customdata, callback);
       }
@@ -2857,14 +2861,14 @@ static void image_walk_id_all_users(
       break;
     }
     case ID_LA: {
-      Light *light = (Light *)id;
+      Light *light = blender::id_cast<Light *>(id);
       if (light->nodetree && !skip_nested_nodes) {
         image_walk_ntree_all_users(light->nodetree, &light->id, customdata, callback);
       }
       break;
     }
     case ID_WO: {
-      World *world = (World *)id;
+      World *world = blender::id_cast<World *>(id);
       if (world->nodetree && !skip_nested_nodes) {
         image_walk_ntree_all_users(world->nodetree, &world->id, customdata, callback);
       }
@@ -2872,7 +2876,7 @@ static void image_walk_id_all_users(
       break;
     }
     case ID_TE: {
-      Tex *tex = (Tex *)id;
+      Tex *tex = blender::id_cast<Tex *>(id);
       if (tex->type == TEX_IMAGE && tex->ima) {
         callback(tex->ima, &tex->id, &tex->iuser, customdata);
       }
@@ -2882,19 +2886,19 @@ static void image_walk_id_all_users(
       break;
     }
     case ID_NT: {
-      bNodeTree *ntree = (bNodeTree *)id;
+      bNodeTree *ntree = blender::id_cast<bNodeTree *>(id);
       image_walk_ntree_all_users(ntree, &ntree->id, customdata, callback);
       break;
     }
     case ID_CA: {
-      Camera *cam = (Camera *)id;
+      Camera *cam = blender::id_cast<Camera *>(id);
       for (CameraBGImage &bgpic : cam->bg_images) {
         callback(bgpic.ima, nullptr, &bgpic.iuser, customdata);
       }
       break;
     }
     case ID_WM: {
-      wmWindowManager *wm = (wmWindowManager *)id;
+      wmWindowManager *wm = blender::id_cast<wmWindowManager *>(id);
       for (wmWindow &win : wm->windows) {
         const bScreen *screen = BKE_workspace_active_screen_get(win.workspace_hook);
 
@@ -3563,7 +3567,7 @@ void BKE_image_ensure_tile_token_filename_only(char *filename, size_t filename_m
 
 void BKE_image_ensure_tile_token(char *filepath, size_t filepath_maxncpy)
 {
-  char *filename = (char *)BLI_path_basename(filepath);
+  char *filename = const_cast<char *>(BLI_path_basename(filepath));
   BKE_image_ensure_tile_token_filename_only(filename, filepath_maxncpy - (filename - filepath));
 }
 
@@ -4158,12 +4162,13 @@ static ImBuf *load_image_single(Image *ima,
     for (ImagePackedFile &imapf : ima->packedfiles) {
       if (imapf.view == view_id && imapf.tile_number == tile_number) {
         if (imapf.packedfile) {
-          ibuf = IMB_load_image_from_memory((uchar *)imapf.packedfile->data,
-                                            imapf.packedfile->size,
-                                            flag,
-                                            "<packed data>",
-                                            nullptr,
-                                            ima->colorspace_settings.name);
+          ibuf = IMB_load_image_from_memory(
+              static_cast<uchar *>(const_cast<void *>(imapf.packedfile->data)),
+              imapf.packedfile->size,
+              flag,
+              "<packed data>",
+              nullptr,
+              ima->colorspace_settings.name);
         }
         break;
       }
@@ -4373,7 +4378,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
   }
   else if ((slot = BKE_image_get_renderslot(ima, ima->render_slot))->render) {
     rres = *(slot->render);
-    rres.have_combined = ((RenderView *)rres.views.first)->ibuf != nullptr;
+    rres.have_combined = (static_cast<RenderView *>(rres.views.first))->ibuf != nullptr;
   }
 
   if (!(rres.rectx > 0 && rres.recty > 0)) {
@@ -5096,7 +5101,7 @@ static void image_editors_update_frame(Image *ima,
 {
   if (ima && BKE_image_is_animated(ima)) {
     if ((iuser->flag & IMA_ANIM_ALWAYS) || (iuser->flag & IMA_NEED_FRAME_RECALC)) {
-      int cfra = *(int *)customdata;
+      int cfra = *static_cast<int *>(customdata);
 
       BKE_image_user_frame_calc(ima, iuser, cfra);
     }
@@ -5117,7 +5122,7 @@ static void image_user_id_has_animation(Image *ima,
                                         void *customdata)
 {
   if (ima && BKE_image_is_animated(ima)) {
-    *(bool *)customdata = true;
+    *static_cast<bool *>(customdata) = true;
   }
 }
 
@@ -5137,7 +5142,7 @@ static void image_user_id_eval_animation(Image *ima,
                                          void *customdata)
 {
   if (ima && BKE_image_is_animated(ima)) {
-    Depsgraph *depsgraph = (Depsgraph *)customdata;
+    Depsgraph *depsgraph = static_cast<Depsgraph *>(customdata);
 
     if ((iuser->flag & IMA_ANIM_ALWAYS) || (iuser->flag & IMA_NEED_FRAME_RECALC) ||
         (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER))

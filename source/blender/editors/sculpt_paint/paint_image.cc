@@ -489,7 +489,7 @@ void ED_space_image_paint_update(Main *bmain, wmWindowManager *wm, Scene *scene)
 
     for (ScrArea &area : screen->areabase) {
       if (area.spacetype == SPACE_IMAGE) {
-        if (((SpaceImage *)area.spacedata.first)->mode == SI_MODE_PAINT) {
+        if ((static_cast<SpaceImage *>(area.spacedata.first))->mode == SI_MODE_PAINT) {
           enabled = true;
         }
       }
@@ -640,7 +640,7 @@ static blender::float3 paint_init_pivot_mesh(Object *ob)
   using namespace blender;
   const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
   if (!mesh_eval) {
-    mesh_eval = (const Mesh *)ob->data;
+    mesh_eval = blender::id_cast<const Mesh *>(ob->data);
   }
 
   const std::optional<Bounds<float3>> bounds = mesh_eval->bounds_min_max();
@@ -653,7 +653,7 @@ static blender::float3 paint_init_pivot_mesh(Object *ob)
 
 static blender::float3 paint_init_pivot_curves(Object *ob)
 {
-  const Curves &curves = *static_cast<const Curves *>(ob->data);
+  const Curves &curves = *blender::id_cast<const Curves *>(ob->data);
   const std::optional<blender::Bounds<blender::float3>> bounds =
       curves.geometry.wrap().bounds_min_max();
   if (bounds.has_value()) {
@@ -665,7 +665,7 @@ static blender::float3 paint_init_pivot_curves(Object *ob)
 static blender::float3 paint_init_pivot_grease_pencil(Object *ob, const int frame)
 {
   using namespace blender;
-  const GreasePencil &grease_pencil = *static_cast<const GreasePencil *>(ob->data);
+  const GreasePencil &grease_pencil = *blender::id_cast<const GreasePencil *>(ob->data);
   const std::optional<Bounds<float3>> bounds = grease_pencil.bounds_min_max(frame);
   if (bounds.has_value()) {
     return blender::math::midpoint(bounds->min, bounds->max);

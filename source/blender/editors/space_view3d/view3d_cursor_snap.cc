@@ -955,7 +955,7 @@ V3DSnapCursorState *ED_view3d_cursor_snap_state_active_get()
   if (BLI_listbase_is_empty(&data_intern->state_intern)) {
     return &g_data_intern.state_default;
   }
-  return &((SnapStateIntern *)data_intern->state_intern.last)->snap_state;
+  return &(static_cast<SnapStateIntern *>(data_intern->state_intern.last))->snap_state;
 }
 
 void ED_view3d_cursor_snap_state_active_set(V3DSnapCursorState *state)
@@ -966,7 +966,7 @@ void ED_view3d_cursor_snap_state_active_set(V3DSnapCursorState *state)
   }
 
   SnapStateIntern *state_intern = STATE_INTERN_GET(state);
-  if (state_intern == (SnapStateIntern *)g_data_intern.state_intern.last) {
+  if (state_intern == static_cast<SnapStateIntern *>(g_data_intern.state_intern.last)) {
     return;
   }
 
@@ -988,7 +988,8 @@ static void v3d_cursor_snap_activate()
        * TODO: ED_view3d_cursor_snap_init */
 
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
-      wmKeyConfig *keyconf = ((wmWindowManager *)G.main->wm.first)->runtime->defaultconf;
+      wmKeyConfig *keyconf =
+          (static_cast<wmWindowManager *>(G.main->wm.first))->runtime->defaultconf;
 
       data_intern->keymap = WM_modalkeymap_find(keyconf, "Generic Gizmo Tweak Modal Map");
       RNA_enum_value_from_id(

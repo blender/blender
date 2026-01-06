@@ -78,7 +78,7 @@ void console_scrollback_prompt_end(SpaceConsole *sc, ConsoleLine *cl_dummy)
 /* console textview callbacks */
 static int console_textview_begin(TextViewContext *tvc)
 {
-  SpaceConsole *sc = (SpaceConsole *)tvc->arg1;
+  SpaceConsole *sc = static_cast<SpaceConsole *>(const_cast<void *>(tvc->arg1));
   tvc->sel_start = sc->sel_start;
   tvc->sel_end = sc->sel_end;
 
@@ -90,13 +90,14 @@ static int console_textview_begin(TextViewContext *tvc)
 
 static void console_textview_end(TextViewContext *tvc)
 {
-  SpaceConsole *sc = (SpaceConsole *)tvc->arg1;
+  SpaceConsole *sc = static_cast<SpaceConsole *>(const_cast<void *>(tvc->arg1));
   (void)sc;
 }
 
 static int console_textview_step(TextViewContext *tvc)
 {
-  return ((tvc->iter = (void *)((Link *)tvc->iter)->prev) != nullptr);
+  return ((tvc->iter = static_cast<void *>(
+               (static_cast<Link *>(const_cast<void *>(tvc->iter)))->prev)) != nullptr);
 }
 
 static void console_textview_line_get(TextViewContext *tvc, const char **r_line, int *r_len)
@@ -135,8 +136,8 @@ static void console_textview_draw_cursor(TextViewContext *tvc, int cwidth, int c
 {
   int pen[2];
   {
-    const SpaceConsole *sc = (SpaceConsole *)tvc->arg1;
-    const ConsoleLine *cl = (ConsoleLine *)sc->history.last;
+    const SpaceConsole *sc = static_cast<SpaceConsole *>(const_cast<void *>(tvc->arg1));
+    const ConsoleLine *cl = static_cast<ConsoleLine *>(sc->history.last);
     int offl = 0, offc = 0;
 
     console_cursor_wrap_offset(sc->prompt, columns, &offl, &offc, nullptr);

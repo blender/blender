@@ -425,7 +425,7 @@ static uchar *colormanage_cache_get(ImBuf *ibuf,
       return nullptr;
     }
 
-    return (uchar *)cache_ibuf->byte_buffer.data;
+    return static_cast<uchar *>(cache_ibuf->byte_buffer.data);
   }
 
   return nullptr;
@@ -3898,10 +3898,10 @@ static void partial_buffer_update_rect(ImBuf *ibuf,
 
         if (linear_buffer) {
           if (channels == 4) {
-            copy_v4_v4(pixel, (float *)linear_buffer + linear_index);
+            copy_v4_v4(pixel, const_cast<float *>(linear_buffer) + linear_index);
           }
           else if (channels == 3) {
-            copy_v3_v3(pixel, (float *)linear_buffer + linear_index);
+            copy_v3_v3(pixel, const_cast<float *>(linear_buffer) + linear_index);
             pixel[3] = 1.0f;
           }
           else if (channels == 1) {

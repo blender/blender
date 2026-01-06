@@ -127,10 +127,10 @@ static bool rna_Cache_get_valid_owner_ID(const PointerRNA *ptr, Object **ob, Sce
 {
   switch (GS(ptr->owner_id->name)) {
     case ID_OB:
-      *ob = (Object *)ptr->owner_id;
+      *ob = blender::id_cast<Object *>(ptr->owner_id);
       break;
     case ID_SCE:
-      *scene = (Scene *)ptr->owner_id;
+      *scene = blender::id_cast<Scene *>(ptr->owner_id);
       break;
     default:
       BLI_assert_msg(0,
@@ -177,14 +177,14 @@ static std::optional<std::string> rna_PointCache_path(const PointerRNA *ptr)
 
     switch (md->type) {
       case eModifierType_ParticleSystem: {
-        ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
+        ParticleSystemModifierData *psmd = reinterpret_cast<ParticleSystemModifierData *>(md);
         if (psmd->psys->pointcache == cache) {
           return fmt::format("modifiers[\"{}\"].particle_system.point_cache", name_esc);
         }
         break;
       }
       case eModifierType_DynamicPaint: {
-        DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+        DynamicPaintModifierData *pmd = reinterpret_cast<DynamicPaintModifierData *>(md);
         if (pmd->canvas) {
           DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(
               pmd->canvas->surfaces.first);
@@ -202,7 +202,7 @@ static std::optional<std::string> rna_PointCache_path(const PointerRNA *ptr)
         break;
       }
       case eModifierType_Cloth: {
-        ClothModifierData *clmd = (ClothModifierData *)md;
+        ClothModifierData *clmd = reinterpret_cast<ClothModifierData *>(md);
         if (clmd->point_cache == cache) {
           return fmt::format("modifiers[\"{}\"].point_cache", name_esc);
         }
@@ -233,7 +233,7 @@ static void rna_Cache_change(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *pt
     return;
   }
 
-  PointCache *cache = (PointCache *)ptr->data;
+  PointCache *cache = static_cast<PointCache *>(ptr->data);
 
   cache->flag |= PTCACHE_OUTDATED;
 
@@ -259,7 +259,7 @@ static void rna_Cache_toggle_disk_cache(Main * /*bmain*/, Scene * /*scene*/, Poi
     return;
   }
 
-  PointCache *cache = (PointCache *)ptr->data;
+  PointCache *cache = static_cast<PointCache *>(ptr->data);
 
   PTCacheID pid = BKE_ptcache_id_find(ob, scene, cache);
 
@@ -302,7 +302,7 @@ static void rna_Cache_idname_change(Main * /*bmain*/, Scene * /*scene*/, Pointer
     return;
   }
 
-  PointCache *cache = (PointCache *)ptr->data;
+  PointCache *cache = static_cast<PointCache *>(ptr->data);
   bool use_new_name = true;
 
   /* TODO: check for proper characters */
@@ -457,7 +457,7 @@ int rna_Cache_info_length(PointerRNA *ptr)
     return 0;
   }
 
-  PointCache *cache = (PointCache *)ptr->data;
+  PointCache *cache = static_cast<PointCache *>(ptr->data);
 
   PTCacheID pid = BKE_ptcache_id_find(ob, scene, cache);
 
@@ -492,13 +492,13 @@ static std::optional<std::string> rna_CollisionSettings_path(const PointerRNA * 
 
 static bool rna_SoftBodySettings_use_edges_get(PointerRNA *ptr)
 {
-  Object *data = (Object *)(ptr->owner_id);
+  Object *data = blender::id_cast<Object *>(ptr->owner_id);
   return (((data->softflag) & OB_SB_EDGES) != 0);
 }
 
 static void rna_SoftBodySettings_use_edges_set(PointerRNA *ptr, bool value)
 {
-  Object *data = (Object *)(ptr->owner_id);
+  Object *data = blender::id_cast<Object *>(ptr->owner_id);
   if (value) {
     data->softflag |= OB_SB_EDGES;
   }
@@ -509,13 +509,13 @@ static void rna_SoftBodySettings_use_edges_set(PointerRNA *ptr, bool value)
 
 static bool rna_SoftBodySettings_use_goal_get(PointerRNA *ptr)
 {
-  Object *data = (Object *)(ptr->owner_id);
+  Object *data = blender::id_cast<Object *>(ptr->owner_id);
   return (((data->softflag) & OB_SB_GOAL) != 0);
 }
 
 static void rna_SoftBodySettings_use_goal_set(PointerRNA *ptr, bool value)
 {
-  Object *data = (Object *)(ptr->owner_id);
+  Object *data = blender::id_cast<Object *>(ptr->owner_id);
   if (value) {
     data->softflag |= OB_SB_GOAL;
   }
@@ -526,13 +526,13 @@ static void rna_SoftBodySettings_use_goal_set(PointerRNA *ptr, bool value)
 
 static bool rna_SoftBodySettings_stiff_quads_get(PointerRNA *ptr)
 {
-  Object *data = (Object *)(ptr->owner_id);
+  Object *data = blender::id_cast<Object *>(ptr->owner_id);
   return (((data->softflag) & OB_SB_QUADS) != 0);
 }
 
 static void rna_SoftBodySettings_stiff_quads_set(PointerRNA *ptr, bool value)
 {
-  Object *data = (Object *)(ptr->owner_id);
+  Object *data = blender::id_cast<Object *>(ptr->owner_id);
   if (value) {
     data->softflag |= OB_SB_QUADS;
   }
@@ -543,13 +543,13 @@ static void rna_SoftBodySettings_stiff_quads_set(PointerRNA *ptr, bool value)
 
 static bool rna_SoftBodySettings_self_collision_get(PointerRNA *ptr)
 {
-  Object *data = (Object *)(ptr->owner_id);
+  Object *data = blender::id_cast<Object *>(ptr->owner_id);
   return (((data->softflag) & OB_SB_SELF) != 0);
 }
 
 static void rna_SoftBodySettings_self_collision_set(PointerRNA *ptr, bool value)
 {
-  Object *data = (Object *)(ptr->owner_id);
+  Object *data = blender::id_cast<Object *>(ptr->owner_id);
   if (value) {
     data->softflag |= OB_SB_SELF;
   }
@@ -560,7 +560,7 @@ static void rna_SoftBodySettings_self_collision_set(PointerRNA *ptr, bool value)
 
 static int rna_SoftBodySettings_new_aero_get(PointerRNA *ptr)
 {
-  Object *data = (Object *)(ptr->owner_id);
+  Object *data = blender::id_cast<Object *>(ptr->owner_id);
   if (data->softflag & OB_SB_AERO_ANGLE) {
     return 1;
   }
@@ -571,7 +571,7 @@ static int rna_SoftBodySettings_new_aero_get(PointerRNA *ptr)
 
 static void rna_SoftBodySettings_new_aero_set(PointerRNA *ptr, int value)
 {
-  Object *data = (Object *)(ptr->owner_id);
+  Object *data = blender::id_cast<Object *>(ptr->owner_id);
   if (value == 1) {
     data->softflag |= OB_SB_AERO_ANGLE;
   }
@@ -582,13 +582,13 @@ static void rna_SoftBodySettings_new_aero_set(PointerRNA *ptr, int value)
 
 static bool rna_SoftBodySettings_face_collision_get(PointerRNA *ptr)
 {
-  Object *data = (Object *)(ptr->owner_id);
+  Object *data = blender::id_cast<Object *>(ptr->owner_id);
   return (((data->softflag) & OB_SB_FACECOLL) != 0);
 }
 
 static void rna_SoftBodySettings_face_collision_set(PointerRNA *ptr, bool value)
 {
-  Object *data = (Object *)(ptr->owner_id);
+  Object *data = blender::id_cast<Object *>(ptr->owner_id);
   if (value) {
     data->softflag |= OB_SB_FACECOLL;
   }
@@ -599,13 +599,13 @@ static void rna_SoftBodySettings_face_collision_set(PointerRNA *ptr, bool value)
 
 static bool rna_SoftBodySettings_edge_collision_get(PointerRNA *ptr)
 {
-  Object *data = (Object *)(ptr->owner_id);
+  Object *data = blender::id_cast<Object *>(ptr->owner_id);
   return (((data->softflag) & OB_SB_EDGECOLL) != 0);
 }
 
 static void rna_SoftBodySettings_edge_collision_set(PointerRNA *ptr, bool value)
 {
-  Object *data = (Object *)(ptr->owner_id);
+  Object *data = blender::id_cast<Object *>(ptr->owner_id);
   if (value) {
     data->softflag |= OB_SB_EDGECOLL;
   }
@@ -616,37 +616,37 @@ static void rna_SoftBodySettings_edge_collision_set(PointerRNA *ptr, bool value)
 
 static void rna_SoftBodySettings_goal_vgroup_get(PointerRNA *ptr, char *value)
 {
-  SoftBody *sb = (SoftBody *)ptr->data;
+  SoftBody *sb = static_cast<SoftBody *>(ptr->data);
   rna_object_vgroup_name_index_get(ptr, value, sb->vertgroup);
 }
 
 static int rna_SoftBodySettings_goal_vgroup_length(PointerRNA *ptr)
 {
-  SoftBody *sb = (SoftBody *)ptr->data;
+  SoftBody *sb = static_cast<SoftBody *>(ptr->data);
   return rna_object_vgroup_name_index_length(ptr, sb->vertgroup);
 }
 
 static void rna_SoftBodySettings_goal_vgroup_set(PointerRNA *ptr, const char *value)
 {
-  SoftBody *sb = (SoftBody *)ptr->data;
+  SoftBody *sb = static_cast<SoftBody *>(ptr->data);
   rna_object_vgroup_name_index_set(ptr, value, &sb->vertgroup);
 }
 
 static void rna_SoftBodySettings_mass_vgroup_set(PointerRNA *ptr, const char *value)
 {
-  SoftBody *sb = (SoftBody *)ptr->data;
+  SoftBody *sb = static_cast<SoftBody *>(ptr->data);
   rna_object_vgroup_name_set(ptr, value, sb->namedVG_Mass, sizeof(sb->namedVG_Mass));
 }
 
 static void rna_SoftBodySettings_spring_vgroup_set(PointerRNA *ptr, const char *value)
 {
-  SoftBody *sb = (SoftBody *)ptr->data;
+  SoftBody *sb = static_cast<SoftBody *>(ptr->data);
   rna_object_vgroup_name_set(ptr, value, sb->namedVG_Spring_K, sizeof(sb->namedVG_Spring_K));
 }
 
 static std::optional<std::string> rna_SoftBodySettings_path(const PointerRNA *ptr)
 {
-  const Object *ob = (Object *)ptr->owner_id;
+  const Object *ob = blender::id_cast<Object *>(ptr->owner_id);
   const ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Softbody);
   char name_esc[sizeof(md->name) * 2];
 
@@ -664,7 +664,7 @@ static int particle_id_check(const PointerRNA *ptr)
 static void rna_FieldSettings_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   if (particle_id_check(ptr)) {
-    ParticleSettings *part = (ParticleSettings *)ptr->owner_id;
+    ParticleSettings *part = blender::id_cast<ParticleSettings *>(ptr->owner_id);
 
     if (part->pd->forcefield != PFIELD_TEXTURE && part->pd->tex) {
       id_us_min(&part->pd->tex->id);
@@ -682,7 +682,7 @@ static void rna_FieldSettings_update(Main * /*bmain*/, Scene * /*scene*/, Pointe
     WM_main_add_notifier(NC_OBJECT | ND_DRAW, nullptr);
   }
   else {
-    Object *ob = (Object *)ptr->owner_id;
+    Object *ob = blender::id_cast<Object *>(ptr->owner_id);
 
     if (ob->pd->forcefield != PFIELD_TEXTURE && ob->pd->tex) {
       id_us_min(&ob->pd->tex->id);
@@ -705,7 +705,7 @@ static void rna_FieldSettings_update(Main * /*bmain*/, Scene * /*scene*/, Pointe
 static void rna_FieldSettings_shape_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   if (!particle_id_check(ptr)) {
-    Object *ob = (Object *)ptr->owner_id;
+    Object *ob = blender::id_cast<Object *>(ptr->owner_id);
     blender::ed::object::check_force_modifiers(bmain, scene, ob);
 
     DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
@@ -716,12 +716,12 @@ static void rna_FieldSettings_shape_update(Main *bmain, Scene *scene, PointerRNA
 
 static void rna_FieldSettings_type_set(PointerRNA *ptr, int value)
 {
-  PartDeflect *part_deflect = (PartDeflect *)ptr->data;
+  PartDeflect *part_deflect = static_cast<PartDeflect *>(ptr->data);
 
   part_deflect->forcefield = value;
 
   if (!particle_id_check(ptr)) {
-    Object *ob = (Object *)ptr->owner_id;
+    Object *ob = blender::id_cast<Object *>(ptr->owner_id);
     ob->pd->forcefield = value;
     if (ELEM(value, PFIELD_WIND, PFIELD_VORTEX)) {
       ob->empty_drawtype = OB_SINGLE_ARROW;
@@ -742,7 +742,7 @@ static void rna_FieldSettings_dependency_update(Main *bmain, Scene *scene, Point
                           ID_RECALC_PSYS_RESET);
   }
   else {
-    Object *ob = (Object *)ptr->owner_id;
+    Object *ob = blender::id_cast<Object *>(ptr->owner_id);
 
     rna_FieldSettings_shape_update(bmain, scene, ptr);
 
@@ -759,13 +759,13 @@ static void rna_FieldSettings_dependency_update(Main *bmain, Scene *scene, Point
 
 static std::optional<std::string> rna_FieldSettings_path(const PointerRNA *ptr)
 {
-  PartDeflect *pd = (PartDeflect *)ptr->data;
+  PartDeflect *pd = static_cast<PartDeflect *>(ptr->data);
 
   /* Check through all possible places the settings can be to find the right one */
 
   if (particle_id_check(ptr)) {
     /* particle system force field */
-    ParticleSettings *part = (ParticleSettings *)ptr->owner_id;
+    ParticleSettings *part = blender::id_cast<ParticleSettings *>(ptr->owner_id);
 
     if (part->pd == pd) {
       return "force_field_1";
@@ -776,7 +776,7 @@ static std::optional<std::string> rna_FieldSettings_path(const PointerRNA *ptr)
   }
   else {
     /* object force field */
-    Object *ob = (Object *)ptr->owner_id;
+    Object *ob = blender::id_cast<Object *>(ptr->owner_id);
 
     if (ob->pd == pd) {
       return "field";
@@ -790,7 +790,7 @@ static void rna_EffectorWeight_update(Main * /*bmain*/, Scene * /*scene*/, Point
   ID *id = ptr->owner_id;
 
   if (id && GS(id->name) == ID_SCE) {
-    Scene *scene = (Scene *)id;
+    Scene *scene = blender::id_cast<Scene *>(id);
     FOREACH_SCENE_OBJECT_BEGIN (scene, ob) {
       BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_DEPSGRAPH);
     }
@@ -813,12 +813,12 @@ static void rna_EffectorWeight_dependency_update(Main *bmain, Scene * /*scene*/,
 
 static std::optional<std::string> rna_EffectorWeight_path(const PointerRNA *ptr)
 {
-  EffectorWeights *ew = (EffectorWeights *)ptr->data;
+  EffectorWeights *ew = static_cast<EffectorWeights *>(ptr->data);
   /* Check through all possible places the settings can be to find the right one */
 
   if (particle_id_check(ptr)) {
     /* particle effector weights */
-    ParticleSettings *part = (ParticleSettings *)ptr->owner_id;
+    ParticleSettings *part = blender::id_cast<ParticleSettings *>(ptr->owner_id);
 
     if (part->effector_weights == ew) {
       return "effector_weights";
@@ -828,7 +828,7 @@ static std::optional<std::string> rna_EffectorWeight_path(const PointerRNA *ptr)
     ID *id = ptr->owner_id;
 
     if (id && GS(id->name) == ID_SCE) {
-      const Scene *scene = (Scene *)id;
+      const Scene *scene = blender::id_cast<Scene *>(id);
       const RigidBodyWorld *rbw = scene->rigidbody_world;
 
       if (rbw->effector_weights == ew) {
@@ -836,11 +836,11 @@ static std::optional<std::string> rna_EffectorWeight_path(const PointerRNA *ptr)
       }
     }
 
-    Object *ob = (Object *)id;
+    Object *ob = blender::id_cast<Object *>(id);
     ModifierData *md;
 
     /* check softbody modifier */
-    md = (ModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Softbody);
+    md = static_cast<ModifierData *>(BKE_modifiers_findby_type(ob, eModifierType_Softbody));
     if (md) {
       /* no pointer from modifier data to actual softbody storage, would be good to add */
       if (ob->soft->effector_weights == ew) {
@@ -851,9 +851,9 @@ static std::optional<std::string> rna_EffectorWeight_path(const PointerRNA *ptr)
     }
 
     /* check cloth modifier */
-    md = (ModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Cloth);
+    md = static_cast<ModifierData *>(BKE_modifiers_findby_type(ob, eModifierType_Cloth));
     if (md) {
-      ClothModifierData *cmd = (ClothModifierData *)md;
+      ClothModifierData *cmd = reinterpret_cast<ClothModifierData *>(md);
       if (cmd->sim_parms->effector_weights == ew) {
         char name_esc[sizeof(md->name) * 2];
         BLI_str_escape(name_esc, md->name, sizeof(name_esc));
@@ -862,9 +862,9 @@ static std::optional<std::string> rna_EffectorWeight_path(const PointerRNA *ptr)
     }
 
     /* check fluid modifier */
-    md = (ModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Fluid);
+    md = static_cast<ModifierData *>(BKE_modifiers_findby_type(ob, eModifierType_Fluid));
     if (md) {
-      FluidModifierData *fmd = (FluidModifierData *)md;
+      FluidModifierData *fmd = reinterpret_cast<FluidModifierData *>(md);
       if (fmd->type == MOD_FLUID_TYPE_DOMAIN && fmd->domain && fmd->domain->effector_weights == ew)
       {
         char name_esc[sizeof(md->name) * 2];
@@ -874,9 +874,9 @@ static std::optional<std::string> rna_EffectorWeight_path(const PointerRNA *ptr)
     }
 
     /* check dynamic paint modifier */
-    md = (ModifierData *)BKE_modifiers_findby_type(ob, eModifierType_DynamicPaint);
+    md = static_cast<ModifierData *>(BKE_modifiers_findby_type(ob, eModifierType_DynamicPaint));
     if (md) {
-      DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+      DynamicPaintModifierData *pmd = reinterpret_cast<DynamicPaintModifierData *>(md);
 
       if (pmd->canvas) {
         DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(
@@ -904,7 +904,7 @@ static std::optional<std::string> rna_EffectorWeight_path(const PointerRNA *ptr)
 
 static void rna_CollisionSettings_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->owner_id;
+  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
   ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Collision);
 
   /* add the modifier if needed */
@@ -918,7 +918,7 @@ static void rna_CollisionSettings_dependency_update(Main *bmain, Scene *scene, P
 
 static void rna_CollisionSettings_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->owner_id;
+  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
@@ -926,7 +926,7 @@ static void rna_CollisionSettings_update(Main * /*bmain*/, Scene * /*scene*/, Po
 
 static void rna_softbody_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->owner_id;
+  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
@@ -949,7 +949,7 @@ static const EnumPropertyItem *rna_Effector_shape_itemf(bContext * /*C*/,
     return empty_shape_items;
   }
 
-  ob = (Object *)ptr->owner_id;
+  ob = blender::id_cast<Object *>(ptr->owner_id);
 
   if (ob->type == OB_CURVES_LEGACY) {
     if (ob->pd->forcefield == PFIELD_VORTEX) {

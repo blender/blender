@@ -135,7 +135,7 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, PoseBlendData *pbd)
 
     bPose *pose = ob->pose;
     bAction *act = poselib_action_to_blend(pbd);
-    const bArmature *armature = static_cast<const bArmature *>(ob->data);
+    const bArmature *armature = blender::id_cast<const bArmature *>(ob->data);
 
     blender::animrig::Slot &slot = blender::animrig::get_best_pose_slot_for_id(ob->id,
                                                                                act->wrap());

@@ -567,7 +567,7 @@ char *BLI_strcasestr(const char *s, const char *find)
     } while (BLI_strncasecmp(s, find, len) != 0);
     s--;
   }
-  return ((char *)s);
+  return (const_cast<char *>(s));
 }
 
 int BLI_string_max_possible_word_count(const int str_len)
@@ -631,7 +631,7 @@ char *BLI_strncasestr(const char *s, const char *find, size_t len)
     }
     s--;
   }
-  return ((char *)s);
+  return (const_cast<char *>(s));
 }
 
 int BLI_strcasecmp(const char *s1, const char *s2)

@@ -313,7 +313,7 @@ static float densfunc(const MetaElem *ball, float x, float y, float z)
   float dist2;
   float dvec[3] = {x, y, z};
 
-  mul_m4_v3((const float (*)[4])ball->imat, dvec);
+  mul_m4_v3(reinterpret_cast<const float (*)[4]>(ball->imat), dvec);
 
   switch (ball->type) {
     case MB_BALL:
@@ -1228,7 +1228,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
       continue;
     }
 
-    const MetaBall *mb = static_cast<MetaBall *>(bob->data);
+    const MetaBall *mb = blender::id_cast<MetaBall *>(bob->data);
     for (const MetaElem &ml : mb->editelems ? *mb->editelems : mb->elems) {
       if (ml.flag & MB_HIDE) {
         continue;
@@ -1281,7 +1281,8 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
        */
       mul_m4_series((float (*)[4])new_ml->mat, obinv, bob->object_to_world().ptr(), pos, rot);
       /* ml local space -> basis object space */
-      invert_m4_m4((float (*)[4])new_ml->imat, (float (*)[4])new_ml->mat);
+      invert_m4_m4(reinterpret_cast<float (*)[4]>(new_ml->imat),
+                   reinterpret_cast<float (*)[4]>(new_ml->mat));
 
       /* rad2 is inverse of squared radius */
       new_ml->rad2 = 1 / (ml.rad * ml.rad);
@@ -1324,7 +1325,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
 
       /* Transformation of meta-elem bounding-box. */
       for (uint i = 0; i < 8; i++) {
-        mul_m4_v3((float (*)[4])new_ml->mat, new_ml->bb->vec[i]);
+        mul_m4_v3(reinterpret_cast<float (*)[4]>(new_ml->mat), new_ml->bb->vec[i]);
       }
 
       /* Find max and min of transformed bounding-box. */
@@ -1362,7 +1363,7 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
   PROCESS process{};
   const bool is_render = DEG_get_mode(depsgraph) == DAG_EVAL_RENDER;
 
-  MetaBall *mb = static_cast<MetaBall *>(ob->data);
+  MetaBall *mb = blender::id_cast<MetaBall *>(ob->data);
 
   process.thresh = mb->thresh;
 

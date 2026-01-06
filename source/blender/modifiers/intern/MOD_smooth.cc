@@ -31,13 +31,13 @@
 
 static void init_data(ModifierData *md)
 {
-  SmoothModifierData *smd = (SmoothModifierData *)md;
+  SmoothModifierData *smd = reinterpret_cast<SmoothModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(smd, modifier);
 }
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  SmoothModifierData *smd = (SmoothModifierData *)md;
+  SmoothModifierData *smd = reinterpret_cast<SmoothModifierData *>(md);
 
   const short flag = smd->flag & (MOD_SMOOTH_X | MOD_SMOOTH_Y | MOD_SMOOTH_Z);
 
@@ -51,7 +51,7 @@ static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_re
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  SmoothModifierData *smd = (SmoothModifierData *)md;
+  SmoothModifierData *smd = reinterpret_cast<SmoothModifierData *>(md);
 
   /* Ask for vertex-groups if we need them. */
   if (smd->defgrp_name[0] != '\0') {
@@ -166,7 +166,7 @@ static void deform_verts(ModifierData *md,
                          Mesh *mesh,
                          blender::MutableSpan<blender::float3> positions)
 {
-  SmoothModifierData *smd = (SmoothModifierData *)md;
+  SmoothModifierData *smd = reinterpret_cast<SmoothModifierData *>(md);
   smoothModifier_do(
       smd, ctx->object, mesh, reinterpret_cast<float (*)[3]>(positions.data()), positions.size());
 }

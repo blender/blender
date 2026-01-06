@@ -397,7 +397,8 @@ void BM_elem_select_copy(BMesh *bm_dst, void *ele_dst_v, const void *ele_src_v)
   BLI_assert(ele_src->htype == ele_dst->htype);
 
   if ((ele_src->hflag & BM_ELEM_SELECT) != (ele_dst->hflag & BM_ELEM_SELECT)) {
-    BM_elem_select_set(bm_dst, (BMElem *)ele_dst, (ele_src->hflag & BM_ELEM_SELECT) != 0);
+    BM_elem_select_set(
+        bm_dst, reinterpret_cast<BMElem *>(ele_dst), (ele_src->hflag & BM_ELEM_SELECT) != 0);
   }
 }
 
@@ -656,13 +657,13 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 
     switch (ese.htype) {
       case BM_VERT:
-        eletable = (BMElem **)vtable;
+        eletable = reinterpret_cast<BMElem **>(vtable);
         break;
       case BM_EDGE:
-        eletable = (BMElem **)etable;
+        eletable = reinterpret_cast<BMElem **>(etable);
         break;
       case BM_FACE:
-        eletable = (BMElem **)ftable;
+        eletable = reinterpret_cast<BMElem **>(ftable);
         break;
       default:
         eletable = nullptr;

@@ -190,7 +190,7 @@ static int node_shader_gpu_tex_sky(GPUMaterial *mat,
 {
   node_shader_gpu_default_tex_coord(mat, node, &in[0].link);
   node_shader_gpu_tex_mapping(mat, node, in, out);
-  NodeTexSky *tex = (NodeTexSky *)node->storage;
+  NodeTexSky *tex = static_cast<NodeTexSky *>(node->storage);
   float sun_angles[2]; /* [0]=theta=zenith angle  [1]=phi=azimuth */
   sun_angles[0] = acosf(tex->sun_direction[2]);
   sun_angles[1] = atan2f(tex->sun_direction[0], tex->sun_direction[1]);
@@ -326,7 +326,7 @@ static void node_shader_update_sky(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *sockVector = bke::node_find_socket(*node, SOCK_IN, "Vector");
 
-  NodeTexSky *tex = (NodeTexSky *)node->storage;
+  NodeTexSky *tex = static_cast<NodeTexSky *>(node->storage);
   bke::node_set_socket_availability(
       *ntree,
       *sockVector,
@@ -346,7 +346,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   {
     params.add_item(IFACE_("Vector"), [](LinkSearchOpParams &params) {
       bNode &node = params.add_node("ShaderNodeTexSky");
-      NodeTexSky *tex = (NodeTexSky *)node.storage;
+      NodeTexSky *tex = static_cast<NodeTexSky *>(node.storage);
       tex->sun_disc = false;
       params.update_and_connect_available_socket(node, "Vector");
     });

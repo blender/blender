@@ -286,13 +286,13 @@ inline InstanceReference::Type InstanceReference::type() const
 inline Object &InstanceReference::object() const
 {
   BLI_assert(type_ == Type::Object);
-  return *(Object *)data_;
+  return *static_cast<Object *>(data_);
 }
 
 inline Collection &InstanceReference::collection() const
 {
   BLI_assert(type_ == Type::Collection);
-  return *(Collection *)data_;
+  return *static_cast<Collection *>(data_);
 }
 
 inline GeometrySet &InstanceReference::geometry_set()

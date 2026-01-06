@@ -5753,7 +5753,7 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       for (ScrArea &area : screen.areabase) {
         for (SpaceLink &sl : area.spacedata) {
           if (sl.spacetype == SPACE_SEQ) {
-            SpaceSeq *space_sequencer = (SpaceSeq *)&sl;
+            SpaceSeq *space_sequencer = reinterpret_cast<SpaceSeq *>(&sl);
             space_sequencer->draw_flag &= ~SEQ_DRAW_UNUSED_0;
           }
         }

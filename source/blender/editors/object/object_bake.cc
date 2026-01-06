@@ -120,7 +120,7 @@ static bool multiresbake_check(bContext *C, wmOperator *op)
       break;
     }
 
-    mesh = (Mesh *)ob->data;
+    mesh = blender::id_cast<Mesh *>(ob->data);
     mmd = get_multires_modifier(scene, ob, false);
 
     /* Multi-resolution should be and be last in the stack */
@@ -129,7 +129,7 @@ static bool multiresbake_check(bContext *C, wmOperator *op)
 
       ok = mmd->totlvl > 0;
 
-      for (md = (ModifierData *)mmd->modifier.next; md && ok; md = md->next) {
+      for (md = static_cast<ModifierData *>(mmd->modifier.next); md && ok; md = md->next) {
         if (BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime)) {
           ok = false;
         }
@@ -321,7 +321,7 @@ static wmOperatorStatus multiresbake_image_exec_locked(bContext *C, wmOperator *
 
     bake.ob_image = bake_object_image_get_array(object);
 
-    bake.base_mesh = static_cast<Mesh *>(object.data);
+    bake.base_mesh = blender::id_cast<Mesh *>(object.data);
     bake.multires_modifier = get_multires_modifier(scene, &object, false);
 
     RE_multires_bake_images(bake);
@@ -368,7 +368,7 @@ static void init_multiresbake_job(bContext *C, MultiresBakeJob *bkj)
 
     data->ob_image = bake_object_image_get_array(object);
 
-    data->base_mesh = static_cast<Mesh *>(object.data);
+    data->base_mesh = blender::id_cast<Mesh *>(object.data);
     data->multires_modifier = get_multires_modifier(scene, &object, false);
 
     BLI_addtail(&bkj->data, data);

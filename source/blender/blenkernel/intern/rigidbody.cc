@@ -2404,14 +2404,14 @@ void BKE_rigidbody_object_sync_transforms(Depsgraph *depsgraph, Scene *scene, Ob
 
 void BKE_rigidbody_world_id_loop(RigidBodyWorld *rbw, RigidbodyWorldIDFunc func, void *userdata)
 {
-  func(rbw, (ID **)&rbw->group, userdata, IDWALK_CB_USER);
-  func(rbw, (ID **)&rbw->constraints, userdata, IDWALK_CB_USER);
-  func(rbw, (ID **)&rbw->effector_weights->group, userdata, IDWALK_CB_USER);
+  func(rbw, reinterpret_cast<ID **>(&rbw->group), userdata, IDWALK_CB_USER);
+  func(rbw, reinterpret_cast<ID **>(&rbw->constraints), userdata, IDWALK_CB_USER);
+  func(rbw, reinterpret_cast<ID **>(&rbw->effector_weights->group), userdata, IDWALK_CB_USER);
 
   if (rbw->objects) {
     int i;
     for (i = 0; i < rbw->numbodies; i++) {
-      func(rbw, (ID **)&rbw->objects[i], userdata, IDWALK_CB_NOP);
+      func(rbw, reinterpret_cast<ID **>(&rbw->objects[i]), userdata, IDWALK_CB_NOP);
     }
   }
 }

@@ -359,7 +359,7 @@ static void get_vertexcos__mapFunc(void *user_data,
                                    const float co[3],
                                    const float /*no*/[3])
 {
-  MappedVCosData *mapped_vcos_data = (MappedVCosData *)user_data;
+  MappedVCosData *mapped_vcos_data = static_cast<MappedVCosData *>(user_data);
 
   if (BLI_BITMAP_TEST(mapped_vcos_data->vertex_visit, index) == 0) {
     /* We need coord from prototype vertex, not from copies,

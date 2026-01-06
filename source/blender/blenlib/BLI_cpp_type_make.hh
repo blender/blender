@@ -429,13 +429,13 @@ CPPType::CPPType(TypeTag<T> /*type*/,
       fill_construct_indices_ = fill_construct_indices_cb<T>;
     }
   }
-  if constexpr ((bool)(Flags & CPPTypeFlags::Hashable)) {
+  if constexpr (bool(Flags & CPPTypeFlags::Hashable)) {
     hash_ = hash_cb<T>;
   }
-  if constexpr ((bool)(Flags & CPPTypeFlags::Printable)) {
+  if constexpr (bool(Flags & CPPTypeFlags::Printable)) {
     print_ = print_cb<T>;
   }
-  if constexpr ((bool)(Flags & CPPTypeFlags::EqualityComparable)) {
+  if constexpr (bool(Flags & CPPTypeFlags::EqualityComparable)) {
     is_equal_ = is_equal_cb<T>;
   }
 

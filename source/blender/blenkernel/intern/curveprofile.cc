@@ -61,9 +61,9 @@ void BKE_curveprofile_copy_data(CurveProfile *target, const CurveProfile *profil
 {
   *target = *profile;
 
-  target->path = (CurveProfilePoint *)MEM_dupallocN(profile->path);
-  target->table = (CurveProfilePoint *)MEM_dupallocN(profile->table);
-  target->segments = (CurveProfilePoint *)MEM_dupallocN(profile->segments);
+  target->path = static_cast<CurveProfilePoint *>(MEM_dupallocN(profile->path));
+  target->table = static_cast<CurveProfilePoint *>(MEM_dupallocN(profile->table));
+  target->segments = static_cast<CurveProfilePoint *>(MEM_dupallocN(profile->segments));
 
   /* Update the reference the points have to the profile. */
   for (int i = 0; i < target->path_len; i++) {
@@ -74,7 +74,7 @@ void BKE_curveprofile_copy_data(CurveProfile *target, const CurveProfile *profil
 CurveProfile *BKE_curveprofile_copy(const CurveProfile *profile)
 {
   if (profile) {
-    CurveProfile *new_prdgt = (CurveProfile *)MEM_dupallocN(profile);
+    CurveProfile *new_prdgt = static_cast<CurveProfile *>(MEM_dupallocN(profile));
     BKE_curveprofile_copy_data(new_prdgt, profile);
     return new_prdgt;
   }
@@ -651,8 +651,8 @@ struct CurvatureSortPoint {
  */
 static int sort_points_curvature(const void *in_a, const void *in_b)
 {
-  const CurvatureSortPoint *a = (const CurvatureSortPoint *)in_a;
-  const CurvatureSortPoint *b = (const CurvatureSortPoint *)in_b;
+  const CurvatureSortPoint *a = static_cast<const CurvatureSortPoint *>(in_a);
+  const CurvatureSortPoint *b = static_cast<const CurvatureSortPoint *>(in_b);
 
   if (a->point_curvature > b->point_curvature) {
     return 0;

@@ -62,8 +62,8 @@ ListBaseT<TreeElement> TreeDisplayOverrideLibraryHierarchies::build_tree(
   }
 
   /* Second step: Build hierarchies for external libraries. */
-  for (Library *lib = (Library *)source_data.bmain->libraries.first; lib;
-       lib = (Library *)lib->id.next)
+  for (Library *lib = static_cast<Library *>(source_data.bmain->libraries.first); lib;
+       lib = static_cast<Library *>(lib->id.next))
   {
     TreeElement *tenlib = AbstractTreeDisplay::add_element(
         &space_outliner_, &tree, reinterpret_cast<ID *>(lib), nullptr, nullptr, TSE_SOME_ID, 0);

@@ -483,7 +483,7 @@ static wmOperatorStatus palette_join_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  palette_join = (Palette *)BKE_libblock_find_name(bmain, ID_PAL, name);
+  palette_join = blender::id_cast<Palette *>(BKE_libblock_find_name(bmain, ID_PAL, name));
   if (palette_join == nullptr) {
     return OPERATOR_CANCELLED;
   }

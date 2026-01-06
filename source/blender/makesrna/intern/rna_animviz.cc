@@ -70,7 +70,7 @@ static PointerRNA rna_AnimViz_motion_paths_get(PointerRNA *ptr)
 
 static void rna_AnimViz_path_start_frame_set(PointerRNA *ptr, int value)
 {
-  bAnimVizSettings *data = (bAnimVizSettings *)ptr->data;
+  bAnimVizSettings *data = static_cast<bAnimVizSettings *>(ptr->data);
 
   /* XXX: Watch it! Path Start > MAXFRAME/2 could be a problem. */
   data->path_sf = value;
@@ -81,7 +81,7 @@ static void rna_AnimViz_path_start_frame_set(PointerRNA *ptr, int value)
 
 static void rna_AnimViz_path_end_frame_set(PointerRNA *ptr, int value)
 {
-  bAnimVizSettings *data = (bAnimVizSettings *)ptr->data;
+  bAnimVizSettings *data = static_cast<bAnimVizSettings *>(ptr->data);
 
   data->path_ef = value;
   CLAMP_MAX(data->path_sf, data->path_ef - 1);

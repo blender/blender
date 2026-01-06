@@ -41,7 +41,7 @@ TEST(heap, SimpleOne)
 
   heap = BLI_heapsimple_new();
 
-  BLI_heapsimple_insert(heap, 0.0f, (void *)in);
+  BLI_heapsimple_insert(heap, 0.0f, const_cast<char *>(in));
   EXPECT_FALSE(BLI_heapsimple_is_empty(heap));
   EXPECT_EQ(BLI_heapsimple_len(heap), 1);
   EXPECT_EQ(in, BLI_heapsimple_pop_min(heap));

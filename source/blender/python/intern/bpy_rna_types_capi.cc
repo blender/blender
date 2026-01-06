@@ -181,11 +181,11 @@ PyDoc_STRVAR(
 
 static PyMethodDef pyrna_windowmanager_methods[] = {
     {"draw_cursor_add",
-     (PyCFunction)pyrna_callback_classmethod_add,
+     static_cast<PyCFunction>(pyrna_callback_classmethod_add),
      METH_VARARGS | METH_CLASS,
      pyrna_draw_cursor_add_doc},
     {"draw_cursor_remove",
-     (PyCFunction)pyrna_callback_classmethod_remove,
+     static_cast<PyCFunction>(pyrna_callback_classmethod_remove),
      METH_VARARGS | METH_CLASS,
      pyrna_draw_cursor_remove_doc},
     {nullptr, nullptr, 0, nullptr},
@@ -255,11 +255,11 @@ PyDoc_STRVAR(
 
 static PyMethodDef pyrna_space_methods[] = {
     {"draw_handler_add",
-     (PyCFunction)pyrna_callback_classmethod_add,
+     static_cast<PyCFunction>(pyrna_callback_classmethod_add),
      METH_VARARGS | METH_CLASS,
      pyrna_draw_handler_add_doc},
     {"draw_handler_remove",
-     (PyCFunction)pyrna_callback_classmethod_remove,
+     static_cast<PyCFunction>(pyrna_callback_classmethod_remove),
      METH_VARARGS | METH_CLASS,
      pyrna_draw_handler_remove_doc},
     {nullptr, nullptr, 0, nullptr},

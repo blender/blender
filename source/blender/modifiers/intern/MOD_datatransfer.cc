@@ -41,7 +41,7 @@
  **************************************/
 static void init_data(ModifierData *md)
 {
-  DataTransferModifierData *dtmd = (DataTransferModifierData *)md;
+  DataTransferModifierData *dtmd = reinterpret_cast<DataTransferModifierData *>(md);
   int i;
 
   dtmd->ob_source = nullptr;
@@ -69,7 +69,7 @@ static void init_data(ModifierData *md)
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  DataTransferModifierData *dtmd = (DataTransferModifierData *)md;
+  DataTransferModifierData *dtmd = reinterpret_cast<DataTransferModifierData *>(md);
 
   if (dtmd->defgrp_name[0] != '\0') {
     /* We need vertex groups! */
@@ -81,13 +81,13 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  DataTransferModifierData *dtmd = (DataTransferModifierData *)md;
-  walk(user_data, ob, (ID **)&dtmd->ob_source, IDWALK_CB_NOP);
+  DataTransferModifierData *dtmd = reinterpret_cast<DataTransferModifierData *>(md);
+  walk(user_data, ob, reinterpret_cast<ID **>(&dtmd->ob_source), IDWALK_CB_NOP);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  DataTransferModifierData *dtmd = (DataTransferModifierData *)md;
+  DataTransferModifierData *dtmd = reinterpret_cast<DataTransferModifierData *>(md);
   if (dtmd->ob_source != nullptr) {
     CustomData_MeshMasks cddata_masks = {0};
     BKE_object_data_transfer_dttypes_to_cdmask(dtmd->data_types, &cddata_masks);
@@ -107,7 +107,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
   /* If no source object, bypass. */
-  DataTransferModifierData *dtmd = (DataTransferModifierData *)md;
+  DataTransferModifierData *dtmd = reinterpret_cast<DataTransferModifierData *>(md);
   /* The object type check is only needed here in case we have a placeholder
    * object assigned (because the library containing the mesh is missing).
    *
@@ -122,12 +122,12 @@ static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_re
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *me_mod)
 {
-  DataTransferModifierData *dtmd = (DataTransferModifierData *)md;
+  DataTransferModifierData *dtmd = reinterpret_cast<DataTransferModifierData *>(md);
   Mesh *result = me_mod;
   ReportList reports;
 
   /* Only used to check whether we are operating on org data or not... */
-  const Mesh *mesh = static_cast<const Mesh *>(ctx->object->data);
+  const Mesh *mesh = blender::id_cast<const Mesh *>(ctx->object->data);
 
   Object *ob_source = dtmd->ob_source;
 
@@ -157,7 +157,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   {
     /* We need to duplicate data here, otherwise setting custom normals, edges' sharpness, etc.,
      * could modify org mesh, see #43671. */
-    result = (Mesh *)BKE_id_copy_ex(nullptr, &me_mod->id, nullptr, LIB_ID_COPY_LOCALIZE);
+    result = blender::id_cast<Mesh *>(
+        BKE_id_copy_ex(nullptr, &me_mod->id, nullptr, LIB_ID_COPY_LOCALIZE));
   }
 
   BKE_reports_init(&reports, RPT_STORE);

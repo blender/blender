@@ -226,7 +226,7 @@ MINLINE axis_t max_axis(axis_t a, axis_t b)
 static void node_minmax_init(const BVHTree *tree, BVHNode *node)
 {
   axis_t axis_iter;
-  float (*bv)[2] = (float (*)[2])node->bv;
+  float (*bv)[2] = reinterpret_cast<float (*)[2]>(node->bv);
 
   for (axis_iter = tree->start_axis; axis_iter != tree->stop_axis; axis_iter++) {
     bv[axis_iter][0] = FLT_MAX;
@@ -1292,7 +1292,7 @@ static void bvhtree_overlap_task_cb(void *__restrict userdata,
                                     const int j,
                                     const TaskParallelTLS *__restrict /*tls*/)
 {
-  BVHOverlapData_Thread *data = &((BVHOverlapData_Thread *)userdata)[j];
+  BVHOverlapData_Thread *data = &(static_cast<BVHOverlapData_Thread *>(userdata))[j];
   BVHOverlapData_Shared *data_shared = data->shared;
 
   const BVHNode *root1 = data_shared->tree1->nodes[data_shared->tree1->leaf_num];
@@ -1702,7 +1702,7 @@ int BLI_bvhtree_find_nearest(const BVHTree *tree,
 
 static bool isect_aabb_v3(BVHNode *node, const float co[3])
 {
-  const BVHTreeAxisRange *bv = (const BVHTreeAxisRange *)node->bv;
+  const BVHTreeAxisRange *bv = reinterpret_cast<const BVHTreeAxisRange *>(node->bv);
 
   if (co[0] > bv[0].min && co[0] < bv[0].max && co[1] > bv[1].min && co[1] < bv[1].max &&
       co[2] > bv[2].min && co[2] < bv[2].max)
@@ -2316,8 +2316,8 @@ int BLI_bvhtree_find_nearest_projected(const BVHTree *tree,
 {
   const BVHNode *root = tree->nodes[tree->leaf_num];
   if (root != nullptr) {
-    BVHNearestProjectedData *data = (BVHNearestProjectedData *)alloca(
-        sizeof(*data) + (sizeof(*clip_plane) * size_t(max_ii(1, clip_plane_len))));
+    BVHNearestProjectedData *data = static_cast<BVHNearestProjectedData *>(
+        alloca(sizeof(*data) + (sizeof(*clip_plane) * size_t(max_ii(1, clip_plane_len)))));
 
     dist_squared_to_projected_aabb_precalc(&data->precalc, projmat, winsize, mval);
 

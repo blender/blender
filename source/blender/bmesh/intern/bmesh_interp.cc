@@ -73,15 +73,21 @@ static void bm_data_interp_from_elem(CustomData *data_layer,
 void BM_data_interp_from_verts(
     BMesh *bm, const BMVert *v_src_1, const BMVert *v_src_2, BMVert *v_dst, const float fac)
 {
-  bm_data_interp_from_elem(
-      &bm->vdata, (const BMElem *)v_src_1, (const BMElem *)v_src_2, (BMElem *)v_dst, fac);
+  bm_data_interp_from_elem(&bm->vdata,
+                           reinterpret_cast<const BMElem *>(v_src_1),
+                           reinterpret_cast<const BMElem *>(v_src_2),
+                           reinterpret_cast<BMElem *>(v_dst),
+                           fac);
 }
 
 void BM_data_interp_from_edges(
     BMesh *bm, const BMEdge *e_src_1, const BMEdge *e_src_2, BMEdge *e_dst, const float fac)
 {
-  bm_data_interp_from_elem(
-      &bm->edata, (const BMElem *)e_src_1, (const BMElem *)e_src_2, (BMElem *)e_dst, fac);
+  bm_data_interp_from_elem(&bm->edata,
+                           reinterpret_cast<const BMElem *>(e_src_1),
+                           reinterpret_cast<const BMElem *>(e_src_2),
+                           reinterpret_cast<BMElem *>(e_dst),
+                           fac);
 }
 
 /**
@@ -1028,14 +1034,14 @@ void BM_data_layer_copy(BMesh *bm, CustomData *data, int type, int src_n, int ds
 float BM_elem_float_data_get(CustomData *cd, void *element, int type)
 {
   const float *f = static_cast<const float *>(
-      CustomData_bmesh_get(cd, ((BMHeader *)element)->data, eCustomDataType(type)));
+      CustomData_bmesh_get(cd, (static_cast<BMHeader *>(element))->data, eCustomDataType(type)));
   return f ? *f : 0.0f;
 }
 
 void BM_elem_float_data_set(CustomData *cd, void *element, int type, const float val)
 {
   float *f = static_cast<float *>(
-      CustomData_bmesh_get(cd, ((BMHeader *)element)->data, eCustomDataType(type)));
+      CustomData_bmesh_get(cd, (static_cast<BMHeader *>(element))->data, eCustomDataType(type)));
   if (f) {
     *f = val;
   }

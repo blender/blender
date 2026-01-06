@@ -106,7 +106,7 @@ struct CombOperationExecutor {
     BLI_SCOPED_DEFER([&]() { self_->brush_pos_last_re_ = stroke_extension.mouse_position; });
 
     curves_ob_orig_ = ctx_.object;
-    curves_id_orig_ = static_cast<Curves *>(curves_ob_orig_->data);
+    curves_id_orig_ = blender::id_cast<Curves *>(curves_ob_orig_->data);
     curves_orig_ = &curves_id_orig_->geometry.wrap();
     if (curves_orig_->is_empty()) {
       return;
@@ -166,7 +166,7 @@ struct CombOperationExecutor {
     }
 
     const Mesh *surface = curves_id_orig_->surface && curves_id_orig_->surface->type == OB_MESH ?
-                              static_cast<Mesh *>(curves_id_orig_->surface->data) :
+                              blender::id_cast<Mesh *>(curves_id_orig_->surface->data) :
                               nullptr;
 
     IndexMaskMemory memory;

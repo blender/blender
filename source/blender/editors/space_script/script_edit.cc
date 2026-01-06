@@ -74,7 +74,7 @@ static bool script_test_modal_operators(bContext *C)
   for (wmWindow &win : wm->windows) {
     for (wmEventHandler &handler_base : win.runtime->modalhandlers) {
       if (handler_base.type == WM_HANDLER_TYPE_OP) {
-        wmEventHandler_Op *handler = (wmEventHandler_Op *)&handler_base;
+        wmEventHandler_Op *handler = reinterpret_cast<wmEventHandler_Op *>(&handler_base);
         if (handler->op != nullptr) {
           wmOperatorType *ot = handler->op->type;
           if (ot->rna_ext.srna) {

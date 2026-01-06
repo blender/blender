@@ -89,7 +89,7 @@ PyObject *BPY_app_usd_struct()
   BlenderAppUSDType.tp_init = nullptr;
   BlenderAppUSDType.tp_new = nullptr;
   /* Without this we can't do `set(sys.modules)` #29635. */
-  BlenderAppUSDType.tp_hash = (hashfunc)Py_HashPointer;
+  BlenderAppUSDType.tp_hash = reinterpret_cast<hashfunc>(Py_HashPointer);
 
   return ret;
 }

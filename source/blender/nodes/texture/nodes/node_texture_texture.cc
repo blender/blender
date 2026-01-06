@@ -30,7 +30,7 @@ static blender::bke::bNodeSocketTemplate outputs[] = {
 
 static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
-  Tex *nodetex = (Tex *)node->id;
+  Tex *nodetex = blender::id_cast<Tex *>(node->id);
   static float red[] = {1, 0, 0, 1};
   static float white[] = {1, 1, 1, 1};
   float co[3];

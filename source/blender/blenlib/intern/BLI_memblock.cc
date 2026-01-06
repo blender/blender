@@ -70,7 +70,7 @@ void BLI_memblock_destroy(BLI_memblock *mblk, MemblockValFreeFP free_callback)
     for (int i = 0; i <= mblk->elem_last; i++) {
       int chunk_idx = i / elem_per_chunk;
       int elem_idx = i - elem_per_chunk * chunk_idx;
-      void *val = (char *)(mblk->chunk_list[chunk_idx]) + mblk->elem_size * elem_idx;
+      void *val = static_cast<char *>(mblk->chunk_list[chunk_idx]) + mblk->elem_size * elem_idx;
       free_callback(val);
     }
   }
@@ -91,7 +91,7 @@ void BLI_memblock_clear(BLI_memblock *mblk, MemblockValFreeFP free_callback)
     for (int i = mblk->elem_last; i >= mblk->elem_next; i--) {
       int chunk_idx = i / elem_per_chunk;
       int elem_idx = i - elem_per_chunk * chunk_idx;
-      void *val = (char *)(mblk->chunk_list[chunk_idx]) + mblk->elem_size * elem_idx;
+      void *val = static_cast<char *>(mblk->chunk_list[chunk_idx]) + mblk->elem_size * elem_idx;
       free_callback(val);
     }
   }
@@ -118,7 +118,7 @@ void *BLI_memblock_alloc(BLI_memblock *mblk)
   mblk->elem_last = std::max(mblk->elem_last, mblk->elem_next);
   mblk->elem_next++;
 
-  void *ptr = (char *)(mblk->chunk_list[mblk->chunk_next]) + mblk->elem_next_ofs;
+  void *ptr = static_cast<char *>(mblk->chunk_list[mblk->chunk_next]) + mblk->elem_next_ofs;
 
   mblk->elem_next_ofs += mblk->elem_size;
 
@@ -161,7 +161,7 @@ void *BLI_memblock_iterstep(BLI_memblock_iter *iter)
 
   iter->cur_index++;
 
-  void *ptr = (char *)(iter->chunk_list[iter->chunk_idx]) + iter->elem_ofs;
+  void *ptr = static_cast<char *>(iter->chunk_list[iter->chunk_idx]) + iter->elem_ofs;
 
   iter->elem_ofs += iter->elem_size;
 
@@ -178,5 +178,5 @@ void *BLI_memblock_elem_get(BLI_memblock *mblk, int chunk, int elem)
   int elem_per_chunk = mblk->chunk_size / mblk->elem_size;
   chunk += elem / elem_per_chunk;
   elem = elem % elem_per_chunk;
-  return (char *)(mblk->chunk_list[chunk]) + mblk->elem_size * elem;
+  return static_cast<char *>(mblk->chunk_list[chunk]) + mblk->elem_size * elem;
 }

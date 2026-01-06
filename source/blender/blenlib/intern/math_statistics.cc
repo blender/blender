@@ -120,6 +120,10 @@ void BLI_covariance_m3_v3n(const float (*cos_v3)[3],
     copy_v3_v3(r_center, center);
   }
 
-  BLI_covariance_m_vn_ex(
-      3, (const float *)cos_v3, cos_v3_num, center, use_sample_correction, (float *)r_covmat);
+  BLI_covariance_m_vn_ex(3,
+                         reinterpret_cast<const float *>(cos_v3),
+                         cos_v3_num,
+                         center,
+                         use_sample_correction,
+                         reinterpret_cast<float *>(r_covmat));
 }

@@ -120,7 +120,8 @@ AssetTagEnsureResult BKE_asset_metadata_tag_ensure(AssetMetaData *asset_data, co
     return result;
   }
 
-  AssetTag *tag = (AssetTag *)BLI_findstring(&asset_data->tags, name, offsetof(AssetTag, name));
+  AssetTag *tag = static_cast<AssetTag *>(
+      BLI_findstring(&asset_data->tags, name, offsetof(AssetTag, name)));
 
   if (tag) {
     result.tag = tag;

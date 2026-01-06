@@ -289,7 +289,7 @@ class Instance : public DrawEngine {
   {
     BLI_assert(engine != nullptr);
 
-    SpaceImage *space_image = (SpaceImage *)draw_ctx->space_data;
+    SpaceImage *space_image = reinterpret_cast<SpaceImage *>(draw_ctx->space_data);
 
     /* Apply current view as transformation matrix.
      * This will configure drawing for normalized space with current zoom and pan applied. */
@@ -473,7 +473,7 @@ bool DRW_engine_external_acquire_for_image_editor(const DRWContext *draw_ctx)
     return false;
   }
 
-  SpaceImage *space_image = (SpaceImage *)space_data;
+  SpaceImage *space_image = reinterpret_cast<SpaceImage *>(const_cast<SpaceLink *>(space_data));
   const Image *image = ED_space_image(space_image);
   if (image == nullptr || image->type != IMA_TYPE_R_RESULT) {
     return false;

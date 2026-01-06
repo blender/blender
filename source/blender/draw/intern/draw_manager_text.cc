@@ -165,8 +165,9 @@ static void drw_text_cache_draw_ex(const DRWTextStore *dt, const ARegion *region
         /* Measure the size of the string, then offset to align to the vertex. */
         float width, height;
         BLF_width_and_height(font_id,
-                             (vos->flag & DRW_TEXT_CACHE_STRING_PTR) ? *((const char **)vos->str) :
-                                                                       vos->str,
+                             (vos->flag & DRW_TEXT_CACHE_STRING_PTR) ?
+                                 *(reinterpret_cast<const char **>(vos->str)) :
+                                 vos->str,
                              vos->str_len,
                              &width,
                              &height);
@@ -188,8 +189,9 @@ static void drw_text_cache_draw_ex(const DRWTextStore *dt, const ARegion *region
       BLF_draw_default(float(vos->sco[0] + vos->xoffs),
                        float(vos->sco[1] + vos->yoffs),
                        2.0f,
-                       (vos->flag & DRW_TEXT_CACHE_STRING_PTR) ? *((const char **)vos->str) :
-                                                                 vos->str,
+                       (vos->flag & DRW_TEXT_CACHE_STRING_PTR) ?
+                           *(reinterpret_cast<const char **>(vos->str)) :
+                           vos->str,
                        vos->str_len);
     }
   }

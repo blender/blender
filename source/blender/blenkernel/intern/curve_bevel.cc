@@ -233,7 +233,7 @@ static void curve_bevel_make_from_object(const Curve *cu, ListBaseT<DispList> *d
     return;
   }
 
-  Curve *bevcu = static_cast<Curve *>(cu->bevobj->data);
+  Curve *bevcu = blender::id_cast<Curve *>(cu->bevobj->data);
   if (bevcu->extrude == 0.0f && bevcu->bevel_radius == 0.0f) {
     ListBaseT<DispList> bevdisp = {nullptr, nullptr};
     float facx = cu->bevobj->scale[0];

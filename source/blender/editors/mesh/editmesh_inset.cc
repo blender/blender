@@ -8,6 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_math_matrix.h"
@@ -215,7 +216,7 @@ static void edbm_inset_cancel(bContext *C, wmOperator *op)
       params.calc_looptris = false;
       params.calc_normals = false;
       params.is_destructive = true;
-      EDBM_update(static_cast<Mesh *>(obedit->data), &params);
+      EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
     }
   }
 
@@ -309,7 +310,7 @@ static bool edbm_inset_calc(wmOperator *op)
     params.calc_looptris = true;
     params.calc_normals = false;
     params.is_destructive = true;
-    EDBM_update(static_cast<Mesh *>(obedit->data), &params);
+    EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
     changed = true;
   }
   return changed;

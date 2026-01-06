@@ -32,7 +32,7 @@ static struct {
 
 void ED_mesh_mirror_spatial_table_begin(Object *ob, BMEditMesh *em, Mesh *mesh_eval)
 {
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   const bool use_em = (!mesh_eval && em && mesh->runtime->edit_mesh.get() == em);
   const int totvert = use_em    ? em->bm->totvert :
                       mesh_eval ? mesh_eval->verts_num :
@@ -124,10 +124,14 @@ static int mirrtopo_hash_sort(const void *l1, const void *l2)
 
 static int mirrtopo_vert_sort(const void *v1, const void *v2)
 {
-  if (((MirrTopoVert_t *)v1)->hash > ((MirrTopoVert_t *)v2)->hash) {
+  if ((static_cast<MirrTopoVert_t *>(const_cast<void *>(v1)))->hash >
+      (static_cast<MirrTopoVert_t *>(const_cast<void *>(v2)))->hash)
+  {
     return 1;
   }
-  if (((MirrTopoVert_t *)v1)->hash < ((MirrTopoVert_t *)v2)->hash) {
+  if ((static_cast<MirrTopoVert_t *>(const_cast<void *>(v1)))->hash <
+      (static_cast<MirrTopoVert_t *>(const_cast<void *>(v2)))->hash)
+  {
     return -1;
   }
   return 0;
@@ -364,7 +368,7 @@ std::optional<EditMeshSymmetryHelper> EditMeshSymmetryHelper::create_if_needed(O
   if (!ob || !ob->data) {
     return std::nullopt;
   }
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   BMEditMesh *em = BKE_editmesh_from_object(ob);
 
   if (!em || !em->bm || mesh->symmetry == 0) {
@@ -374,7 +378,7 @@ std::optional<EditMeshSymmetryHelper> EditMeshSymmetryHelper::create_if_needed(O
 }
 
 EditMeshSymmetryHelper::EditMeshSymmetryHelper(Object *ob, uchar htype)
-    : em_(BKE_editmesh_from_object(ob)), mesh_(static_cast<Mesh *>(ob->data)), htype_(htype)
+    : em_(BKE_editmesh_from_object(ob)), mesh_(blender::id_cast<Mesh *>(ob->data)), htype_(htype)
 {
   BMesh *bmesh = em_->bm;
   use_topology_mirror_ = (mesh_->editflag & ME_EDIT_MIRROR_TOPO) != 0;

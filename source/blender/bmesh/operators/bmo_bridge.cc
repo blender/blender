@@ -86,7 +86,8 @@ static float bm_edgeloop_offset_length(LinkData *el_a,
   float len = 0.0f;
   BLI_assert(el_a->prev == nullptr); /* must be first */
   do {
-    len += len_v3v3(((BMVert *)el_a->data)->co, ((BMVert *)el_b->data)->co);
+    len += len_v3v3((static_cast<BMVert *>(el_a->data))->co,
+                    (static_cast<BMVert *>(el_b->data))->co);
   } while ((void)(el_b = el_b->next ? el_b->next : el_b_first),
            (el_a = el_a->next) && (len < len_max));
   return len;
@@ -180,11 +181,11 @@ static void bridge_loop_pair(BMesh *bm,
     const float *test_a, *test_b;
 
     sub_v3_v3v3(dir_a_orig,
-                ((BMVert *)(((LinkData *)lb_a->first)->data))->co,
-                ((BMVert *)(((LinkData *)lb_a->last)->data))->co);
+                (static_cast<BMVert *>((static_cast<LinkData *>(lb_a->first))->data))->co,
+                (static_cast<BMVert *>((static_cast<LinkData *>(lb_a->last))->data))->co);
     sub_v3_v3v3(dir_b_orig,
-                ((BMVert *)(((LinkData *)lb_b->first)->data))->co,
-                ((BMVert *)(((LinkData *)lb_b->last)->data))->co);
+                (static_cast<BMVert *>((static_cast<LinkData *>(lb_b->first))->data))->co,
+                (static_cast<BMVert *>((static_cast<LinkData *>(lb_b->last))->data))->co);
 
     /* make the directions point out from the normals, 'no' is used as a temp var */
     cross_v3_v3v3(no, dir_a_orig, el_dir);
@@ -638,8 +639,8 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
     }
 
     bridge_loop_pair(bm,
-                     (BMEdgeLoopStore *)el_store,
-                     (BMEdgeLoopStore *)el_store_next,
+                     reinterpret_cast<BMEdgeLoopStore *>(const_cast<Link *>(el_store)),
+                     reinterpret_cast<BMEdgeLoopStore *>(el_store_next),
                      use_merge,
                      merge_factor,
                      twist_offset);

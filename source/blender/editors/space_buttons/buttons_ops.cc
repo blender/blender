@@ -324,7 +324,7 @@ static wmOperatorStatus file_browse_invoke(bContext *C, wmOperator *op, const wm
     wmOperatorType *ot = WM_operatortype_find("WM_OT_path_open", true);
 
     if (event->modifier & KM_ALT) {
-      char *lslash = (char *)BLI_path_slash_rfind(path);
+      char *lslash = const_cast<char *>(BLI_path_slash_rfind(path));
       if (lslash) {
         *lslash = '\0';
       }

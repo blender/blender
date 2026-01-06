@@ -52,8 +52,8 @@
 
 static PointerRNA rna_ViewLayer_active_layer_collection_get(PointerRNA *ptr)
 {
-  const Scene *scene = (const Scene *)ptr->owner_id;
-  ViewLayer *view_layer = (ViewLayer *)ptr->data;
+  const Scene *scene = blender::id_cast<const Scene *>(ptr->owner_id);
+  ViewLayer *view_layer = static_cast<ViewLayer *>(ptr->data);
   BKE_view_layer_synced_ensure(scene, view_layer);
   LayerCollection *lc = BKE_view_layer_active_collection_get(view_layer);
   return RNA_pointer_create_with_parent(*ptr, &RNA_LayerCollection, lc);
@@ -63,9 +63,9 @@ static void rna_ViewLayer_active_layer_collection_set(PointerRNA *ptr,
                                                       PointerRNA value,
                                                       ReportList * /*reports*/)
 {
-  const Scene *scene = (const Scene *)ptr->owner_id;
-  ViewLayer *view_layer = (ViewLayer *)ptr->data;
-  LayerCollection *lc = (LayerCollection *)value.data;
+  const Scene *scene = blender::id_cast<const Scene *>(ptr->owner_id);
+  ViewLayer *view_layer = static_cast<ViewLayer *>(ptr->data);
+  LayerCollection *lc = static_cast<LayerCollection *>(value.data);
   BKE_view_layer_synced_ensure(scene, view_layer);
   const int index = BKE_layer_collection_findindex(view_layer, lc);
   if (index != -1) {
@@ -75,8 +75,8 @@ static void rna_ViewLayer_active_layer_collection_set(PointerRNA *ptr,
 
 static PointerRNA rna_LayerObjects_active_object_get(PointerRNA *ptr)
 {
-  const Scene *scene = (Scene *)ptr->owner_id;
-  ViewLayer *view_layer = (ViewLayer *)ptr->data;
+  const Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
+  ViewLayer *view_layer = static_cast<ViewLayer *>(ptr->data);
   BKE_view_layer_synced_ensure(scene, view_layer);
   return RNA_id_pointer_create(
       reinterpret_cast<ID *>(BKE_view_layer_active_object_get(view_layer)));
@@ -86,8 +86,8 @@ static void rna_LayerObjects_active_object_set(PointerRNA *ptr,
                                                PointerRNA value,
                                                ReportList *reports)
 {
-  const Scene *scene = (Scene *)ptr->owner_id;
-  ViewLayer *view_layer = (ViewLayer *)ptr->data;
+  const Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
+  ViewLayer *view_layer = static_cast<ViewLayer *>(ptr->data);
   if (value.data) {
     Object *ob = static_cast<Object *>(value.data);
     BKE_view_layer_synced_ensure(scene, view_layer);
@@ -120,7 +120,7 @@ size_t rna_ViewLayer_path_buffer_get(const ViewLayer *view_layer,
 
 static std::optional<std::string> rna_ViewLayer_path(const PointerRNA *ptr)
 {
-  const ViewLayer *view_layer = (ViewLayer *)ptr->data;
+  const ViewLayer *view_layer = static_cast<ViewLayer *>(ptr->data);
   char rna_path[sizeof(view_layer->name) * 3];
   rna_ViewLayer_path_buffer_get(view_layer, rna_path, sizeof(rna_path));
   return rna_path;
@@ -128,13 +128,13 @@ static std::optional<std::string> rna_ViewLayer_path(const PointerRNA *ptr)
 
 static IDProperty **rna_ViewLayer_idprops(PointerRNA *ptr)
 {
-  ViewLayer *view_layer = (ViewLayer *)ptr->data;
+  ViewLayer *view_layer = static_cast<ViewLayer *>(ptr->data);
   return &view_layer->id_properties;
 }
 
 static IDProperty **rna_ViewLayer_system_idprops(PointerRNA *ptr)
 {
-  ViewLayer *view_layer = (ViewLayer *)ptr->data;
+  ViewLayer *view_layer = static_cast<ViewLayer *>(ptr->data);
   return &view_layer->system_properties;
 }
 
@@ -155,7 +155,7 @@ static bool rna_LayerCollection_visible_get(LayerCollection *layer_collection, b
 
 static void rna_ViewLayer_update_render_passes(ID *id, Main *bmain)
 {
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
   BKE_ntree_update_tag_id_changed(bmain, &scene->id);
   BKE_ntree_update(*bmain);
 
@@ -177,14 +177,14 @@ static PointerRNA rna_ViewLayer_objects_get(CollectionPropertyIterator *iter)
   ListBaseIterator *internal = &iter->internal.listbase;
 
   /* we are actually iterating a ObjectBase list */
-  Base *base = (Base *)internal->link;
+  Base *base = reinterpret_cast<Base *>(internal->link);
   return RNA_id_pointer_create(reinterpret_cast<ID *>(base->object));
 }
 
 static bool rna_ViewLayer_objects_selected_skip(CollectionPropertyIterator *iter, void * /*data*/)
 {
   ListBaseIterator *internal = &iter->internal.listbase;
-  Base *base = (Base *)internal->link;
+  Base *base = reinterpret_cast<Base *>(internal->link);
 
   if ((base->flag & BASE_SELECTED) != 0) {
     return false;
@@ -197,8 +197,8 @@ static PointerRNA rna_ViewLayer_depsgraph_get(PointerRNA *ptr)
 {
   ID *id = ptr->owner_id;
   if (GS(id->name) == ID_SCE) {
-    Scene *scene = (Scene *)id;
-    ViewLayer *view_layer = (ViewLayer *)ptr->data;
+    Scene *scene = blender::id_cast<Scene *>(id);
+    ViewLayer *view_layer = static_cast<ViewLayer *>(ptr->data);
     Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer);
     return RNA_pointer_create_with_parent(*ptr, &RNA_Depsgraph, depsgraph);
   }
@@ -216,7 +216,7 @@ static void rna_ViewLayer_remove_aov(ViewLayer *view_layer, ReportList *reports,
 
 static void rna_LayerObjects_selected_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  ViewLayer *view_layer = (ViewLayer *)ptr->data;
+  ViewLayer *view_layer = static_cast<ViewLayer *>(ptr->data);
   rna_iterator_listbase_begin(
       iter, ptr, BKE_view_layer_object_bases_get(view_layer), rna_ViewLayer_objects_selected_skip);
 }
@@ -226,7 +226,7 @@ static void rna_ViewLayer_update_tagged(ID *id_ptr,
                                         Main *bmain,
                                         ReportList *reports)
 {
-  Scene *scene = (Scene *)id_ptr;
+  Scene *scene = blender::id_cast<Scene *>(id_ptr);
   Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);
 
   if (DEG_is_evaluating(depsgraph)) {
@@ -255,7 +255,7 @@ static void rna_ViewLayer_update_tagged(ID *id_ptr,
 
 static void rna_ObjectBase_select_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Base *base = (Base *)ptr->data;
+  Base *base = static_cast<Base *>(ptr->data);
   short mode = (base->flag & BASE_SELECTED) ? blender::ed::object::BA_SELECT :
                                               blender::ed::object::BA_DESELECT;
   blender::ed::object::base_select(base, blender::ed::object::eObjectSelect_Mode(mode));
@@ -272,19 +272,19 @@ static void rna_ObjectBase_hide_viewport_update(bContext *C, PointerRNA * /*ptr*
 
 static void rna_LayerCollection_name_get(PointerRNA *ptr, char *value)
 {
-  ID *id = (ID *)((LayerCollection *)ptr->data)->collection;
+  ID *id = blender::id_cast<ID *>((static_cast<LayerCollection *>(ptr->data))->collection);
   strcpy(value, id->name + 2);
 }
 
 int rna_LayerCollection_name_length(PointerRNA *ptr)
 {
-  ID *id = (ID *)((LayerCollection *)ptr->data)->collection;
+  ID *id = blender::id_cast<ID *>((static_cast<LayerCollection *>(ptr->data))->collection);
   return strlen(id->name + 2);
 }
 
 static void rna_LayerCollection_flag_set(PointerRNA *ptr, const bool value, const int flag)
 {
-  LayerCollection *layer_collection = (LayerCollection *)ptr->data;
+  LayerCollection *layer_collection = static_cast<LayerCollection *>(ptr->data);
   Collection *collection = layer_collection->collection;
 
   if (collection->flag & COLLECTION_IS_MASTER) {
@@ -321,8 +321,8 @@ static void rna_LayerCollection_hide_viewport_set(PointerRNA *ptr, bool value)
 
 static void rna_LayerCollection_exclude_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
-  LayerCollection *lc = (LayerCollection *)ptr->data;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
+  LayerCollection *lc = static_cast<LayerCollection *>(ptr->data);
   ViewLayer *view_layer = BKE_view_layer_find_from_collection(scene, lc);
 
   /* Set/Unset it recursively to match the behavior of excluding via the menu or shortcuts. */
@@ -350,8 +350,8 @@ static void rna_LayerCollection_exclude_update(Main *bmain, Scene * /*scene*/, P
 
 static void rna_LayerCollection_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
-  LayerCollection *lc = (LayerCollection *)ptr->data;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
+  LayerCollection *lc = static_cast<LayerCollection *>(ptr->data);
   ViewLayer *view_layer = BKE_view_layer_find_from_collection(scene, lc);
 
   BKE_view_layer_need_resync_tag(view_layer);
@@ -383,8 +383,8 @@ static bool rna_LayerCollection_has_selected_objects(LayerCollection *lc,
 
 void rna_LayerCollection_children_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
-  LayerCollection *lc = (LayerCollection *)ptr->data;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
+  LayerCollection *lc = static_cast<LayerCollection *>(ptr->data);
   ViewLayer *view_layer = BKE_view_layer_find_from_collection(scene, lc);
   BKE_view_layer_synced_ensure(scene, view_layer);
 
@@ -393,8 +393,8 @@ void rna_LayerCollection_children_begin(CollectionPropertyIterator *iter, Pointe
 
 static bool rna_LayerCollection_children_lookupint(PointerRNA *ptr, int key, PointerRNA *r_ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
-  LayerCollection *lc = (LayerCollection *)ptr->data;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
+  LayerCollection *lc = static_cast<LayerCollection *>(ptr->data);
   /* TODO: replace by using RNA ancestors. */
   ViewLayer *view_layer = BKE_view_layer_find_from_collection(scene, lc);
   BKE_view_layer_synced_ensure(scene, view_layer);
@@ -412,8 +412,8 @@ static bool rna_LayerCollection_children_lookupstring(PointerRNA *ptr,
                                                       const char *key,
                                                       PointerRNA *r_ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
-  LayerCollection *lc = (LayerCollection *)ptr->data;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
+  LayerCollection *lc = static_cast<LayerCollection *>(ptr->data);
   /* TODO: replace by using RNA ancestors. */
   ViewLayer *view_layer = BKE_view_layer_find_from_collection(scene, lc);
   BKE_view_layer_synced_ensure(scene, view_layer);

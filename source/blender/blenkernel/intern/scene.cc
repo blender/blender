@@ -156,7 +156,7 @@ CurveMapping *BKE_paint_default_curve()
 
 static void scene_init_data(ID *id)
 {
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
   const char *colorspace_name;
   SceneRenderView *srv;
   CurveMapping *mblur_shutter_curve;
@@ -265,8 +265,8 @@ static void scene_copy_data(Main *bmain,
                             const ID *id_src,
                             const int flag)
 {
-  Scene *scene_dst = (Scene *)id_dst;
-  const Scene *scene_src = (const Scene *)id_src;
+  Scene *scene_dst = blender::id_cast<Scene *>(id_dst);
+  const Scene *scene_src = blender::id_cast<const Scene *>(id_src);
   /* Never handle user-count here for own sub-data. */
   const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
   /* Always need allocation of the embedded ID data. */
@@ -374,7 +374,7 @@ static void scene_free_markers(Scene *scene, bool do_id_user)
 
 static void scene_free_data(ID *id)
 {
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
   const bool do_id_user = false;
 
   blender::seq::editing_free(scene, do_id_user);
@@ -446,7 +446,7 @@ static void scene_foreach_rigidbodyworldSceneLooper(RigidBodyWorld * /*rbw*/,
                                                     void *user_data,
                                                     const LibraryForeachIDCallbackFlag cb_flag)
 {
-  LibraryForeachIDData *data = (LibraryForeachIDData *)user_data;
+  LibraryForeachIDData *data = static_cast<LibraryForeachIDData *>(user_data);
   BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
       data, BKE_lib_query_foreachid_process(data, id_pointer, cb_flag));
 }
@@ -959,7 +959,7 @@ static bool strip_foreach_path_callback(Strip *strip, void *user_data)
 {
   if (STRIP_HAS_PATH(strip)) {
     StripElem *se = strip->data->stripdata;
-    BPathForeachPathData *bpath_data = (BPathForeachPathData *)user_data;
+    BPathForeachPathData *bpath_data = static_cast<BPathForeachPathData *>(user_data);
 
     if (ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_SOUND) && se) {
       BKE_bpath_foreach_path_dirfile_fixed_process(bpath_data,
@@ -997,7 +997,7 @@ static bool strip_foreach_path_callback(Strip *strip, void *user_data)
 
 static void scene_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
   if (scene->ed != nullptr) {
     blender::seq::foreach_strip(&scene->ed->seqbase, strip_foreach_path_callback, bpath_data);
   }
@@ -1005,7 +1005,7 @@ static void scene_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 
 static void scene_foreach_working_space_color(ID *id, const IDTypeForeachColorFunctionCallback &fn)
 {
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
 
   BKE_paint_settings_foreach_mode(scene->toolsettings, [&fn](Paint *paint) {
     fn.single(paint->unified_paint_settings.color);
@@ -1017,13 +1017,14 @@ static void scene_foreach_cache(ID *id,
                                 IDTypeForeachCacheFunctionCallback function_callback,
                                 void *user_data)
 {
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
   if (scene->ed != nullptr) {
     IDCacheKey key;
     key.id_session_uid = id->session_uid;
     /* Preserve VSE thumbnail cache across global undo steps. */
     key.identifier = offsetof(Editing, runtime.thumbnail_cache);
-    function_callback(id, &key, (void **)&scene->ed->runtime.thumbnail_cache, 0, user_data);
+    function_callback(
+        id, &key, reinterpret_cast<void **>(&scene->ed->runtime.thumbnail_cache), 0, user_data);
   }
 }
 
@@ -1099,7 +1100,7 @@ static void scene_blend_write_compositor_forward_compat(Scene &scene,
 
 static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  Scene *sce = (Scene *)id;
+  Scene *sce = blender::id_cast<Scene *>(id);
   const bool is_write_undo = BLO_write_is_undo(writer);
 
   if (is_write_undo) {
@@ -1308,7 +1309,7 @@ static void link_recurs_seq(BlendDataReader *reader, ListBaseT<Strip> *lb)
 
 static void scene_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  Scene *sce = (Scene *)id;
+  Scene *sce = blender::id_cast<Scene *>(id);
 
   sce->depsgraph_hash = nullptr;
   sce->fps_info = nullptr;
@@ -1350,14 +1351,19 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
       BKE_curvemapping_init(ups->curve_rand_value);
     }
 
-    direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->sculpt);
-    direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->vpaint);
-    direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->wpaint);
-    direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->gp_paint);
-    direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->gp_vertexpaint);
-    direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->gp_sculptpaint);
-    direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->gp_weightpaint);
-    direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->curves_sculpt);
+    direct_link_paint_helper(reader, sce, reinterpret_cast<Paint **>(&sce->toolsettings->sculpt));
+    direct_link_paint_helper(reader, sce, reinterpret_cast<Paint **>(&sce->toolsettings->vpaint));
+    direct_link_paint_helper(reader, sce, reinterpret_cast<Paint **>(&sce->toolsettings->wpaint));
+    direct_link_paint_helper(
+        reader, sce, reinterpret_cast<Paint **>(&sce->toolsettings->gp_paint));
+    direct_link_paint_helper(
+        reader, sce, reinterpret_cast<Paint **>(&sce->toolsettings->gp_vertexpaint));
+    direct_link_paint_helper(
+        reader, sce, reinterpret_cast<Paint **>(&sce->toolsettings->gp_sculptpaint));
+    direct_link_paint_helper(
+        reader, sce, reinterpret_cast<Paint **>(&sce->toolsettings->gp_weightpaint));
+    direct_link_paint_helper(
+        reader, sce, reinterpret_cast<Paint **>(&sce->toolsettings->curves_sculpt));
 
     BKE_paint_blend_read_data(reader, sce, &sce->toolsettings->imapaint.paint);
 
@@ -1564,8 +1570,8 @@ static void scene_blend_read_after_liblink(BlendLibReader *reader, ID *id)
 
 static void scene_undo_preserve(BlendLibReader *reader, ID *id_new, ID *id_old)
 {
-  Scene *scene_new = (Scene *)id_new;
-  Scene *scene_old = (Scene *)id_old;
+  Scene *scene_new = blender::id_cast<Scene *>(id_new);
+  Scene *scene_old = blender::id_cast<Scene *>(id_old);
 
   std::swap(scene_old->cursor, scene_new->cursor);
   if (scene_new->toolsettings != nullptr && scene_old->toolsettings != nullptr) {
@@ -1580,7 +1586,7 @@ static void scene_undo_preserve(BlendLibReader *reader, ID *id_new, ID *id_old)
 
 static void scene_lib_override_apply_post(ID *id_dst, ID * /*id_src*/)
 {
-  Scene *scene = (Scene *)id_dst;
+  Scene *scene = blender::id_cast<Scene *>(id_dst);
 
   if (scene->rigidbody_world != nullptr) {
     PTCacheID pid;
@@ -1934,12 +1940,12 @@ Scene *BKE_scene_duplicate(Main *bmain,
     if (sce->id.newid != nullptr) {
       return blender::id_cast<Scene *>(sce->id.newid);
     }
-    sce_copy = blender::id_cast<Scene *>(
-        BKE_id_copy_for_duplicate(bmain, (ID *)sce, duplicate_flags, copy_flags));
+    sce_copy = blender::id_cast<Scene *>(BKE_id_copy_for_duplicate(
+        bmain, blender::id_cast<ID *>(sce), duplicate_flags, copy_flags));
   }
   else {
     BLI_assert(sce->id.newid == nullptr);
-    sce_copy = blender::id_cast<Scene *>(BKE_id_copy(bmain, (ID *)sce));
+    sce_copy = blender::id_cast<Scene *>(BKE_id_copy(bmain, blender::id_cast<ID *>(sce)));
     id_us_min(&sce_copy->id);
     /* Usages of the duplicated scene also need to be remapped in new duplicated IDs. */
     ID_NEW_SET(sce, sce_copy);
@@ -1962,15 +1968,18 @@ Scene *BKE_scene_duplicate(Main *bmain,
     /* Copy Freestyle LineStyle datablocks. */
     for (ViewLayer &view_layer_dst : sce_copy->view_layers) {
       for (FreestyleLineSet &lineset : view_layer_dst.freestyle_config.linesets) {
-        BKE_id_copy_for_duplicate(bmain, (ID *)lineset.linestyle, duplicate_flags, copy_flags);
+        BKE_id_copy_for_duplicate(
+            bmain, blender::id_cast<ID *>(lineset.linestyle), duplicate_flags, copy_flags);
       }
     }
 
     /* Full copy of world (included animations) */
-    BKE_id_copy_for_duplicate(bmain, (ID *)sce->world, duplicate_flags, copy_flags);
+    BKE_id_copy_for_duplicate(
+        bmain, blender::id_cast<ID *>(sce->world), duplicate_flags, copy_flags);
 
     /* Full copy of GreasePencil. */
-    BKE_id_copy_for_duplicate(bmain, (ID *)sce->gpd, duplicate_flags, copy_flags);
+    BKE_id_copy_for_duplicate(
+        bmain, blender::id_cast<ID *>(sce->gpd), duplicate_flags, copy_flags);
 
     /* Deep-duplicate collections and objects (using preferences' settings for which sub-data to
      * duplicate along the object itself). */
@@ -2155,7 +2164,7 @@ void BKE_scene_set_background(Main *bmain, Scene *scene)
 
 Scene *BKE_scene_set_name(Main *bmain, const char *name)
 {
-  Scene *sce = (Scene *)BKE_libblock_find_name(bmain, ID_SCE, name);
+  Scene *sce = blender::id_cast<Scene *>(BKE_libblock_find_name(bmain, ID_SCE, name));
   if (sce) {
     BKE_scene_set_background(bmain, sce);
     printf("Scene switch for render: '%s' in file: '%s'\n", name, BKE_main_blendfile_path(bmain));
@@ -2592,11 +2601,11 @@ static void prepare_mesh_for_viewport_render(Main *bmain,
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit) {
-    Mesh *mesh = static_cast<Mesh *>(obedit->data);
     if ((obedit->type == OB_MESH) &&
-        ((obedit->id.recalc & ID_RECALC_ALL) || (mesh->id.recalc & ID_RECALC_ALL)))
+        ((obedit->id.recalc & ID_RECALC_ALL) || (obedit->data->recalc & ID_RECALC_ALL)))
     {
       if (check_rendered_viewport_visible(bmain)) {
+        Mesh *mesh = blender::id_cast<Mesh *>(obedit->data);
         BMesh *bm = mesh->runtime->edit_mesh->bm;
         BMeshToMeshParams params{};
         params.calc_object_remap = true;
@@ -2898,7 +2907,7 @@ Base *_setlooper_base_step(Scene **sce_iter, ViewLayer *view_layer, Base *base)
     /* Reached the end, get the next base in the set. */
     while ((*sce_iter = (*sce_iter)->set)) {
       ViewLayer *view_layer_set = BKE_view_layer_default_render(*sce_iter);
-      base = (Base *)BKE_view_layer_object_bases_get(view_layer_set)->first;
+      base = static_cast<Base *>(BKE_view_layer_object_bases_get(view_layer_set)->first);
 
       if (base) {
         return base;
@@ -3076,10 +3085,10 @@ bool BKE_scene_multiview_is_stereo3d(const RenderData *rd)
     return false;
   }
 
-  srv[0] = (SceneRenderView *)BLI_findstring(
-      &rd->views, STEREO_LEFT_NAME, offsetof(SceneRenderView, name));
-  srv[1] = (SceneRenderView *)BLI_findstring(
-      &rd->views, STEREO_RIGHT_NAME, offsetof(SceneRenderView, name));
+  srv[0] = static_cast<SceneRenderView *>(
+      BLI_findstring(&rd->views, STEREO_LEFT_NAME, offsetof(SceneRenderView, name)));
+  srv[1] = static_cast<SceneRenderView *>(
+      BLI_findstring(&rd->views, STEREO_RIGHT_NAME, offsetof(SceneRenderView, name)));
 
   return (srv[0] && ((srv[0]->viewflag & SCE_VIEW_DISABLE) == 0) && srv[1] &&
           ((srv[1]->viewflag & SCE_VIEW_DISABLE) == 0));
@@ -3547,8 +3556,8 @@ void BKE_scene_undo_depsgraphs_restore(Main *bmain, GHash *depsgraph_extract)
       char key_full[MAX_ID_NAME + FILE_MAX + MAX_NAME] = {0};
       scene_undo_depsgraph_gen_key(&scene, &view_layer, key_full);
 
-      Depsgraph **depsgraph_extract_ptr = (Depsgraph **)BLI_ghash_lookup_p(depsgraph_extract,
-                                                                           key_full);
+      Depsgraph **depsgraph_extract_ptr = reinterpret_cast<Depsgraph **>(
+          BLI_ghash_lookup_p(depsgraph_extract, key_full));
       if (depsgraph_extract_ptr == nullptr) {
         continue;
       }

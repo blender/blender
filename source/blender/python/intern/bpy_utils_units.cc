@@ -99,7 +99,7 @@ static PyObject *py_structseq_from_strings(PyTypeObject *py_type,
   /* Initialize array. */
   /* We really populate the contexts' fields here! */
   for (str_iter = str_items, desc = py_sseq_desc->fields; *str_iter; str_iter++, desc++) {
-    desc->name = (char *)*str_iter;
+    desc->name = const_cast<char *>(*str_iter);
     desc->doc = nullptr;
   }
   /* end sentinel */
@@ -345,11 +345,11 @@ static PyObject *bpyunits_to_string(PyObject * /*self*/, PyObject *args, PyObjec
 
 static PyMethodDef bpyunits_methods[] = {
     {"to_value",
-     (PyCFunction)bpyunits_to_value,
+     reinterpret_cast<PyCFunction>(bpyunits_to_value),
      METH_VARARGS | METH_KEYWORDS,
      bpyunits_to_value_doc},
     {"to_string",
-     (PyCFunction)bpyunits_to_string,
+     reinterpret_cast<PyCFunction>(bpyunits_to_string),
      METH_VARARGS | METH_KEYWORDS,
      bpyunits_to_string_doc},
     {nullptr, nullptr, 0, nullptr},

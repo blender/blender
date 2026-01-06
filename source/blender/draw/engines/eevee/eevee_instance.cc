@@ -169,7 +169,7 @@ void Instance::init(const int2 &output_res,
     {
       sampling.reset();
     }
-    if (assign_if_different(debug_mode, (eDebugMode)G.debug_value)) {
+    if (assign_if_different(debug_mode, eDebugMode(G.debug_value))) {
       sampling.reset();
     }
     if (output_res != film.display_extent_get()) {
@@ -270,7 +270,7 @@ void Instance::init_light_bake(Depsgraph *depsgraph, draw::Manager *manager)
   update_eval_members();
 
   is_light_bake = true;
-  debug_mode = (eDebugMode)G.debug_value;
+  debug_mode = eDebugMode(G.debug_value);
   info_ = "";
 
   sampling.init(scene);

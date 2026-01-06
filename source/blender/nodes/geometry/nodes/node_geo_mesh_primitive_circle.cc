@@ -189,7 +189,7 @@ static Mesh *create_circle_mesh(const float radius,
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometryMeshCircle &storage = node_storage(params.node());
-  const GeometryNodeMeshCircleFillType fill = (GeometryNodeMeshCircleFillType)storage.fill_type;
+  const GeometryNodeMeshCircleFillType fill = GeometryNodeMeshCircleFillType(storage.fill_type);
 
   const float radius = params.extract_input<float>("Radius");
   const int verts_num = params.extract_input<int>("Vertices");

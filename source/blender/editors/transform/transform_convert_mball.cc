@@ -31,7 +31,7 @@ namespace blender::ed::transform {
 static void createTransMBallVerts(bContext * /*C*/, TransInfo *t)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    MetaBall *mb = (MetaBall *)tc->obedit->data;
+    MetaBall *mb = blender::id_cast<MetaBall *>(tc->obedit->data);
     TransData *td;
     TransDataExtension *tx;
     float mtx[3][3], smtx[3][3];

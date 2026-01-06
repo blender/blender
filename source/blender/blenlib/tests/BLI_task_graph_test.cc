@@ -13,35 +13,35 @@ struct TaskData {
 
 static void TaskData_increase_value(void *taskdata)
 {
-  TaskData *data = (TaskData *)taskdata;
+  TaskData *data = static_cast<TaskData *>(taskdata);
   data->value += 1;
 }
 static void TaskData_decrease_value(void *taskdata)
 {
-  TaskData *data = (TaskData *)taskdata;
+  TaskData *data = static_cast<TaskData *>(taskdata);
   data->value -= 1;
 }
 static void TaskData_multiply_by_two_value(void *taskdata)
 {
-  TaskData *data = (TaskData *)taskdata;
+  TaskData *data = static_cast<TaskData *>(taskdata);
   data->value *= 2;
 }
 
 static void TaskData_multiply_by_two_store(void *taskdata)
 {
-  TaskData *data = (TaskData *)taskdata;
+  TaskData *data = static_cast<TaskData *>(taskdata);
   data->store *= 2;
 }
 
 static void TaskData_store_value(void *taskdata)
 {
-  TaskData *data = (TaskData *)taskdata;
+  TaskData *data = static_cast<TaskData *>(taskdata);
   data->store = data->value;
 }
 
 static void TaskData_square_value(void *taskdata)
 {
-  TaskData *data = (TaskData *)taskdata;
+  TaskData *data = static_cast<TaskData *>(taskdata);
   data->value *= data->value;
 }
 

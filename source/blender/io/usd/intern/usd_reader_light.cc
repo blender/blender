@@ -25,12 +25,12 @@ void USDLightReader::create_object(Main *bmain)
   Light *blight = BKE_light_add(bmain, name_.c_str());
 
   object_ = BKE_object_add_only_object(bmain, OB_LAMP, name_.c_str());
-  object_->data = blight;
+  object_->data = blender::id_cast<ID *>(blight);
 }
 
 void USDLightReader::read_object_data(Main *bmain, const pxr::UsdTimeCode time)
 {
-  Light *blight = (Light *)object_->data;
+  Light *blight = blender::id_cast<Light *>(object_->data);
 
   if (blight == nullptr) {
     return;

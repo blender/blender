@@ -352,7 +352,7 @@ class ShaderNodesInliner {
       if (group_node->is_muted()) {
         continue;
       }
-      const bNodeTree *group = id_cast<const bNodeTree *>(group_node->id);
+      const bNodeTree *group = blender::id_cast<const bNodeTree *>(group_node->id);
       if (!group || ID_MISSING(&group->id)) {
         continue;
       }

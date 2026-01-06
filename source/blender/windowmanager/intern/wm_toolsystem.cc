@@ -1228,13 +1228,13 @@ void WM_toolsystem_update_from_context(
 
 bool WM_toolsystem_active_tool_is_brush(const bContext *C)
 {
-  const bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
+  const bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context(const_cast<bContext *>(C));
   return tref_rt && (tref_rt->flag & TOOLREF_FLAG_USE_BRUSHES);
 }
 
 bool WM_toolsystem_active_tool_has_custom_cursor(const bContext *C)
 {
-  const bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
+  const bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context(const_cast<bContext *>(C));
   return tref_rt && (tref_rt->cursor != WM_CURSOR_DEFAULT);
 }
 
@@ -1244,7 +1244,8 @@ void WM_toolsystem_do_msg_notify_tag_refresh(bContext *C,
 {
   ScrArea *area = static_cast<ScrArea *>(msg_val->user_data);
   Main *bmain = CTX_data_main(C);
-  wmWindow *win = static_cast<wmWindow *>(((wmWindowManager *)bmain->wm.first)->windows.first);
+  wmWindow *win = static_cast<wmWindow *>(
+      (static_cast<wmWindowManager *>(bmain->wm.first))->windows.first);
   if (win->next != nullptr) {
     do {
       bScreen *screen = WM_window_get_active_screen(win);

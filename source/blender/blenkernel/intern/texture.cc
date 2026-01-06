@@ -57,7 +57,7 @@
 
 static void texture_init_data(ID *id)
 {
-  Tex *texture = (Tex *)id;
+  Tex *texture = blender::id_cast<Tex *>(id);
   INIT_DEFAULT_STRUCT_AFTER(texture, id);
 
   BKE_imageuser_default(&texture->iuser);
@@ -69,8 +69,8 @@ static void texture_copy_data(Main *bmain,
                               const ID *id_src,
                               const int flag)
 {
-  Tex *texture_dst = (Tex *)id_dst;
-  const Tex *texture_src = (const Tex *)id_src;
+  Tex *texture_dst = blender::id_cast<Tex *>(id_dst);
+  const Tex *texture_src = blender::id_cast<const Tex *>(id_src);
 
   const bool is_localized = (flag & LIB_ID_CREATE_LOCAL) != 0;
   /* Never handle user-count here for own sub-data. */
@@ -114,7 +114,7 @@ static void texture_copy_data(Main *bmain,
 
 static void texture_free_data(ID *id)
 {
-  Tex *texture = (Tex *)id;
+  Tex *texture = blender::id_cast<Tex *>(id);
 
   /* is no lib link block, but texture extension */
   if (texture->nodetree) {
@@ -125,7 +125,7 @@ static void texture_free_data(ID *id)
 
   MEM_SAFE_FREE(texture->coba);
 
-  BKE_icon_id_delete((ID *)texture);
+  BKE_icon_id_delete(blender::id_cast<ID *>(texture));
   BKE_previewimg_free(&texture->preview);
 }
 
@@ -143,7 +143,7 @@ static void texture_foreach_id(ID *id, LibraryForeachIDData *data)
 
 static void texture_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  Tex *tex = (Tex *)id;
+  Tex *tex = blender::id_cast<Tex *>(id);
 
   /* write LibData */
   BLO_write_id_struct(writer, Tex, id_address, &tex->id);
@@ -167,7 +167,7 @@ static void texture_blend_write(BlendWriter *writer, ID *id, const void *id_addr
 
 static void texture_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  Tex *tex = (Tex *)id;
+  Tex *tex = blender::id_cast<Tex *>(id);
 
   BLO_read_struct(reader, ColorBand, &tex->coba);
 
@@ -424,7 +424,7 @@ MTex *BKE_texture_mtex_add_id(ID *id, int slot)
   }
 
   if (mtex_ar[slot]) {
-    id_us_min((ID *)mtex_ar[slot]->tex);
+    id_us_min(blender::id_cast<ID *>(mtex_ar[slot]->tex));
     MEM_freeN(mtex_ar[slot]);
     mtex_ar[slot] = nullptr;
   }
@@ -477,15 +477,15 @@ bool give_active_mtex(ID *id, MTex ***mtex_ar, short *act)
 {
   switch (GS(id->name)) {
     case ID_LS:
-      *mtex_ar = ((FreestyleLineStyle *)id)->mtex;
+      *mtex_ar = (blender::id_cast<FreestyleLineStyle *>(id))->mtex;
       if (act) {
-        *act = (((FreestyleLineStyle *)id)->texact);
+        *act = ((blender::id_cast<FreestyleLineStyle *>(id))->texact);
       }
       break;
     case ID_PA:
-      *mtex_ar = ((ParticleSettings *)id)->mtex;
+      *mtex_ar = (blender::id_cast<ParticleSettings *>(id))->mtex;
       if (act) {
-        *act = (((ParticleSettings *)id)->texact);
+        *act = ((blender::id_cast<ParticleSettings *>(id))->texact);
       }
       break;
     default:
@@ -510,10 +510,10 @@ void set_active_mtex(ID *id, short act)
 
   switch (GS(id->name)) {
     case ID_LS:
-      ((FreestyleLineStyle *)id)->texact = act;
+      (blender::id_cast<FreestyleLineStyle *>(id))->texact = act;
       break;
     case ID_PA:
-      ((ParticleSettings *)id)->texact = act;
+      (blender::id_cast<ParticleSettings *>(id))->texact = act;
       break;
     default:
       break;
@@ -643,12 +643,12 @@ static void texture_nodes_fetch_images_for_pool(Tex *texture, bNodeTree *ntree, 
 {
   for (bNode *node : ntree->all_nodes()) {
     if (node->type_legacy == SH_NODE_TEX_IMAGE && node->id != nullptr) {
-      Image *image = (Image *)node->id;
+      Image *image = blender::id_cast<Image *>(node->id);
       BKE_image_pool_acquire_ibuf(image, &texture->iuser, pool);
     }
     else if (node->is_group() && node->id != nullptr) {
       /* TODO(sergey): Do we need to control recursion here? */
-      bNodeTree *nested_tree = (bNodeTree *)node->id;
+      bNodeTree *nested_tree = blender::id_cast<bNodeTree *>(node->id);
       texture_nodes_fetch_images_for_pool(texture, nested_tree, pool);
     }
   }

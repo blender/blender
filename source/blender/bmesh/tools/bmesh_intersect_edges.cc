@@ -452,8 +452,8 @@ static void bm_elemxelem_bvhtree_overlap(const BVHTree *tree1,
 static int sort_cmp_by_lambda_cb(const void *index1_v, const void *index2_v, void *keys_v)
 {
   const EDBMSplitElem *pair_flat = static_cast<const EDBMSplitElem *>(keys_v);
-  const int index1 = *(int *)index1_v;
-  const int index2 = *(int *)index2_v;
+  const int index1 = *static_cast<int *>(const_cast<void *>(index1_v));
+  const int index2 = *static_cast<int *>(const_cast<void *>(index2_v));
 
   if (pair_flat[index1].lambda > pair_flat[index2].lambda) {
     return 1;
@@ -738,7 +738,7 @@ bool BM_mesh_intersect_edges(
        * and finally [edge x vert].
        * Ignore the [vert x vert] pairs */
       EDBMSplitElem *pair_flat, *pair_flat_iter;
-      pair_flat = (EDBMSplitElem *)&pair_array[vertxvert_pair_len];
+      pair_flat = reinterpret_cast<EDBMSplitElem *>(&pair_array[vertxvert_pair_len]);
       pair_flat_iter = &pair_flat[0];
       uint pair_flat_len = 2 * edgexelem_pair_len;
       for (i = 0; i < pair_flat_len; i++, pair_flat_iter++) {
@@ -751,7 +751,7 @@ bool BM_mesh_intersect_edges(
           BM_elem_flag_enable(e, BM_ELEM_TAG);
           int e_cuts_len = e->head.index;
 
-          e_map_iter = (EdgeIntersectionsMap *)&e_map->as_int[map_len];
+          e_map_iter = reinterpret_cast<EdgeIntersectionsMap *>(&e_map->as_int[map_len]);
           e_map_iter->cuts_len = e_cuts_len;
           e_map_iter->cuts_index[0] = i;
 
@@ -766,7 +766,8 @@ bool BM_mesh_intersect_edges(
 
       /* Split Edges A to set all Vert x Edge. */
       for (i = 0; i < map_len;
-           e_map_iter = (EdgeIntersectionsMap *)&e_map->as_int[i], i += 1 + e_map_iter->cuts_len)
+           e_map_iter = reinterpret_cast<EdgeIntersectionsMap *>(&e_map->as_int[i]),
+          i += 1 + e_map_iter->cuts_len)
       {
 
         /* sort by lambda. */
@@ -845,7 +846,7 @@ bool BM_mesh_intersect_edges(
           v_val = v_target;
         }
         if (v_val != (*pair_iter)[1].vert) {
-          BMVert **v_val_p = (BMVert **)BLI_ghash_lookup_p(r_targetmap, v_key);
+          BMVert **v_val_p = reinterpret_cast<BMVert **>(BLI_ghash_lookup_p(r_targetmap, v_key));
           *v_val_p = (*pair_iter)[1].vert = v_val;
         }
         if (split_faces) {
@@ -859,7 +860,7 @@ bool BM_mesh_intersect_edges(
         BMEdge **edgenet = nullptr;
         int edgenet_alloc_len = 0;
 
-        EDBMSplitElem *pair_flat = (EDBMSplitElem *)&pair_array[0];
+        EDBMSplitElem *pair_flat = reinterpret_cast<EDBMSplitElem *>(&pair_array[0]);
         BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
           if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
             /* Edge out of context or already tested. */

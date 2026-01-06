@@ -176,7 +176,7 @@ static void attribute_search_exec_fn(bContext *C, void *data_v, void *item_v)
   if (ED_screen_animation_playing(CTX_wm_manager(C))) {
     return;
   }
-  GeometryAttributeInfo *item = (GeometryAttributeInfo *)item_v;
+  GeometryAttributeInfo *item = static_cast<GeometryAttributeInfo *>(item_v);
   if (item == nullptr) {
     return;
   }

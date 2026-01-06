@@ -59,7 +59,7 @@ static bool vertex_weight_paint_mode_poll(bContext *C)
 static void tag_object_after_update(Object &object)
 {
   BLI_assert(object.type == OB_MESH);
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
   DEG_id_tag_update(&mesh.id, ID_RECALC_SYNC_TO_EVAL);
   /* NOTE: Original mesh is used for display, so tag it directly here. */
   BKE_mesh_batch_cache_dirty_tag(&mesh, BKE_MESH_BATCH_DIRTY_ALL);
@@ -315,7 +315,7 @@ static void transform_active_color(bContext *C,
   IndexMaskMemory memory;
   const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
 
-  Mesh &mesh = *static_cast<Mesh *>(obact.data);
+  Mesh &mesh = *blender::id_cast<Mesh *>(obact.data);
   transform_active_color_data(mesh, transform_fn);
 
   pbvh.tag_attribute_changed(node_mask, mesh.active_color_attribute);

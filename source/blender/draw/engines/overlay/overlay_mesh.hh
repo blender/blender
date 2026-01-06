@@ -815,7 +815,8 @@ class MeshUVs : Overlay {
     Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(ob);
 
     const Object *ob_orig = DEG_get_original(ob_ref.object);
-    const Mesh &mesh_orig = ob_orig->type == OB_MESH ? *static_cast<Mesh *>(ob_orig->data) : mesh;
+    const Mesh &mesh_orig = ob_orig->type == OB_MESH ? *blender::id_cast<Mesh *>(ob_orig->data) :
+                                                       mesh;
 
     const SpaceImage *space_image = reinterpret_cast<const SpaceImage *>(state.space_data);
     const bool is_edit_object = DRW_object_is_in_edit_mode(&ob);

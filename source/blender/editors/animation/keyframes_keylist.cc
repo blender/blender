@@ -527,7 +527,7 @@ static void nupdate_ak_bezt(ActKeyColumn *ak, void *data)
   }
 
   /* For interpolation type, select the highest value (enum is sorted). */
-  ak->handle_type = std::max((eKeyframeHandleDrawOpts)ak->handle_type, bezt_handle_type(bezt));
+  ak->handle_type = std::max(eKeyframeHandleDrawOpts(ak->handle_type), bezt_handle_type(bezt));
 
   /* For extremes, detect when combining different states. */
   const char new_extreme = bezt_extreme_type(chain);
@@ -589,7 +589,7 @@ static void nupdate_ak_cel(ActKeyColumn *ak, void *data)
 static ActKeyColumn *nalloc_ak_gpframe(void *data)
 {
   ActKeyColumn *ak = MEM_callocN<ActKeyColumn>("ActKeyColumnGPF");
-  const bGPDframe *gpf = (bGPDframe *)data;
+  const bGPDframe *gpf = static_cast<bGPDframe *>(data);
 
   /* store settings based on state of BezTriple */
   ak->cfra = gpf->framenum;
@@ -638,7 +638,7 @@ struct SeqAllocateData {
 static ActKeyColumn *nalloc_ak_seqframe(void *data)
 {
   ActKeyColumn *ak = MEM_callocN<ActKeyColumn>("ActKeyColumnGPF");
-  const SeqAllocateData *allocate_data = (SeqAllocateData *)data;
+  const SeqAllocateData *allocate_data = static_cast<SeqAllocateData *>(data);
   const SeqRetimingKey *timing_key = allocate_data->key;
 
   /* store settings based on state of BezTriple */
@@ -675,7 +675,7 @@ static void nupdate_ak_seqframe(ActKeyColumn *ak, void *data)
 static ActKeyColumn *nalloc_ak_masklayshape(void *data)
 {
   ActKeyColumn *ak = MEM_callocN<ActKeyColumn>("ActKeyColumnGPF");
-  const MaskLayerShape *masklay_shape = (const MaskLayerShape *)data;
+  const MaskLayerShape *masklay_shape = static_cast<const MaskLayerShape *>(data);
 
   /* Store settings based on state of BezTriple. */
   ak->cfra = masklay_shape->frame;

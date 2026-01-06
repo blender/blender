@@ -100,7 +100,7 @@ namespace blender {
 
 static void init_data(ModifierData *md)
 {
-  NodesModifierData *nmd = (NodesModifierData *)md;
+  NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
 
   INIT_DEFAULT_STRUCT_AFTER(nmd, modifier);
   nmd->modifier.layout_panel_open_flag |= 1 << NODES_MODIFIER_PANEL_WARNINGS;
@@ -140,7 +140,7 @@ static void add_object_relation(
   if (info.transform) {
     DEG_add_object_relation(ctx->node, &object, DEG_OB_COMP_TRANSFORM, "Nodes Modifier");
   }
-  if (&(ID &)object == &ctx->object->id) {
+  if (&object == ctx->object) {
     return;
   }
   if (info.geometry) {
@@ -183,7 +183,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
   find_dependencies_from_settings(nmd->settings, eval_deps);
 
   if (ctx->object->type == OB_CURVES) {
-    Curves *curves_id = static_cast<Curves *>(ctx->object->data);
+    Curves *curves_id = blender::id_cast<Curves *>(ctx->object->data);
     if (curves_id->surface != nullptr) {
       eval_deps.add_object(curves_id->surface);
     }
@@ -198,7 +198,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
   }
 
   for (ID *id : eval_deps.ids.values()) {
-    switch ((ID_Type)GS(id->name)) {
+    switch (ID_Type(GS(id->name))) {
       case ID_OB: {
         Object *object = reinterpret_cast<Object *>(id);
         add_object_relation(
@@ -262,10 +262,10 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-  walk(user_data, ob, (ID **)&nmd->node_group, IDWALK_CB_USER);
+  walk(user_data, ob, reinterpret_cast<ID **>(&nmd->node_group), IDWALK_CB_USER);
 
   IDP_foreach_property(nmd->settings.properties, IDP_TYPE_FILTER_ID, [&](IDProperty *id_prop) {
-    walk(user_data, ob, (ID **)&id_prop->data.pointer, IDWALK_CB_USER);
+    walk(user_data, ob, reinterpret_cast<ID **>(&id_prop->data.pointer), IDWALK_CB_USER);
   });
 
   for (NodesModifierBake &bake : MutableSpan(nmd->bakes, nmd->bakes_num)) {
@@ -846,7 +846,7 @@ static void find_side_effect_nodes(const NodesModifierData &nmd,
                                    Set<ComputeContextHash> &r_socket_log_contexts)
 {
   Main *bmain = DEG_get_bmain(ctx.depsgraph);
-  wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
+  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
   if (wm == nullptr) {
     return;
   }
@@ -878,7 +878,7 @@ static void find_socket_log_contexts(const NodesModifierData &nmd,
                                      Set<ComputeContextHash> &r_socket_log_contexts)
 {
   Main *bmain = DEG_get_bmain(ctx.depsgraph);
-  wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
+  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
   if (wm == nullptr) {
     return;
   }

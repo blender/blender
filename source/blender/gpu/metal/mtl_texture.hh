@@ -62,10 +62,10 @@ struct TextureUpdateRoutineSpecialisation {
   uint64_t hash() const
   {
     blender::DefaultHash<std::string> string_hasher;
-    return (uint64_t)string_hasher(this->input_data_type + this->output_data_type +
-                                   std::to_string((this->component_count_input << 9) |
-                                                  (this->component_count_output << 5) |
-                                                  (this->is_clear ? 1 : 0)));
+    return uint64_t(string_hasher(this->input_data_type + this->output_data_type +
+                                  std::to_string((this->component_count_input << 9) |
+                                                 (this->component_count_output << 5) |
+                                                 (this->is_clear ? 1 : 0))));
   }
 };
 
@@ -90,7 +90,7 @@ struct DepthTextureUpdateRoutineSpecialisation {
 
   uint64_t hash() const
   {
-    return (uint64_t)(this->data_mode);
+    return uint64_t(this->data_mode);
   }
 };
 

@@ -62,26 +62,26 @@ bNodeSocket *node_add_socket_from_template(bNodeTree *ntree,
   /* initialize default_value */
   switch (stemp->type) {
     case SOCK_FLOAT: {
-      bNodeSocketValueFloat *dval = (bNodeSocketValueFloat *)sock->default_value;
+      bNodeSocketValueFloat *dval = static_cast<bNodeSocketValueFloat *>(sock->default_value);
       dval->value = stemp->val1;
       dval->min = stemp->min;
       dval->max = stemp->max;
       break;
     }
     case SOCK_INT: {
-      bNodeSocketValueInt *dval = (bNodeSocketValueInt *)sock->default_value;
+      bNodeSocketValueInt *dval = static_cast<bNodeSocketValueInt *>(sock->default_value);
       dval->value = int(stemp->val1);
       dval->min = int(stemp->min);
       dval->max = int(stemp->max);
       break;
     }
     case SOCK_BOOLEAN: {
-      bNodeSocketValueBoolean *dval = (bNodeSocketValueBoolean *)sock->default_value;
+      bNodeSocketValueBoolean *dval = static_cast<bNodeSocketValueBoolean *>(sock->default_value);
       dval->value = int(stemp->val1);
       break;
     }
     case SOCK_VECTOR: {
-      bNodeSocketValueVector *dval = (bNodeSocketValueVector *)sock->default_value;
+      bNodeSocketValueVector *dval = static_cast<bNodeSocketValueVector *>(sock->default_value);
       dval->value[0] = stemp->val1;
       dval->value[1] = stemp->val2;
       dval->value[2] = stemp->val3;
@@ -91,7 +91,7 @@ bNodeSocket *node_add_socket_from_template(bNodeTree *ntree,
       break;
     }
     case SOCK_RGBA: {
-      bNodeSocketValueRGBA *dval = (bNodeSocketValueRGBA *)sock->default_value;
+      bNodeSocketValueRGBA *dval = static_cast<bNodeSocketValueRGBA *>(sock->default_value);
       dval->value[0] = stemp->val1;
       dval->value[1] = stemp->val2;
       dval->value[2] = stemp->val3;
@@ -111,7 +111,7 @@ static bNodeSocket *verify_socket_template(bNodeTree *ntree,
 {
   bNodeSocket *sock;
 
-  for (sock = (bNodeSocket *)socklist->first; sock; sock = sock->next) {
+  for (sock = static_cast<bNodeSocket *>(socklist->first); sock; sock = sock->next) {
     if (STREQLEN(sock->name, stemp->name, NODE_MAXSTR)) {
       break;
     }
@@ -145,7 +145,7 @@ static void verify_socket_template_list(bNodeTree *ntree,
 
   /* no inputs anymore? */
   if (stemp_first == nullptr) {
-    for (sock = (bNodeSocket *)socklist->first; sock; sock = nextsock) {
+    for (sock = static_cast<bNodeSocket *>(socklist->first); sock; sock = nextsock) {
       nextsock = sock->next;
       bke::node_remove_socket(*ntree, *node, *sock);
     }
@@ -158,7 +158,7 @@ static void verify_socket_template_list(bNodeTree *ntree,
       stemp++;
     }
     /* leftovers are removed */
-    for (sock = (bNodeSocket *)socklist->first; sock; sock = nextsock) {
+    for (sock = static_cast<bNodeSocket *>(socklist->first); sock; sock = nextsock) {
       nextsock = sock->next;
       bke::node_remove_socket(*ntree, *node, *sock);
     }
@@ -168,7 +168,7 @@ static void verify_socket_template_list(bNodeTree *ntree,
     if (socklist->first) {
       /* Some dynamic sockets left, store the list start
        * so we can add static sockets in front of it. */
-      sock = (bNodeSocket *)socklist->first;
+      sock = static_cast<bNodeSocket *>(socklist->first);
       while (stemp->type != -1) {
         /* Put static sockets in front of dynamic. */
         BLI_insertlinkbefore(socklist, sock, stemp->sock);
@@ -779,121 +779,138 @@ void node_socket_copy_default_value_data(eNodeSocketDatatype datatype, void *to,
 
   switch (datatype) {
     case SOCK_FLOAT: {
-      bNodeSocketValueFloat *toval = (bNodeSocketValueFloat *)to;
-      bNodeSocketValueFloat *fromval = (bNodeSocketValueFloat *)from;
+      bNodeSocketValueFloat *toval = static_cast<bNodeSocketValueFloat *>(to);
+      bNodeSocketValueFloat *fromval = static_cast<bNodeSocketValueFloat *>(
+          const_cast<void *>(from));
       *toval = *fromval;
       break;
     }
     case SOCK_INT: {
-      bNodeSocketValueInt *toval = (bNodeSocketValueInt *)to;
-      bNodeSocketValueInt *fromval = (bNodeSocketValueInt *)from;
+      bNodeSocketValueInt *toval = static_cast<bNodeSocketValueInt *>(to);
+      bNodeSocketValueInt *fromval = static_cast<bNodeSocketValueInt *>(const_cast<void *>(from));
       *toval = *fromval;
       break;
     }
     case SOCK_BOOLEAN: {
-      bNodeSocketValueBoolean *toval = (bNodeSocketValueBoolean *)to;
-      bNodeSocketValueBoolean *fromval = (bNodeSocketValueBoolean *)from;
+      bNodeSocketValueBoolean *toval = static_cast<bNodeSocketValueBoolean *>(to);
+      bNodeSocketValueBoolean *fromval = static_cast<bNodeSocketValueBoolean *>(
+          const_cast<void *>(from));
       *toval = *fromval;
       break;
     }
     case SOCK_VECTOR: {
-      bNodeSocketValueVector *toval = (bNodeSocketValueVector *)to;
-      bNodeSocketValueVector *fromval = (bNodeSocketValueVector *)from;
+      bNodeSocketValueVector *toval = static_cast<bNodeSocketValueVector *>(to);
+      bNodeSocketValueVector *fromval = static_cast<bNodeSocketValueVector *>(
+          const_cast<void *>(from));
       *toval = *fromval;
       break;
     }
     case SOCK_RGBA: {
-      bNodeSocketValueRGBA *toval = (bNodeSocketValueRGBA *)to;
-      bNodeSocketValueRGBA *fromval = (bNodeSocketValueRGBA *)from;
+      bNodeSocketValueRGBA *toval = static_cast<bNodeSocketValueRGBA *>(to);
+      bNodeSocketValueRGBA *fromval = static_cast<bNodeSocketValueRGBA *>(
+          const_cast<void *>(from));
       *toval = *fromval;
       break;
     }
     case SOCK_ROTATION: {
-      bNodeSocketValueRotation *toval = (bNodeSocketValueRotation *)to;
-      bNodeSocketValueRotation *fromval = (bNodeSocketValueRotation *)from;
+      bNodeSocketValueRotation *toval = static_cast<bNodeSocketValueRotation *>(to);
+      bNodeSocketValueRotation *fromval = static_cast<bNodeSocketValueRotation *>(
+          const_cast<void *>(from));
       *toval = *fromval;
       break;
     }
     case SOCK_STRING: {
-      bNodeSocketValueString *toval = (bNodeSocketValueString *)to;
-      bNodeSocketValueString *fromval = (bNodeSocketValueString *)from;
+      bNodeSocketValueString *toval = static_cast<bNodeSocketValueString *>(to);
+      bNodeSocketValueString *fromval = static_cast<bNodeSocketValueString *>(
+          const_cast<void *>(from));
       *toval = *fromval;
       break;
     }
     case SOCK_MENU: {
-      bNodeSocketValueMenu *toval = (bNodeSocketValueMenu *)to;
-      bNodeSocketValueMenu *fromval = (bNodeSocketValueMenu *)from;
+      bNodeSocketValueMenu *toval = static_cast<bNodeSocketValueMenu *>(to);
+      bNodeSocketValueMenu *fromval = static_cast<bNodeSocketValueMenu *>(
+          const_cast<void *>(from));
       *toval = *fromval;
       break;
     }
     case SOCK_OBJECT: {
-      bNodeSocketValueObject *toval = (bNodeSocketValueObject *)to;
-      bNodeSocketValueObject *fromval = (bNodeSocketValueObject *)from;
+      bNodeSocketValueObject *toval = static_cast<bNodeSocketValueObject *>(to);
+      bNodeSocketValueObject *fromval = static_cast<bNodeSocketValueObject *>(
+          const_cast<void *>(from));
       *toval = *fromval;
       id_us_plus(reinterpret_cast<ID *>(toval->value));
       break;
     }
     case SOCK_IMAGE: {
-      bNodeSocketValueImage *toval = (bNodeSocketValueImage *)to;
-      bNodeSocketValueImage *fromval = (bNodeSocketValueImage *)from;
+      bNodeSocketValueImage *toval = static_cast<bNodeSocketValueImage *>(to);
+      bNodeSocketValueImage *fromval = static_cast<bNodeSocketValueImage *>(
+          const_cast<void *>(from));
       *toval = *fromval;
       id_us_plus(reinterpret_cast<ID *>(toval->value));
       break;
     }
     case SOCK_COLLECTION: {
-      bNodeSocketValueCollection *toval = (bNodeSocketValueCollection *)to;
-      bNodeSocketValueCollection *fromval = (bNodeSocketValueCollection *)from;
+      bNodeSocketValueCollection *toval = static_cast<bNodeSocketValueCollection *>(to);
+      bNodeSocketValueCollection *fromval = static_cast<bNodeSocketValueCollection *>(
+          const_cast<void *>(from));
       *toval = *fromval;
       id_us_plus(reinterpret_cast<ID *>(toval->value));
       break;
     }
     case SOCK_TEXTURE: {
-      bNodeSocketValueTexture *toval = (bNodeSocketValueTexture *)to;
-      bNodeSocketValueTexture *fromval = (bNodeSocketValueTexture *)from;
+      bNodeSocketValueTexture *toval = static_cast<bNodeSocketValueTexture *>(to);
+      bNodeSocketValueTexture *fromval = static_cast<bNodeSocketValueTexture *>(
+          const_cast<void *>(from));
       *toval = *fromval;
       id_us_plus(reinterpret_cast<ID *>(toval->value));
       break;
     }
     case SOCK_MATERIAL: {
-      bNodeSocketValueMaterial *toval = (bNodeSocketValueMaterial *)to;
-      bNodeSocketValueMaterial *fromval = (bNodeSocketValueMaterial *)from;
+      bNodeSocketValueMaterial *toval = static_cast<bNodeSocketValueMaterial *>(to);
+      bNodeSocketValueMaterial *fromval = static_cast<bNodeSocketValueMaterial *>(
+          const_cast<void *>(from));
       *toval = *fromval;
       id_us_plus(reinterpret_cast<ID *>(toval->value));
       break;
     }
     case SOCK_FONT: {
-      bNodeSocketValueFont *toval = (bNodeSocketValueFont *)to;
-      bNodeSocketValueFont *fromval = (bNodeSocketValueFont *)from;
+      bNodeSocketValueFont *toval = static_cast<bNodeSocketValueFont *>(to);
+      bNodeSocketValueFont *fromval = static_cast<bNodeSocketValueFont *>(
+          const_cast<void *>(from));
       *toval = *fromval;
-      id_us_plus(id_cast<ID *>(toval->value));
+      id_us_plus(blender::id_cast<ID *>(toval->value));
       break;
     }
     case SOCK_SCENE: {
-      bNodeSocketValueScene *toval = (bNodeSocketValueScene *)to;
-      bNodeSocketValueScene *fromval = (bNodeSocketValueScene *)from;
+      bNodeSocketValueScene *toval = static_cast<bNodeSocketValueScene *>(to);
+      bNodeSocketValueScene *fromval = static_cast<bNodeSocketValueScene *>(
+          const_cast<void *>(from));
       *toval = *fromval;
-      id_us_plus(id_cast<ID *>(toval->value));
+      id_us_plus(blender::id_cast<ID *>(toval->value));
       break;
     }
     case SOCK_TEXT_ID: {
-      bNodeSocketValueText *toval = (bNodeSocketValueText *)to;
-      bNodeSocketValueText *fromval = (bNodeSocketValueText *)from;
+      bNodeSocketValueText *toval = static_cast<bNodeSocketValueText *>(to);
+      bNodeSocketValueText *fromval = static_cast<bNodeSocketValueText *>(
+          const_cast<void *>(from));
       *toval = *fromval;
-      id_us_plus(id_cast<ID *>(toval->value));
+      id_us_plus(blender::id_cast<ID *>(toval->value));
       break;
     }
     case SOCK_MASK: {
-      bNodeSocketValueMask *toval = (bNodeSocketValueMask *)to;
-      bNodeSocketValueMask *fromval = (bNodeSocketValueMask *)from;
+      bNodeSocketValueMask *toval = static_cast<bNodeSocketValueMask *>(to);
+      bNodeSocketValueMask *fromval = static_cast<bNodeSocketValueMask *>(
+          const_cast<void *>(from));
       *toval = *fromval;
-      id_us_plus(id_cast<ID *>(toval->value));
+      id_us_plus(blender::id_cast<ID *>(toval->value));
       break;
     }
     case SOCK_SOUND: {
-      bNodeSocketValueSound *toval = (bNodeSocketValueSound *)to;
-      bNodeSocketValueSound *fromval = (bNodeSocketValueSound *)from;
+      bNodeSocketValueSound *toval = static_cast<bNodeSocketValueSound *>(to);
+      bNodeSocketValueSound *fromval = static_cast<bNodeSocketValueSound *>(
+          const_cast<void *>(from));
       *toval = *fromval;
-      id_us_plus(id_cast<ID *>(toval->value));
+      id_us_plus(blender::id_cast<ID *>(toval->value));
       break;
     }
 
@@ -1050,10 +1067,12 @@ static bke::bNodeSocketType *make_socket_type_bool()
   bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_BOOLEAN, PROP_NONE);
   socktype->base_cpp_type = &blender::CPPType::get<bool>();
   socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
-    *(bool *)r_value = ((bNodeSocketValueBoolean *)socket_value)->value;
+    *static_cast<bool *>(r_value) =
+        (static_cast<bNodeSocketValueBoolean *>(const_cast<void *>(socket_value)))->value;
   };
   socktype->get_geometry_nodes_cpp_value = [](const void *socket_value) {
-    const bool value = ((bNodeSocketValueBoolean *)socket_value)->value;
+    const bool value =
+        (static_cast<bNodeSocketValueBoolean *>(const_cast<void *>(socket_value)))->value;
     return SocketValueVariant(value);
   };
   static SocketValueVariant default_value{false};
@@ -1066,12 +1085,14 @@ static bke::bNodeSocketType *make_socket_type_rotation()
   bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_ROTATION, PROP_NONE);
   socktype->base_cpp_type = &blender::CPPType::get<math::Quaternion>();
   socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
-    const auto &typed_value = *(bNodeSocketValueRotation *)socket_value;
+    const auto &typed_value = *static_cast<bNodeSocketValueRotation *>(
+        const_cast<void *>(socket_value));
     const math::EulerXYZ euler(float3(typed_value.value_euler));
     *static_cast<math::Quaternion *>(r_value) = math::to_quaternion(euler);
   };
   socktype->get_geometry_nodes_cpp_value = [](const void *socket_value) {
-    const auto &typed_value = *(bNodeSocketValueRotation *)socket_value;
+    const auto &typed_value = *static_cast<bNodeSocketValueRotation *>(
+        const_cast<void *>(socket_value));
     const math::EulerXYZ euler(float3(typed_value.value_euler));
     const math::Quaternion value = math::to_quaternion(euler);
     return SocketValueVariant(value);
@@ -1131,10 +1152,12 @@ static bke::bNodeSocketType *make_socket_type_float(PropertySubType subtype)
   bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_FLOAT, subtype);
   socktype->base_cpp_type = &blender::CPPType::get<float>();
   socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
-    *(float *)r_value = ((bNodeSocketValueFloat *)socket_value)->value;
+    *static_cast<float *>(
+        r_value) = (static_cast<bNodeSocketValueFloat *>(const_cast<void *>(socket_value)))->value;
   };
   socktype->get_geometry_nodes_cpp_value = [](const void *socket_value) {
-    const float value = ((bNodeSocketValueFloat *)socket_value)->value;
+    const float value =
+        (static_cast<bNodeSocketValueFloat *>(const_cast<void *>(socket_value)))->value;
     return SocketValueVariant(value);
   };
   static SocketValueVariant default_value{0.0f};
@@ -1147,10 +1170,12 @@ static bke::bNodeSocketType *make_socket_type_int(PropertySubType subtype)
   bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_INT, subtype);
   socktype->base_cpp_type = &blender::CPPType::get<int>();
   socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
-    *(int *)r_value = ((bNodeSocketValueInt *)socket_value)->value;
+    *static_cast<int *>(
+        r_value) = (static_cast<bNodeSocketValueInt *>(const_cast<void *>(socket_value)))->value;
   };
   socktype->get_geometry_nodes_cpp_value = [](const void *socket_value) {
-    const int value = ((bNodeSocketValueInt *)socket_value)->value;
+    const int value =
+        (static_cast<bNodeSocketValueInt *>(const_cast<void *>(socket_value)))->value;
     return SocketValueVariant(value);
   };
   static SocketValueVariant default_value{0};
@@ -1163,10 +1188,12 @@ static bke::bNodeSocketType *make_socket_type_vector(PropertySubType subtype, co
   bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_VECTOR, subtype, dimensions);
   socktype->base_cpp_type = &blender::CPPType::get<blender::float3>();
   socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
-    *(blender::float3 *)r_value = ((bNodeSocketValueVector *)socket_value)->value;
+    *static_cast<blender::float3 *>(r_value) =
+        (static_cast<bNodeSocketValueVector *>(const_cast<void *>(socket_value)))->value;
   };
   socktype->get_geometry_nodes_cpp_value = [](const void *socket_value) {
-    const blender::float3 value = ((bNodeSocketValueVector *)socket_value)->value;
+    const blender::float3 value =
+        (static_cast<bNodeSocketValueVector *>(const_cast<void *>(socket_value)))->value;
     return SocketValueVariant(value);
   };
   static SocketValueVariant default_value{blender::float3(0, 0, 0)};
@@ -1179,10 +1206,12 @@ static bke::bNodeSocketType *make_socket_type_rgba()
   bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_RGBA, PROP_NONE);
   socktype->base_cpp_type = &blender::CPPType::get<blender::ColorGeometry4f>();
   socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
-    *(blender::ColorGeometry4f *)r_value = ((bNodeSocketValueRGBA *)socket_value)->value;
+    *static_cast<blender::ColorGeometry4f *>(
+        r_value) = (static_cast<bNodeSocketValueRGBA *>(const_cast<void *>(socket_value)))->value;
   };
   socktype->get_geometry_nodes_cpp_value = [](const void *socket_value) {
-    const blender::ColorGeometry4f value = ((bNodeSocketValueRGBA *)socket_value)->value;
+    const blender::ColorGeometry4f value =
+        (static_cast<bNodeSocketValueRGBA *>(const_cast<void *>(socket_value)))->value;
     return SocketValueVariant(value);
   };
   static SocketValueVariant default_value{blender::ColorGeometry4f(0, 0, 0, 0)};
@@ -1195,10 +1224,12 @@ static bke::bNodeSocketType *make_socket_type_string(PropertySubType subtype)
   bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_STRING, subtype);
   socktype->base_cpp_type = &blender::CPPType::get<std::string>();
   socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
-    new (r_value) std::string(((bNodeSocketValueString *)socket_value)->value);
+    new (r_value) std::string(
+        (static_cast<bNodeSocketValueString *>(const_cast<void *>(socket_value)))->value);
   };
   socktype->get_geometry_nodes_cpp_value = [](const void *socket_value) {
-    std::string value = ((bNodeSocketValueString *)socket_value)->value;
+    std::string value =
+        (static_cast<bNodeSocketValueString *>(const_cast<void *>(socket_value)))->value;
     return SocketValueVariant(value);
   };
   static SocketValueVariant default_value{std::string()};
@@ -1211,10 +1242,12 @@ static bke::bNodeSocketType *make_socket_type_menu()
   bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_MENU, PROP_NONE);
   socktype->base_cpp_type = &blender::CPPType::get<nodes::MenuValue>();
   socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
-    new (r_value) nodes::MenuValue(((bNodeSocketValueMenu *)socket_value)->value);
+    new (r_value) nodes::MenuValue(
+        (static_cast<bNodeSocketValueMenu *>(const_cast<void *>(socket_value)))->value);
   };
   socktype->get_geometry_nodes_cpp_value = [](const void *socket_value) {
-    const nodes::MenuValue value{((bNodeSocketValueMenu *)socket_value)->value};
+    const nodes::MenuValue value{
+        (static_cast<bNodeSocketValueMenu *>(const_cast<void *>(socket_value)))->value};
     return SocketValueVariant::From(value);
   };
   static SocketValueVariant default_value = SocketValueVariant::From(nodes::MenuValue());
@@ -1227,7 +1260,8 @@ static bke::bNodeSocketType *make_socket_type_object()
   bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_OBJECT, PROP_NONE);
   socktype->base_cpp_type = &blender::CPPType::get<Object *>();
   socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
-    *(Object **)r_value = ((bNodeSocketValueObject *)socket_value)->value;
+    *static_cast<Object **>(r_value) =
+        (static_cast<bNodeSocketValueObject *>(const_cast<void *>(socket_value)))->value;
   };
   socktype->get_geometry_nodes_cpp_value = [](const void *socket_value) {
     Object *object = static_cast<const bNodeSocketValueObject *>(socket_value)->value;
@@ -1259,7 +1293,8 @@ static bke::bNodeSocketType *make_socket_type_collection()
   bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_COLLECTION, PROP_NONE);
   socktype->base_cpp_type = &blender::CPPType::get<Collection *>();
   socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
-    *(Collection **)r_value = ((bNodeSocketValueCollection *)socket_value)->value;
+    *static_cast<Collection **>(r_value) =
+        (static_cast<bNodeSocketValueCollection *>(const_cast<void *>(socket_value)))->value;
   };
   socktype->get_geometry_nodes_cpp_value = [](const void *socket_value) {
     Collection *collection = static_cast<const bNodeSocketValueCollection *>(socket_value)->value;
@@ -1276,7 +1311,8 @@ static bke::bNodeSocketType *make_socket_type_texture()
   bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_TEXTURE, PROP_NONE);
   socktype->base_cpp_type = &blender::CPPType::get<Tex *>();
   socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
-    *(Tex **)r_value = ((bNodeSocketValueTexture *)socket_value)->value;
+    *static_cast<Tex **>(r_value) =
+        (static_cast<bNodeSocketValueTexture *>(const_cast<void *>(socket_value)))->value;
   };
   socktype->get_geometry_nodes_cpp_value = [](const void *socket_value) {
     Tex *texture = static_cast<const bNodeSocketValueTexture *>(socket_value)->value;
@@ -1292,7 +1328,8 @@ static bke::bNodeSocketType *make_socket_type_image()
   bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_IMAGE, PROP_NONE);
   socktype->base_cpp_type = &blender::CPPType::get<Image *>();
   socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
-    *(Image **)r_value = ((bNodeSocketValueImage *)socket_value)->value;
+    *static_cast<Image **>(
+        r_value) = (static_cast<bNodeSocketValueImage *>(const_cast<void *>(socket_value)))->value;
   };
   socktype->get_geometry_nodes_cpp_value = [](const void *socket_value) {
     Image *image = static_cast<const bNodeSocketValueImage *>(socket_value)->value;
@@ -1309,7 +1346,8 @@ static bke::bNodeSocketType *make_socket_type_material()
   bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_MATERIAL, PROP_NONE);
   socktype->base_cpp_type = &blender::CPPType::get<Material *>();
   socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
-    *(Material **)r_value = ((bNodeSocketValueMaterial *)socket_value)->value;
+    *static_cast<Material **>(r_value) =
+        (static_cast<bNodeSocketValueMaterial *>(const_cast<void *>(socket_value)))->value;
   };
   socktype->get_geometry_nodes_cpp_value = [](const void *socket_value) {
     Material *material = static_cast<const bNodeSocketValueMaterial *>(socket_value)->value;
@@ -1326,7 +1364,8 @@ static bke::bNodeSocketType *make_socket_type_font()
   bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_FONT, PROP_NONE);
   socktype->base_cpp_type = &blender::CPPType::get<VFont *>();
   socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
-    *(VFont **)r_value = ((bNodeSocketValueFont *)socket_value)->value;
+    *static_cast<VFont **>(
+        r_value) = (static_cast<bNodeSocketValueFont *>(const_cast<void *>(socket_value)))->value;
   };
   socktype->get_geometry_nodes_cpp_value = [](const void *socket_value) {
     VFont *font = static_cast<const bNodeSocketValueFont *>(socket_value)->value;
@@ -1343,7 +1382,8 @@ static bke::bNodeSocketType *make_socket_type_scene()
   bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_SCENE, PROP_NONE);
   socktype->base_cpp_type = &blender::CPPType::get<Scene *>();
   socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
-    *(Scene **)r_value = ((bNodeSocketValueScene *)socket_value)->value;
+    *static_cast<Scene **>(
+        r_value) = (static_cast<bNodeSocketValueScene *>(const_cast<void *>(socket_value)))->value;
   };
   socktype->get_geometry_nodes_cpp_value = [](const void *socket_value) {
     Scene *scene = static_cast<const bNodeSocketValueScene *>(socket_value)->value;
@@ -1360,7 +1400,8 @@ static bke::bNodeSocketType *make_socket_type_text()
   bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_TEXT_ID, PROP_NONE);
   socktype->base_cpp_type = &blender::CPPType::get<Text *>();
   socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
-    *(Text **)r_value = ((bNodeSocketValueText *)socket_value)->value;
+    *static_cast<Text **>(
+        r_value) = (static_cast<bNodeSocketValueText *>(const_cast<void *>(socket_value)))->value;
   };
   socktype->get_geometry_nodes_cpp_value = [](const void *socket_value) {
     Text *text = static_cast<const bNodeSocketValueText *>(socket_value)->value;
@@ -1376,7 +1417,8 @@ static bke::bNodeSocketType *make_socket_type_mask()
   bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_MASK, PROP_NONE);
   socktype->base_cpp_type = &blender::CPPType::get<Mask *>();
   socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
-    *(Mask **)r_value = ((bNodeSocketValueMask *)socket_value)->value;
+    *static_cast<Mask **>(
+        r_value) = (static_cast<bNodeSocketValueMask *>(const_cast<void *>(socket_value)))->value;
   };
   socktype->get_geometry_nodes_cpp_value = [](const void *socket_value) {
     Mask *mask = static_cast<const bNodeSocketValueMask *>(socket_value)->value;
@@ -1392,7 +1434,8 @@ static bke::bNodeSocketType *make_socket_type_sound()
   bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_SOUND, PROP_NONE);
   socktype->base_cpp_type = &blender::CPPType::get<bSound *>();
   socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
-    *(bSound **)r_value = ((bNodeSocketValueSound *)socket_value)->value;
+    *static_cast<bSound **>(
+        r_value) = (static_cast<bNodeSocketValueSound *>(const_cast<void *>(socket_value)))->value;
   };
   socktype->get_geometry_nodes_cpp_value = [](const void *socket_value) {
     bSound *sound = static_cast<const bNodeSocketValueSound *>(socket_value)->value;

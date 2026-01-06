@@ -25,7 +25,7 @@
 
 static void init_data(ShaderFxData *fx)
 {
-  PixelShaderFxData *gpfx = (PixelShaderFxData *)fx;
+  PixelShaderFxData *gpfx = reinterpret_cast<PixelShaderFxData *>(fx);
   ARRAY_SET_ITEMS(gpfx->size, 5, 5);
   ARRAY_SET_ITEMS(gpfx->rgba, 0.0f, 0.0f, 0.0f, 0.9f);
 }

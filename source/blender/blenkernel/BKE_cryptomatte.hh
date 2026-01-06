@@ -56,7 +56,7 @@ struct CryptomatteHash {
   CryptomatteHash(uint32_t hash);
   CryptomatteHash(const char *name, int name_len)
   {
-    hash = BLI_hash_mm3((const unsigned char *)name, name_len, 0);
+    hash = BLI_hash_mm3(reinterpret_cast<const unsigned char *>(name), name_len, 0);
   }
 
   static CryptomatteHash from_hex_encoded(StringRef hex_encoded);

@@ -190,13 +190,13 @@ enum {
 
 static void init_data(ModifierData *md)
 {
-  SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
+  SurfaceDeformModifierData *smd = reinterpret_cast<SurfaceDeformModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(smd, modifier);
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
+  SurfaceDeformModifierData *smd = reinterpret_cast<SurfaceDeformModifierData *>(md);
 
   /* Ask for vertex groups if we need them. */
   if (smd->defgrp_name[0] != '\0') {
@@ -233,14 +233,14 @@ class BindVertsImplicitSharing : public blender::ImplicitSharingInfo {
 
 static void free_data(ModifierData *md)
 {
-  SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
+  SurfaceDeformModifierData *smd = reinterpret_cast<SurfaceDeformModifierData *>(md);
   blender::implicit_sharing::free_shared_data(&smd->verts, &smd->verts_sharing_info);
 }
 
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
-  const SurfaceDeformModifierData *smd = (const SurfaceDeformModifierData *)md;
-  SurfaceDeformModifierData *tsmd = (SurfaceDeformModifierData *)target;
+  const SurfaceDeformModifierData *smd = reinterpret_cast<const SurfaceDeformModifierData *>(md);
+  SurfaceDeformModifierData *tsmd = reinterpret_cast<SurfaceDeformModifierData *>(target);
 
   BKE_modifier_copydata_generic(md, target, flag);
 
@@ -250,14 +250,14 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
+  SurfaceDeformModifierData *smd = reinterpret_cast<SurfaceDeformModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&smd->target, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&smd->target), IDWALK_CB_NOP);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
+  SurfaceDeformModifierData *smd = reinterpret_cast<SurfaceDeformModifierData *>(md);
   if (smd->target != nullptr) {
     DEG_add_object_relation(
         ctx->node, smd->target, DEG_OB_COMP_GEOMETRY, "Surface Deform Modifier");
@@ -934,7 +934,7 @@ static void bindVert(void *__restrict userdata,
                      const int index,
                      const TaskParallelTLS *__restrict /*tls*/)
 {
-  SDefBindCalcData *const data = (SDefBindCalcData *)userdata;
+  SDefBindCalcData *const data = static_cast<SDefBindCalcData *>(userdata);
   float point_co[3];
   float point_co_proj[3];
 
@@ -1180,28 +1180,28 @@ static bool surfacedeformBind(Object *ob,
   int adj_result;
 
   if (target->faces_num == 0) {
-    BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "Target has no faces");
+    BKE_modifier_set_error(ob, reinterpret_cast<ModifierData *>(smd_eval), "Target has no faces");
     return false;
   }
 
   SDefAdjacencyArray *vert_edges = MEM_calloc_arrayN<SDefAdjacencyArray>(target_verts_num,
                                                                          "SDefVertEdgeMap");
   if (vert_edges == nullptr) {
-    BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "Out of memory");
+    BKE_modifier_set_error(ob, reinterpret_cast<ModifierData *>(smd_eval), "Out of memory");
     return false;
   }
 
   SDefAdjacency *adj_array = MEM_malloc_arrayN<SDefAdjacency>(2 * size_t(tedges_num),
                                                               "SDefVertEdge");
   if (adj_array == nullptr) {
-    BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "Out of memory");
+    BKE_modifier_set_error(ob, reinterpret_cast<ModifierData *>(smd_eval), "Out of memory");
     MEM_freeN(vert_edges);
     return false;
   }
 
   SDefEdgePolys *edge_polys = MEM_calloc_arrayN<SDefEdgePolys>(tedges_num, "SDefEdgeFaceMap");
   if (edge_polys == nullptr) {
-    BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "Out of memory");
+    BKE_modifier_set_error(ob, reinterpret_cast<ModifierData *>(smd_eval), "Out of memory");
     MEM_freeN(vert_edges);
     MEM_freeN(adj_array);
     return false;
@@ -1209,7 +1209,7 @@ static bool surfacedeformBind(Object *ob,
 
   smd_orig->verts = MEM_new_array_for_free<SDefVert>(size_t(verts_num), "SDefBindVerts");
   if (smd_orig->verts == nullptr) {
-    BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "Out of memory");
+    BKE_modifier_set_error(ob, reinterpret_cast<ModifierData *>(smd_eval), "Out of memory");
     freeAdjacencyMap(vert_edges, adj_array, edge_polys);
     return false;
   }
@@ -1218,7 +1218,7 @@ static bool surfacedeformBind(Object *ob,
 
   blender::bke::BVHTreeFromMesh treeData = target->bvh_corner_tris();
   if (treeData.tree == nullptr) {
-    BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "Out of memory");
+    BKE_modifier_set_error(ob, reinterpret_cast<ModifierData *>(smd_eval), "Out of memory");
     freeAdjacencyMap(vert_edges, adj_array, edge_polys);
     implicit_sharing::free_shared_data(&smd_orig->verts, &smd_orig->verts_sharing_info);
     return false;
@@ -1227,8 +1227,9 @@ static bool surfacedeformBind(Object *ob,
   adj_result = buildAdjacencyMap(polys, edges, corner_edges, vert_edges, adj_array, edge_polys);
 
   if (adj_result == MOD_SDEF_BIND_RESULT_NONMANY_ERR) {
-    BKE_modifier_set_error(
-        ob, (ModifierData *)smd_eval, "Target has edges with more than two polygons");
+    BKE_modifier_set_error(ob,
+                           reinterpret_cast<ModifierData *>(smd_eval),
+                           "Target has edges with more than two polygons");
     freeAdjacencyMap(vert_edges, adj_array, edge_polys);
     implicit_sharing::free_shared_data(&smd_orig->verts, &smd_orig->verts_sharing_info);
     return false;
@@ -1266,8 +1267,8 @@ static bool surfacedeformBind(Object *ob,
   data.sparse_bind = sparse_bind;
 
   if (data.targetCos == nullptr) {
-    BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "Out of memory");
-    free_data((ModifierData *)smd_orig);
+    BKE_modifier_set_error(ob, reinterpret_cast<ModifierData *>(smd_eval), "Out of memory");
+    free_data(reinterpret_cast<ModifierData *>(smd_orig));
     return false;
   }
 
@@ -1292,34 +1293,39 @@ static bool surfacedeformBind(Object *ob,
   }
 
   if (data.success == MOD_SDEF_BIND_RESULT_MEM_ERR) {
-    BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "Out of memory");
-    free_data((ModifierData *)smd_orig);
+    BKE_modifier_set_error(ob, reinterpret_cast<ModifierData *>(smd_eval), "Out of memory");
+    free_data(reinterpret_cast<ModifierData *>(smd_orig));
   }
   else if (data.success == MOD_SDEF_BIND_RESULT_NONMANY_ERR) {
-    BKE_modifier_set_error(
-        ob, (ModifierData *)smd_eval, "Target has edges with more than two polygons");
-    free_data((ModifierData *)smd_orig);
+    BKE_modifier_set_error(ob,
+                           reinterpret_cast<ModifierData *>(smd_eval),
+                           "Target has edges with more than two polygons");
+    free_data(reinterpret_cast<ModifierData *>(smd_orig));
   }
   else if (data.success == MOD_SDEF_BIND_RESULT_CONCAVE_ERR) {
-    BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "Target contains concave polygons");
-    free_data((ModifierData *)smd_orig);
+    BKE_modifier_set_error(
+        ob, reinterpret_cast<ModifierData *>(smd_eval), "Target contains concave polygons");
+    free_data(reinterpret_cast<ModifierData *>(smd_orig));
   }
   else if (data.success == MOD_SDEF_BIND_RESULT_OVERLAP_ERR) {
-    BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "Target contains overlapping vertices");
-    free_data((ModifierData *)smd_orig);
+    BKE_modifier_set_error(
+        ob, reinterpret_cast<ModifierData *>(smd_eval), "Target contains overlapping vertices");
+    free_data(reinterpret_cast<ModifierData *>(smd_orig));
   }
   else if (data.success == MOD_SDEF_BIND_RESULT_GENERIC_ERR) {
     /* I know this message is vague, but I could not think of a way
      * to explain this with a reasonably sized message.
      * Though it shouldn't really matter all that much,
      * because this is very unlikely to occur */
-    BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "Target contains invalid polygons");
-    free_data((ModifierData *)smd_orig);
+    BKE_modifier_set_error(
+        ob, reinterpret_cast<ModifierData *>(smd_eval), "Target contains invalid polygons");
+    free_data(reinterpret_cast<ModifierData *>(smd_orig));
   }
   else if (smd_orig->bind_verts_num == 0 || !smd_orig->verts) {
     data.success = MOD_SDEF_BIND_RESULT_GENERIC_ERR;
-    BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "No vertices were bound");
-    free_data((ModifierData *)smd_orig);
+    BKE_modifier_set_error(
+        ob, reinterpret_cast<ModifierData *>(smd_eval), "No vertices were bound");
+    free_data(reinterpret_cast<ModifierData *>(smd_orig));
   }
 
   freeAdjacencyMap(vert_edges, adj_array, edge_polys);
@@ -1331,7 +1337,7 @@ static void deformVert(void *__restrict userdata,
                        const int index,
                        const TaskParallelTLS *__restrict /*tls*/)
 {
-  const SDefDeformData *const data = (SDefDeformData *)userdata;
+  const SDefDeformData *const data = static_cast<SDefDeformData *>(userdata);
   const SDefBind *sdbind = data->bind_verts[index].binds;
   const int sdbind_num = data->bind_verts[index].binds_num;
   const uint vertex_idx = data->bind_verts[index].vertex_idx;
@@ -1423,7 +1429,7 @@ static void surfacedeformModifier_do(ModifierData *md,
                                      Object *ob,
                                      Mesh *mesh)
 {
-  SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
+  SurfaceDeformModifierData *smd = reinterpret_cast<SurfaceDeformModifierData *>(md);
   Mesh *target;
   uint target_verts_num, target_faces_num;
 
@@ -1457,8 +1463,8 @@ static void surfacedeformModifier_do(ModifierData *md,
       return;
     }
 
-    SurfaceDeformModifierData *smd_orig = (SurfaceDeformModifierData *)BKE_modifier_get_original(
-        ob, md);
+    SurfaceDeformModifierData *smd_orig = reinterpret_cast<SurfaceDeformModifierData *>(
+        BKE_modifier_get_original(ob, md));
     float tmp_mat[4][4];
 
     invert_m4_m4(tmp_mat, ob->object_to_world().ptr());
@@ -1574,7 +1580,7 @@ static void deform_verts(ModifierData *md,
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
+  SurfaceDeformModifierData *smd = reinterpret_cast<SurfaceDeformModifierData *>(md);
 
   /* The object type check is only needed here in case we have a placeholder
    * object assigned (because the library containing the mesh is missing).
@@ -1632,7 +1638,7 @@ static void panel_register(ARegionType *region_type)
 
 static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierData *md)
 {
-  SurfaceDeformModifierData smd = *(const SurfaceDeformModifierData *)md;
+  SurfaceDeformModifierData smd = *reinterpret_cast<const SurfaceDeformModifierData *>(md);
   const bool is_undo = BLO_write_is_undo(writer);
 
   if (ID_IS_OVERRIDE_LIBRARY(id_owner) && !is_undo) {
@@ -1683,7 +1689,7 @@ static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierD
 
 static void blend_read(BlendDataReader *reader, ModifierData *md)
 {
-  SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
+  SurfaceDeformModifierData *smd = reinterpret_cast<SurfaceDeformModifierData *>(md);
 
   if (smd->verts) {
     smd->verts_sharing_info = BLO_read_shared(reader, &smd->verts, [&]() {

@@ -105,7 +105,7 @@ void IMB_flipy(ImBuf *ibuf)
 
     const size_t stride = x_size * sizeof(int);
 
-    top = (uint *)ibuf->byte_buffer.data;
+    top = reinterpret_cast<uint *>(ibuf->byte_buffer.data);
     bottom = top + ((y_size - 1) * x_size);
     line = MEM_malloc_arrayN<uint>(x_size, "linebuf");
 
@@ -161,7 +161,7 @@ void IMB_flipx(ImBuf *ibuf)
   y = ibuf->y;
 
   if (ibuf->byte_buffer.data) {
-    uint *rect = (uint *)ibuf->byte_buffer.data;
+    uint *rect = reinterpret_cast<uint *>(ibuf->byte_buffer.data);
     for (yi = y - 1; yi >= 0; yi--) {
       const size_t x_offset = size_t(x) * yi;
       for (xr = x - 1, xl = 0; xr >= xl; xr--, xl++) {

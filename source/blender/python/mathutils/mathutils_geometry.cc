@@ -364,7 +364,7 @@ static PyObject *M_Geometry_normal(PyObject * /*self*/, PyObject *args)
   }
 
   if ((coords_len = mathutils_array_parse_alloc_v(
-           (float **)&coords, 3 | MU_ARRAY_SPILL, args, "normal")) == -1)
+           reinterpret_cast<float **>(&coords), 3 | MU_ARRAY_SPILL, args, "normal")) == -1)
   {
     return nullptr;
   }
@@ -1239,7 +1239,7 @@ static PyObject *M_Geometry_points_in_planes(PyObject * /*self*/, PyObject *args
   }
 
   if ((planes_len = mathutils_array_parse_alloc_v(
-           (float **)&planes, 4, py_planes, "points_in_planes")) == -1)
+           reinterpret_cast<float **>(&planes), 4, py_planes, "points_in_planes")) == -1)
   {
     return nullptr;
   }
@@ -1583,7 +1583,8 @@ static PyObject *M_Geometry_box_fit_2d(PyObject * /*self*/, PyObject *pointlist)
 
   float angle = 0.0f;
 
-  len = mathutils_array_parse_alloc_v(((float **)&points), 2, pointlist, "box_fit_2d");
+  len = mathutils_array_parse_alloc_v(
+      (reinterpret_cast<float **>(&points)), 2, pointlist, "box_fit_2d");
   if (len == -1) {
     return nullptr;
   }
@@ -1616,7 +1617,8 @@ static PyObject *M_Geometry_convex_hull_2d(PyObject * /*self*/, PyObject *pointl
 
   PyObject *ret;
 
-  len = mathutils_array_parse_alloc_v(((float **)&points), 2, pointlist, "convex_hull_2d");
+  len = mathutils_array_parse_alloc_v(
+      (reinterpret_cast<float **>(&points)), 2, pointlist, "convex_hull_2d");
   if (len == -1) {
     return nullptr;
   }
@@ -1752,12 +1754,13 @@ static PyObject *M_Geometry_delaunay_2d_cdt(PyObject * /*self*/, PyObject *args)
   });
 
   vert_coords_len = mathutils_array_parse_alloc_v(
-      (float **)&in_coords, 2, vert_coords, error_prefix);
+      reinterpret_cast<float **>(&in_coords), 2, vert_coords, error_prefix);
   if (vert_coords_len == -1) {
     return nullptr;
   }
 
-  edges_len = mathutils_array_parse_alloc_vi((int **)&in_edges, 2, edges, error_prefix);
+  edges_len = mathutils_array_parse_alloc_vi(
+      reinterpret_cast<int **>(&in_edges), 2, edges, error_prefix);
   if (edges_len == -1) {
     return nullptr;
   }
@@ -1835,102 +1838,111 @@ static PyObject *M_Geometry_delaunay_2d_cdt(PyObject * /*self*/, PyObject *args)
 
 static PyMethodDef M_Geometry_methods[] = {
     {"intersect_ray_tri",
-     (PyCFunction)M_Geometry_intersect_ray_tri,
+     static_cast<PyCFunction>(M_Geometry_intersect_ray_tri),
      METH_VARARGS,
      M_Geometry_intersect_ray_tri_doc},
     {"intersect_point_line",
-     (PyCFunction)M_Geometry_intersect_point_line,
+     reinterpret_cast<PyCFunction>(M_Geometry_intersect_point_line),
      METH_FASTCALL,
      M_Geometry_intersect_point_line_doc},
     {"intersect_point_line_segment",
-     (PyCFunction)M_Geometry_intersect_point_line_segment,
+     reinterpret_cast<PyCFunction>(M_Geometry_intersect_point_line_segment),
      METH_FASTCALL,
      M_Geometry_intersect_point_line_segment_doc},
     {"intersect_point_tri",
-     (PyCFunction)M_Geometry_intersect_point_tri,
+     static_cast<PyCFunction>(M_Geometry_intersect_point_tri),
      METH_VARARGS,
      M_Geometry_intersect_point_tri_doc},
     {"closest_point_on_tri",
-     (PyCFunction)M_Geometry_closest_point_on_tri,
+     static_cast<PyCFunction>(M_Geometry_closest_point_on_tri),
      METH_VARARGS,
      M_Geometry_closest_point_on_tri_doc},
     {"intersect_point_tri_2d",
-     (PyCFunction)M_Geometry_intersect_point_tri_2d,
+     static_cast<PyCFunction>(M_Geometry_intersect_point_tri_2d),
      METH_VARARGS,
      M_Geometry_intersect_point_tri_2d_doc},
     {"intersect_point_quad_2d",
-     (PyCFunction)M_Geometry_intersect_point_quad_2d,
+     static_cast<PyCFunction>(M_Geometry_intersect_point_quad_2d),
      METH_VARARGS,
      M_Geometry_intersect_point_quad_2d_doc},
     {"intersect_line_line",
-     (PyCFunction)M_Geometry_intersect_line_line,
+     static_cast<PyCFunction>(M_Geometry_intersect_line_line),
      METH_VARARGS,
      M_Geometry_intersect_line_line_doc},
     {"intersect_line_line_2d",
-     (PyCFunction)M_Geometry_intersect_line_line_2d,
+     static_cast<PyCFunction>(M_Geometry_intersect_line_line_2d),
      METH_VARARGS,
      M_Geometry_intersect_line_line_2d_doc},
     {"intersect_line_plane",
-     (PyCFunction)M_Geometry_intersect_line_plane,
+     static_cast<PyCFunction>(M_Geometry_intersect_line_plane),
      METH_VARARGS,
      M_Geometry_intersect_line_plane_doc},
     {"intersect_plane_plane",
-     (PyCFunction)M_Geometry_intersect_plane_plane,
+     static_cast<PyCFunction>(M_Geometry_intersect_plane_plane),
      METH_VARARGS,
      M_Geometry_intersect_plane_plane_doc},
     {"intersect_line_sphere",
-     (PyCFunction)M_Geometry_intersect_line_sphere,
+     static_cast<PyCFunction>(M_Geometry_intersect_line_sphere),
      METH_VARARGS,
      M_Geometry_intersect_line_sphere_doc},
     {"intersect_line_sphere_2d",
-     (PyCFunction)M_Geometry_intersect_line_sphere_2d,
+     static_cast<PyCFunction>(M_Geometry_intersect_line_sphere_2d),
      METH_VARARGS,
      M_Geometry_intersect_line_sphere_2d_doc},
     {"distance_point_to_plane",
-     (PyCFunction)M_Geometry_distance_point_to_plane,
+     static_cast<PyCFunction>(M_Geometry_distance_point_to_plane),
      METH_VARARGS,
      M_Geometry_distance_point_to_plane_doc},
     {"intersect_sphere_sphere_2d",
-     (PyCFunction)M_Geometry_intersect_sphere_sphere_2d,
+     static_cast<PyCFunction>(M_Geometry_intersect_sphere_sphere_2d),
      METH_VARARGS,
      M_Geometry_intersect_sphere_sphere_2d_doc},
     {"intersect_tri_tri_2d",
-     (PyCFunction)M_Geometry_intersect_tri_tri_2d,
+     static_cast<PyCFunction>(M_Geometry_intersect_tri_tri_2d),
      METH_VARARGS,
      M_Geometry_intersect_tri_tri_2d_doc},
-    {"area_tri", (PyCFunction)M_Geometry_area_tri, METH_VARARGS, M_Geometry_area_tri_doc},
+    {"area_tri",
+     static_cast<PyCFunction>(M_Geometry_area_tri),
+     METH_VARARGS,
+     M_Geometry_area_tri_doc},
     {"volume_tetrahedron",
-     (PyCFunction)M_Geometry_volume_tetrahedron,
+     static_cast<PyCFunction>(M_Geometry_volume_tetrahedron),
      METH_VARARGS,
      M_Geometry_volume_tetrahedron_doc},
-    {"normal", (PyCFunction)M_Geometry_normal, METH_VARARGS, M_Geometry_normal_doc},
+    {"normal", static_cast<PyCFunction>(M_Geometry_normal), METH_VARARGS, M_Geometry_normal_doc},
     {"barycentric_transform",
-     (PyCFunction)M_Geometry_barycentric_transform,
+     static_cast<PyCFunction>(M_Geometry_barycentric_transform),
      METH_VARARGS,
      M_Geometry_barycentric_transform_doc},
     {"points_in_planes",
-     (PyCFunction)M_Geometry_points_in_planes,
+     static_cast<PyCFunction>(M_Geometry_points_in_planes),
      METH_VARARGS,
      M_Geometry_points_in_planes_doc},
 #ifndef MATH_STANDALONE
     {"interpolate_bezier",
-     (PyCFunction)M_Geometry_interpolate_bezier,
+     static_cast<PyCFunction>(M_Geometry_interpolate_bezier),
      METH_VARARGS,
      M_Geometry_interpolate_bezier_doc},
     {"tessellate_polygon",
-     (PyCFunction)M_Geometry_tessellate_polygon,
+     static_cast<PyCFunction>(M_Geometry_tessellate_polygon),
      METH_O,
      M_Geometry_tessellate_polygon_doc},
     {"convex_hull_2d",
-     (PyCFunction)M_Geometry_convex_hull_2d,
+     static_cast<PyCFunction>(M_Geometry_convex_hull_2d),
      METH_O,
      M_Geometry_convex_hull_2d_doc},
     {"delaunay_2d_cdt",
-     (PyCFunction)M_Geometry_delaunay_2d_cdt,
+     static_cast<PyCFunction>(M_Geometry_delaunay_2d_cdt),
      METH_VARARGS,
      M_Geometry_delaunay_2d_cdt_doc},
-    {"box_fit_2d", (PyCFunction)M_Geometry_box_fit_2d, METH_O, M_Geometry_box_fit_2d_doc},
-    {"box_pack_2d", (PyCFunction)M_Geometry_box_pack_2d, METH_O, M_Geometry_box_pack_2d_doc},
+    {"box_fit_2d",
+     static_cast<PyCFunction>(M_Geometry_box_fit_2d),
+     METH_O,
+     M_Geometry_box_fit_2d_doc},
+    {"box_pack_2d",
+     static_cast<PyCFunction>(M_Geometry_box_pack_2d),
+     METH_O,
+     M_Geometry_box_pack_2d_doc},
 #endif
     {nullptr, nullptr, 0, nullptr},
 };

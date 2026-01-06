@@ -597,7 +597,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
     } /* End editmesh. */
     else if (obedit->type == OB_ARMATURE) {
       FOREACH_EDIT_OBJECT_BEGIN (ob_iter, use_mat_local) {
-        bArmature *arm = static_cast<bArmature *>(ob_iter->data);
+        bArmature *arm = blender::id_cast<bArmature *>(ob_iter->data);
 
         float mat_local[4][4];
         if (use_mat_local) {
@@ -635,7 +635,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
     }
     else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
       FOREACH_EDIT_OBJECT_BEGIN (ob_iter, use_mat_local) {
-        Curve *cu = static_cast<Curve *>(ob_iter->data);
+        Curve *cu = blender::id_cast<Curve *>(ob_iter->data);
         BezTriple *bezt;
         BPoint *bp;
         ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
@@ -699,7 +699,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
     }
     else if (obedit->type == OB_MBALL) {
       FOREACH_EDIT_OBJECT_BEGIN (ob_iter, use_mat_local) {
-        MetaBall *mb = (MetaBall *)ob_iter->data;
+        MetaBall *mb = blender::id_cast<MetaBall *>(ob_iter->data);
 
         float mat_local[4][4];
         if (use_mat_local) {
@@ -718,7 +718,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
     }
     else if (obedit->type == OB_LATTICE) {
       FOREACH_EDIT_OBJECT_BEGIN (ob_iter, use_mat_local) {
-        Lattice *lt = ((Lattice *)ob_iter->data)->editlatt->latt;
+        Lattice *lt = (blender::id_cast<Lattice *>(ob_iter->data))->editlatt->latt;
         BPoint *bp = lt->def;
         a = lt->pntsu * lt->pntsv * lt->pntsw;
 
@@ -740,7 +740,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
     }
     else if (obedit->type == OB_CURVES) {
       FOREACH_EDIT_OBJECT_BEGIN (ob_iter, use_mat_local) {
-        const Curves &curves_id = *static_cast<Curves *>(ob_iter->data);
+        const Curves &curves_id = *blender::id_cast<Curves *>(ob_iter->data);
         const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
         const bke::crazyspace::GeometryDeformation deformation =
             bke::crazyspace::get_evaluated_curves_deformation(*depsgraph, *ob);
@@ -775,7 +775,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
     }
     else if (obedit->type == OB_POINTCLOUD) {
       FOREACH_EDIT_OBJECT_BEGIN (ob_iter, use_mat_local) {
-        const PointCloud &pointcloud = *static_cast<const PointCloud *>(ob_iter->data);
+        const PointCloud &pointcloud = *blender::id_cast<const PointCloud *>(ob_iter->data);
 
         float4x4 mat_local;
         if (use_mat_local) {
@@ -798,7 +798,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
     }
     else if (obedit->type == OB_GREASE_PENCIL) {
       FOREACH_EDIT_OBJECT_BEGIN (ob_iter, use_mat_local) {
-        GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob_iter->data);
+        GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(ob_iter->data);
 
         float4x4 mat_local = float4x4::identity();
         if (use_mat_local) {
@@ -867,7 +867,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
         mul_m4_m4m4(mat_local, ob->world_to_object().ptr(), ob_iter->object_to_world().ptr());
       }
 
-      bArmature *arm = static_cast<bArmature *>(ob_iter->data);
+      bArmature *arm = blender::id_cast<bArmature *>(ob_iter->data);
       /* Use channels to get stats. */
       for (bPoseChannel &pchan : ob_iter->pose->chanbase) {
         if (!(pchan.runtime.flag & POSE_RUNTIME_TRANSFORM)) {
@@ -1345,14 +1345,14 @@ static void gizmo_3d_dial_matrixbasis_calc(const ARegion *region,
 
 static void rotation_get_fn(const wmGizmo * /*gz*/, wmGizmoProperty *gz_prop, void *value)
 {
-  const GizmoGroup *ggd = (const GizmoGroup *)gz_prop->custom_func.user_data;
-  *(float *)value = ggd->rotation;
+  const GizmoGroup *ggd = static_cast<const GizmoGroup *>(gz_prop->custom_func.user_data);
+  *static_cast<float *>(value) = ggd->rotation;
 }
 
 static void rotation_set_fn(const wmGizmo * /*gz*/, wmGizmoProperty *gz_prop, const void *value)
 {
-  GizmoGroup *ggd = (GizmoGroup *)gz_prop->custom_func.user_data;
-  ggd->rotation = *(const float *)value;
+  GizmoGroup *ggd = static_cast<GizmoGroup *>(gz_prop->custom_func.user_data);
+  ggd->rotation = *static_cast<const float *>(value);
 }
 
 static void gizmo_3d_setup_default_matrix(wmGizmo *axis, const int axis_idx)

@@ -43,7 +43,7 @@
 
 static StructRNA *rna_Light_refine(PointerRNA *ptr)
 {
-  Light *la = (Light *)ptr->data;
+  Light *la = static_cast<Light *>(ptr->data);
 
   switch (la->type) {
     case LA_LOCAL:
@@ -61,7 +61,7 @@ static StructRNA *rna_Light_refine(PointerRNA *ptr)
 
 static void rna_Light_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Light *la = (Light *)ptr->owner_id;
+  Light *la = blender::id_cast<Light *>(ptr->owner_id);
 
   DEG_id_tag_update(&la->id, 0);
   WM_main_add_notifier(NC_LAMP | ND_LIGHTING, la);
@@ -69,7 +69,7 @@ static void rna_Light_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *pt
 
 static void rna_Light_draw_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Light *la = (Light *)ptr->owner_id;
+  Light *la = blender::id_cast<Light *>(ptr->owner_id);
 
   DEG_id_tag_update(&la->id, 0);
   WM_main_add_notifier(NC_LAMP | ND_LIGHTING_DRAW, la);
@@ -91,7 +91,7 @@ static void rna_Light_use_nodes_set(PointerRNA * /*ptr*/, bool /*new_value*/)
 
 static void rna_Light_temperature_color_get(PointerRNA *ptr, float *color)
 {
-  Light *la = (Light *)ptr->data;
+  Light *la = static_cast<Light *>(ptr->data);
 
   if (la->mode & LA_USE_TEMPERATURE) {
     float rgb[4];

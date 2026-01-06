@@ -50,7 +50,7 @@ static int node_shader_gpu_tex_gradient(GPUMaterial *mat,
   node_shader_gpu_default_tex_coord(mat, node, &in[0].link);
   node_shader_gpu_tex_mapping(mat, node, in, out);
 
-  NodeTexGradient *tex = (NodeTexGradient *)node->storage;
+  NodeTexGradient *tex = static_cast<NodeTexGradient *>(node->storage);
   float gradient_type = tex->gradient_type;
   return GPU_stack_link(mat, node, "node_tex_gradient", in, out, GPU_constant(&gradient_type));
 }
@@ -147,7 +147,7 @@ class GradientFunction : public mf::MultiFunction {
 static void sh_node_gradient_tex_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   const bNode &node = builder.node();
-  NodeTexGradient *tex = (NodeTexGradient *)node.storage;
+  NodeTexGradient *tex = static_cast<NodeTexGradient *>(node.storage);
   builder.construct_and_set_matching_fn<GradientFunction>(tex->gradient_type);
 }
 

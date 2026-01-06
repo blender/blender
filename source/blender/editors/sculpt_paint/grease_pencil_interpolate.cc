@@ -320,7 +320,7 @@ InterpolateOpData *InterpolateOpData::from_operator(const bContext &C, const wmO
   const Scene &scene = *CTX_data_scene(&C);
   const int current_frame = scene.r.cfra;
   const Object &object = *CTX_data_active_object(&C);
-  const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  const GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object.data);
 
   if (!grease_pencil.has_active_layer()) {
     return nullptr;
@@ -745,7 +745,7 @@ static void grease_pencil_interpolate_update(bContext &C, const wmOperator &op)
   const Scene &scene = *CTX_data_scene(&C);
   const int current_frame = scene.r.cfra;
   Object &object = *CTX_data_active_object(&C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object.data);
   const auto flip_mode = InterpolateFlipMode(RNA_enum_get(op.ptr, "flip"));
 
   opdata.layer_mask.foreach_index([&](const int layer_index) {
@@ -801,7 +801,7 @@ static void grease_pencil_interpolate_restore(bContext &C, wmOperator &op)
   const Scene &scene = *CTX_data_scene(&C);
   const int current_frame = scene.r.cfra;
   Object &object = *CTX_data_active_object(&C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object.data);
 
   opdata.layer_mask.foreach_index([&](const int layer_index) {
     Layer &layer = grease_pencil.layer(layer_index);
@@ -839,7 +839,7 @@ static bool grease_pencil_interpolate_init(const bContext &C, wmOperator &op)
   const Scene &scene = *CTX_data_scene(&C);
   const int current_frame = scene.r.cfra;
   Object &object = *CTX_data_active_object(&C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object.data);
 
   /* Create target frames. */
   data.layer_mask.foreach_index([&](const int layer_index) {
@@ -1261,7 +1261,7 @@ static wmOperatorStatus grease_pencil_interpolate_sequence_exec(bContext *C, wmO
   const Scene &scene = *CTX_data_scene(C);
   const int current_frame = scene.r.cfra;
   Object &object = *CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object.data);
   ToolSettings &ts = *CTX_data_tool_settings(C);
   const InterpolationType type = InterpolationType(RNA_enum_get(op->ptr, "type"));
   const eBezTriple_Easing easing = eBezTriple_Easing(RNA_enum_get(op->ptr, "easing"));

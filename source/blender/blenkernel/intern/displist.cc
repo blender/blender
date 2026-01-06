@@ -63,7 +63,7 @@ static void displist_elem_free(DispList *dl)
 
 void BKE_displist_free(ListBaseT<DispList> *lb)
 {
-  while (DispList *dl = (DispList *)BLI_pophead(lb)) {
+  while (DispList *dl = static_cast<DispList *>(BLI_pophead(lb))) {
     displist_elem_free(dl);
   }
 }
@@ -242,7 +242,7 @@ static void curve_to_displist(const Curve *cu,
       dl->charidx = nu.charidx;
       dl->type = (is_cyclic && (dl->nr != 2)) ? DL_POLY : DL_SEGM;
 
-      float (*coords)[3] = (float (*)[3])dl->verts;
+      float (*coords)[3] = reinterpret_cast<float (*)[3]>(dl->verts);
       for (int i = 0; i < len; i++) {
         const BPoint *bp = &nu.bp[i];
         copy_v3_v3(coords[i], bp->vec);
@@ -436,7 +436,7 @@ static void curve_to_filledpoly(const Curve *cu, ListBaseT<DispList> *dispbase)
     return;
   }
 
-  if (dispbase->first && ((DispList *)dispbase->first)->type == DL_SURF) {
+  if (dispbase->first && (static_cast<DispList *>(dispbase->first))->type == DL_SURF) {
     bevels_to_filledpoly(cu, dispbase);
   }
   else {
@@ -460,11 +460,11 @@ static float displist_calc_taper(Depsgraph *depsgraph,
   }
 
   DispList *dl = taperobj->runtime->curve_cache ?
-                     (DispList *)taperobj->runtime->curve_cache->disp.first :
+                     static_cast<DispList *>(taperobj->runtime->curve_cache->disp.first) :
                      nullptr;
   if (dl == nullptr) {
     BKE_displist_make_curveTypes(depsgraph, scene, taperobj, false);
-    dl = (DispList *)taperobj->runtime->curve_cache->disp.first;
+    dl = static_cast<DispList *>(taperobj->runtime->curve_cache->disp.first);
   }
   if (dl) {
     float minx, dx, *fp;
@@ -513,12 +513,12 @@ static ModifierData *curve_get_tessellate_point(const Scene *scene,
 
   ModifierMode required_mode = for_render ? eModifierMode_Render : eModifierMode_Realtime;
   if (editmode) {
-    required_mode = (ModifierMode)(int(required_mode) | eModifierMode_Editmode);
+    required_mode = ModifierMode(int(required_mode) | eModifierMode_Editmode);
   }
 
   ModifierData *pretessellatePoint = nullptr;
   for (; md; md = md->next) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
     if (!BKE_modifier_is_enabled(scene, md, required_mode)) {
       continue;
@@ -556,14 +556,14 @@ void BKE_curve_calc_modifiers_pre(Depsgraph *depsgraph,
                                   ListBaseT<Nurb> *target_nurb,
                                   const bool for_render)
 {
-  const Curve *cu = (const Curve *)ob->data;
+  const Curve *cu = blender::id_cast<const Curve *>(ob->data);
 
   BKE_modifiers_clear_errors(ob);
 
   const bool editmode = (!for_render && (cu->editnurb || cu->editfont));
   ModifierMode required_mode = for_render ? eModifierMode_Render : eModifierMode_Realtime;
   if (editmode) {
-    required_mode = (ModifierMode)(int(required_mode) | eModifierMode_Editmode);
+    required_mode = ModifierMode(int(required_mode) | eModifierMode_Editmode);
   }
 
   ModifierApplyFlag apply_flag = ModifierApplyFlag(0);
@@ -599,7 +599,7 @@ void BKE_curve_calc_modifiers_pre(Depsgraph *depsgraph,
     for (ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data); md;
          md = md->next)
     {
-      const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
+      const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
       if (!BKE_modifier_is_enabled(scene, md, required_mode)) {
         continue;
@@ -685,7 +685,7 @@ static blender::bke::GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
                                                            const ListBaseT<DispList> *dispbase,
                                                            const bool for_render)
 {
-  const Curve *cu = (const Curve *)ob->data;
+  const Curve *cu = blender::id_cast<const Curve *>(ob->data);
   const bool editmode = (!for_render && (cu->editnurb || cu->editfont));
   const bool use_cache = !for_render;
 
@@ -720,7 +720,7 @@ static blender::bke::GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
   }
 
   for (; md; md = md->next) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
     if (!BKE_modifier_is_enabled(scene, md, required_mode)) {
       continue;
     }
@@ -752,7 +752,7 @@ static blender::bke::GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
   if (geometry_set.has_mesh()) {
     Mesh *final_mesh = geometry_set.get_mesh_for_write();
     STRNCPY(final_mesh->id.name, cu->id.name);
-    *((short *)final_mesh->id.name) = ID_ME;
+    *(reinterpret_cast<short *>(final_mesh->id.name)) = ID_ME;
   }
 
   return geometry_set;
@@ -796,7 +796,7 @@ static blender::bke::GeometrySet evaluate_surface_object(Depsgraph *depsgraph,
                                                          ListBaseT<DispList> *r_dispbase)
 {
   BLI_assert(ob->type == OB_SURF);
-  const Curve *cu = (const Curve *)ob->data;
+  const Curve *cu = blender::id_cast<const Curve *>(ob->data);
 
   ListBaseT<Nurb> *deformed_nurbs = &ob->runtime->curve_cache->deformed_nurbs;
 
@@ -1105,7 +1105,7 @@ static blender::bke::GeometrySet evaluate_curve_type_object(Depsgraph *depsgraph
                                                             ListBaseT<DispList> *r_dispbase)
 {
   BLI_assert(ELEM(ob->type, OB_CURVES_LEGACY, OB_FONT));
-  const Curve *cu = (const Curve *)ob->data;
+  const Curve *cu = blender::id_cast<const Curve *>(ob->data);
 
   ListBaseT<Nurb> *deformed_nurbs = &ob->runtime->curve_cache->deformed_nurbs;
 
@@ -1136,8 +1136,8 @@ static blender::bke::GeometrySet evaluate_curve_type_object(Depsgraph *depsgraph
   else {
     const float widfac = cu->offset - 1.0f;
 
-    const BevList *bl = (BevList *)ob->runtime->curve_cache->bev.first;
-    const Nurb *nu = (Nurb *)deformed_nurbs->first;
+    const BevList *bl = static_cast<BevList *>(ob->runtime->curve_cache->bev.first);
+    const Nurb *nu = static_cast<Nurb *>(deformed_nurbs->first);
     for (; bl && nu; bl = bl->next, nu = nu->next) {
       float *data;
 
@@ -1330,7 +1330,7 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
 
   /* It's important to retrieve this after calling #BKE_object_free_derived_caches,
    * which may reset the object data pointer in some cases. */
-  const Curve &original_curve = *static_cast<const Curve *>(ob->data);
+  const Curve &original_curve = *blender::id_cast<const Curve *>(ob->data);
 
   ob->runtime->curve_cache = MEM_callocN<CurveCache>(__func__);
   ListBaseT<DispList> *dispbase = &ob->runtime->curve_cache->disp;

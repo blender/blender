@@ -43,8 +43,9 @@ static int gpu_shader_value(GPUMaterial *mat,
 
 static void sh_node_value_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  const bNodeSocket *bsocket = (bNodeSocket *)builder.node().outputs.first;
-  const bNodeSocketValueFloat *value = (const bNodeSocketValueFloat *)bsocket->default_value;
+  const bNodeSocket *bsocket = static_cast<bNodeSocket *>(builder.node().outputs.first);
+  const bNodeSocketValueFloat *value = static_cast<const bNodeSocketValueFloat *>(
+      bsocket->default_value);
   builder.construct_and_set_matching_fn<mf::CustomMF_Constant<float>>(value->value);
 }
 

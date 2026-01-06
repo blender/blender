@@ -825,9 +825,9 @@ TEST(math_rotation, DualQuaternionTransform)
     float3 p0_expect = p0;
     float3 p1_expect = p1;
     float3 p2_expect = p2;
-    mul_v3m3_dq(p0_expect, crazy_space_mat.ptr(), (DualQuat *)&dq);
-    mul_v3m3_dq(p1_expect, crazy_space_mat.ptr(), (DualQuat *)&dq);
-    mul_v3m3_dq(p2_expect, crazy_space_mat.ptr(), (DualQuat *)&dq);
+    mul_v3m3_dq(p0_expect, crazy_space_mat.ptr(), reinterpret_cast<DualQuat *>(&dq));
+    mul_v3m3_dq(p1_expect, crazy_space_mat.ptr(), reinterpret_cast<DualQuat *>(&dq));
+    mul_v3m3_dq(p2_expect, crazy_space_mat.ptr(), reinterpret_cast<DualQuat *>(&dq));
 
     float3 p0_result = transform_point(dq, p0);
     float3 p1_result = transform_point(dq, p1);
@@ -860,9 +860,9 @@ TEST(math_rotation, DualQuaternionTransform)
     float3 p0_expect = p0;
     float3 p1_expect = p1;
     float3 p2_expect = p2;
-    mul_v3m3_dq(p0_expect, crazy_space_mat.ptr(), (DualQuat *)&dq);
-    mul_v3m3_dq(p1_expect, crazy_space_mat.ptr(), (DualQuat *)&dq);
-    mul_v3m3_dq(p2_expect, crazy_space_mat.ptr(), (DualQuat *)&dq);
+    mul_v3m3_dq(p0_expect, crazy_space_mat.ptr(), reinterpret_cast<DualQuat *>(&dq));
+    mul_v3m3_dq(p1_expect, crazy_space_mat.ptr(), reinterpret_cast<DualQuat *>(&dq));
+    mul_v3m3_dq(p2_expect, crazy_space_mat.ptr(), reinterpret_cast<DualQuat *>(&dq));
 
     float3 p0_result = transform_point(dq, p0);
     float3 p1_result = transform_point(dq, p1);

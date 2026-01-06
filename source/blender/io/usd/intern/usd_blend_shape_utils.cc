@@ -178,7 +178,7 @@ const Key *get_mesh_shape_key(const Object *obj)
     return nullptr;
   }
 
-  const Mesh *mesh = static_cast<const Mesh *>(obj->data);
+  const Mesh *mesh = blender::id_cast<const Mesh *>(obj->data);
 
   return mesh->key;
 }

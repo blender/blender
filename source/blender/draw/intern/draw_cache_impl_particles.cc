@@ -738,7 +738,7 @@ static int particle_batch_cache_fill_segments_edit(
       continue;
     }
     for (int j = 0; j <= path->segments; j++) {
-      EditStrandData *seg_data = (EditStrandData *)GPU_vertbuf_raw_step(attr_step);
+      EditStrandData *seg_data = static_cast<EditStrandData *>(GPU_vertbuf_raw_step(attr_step));
       copy_v3_v3(seg_data->pos, path[j].co);
       float strand_t = float(j) / path->segments;
       if (particle) {
@@ -769,7 +769,7 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
   }
 
   int curr_point = 0;
-  ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
+  ParticleSystemModifierData *psmd = reinterpret_cast<ParticleSystemModifierData *>(md);
 
   GPU_VERTBUF_DISCARD_SAFE(hair_cache->pos);
   GPU_INDEXBUF_DISCARD_SAFE(hair_cache->indices);
@@ -847,15 +847,15 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
     if (num_uv_layers) {
       mtfaces = MEM_malloc_arrayN<const MTFace *>(num_uv_layers, "Faces UV layers");
       for (int i = 0; i < num_uv_layers; i++) {
-        mtfaces[i] = (const MTFace *)CustomData_get_layer_n(
-            &psmd->mesh_final->fdata_legacy, CD_MTFACE, i);
+        mtfaces[i] = static_cast<const MTFace *>(
+            CustomData_get_layer_n(&psmd->mesh_final->fdata_legacy, CD_MTFACE, i));
       }
     }
     if (num_col_layers) {
       mcols = MEM_malloc_arrayN<const MCol *>(num_col_layers, "Color layers");
       for (int i = 0; i < num_col_layers; i++) {
-        mcols[i] = (const MCol *)CustomData_get_layer_n(
-            &psmd->mesh_final->fdata_legacy, CD_MCOL, i);
+        mcols[i] = static_cast<const MCol *>(
+            CustomData_get_layer_n(&psmd->mesh_final->fdata_legacy, CD_MCOL, i));
       }
     }
   }
@@ -1374,7 +1374,7 @@ template<typename InputT, typename OutputT, eCustomDataType data_type>
 static gpu::VertBufPtr interpolate_face_corner_attribute_to_curve(ParticleDrawSource &src,
                                                                   const StringRef name)
 {
-  ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)src.md;
+  ParticleSystemModifierData *psmd = reinterpret_cast<ParticleSystemModifierData *>(src.md);
   Mesh &mesh = *psmd->mesh_final;
 
   /* TODO(fclem): Use normalized integer format. */
@@ -1483,7 +1483,7 @@ void CurvesEvalCache::ensure_attributes(CurvesModule &module,
                                         ParticleDrawSource &src,
                                         const GPUMaterial *gpu_material)
 {
-  ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)src.md;
+  ParticleSystemModifierData *psmd = reinterpret_cast<ParticleSystemModifierData *>(src.md);
   if (psmd == nullptr || psmd->mesh_final == nullptr || src.curves_num() == 0) {
     return;
   }

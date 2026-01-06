@@ -150,9 +150,9 @@ static void apply_blend_function(
 {
   for (int64_t i = 0; i < size; i++) {
     T achannel = src2[3];
-    ((T *)src2)[3] = T(achannel * fac);
+    (static_cast<T *>(const_cast<T *>(src2)))[3] = T(achannel * fac);
     blend_function(dst, src1, src2);
-    ((T *)src2)[3] = achannel;
+    (static_cast<T *>(const_cast<T *>(src2)))[3] = achannel;
     dst[3] = src1[3];
     src1 += 4;
     src2 += 4;

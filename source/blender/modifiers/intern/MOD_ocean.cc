@@ -668,7 +668,7 @@ static void panel_register(ARegionType *region_type)
 
 static void blend_read(BlendDataReader * /*reader*/, ModifierData *md)
 {
-  OceanModifierData *omd = (OceanModifierData *)md;
+  OceanModifierData *omd = reinterpret_cast<OceanModifierData *>(md);
   omd->oceancache = nullptr;
   omd->ocean = nullptr;
 }

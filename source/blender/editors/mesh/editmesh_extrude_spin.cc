@@ -6,6 +6,7 @@
  * \ingroup edmesh
  */
 
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_math_rotation.h"
@@ -98,7 +99,7 @@ static wmOperatorStatus edbm_spin_exec(bContext *C, wmOperator *op)
     params.calc_looptris = true;
     params.calc_normals = false;
     params.is_destructive = true;
-    EDBM_update(static_cast<Mesh *>(obedit->data), &params);
+    EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
   }
 
   return OPERATOR_FINISHED;

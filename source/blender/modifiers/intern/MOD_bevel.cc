@@ -44,7 +44,7 @@
 
 static void init_data(ModifierData *md)
 {
-  BevelModifierData *bmd = (BevelModifierData *)md;
+  BevelModifierData *bmd = reinterpret_cast<BevelModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(bmd, modifier);
 
   bmd->custom_profile = BKE_curveprofile_add(PROF_PRESET_LINE);
@@ -52,8 +52,8 @@ static void init_data(ModifierData *md)
 
 static void copy_data(const ModifierData *md_src, ModifierData *md_dst, const int flag)
 {
-  const BevelModifierData *bmd_src = (const BevelModifierData *)md_src;
-  BevelModifierData *bmd_dst = (BevelModifierData *)md_dst;
+  const BevelModifierData *bmd_src = reinterpret_cast<const BevelModifierData *>(md_src);
+  BevelModifierData *bmd_dst = reinterpret_cast<BevelModifierData *>(md_dst);
 
   BKE_modifier_copydata_generic(md_src, md_dst, flag);
   bmd_dst->custom_profile = BKE_curveprofile_copy(bmd_src->custom_profile);
@@ -61,7 +61,7 @@ static void copy_data(const ModifierData *md_src, ModifierData *md_dst, const in
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  BevelModifierData *bmd = (BevelModifierData *)md;
+  BevelModifierData *bmd = reinterpret_cast<BevelModifierData *>(md);
 
   /* Ask for vertex-groups if we need them. */
   if (bmd->defgrp_name[0] != '\0') {
@@ -116,7 +116,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   float weight, weight2;
   int vgroup = -1;
   const MDeformVert *dvert = nullptr;
-  BevelModifierData *bmd = (BevelModifierData *)md;
+  BevelModifierData *bmd = reinterpret_cast<BevelModifierData *>(md);
   const float threshold = cosf(bmd->bevel_angle + 0.000000175f);
   const bool do_clamp = !(bmd->flags & MOD_BEVEL_OVERLAP_OK);
   const int offset_type = bmd->val_flags;
@@ -268,13 +268,13 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
 static void free_data(ModifierData *md)
 {
-  BevelModifierData *bmd = (BevelModifierData *)md;
+  BevelModifierData *bmd = reinterpret_cast<BevelModifierData *>(md);
   BKE_curveprofile_free(bmd->custom_profile);
 }
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  BevelModifierData *bmd = (BevelModifierData *)md;
+  BevelModifierData *bmd = reinterpret_cast<BevelModifierData *>(md);
   return (bmd->value == 0.0f);
 }
 
@@ -425,7 +425,7 @@ static void panel_register(ARegionType *region_type)
 
 static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const ModifierData *md)
 {
-  const BevelModifierData *bmd = (const BevelModifierData *)md;
+  const BevelModifierData *bmd = reinterpret_cast<const BevelModifierData *>(md);
 
   writer->write_struct(bmd);
 
@@ -436,7 +436,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 
 static void blend_read(BlendDataReader *reader, ModifierData *md)
 {
-  BevelModifierData *bmd = (BevelModifierData *)md;
+  BevelModifierData *bmd = reinterpret_cast<BevelModifierData *>(md);
 
   BLO_read_struct(reader, CurveProfile, &bmd->custom_profile);
   if (bmd->custom_profile) {

@@ -919,8 +919,8 @@ static bAnimListElem *make_new_animlistelem(
         if (ale->adt && ale->adt->action) {
           /* Try to find the F-Curve which corresponds to this exactly. */
           if (std::optional<std::string> rna_path = BKE_keyblock_curval_rnapath_get(key, kb)) {
-            ale->key_data = (void *)blender::animrig::fcurve_find_in_assigned_slot(*ale->adt,
-                                                                                   {*rna_path, 0});
+            ale->key_data = static_cast<void *>(
+                blender::animrig::fcurve_find_in_assigned_slot(*ale->adt, {*rna_path, 0}));
           }
         }
         ale->datatype = (ale->key_data) ? ALE_FCURVE : ALE_NONE;
@@ -1036,7 +1036,7 @@ static bool skip_fcurve_selected_data(bAnimContext *ac,
         /* If only visible channels,
          * skip if bone not visible unless user wants channels from hidden data too. */
         if (skip_hidden) {
-          bArmature *arm = static_cast<bArmature *>(ob->data);
+          bArmature *arm = blender::id_cast<bArmature *>(ob->data);
 
           /* Skipping - is currently hidden. */
           if (!blender::animrig::bone_is_visible(arm, pchan)) {
@@ -2310,7 +2310,7 @@ static size_t animdata_filter_grease_pencil(bAnimContext *ac,
     }
 
     items += animdata_filter_grease_pencil_data(
-        ac, anim_data, static_cast<GreasePencil *>(ob->data), filter_mode);
+        ac, anim_data, blender::id_cast<GreasePencil *>(ob->data), filter_mode);
   }
 
   /* Return the number of items added to the list */
@@ -2931,7 +2931,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
   size_t tmp_items = 0;
   size_t items = 0;
 
-  IdAdtTemplate *iat = static_cast<IdAdtTemplate *>(ob->data);
+  IdAdtTemplate *iat = reinterpret_cast<IdAdtTemplate *>(ob->data);
   eAnim_ChannelType type = ANIMTYPE_NONE;
   short expanded = 0;
   const eDopeSheet_FilterFlag ads_filterflag = ac->filters.flag;
@@ -2941,7 +2941,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
   switch (ob->type) {
     case OB_CAMERA: /* ------- Camera ------------ */
     {
-      Camera *ca = static_cast<Camera *>(ob->data);
+      Camera *ca = blender::id_cast<Camera *>(ob->data);
 
       if (ads_filterflag & ADS_FILTER_NOCAM) {
         return 0;
@@ -2953,7 +2953,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
     }
     case OB_LAMP: /* ---------- Light ----------- */
     {
-      Light *la = static_cast<Light *>(ob->data);
+      Light *la = blender::id_cast<Light *>(ob->data);
 
       if (ads_filterflag & ADS_FILTER_NOLAM) {
         return 0;
@@ -2967,7 +2967,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
     case OB_SURF:          /* ------- Nurbs Surface ---------- */
     case OB_FONT:          /* ------- Text Curve ---------- */
     {
-      Curve *cu = static_cast<Curve *>(ob->data);
+      Curve *cu = blender::id_cast<Curve *>(ob->data);
 
       if (ads_filterflag & ADS_FILTER_NOCUR) {
         return 0;
@@ -2979,7 +2979,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
     }
     case OB_MBALL: /* ------- MetaBall ---------- */
     {
-      MetaBall *mb = static_cast<MetaBall *>(ob->data);
+      MetaBall *mb = blender::id_cast<MetaBall *>(ob->data);
 
       if (ads_filterflag & ADS_FILTER_NOMBA) {
         return 0;
@@ -2991,7 +2991,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
     }
     case OB_ARMATURE: /* ------- Armature ---------- */
     {
-      bArmature *arm = static_cast<bArmature *>(ob->data);
+      bArmature *arm = blender::id_cast<bArmature *>(ob->data);
 
       if (ads_filterflag & ADS_FILTER_NOARM) {
         return 0;
@@ -3003,7 +3003,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
     }
     case OB_MESH: /* ------- Mesh ---------- */
     {
-      Mesh *mesh = static_cast<Mesh *>(ob->data);
+      Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
 
       if (ads_filterflag & ADS_FILTER_NOMESH) {
         return 0;
@@ -3015,7 +3015,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
     }
     case OB_LATTICE: /* ---- Lattice ---- */
     {
-      Lattice *lt = static_cast<Lattice *>(ob->data);
+      Lattice *lt = blender::id_cast<Lattice *>(ob->data);
 
       if (ads_filterflag & ADS_FILTER_NOLAT) {
         return 0;
@@ -3027,7 +3027,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
     }
     case OB_SPEAKER: /* ---------- Speaker ----------- */
     {
-      Speaker *spk = static_cast<Speaker *>(ob->data);
+      Speaker *spk = blender::id_cast<Speaker *>(ob->data);
 
       type = ANIMTYPE_DSSPK;
       expanded = FILTER_SPK_OBJD(spk);
@@ -3035,7 +3035,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
     }
     case OB_CURVES: /* ---------- Curves ----------- */
     {
-      Curves *curves = static_cast<Curves *>(ob->data);
+      Curves *curves = blender::id_cast<Curves *>(ob->data);
 
       if (ads_filterflag2 & ADS_FILTER_NOHAIR) {
         return 0;
@@ -3047,7 +3047,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
     }
     case OB_POINTCLOUD: /* ---------- PointCloud ----------- */
     {
-      PointCloud *pointcloud = static_cast<PointCloud *>(ob->data);
+      PointCloud *pointcloud = blender::id_cast<PointCloud *>(ob->data);
 
       if (ads_filterflag2 & ADS_FILTER_NOPOINTCLOUD) {
         return 0;
@@ -3059,7 +3059,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
     }
     case OB_VOLUME: /* ---------- Volume ----------- */
     {
-      Volume *volume = static_cast<Volume *>(ob->data);
+      Volume *volume = blender::id_cast<Volume *>(ob->data);
 
       if (ads_filterflag2 & ADS_FILTER_NOVOLUME) {
         return 0;
@@ -3071,7 +3071,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
     }
     case OB_LIGHTPROBE: /* ---------- LightProbe ----------- */
     {
-      LightProbe *probe = static_cast<LightProbe *>(ob->data);
+      LightProbe *probe = blender::id_cast<LightProbe *>(ob->data);
 
       if (ads_filterflag2 & ADS_FILTER_NOLIGHTPROBE) {
         return 0;
@@ -3092,7 +3092,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
     switch (ob->type) {
       case OB_LAMP: /* light - textures + nodetree */
       {
-        Light *la = static_cast<Light *>(ob->data);
+        Light *la = blender::id_cast<Light *>(ob->data);
         bNodeTree *ntree = la->nodetree;
 
         /* nodetree */
@@ -3281,7 +3281,7 @@ static size_t animdata_filter_dopesheet_ob(bAnimContext *ac,
     /* grease pencil */
     if (ob->type == OB_GREASE_PENCIL && (ob->data) && !(ads_filterflag & ADS_FILTER_NOGPENCIL)) {
       tmp_items += animdata_filter_grease_pencil_data(
-          ac, &tmp_data, static_cast<GreasePencil *>(ob->data), filter_mode);
+          ac, &tmp_data, blender::id_cast<GreasePencil *>(ob->data), filter_mode);
     }
   }
   END_ANIMFILTER_SUBCHANNELS;
@@ -3601,7 +3601,7 @@ static bool animdata_filter_base_is_ok(bAnimContext *ac,
    * camera data animation to the editor.
    */
   if (ob->data != nullptr) {
-    AnimData *data_adt = BKE_animdata_from_id(static_cast<ID *>(ob->data));
+    AnimData *data_adt = BKE_animdata_from_id(ob->data);
     if (data_adt != nullptr && (data_adt->flag & ADT_CURVES_ALWAYS_VISIBLE)) {
       return true;
     }
@@ -3642,8 +3642,8 @@ static bool animdata_filter_base_is_ok(bAnimContext *ac,
 /* Helper for animdata_filter_ds_sorted_bases() - Comparison callback for two Base pointers... */
 static int ds_base_sorting_cmp(const void *base1_ptr, const void *base2_ptr)
 {
-  const Base *b1 = *((const Base **)base1_ptr);
-  const Base *b2 = *((const Base **)base2_ptr);
+  const Base *b1 = *(static_cast<const Base **>(const_cast<void *>(base1_ptr)));
+  const Base *b2 = *(static_cast<const Base **>(const_cast<void *>(base2_ptr)));
 
   return BLI_strcasecmp_natural(b1->object->id.name + 2, b2->object->id.name + 2);
 }
@@ -3694,7 +3694,7 @@ static size_t animdata_filter_dopesheet(bAnimContext *ac,
     printf("Dope Sheet Error: No scene!\n");
     if (G.debug & G_DEBUG) {
       printf("\tPointer = %p, Name = '%s'\n",
-             (void *)ads->source,
+             static_cast<void *>(ads->source),
              (ads->source) ? ads->source->name : nullptr);
     }
     return 0;

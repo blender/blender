@@ -78,14 +78,14 @@ void BKE_freestyle_config_copy(FreestyleConfig *new_config,
   for (FreestyleLineSet &lineset : config->linesets) {
     new_lineset = alloc_lineset();
     copy_lineset(new_lineset, &lineset, flag);
-    BLI_addtail(&new_config->linesets, (void *)new_lineset);
+    BLI_addtail(&new_config->linesets, static_cast<void *>(new_lineset));
   }
 
   BLI_listbase_clear(&new_config->modules);
   for (FreestyleModuleConfig &module : config->modules) {
     new_module = alloc_module();
     copy_module(new_module, &module);
-    BLI_addtail(&new_config->modules, (void *)new_module);
+    BLI_addtail(&new_config->modules, static_cast<void *>(new_module));
   }
 }
 
@@ -103,8 +103,8 @@ static void copy_lineset(FreestyleLineSet *new_lineset, FreestyleLineSet *linese
   STRNCPY_UTF8(new_lineset->name, lineset->name);
 
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-    id_us_plus((ID *)new_lineset->linestyle);
-    id_us_plus((ID *)new_lineset->group);
+    id_us_plus(blender::id_cast<ID *>(new_lineset->linestyle));
+    id_us_plus(blender::id_cast<ID *>(new_lineset->group));
   }
 }
 
@@ -116,7 +116,7 @@ static FreestyleModuleConfig *alloc_module()
 FreestyleModuleConfig *BKE_freestyle_module_add(FreestyleConfig *config)
 {
   FreestyleModuleConfig *module_conf = alloc_module();
-  BLI_addtail(&config->modules, (void *)module_conf);
+  BLI_addtail(&config->modules, static_cast<void *>(module_conf));
   module_conf->script = nullptr;
   module_conf->is_displayed = 1;
   return module_conf;
@@ -165,7 +165,7 @@ FreestyleLineSet *BKE_freestyle_lineset_add(Main *bmain, FreestyleConfig *config
   int lineset_index = BLI_listbase_count(&config->linesets);
 
   FreestyleLineSet *lineset = alloc_lineset();
-  BLI_addtail(&config->linesets, (void *)lineset);
+  BLI_addtail(&config->linesets, static_cast<void *>(lineset));
   BKE_freestyle_lineset_set_active_index(config, lineset_index);
 
   lineset->linestyle = BKE_linestyle_new(bmain, DATA_("LineStyle"));
@@ -224,7 +224,7 @@ short BKE_freestyle_lineset_get_active_index(FreestyleConfig *config)
   FreestyleLineSet *lineset;
   short i;
 
-  for (lineset = (FreestyleLineSet *)config->linesets.first, i = 0; lineset;
+  for (lineset = static_cast<FreestyleLineSet *>(config->linesets.first), i = 0; lineset;
        lineset = lineset->next, i++)
   {
     if (lineset->flags & FREESTYLE_LINESET_CURRENT) {
@@ -239,7 +239,7 @@ void BKE_freestyle_lineset_set_active_index(FreestyleConfig *config, short index
   FreestyleLineSet *lineset;
   short i;
 
-  for (lineset = (FreestyleLineSet *)config->linesets.first, i = 0; lineset;
+  for (lineset = static_cast<FreestyleLineSet *>(config->linesets.first), i = 0; lineset;
        lineset = lineset->next, i++)
   {
     if (i == index) {

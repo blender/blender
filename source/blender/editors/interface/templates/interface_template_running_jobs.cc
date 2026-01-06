@@ -263,16 +263,17 @@ void template_running_jobs(Layout *layout, bContext *C)
       ProgressTooltip_Store *tip_arg = MEM_mallocN<ProgressTooltip_Store>(__func__);
       tip_arg->wm = wm;
       tip_arg->owner = owner;
-      ButtonProgress *but_progress = (ButtonProgress *)uiDefIconTextBut(block,
-                                                                        ButtonType::Progress,
-                                                                        ICON_NONE,
-                                                                        text,
-                                                                        UI_UNIT_X,
-                                                                        0,
-                                                                        UI_UNIT_X * 6.0f,
-                                                                        UI_UNIT_Y,
-                                                                        nullptr,
-                                                                        nullptr);
+      ButtonProgress *but_progress = static_cast<ButtonProgress *>(
+          uiDefIconTextBut(block,
+                           ButtonType::Progress,
+                           ICON_NONE,
+                           text,
+                           UI_UNIT_X,
+                           0,
+                           UI_UNIT_X * 6.0f,
+                           UI_UNIT_Y,
+                           nullptr,
+                           nullptr));
 
       but_progress->progress_factor = progress;
       button_func_tooltip_set(but_progress, progress_tooltip_func, tip_arg, MEM_freeN);

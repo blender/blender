@@ -32,7 +32,7 @@ using blender::float3;
 
 static PointCloud *rna_pointcloud(const PointerRNA *ptr)
 {
-  return (PointCloud *)ptr->owner_id;
+  return blender::id_cast<PointCloud *>(ptr->owner_id);
 }
 
 static float3 *get_pointcloud_positions(PointCloud *pointcloud)

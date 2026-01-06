@@ -428,7 +428,7 @@ static void test_constraint(
             con->flag |= CONSTRAINT_DISABLE;
           }
           else {
-            Curve *cu = static_cast<Curve *>(ct.tar->data);
+            Curve *cu = blender::id_cast<Curve *>(ct.tar->data);
 
             /* auto-set 'Path' setting on curve so this works. */
             cu->flag |= CU_PATH;
@@ -575,7 +575,8 @@ static bool edit_constraint_poll_generic(bContext *C,
                                          const bool is_liboverride_allowed)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "constraint", rna_type);
-  Object *ob = (ptr.owner_id) ? (Object *)ptr.owner_id : context_active_object(C);
+  Object *ob = (ptr.owner_id) ? blender::id_cast<Object *>(ptr.owner_id) :
+                                context_active_object(C);
   bConstraint *con = static_cast<bConstraint *>(ptr.data);
 
   if (!ED_operator_object_active_editable_ex(C, ob)) {
@@ -632,7 +633,8 @@ static bool edit_constraint_invoke_properties(bContext *C,
                                               wmOperatorStatus *r_retval)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "constraint", &RNA_Constraint);
-  Object *ob = (ptr.owner_id) ? (Object *)ptr.owner_id : context_active_object(C);
+  Object *ob = (ptr.owner_id) ? blender::id_cast<Object *>(ptr.owner_id) :
+                                context_active_object(C);
   bConstraint *con;
   ListBaseT<bConstraint> *list;
 
@@ -735,7 +737,7 @@ static wmOperatorStatus stretchto_reset_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Object *ob = context_active_object(C);
   bConstraint *con = edit_constraint_property_get(C, op, ob, CONSTRAINT_TYPE_STRETCHTO);
-  bStretchToConstraint *data = (con) ? (bStretchToConstraint *)con->data : nullptr;
+  bStretchToConstraint *data = (con) ? static_cast<bStretchToConstraint *>(con->data) : nullptr;
 
   /* despite 3 layers of checks, we may still not be able to find a constraint */
   if (data == nullptr) {
@@ -792,7 +794,7 @@ static wmOperatorStatus limitdistance_reset_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Object *ob = context_active_object(C);
   bConstraint *con = edit_constraint_property_get(C, op, ob, CONSTRAINT_TYPE_DISTLIMIT);
-  bDistLimitConstraint *data = (con) ? (bDistLimitConstraint *)con->data : nullptr;
+  bDistLimitConstraint *data = (con) ? static_cast<bDistLimitConstraint *>(con->data) : nullptr;
 
   /* despite 3 layers of checks, we may still not be able to find a constraint */
   if (data == nullptr) {
@@ -866,7 +868,7 @@ static wmOperatorStatus childof_set_inverse_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Object *ob = context_active_object(C);
   bConstraint *con = edit_constraint_property_get(C, op, ob, CONSTRAINT_TYPE_CHILDOF);
-  bChildOfConstraint *data = (con) ? (bChildOfConstraint *)con->data : nullptr;
+  bChildOfConstraint *data = (con) ? static_cast<bChildOfConstraint *>(con->data) : nullptr;
 
   /* despite 3 layers of checks, we may still not be able to find a constraint */
   if (data == nullptr) {
@@ -922,7 +924,7 @@ static wmOperatorStatus childof_clear_inverse_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Object *ob = context_active_object(C);
   bConstraint *con = edit_constraint_property_get(C, op, ob, CONSTRAINT_TYPE_CHILDOF);
-  bChildOfConstraint *data = (con) ? (bChildOfConstraint *)con->data : nullptr;
+  bChildOfConstraint *data = (con) ? static_cast<bChildOfConstraint *>(con->data) : nullptr;
 
   if (data == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Child Of constraint not found");
@@ -1006,7 +1008,7 @@ static wmOperatorStatus followpath_path_animate_exec(bContext *C, wmOperator *op
   Main *bmain = CTX_data_main(C);
   Object *ob = context_active_object(C);
   bConstraint *con = edit_constraint_property_get(C, op, ob, CONSTRAINT_TYPE_FOLLOWPATH);
-  bFollowPathConstraint *data = (con) ? (bFollowPathConstraint *)con->data : nullptr;
+  bFollowPathConstraint *data = (con) ? static_cast<bFollowPathConstraint *>(con->data) : nullptr;
 
   bAction *act = nullptr;
   FCurve *fcu = nullptr;
@@ -1022,7 +1024,7 @@ static wmOperatorStatus followpath_path_animate_exec(bContext *C, wmOperator *op
 
   /* add F-Curve as appropriate */
   if (data->tar) {
-    Curve *cu = (Curve *)data->tar->data;
+    Curve *cu = blender::id_cast<Curve *>(data->tar->data);
 
     if (ELEM(nullptr, cu->adt, cu->adt->action) ||
         (animrig::fcurve_find_in_assigned_slot(*cu->adt, {"eval_time", 0}) == nullptr))
@@ -1147,7 +1149,8 @@ static wmOperatorStatus objectsolver_set_inverse_exec(bContext *C, wmOperator *o
   Main *bmain = CTX_data_main(C);
   Object *ob = context_active_object(C);
   bConstraint *con = edit_constraint_property_get(C, op, ob, CONSTRAINT_TYPE_OBJECTSOLVER);
-  bObjectSolverConstraint *data = (con) ? (bObjectSolverConstraint *)con->data : nullptr;
+  bObjectSolverConstraint *data = (con) ? static_cast<bObjectSolverConstraint *>(con->data) :
+                                          nullptr;
 
   /* despite 3 layers of checks, we may still not be able to find a constraint */
   if (data == nullptr) {
@@ -1209,7 +1212,8 @@ static wmOperatorStatus objectsolver_clear_inverse_exec(bContext *C, wmOperator 
   Main *bmain = CTX_data_main(C);
   Object *ob = context_active_object(C);
   bConstraint *con = edit_constraint_property_get(C, op, ob, CONSTRAINT_TYPE_OBJECTSOLVER);
-  bObjectSolverConstraint *data = (con) ? (bObjectSolverConstraint *)con->data : nullptr;
+  bObjectSolverConstraint *data = (con) ? static_cast<bObjectSolverConstraint *>(con->data) :
+                                          nullptr;
 
   if (data == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Child Of constraint not found");
@@ -1247,7 +1251,7 @@ static bool objectsolver_clear_inverse_poll(bContext *C)
     return true;
   }
 
-  bObjectSolverConstraint *data = (bObjectSolverConstraint *)con->data;
+  bObjectSolverConstraint *data = static_cast<bObjectSolverConstraint *>(con->data);
 
   if (is_identity_m4(data->invmat)) {
     CTX_wm_operator_poll_msg_set(C, "No inverse correction is set, so there is nothing to clear");
@@ -1705,7 +1709,7 @@ static wmOperatorStatus constraint_copy_to_selected_exec(bContext *C, wmOperator
       }
 
       BKE_pose_tag_recalc(bmain, ob->pose);
-      DEG_id_tag_update((ID *)ob, ID_RECALC_GEOMETRY);
+      DEG_id_tag_update(blender::id_cast<ID *>(ob), ID_RECALC_GEOMETRY);
       prev_ob = ob;
     }
     CTX_DATA_END;
@@ -1748,7 +1752,8 @@ static wmOperatorStatus constraint_copy_to_selected_invoke(bContext *C,
 static bool constraint_copy_to_selected_poll(bContext *C)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "constraint", &RNA_Constraint);
-  Object *obact = (ptr.owner_id) ? (Object *)ptr.owner_id : context_active_object(C);
+  Object *obact = (ptr.owner_id) ? blender::id_cast<Object *>(ptr.owner_id) :
+                                   context_active_object(C);
   bConstraint *con = static_cast<bConstraint *>(ptr.data);
   bPoseChannel *pchan;
   constraint_list_from_constraint(obact, con, &pchan);
@@ -2103,7 +2108,7 @@ static wmOperatorStatus pose_constraint_copy_exec(bContext *C, wmOperator *op)
 
       if (prev_ob != ob) {
         BKE_pose_tag_recalc(bmain, ob->pose);
-        DEG_id_tag_update((ID *)ob, ID_RECALC_GEOMETRY);
+        DEG_id_tag_update(blender::id_cast<ID *>(ob), ID_RECALC_GEOMETRY);
         prev_ob = ob;
       }
     }
@@ -2290,7 +2295,7 @@ static bool get_new_constraint_target(
           if (only_curve) {
             /* Curve-Path option must be enabled for follow-path constraints to be able to work
              */
-            Curve *cu = (Curve *)ob->data;
+            Curve *cu = blender::id_cast<Curve *>(ob->data);
             cu->flag |= CU_PATH;
           }
 

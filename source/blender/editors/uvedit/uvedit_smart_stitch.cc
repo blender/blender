@@ -997,11 +997,11 @@ static int stitch_process_data(StitchStateContainer *ssc,
 
   for (i = 0; i < state->selection_size; i++) {
     if (ssc->mode == STITCH_VERT) {
-      UvElement *element = (UvElement *)state->selection_stack[i];
+      UvElement *element = static_cast<UvElement *>(state->selection_stack[i]);
       determine_uv_stitchability(cd_loop_uv_offset, element, ssc, state, island_stitch_data);
     }
     else {
-      UvEdge *edge = (UvEdge *)state->selection_stack[i];
+      UvEdge *edge = static_cast<UvEdge *>(state->selection_stack[i]);
       determine_uv_edge_stitchability(cd_loop_uv_offset, edge, ssc, state, island_stitch_data);
     }
   }
@@ -1029,7 +1029,7 @@ static int stitch_process_data(StitchStateContainer *ssc,
 
   for (i = 0; i < state->selection_size; i++) {
     if (ssc->mode == STITCH_VERT) {
-      UvElement *element = (UvElement *)state->selection_stack[i];
+      UvElement *element = static_cast<UvElement *>(state->selection_stack[i]);
       if (element->flag & STITCH_STITCHABLE_CANDIDATE) {
         element->flag &= ~STITCH_STITCHABLE_CANDIDATE;
         stitch_validate_uv_stitchability(
@@ -1041,7 +1041,7 @@ static int stitch_process_data(StitchStateContainer *ssc,
       }
     }
     else {
-      UvEdge *edge = (UvEdge *)state->selection_stack[i];
+      UvEdge *edge = static_cast<UvEdge *>(state->selection_stack[i]);
       if (edge->flag & STITCH_STITCHABLE_CANDIDATE) {
         edge->flag &= ~STITCH_STITCHABLE_CANDIDATE;
         stitch_validate_edge_stitchability(
@@ -1514,7 +1514,7 @@ static bool uv_edge_compare(const void *a, const void *b)
 static void stitch_select_edge(UvEdge *edge, StitchState *state, int always_select)
 {
   UvEdge *eiter;
-  UvEdge **selection_stack = (UvEdge **)state->selection_stack;
+  UvEdge **selection_stack = reinterpret_cast<UvEdge **>(state->selection_stack);
 
   for (eiter = edge->first; eiter; eiter = eiter->next) {
     if (eiter->flag & STITCH_SELECTED) {
@@ -1542,7 +1542,7 @@ static void stitch_select_edge(UvEdge *edge, StitchState *state, int always_sele
 /* Select all common uvs */
 static void stitch_select_uv(UvElement *element, StitchState *state, int always_select)
 {
-  UvElement **selection_stack = (UvElement **)state->selection_stack;
+  UvElement **selection_stack = reinterpret_cast<UvElement **>(state->selection_stack);
   UvElement *element_iter = BM_uv_element_get_head(state->element_map, element);
   /* first deselect all common uvs */
   for (; element_iter; element_iter = element_iter->next) {
@@ -1670,7 +1670,7 @@ static void stitch_draw_vbo(blender::gpu::VertBuf *vbo, GPUPrimType prim_type, c
 static void stitch_draw(const bContext * /*C*/, ARegion * /*region*/, void *arg)
 {
 
-  StitchStateContainer *ssc = (StitchStateContainer *)arg;
+  StitchStateContainer *ssc = static_cast<StitchStateContainer *>(arg);
 
   for (uint ob_index = 0; ob_index < ssc->objects_len; ob_index++) {
     int j, index = 0;
@@ -1959,7 +1959,7 @@ static StitchState *stitch_init(bContext *C,
   /* fill the edges with data */
   int i = 0;
   GHASH_ITER (gh_iter, edge_hash) {
-    edges[i++] = *((UvEdge *)BLI_ghashIterator_getKey(&gh_iter));
+    edges[i++] = *(static_cast<UvEdge *>(BLI_ghashIterator_getKey(&gh_iter)));
   }
 
   /* cleanup temporary stuff */
@@ -2331,7 +2331,7 @@ static wmOperatorStatus stitch_invoke(bContext *C, wmOperator *op, const wmEvent
   ToolSettings *ts = scene->toolsettings;
   const bool synced_selection = (ts->uv_flag & UV_FLAG_SELECT_SYNC) != 0;
 
-  StitchStateContainer *ssc = (StitchStateContainer *)op->customdata;
+  StitchStateContainer *ssc = static_cast<StitchStateContainer *>(op->customdata);
 
   for (uint ob_index = 0; ob_index < ssc->objects_len; ob_index++) {
     StitchState *state = ssc->states[ob_index];
@@ -2354,7 +2354,7 @@ static void stitch_exit(bContext *C, wmOperator *op, int finished)
   SpaceImage *sima = CTX_wm_space_image(C);
   ScrArea *area = CTX_wm_area(C);
 
-  StitchStateContainer *ssc = (StitchStateContainer *)op->customdata;
+  StitchStateContainer *ssc = static_cast<StitchStateContainer *>(op->customdata);
 
   if (finished) {
     RNA_float_set(op->ptr, "limit", ssc->limit_dist);
@@ -2387,7 +2387,7 @@ static void stitch_exit(bContext *C, wmOperator *op, int finished)
           element = static_cast<UvElement *>(state->selection_stack[i]);
         }
         else {
-          element = ((UvEdge *)state->selection_stack[i])->element;
+          element = (static_cast<UvEdge *>(state->selection_stack[i]))->element;
         }
         RNA_collection_add(op->ptr, "selection", &itemptr);
 
@@ -2444,7 +2444,7 @@ static wmOperatorStatus stitch_exec(bContext *C, wmOperator *op)
   if (!stitch_init_all(C, op)) {
     return OPERATOR_CANCELLED;
   }
-  if (stitch_process_data_all((StitchStateContainer *)op->customdata, scene, 1)) {
+  if (stitch_process_data_all(static_cast<StitchStateContainer *>(op->customdata), scene, 1)) {
     stitch_exit(C, op, 1);
     return OPERATOR_FINISHED;
   }

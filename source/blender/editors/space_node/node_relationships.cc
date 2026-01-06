@@ -254,7 +254,7 @@ static bNodeSocket *best_socket_output(bNodeTree *ntree,
   /* Always allow linking to an reroute node. The socket type of the reroute sockets might change
    * after the link has been created. */
   if (node->is_reroute()) {
-    return (bNodeSocket *)node->outputs.first;
+    return static_cast<bNodeSocket *>(node->outputs.first);
   }
 
   return nullptr;
@@ -538,7 +538,7 @@ static bNodeSocket *node_link_viewer_get_socket(bNodeTree &ntree,
 {
   if (viewer_node.type_legacy != GEO_NODE_VIEWER) {
     /* In viewer nodes in the compositor, only the first input should be linked to. */
-    return (bNodeSocket *)viewer_node.inputs.first;
+    return static_cast<bNodeSocket *>(viewer_node.inputs.first);
   }
   if (!nodes::GeoViewerItemsAccessor::supports_socket_type(src_socket.typeinfo->type, ntree.type))
   {
@@ -1371,7 +1371,7 @@ static void add_dragged_links_to_tree(bContext &C, bNodeLinkDrag &nldrag)
 static void node_link_cancel(bContext *C, wmOperator *op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
-  bNodeLinkDrag *nldrag = (bNodeLinkDrag *)op->customdata;
+  bNodeLinkDrag *nldrag = static_cast<bNodeLinkDrag *>(op->customdata);
   draw_draglink_tooltip_deactivate(*CTX_wm_region(C), *nldrag);
   view2d_edge_pan_cancel(C, &nldrag->pan_data);
   snode->runtime->linkdrag.reset();
@@ -2892,7 +2892,7 @@ static bool node_link_insert_offset_chain_cb(bNode *fromnode,
                                              void *userdata,
                                              const bool reversed)
 {
-  NodeInsertOfsData *data = (NodeInsertOfsData *)userdata;
+  NodeInsertOfsData *data = static_cast<NodeInsertOfsData *>(userdata);
   bNode *ofs_node = reversed ? fromnode : tonode;
 
   node_offset_apply(*ofs_node, data->offset_x);

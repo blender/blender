@@ -85,7 +85,7 @@ class Matrix3 : public Eigen::Matrix3f {
 
   operator ctype()
   {
-    return (ctype)data();
+    return reinterpret_cast<ctype>(data());
   }
 };
 

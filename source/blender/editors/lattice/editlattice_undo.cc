@@ -184,7 +184,7 @@ static Object *editlatt_object_from_context(bContext *C)
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit && obedit->type == OB_LATTICE) {
-    Lattice *lt = static_cast<Lattice *>(obedit->data);
+    Lattice *lt = blender::id_cast<Lattice *>(obedit->data);
     if (lt->editlatt != nullptr) {
       return obedit;
     }
@@ -221,7 +221,7 @@ static bool lattice_undosys_poll(bContext *C)
 
 static bool lattice_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 {
-  LatticeUndoStep *us = (LatticeUndoStep *)us_p;
+  LatticeUndoStep *us = reinterpret_cast<LatticeUndoStep *>(us_p);
 
   /* Important not to use the 3D view when getting objects because all objects
    * outside of this list will be moved out of edit-mode when reading back undo steps. */
@@ -238,7 +238,7 @@ static bool lattice_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p
     LatticeUndoStep_Elem *elem = &us->elems[i];
 
     elem->obedit_ref.ptr = ob;
-    Lattice *lt = static_cast<Lattice *>(ob->data);
+    Lattice *lt = blender::id_cast<Lattice *>(ob->data);
     undolatt_from_editlatt(
         &elem->data, lt->editlatt, &lt->vertex_group_names, lt->vertex_group_active_index);
     lt->editlatt->needs_flush_to_id = 1;
@@ -253,7 +253,7 @@ static bool lattice_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p
 static void lattice_undosys_step_decode(
     bContext *C, Main *bmain, UndoStep *us_p, const eUndoStepDir /*dir*/, bool /*is_final*/)
 {
-  LatticeUndoStep *us = (LatticeUndoStep *)us_p;
+  LatticeUndoStep *us = reinterpret_cast<LatticeUndoStep *>(us_p);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
@@ -267,7 +267,7 @@ static void lattice_undosys_step_decode(
   for (uint i = 0; i < us->elems_len; i++) {
     LatticeUndoStep_Elem *elem = &us->elems[i];
     Object *obedit = elem->obedit_ref.ptr;
-    Lattice *lt = static_cast<Lattice *>(obedit->data);
+    Lattice *lt = blender::id_cast<Lattice *>(obedit->data);
     if (lt->editlatt == nullptr) {
       /* Should never fail, may not crash but can give odd behavior. */
       CLOG_ERROR(&LOG,
@@ -317,7 +317,7 @@ static void lattice_undosys_step_decode(
 
 static void lattice_undosys_step_free(UndoStep *us_p)
 {
-  LatticeUndoStep *us = (LatticeUndoStep *)us_p;
+  LatticeUndoStep *us = reinterpret_cast<LatticeUndoStep *>(us_p);
 
   for (uint i = 0; i < us->elems_len; i++) {
     LatticeUndoStep_Elem *elem = &us->elems[i];
@@ -330,12 +330,12 @@ static void lattice_undosys_foreach_ID_ref(UndoStep *us_p,
                                            UndoTypeForEachIDRefFn foreach_ID_ref_fn,
                                            void *user_data)
 {
-  LatticeUndoStep *us = (LatticeUndoStep *)us_p;
+  LatticeUndoStep *us = reinterpret_cast<LatticeUndoStep *>(us_p);
 
-  foreach_ID_ref_fn(user_data, ((UndoRefID *)&us->scene_ref));
+  foreach_ID_ref_fn(user_data, (reinterpret_cast<UndoRefID *>(&us->scene_ref)));
   for (uint i = 0; i < us->elems_len; i++) {
     LatticeUndoStep_Elem *elem = &us->elems[i];
-    foreach_ID_ref_fn(user_data, ((UndoRefID *)&elem->obedit_ref));
+    foreach_ID_ref_fn(user_data, (reinterpret_cast<UndoRefID *>(&elem->obedit_ref)));
   }
 }
 

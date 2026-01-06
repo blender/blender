@@ -357,7 +357,7 @@ static wmOperatorStatus material_slot_assign_exec(bContext *C, wmOperator * /*op
       }
     }
     else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
-      ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get((Curve *)ob->data);
+      ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(blender::id_cast<Curve *>(ob->data));
 
       if (nurbs) {
         for (Nurb &nu : *nurbs) {
@@ -369,7 +369,7 @@ static wmOperatorStatus material_slot_assign_exec(bContext *C, wmOperator * /*op
       }
     }
     else if (ob->type == OB_FONT) {
-      const Curve *cu = static_cast<const Curve *>(ob->data);
+      const Curve *cu = blender::id_cast<const Curve *>(ob->data);
       EditFont *ef = cu->editfont;
       int i, selstart, selend;
 
@@ -441,7 +441,7 @@ static wmOperatorStatus material_slot_de_select(bContext *C, bool select)
       }
     }
     else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
-      ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get((Curve *)ob->data);
+      ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(blender::id_cast<Curve *>(ob->data));
       BPoint *bp;
       BezTriple *bezt;
       int a;
@@ -841,8 +841,8 @@ static wmOperatorStatus new_material_exec(bContext *C, wmOperator * /*op*/)
 
   /* add or copy material */
   if (ma) {
-    Material *new_ma = (Material *)BKE_id_copy_ex(
-        bmain, &ma->id, nullptr, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS);
+    Material *new_ma = blender::id_cast<Material *>(
+        BKE_id_copy_ex(bmain, &ma->id, nullptr, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
     ma = new_ma;
   }
   else {
@@ -913,7 +913,7 @@ static wmOperatorStatus new_texture_exec(bContext *C, wmOperator *op)
 
   /* add or copy texture */
   if (tex) {
-    tex = (Tex *)BKE_id_copy(bmain, &tex->id);
+    tex = blender::id_cast<Tex *>(BKE_id_copy(bmain, &tex->id));
   }
   else {
     tex = BKE_texture_add(bmain, DATA_("Texture"));
@@ -976,8 +976,8 @@ static wmOperatorStatus new_world_exec(bContext *C, wmOperator * /*op*/)
 
   /* add or copy world */
   if (wo) {
-    World *new_wo = (World *)BKE_id_copy_ex(
-        bmain, &wo->id, nullptr, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS);
+    World *new_wo = blender::id_cast<World *>(
+        BKE_id_copy_ex(bmain, &wo->id, nullptr, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
     wo = new_wo;
   }
   else {
@@ -1454,7 +1454,7 @@ static blender::Vector<Object *> lightprobe_cache_irradiance_volume_subset_get(b
 
   auto is_irradiance_volume = [](Object *ob) -> bool {
     return ob->type == OB_LIGHTPROBE &&
-           static_cast<LightProbe *>(ob->data)->type == LIGHTPROBE_TYPE_VOLUME;
+           blender::id_cast<LightProbe *>(ob->data)->type == LIGHTPROBE_TYPE_VOLUME;
   };
 
   blender::Vector<Object *> probes;
@@ -2164,7 +2164,8 @@ static wmOperatorStatus freestyle_linestyle_new_exec(bContext *C, wmOperator *op
   }
   if (lineset->linestyle) {
     id_us_min(&lineset->linestyle->id);
-    lineset->linestyle = (FreestyleLineStyle *)BKE_id_copy(bmain, &lineset->linestyle->id);
+    lineset->linestyle = blender::id_cast<FreestyleLineStyle *>(
+        BKE_id_copy(bmain, &lineset->linestyle->id));
   }
   else {
     lineset->linestyle = BKE_linestyle_new(bmain, DATA_("LineStyle"));
@@ -2989,10 +2990,12 @@ static void copy_mtex_copybuf(ID *id)
 
   switch (GS(id->name)) {
     case ID_PA:
-      mtex = &(((ParticleSettings *)id)->mtex[int(((ParticleSettings *)id)->texact)]);
+      mtex = &((blender::id_cast<ParticleSettings *>(id))
+                   ->mtex[int((blender::id_cast<ParticleSettings *>(id))->texact)]);
       break;
     case ID_LS:
-      mtex = &(((FreestyleLineStyle *)id)->mtex[int(((FreestyleLineStyle *)id)->texact)]);
+      mtex = &((blender::id_cast<FreestyleLineStyle *>(id))
+                   ->mtex[int((blender::id_cast<FreestyleLineStyle *>(id))->texact)]);
       break;
     default:
       break;
@@ -3017,10 +3020,12 @@ static void paste_mtex_copybuf(ID *id)
 
   switch (GS(id->name)) {
     case ID_PA:
-      mtex = &(((ParticleSettings *)id)->mtex[int(((ParticleSettings *)id)->texact)]);
+      mtex = &((blender::id_cast<ParticleSettings *>(id))
+                   ->mtex[int((blender::id_cast<ParticleSettings *>(id))->texact)]);
       break;
     case ID_LS:
-      mtex = &(((FreestyleLineStyle *)id)->mtex[int(((FreestyleLineStyle *)id)->texact)]);
+      mtex = &((blender::id_cast<FreestyleLineStyle *>(id))
+                   ->mtex[int((blender::id_cast<FreestyleLineStyle *>(id))->texact)]);
       break;
     default:
       BLI_assert_msg(0, "invalid id type");
@@ -3051,8 +3056,8 @@ static void paste_mtex_copybuf(ID *id)
     if ((*mtex)->object && (BLI_findindex(&G_MAIN->objects, (*mtex)->object) == -1)) {
       (*mtex)->object = nullptr;
     }
-    id_us_plus((ID *)(*mtex)->tex);
-    id_lib_extern((ID *)(*mtex)->object);
+    id_us_plus(blender::id_cast<ID *>((*mtex)->tex));
+    id_lib_extern(blender::id_cast<ID *>((*mtex)->object));
   }
 }
 

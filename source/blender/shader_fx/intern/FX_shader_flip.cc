@@ -23,7 +23,7 @@
 
 static void init_data(ShaderFxData *fx)
 {
-  FlipShaderFxData *gpfx = (FlipShaderFxData *)fx;
+  FlipShaderFxData *gpfx = reinterpret_cast<FlipShaderFxData *>(fx);
   gpfx->flag |= FX_FLIP_HORIZONTAL;
 }
 

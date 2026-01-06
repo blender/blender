@@ -127,8 +127,8 @@ struct FaceKeyPair {
 
 static int comp_float_int_pair(const void *a, const void *b)
 {
-  FaceKeyPair *x = (FaceKeyPair *)a;
-  FaceKeyPair *y = (FaceKeyPair *)b;
+  FaceKeyPair *x = static_cast<FaceKeyPair *>(const_cast<void *>(a));
+  FaceKeyPair *y = static_cast<FaceKeyPair *>(const_cast<void *>(b));
   return int(x->angle > y->angle) - int(x->angle < y->angle);
 }
 
@@ -139,7 +139,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
 {
   using namespace blender;
   Mesh *result;
-  const SolidifyModifierData *smd = (SolidifyModifierData *)md;
+  const SolidifyModifierData *smd = reinterpret_cast<SolidifyModifierData *>(md);
 
   const uint verts_num = uint(mesh->verts_num);
   const uint edges_num = uint(mesh->edges_num);

@@ -279,7 +279,7 @@ static void view3d_stereo3d_setup(
     float viewmat[4][4];
     float shiftx;
 
-    data = (Camera *)v3d->camera->data;
+    data = blender::id_cast<Camera *>(v3d->camera->data);
     data_eval = DEG_get_evaluated(depsgraph, data);
 
     shiftx = data_eval->shiftx;
@@ -547,7 +547,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
     return;
   }
   if (v3d->camera->type == OB_CAMERA) {
-    ca = static_cast<Camera *>(v3d->camera->data);
+    ca = blender::id_cast<Camera *>(v3d->camera->data);
   }
 
   ED_view3d_calc_camera_border(scene, depsgraph, region, v3d, rv3d, false, &viewborder);
@@ -1281,7 +1281,7 @@ static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
     default:
       if (rv3d->persp == RV3D_CAMOB) {
         if ((v3d->camera) && (v3d->camera->type == OB_CAMERA)) {
-          const Camera *cam = static_cast<const Camera *>(v3d->camera->data);
+          const Camera *cam = blender::id_cast<const Camera *>(v3d->camera->data);
           if (cam->type == CAM_PERSP) {
             name = IFACE_("Camera Perspective");
           }
@@ -1360,7 +1360,7 @@ static bool is_grease_pencil_with_layer_keyframe(const Object &ob)
   }
 
   using namespace blender::bke::greasepencil;
-  const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob.data);
+  const GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(ob.data);
   for (const Layer *layer : grease_pencil.layers()) {
     if (!layer->frames().is_empty()) {
       return true;
@@ -1432,7 +1432,7 @@ static void draw_selected_name(
 
     /* name(s) to display depends on type of object */
     if (ob->type == OB_ARMATURE) {
-      bArmature *arm = static_cast<bArmature *>(ob->data);
+      bArmature *arm = blender::id_cast<bArmature *>(ob->data);
 
       /* show name of active bone too (if possible) */
       if (arm->edbo) {
@@ -1457,7 +1457,7 @@ static void draw_selected_name(
       if (ob->type == OB_MESH && ob->mode & OB_MODE_WEIGHT_PAINT) {
         Object *armobj = BKE_object_pose_armature_get(ob);
         if (armobj && armobj->mode & OB_MODE_POSE) {
-          bArmature *arm = static_cast<bArmature *>(armobj->data);
+          bArmature *arm = blender::id_cast<bArmature *>(armobj->data);
           if (arm->act_bone) {
             if (ANIM_bonecoll_is_visible_actbone(arm)) {
               info_array[i++] = msg_sep;
@@ -1485,7 +1485,7 @@ static void draw_selected_name(
       blender::ui::theme::font_theme_color_set(font_id, TH_TIME_GP_KEYFRAME);
     }
 
-    if (blender::animrig::id_frame_has_keyframe((ID *)ob,
+    if (blender::animrig::id_frame_has_keyframe(blender::id_cast<ID *>(ob),
                                                 /* BKE_scene_ctime_get(scene) */ float(cfra)))
     {
       blender::ui::theme::font_theme_color_set(font_id, TH_KEYTYPE_KEYFRAME_SELECT);
@@ -1658,7 +1658,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
     /* pass */
   }
   else {
-    switch ((eUserpref_MiniAxisType)U.mini_axis_type) {
+    switch (eUserpref_MiniAxisType(U.mini_axis_type)) {
       case USER_MINI_AXIS_TYPE_GIZMO:
         /* The gizmo handles its own drawing. */
         break;

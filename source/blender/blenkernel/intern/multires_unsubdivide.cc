@@ -1202,7 +1202,7 @@ int multiresModifier_rebuild_subdiv(Depsgraph *depsgraph,
                                     int rebuild_limit,
                                     bool switch_view_to_lower_level)
 {
-  Mesh *mesh = static_cast<Mesh *>(object->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(object->data);
 
   multires_force_sculpt_rebuild(object);
 
@@ -1242,7 +1242,7 @@ int multiresModifier_rebuild_subdiv(Depsgraph *depsgraph,
   }
 
   /* Copy the new base mesh to the original mesh. */
-  Mesh *base_mesh = static_cast<Mesh *>(object->data);
+  Mesh *base_mesh = blender::id_cast<Mesh *>(object->data);
   BKE_mesh_nomain_to_mesh(unsubdiv_context.base_mesh, base_mesh, object);
   multires_create_grids_in_unsubdivided_base_mesh(&unsubdiv_context, base_mesh);
 

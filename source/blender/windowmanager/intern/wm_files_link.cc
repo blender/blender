@@ -820,7 +820,7 @@ static wmOperatorStatus wm_lib_relocate_invoke(bContext *C,
   char lib_name[MAX_NAME];
 
   RNA_string_get(op->ptr, "library", lib_name);
-  lib = (Library *)BKE_libblock_find_name(CTX_data_main(C), ID_LI, lib_name);
+  lib = blender::id_cast<Library *>(BKE_libblock_find_name(CTX_data_main(C), ID_LI, lib_name));
 
   if (lib) {
     if (lib->runtime->parent) {
@@ -898,7 +898,7 @@ static wmOperatorStatus wm_lib_relocate_exec_do(bContext *C, wmOperator *op, boo
   char lib_name[MAX_NAME];
 
   RNA_string_get(op->ptr, "library", lib_name);
-  Library *lib = (Library *)BKE_libblock_find_name(bmain, ID_LI, lib_name);
+  Library *lib = blender::id_cast<Library *>(BKE_libblock_find_name(bmain, ID_LI, lib_name));
   if (lib == nullptr) {
     return OPERATOR_CANCELLED;
   }

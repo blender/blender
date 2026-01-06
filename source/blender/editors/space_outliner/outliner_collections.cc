@@ -80,11 +80,11 @@ Collection *outliner_collection_from_tree_element(const TreeElement *te)
     return lc->collection;
   }
   if (ELEM(tselem->type, TSE_SCENE_COLLECTION_BASE, TSE_VIEW_COLLECTION_BASE)) {
-    Scene *scene = (Scene *)tselem->id;
+    Scene *scene = blender::id_cast<Scene *>(tselem->id);
     return scene->master_collection;
   }
   if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_GR)) {
-    return (Collection *)tselem->id;
+    return blender::id_cast<Collection *>(tselem->id);
   }
 
   return nullptr;
@@ -156,8 +156,8 @@ void ED_outliner_selected_objects_get(const bContext *C, ListBaseT<LinkData> *ob
                          outliner_collect_selected_objects,
                          &data);
   for (LinkData &link : data.selected_array) {
-    TreeElement *ten_selected = (TreeElement *)link.data;
-    Object *ob = (Object *)TREESTORE(ten_selected)->id;
+    TreeElement *ten_selected = static_cast<TreeElement *>(link.data);
+    Object *ob = blender::id_cast<Object *>(TREESTORE(ten_selected)->id);
     BLI_addtail(objects, BLI_genericNodeN(ob));
   }
   BLI_freelistN(&data.selected_array);
@@ -682,8 +682,8 @@ static wmOperatorStatus collection_duplicate_exec(bContext *C, wmOperator *op)
       }
     }
 
-    const eDupli_ID_Flags dupli_flags = (eDupli_ID_Flags)(USER_DUP_OBJECT |
-                                                          (linked ? 0 : U.dupflag));
+    const eDupli_ID_Flags dupli_flags = eDupli_ID_Flags(USER_DUP_OBJECT |
+                                                        (linked ? 0 : U.dupflag));
     BKE_collection_duplicate(
         bmain, parent, child, collection, dupli_flags, LIB_ID_DUPLICATE_IS_ROOT_ID);
   }
@@ -1505,7 +1505,7 @@ static TreeTraversalAction outliner_hide_collect_data_to_edit(TreeElement *te, v
     }
   }
   else if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
-    Object *ob = (Object *)tselem->id;
+    Object *ob = blender::id_cast<Object *>(tselem->id);
     BKE_view_layer_synced_ensure(data->scene, data->view_layer);
     Base *base = BKE_view_layer_base_find(data->view_layer, ob);
     data->bases_to_edit.add(base);
@@ -1622,7 +1622,7 @@ static wmOperatorStatus outliner_color_tag_set_exec(bContext *C, wmOperator *op)
                          &selected);
 
   for (LinkData &link : selected.selected_array) {
-    TreeElement *te_selected = (TreeElement *)link.data;
+    TreeElement *te_selected = static_cast<TreeElement *>(link.data);
 
     Collection *collection = outliner_collection_from_tree_element(te_selected);
     if (collection == scene->master_collection) {

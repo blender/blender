@@ -105,7 +105,7 @@ void TreeDisplaySequencer::add_strip_dup(Strip *strip, TreeElement *te, short in
     }
 
     if (STREQ(p->data->stripdata->filename, strip->data->stripdata->filename)) {
-      add_element(&te->subtree, nullptr, (void *)p, te, TSE_STRIP, index);
+      add_element(&te->subtree, nullptr, static_cast<void *>(p), te, TSE_STRIP, index);
     }
     p = p->next;
   }

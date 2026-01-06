@@ -479,7 +479,7 @@ void modifier_apply_stack(ModifierApplyContext &context, int timeline_frame)
         frame_offset = context.strip.start;
       }
       else /* if (smd->mask_time == STRIP_MASK_TIME_ABSOLUTE) */ {
-        frame_offset = smd.mask_id ? ((Mask *)smd.mask_id)->sfra : 0;
+        frame_offset = smd.mask_id ? (static_cast<Mask *>(smd.mask_id))->sfra : 0;
       }
 
       ImBuf *mask = modifier_render_mask_input(context.render_data,

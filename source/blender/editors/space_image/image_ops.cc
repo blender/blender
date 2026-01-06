@@ -224,8 +224,10 @@ static ImageUser image_user_from_context_and_active_tile(const bContext *C, Imag
 
   /* Use the file associated with the active tile. Otherwise use the first tile. */
   if (ima && ima->source == IMA_SRC_TILED) {
-    const ImageTile *active = (ImageTile *)BLI_findlink(&ima->tiles, ima->active_tile_index);
-    iuser.tile = active ? active->tile_number : ((ImageTile *)ima->tiles.first)->tile_number;
+    const ImageTile *active = static_cast<ImageTile *>(
+        BLI_findlink(&ima->tiles, ima->active_tile_index));
+    iuser.tile = active ? active->tile_number :
+                          (static_cast<ImageTile *>(ima->tiles.first))->tile_number;
   }
 
   return iuser;
@@ -1531,7 +1533,7 @@ static wmOperatorStatus image_open_invoke(bContext *C, wmOperator *op, const wmE
       Image *oldima;
 
       oldptr = RNA_property_pointer_get(&ptr, prop);
-      oldima = (Image *)oldptr.owner_id;
+      oldima = blender::id_cast<Image *>(oldptr.owner_id);
       /* unlikely to fail but better avoid strange crash */
       if (oldima && GS(oldima->id.name) == ID_IM) {
         ima = oldima;
@@ -1697,7 +1699,7 @@ static wmOperatorStatus image_file_browse_invoke(bContext *C, wmOperator *op, co
     wmOperatorType *ot = WM_operatortype_find("WM_OT_path_open", true);
 
     if (event->modifier & KM_ALT) {
-      char *lslash = (char *)BLI_path_slash_rfind(filepath);
+      char *lslash = const_cast<char *>(BLI_path_slash_rfind(filepath));
       if (lslash) {
         *lslash = '\0';
       }
@@ -1784,7 +1786,7 @@ static wmOperatorStatus image_match_len_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  MovieReader *anim = ((ImageAnim *)ima->anims.first)->anim;
+  MovieReader *anim = (static_cast<ImageAnim *>(ima->anims.first))->anim;
   if (!anim) {
     return OPERATOR_CANCELLED;
   }
@@ -3564,7 +3566,7 @@ static wmOperatorStatus image_unpack_invoke(bContext *C, wmOperator *op, const w
               ima->filepath,
               "textures",
               BKE_image_has_packedfile(ima) ?
-                  ((ImagePackedFile *)ima->packedfiles.first)->packedfile :
+                  (static_cast<ImagePackedFile *>(ima->packedfiles.first))->packedfile :
                   nullptr);
 
   return OPERATOR_FINISHED;

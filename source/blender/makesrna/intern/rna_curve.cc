@@ -447,7 +447,7 @@ static void rna_Curve_bevelObject_set(PointerRNA *ptr, PointerRNA value, ReportL
   if (ob) {
     /* If bevel object has got the save curve, as object, for which it's set as bevobj,
      * there could be an infinite loop in curve evaluation. */
-    if (ob->type == OB_CURVES_LEGACY && ob->data != cu) {
+    if (ob->type == OB_CURVES_LEGACY && ob->data != blender::id_cast<ID *>(cu)) {
       cu->bevobj = ob;
       id_lib_extern(&ob->id);
     }
@@ -492,7 +492,7 @@ static bool rna_Curve_otherObject_poll(PointerRNA *ptr, PointerRNA value)
   Object *ob = static_cast<Object *>(value.data);
 
   if (ob) {
-    if (ob->type == OB_CURVES_LEGACY && ob->data != cu) {
+    if (ob->type == OB_CURVES_LEGACY && ob->data != blender::id_cast<ID *>(cu)) {
       return 1;
     }
   }
@@ -520,7 +520,7 @@ static void rna_Curve_taperObject_set(PointerRNA *ptr, PointerRNA value, ReportL
   if (ob) {
     /* If taper object has got the save curve, as object, for which it's set as bevobj,
      * there could be an infinite loop in curve evaluation. */
-    if (ob->type == OB_CURVES_LEGACY && ob->data != cu) {
+    if (ob->type == OB_CURVES_LEGACY && ob->data != blender::id_cast<ID *>(cu)) {
       cu->taperobj = ob;
       id_lib_extern(&ob->id);
     }

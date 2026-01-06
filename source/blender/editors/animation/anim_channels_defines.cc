@@ -3900,7 +3900,7 @@ static void *data_block_setting_ptr(bAnimListElem *ale,
                                     eAnimChannel_Settings /*setting*/,
                                     short *r_type)
 {
-  GreasePencil *grease_pencil = (GreasePencil *)ale->data;
+  GreasePencil *grease_pencil = static_cast<GreasePencil *>(ale->data);
 
   return GET_ACF_FLAG_PTR(grease_pencil->flag, r_type);
 }
@@ -4548,7 +4548,7 @@ static void acf_nlaaction_backdrop(bAnimContext *ac, bAnimListElem *ale, float y
    *   strips backgrounds but here we're doing track list backgrounds instead
    *   so we ignore that and use our own when needed
    */
-  nla_action_get_color(adt, (bAction *)ale->data, color);
+  nla_action_get_color(adt, static_cast<bAction *>(ale->data), color);
 
   if (adt && (adt->flag & ADT_NLA_EDIT_ON)) {
     color[3] = 1.0f;
@@ -4927,7 +4927,7 @@ short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, eAnimChanne
       switch (ptrsize) {
         case sizeof(int): /* integer pointer for setting */
         {
-          const int *val = (int *)ptr;
+          const int *val = static_cast<int *>(ptr);
 
           if (negflag) {
             return ((*val) & flag) == 0;
@@ -4936,7 +4936,7 @@ short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, eAnimChanne
         }
         case sizeof(short): /* short pointer for setting */
         {
-          const short *val = (short *)ptr;
+          const short *val = static_cast<short *>(ptr);
 
           if (negflag) {
             return ((*val) & flag) == 0;
@@ -4945,7 +4945,7 @@ short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, eAnimChanne
         }
         case sizeof(char): /* char pointer for setting */
         {
-          const char *val = (char *)ptr;
+          const char *val = static_cast<char *>(ptr);
 
           if (negflag) {
             return ((*val) & flag) == 0;
@@ -5012,19 +5012,19 @@ void ANIM_channel_setting_set(bAnimContext *ac,
       switch (ptrsize) {
         case sizeof(int): /* integer pointer for setting */
         {
-          int *val = (int *)ptr;
+          int *val = static_cast<int *>(ptr);
           ACF_SETTING_SET(*val, flag, mode);
           break;
         }
         case sizeof(short): /* short pointer for setting */
         {
-          short *val = (short *)ptr;
+          short *val = static_cast<short *>(ptr);
           ACF_SETTING_SET(*val, flag, mode);
           break;
         }
         case sizeof(char): /* char pointer for setting */
         {
-          char *val = (char *)ptr;
+          char *val = static_cast<char *>(ptr);
           ACF_SETTING_SET(*val, flag, mode);
           break;
         }

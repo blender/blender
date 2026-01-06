@@ -454,7 +454,7 @@ static bool wm_draw_region_stereo_set(Main *bmain,
             return false;
           }
 
-          Camera *cam = static_cast<Camera *>(v3d->camera->data);
+          Camera *cam = blender::id_cast<Camera *>(v3d->camera->data);
           CameraBGImage *bgpic = static_cast<CameraBGImage *>(cam->bg_images.first);
           v3d->multiview_eye = sview;
           if (bgpic) {
@@ -649,7 +649,7 @@ void *WM_draw_cb_activate(wmWindow *win,
 void WM_draw_cb_exit(wmWindow *win, void *handle)
 {
   for (WindowDrawCB &wdc : win->runtime->drawcalls) {
-    if (&wdc == (WindowDrawCB *)handle) {
+    if (&wdc == static_cast<WindowDrawCB *>(handle)) {
       BLI_remlink(&win->runtime->drawcalls, &wdc);
       MEM_freeN(&wdc);
       return;
@@ -1365,7 +1365,7 @@ uint8_t *WM_window_pixels_read_from_frontbuffer(const wmWindowManager *wm,
   }
 
   /* Clear alpha, it is not set to a meaningful value in OpenGL. */
-  uchar *cp = (uchar *)rect;
+  uchar *cp = static_cast<uchar *>(rect);
   uint i;
   for (i = 0, cp += 3; i < rect_len; i++, cp += 4) {
     *cp = 0xff;

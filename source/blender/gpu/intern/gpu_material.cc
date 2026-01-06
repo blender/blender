@@ -142,7 +142,7 @@ GPUMaterialFromNodeTreeResult GPU_material_from_nodetree(
 {
   /* Search if this material is not already compiled. */
   for (LinkData &link : *gpumaterials) {
-    GPUMaterial *mat = (GPUMaterial *)link.data;
+    GPUMaterial *mat = static_cast<GPUMaterial *>(link.data);
     if (mat->uuid == shader_uuid && mat->engine == engine) {
       if (!deferred_compilation) {
         GPU_pass_ensure_its_ready(mat->pass);
@@ -443,7 +443,7 @@ blender::gpu::Texture **gpu_material_sky_texture_layer_set(
     printf("Too many sky textures in shader!\n");
   }
   else {
-    float *dst = (float *)mat->sky_builder->pixels[layer];
+    float *dst = reinterpret_cast<float *>(mat->sky_builder->pixels[layer]);
     memcpy(dst, pixels, sizeof(float) * GPU_SKY_WIDTH * GPU_SKY_HEIGHT * 4);
     mat->sky_builder->current_layer += 1;
   }
@@ -473,7 +473,7 @@ blender::gpu::Texture **gpu_material_ramp_texture_row_set(GPUMaterial *mat,
     printf("Too many color band in shader! Remove some Curve, Black Body or Color Ramp Node.\n");
   }
   else {
-    float *dst = (float *)mat->coba_builder->pixels[layer];
+    float *dst = reinterpret_cast<float *>(mat->coba_builder->pixels[layer]);
     memcpy(dst, pixels, sizeof(float) * (CM_TABLE + 1) * 4);
     mat->coba_builder->current_layer += 1;
   }
@@ -495,7 +495,7 @@ static void gpu_material_ramp_texture_build(GPUMaterial *mat)
                                               1,
                                               blender::gpu::TextureFormat::SFLOAT_16_16_16_16,
                                               GPU_TEXTURE_USAGE_SHADER_READ,
-                                              (float *)builder->pixels);
+                                              reinterpret_cast<float *>(builder->pixels));
 
   MEM_freeN(builder);
   mat->coba_builder = nullptr;
@@ -514,7 +514,7 @@ static void gpu_material_sky_texture_build(GPUMaterial *mat)
                                              1,
                                              blender::gpu::TextureFormat::SFLOAT_32_32_32_32,
                                              GPU_TEXTURE_USAGE_SHADER_READ,
-                                             (float *)mat->sky_builder->pixels);
+                                             reinterpret_cast<float *>(mat->sky_builder->pixels));
 
   MEM_freeN(mat->sky_builder);
   mat->sky_builder = nullptr;

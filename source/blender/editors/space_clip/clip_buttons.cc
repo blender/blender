@@ -56,7 +56,7 @@ using blender::StringRefNull;
 
 static bool metadata_panel_context_poll(const bContext *C, PanelType * /*pt*/)
 {
-  return ED_space_clip_poll((bContext *)C);
+  return ED_space_clip_poll(const_cast<bContext *>(C));
 }
 
 static void metadata_panel_context_draw(const bContext *C, Panel *panel)
@@ -181,7 +181,7 @@ void uiTemplateTrack(blender::ui::Layout *layout, PointerRNA *ptr, const StringR
   }
 
   PointerRNA scopesptr = RNA_property_pointer_get(ptr, prop);
-  MovieClipScopes *scopes = (MovieClipScopes *)scopesptr.data;
+  MovieClipScopes *scopes = static_cast<MovieClipScopes *>(scopesptr.data);
 
   if (scopes->track_preview_height < UI_UNIT_Y) {
     scopes->track_preview_height = UI_UNIT_Y;
@@ -261,7 +261,7 @@ static void to_pixel_space(float r[2], const float a[2], int width, int height)
 
 static void marker_update_cb(bContext *C, void *arg_cb, void * /*arg*/)
 {
-  MarkerUpdateCb *cb = (MarkerUpdateCb *)arg_cb;
+  MarkerUpdateCb *cb = static_cast<MarkerUpdateCb *>(arg_cb);
 
   if (!cb->compact) {
     return;
@@ -276,7 +276,7 @@ static void marker_update_cb(bContext *C, void *arg_cb, void * /*arg*/)
 
 static void marker_block_handler(bContext *C, void *arg_cb, int event)
 {
-  MarkerUpdateCb *cb = (MarkerUpdateCb *)arg_cb;
+  MarkerUpdateCb *cb = static_cast<MarkerUpdateCb *>(arg_cb);
   int width, height;
   bool ok = false;
 
@@ -413,7 +413,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
   }
 
   PointerRNA clipptr = RNA_property_pointer_get(ptr, prop);
-  MovieClip *clip = (MovieClip *)clipptr.data;
+  MovieClip *clip = static_cast<MovieClip *>(clipptr.data);
   MovieClipUser *user = static_cast<MovieClipUser *>(userptr->data);
   MovieTrackingTrack *track = static_cast<MovieTrackingTrack *>(trackptr->data);
 

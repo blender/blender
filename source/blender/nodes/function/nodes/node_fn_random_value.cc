@@ -57,7 +57,7 @@ static void fn_node_random_value_update(bNodeTree *ntree, bNode *node)
   const NodeRandomValue &storage = node_storage(*node);
   const eCustomDataType data_type = eCustomDataType(storage.data_type);
 
-  bNodeSocket *sock_min_vector = (bNodeSocket *)node->inputs.first;
+  bNodeSocket *sock_min_vector = static_cast<bNodeSocket *>(node->inputs.first);
   bNodeSocket *sock_max_vector = sock_min_vector->next;
   bNodeSocket *sock_min_float = sock_max_vector->next;
   bNodeSocket *sock_max_float = sock_min_float->next;
@@ -65,7 +65,7 @@ static void fn_node_random_value_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *sock_max_int = sock_min_int->next;
   bNodeSocket *sock_probability = sock_max_int->next;
 
-  bNodeSocket *sock_out_vector = (bNodeSocket *)node->outputs.first;
+  bNodeSocket *sock_out_vector = static_cast<bNodeSocket *>(node->outputs.first);
   bNodeSocket *sock_out_float = sock_out_vector->next;
   bNodeSocket *sock_out_int = sock_out_float->next;
   bNodeSocket *sock_out_bool = sock_out_int->next;

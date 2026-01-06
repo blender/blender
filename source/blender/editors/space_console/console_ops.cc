@@ -1209,7 +1209,7 @@ static wmOperatorStatus console_paste_exec(bContext *C, wmOperator *op)
   const char *buf_step = buf_str;
   do {
     const char *buf = buf_step;
-    buf_step = (char *)BLI_strchr_or_end(buf, '\n');
+    buf_step = const_cast<char *>(BLI_strchr_or_end(buf, '\n'));
     const int buf_len = buf_step - buf;
     if (buf != buf_str) {
       WM_operator_name_call(

@@ -18,6 +18,7 @@
 #include "DNA_brush_enums.h"
 #include "DNA_brush_types.h"
 #include "DNA_curves_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
@@ -86,7 +87,7 @@ struct PinchOperationExecutor {
     self_ = &self;
 
     object_ = ctx_.object;
-    curves_id_ = static_cast<Curves *>(object_->data);
+    curves_id_ = blender::id_cast<Curves *>(object_->data);
     curves_ = &curves_id_->geometry.wrap();
     if (curves_->is_empty()) {
       return;
@@ -143,7 +144,7 @@ struct PinchOperationExecutor {
     IndexMaskMemory memory;
     const IndexMask changed_curves_mask = IndexMask::from_bools(changed_curves, memory);
     const Mesh *surface = curves_id_->surface && curves_id_->surface->type == OB_MESH ?
-                              static_cast<const Mesh *>(curves_id_->surface->data) :
+                              blender::id_cast<const Mesh *>(curves_id_->surface->data) :
                               nullptr;
     self_->constraint_solver_.solve_step(*curves_, changed_curves_mask, surface, transforms_);
 

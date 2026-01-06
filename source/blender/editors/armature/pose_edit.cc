@@ -508,7 +508,7 @@ static wmOperatorStatus pose_flip_names_exec(bContext *C, wmOperator *op)
   const bool do_strip_numbers = RNA_boolean_get(op->ptr, "do_strip_numbers");
 
   FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob) {
-    bArmature *arm = static_cast<bArmature *>(ob->data);
+    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
     ListBaseT<LinkData> bones_names = {nullptr};
 
     FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN (ob, pchan) {
@@ -564,7 +564,7 @@ static wmOperatorStatus pose_autoside_names_exec(bContext *C, wmOperator *op)
 
   /* loop through selected bones, auto-naming them */
   CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob) {
-    bArmature *arm = static_cast<bArmature *>(ob->data);
+    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
     STRNCPY_UTF8(newname, pchan->name);
     if (bone_autoside_name(newname, 1, axis, pchan->bone->head[axis], pchan->bone->tail[axis])) {
       ED_armature_bone_rename(bmain, arm, pchan->name, newname);
@@ -676,7 +676,7 @@ static wmOperatorStatus pose_hide_exec(bContext *C, wmOperator *op)
 
   for (Object *ob_iter : objects) {
     bool changed = false;
-    bArmature *arm = static_cast<bArmature *>(ob_iter->data);
+    bArmature *arm = blender::id_cast<bArmature *>(ob_iter->data);
     for (bPoseChannel &pchan : ob_iter->pose->chanbase) {
       if (!ANIM_bone_in_visible_collection(arm, pchan.bone)) {
         continue;
@@ -727,7 +727,7 @@ static wmOperatorStatus pose_reveal_exec(bContext *C, wmOperator *op)
   const bool select = RNA_boolean_get(op->ptr, "select");
 
   for (Object *ob_iter : objects) {
-    bArmature *arm = static_cast<bArmature *>(ob_iter->data);
+    bArmature *arm = blender::id_cast<bArmature *>(ob_iter->data);
 
     bool changed = false;
     for (bPoseChannel &pchan : ob_iter->pose->chanbase) {

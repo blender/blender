@@ -54,7 +54,7 @@ ListBaseT<TreeElement> TreeDisplayIDOrphans::build_tree(const TreeSourceData &so
     /* Header for this type of data-block. */
     TreeElement *te = nullptr;
     if (!filter_id_type) {
-      ID *id = (ID *)lbarray[a]->first;
+      ID *id = static_cast<ID *>(lbarray[a]->first);
       te = add_element(&tree, nullptr, lbarray[a], nullptr, TSE_ID_BASE, 0);
       te->directdata = lbarray[a];
       te->name = outliner_idcode_to_plural(GS(id->name));

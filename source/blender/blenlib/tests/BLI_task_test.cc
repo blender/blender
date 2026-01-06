@@ -21,9 +21,9 @@
 
 static void task_range_iter_func(void *userdata, int index, const TaskParallelTLS *__restrict tls)
 {
-  int *data = (int *)userdata;
+  int *data = static_cast<int *>(userdata);
   data[index] = index;
-  *((int *)tls->userdata_chunk) += index;
+  *(static_cast<int *>(tls->userdata_chunk)) += index;
   //  printf("%d, %d, %d\n", index, data[index], *((int *)tls->userdata_chunk));
 }
 
@@ -31,8 +31,8 @@ static void task_range_iter_reduce_func(const void *__restrict /*userdata*/,
                                         void *__restrict join_v,
                                         void *__restrict userdata_chunk)
 {
-  int *join = (int *)join_v;
-  int *chunk = (int *)userdata_chunk;
+  int *join = static_cast<int *>(join_v);
+  int *chunk = static_cast<int *>(userdata_chunk);
   *join += *chunk;
   //  printf("%d, %d\n", data[ITEMS_NUM], *((int *)userdata_chunk));
 }
@@ -73,13 +73,13 @@ static void task_mempool_iter_func(void *userdata,
                                    MempoolIterData *item,
                                    const TaskParallelTLS *__restrict /*tls*/)
 {
-  int *data = (int *)item;
-  int *count = (int *)userdata;
+  int *data = reinterpret_cast<int *>(item);
+  int *count = static_cast<int *>(userdata);
 
   EXPECT_TRUE(data != nullptr);
 
   *data += 1;
-  atomic_sub_and_fetch_uint32((uint32_t *)count, 1);
+  atomic_sub_and_fetch_uint32(reinterpret_cast<uint32_t *>(count), 1);
 }
 
 TEST(task, MempoolIter)
@@ -94,7 +94,7 @@ TEST(task, MempoolIter)
   /* 'Randomly' add and remove some items from mempool, to create a non-homogeneous one. */
   int items_num = 0;
   for (i = 0; i < ITEMS_NUM; i++) {
-    data[i] = (int *)BLI_mempool_alloc(mempool);
+    data[i] = static_cast<int *>(BLI_mempool_alloc(mempool));
     *data[i] = i - 1;
     items_num++;
   }
@@ -107,7 +107,7 @@ TEST(task, MempoolIter)
 
   for (i = 0; i < ITEMS_NUM; i += 7) {
     if (data[i] == nullptr) {
-      data[i] = (int *)BLI_mempool_alloc(mempool);
+      data[i] = static_cast<int *>(BLI_mempool_alloc(mempool));
       *data[i] = i - 1;
       items_num++;
     }
@@ -151,8 +151,8 @@ static void task_mempool_iter_tls_func(void * /*userdata*/,
                                        MempoolIterData *item,
                                        const TaskParallelTLS *__restrict tls)
 {
-  TaskMemPool_Chunk *task_data = (TaskMemPool_Chunk *)tls->userdata_chunk;
-  int *data = (int *)item;
+  TaskMemPool_Chunk *task_data = static_cast<TaskMemPool_Chunk *>(tls->userdata_chunk);
+  int *data = reinterpret_cast<int *>(item);
 
   EXPECT_TRUE(data != nullptr);
   if (task_data->accumulate_items == nullptr) {
@@ -169,8 +169,8 @@ static void task_mempool_iter_tls_reduce(const void *__restrict /*userdata*/,
                                          void *__restrict chunk_join,
                                          void *__restrict chunk)
 {
-  TaskMemPool_Chunk *join_chunk = (TaskMemPool_Chunk *)chunk_join;
-  TaskMemPool_Chunk *data_chunk = (TaskMemPool_Chunk *)chunk;
+  TaskMemPool_Chunk *join_chunk = static_cast<TaskMemPool_Chunk *>(chunk_join);
+  TaskMemPool_Chunk *data_chunk = static_cast<TaskMemPool_Chunk *>(chunk);
 
   if (data_chunk->accumulate_items != nullptr) {
     if (join_chunk->accumulate_items == nullptr) {
@@ -182,7 +182,7 @@ static void task_mempool_iter_tls_reduce(const void *__restrict /*userdata*/,
 
 static void task_mempool_iter_tls_free(const void * /*userdata*/, void *__restrict userdata_chunk)
 {
-  TaskMemPool_Chunk *task_data = (TaskMemPool_Chunk *)userdata_chunk;
+  TaskMemPool_Chunk *task_data = static_cast<TaskMemPool_Chunk *>(userdata_chunk);
   MEM_freeN(task_data->accumulate_items);
 }
 
@@ -197,7 +197,7 @@ TEST(task, MempoolIterTLS)
 
   /* Add numbers negative `1..ITEMS_NUM` inclusive. */
   for (i = 0; i < ITEMS_NUM; i++) {
-    data[i] = (int *)BLI_mempool_alloc(mempool);
+    data[i] = static_cast<int *>(BLI_mempool_alloc(mempool));
     *data[i] = -(i + 1);
   }
 

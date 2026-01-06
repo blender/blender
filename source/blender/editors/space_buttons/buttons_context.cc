@@ -405,10 +405,13 @@ static bool buttons_context_path_pose_bone(ButsContextPath *path)
   /* if we have an armature, get the active bone */
   if (buttons_context_path_object(path)) {
     Object *ob = static_cast<Object *>(path->ptr[path->len - 1].data);
-    bArmature *arm = static_cast<bArmature *>(
-        ob->data); /* path->ptr[path->len-1].data - works too */
+    if (ob->type != OB_ARMATURE) {
+      return false;
+    }
 
-    if (ob->type != OB_ARMATURE || arm->edbo) {
+    bArmature *arm = blender::id_cast<bArmature *>(
+        ob->data); /* path->ptr[path->len-1].data - works too */
+    if (arm->edbo) {
       return false;
     }
 
@@ -472,7 +475,7 @@ static bool buttons_context_path_brush(const bContext *C, ButsContextPath *path)
     }
 
     if (br) {
-      path->ptr[path->len] = RNA_id_pointer_create((ID *)br);
+      path->ptr[path->len] = RNA_id_pointer_create(reinterpret_cast<ID *>(br));
       path->len++;
 
       return true;
@@ -1045,8 +1048,10 @@ int /*eContextResult*/ buttons_context(const bContext *C,
         int matnr = ob->actcol - 1;
         matnr = std::max(matnr, 0);
         /* Keep aligned with rna_Object_material_slots_get. */
-        CTX_data_pointer_set(
-            result, &ob->id, &RNA_MaterialSlot, (void *)(matnr + uintptr_t(&ob->id)));
+        CTX_data_pointer_set(result,
+                             &ob->id,
+                             &RNA_MaterialSlot,
+                             reinterpret_cast<void *>(matnr + uintptr_t(&ob->id)));
       }
     }
 
@@ -1099,7 +1104,7 @@ int /*eContextResult*/ buttons_context(const bContext *C,
 
     /* Particles slots are used in both old and new textures handling. */
     if ((ptr = get_pointer_type(path, &RNA_ParticleSystem))) {
-      ParticleSettings *part = ((ParticleSystem *)ptr->data)->part;
+      ParticleSettings *part = (static_cast<ParticleSystem *>(ptr->data))->part;
 
       if (part) {
         CTX_data_pointer_set(
@@ -1137,7 +1142,7 @@ int /*eContextResult*/ buttons_context(const bContext *C,
     return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "particle_system_editable")) {
-    if (PE_poll((bContext *)C)) {
+    if (PE_poll(const_cast<bContext *>(C))) {
       set_pointer_type(path, result, &RNA_ParticleSystem);
     }
     else {
@@ -1158,7 +1163,7 @@ int /*eContextResult*/ buttons_context(const bContext *C,
     ptr = get_pointer_type(path, &RNA_ParticleSystem);
 
     if (ptr && ptr->data) {
-      ParticleSettings *part = ((ParticleSystem *)ptr->data)->part;
+      ParticleSettings *part = (static_cast<ParticleSystem *>(ptr->data))->part;
       CTX_data_pointer_set(result, ptr->owner_id, &RNA_ParticleSettings, part);
       return CTX_RESULT_OK;
     }

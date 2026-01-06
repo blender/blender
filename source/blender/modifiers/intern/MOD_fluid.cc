@@ -37,7 +37,7 @@
 
 static void init_data(ModifierData *md)
 {
-  FluidModifierData *fmd = (FluidModifierData *)md;
+  FluidModifierData *fmd = reinterpret_cast<FluidModifierData *>(md);
 
   fmd->domain = nullptr;
   fmd->flow = nullptr;
@@ -48,8 +48,8 @@ static void init_data(ModifierData *md)
 
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
-  const FluidModifierData *fmd = (const FluidModifierData *)md;
-  FluidModifierData *tfmd = (FluidModifierData *)target;
+  const FluidModifierData *fmd = reinterpret_cast<const FluidModifierData *>(md);
+  FluidModifierData *tfmd = reinterpret_cast<FluidModifierData *>(target);
 
   BKE_fluid_modifier_free(tfmd);
   BKE_fluid_modifier_copy(fmd, tfmd, flag);
@@ -57,14 +57,14 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
 
 static void free_data(ModifierData *md)
 {
-  FluidModifierData *fmd = (FluidModifierData *)md;
+  FluidModifierData *fmd = reinterpret_cast<FluidModifierData *>(md);
 
   BKE_fluid_modifier_free(fmd);
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  FluidModifierData *fmd = (FluidModifierData *)md;
+  FluidModifierData *fmd = reinterpret_cast<FluidModifierData *>(md);
 
   if (fmd && (fmd->type & MOD_FLUID_TYPE_FLOW) && fmd->flow) {
     if (fmd->flow->source == FLUID_FLOW_SOURCE_MESH) {
@@ -140,19 +140,19 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData * /*md*/)
 
 static bool is_flow_cb(Object * /*ob*/, ModifierData *md)
 {
-  FluidModifierData *fmd = (FluidModifierData *)md;
+  FluidModifierData *fmd = reinterpret_cast<FluidModifierData *>(md);
   return (fmd->type & MOD_FLUID_TYPE_FLOW) && fmd->flow;
 }
 
 static bool is_coll_cb(Object * /*ob*/, ModifierData *md)
 {
-  FluidModifierData *fmd = (FluidModifierData *)md;
+  FluidModifierData *fmd = reinterpret_cast<FluidModifierData *>(md);
   return (fmd->type & MOD_FLUID_TYPE_EFFEC) && fmd->effector;
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  FluidModifierData *fmd = (FluidModifierData *)md;
+  FluidModifierData *fmd = reinterpret_cast<FluidModifierData *>(md);
 
   if (fmd && (fmd->type & MOD_FLUID_TYPE_DOMAIN) && fmd->domain) {
     DEG_add_collision_relations(ctx->node,
@@ -185,30 +185,33 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  FluidModifierData *fmd = (FluidModifierData *)md;
+  FluidModifierData *fmd = reinterpret_cast<FluidModifierData *>(md);
 
   if (fmd->type == MOD_FLUID_TYPE_DOMAIN && fmd->domain) {
-    walk(user_data, ob, (ID **)&fmd->domain->effector_group, IDWALK_CB_NOP);
-    walk(user_data, ob, (ID **)&fmd->domain->fluid_group, IDWALK_CB_NOP);
-    walk(user_data, ob, (ID **)&fmd->domain->force_group, IDWALK_CB_NOP);
+    walk(user_data, ob, reinterpret_cast<ID **>(&fmd->domain->effector_group), IDWALK_CB_NOP);
+    walk(user_data, ob, reinterpret_cast<ID **>(&fmd->domain->fluid_group), IDWALK_CB_NOP);
+    walk(user_data, ob, reinterpret_cast<ID **>(&fmd->domain->force_group), IDWALK_CB_NOP);
 
     if (fmd->domain->guide_parent) {
-      walk(user_data, ob, (ID **)&fmd->domain->guide_parent, IDWALK_CB_NOP);
+      walk(user_data, ob, reinterpret_cast<ID **>(&fmd->domain->guide_parent), IDWALK_CB_NOP);
     }
 
     if (fmd->domain->effector_weights) {
-      walk(user_data, ob, (ID **)&fmd->domain->effector_weights->group, IDWALK_CB_USER);
+      walk(user_data,
+           ob,
+           reinterpret_cast<ID **>(&fmd->domain->effector_weights->group),
+           IDWALK_CB_USER);
     }
   }
 
   if (fmd->type == MOD_FLUID_TYPE_FLOW && fmd->flow) {
-    walk(user_data, ob, (ID **)&fmd->flow->noise_texture, IDWALK_CB_USER);
+    walk(user_data, ob, reinterpret_cast<ID **>(&fmd->flow->noise_texture), IDWALK_CB_USER);
   }
 }
 
 static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, void *user_data)
 {
-  FluidModifierData *fmd = (FluidModifierData *)md;
+  FluidModifierData *fmd = reinterpret_cast<FluidModifierData *>(md);
 
   if (fmd->type == MOD_FLUID_TYPE_FLOW && fmd->flow) {
     PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, &RNA_FluidFlowSettings, fmd->flow);

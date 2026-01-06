@@ -128,7 +128,7 @@ filter_supported_objects(Depsgraph *depsgraph, const OBJExportParams &export_par
         r_exportable_meshes.append(std::make_unique<OBJMesh>(depsgraph, export_params, object));
         break;
       case OB_CURVES_LEGACY: {
-        Curve *curve = static_cast<Curve *>(object->data);
+        Curve *curve = blender::id_cast<Curve *>(object->data);
         Nurb *nurb{static_cast<Nurb *>(curve->nurb.first)};
         if (!nurb) {
           /* An empty curve. Not yet supported to export these as meshes. */

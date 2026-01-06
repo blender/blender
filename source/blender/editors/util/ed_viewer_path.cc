@@ -137,7 +137,7 @@ void activate_geometry_node(Main &bmain,
                             bNode &node,
                             std::optional<int> item_identifier)
 {
-  wmWindowManager *wm = (wmWindowManager *)bmain.wm.first;
+  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain.wm.first);
   if (wm == nullptr) {
     return;
   }

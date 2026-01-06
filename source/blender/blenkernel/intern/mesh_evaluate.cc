@@ -80,7 +80,7 @@ float face_area_calc(const Span<float3> vert_positions, const Span<int> face_ver
   for (const int i : face_verts.index_range()) {
     coords[i] = vert_positions[face_verts[i]];
   }
-  return area_poly_v3((const float (*)[3])coords.data(), face_verts.size());
+  return area_poly_v3(reinterpret_cast<const float (*)[3]>(coords.data()), face_verts.size());
 }
 
 }  // namespace blender::bke::mesh

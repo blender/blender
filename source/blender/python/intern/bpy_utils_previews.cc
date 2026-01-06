@@ -159,10 +159,16 @@ static PyObject *bpy_utils_previews_release(PyObject * /*self*/, PyObject *args)
 
 static PyMethodDef bpy_utils_previews_methods[] = {
     /* Can't use METH_KEYWORDS alone, see http://bugs.python.org/issue11587 */
-    {"new", (PyCFunction)bpy_utils_previews_new, METH_VARARGS, bpy_utils_previews_new_doc},
-    {"load", (PyCFunction)bpy_utils_previews_load, METH_VARARGS, bpy_utils_previews_load_doc},
+    {"new",
+     static_cast<PyCFunction>(bpy_utils_previews_new),
+     METH_VARARGS,
+     bpy_utils_previews_new_doc},
+    {"load",
+     static_cast<PyCFunction>(bpy_utils_previews_load),
+     METH_VARARGS,
+     bpy_utils_previews_load_doc},
     {"release",
-     (PyCFunction)bpy_utils_previews_release,
+     static_cast<PyCFunction>(bpy_utils_previews_release),
      METH_VARARGS,
      bpy_utils_previews_release_doc},
     {nullptr, nullptr, 0, nullptr},

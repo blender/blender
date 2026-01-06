@@ -42,7 +42,7 @@ static void node_composit_init_huecorrect(bNodeTree * /*ntree*/, bNode *node)
 {
   node->storage = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 
-  CurveMapping *cumapping = (CurveMapping *)node->storage;
+  CurveMapping *cumapping = static_cast<CurveMapping *>(node->storage);
 
   cumapping->preset = CURVE_PRESET_MID8;
 

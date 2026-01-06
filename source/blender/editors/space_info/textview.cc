@@ -407,7 +407,7 @@ int textview_draw(TextViewContext *tvc,
       }
 
       if ((mval[1] != INT_MAX) && (mval[1] >= y_prev && mval[1] <= xy[1])) {
-        *r_mval_pick_item = (void *)tvc->iter;
+        *r_mval_pick_item = const_cast<void *>(tvc->iter);
         break;
       }
 

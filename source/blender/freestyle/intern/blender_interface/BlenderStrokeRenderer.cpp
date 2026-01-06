@@ -842,7 +842,7 @@ Object *BlenderStrokeRenderer::NewMesh() const
   SNPRINTF(name, "0%08xOB", mesh_id);
   ob = BKE_object_add_only_object(freestyle_bmain, OB_MESH, name);
   SNPRINTF(name, "0%08xME", mesh_id);
-  ob->data = BKE_mesh_add(freestyle_bmain, name);
+  ob->data = blender::id_cast<ID *>(BKE_mesh_add(freestyle_bmain, name));
 
   Collection *collection_master = freestyle_scene->master_collection;
   BKE_collection_object_add(freestyle_bmain, collection_master, ob);

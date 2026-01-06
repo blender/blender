@@ -229,12 +229,21 @@ static PyObject *py_imbuf_free(Py_ImBuf *self)
 #endif
 
 static PyMethodDef Py_ImBuf_methods[] = {
-    {"resize", (PyCFunction)py_imbuf_resize, METH_VARARGS | METH_KEYWORDS, py_imbuf_resize_doc},
-    {"crop", (PyCFunction)py_imbuf_crop, METH_VARARGS | METH_KEYWORDS, (char *)py_imbuf_crop_doc},
-    {"free", (PyCFunction)py_imbuf_free, METH_NOARGS, py_imbuf_free_doc},
-    {"copy", (PyCFunction)py_imbuf_copy, METH_NOARGS, py_imbuf_copy_doc},
-    {"__copy__", (PyCFunction)py_imbuf_copy, METH_NOARGS, py_imbuf_copy_doc},
-    {"__deepcopy__", (PyCFunction)py_imbuf_deepcopy, METH_VARARGS, py_imbuf_copy_doc},
+    {"resize",
+     reinterpret_cast<PyCFunction>(py_imbuf_resize),
+     METH_VARARGS | METH_KEYWORDS,
+     py_imbuf_resize_doc},
+    {"crop",
+     reinterpret_cast<PyCFunction>(py_imbuf_crop),
+     METH_VARARGS | METH_KEYWORDS,
+     const_cast<char *>(py_imbuf_crop_doc)},
+    {"free", reinterpret_cast<PyCFunction>(py_imbuf_free), METH_NOARGS, py_imbuf_free_doc},
+    {"copy", reinterpret_cast<PyCFunction>(py_imbuf_copy), METH_NOARGS, py_imbuf_copy_doc},
+    {"__copy__", reinterpret_cast<PyCFunction>(py_imbuf_copy), METH_NOARGS, py_imbuf_copy_doc},
+    {"__deepcopy__",
+     reinterpret_cast<PyCFunction>(py_imbuf_deepcopy),
+     METH_VARARGS,
+     py_imbuf_copy_doc},
     {nullptr, nullptr, 0, nullptr},
 };
 
@@ -362,15 +371,31 @@ static PyObject *py_imbuf_channels_get(Py_ImBuf *self, void * /*closure*/)
 }
 
 static PyGetSetDef Py_ImBuf_getseters[] = {
-    {"size", (getter)py_imbuf_size_get, (setter) nullptr, py_imbuf_size_doc, nullptr},
-    {"ppm", (getter)py_imbuf_ppm_get, (setter)py_imbuf_ppm_set, py_imbuf_ppm_doc, nullptr},
+    {"size",
+     reinterpret_cast<getter>(py_imbuf_size_get),
+     static_cast<setter>(nullptr),
+     py_imbuf_size_doc,
+     nullptr},
+    {"ppm",
+     reinterpret_cast<getter>(py_imbuf_ppm_get),
+     reinterpret_cast<setter>(py_imbuf_ppm_set),
+     py_imbuf_ppm_doc,
+     nullptr},
     {"filepath",
-     (getter)py_imbuf_filepath_get,
-     (setter)py_imbuf_filepath_set,
+     reinterpret_cast<getter>(py_imbuf_filepath_get),
+     reinterpret_cast<setter>(py_imbuf_filepath_set),
      py_imbuf_filepath_doc,
      nullptr},
-    {"planes", (getter)py_imbuf_planes_get, nullptr, py_imbuf_planes_doc, nullptr},
-    {"channels", (getter)py_imbuf_channels_get, nullptr, py_imbuf_channels_doc, nullptr},
+    {"planes",
+     reinterpret_cast<getter>(py_imbuf_planes_get),
+     nullptr,
+     py_imbuf_planes_doc,
+     nullptr},
+    {"channels",
+     reinterpret_cast<getter>(py_imbuf_channels_get),
+     nullptr,
+     py_imbuf_channels_doc,
+     nullptr},
     {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
@@ -414,16 +439,16 @@ PyTypeObject Py_ImBuf_Type = {
     /*tp_name*/ "ImBuf",
     /*tp_basicsize*/ sizeof(Py_ImBuf),
     /*tp_itemsize*/ 0,
-    /*tp_dealloc*/ (destructor)py_imbuf_dealloc,
+    /*tp_dealloc*/ reinterpret_cast<destructor>(py_imbuf_dealloc),
     /*tp_vectorcall_offset*/ 0,
     /*tp_getattr*/ nullptr,
     /*tp_setattr*/ nullptr,
     /*tp_as_async*/ nullptr,
-    /*tp_repr*/ (reprfunc)py_imbuf_repr,
+    /*tp_repr*/ reinterpret_cast<reprfunc>(py_imbuf_repr),
     /*tp_as_number*/ nullptr,
     /*tp_as_sequence*/ nullptr,
     /*tp_as_mapping*/ nullptr,
-    /*tp_hash*/ (hashfunc)py_imbuf_hash,
+    /*tp_hash*/ reinterpret_cast<hashfunc>(py_imbuf_hash),
     /*tp_call*/ nullptr,
     /*tp_str*/ nullptr,
     /*tp_getattro*/ nullptr,
@@ -465,7 +490,7 @@ static PyObject *Py_ImBuf_CreatePyObject(ImBuf *ibuf)
 {
   Py_ImBuf *self = PyObject_New(Py_ImBuf, &Py_ImBuf_Type);
   self->ibuf = ibuf;
-  return (PyObject *)self;
+  return reinterpret_cast<PyObject *>(self);
 }
 
 /** \} */
@@ -714,13 +739,22 @@ static PyObject *M_imbuf_write(PyObject * /*self*/, PyObject *args, PyObject *kw
 #endif
 
 static PyMethodDef IMB_methods[] = {
-    {"new", (PyCFunction)M_imbuf_new, METH_VARARGS | METH_KEYWORDS, M_imbuf_new_doc},
-    {"load", (PyCFunction)M_imbuf_load, METH_VARARGS | METH_KEYWORDS, M_imbuf_load_doc},
+    {"new",
+     reinterpret_cast<PyCFunction>(M_imbuf_new),
+     METH_VARARGS | METH_KEYWORDS,
+     M_imbuf_new_doc},
+    {"load",
+     reinterpret_cast<PyCFunction>(M_imbuf_load),
+     METH_VARARGS | METH_KEYWORDS,
+     M_imbuf_load_doc},
     {"load_from_buffer",
-     (PyCFunction)M_imbuf_load_from_buffer,
+     reinterpret_cast<PyCFunction>(M_imbuf_load_from_buffer),
      METH_VARARGS | METH_KEYWORDS,
      M_imbuf_load_from_buffer_doc},
-    {"write", (PyCFunction)M_imbuf_write, METH_VARARGS | METH_KEYWORDS, M_imbuf_write_doc},
+    {"write",
+     reinterpret_cast<PyCFunction>(M_imbuf_write),
+     METH_VARARGS | METH_KEYWORDS,
+     M_imbuf_write_doc},
     {nullptr, nullptr, 0, nullptr},
 };
 
@@ -820,11 +854,11 @@ ImBuf *BPy_ImBuf_FromPyObject(PyObject *py_imbuf)
   /* The caller must ensure this. */
   BLI_assert(Py_TYPE(py_imbuf) == &Py_ImBuf_Type);
 
-  if (py_imbuf_valid_check((Py_ImBuf *)py_imbuf) == -1) {
+  if (py_imbuf_valid_check(reinterpret_cast<Py_ImBuf *>(py_imbuf)) == -1) {
     return nullptr;
   }
 
-  return ((Py_ImBuf *)py_imbuf)->ibuf;
+  return (reinterpret_cast<Py_ImBuf *>(py_imbuf))->ibuf;
 }
 
 /** \} */

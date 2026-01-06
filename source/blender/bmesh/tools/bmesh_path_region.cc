@@ -126,7 +126,7 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
     int j = 0;
 
     if (ele->head.htype == BM_FACE) {
-      BMFace *f = (BMFace *)ele;
+      BMFace *f = reinterpret_cast<BMFace *>(ele);
       ele_verts_buf[side].resize(f->len);
       ele_verts[side] = ele_verts_buf[side].data();
 
@@ -137,7 +137,7 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
       } while ((l_iter = l_iter->next) != l_first);
     }
     else if (ele->head.htype == BM_EDGE) {
-      BMEdge *e = (BMEdge *)ele;
+      BMEdge *e = reinterpret_cast<BMEdge *>(ele);
       ele_verts_buf[side].resize(2);
       ele_verts[side] = ele_verts_buf[side].data();
 
@@ -145,7 +145,7 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
       ele_verts[side][j++] = e->v2;
     }
     else if (ele->head.htype == BM_VERT) {
-      BMVert *v = (BMVert *)ele;
+      BMVert *v = reinterpret_cast<BMVert *>(ele);
       ele_verts_buf[side].resize(1);
       ele_verts[side] = ele_verts_buf[side].data();
 

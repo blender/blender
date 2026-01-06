@@ -76,7 +76,8 @@ static bool bm_loop_uv_shared_edge_check(const BMLoop *l_a, const BMLoop *l_b, v
     }
   }
 
-  return BM_loop_uv_share_edge_check((BMLoop *)l_a, (BMLoop *)l_b, data->offsets.uv);
+  return BM_loop_uv_share_edge_check(
+      const_cast<BMLoop *>(l_a), const_cast<BMLoop *>(l_b), data->offsets.uv);
 }
 
 /**

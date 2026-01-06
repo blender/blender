@@ -185,7 +185,7 @@ void node_gpu_stack_from_data(GPUNodeStack *gs, bNodeSocket *socket, bNodeStack 
   }
   else {
     nodestack_get_vec(gs->vec, socket->type, ns);
-    gs->link = (GPUNodeLink *)ns->data;
+    gs->link = static_cast<GPUNodeLink *>(ns->data);
 
     if (socket->type == SOCK_FLOAT) {
       gs->type = GPU_FLOAT;
@@ -310,7 +310,7 @@ static bNode *node_get_active(bNodeTree *ntree, int sub_activity)
 
   /* first, check active group for textures */
   if (activegroup) {
-    bNode *tnode = node_get_active((bNodeTree *)activegroup->id, sub_activity);
+    bNode *tnode = node_get_active(blender::id_cast<bNodeTree *>(activegroup->id), sub_activity);
     /* active node takes priority, so ignore any other possible nodes here */
     if (tnode) {
       return tnode;
@@ -325,7 +325,7 @@ static bNode *node_get_active(bNodeTree *ntree, int sub_activity)
     /* node active texture node in this tree, look inside groups */
     for (bNode *node : ntree->all_nodes()) {
       if (node->type_legacy == NODE_GROUP) {
-        bNode *tnode = node_get_active((bNodeTree *)node->id, sub_activity);
+        bNode *tnode = node_get_active(blender::id_cast<bNodeTree *>(node->id), sub_activity);
         if (tnode && ((tnode->flag & sub_activity) || !inactivenode)) {
           return tnode;
         }
@@ -416,7 +416,7 @@ void node_shader_gpu_tex_mapping(GPUMaterial *mat,
                                  GPUNodeStack *in,
                                  GPUNodeStack * /*out*/)
 {
-  NodeTexBase *base = (NodeTexBase *)node->storage;
+  NodeTexBase *base = static_cast<NodeTexBase *>(node->storage);
   TexMapping *texmap = &base->tex_mapping;
   float domin = (texmap->flag & TEXMAP_CLIP_MIN) != 0;
   float domax = (texmap->flag & TEXMAP_CLIP_MAX) != 0;
@@ -428,10 +428,10 @@ void node_shader_gpu_tex_mapping(GPUMaterial *mat,
 
     tmin = GPU_uniform((domin) ? texmap->min : min);
     tmax = GPU_uniform((domax) ? texmap->max : max);
-    tmat0 = GPU_uniform((float *)texmap->mat[0]);
-    tmat1 = GPU_uniform((float *)texmap->mat[1]);
-    tmat2 = GPU_uniform((float *)texmap->mat[2]);
-    tmat3 = GPU_uniform((float *)texmap->mat[3]);
+    tmat0 = GPU_uniform(static_cast<float *>(texmap->mat[0]));
+    tmat1 = GPU_uniform(static_cast<float *>(texmap->mat[1]));
+    tmat2 = GPU_uniform(static_cast<float *>(texmap->mat[2]));
+    tmat3 = GPU_uniform(static_cast<float *>(texmap->mat[3]));
 
     GPU_link(mat, "mapping_mat4", in[0].link, tmat0, tmat1, tmat2, tmat3, tmin, tmax, &in[0].link);
 

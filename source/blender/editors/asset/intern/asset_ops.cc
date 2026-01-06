@@ -1079,7 +1079,8 @@ static void generate_previewimg_from_buffer(ID *id, const ImBuf *image_buffer)
 
     ImBuf *scaled_imbuf = IMB_scale_into_new(
         image_buffer, width, height, IMBScaleFilter::Nearest, false);
-    preview_image->rect[size_type] = (uint *)MEM_dupallocN(scaled_imbuf->byte_buffer.data);
+    preview_image->rect[size_type] = static_cast<uint *>(
+        MEM_dupallocN(scaled_imbuf->byte_buffer.data));
     preview_image->w[size_type] = width;
     preview_image->h[size_type] = height;
     preview_image->flag[size_type] |= PRV_USER_EDITED;

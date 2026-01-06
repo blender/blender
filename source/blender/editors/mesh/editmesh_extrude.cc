@@ -6,6 +6,7 @@
  * \ingroup edmesh
  */
 
+#include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
@@ -49,7 +50,7 @@ static void edbm_extrude_edge_exclude_mirror(
    */
   for (ModifierData &md : obedit->modifiers) {
     if ((md.type == eModifierType_Mirror) && (md.mode & eModifierMode_Realtime)) {
-      MirrorModifierData *mmd = (MirrorModifierData *)&md;
+      MirrorModifierData *mmd = reinterpret_cast<MirrorModifierData *>(&md);
 
       if (mmd->flag & MOD_MIR_CLIPPING) {
         BMIter iter;
@@ -310,7 +311,7 @@ static wmOperatorStatus edbm_extrude_repeat_exec(bContext *C, wmOperator *op)
     params.calc_looptris = true;
     params.calc_normals = true;
     params.is_destructive = true;
-    EDBM_update(static_cast<Mesh *>(obedit->data), &params);
+    EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
   }
 
   return OPERATOR_FINISHED;
@@ -447,7 +448,7 @@ static wmOperatorStatus edbm_extrude_region_exec(bContext *C, wmOperator *op)
     params.calc_looptris = true;
     params.calc_normals = true;
     params.is_destructive = true;
-    EDBM_update(static_cast<Mesh *>(obedit->data), &params);
+    EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
   }
   return OPERATOR_FINISHED;
 }
@@ -502,7 +503,7 @@ static wmOperatorStatus edbm_extrude_context_exec(bContext *C, wmOperator *op)
     params.calc_looptris = true;
     params.calc_normals = true;
     params.is_destructive = true;
-    EDBM_update(static_cast<Mesh *>(obedit->data), &params);
+    EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
   }
   return OPERATOR_FINISHED;
 }
@@ -551,7 +552,7 @@ static wmOperatorStatus edbm_extrude_verts_exec(bContext *C, wmOperator *op)
     params.calc_looptris = true;
     params.calc_normals = false;
     params.is_destructive = true;
-    EDBM_update(static_cast<Mesh *>(obedit->data), &params);
+    EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
   }
 
   return OPERATOR_FINISHED;
@@ -601,7 +602,7 @@ static wmOperatorStatus edbm_extrude_edges_exec(bContext *C, wmOperator *op)
     params.calc_looptris = true;
     params.calc_normals = false;
     params.is_destructive = true;
-    EDBM_update(static_cast<Mesh *>(obedit->data), &params);
+    EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
   }
 
   return OPERATOR_FINISHED;
@@ -651,7 +652,7 @@ static wmOperatorStatus edbm_extrude_faces_exec(bContext *C, wmOperator *op)
     params.calc_looptris = true;
     params.calc_normals = false;
     params.is_destructive = true;
-    EDBM_update(static_cast<Mesh *>(obedit->data), &params);
+    EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
   }
 
   return OPERATOR_FINISHED;
@@ -888,7 +889,7 @@ static wmOperatorStatus edbm_dupli_extrude_cursor_invoke(bContext *C,
     params.calc_looptris = true;
     params.calc_normals = true;
     params.is_destructive = true;
-    EDBM_update(static_cast<Mesh *>(vc.obedit->data), &params);
+    EDBM_update(blender::id_cast<Mesh *>(vc.obedit->data), &params);
 
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);

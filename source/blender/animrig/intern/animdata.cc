@@ -88,7 +88,7 @@ Vector<ID *> find_related_ids(Main &bmain, ID &id)
         if (!ob->data) {
           break;
         }
-        ID *data = static_cast<ID *>(ob->data);
+        ID *data = ob->data;
         if (ID_REAL_USERS(data) == 1) {
           related_ids.append_non_duplicates(data);
         }

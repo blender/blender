@@ -35,7 +35,7 @@ static PyObject *py_argv_from_bytes(const int argc, const char **argv)
   /* Copy functionality from Python's internal `sys.argv` initialization. */
   PyConfig config;
   PyConfig_InitPythonConfig(&config);
-  PyStatus status = PyConfig_SetBytesArgv(&config, argc, (char *const *)argv);
+  PyStatus status = PyConfig_SetBytesArgv(&config, argc, const_cast<char *const *>(argv));
   PyObject *py_argv = nullptr;
   if (UNLIKELY(PyStatus_Exception(status))) {
     PyErr_Format(PyExc_ValueError, "%s", status.err_msg);
@@ -94,10 +94,10 @@ static int bpy_cli_command_exec(bContext *C,
       PyObject *error_type, *error_value, *error_traceback;
       PyErr_Fetch(&error_type, &error_value, &error_traceback);
       if (PyObject_TypeCheck(error_value, (PyTypeObject *)PyExc_SystemExit) &&
-          (((PySystemExitObject *)error_value)->code != nullptr))
+          ((reinterpret_cast<PySystemExitObject *>(error_value))->code != nullptr))
       {
         /* When `SystemExit(..)` is raised. */
-        result = ((PySystemExitObject *)error_value)->code;
+        result = (reinterpret_cast<PySystemExitObject *>(error_value))->code;
       }
       else {
         /* When `sys.exit()` is called. */
@@ -285,7 +285,7 @@ static PyObject *bpy_cli_command_unregister(PyObject * /*self*/, PyObject *value
   /* Don't allow removing again. */
   PyCapsule_SetName(value, bpy_cli_command_capsule_name_invalid);
 
-  BKE_blender_cli_command_unregister((CommandHandler *)cmd);
+  BKE_blender_cli_command_unregister(static_cast<CommandHandler *>(cmd));
 
   Py_RETURN_NONE;
 }
@@ -302,13 +302,13 @@ static PyObject *bpy_cli_command_unregister(PyObject * /*self*/, PyObject *value
 
 PyMethodDef BPY_cli_command_register_def = {
     "register_cli_command",
-    (PyCFunction)bpy_cli_command_register,
+    reinterpret_cast<PyCFunction>(bpy_cli_command_register),
     METH_STATIC | METH_VARARGS | METH_KEYWORDS,
     bpy_cli_command_register_doc,
 };
 PyMethodDef BPY_cli_command_unregister_def = {
     "unregister_cli_command",
-    (PyCFunction)bpy_cli_command_unregister,
+    static_cast<PyCFunction>(bpy_cli_command_unregister),
     METH_STATIC | METH_O,
     bpy_cli_command_unregister_doc,
 };

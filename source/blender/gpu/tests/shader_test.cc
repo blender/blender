@@ -562,7 +562,7 @@ static void gpu_shader_lib_test(StringRefNull test_src_name, const char *additio
 
   GPU_finish();
 
-  TestOutput *test_data = (TestOutput *)GPU_texture_read(tex, GPU_DATA_UINT, 0);
+  TestOutput *test_data = static_cast<TestOutput *>(GPU_texture_read(tex, GPU_DATA_UINT, 0));
   Span<TestOutput> tests(test_data, test_count);
 
   for (const TestOutput &test : tests) {

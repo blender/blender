@@ -1831,8 +1831,8 @@ void BKE_scopes_update(Scopes *scopes,
     cm_processor = IMB_colormanagement_display_processor_new(view_settings, display_settings);
   }
   else {
-    display_buffer = (const uchar *)IMB_display_buffer_acquire(
-        ibuf, view_settings, display_settings, &cache_handle);
+    display_buffer = const_cast<const uchar *>(
+        IMB_display_buffer_acquire(ibuf, view_settings, display_settings, &cache_handle));
   }
 
   /* Keep number of threads in sync with the merge parts below. */

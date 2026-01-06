@@ -525,10 +525,10 @@ void BKE_lnor_spacearr_init(MLoopNorSpaceArray *lnors_spacearr,
     }
     mem = lnors_spacearr->mem;
     if (numLoops > 0) {
-      lnors_spacearr->lspacearr = (MLoopNorSpace **)BLI_memarena_calloc(
-          mem, sizeof(MLoopNorSpace *) * size_t(numLoops));
-      lnors_spacearr->loops_pool = (LinkNode *)BLI_memarena_alloc(
-          mem, sizeof(LinkNode) * size_t(numLoops));
+      lnors_spacearr->lspacearr = static_cast<MLoopNorSpace **>(
+          BLI_memarena_calloc(mem, sizeof(MLoopNorSpace *) * size_t(numLoops)));
+      lnors_spacearr->loops_pool = static_cast<LinkNode *>(
+          BLI_memarena_alloc(mem, sizeof(LinkNode) * size_t(numLoops)));
     }
     else {
       lnors_spacearr->lspacearr = nullptr;
@@ -582,7 +582,8 @@ void BKE_lnor_spacearr_free(MLoopNorSpaceArray *lnors_spacearr)
 MLoopNorSpace *BKE_lnor_space_create(MLoopNorSpaceArray *lnors_spacearr)
 {
   lnors_spacearr->spaces_num++;
-  return (MLoopNorSpace *)BLI_memarena_calloc(lnors_spacearr->mem, sizeof(MLoopNorSpace));
+  return static_cast<MLoopNorSpace *>(
+      BLI_memarena_calloc(lnors_spacearr->mem, sizeof(MLoopNorSpace)));
 }
 
 /* This threshold is a bit touchy (usual float precision issue), this value seems OK. */
@@ -685,7 +686,7 @@ void BKE_lnor_space_add_loop(MLoopNorSpaceArray *lnors_spacearr,
   if (is_single) {
     BLI_assert(lnor_space->loops == nullptr);
     lnor_space->flags |= MLNOR_SPACE_IS_SINGLE;
-    lnor_space->loops = (LinkNode *)bm_loop;
+    lnor_space->loops = static_cast<LinkNode *>(bm_loop);
   }
   else {
     BLI_assert((lnor_space->flags & MLNOR_SPACE_IS_SINGLE) == 0);

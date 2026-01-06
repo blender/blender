@@ -282,7 +282,7 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
   }
   else {
     if (t->spacetype == SPACE_NODE) {
-      SpaceNode *snode = (SpaceNode *)t->area->spacedata.first;
+      SpaceNode *snode = static_cast<SpaceNode *>(t->area->spacedata.first);
       if (U.uiflag & USER_NODE_AUTO_OFFSET) {
         const char *str_dir = (snode->insert_ofs_dir == SNODE_INSERTOFS_DIR_RIGHT) ?
                                   IFACE_("right") :

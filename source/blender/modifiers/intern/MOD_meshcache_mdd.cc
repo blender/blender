@@ -41,7 +41,7 @@ static bool meshcache_read_mdd_head(FILE *fp,
 
   /* NOTE: this is endianness-sensitive. */
   /* MDD is big-endian, its values need to be switched on little-endian systems. */
-  BLI_endian_switch_int32_array((int *)mdd_head, 2);
+  BLI_endian_switch_int32_array(reinterpret_cast<int *>(mdd_head), 2);
 
   if (mdd_head->verts_tot != verts_tot) {
     *r_err_str = RPT_("Vertex count mismatch");

@@ -29,7 +29,7 @@
 /* Matching function in rna_ID.cc */
 static int rna_VectorFont_filepath_editable(const PointerRNA *ptr, const char ** /*r_info*/)
 {
-  VFont *vfont = (VFont *)ptr->owner_id;
+  VFont *vfont = blender::id_cast<VFont *>(ptr->owner_id);
   if (BKE_vfont_is_builtin(vfont)) {
     return 0;
   }
@@ -38,7 +38,7 @@ static int rna_VectorFont_filepath_editable(const PointerRNA *ptr, const char **
 
 static void rna_VectorFont_reload_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  VFont *vf = (VFont *)ptr->owner_id;
+  VFont *vf = blender::id_cast<VFont *>(ptr->owner_id);
   BKE_vfont_data_free(vf);
 
   /* update */

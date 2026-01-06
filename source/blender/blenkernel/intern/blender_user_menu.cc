@@ -85,7 +85,7 @@ bUserMenuItem *BKE_blender_user_menu_item_add(ListBaseT<bUserMenuItem> *lb, int 
 void BKE_blender_user_menu_item_free(bUserMenuItem *umi)
 {
   if (umi->type == USER_MENU_TYPE_OPERATOR) {
-    bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)umi;
+    bUserMenuItem_Op *umi_op = reinterpret_cast<bUserMenuItem_Op *>(umi);
     if (umi_op->prop) {
       IDP_FreeProperty(umi_op->prop);
     }

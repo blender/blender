@@ -705,7 +705,7 @@ static wmOperatorStatus node_add_object_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  bNodeSocketValueObject *socket_data = (bNodeSocketValueObject *)sock->default_value;
+  bNodeSocketValueObject *socket_data = static_cast<bNodeSocketValueObject *>(sock->default_value);
   socket_data->value = object;
   id_us_plus(&object->id);
   BKE_ntree_update_tag_socket_property(ntree, sock);
@@ -792,7 +792,8 @@ static wmOperatorStatus node_add_collection_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  bNodeSocketValueCollection *socket_data = (bNodeSocketValueCollection *)sock->default_value;
+  bNodeSocketValueCollection *socket_data = static_cast<bNodeSocketValueCollection *>(
+      sock->default_value);
   socket_data->value = collection;
   id_us_plus(&collection->id);
   BKE_ntree_update_tag_socket_property(&ntree, sock);
@@ -943,7 +944,7 @@ static wmOperatorStatus node_add_image_exec(bContext *C, wmOperator *op)
   const Vector<std::string> paths = ed::io::paths_from_operator_properties(op->ptr);
   for (const std::string &path : paths) {
     RNA_string_set(op->ptr, "filepath", path.c_str());
-    Image *image = (Image *)WM_operator_drop_load_path(C, op, ID_IM);
+    Image *image = blender::id_cast<Image *>(WM_operator_drop_load_path(C, op, ID_IM));
     if (!image) {
       BKE_report(op->reports, RPT_WARNING, fmt::format("Could not load {}", path).c_str());
       continue;
@@ -957,7 +958,7 @@ static wmOperatorStatus node_add_image_exec(bContext *C, wmOperator *op)
 
   /* If not path is provided, try to get a ID Image from operator. */
   if (paths.is_empty()) {
-    Image *image = (Image *)WM_operator_drop_load_path(C, op, ID_IM);
+    Image *image = blender::id_cast<Image *>(WM_operator_drop_load_path(C, op, ID_IM));
     if (image) {
       images.append(image);
     }
@@ -974,13 +975,14 @@ static wmOperatorStatus node_add_image_exec(bContext *C, wmOperator *op)
       continue;
     }
     if (type == GEO_NODE_IMAGE_TEXTURE) {
-      bNodeSocket *image_socket = (bNodeSocket *)node->inputs.first;
-      bNodeSocketValueImage *socket_value = (bNodeSocketValueImage *)image_socket->default_value;
+      bNodeSocket *image_socket = static_cast<bNodeSocket *>(node->inputs.first);
+      bNodeSocketValueImage *socket_value = static_cast<bNodeSocketValueImage *>(
+          image_socket->default_value);
       socket_value->value = image;
       BKE_ntree_update_tag_socket_property(&node_tree, image_socket);
     }
     else {
-      node->id = (ID *)image;
+      node->id = blender::id_cast<ID *>(image);
       blender::bke::node_tag_update_id(*node);
     }
     BKE_ntree_update_tag_node_property(&node_tree, node);

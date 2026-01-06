@@ -993,7 +993,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
       posy,
       win->sizex,
       win->sizey,
-      (GHOST_TWindowState)win->windowstate,
+      GHOST_TWindowState(win->windowstate),
       is_dialog,
       gpu_settings);
 
@@ -1024,7 +1024,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
 #ifndef __APPLE__
     /* Set the state here, so minimized state comes up correct on windows. */
     if (wm_init_state.window_focus) {
-      GHOST_SetWindowState(ghostwin, (GHOST_TWindowState)win->windowstate);
+      GHOST_SetWindowState(ghostwin, GHOST_TWindowState(win->windowstate));
     }
 #endif
 
@@ -1992,13 +1992,15 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
 
         if (stra->count) {
           CLOG_INFO(WM_LOG_EVENTS, "Drop %d files:", stra->count);
-          for (const char *path : blender::Span((char **)stra->strings, stra->count)) {
+          for (const char *path :
+               blender::Span(reinterpret_cast<char **>(stra->strings), stra->count))
+          {
             CLOG_INFO(WM_LOG_EVENTS, "%s", path);
           }
           /* Try to get icon type from extension of the first path. */
-          int icon = ED_file_extension_icon((char *)stra->strings[0]);
+          int icon = ED_file_extension_icon(reinterpret_cast<char *>(stra->strings[0]));
           wmDragPath *path_data = WM_drag_create_path_data(
-              blender::Span((char **)stra->strings, stra->count));
+              blender::Span(reinterpret_cast<char **>(stra->strings), stra->count));
           WM_event_start_drag(C, icon, WM_DRAG_PATH, path_data, WM_DRAG_NOP);
           /* Void pointer should point to string, it makes a copy. */
         }
@@ -2227,7 +2229,7 @@ void wm_ghost_init(bContext *C)
 
   consumer = GHOST_CreateEventConsumer(ghost_event_proc, C);
 
-  GHOST_SetBacktraceHandler((GHOST_TBacktraceFn)BLI_system_backtrace);
+  GHOST_SetBacktraceHandler(reinterpret_cast<GHOST_TBacktraceFn>(BLI_system_backtrace));
   GHOST_UseWindowFrame(wm_init_state.window_frame);
 
   g_system = GHOST_CreateSystem();
@@ -2278,7 +2280,7 @@ void wm_ghost_init_background()
     return;
   }
 
-  GHOST_SetBacktraceHandler((GHOST_TBacktraceFn)BLI_system_backtrace);
+  GHOST_SetBacktraceHandler(reinterpret_cast<GHOST_TBacktraceFn>(BLI_system_backtrace));
 
   g_system = GHOST_CreateSystemBackground();
   GPU_backend_ghost_system_set(g_system);
@@ -2756,7 +2758,7 @@ ImBuf *WM_clipboard_image_get()
 
   int width, height;
 
-  uint8_t *rgba = (uint8_t *)GHOST_getClipboardImage(&width, &height);
+  uint8_t *rgba = reinterpret_cast<uint8_t *>(GHOST_getClipboardImage(&width, &height));
   if (!rgba) {
     return nullptr;
   }
@@ -2776,7 +2778,8 @@ bool WM_clipboard_image_set_byte_buffer(ImBuf *ibuf)
     return false;
   }
 
-  bool success = bool(GHOST_putClipboardImage((uint *)ibuf->byte_buffer.data, ibuf->x, ibuf->y));
+  bool success = bool(
+      GHOST_putClipboardImage(reinterpret_cast<uint *>(ibuf->byte_buffer.data), ibuf->x, ibuf->y));
 
   return success;
 }
@@ -3254,7 +3257,7 @@ ViewLayer *WM_window_get_active_view_layer(const wmWindow *win)
 
   view_layer = BKE_view_layer_default_view(scene);
   if (view_layer) {
-    WM_window_set_active_view_layer((wmWindow *)win, view_layer);
+    WM_window_set_active_view_layer(const_cast<wmWindow *>(win), view_layer);
   }
 
   return view_layer;
@@ -3426,19 +3429,19 @@ void *WM_system_gpu_context_create()
 void WM_system_gpu_context_dispose(void *context)
 {
   BLI_assert(GPU_framebuffer_active_get() == GPU_framebuffer_back_get());
-  GHOST_DisposeGPUContext(g_system, (GHOST_ContextHandle)context);
+  GHOST_DisposeGPUContext(g_system, static_cast<GHOST_ContextHandle>(context));
 }
 
 void WM_system_gpu_context_activate(void *context)
 {
   BLI_assert(GPU_framebuffer_active_get() == GPU_framebuffer_back_get());
-  GHOST_ActivateGPUContext((GHOST_ContextHandle)context);
+  GHOST_ActivateGPUContext(static_cast<GHOST_ContextHandle>(context));
 }
 
 void WM_system_gpu_context_release(void *context)
 {
   BLI_assert(GPU_framebuffer_active_get() == GPU_framebuffer_back_get());
-  GHOST_ReleaseGPUContext((GHOST_ContextHandle)context);
+  GHOST_ReleaseGPUContext(static_cast<GHOST_ContextHandle>(context));
 }
 
 void WM_ghost_show_message_box(const char *title,

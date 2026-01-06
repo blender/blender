@@ -922,13 +922,19 @@ static uint bm_mesh_elems_select_get_n__internal(
 
 static uint bm_mesh_verts_select_get_n(BMesh *bm, BMVert **elems, const uint n)
 {
-  return bm_mesh_elems_select_get_n__internal(
-      bm, (BMElem **)elems, min_ii(n, bm->totvertsel), BM_VERTS_OF_MESH, BM_VERT);
+  return bm_mesh_elems_select_get_n__internal(bm,
+                                              reinterpret_cast<BMElem **>(elems),
+                                              min_ii(n, bm->totvertsel),
+                                              BM_VERTS_OF_MESH,
+                                              BM_VERT);
 }
 static uint bm_mesh_edges_select_get_n(BMesh *bm, BMEdge **elems, const uint n)
 {
-  return bm_mesh_elems_select_get_n__internal(
-      bm, (BMElem **)elems, min_ii(n, bm->totedgesel), BM_EDGES_OF_MESH, BM_EDGE);
+  return bm_mesh_elems_select_get_n__internal(bm,
+                                              reinterpret_cast<BMElem **>(elems),
+                                              min_ii(n, bm->totedgesel),
+                                              BM_EDGES_OF_MESH,
+                                              BM_EDGE);
 }
 #if 0
 static uint bm_mesh_faces_select_get_n(BMesh *bm, BMVert **elems, const uint n)
@@ -1215,7 +1221,7 @@ int getTransformOrientation_ex(const Scene *scene,
 
     } /* End edit-mesh. */
     else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
-      Curve *cu = static_cast<Curve *>(obedit->data);
+      Curve *cu = blender::id_cast<Curve *>(obedit->data);
       Nurb *nu = nullptr;
       int a;
       ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
@@ -1335,7 +1341,7 @@ int getTransformOrientation_ex(const Scene *scene,
       }
     }
     else if (obedit->type == OB_MBALL) {
-      MetaBall *mb = static_cast<MetaBall *>(obedit->data);
+      MetaBall *mb = blender::id_cast<MetaBall *>(obedit->data);
       MetaElem *ml;
       bool ok = false;
       float tmat[3][3];
@@ -1364,7 +1370,7 @@ int getTransformOrientation_ex(const Scene *scene,
       }
     }
     else if (obedit->type == OB_ARMATURE) {
-      bArmature *arm = static_cast<bArmature *>(obedit->data);
+      bArmature *arm = blender::id_cast<bArmature *>(obedit->data);
       EditBone *ebone;
       bool ok = false;
       float tmat[3][3];
@@ -1436,7 +1442,7 @@ int getTransformOrientation_ex(const Scene *scene,
     }
   }
   else if (ob && (ob->mode & OB_MODE_POSE)) {
-    bArmature *arm = static_cast<bArmature *>(ob->data);
+    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
     bPoseChannel *pchan;
     float imat[3][3], mat[3][3];
     bool ok = false;

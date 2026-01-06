@@ -986,7 +986,7 @@ static void renamebutton_cb(bContext *C, void * /*arg1*/, char *oldname)
   char filename[FILE_MAX + 12];
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = CTX_wm_window(C);
-  SpaceFile *sfile = (SpaceFile *)CTX_wm_space_data(C);
+  SpaceFile *sfile = reinterpret_cast<SpaceFile *>(CTX_wm_space_data(C));
   ARegion *region = CTX_wm_region(C);
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
 

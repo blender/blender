@@ -226,7 +226,7 @@ AbstractView *region_view_find_at(const ARegion *region, const int xy[2], const 
 
 AbstractViewItem *region_views_find_item_at(const ARegion &region, const int xy[2])
 {
-  auto *item_but = (ButtonViewItem *)view_item_find_mouse_over(&region, xy);
+  auto *item_but = static_cast<ButtonViewItem *>(view_item_find_mouse_over(&region, xy));
   if (!item_but) {
     return nullptr;
   }
@@ -236,7 +236,7 @@ AbstractViewItem *region_views_find_item_at(const ARegion &region, const int xy[
 
 AbstractViewItem *region_views_find_active_item(const ARegion *region)
 {
-  auto *item_but = (ButtonViewItem *)view_item_find_active(region);
+  auto *item_but = static_cast<ButtonViewItem *>(view_item_find_active(region));
   if (!item_but) {
     return nullptr;
   }
@@ -354,7 +354,7 @@ ButtonViewItem *block_view_find_matching_view_item_but_in_old_block(
     if (old_but->type != ButtonType::ViewItem) {
       continue;
     }
-    ButtonViewItem *old_item_but = (ButtonViewItem *)old_but.get();
+    ButtonViewItem *old_item_but = static_cast<ButtonViewItem *>(old_but.get());
     if (!old_item_but->view_item) {
       continue;
     }

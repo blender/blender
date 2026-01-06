@@ -22,6 +22,7 @@
 
 #include "BLT_translation.hh"
 
+#include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
@@ -62,14 +63,14 @@ bool shape_key_report_if_locked(const Object *obedit, ReportList *reports)
 
   switch (obedit->type) {
     case OB_MESH:
-      key_block = ED_mesh_get_edit_shape_key(static_cast<Mesh *>(obedit->data));
+      key_block = ED_mesh_get_edit_shape_key(blender::id_cast<Mesh *>(obedit->data));
       break;
     case OB_SURF:
     case OB_CURVES_LEGACY:
-      key_block = ED_curve_get_edit_shape_key(static_cast<Curve *>(obedit->data));
+      key_block = ED_curve_get_edit_shape_key(blender::id_cast<Curve *>(obedit->data));
       break;
     case OB_LATTICE:
-      key_block = ED_lattice_get_edit_shape_key(static_cast<Lattice *>(obedit->data));
+      key_block = ED_lattice_get_edit_shape_key(blender::id_cast<Lattice *>(obedit->data));
       break;
     default:
       return false;
@@ -166,7 +167,7 @@ void shape_key_mirror(
   char *tag_elem = MEM_calloc_arrayN<char>(kb->totelem, "shape_key_mirror");
 
   if (ob->type == OB_MESH) {
-    Mesh *mesh = static_cast<Mesh *>(ob->data);
+    Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
     int i1, i2;
     float *fp1, *fp2;
     float tvec[3];
@@ -176,15 +177,15 @@ void shape_key_mirror(
     for (i1 = 0; i1 < mesh->verts_num; i1++) {
       i2 = mesh_get_x_mirror_vert(ob, nullptr, i1, use_topology);
       if (i2 == i1) {
-        fp1 = ((float *)kb->data) + i1 * 3;
+        fp1 = (static_cast<float *>(kb->data)) + i1 * 3;
         fp1[0] = -fp1[0];
         tag_elem[i1] = 1;
         totmirr++;
       }
       else if (i2 != -1) {
         if (tag_elem[i1] == 0 && tag_elem[i2] == 0) {
-          fp1 = ((float *)kb->data) + i1 * 3;
-          fp2 = ((float *)kb->data) + i2 * 3;
+          fp1 = (static_cast<float *>(kb->data)) + i1 * 3;
+          fp2 = (static_cast<float *>(kb->data)) + i2 * 3;
 
           copy_v3_v3(tvec, fp1);
           copy_v3_v3(fp1, fp2);
@@ -205,7 +206,7 @@ void shape_key_mirror(
     ED_mesh_mirror_spatial_table_end(ob);
   }
   else if (ob->type == OB_LATTICE) {
-    const Lattice *lt = static_cast<const Lattice *>(ob->data);
+    const Lattice *lt = blender::id_cast<const Lattice *>(ob->data);
     int i1, i2;
     float *fp1, *fp2;
     int u, v, w;
@@ -226,7 +227,7 @@ void shape_key_mirror(
           float tvec[3];
           if (u == u_inv) {
             i1 = BKE_lattice_index_from_uvw(lt, u, v, w);
-            fp1 = ((float *)kb->data) + i1 * 3;
+            fp1 = (static_cast<float *>(kb->data)) + i1 * 3;
             fp1[0] = -fp1[0];
             totmirr++;
           }
@@ -234,8 +235,8 @@ void shape_key_mirror(
             i1 = BKE_lattice_index_from_uvw(lt, u, v, w);
             i2 = BKE_lattice_index_from_uvw(lt, u_inv, v, w);
 
-            fp1 = ((float *)kb->data) + i1 * 3;
-            fp2 = ((float *)kb->data) + i2 * 3;
+            fp1 = (static_cast<float *>(kb->data)) + i1 * 3;
+            fp2 = (static_cast<float *>(kb->data)) + i2 * 3;
 
             copy_v3_v3(tvec, fp1);
             copy_v3_v3(fp1, fp2);

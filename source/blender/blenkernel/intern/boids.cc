@@ -74,7 +74,7 @@ static bool rule_none(BoidRule * /*rule*/,
 
 static bool rule_goal_avoid(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, ParticleData *pa)
 {
-  BoidRuleGoalAvoid *gabr = (BoidRuleGoalAvoid *)rule;
+  BoidRuleGoalAvoid *gabr = reinterpret_cast<BoidRuleGoalAvoid *>(rule);
   BoidSettings *boids = bbd->part->boids;
   BoidParticle *bpa = pa->boid;
   EffectedPoint epoint;
@@ -214,7 +214,7 @@ static bool rule_avoid_collision(BoidRule *rule,
                                  ParticleData *pa)
 {
   const int raycast_flag = BVH_RAYCAST_DEFAULT & ~BVH_RAYCAST_WATERTIGHT;
-  BoidRuleAvoidCollision *acbr = (BoidRuleAvoidCollision *)rule;
+  BoidRuleAvoidCollision *acbr = reinterpret_cast<BoidRuleAvoidCollision *>(rule);
   blender::KDTreeNearest_3d *ptn = nullptr;
   BoidParticle *bpa = pa->boid;
   float vec[3] = {0.0f, 0.0f, 0.0f}, loc[3] = {0.0f, 0.0f, 0.0f};
@@ -486,7 +486,7 @@ static bool rule_follow_leader(BoidRule *rule,
                                BoidValues *val,
                                ParticleData *pa)
 {
-  BoidRuleFollowLeader *flbr = (BoidRuleFollowLeader *)rule;
+  BoidRuleFollowLeader *flbr = reinterpret_cast<BoidRuleFollowLeader *>(rule);
   float vec[3] = {0.0f, 0.0f, 0.0f}, loc[3] = {0.0f, 0.0f, 0.0f};
   float mul, len;
   const int n = (flbr->queue_size <= 1) ? bbd->sim->psys->totpart : flbr->queue_size;
@@ -629,7 +629,7 @@ static bool rule_average_speed(BoidRule *rule,
                                ParticleData *pa)
 {
   BoidParticle *bpa = pa->boid;
-  BoidRuleAverageSpeed *asbr = (BoidRuleAverageSpeed *)rule;
+  BoidRuleAverageSpeed *asbr = reinterpret_cast<BoidRuleAverageSpeed *>(rule);
   float vec[3] = {0.0f, 0.0f, 0.0f};
 
   if (asbr->wander > 0.0f) {
@@ -680,7 +680,7 @@ static bool rule_average_speed(BoidRule *rule,
 }
 static bool rule_fight(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, ParticleData *pa)
 {
-  BoidRuleFight *fbr = (BoidRuleFight *)rule;
+  BoidRuleFight *fbr = reinterpret_cast<BoidRuleFight *>(rule);
   blender::KDTreeNearest_3d *ptn = nullptr;
   ParticleData *epars;
   ParticleData *enemy_pa = nullptr;
@@ -842,7 +842,8 @@ static Object *boid_find_ground(BoidBrainData *bbd,
     SurfaceModifierData *surmd = nullptr;
     float x[3], v[3];
 
-    surmd = (SurfaceModifierData *)BKE_modifiers_findby_type(bpa->ground, eModifierType_Surface);
+    surmd = reinterpret_cast<SurfaceModifierData *>(
+        BKE_modifiers_findby_type(bpa->ground, eModifierType_Surface));
 
     /* take surface velocity into account */
     closest_point_on_surface(surmd, pa->state.co, x, nullptr, v);
@@ -961,7 +962,7 @@ void boids_precalc_rules(ParticleSettings *part, float cfra)
   for (BoidState &state : part->boids->states) {
     for (BoidRule &rule : state.rules) {
       if (rule.type == eBoidRuleType_FollowLeader) {
-        BoidRuleFollowLeader *flbr = (BoidRuleFollowLeader *)&rule;
+        BoidRuleFollowLeader *flbr = reinterpret_cast<BoidRuleFollowLeader *>(&rule);
 
         if (flbr->ob && flbr->cfra != cfra) {
           /* save object locations for velocity calculations */

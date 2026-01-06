@@ -707,7 +707,7 @@ static void grease_pencil_primitive_status_indicators(bContext *C,
 
 static void grease_pencil_primitive_update_view(bContext *C, PrimitiveToolOperation &ptd)
 {
-  GreasePencil *grease_pencil = static_cast<GreasePencil *>(ptd.vc.obact->data);
+  GreasePencil *grease_pencil = blender::id_cast<GreasePencil *>(ptd.vc.obact->data);
 
   DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, grease_pencil);
@@ -748,7 +748,7 @@ static wmOperatorStatus grease_pencil_primitive_invoke(bContext *C,
   View3D *view3d = CTX_wm_view3d(C);
   const float2 start_coords = float2(event->mval);
 
-  GreasePencil *grease_pencil = static_cast<GreasePencil *>(vc.obact->data);
+  GreasePencil *grease_pencil = blender::id_cast<GreasePencil *>(vc.obact->data);
 
   /* Initialize helper class for projecting screen space coordinates. */
   DrawingPlacement placement = DrawingPlacement(
@@ -876,7 +876,7 @@ static void grease_pencil_primitive_exit(bContext *C, wmOperator *op, const bool
 
   if (do_automerge_endpoints && !cancelled) {
     const Object &ob = *ptd->vc.obact;
-    const GreasePencil *grease_pencil = static_cast<GreasePencil *>(ob.data);
+    const GreasePencil *grease_pencil = blender::id_cast<GreasePencil *>(ob.data);
     const bke::greasepencil::Layer &active_layer = *grease_pencil->get_active_layer();
 
     constexpr float merge_distance = 30.0f;

@@ -872,7 +872,7 @@ static std::optional<Bounds<float2>> get_boundary_bounds(const ARegion &region,
   std::optional<Bounds<float2>> boundary_bounds;
 
   BLI_assert(object.type == OB_GREASE_PENCIL);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object.data);
 
   BLI_assert(grease_pencil.has_active_layer());
 
@@ -1020,7 +1020,7 @@ static Image *render_strokes(const ViewContext &view_context,
   Object &object = *view_context.obact;
 
   BLI_assert(object.type == OB_GREASE_PENCIL);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object.data);
 
   /* Scale stroke radius by half to hide gaps between filled areas and boundaries. */
   const float radius_scale = (brush.gpencil_settings->fill_draw_mode == GP_FILL_DMODE_CONTROL) ?

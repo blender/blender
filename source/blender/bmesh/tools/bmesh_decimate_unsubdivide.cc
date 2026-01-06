@@ -125,7 +125,7 @@ static bool bm_vert_dissolve_fan(BMesh *bm, BMVert *v)
 
     /* ensure there are exactly tot_loop loops */
     BLI_assert(BM_iter_at_index(bm, BM_LOOPS_OF_VERT, v, tot_loop) == nullptr);
-    BM_iter_as_array(bm, BM_LOOPS_OF_VERT, v, (void **)f_loop, tot_loop);
+    BM_iter_as_array(bm, BM_LOOPS_OF_VERT, v, reinterpret_cast<void **>(f_loop), tot_loop);
 
     for (i = 0; i < tot_loop; i++) {
       BMLoop *l = f_loop[i];

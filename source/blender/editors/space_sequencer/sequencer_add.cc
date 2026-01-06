@@ -657,8 +657,8 @@ static void seq_load_apply_generic_options(bContext *C, wmOperator *op, Strip *s
     strip_col.add(strip);
 
     ScrArea *area = CTX_wm_area(C);
-    const bool use_sync_markers = (((SpaceSeq *)area->spacedata.first)->flag & SEQ_MARKER_TRANS) !=
-                                  0;
+    const bool use_sync_markers = ((static_cast<SpaceSeq *>(area->spacedata.first))->flag &
+                                   SEQ_MARKER_TRANS) != 0;
     seq::transform_handle_overlap(scene, ed->current_strips(), strip_col, use_sync_markers);
   }
   else {
@@ -1166,7 +1166,7 @@ static IMB_Proxy_Size seq_get_proxy_size_flags(bContext *C)
     for (SpaceLink &sl : area.spacedata) {
       switch (sl.spacetype) {
         case SPACE_SEQ: {
-          SpaceSeq *sseq = (SpaceSeq *)&sl;
+          SpaceSeq *sseq = reinterpret_cast<SpaceSeq *>(&sl);
           if (!ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW)) {
             continue;
           }
@@ -1289,7 +1289,7 @@ static void sequencer_add_movie_multiple_strips(bContext *C,
   if (overlap_shuffle_override) {
     if (has_seq_overlap) {
       ScrArea *area = CTX_wm_area(C);
-      const bool use_sync_markers = (((SpaceSeq *)area->spacedata.first)->flag &
+      const bool use_sync_markers = ((static_cast<SpaceSeq *>(area->spacedata.first))->flag &
                                      SEQ_MARKER_TRANS) != 0;
       seq::transform_handle_overlap(scene, ed->current_strips(), added_strips, use_sync_markers);
     }
@@ -1345,7 +1345,7 @@ static bool sequencer_add_movie_single_strip(bContext *C,
 
     if (has_seq_overlap) {
       ScrArea *area = CTX_wm_area(C);
-      const bool use_sync_markers = (((SpaceSeq *)area->spacedata.first)->flag &
+      const bool use_sync_markers = ((static_cast<SpaceSeq *>(area->spacedata.first))->flag &
                                      SEQ_MARKER_TRANS) != 0;
       seq::transform_handle_overlap(scene, ed->current_strips(), added_strips, use_sync_markers);
     }
@@ -2060,7 +2060,7 @@ static wmOperatorStatus sequencer_add_effect_strip_exec(bContext *C, wmOperator 
   seq_load_apply_generic_options(C, op, strip);
 
   if (strip->type == STRIP_TYPE_COLOR) {
-    SolidColorVars *colvars = (SolidColorVars *)strip->effectdata;
+    SolidColorVars *colvars = static_cast<SolidColorVars *>(strip->effectdata);
     RNA_float_get_array(op->ptr, "color", colvars->col);
   }
 

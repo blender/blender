@@ -32,13 +32,13 @@
 
 static void init_data(ModifierData *md)
 {
-  CastModifierData *cmd = (CastModifierData *)md;
+  CastModifierData *cmd = reinterpret_cast<CastModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(cmd, modifier);
 }
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  CastModifierData *cmd = (CastModifierData *)md;
+  CastModifierData *cmd = reinterpret_cast<CastModifierData *>(md);
   short flag;
 
   flag = cmd->flag & (MOD_CAST_X | MOD_CAST_Y | MOD_CAST_Z);
@@ -52,7 +52,7 @@ static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_re
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  CastModifierData *cmd = (CastModifierData *)md;
+  CastModifierData *cmd = reinterpret_cast<CastModifierData *>(md);
 
   /* Ask for vertex-groups if we need them. */
   if (cmd->defgrp_name[0] != '\0') {
@@ -62,14 +62,14 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  CastModifierData *cmd = (CastModifierData *)md;
+  CastModifierData *cmd = reinterpret_cast<CastModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&cmd->object, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&cmd->object), IDWALK_CB_NOP);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  CastModifierData *cmd = (CastModifierData *)md;
+  CastModifierData *cmd = reinterpret_cast<CastModifierData *>(md);
   if (cmd->object != nullptr) {
     DEG_add_object_relation(ctx->node, cmd->object, DEG_OB_COMP_TRANSFORM, "Cast Modifier");
     DEG_add_depends_on_transform_relation(ctx->node, "Cast Modifier");
@@ -445,7 +445,7 @@ static void deform_verts(ModifierData *md,
                          Mesh *mesh,
                          blender::MutableSpan<blender::float3> positions)
 {
-  CastModifierData *cmd = (CastModifierData *)md;
+  CastModifierData *cmd = reinterpret_cast<CastModifierData *>(md);
 
   if (cmd->type == MOD_CAST_TYPE_CUBOID) {
     cuboid_do(cmd, ctx, ctx->object, mesh, positions);

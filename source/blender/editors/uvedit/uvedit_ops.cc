@@ -114,14 +114,14 @@ bool ED_object_get_active_image(Object *ob,
 
   if (node && is_image_texture_node(node)) {
     if (r_ima) {
-      *r_ima = (Image *)node->id;
+      *r_ima = blender::id_cast<Image *>(node->id);
     }
     if (r_iuser) {
       if (node->type_legacy == SH_NODE_TEX_IMAGE) {
-        *r_iuser = &((NodeTexImage *)node->storage)->iuser;
+        *r_iuser = &(static_cast<NodeTexImage *>(node->storage))->iuser;
       }
       else if (node->type_legacy == SH_NODE_TEX_ENVIRONMENT) {
-        *r_iuser = &((NodeTexEnvironment *)node->storage)->iuser;
+        *r_iuser = &(static_cast<NodeTexEnvironment *>(node->storage))->iuser;
       }
       else {
         *r_iuser = nullptr;
@@ -1716,7 +1716,7 @@ static wmOperatorStatus uv_pin_exec(bContext *C, wmOperator *op)
       scene, view_layer, nullptr);
 
   for (Object *obedit : objects) {
-    Mesh &mesh = *static_cast<Mesh *>(obedit->data);
+    Mesh &mesh = *blender::id_cast<Mesh *>(obedit->data);
     BMEditMesh *em = mesh.runtime->edit_mesh.get();
 
     bool changed = false;
@@ -1931,7 +1931,7 @@ static bool uv_mesh_hide_sync_select(const ToolSettings *ts, Object *ob, BMEditM
   }
 
   if (changed) {
-    Mesh *mesh = static_cast<Mesh *>(ob->data);
+    Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
     EDBMUpdate_Params params = {0};
     params.calc_looptris = true;
     params.calc_normals = false;
@@ -2128,7 +2128,7 @@ static wmOperatorStatus uv_reveal_exec(bContext *C, wmOperator *op)
     /* call the mesh function if we are in mesh sync sel */
     if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
       if (EDBM_mesh_reveal(em, select)) {
-        Mesh *mesh = static_cast<Mesh *>(ob->data);
+        Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
         EDBMUpdate_Params params = {0};
         params.calc_looptris = true;
         params.calc_normals = false;
@@ -2329,7 +2329,7 @@ static wmOperatorStatus uv_seams_from_islands_exec(bContext *C, wmOperator *op)
       scene, view_layer, nullptr);
 
   for (Object *ob : objects) {
-    Mesh *mesh = (Mesh *)ob->data;
+    Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
     BMEditMesh *em = mesh->runtime->edit_mesh.get();
     BMesh *bm = em->bm;
     BMIter iter;
@@ -2433,7 +2433,7 @@ static wmOperatorStatus uv_mark_seam_exec(bContext *C, wmOperator *op)
   bool changed = false;
 
   for (Object *ob : objects) {
-    Mesh *mesh = (Mesh *)ob->data;
+    Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
     BMEditMesh *em = mesh->runtime->edit_mesh.get();
     BMesh *bm = em->bm;
 

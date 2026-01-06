@@ -71,8 +71,8 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   VolumeDisplaceModifierData *vdmd = reinterpret_cast<VolumeDisplaceModifierData *>(md);
-  walk(user_data, ob, (ID **)&vdmd->texture, IDWALK_CB_USER);
-  walk(user_data, ob, (ID **)&vdmd->texture_map_object, IDWALK_CB_USER);
+  walk(user_data, ob, reinterpret_cast<ID **>(&vdmd->texture), IDWALK_CB_USER);
+  walk(user_data, ob, reinterpret_cast<ID **>(&vdmd->texture_map_object), IDWALK_CB_USER);
 }
 
 static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, void *user_data)

@@ -444,7 +444,7 @@ static bool is_valid_target_with_error(const Object *ob, NormalEditModifierData 
   if (is_valid_target(enmd)) {
     return true;
   }
-  BKE_modifier_set_error(ob, (ModifierData *)enmd, "Invalid target settings");
+  BKE_modifier_set_error(ob, reinterpret_cast<ModifierData *>(enmd), "Invalid target settings");
   return false;
 }
 
@@ -465,11 +465,12 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   }
 
   Mesh *result;
-  if (mesh->edges().data() == ((Mesh *)ob->data)->edges().data()) {
+  if (mesh->edges().data() == (blender::id_cast<Mesh *>(ob->data))->edges().data()) {
     /* We need to duplicate data here, otherwise setting custom normals
      * (which may also affect sharp edges) could
      * modify original mesh, see #43671. */
-    result = (Mesh *)BKE_id_copy_ex(nullptr, &mesh->id, nullptr, LIB_ID_COPY_LOCALIZE);
+    result = blender::id_cast<Mesh *>(
+        BKE_id_copy_ex(nullptr, &mesh->id, nullptr, LIB_ID_COPY_LOCALIZE));
   }
   else {
     result = mesh;
@@ -561,13 +562,13 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
 
 static void init_data(ModifierData *md)
 {
-  NormalEditModifierData *enmd = (NormalEditModifierData *)md;
+  NormalEditModifierData *enmd = reinterpret_cast<NormalEditModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(enmd, modifier);
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  NormalEditModifierData *enmd = (NormalEditModifierData *)md;
+  NormalEditModifierData *enmd = reinterpret_cast<NormalEditModifierData *>(md);
 
   /* Ask for vertex-groups if we need them. */
   if (enmd->defgrp_name[0] != '\0') {
@@ -577,21 +578,21 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  NormalEditModifierData *enmd = (NormalEditModifierData *)md;
+  NormalEditModifierData *enmd = reinterpret_cast<NormalEditModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&enmd->target, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&enmd->target), IDWALK_CB_NOP);
 }
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  NormalEditModifierData *enmd = (NormalEditModifierData *)md;
+  NormalEditModifierData *enmd = reinterpret_cast<NormalEditModifierData *>(md);
 
   return !is_valid_target(enmd);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  NormalEditModifierData *enmd = (NormalEditModifierData *)md;
+  NormalEditModifierData *enmd = reinterpret_cast<NormalEditModifierData *>(md);
   if (enmd->target) {
     DEG_add_object_relation(ctx->node, enmd->target, DEG_OB_COMP_TRANSFORM, "NormalEdit Modifier");
     DEG_add_depends_on_transform_relation(ctx->node, "NormalEdit Modifier");
@@ -600,7 +601,8 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-  return normalEditModifier_do((NormalEditModifierData *)md, ctx, ctx->object, mesh);
+  return normalEditModifier_do(
+      reinterpret_cast<NormalEditModifierData *>(md), ctx, ctx->object, mesh);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)

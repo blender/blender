@@ -59,9 +59,10 @@ static void rna_Bone_convert_local_to_pose(Bone *bone,
 {
   BoneParentTransform bpt;
   float offs_bone[4][4];
-  float (*bone_arm_mat)[4] = (float (*)[4])matrix_local;
-  float (*parent_pose_mat)[4] = (float (*)[4])parent_matrix;
-  float (*parent_arm_mat)[4] = (float (*)[4])parent_matrix_local;
+  float (*bone_arm_mat)[4] = reinterpret_cast<float (*)[4]>(const_cast<float *>(matrix_local));
+  float (*parent_pose_mat)[4] = reinterpret_cast<float (*)[4]>(const_cast<float *>(parent_matrix));
+  float (*parent_arm_mat)[4] = reinterpret_cast<float (*)[4]>(
+      const_cast<float *>(parent_matrix_local));
 
   if (is_zero_m4(parent_pose_mat) || is_zero_m4(parent_arm_mat)) {
     /* No parent case. */
@@ -80,12 +81,14 @@ static void rna_Bone_convert_local_to_pose(Bone *bone,
     BKE_bone_parent_transform_invert(&bpt);
   }
 
-  BKE_bone_parent_transform_apply(&bpt, (float (*)[4])matrix, (float (*)[4])r_matrix);
+  BKE_bone_parent_transform_apply(&bpt,
+                                  reinterpret_cast<float (*)[4]>(const_cast<float *>(matrix)),
+                                  reinterpret_cast<float (*)[4]>(r_matrix));
 }
 
 static void rna_Bone_MatrixFromAxisRoll(const float axis[3], float roll, float r_matrix[9])
 {
-  vec_roll_to_mat3(axis, roll, (float (*)[3])r_matrix);
+  vec_roll_to_mat3(axis, roll, reinterpret_cast<float (*)[3]>(r_matrix));
 }
 
 static void rna_Bone_AxisRollFromMatrix(const float matrix[9],
@@ -95,7 +98,7 @@ static void rna_Bone_AxisRollFromMatrix(const float matrix[9],
 {
   float mat[3][3];
 
-  normalize_m3_m3(mat, (float (*)[3])matrix);
+  normalize_m3_m3(mat, reinterpret_cast<float (*)[3]>(const_cast<float *>(matrix)));
 
   if (normalize_v3_v3(r_axis, axis_override) != 0.0f) {
     mat3_vec_to_roll(mat, r_axis, r_roll);

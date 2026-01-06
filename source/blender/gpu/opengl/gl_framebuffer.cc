@@ -479,16 +479,17 @@ void GLFrameBuffer::clear_attachment(GPUAttachmentType type,
 
   if (type == GPU_FB_DEPTH_STENCIL_ATTACHMENT) {
     BLI_assert(data_format == GPU_DATA_UINT_24_8_DEPRECATED);
-    float depth = ((*(uint32_t *)clear_value) & 0x00FFFFFFu) / float(0x00FFFFFFu);
-    int stencil = ((*(uint32_t *)clear_value) >> 24);
+    float depth = ((*static_cast<uint32_t *>(const_cast<void *>(clear_value))) & 0x00FFFFFFu) /
+                  float(0x00FFFFFFu);
+    int stencil = ((*static_cast<uint32_t *>(const_cast<void *>(clear_value))) >> 24);
     glClearBufferfi(GL_DEPTH_STENCIL, 0, depth, stencil);
   }
   else if (type == GPU_FB_DEPTH_ATTACHMENT) {
     if (data_format == GPU_DATA_FLOAT) {
-      glClearBufferfv(GL_DEPTH, 0, (GLfloat *)clear_value);
+      glClearBufferfv(GL_DEPTH, 0, static_cast<GLfloat *>(const_cast<void *>(clear_value)));
     }
     else if (data_format == GPU_DATA_UINT) {
-      float depth = *(uint32_t *)clear_value / float(0xFFFFFFFFu);
+      float depth = *static_cast<uint32_t *>(const_cast<void *>(clear_value)) / float(0xFFFFFFFFu);
       glClearBufferfv(GL_DEPTH, 0, &depth);
     }
     else {
@@ -499,13 +500,13 @@ void GLFrameBuffer::clear_attachment(GPUAttachmentType type,
     int slot = type - GPU_FB_COLOR_ATTACHMENT0;
     switch (data_format) {
       case GPU_DATA_FLOAT:
-        glClearBufferfv(GL_COLOR, slot, (GLfloat *)clear_value);
+        glClearBufferfv(GL_COLOR, slot, static_cast<GLfloat *>(const_cast<void *>(clear_value)));
         break;
       case GPU_DATA_UINT:
-        glClearBufferuiv(GL_COLOR, slot, (GLuint *)clear_value);
+        glClearBufferuiv(GL_COLOR, slot, static_cast<GLuint *>(const_cast<void *>(clear_value)));
         break;
       case GPU_DATA_INT:
-        glClearBufferiv(GL_COLOR, slot, (GLint *)clear_value);
+        glClearBufferiv(GL_COLOR, slot, static_cast<GLint *>(const_cast<void *>(clear_value)));
         break;
       default:
         BLI_assert_msg(0, "Unhandled data format");

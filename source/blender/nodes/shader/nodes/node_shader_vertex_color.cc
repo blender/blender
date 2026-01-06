@@ -55,7 +55,7 @@ static int node_shader_gpu_vertex_color(GPUMaterial *mat,
                                         GPUNodeStack *in,
                                         GPUNodeStack *out)
 {
-  NodeShaderVertexColor *vertexColor = (NodeShaderVertexColor *)node->storage;
+  NodeShaderVertexColor *vertexColor = static_cast<NodeShaderVertexColor *>(node->storage);
   /* NOTE: Using #CD_AUTO_FROM_NAME is necessary because there are multiple color attribute types,
    * and the type may change during evaluation anyway. This will also make EEVEE and Cycles
    * consistent. See #93179. */

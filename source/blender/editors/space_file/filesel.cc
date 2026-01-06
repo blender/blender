@@ -362,7 +362,7 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
 
 FileSelectParams *ED_fileselect_ensure_active_params(SpaceFile *sfile)
 {
-  switch ((eFileBrowse_Mode)sfile->browse_mode) {
+  switch (eFileBrowse_Mode(sfile->browse_mode)) {
     case FILE_BROWSE_MODE_FILES:
       if (!sfile->params) {
         fileselect_ensure_updated_file_params(sfile);
@@ -386,11 +386,11 @@ FileSelectParams *ED_fileselect_get_active_params(const SpaceFile *sfile)
     return nullptr;
   }
 
-  switch ((eFileBrowse_Mode)sfile->browse_mode) {
+  switch (eFileBrowse_Mode(sfile->browse_mode)) {
     case FILE_BROWSE_MODE_FILES:
       return sfile->params;
     case FILE_BROWSE_MODE_ASSETS:
-      return (FileSelectParams *)sfile->asset_params;
+      return reinterpret_cast<FileSelectParams *>(sfile->asset_params);
   }
 
   BLI_assert_msg(0, "Invalid browse mode set in file space.");
@@ -552,7 +552,7 @@ int ED_fileselect_asset_import_method_get(const SpaceFile *sfile, const FileDirE
 
 static void on_reload_activate_by_id(SpaceFile *sfile, onReloadFnData custom_data)
 {
-  ID *asset_id = (ID *)custom_data;
+  ID *asset_id = static_cast<ID *>(custom_data);
   ED_fileselect_activate_by_id(sfile, asset_id, false);
 }
 
@@ -604,7 +604,8 @@ void ED_fileselect_activate_by_relpath(SpaceFile *sfile, const char *relative_pa
   if (files == nullptr || filelist_pending(files) || filelist_needs_force_reset(files)) {
     /* Casting away the constness of `relative_path` is safe here, because eventually it just ends
      * up in another call to this function, and then it's a const char* again. */
-    file_on_reload_callback_register(sfile, on_reload_select_by_relpath, (char *)relative_path);
+    file_on_reload_callback_register(
+        sfile, on_reload_select_by_relpath, const_cast<char *>(relative_path));
     return;
   }
 

@@ -154,7 +154,7 @@ int SCULPT_vertex_count_get(const Object &object)
   switch (blender::bke::object::pbvh_get(object)->type()) {
     case blender::bke::pbvh::Type::Mesh:
       BLI_assert(object.type == OB_MESH);
-      return static_cast<const Mesh *>(object.data)->verts_num;
+      return blender::id_cast<const Mesh *>(object.data)->verts_num;
     case blender::bke::pbvh::Type::BMesh:
       return BM_mesh_elem_count(ss.bm, BM_VERT);
     case blender::bke::pbvh::Type::Grids:
@@ -175,7 +175,7 @@ Span<float3> vert_positions_for_grab_active_get(const Depsgraph &depsgraph, cons
     return bke::pbvh::vert_positions_eval(depsgraph, object);
   }
   /* Otherwise use the base mesh positions. */
-  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  const Mesh &mesh = *blender::id_cast<const Mesh *>(object.data);
   return mesh.vert_positions();
 }
 
@@ -183,7 +183,7 @@ Span<float3> vert_positions_for_grab_active_get(const Depsgraph &depsgraph, cons
 
 ePaintSymmetryFlags SCULPT_mesh_symmetry_xyz_get(const Object &object)
 {
-  const Mesh *mesh = static_cast<const Mesh *>(object.data);
+  const Mesh *mesh = blender::id_cast<const Mesh *>(object.data);
   return ePaintSymmetryFlags(mesh->symmetry);
 }
 
@@ -198,7 +198,7 @@ int active_face_set_get(const Object &object)
   const SculptSession &ss = *object.sculpt;
   switch (bke::object::pbvh_get(object)->type()) {
     case bke::pbvh::Type::Mesh: {
-      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const Mesh &mesh = *blender::id_cast<const Mesh *>(object.data);
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArray face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
       if (!face_sets || !ss.active_face_index) {
@@ -207,7 +207,7 @@ int active_face_set_get(const Object &object)
       return face_sets[*ss.active_face_index];
     }
     case bke::pbvh::Type::Grids: {
-      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const Mesh &mesh = *blender::id_cast<const Mesh *>(object.data);
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArray face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
       if (!face_sets || !ss.active_grid_index) {
@@ -903,7 +903,7 @@ static void restore_mask_from_undo_step(Object &object)
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
+      Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
       bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
       bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_span<float>(
           ".sculpt_mask", bke::AttrDomain::Point);
@@ -977,7 +977,7 @@ static void restore_color_from_undo_step(Object &object)
       });
 
   BLI_assert(pbvh.type() == bke::pbvh::Type::Mesh);
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
@@ -1012,7 +1012,7 @@ static void restore_face_set_from_undo_step(Object &object)
     case bke::pbvh::Type::Mesh: {
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       bke::SpanAttributeWriter<int> attribute = face_set::ensure_face_sets_mesh(
-          *static_cast<Mesh *>(object.data));
+          *blender::id_cast<Mesh *>(object.data));
       node_mask.foreach_index(GrainSize(1), [&](const int i) {
         if (const std::optional<Span<int>> orig_data = orig_face_set_data_lookup_mesh(object,
                                                                                       nodes[i]))
@@ -1028,7 +1028,7 @@ static void restore_face_set_from_undo_step(Object &object)
       const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       bke::SpanAttributeWriter<int> attribute = face_set::ensure_face_sets_mesh(
-          *static_cast<Mesh *>(object.data));
+          *blender::id_cast<Mesh *>(object.data));
       threading::EnumerableThreadSpecific<Vector<int>> all_tls;
       node_mask.foreach_index(GrainSize(1), [&](const int i) {
         Vector<int> &tls = all_tls.local();
@@ -1060,7 +1060,7 @@ void restore_position_from_undo_step(const Depsgraph &depsgraph, Object &object)
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
+      Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
       MutableSpan positions_eval = bke::pbvh::vert_positions_eval_for_write(depsgraph, object);
       MutableSpan positions_orig = mesh.vert_positions_for_write();
 
@@ -1765,7 +1765,7 @@ void calc_area_center(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<SampleLocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+      const Mesh &mesh = *blender::id_cast<const Mesh *>(ob.data);
       const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, ob);
       const bke::AttributeAccessor attributes = mesh.attributes();
@@ -1865,7 +1865,7 @@ std::optional<float3> calc_area_normal(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<SampleLocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+      const Mesh &mesh = *blender::id_cast<const Mesh *>(ob.data);
       const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, ob);
       const bke::AttributeAccessor attributes = mesh.attributes();
@@ -2063,7 +2063,7 @@ void calc_area_normal_and_center(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<SampleLocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+      const Mesh &mesh = *blender::id_cast<const Mesh *>(ob.data);
       const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, ob);
       const bke::AttributeAccessor attributes = mesh.attributes();
@@ -2267,7 +2267,7 @@ static float brush_strength(const Sculpt &sd,
 
     case SCULPT_BRUSH_TYPE_MASK:
       overlap = (1.0f + overlap) / 2.0f;
-      switch ((BrushMaskTool)brush.mask_tool) {
+      switch (BrushMaskTool(brush.mask_tool)) {
         case BRUSH_MASK_DRAW:
           return alpha * flip * pressure * overlap * feather;
         case BRUSH_MASK_SMOOTH:
@@ -3379,7 +3379,7 @@ static void do_brush_action(const Depsgraph &depsgraph,
       brushes::do_clay_thumb_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_BRUSH_TYPE_MASK:
-      switch ((BrushMaskTool)brush.mask_tool) {
+      switch (BrushMaskTool(brush.mask_tool)) {
         case BRUSH_MASK_DRAW:
           brushes::do_mask_brush(depsgraph, sd, ob, node_mask);
           break;
@@ -3630,7 +3630,7 @@ static void do_radial_symmetry(const Depsgraph &depsgraph,
                                const float /*feather*/)
 {
   SculptSession &ss = *ob.sculpt;
-  const Mesh &mesh = *static_cast<Mesh *>(ob.data);
+  const Mesh &mesh = *blender::id_cast<Mesh *>(ob.data);
 
   for (int i = 1; i < mesh.radial_symmetry[axis - 'X']; i++) {
     const float angle = 2.0f * M_PI * i / mesh.radial_symmetry[axis - 'X'];
@@ -3663,7 +3663,7 @@ static void do_symmetrical_brush_actions(const Depsgraph &depsgraph,
                                          PaintModeSettings &paint_mode_settings)
 {
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
-  const Mesh &mesh = *static_cast<Mesh *>(ob.data);
+  const Mesh &mesh = *blender::id_cast<Mesh *>(ob.data);
   SculptSession &ss = *ob.sculpt;
   StrokeCache &cache = *ss.cache;
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
@@ -3860,7 +3860,7 @@ static void sculpt_init_mirror_clipping(const Object &ob, const SculptSession &s
     if (!(md.type == eModifierType_Mirror && (md.mode & eModifierMode_Realtime))) {
       continue;
     }
-    MirrorModifierData *mmd = (MirrorModifierData *)&md;
+    MirrorModifierData *mmd = reinterpret_cast<MirrorModifierData *>(&md);
 
     if (!(mmd->flag & MOD_MIR_CLIPPING)) {
       continue;
@@ -4745,7 +4745,7 @@ std::optional<ActiveElementInfo> active_element_info_get(ViewContext &vc, const 
   srd.is_mid_stroke = false;
   srd.use_original = false;
   if (pbvh->type() == bke::pbvh::Type::Mesh) {
-    const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+    const Mesh &mesh = *blender::id_cast<const Mesh *>(ob.data);
     srd.vert_positions = bke::pbvh::vert_positions_eval(*vc.depsgraph, ob);
     srd.faces = mesh.faces();
     srd.corner_verts = mesh.corner_verts();
@@ -4835,7 +4835,7 @@ bool cursor_geometry_info_update(Depsgraph &depsgraph,
   srd.is_mid_stroke = ob.sculpt->cache != nullptr;
   srd.hit = false;
   if (pbvh->type() == bke::pbvh::Type::Mesh) {
-    const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+    const Mesh &mesh = *blender::id_cast<const Mesh *>(ob.data);
     srd.vert_positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
     srd.faces = mesh.faces();
     srd.corner_verts = mesh.corner_verts();
@@ -4972,7 +4972,7 @@ static bool stroke_get_location_bvh_ex(Depsgraph &depsgraph,
     rd.ray_normal = ray_normal;
     rd.hit = false;
     if (pbvh.type() == bke::pbvh::Type::Mesh) {
-      const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+      const Mesh &mesh = *blender::id_cast<const Mesh *>(ob.data);
       rd.vert_positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
       rd.faces = mesh.faces();
       rd.corner_verts = mesh.corner_verts();
@@ -5010,7 +5010,7 @@ static bool stroke_get_location_bvh_ex(Depsgraph &depsgraph,
   fntrd.is_mid_stroke = ss.cache != nullptr;
   fntrd.hit = false;
   if (pbvh.type() == bke::pbvh::Type::Mesh) {
-    const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+    const Mesh &mesh = *blender::id_cast<const Mesh *>(ob.data);
     fntrd.vert_positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
     fntrd.faces = mesh.faces();
     fntrd.corner_verts = mesh.corner_verts();
@@ -5200,7 +5200,7 @@ namespace blender::ed::sculpt_paint {
 
 static void tag_mesh_positions_changed(Object &object, const bool use_pbvh_draw)
 {
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
 
   /* Various operations inside sculpt mode can cause either the #MeshRuntimeData or the entire
    * Mesh to be changed (e.g. Undoing the very first operation after opening a file, performing
@@ -5295,7 +5295,7 @@ void flush_update_done(const bContext *C, Object &ob, const UpdateType update_ty
 {
   /* After we are done drawing the stroke, check if we need to do a more
    * expensive depsgraph tag to update geometry. */
-  const Mesh &mesh = *static_cast<Mesh *>(ob.data);
+  const Mesh &mesh = *blender::id_cast<Mesh *>(ob.data);
 
   /* Always needed for linked duplicates. */
   bool need_tag = ID_REAL_USERS(&mesh.id) > 1;
@@ -5421,7 +5421,7 @@ static void store_sculpt_entire_mesh(const wmOperator &op,
                                      Object &object,
                                      Mesh *new_mesh)
 {
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
   sculpt_paint::undo::geometry_begin(scene, object, &op);
   BKE_mesh_nomain_to_mesh(new_mesh, &mesh, &object, false);
   sculpt_paint::undo::geometry_end(object);
@@ -5444,7 +5444,7 @@ void store_mesh_from_eval(const wmOperator &op,
                           Object &object,
                           Mesh *new_mesh)
 {
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
   const bool changed_topology = !topology_matches(mesh, *new_mesh);
   const bool use_pbvh_draw = BKE_sculptsession_use_pbvh_draw(&object, rv3d);
   bool entire_mesh_changed = false;
@@ -6091,7 +6091,7 @@ static void fake_neighbor_search(const Depsgraph &depsgraph,
 
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+      const Mesh &mesh = *blender::id_cast<const Mesh *>(ob.data);
       const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArraySpan<bool> hide_vert = *attributes.lookup<bool>(".hide_vert",
@@ -6288,7 +6288,7 @@ bool vertex_is_occluded(const Depsgraph &depsgraph,
   srd.ray_normal = ray_normal;
   srd.depth = depth;
   if (pbvh.type() == bke::pbvh::Type::Mesh) {
-    const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+    const Mesh &mesh = *blender::id_cast<const Mesh *>(object.data);
     srd.vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
     srd.faces = mesh.faces();
     srd.corner_verts = mesh.corner_verts();
@@ -6436,7 +6436,7 @@ static SculptTopologyIslandCache calculate_cache(const Object &object)
 {
   switch (bke::object::pbvh_get(object)->type()) {
     case bke::pbvh::Type::Mesh:
-      return calc_topology_islands_mesh(*static_cast<const Mesh *>(object.data));
+      return calc_topology_islands_mesh(*blender::id_cast<const Mesh *>(object.data));
     case bke::pbvh::Type::Grids:
       return calc_topology_islands_grids(object);
     case bke::pbvh::Type::BMesh:
@@ -7547,7 +7547,7 @@ void clip_and_lock_translations(const Sculpt &sd,
 
 std::optional<ShapeKeyData> ShapeKeyData::from_object(Object &object)
 {
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
   Key *keys = mesh.key;
   if (!keys) {
     return std::nullopt;
@@ -7575,7 +7575,7 @@ std::optional<ShapeKeyData> ShapeKeyData::from_object(Object &object)
 
 PositionDeformData::PositionDeformData(const Depsgraph &depsgraph, Object &object_orig)
 {
-  Mesh &mesh = *static_cast<Mesh *>(object_orig.data);
+  Mesh &mesh = *blender::id_cast<Mesh *>(object_orig.data);
   this->eval = bke::pbvh::vert_positions_eval(depsgraph, object_orig);
 
   if (!object_orig.sculpt->deform_imats.is_empty()) {

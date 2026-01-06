@@ -30,14 +30,14 @@ const EnumPropertyItem rna_enum_unpack_method_items[] = {
 
 static void rna_PackedImage_data_get(PointerRNA *ptr, char *value)
 {
-  PackedFile *pf = (PackedFile *)ptr->data;
+  PackedFile *pf = static_cast<PackedFile *>(ptr->data);
   memcpy(value, pf->data, size_t(pf->size));
   value[pf->size] = '\0';
 }
 
 static int rna_PackedImage_data_len(PointerRNA *ptr)
 {
-  PackedFile *pf = (PackedFile *)ptr->data;
+  PackedFile *pf = static_cast<PackedFile *>(ptr->data);
   return pf->size; /* No need to include trailing null char here! */
 }
 

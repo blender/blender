@@ -149,7 +149,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 {
   using namespace blender;
   Mesh *result;
-  const SolidifyModifierData *smd = (SolidifyModifierData *)md;
+  const SolidifyModifierData *smd = reinterpret_cast<SolidifyModifierData *>(md);
 
   const uint verts_num = uint(mesh->verts_num);
   const uint edges_num = uint(mesh->edges_num);

@@ -100,7 +100,7 @@ struct TriTessFace {
 
 static void store_bake_pixel(void *handle, int x, int y, float u, float v)
 {
-  BakeDataZSpan *bd = (BakeDataZSpan *)handle;
+  BakeDataZSpan *bd = static_cast<BakeDataZSpan *>(handle);
   BakePixel *pixel;
 
   const int width = bd->bk_image->width;
@@ -787,7 +787,7 @@ void RE_bake_pixels_populate(Mesh *mesh,
       bd.bk_image = bk_image;
       bake_differentials(&bd, vec[0], vec[1], vec[2]);
       zspan_scanconvert(
-          &bd.zspan[image_id], (void *)&bd, vec[0], vec[1], vec[2], store_bake_pixel);
+          &bd.zspan[image_id], static_cast<void *>(&bd), vec[0], vec[1], vec[2], store_bake_pixel);
     }
   }
 

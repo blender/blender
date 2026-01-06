@@ -53,7 +53,7 @@ class Origins : Overlay {
 
     const Object *ob = ob_ref.object;
     const bool is_library = ID_REAL_USERS(&ob->id) > 1 || ID_IS_LINKED(ob);
-    BKE_view_layer_synced_ensure(state.scene, (ViewLayer *)state.view_layer);
+    BKE_view_layer_synced_ensure(state.scene, const_cast<ViewLayer *>(state.view_layer));
     const float4 location = float4(ob->object_to_world().location(), 0.0f);
 
     if (ob == BKE_view_layer_active_object_get(state.view_layer)) {

@@ -65,7 +65,8 @@ static void free_data(ModifierData *md)
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  GreasePencilWeightAngleModifierData *mmd = (GreasePencilWeightAngleModifierData *)md;
+  GreasePencilWeightAngleModifierData *mmd =
+      reinterpret_cast<GreasePencilWeightAngleModifierData *>(md);
 
   return (mmd->target_vgname[0] == '\0');
 }

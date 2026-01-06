@@ -35,7 +35,7 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_update(bNodeTree *ntree, bNode *node)
 {
-  bNodeSocket *sockB = (bNodeSocket *)BLI_findlink(&node->inputs, 1);
+  bNodeSocket *sockB = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 1));
 
   bke::node_set_socket_availability(*ntree, *sockB, !ELEM(node->custom1, NODE_BOOLEAN_MATH_NOT));
 }

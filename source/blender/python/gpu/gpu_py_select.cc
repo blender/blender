@@ -56,7 +56,7 @@ static PyObject *pygpu_select_load_id(PyObject * /*self*/, PyObject *value)
 
 static PyMethodDef pygpu_select__tp_methods[] = {
     /* Manage Stack */
-    {"load_id", (PyCFunction)pygpu_select_load_id, METH_O, pygpu_select_load_id_doc},
+    {"load_id", static_cast<PyCFunction>(pygpu_select_load_id), METH_O, pygpu_select_load_id_doc},
     {nullptr, nullptr, 0, nullptr},
 };
 

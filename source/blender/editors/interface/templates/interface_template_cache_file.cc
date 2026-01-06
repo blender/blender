@@ -108,7 +108,7 @@ void template_list_flags(Layout *layout, const bContext *C, PointerRNA *fileptr)
   Layout *col = &row.column(true);
 
   template_list(col,
-                (bContext *)C,
+                const_cast<bContext *>(C),
                 "UI_UL_cache_file_layers",
                 "cache_file_layers",
                 fileptr,

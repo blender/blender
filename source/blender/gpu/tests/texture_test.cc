@@ -47,9 +47,9 @@ static void test_texture_read()
 
   GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
 
-  uint4 *rgba32u_data = (uint4 *)GPU_texture_read(rgba32u, GPU_DATA_UINT, 0);
-  uint4 *rgba16u_data = (uint4 *)GPU_texture_read(rgba16u, GPU_DATA_UINT, 0);
-  float4 *rgba32f_data = (float4 *)GPU_texture_read(rgba32f, GPU_DATA_FLOAT, 0);
+  uint4 *rgba32u_data = static_cast<uint4 *>(GPU_texture_read(rgba32u, GPU_DATA_UINT, 0));
+  uint4 *rgba16u_data = static_cast<uint4 *>(GPU_texture_read(rgba16u, GPU_DATA_UINT, 0));
+  float4 *rgba32f_data = static_cast<float4 *>(GPU_texture_read(rgba32f, GPU_DATA_FLOAT, 0));
 
   EXPECT_EQ(ucol, *rgba32u_data);
   EXPECT_EQ(ucol, *rgba16u_data);
@@ -84,7 +84,7 @@ static void test_texture_1d()
 
   GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
 
-  float4 *data = (float4 *)GPU_texture_read(tex, GPU_DATA_FLOAT, 0);
+  float4 *data = static_cast<float4 *>(GPU_texture_read(tex, GPU_DATA_FLOAT, 0));
   for (int index : IndexRange(SIZE)) {
     EXPECT_EQ(clear_color, data[index]);
   }
@@ -114,7 +114,7 @@ static void test_texture_1d_array()
 
   GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
 
-  float4 *data = (float4 *)GPU_texture_read(tex, GPU_DATA_FLOAT, 0);
+  float4 *data = static_cast<float4 *>(GPU_texture_read(tex, GPU_DATA_FLOAT, 0));
   for (int index : IndexRange(SIZE * LAYERS)) {
     EXPECT_EQ(clear_color, data[index]);
   }
@@ -169,7 +169,7 @@ static void test_texture_2d_array()
 
   GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
 
-  float4 *data = (float4 *)GPU_texture_read(tex, GPU_DATA_FLOAT, 0);
+  float4 *data = static_cast<float4 *>(GPU_texture_read(tex, GPU_DATA_FLOAT, 0));
   for (int index : IndexRange(SIZE * SIZE * LAYERS)) {
     EXPECT_EQ(clear_color, data[index]);
   }
@@ -220,7 +220,7 @@ static void test_texture_cube()
 
   GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
 
-  float4 *data = (float4 *)GPU_texture_read(tex, GPU_DATA_FLOAT, 0);
+  float4 *data = static_cast<float4 *>(GPU_texture_read(tex, GPU_DATA_FLOAT, 0));
   for (int index : IndexRange(SIZE * SIZE * 6)) {
     EXPECT_EQ(clear_color, data[index]);
   }
@@ -244,7 +244,7 @@ static void test_texture_cube_array()
   float4 clear_color(1.0f, 0.5f, 0.2f, 1.0f);
   GPU_texture_clear(tex, GPU_DATA_FLOAT, clear_color);
 
-  float4 *data = (float4 *)GPU_texture_read(tex, GPU_DATA_FLOAT, 0);
+  float4 *data = static_cast<float4 *>(GPU_texture_read(tex, GPU_DATA_FLOAT, 0));
   for (int index : IndexRange(SIZE * SIZE * 6 * LAYERS)) {
     EXPECT_EQ(clear_color, data[index]);
   }
@@ -269,7 +269,7 @@ static void test_texture_3d()
 
   GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
 
-  float4 *data = (float4 *)GPU_texture_read(tex, GPU_DATA_FLOAT, 0);
+  float4 *data = static_cast<float4 *>(GPU_texture_read(tex, GPU_DATA_FLOAT, 0));
   for (int index : IndexRange(SIZE * SIZE * SIZE)) {
     EXPECT_EQ(clear_color, data[index]);
   }
@@ -301,7 +301,7 @@ static void test_texture_copy()
 
   GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
 
-  float4 *data = (float4 *)GPU_texture_read(dst_tx, GPU_DATA_FLOAT, 0);
+  float4 *data = static_cast<float4 *>(GPU_texture_read(dst_tx, GPU_DATA_FLOAT, 0));
   for (int index : IndexRange(SIZE * SIZE)) {
     EXPECT_EQ(color, data[index]);
   }

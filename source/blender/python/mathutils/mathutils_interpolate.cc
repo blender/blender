@@ -53,7 +53,7 @@ static PyObject *M_Interpolate_poly_3d_calc(PyObject * /*self*/, PyObject *args)
     return nullptr;
   }
 
-  len = mathutils_array_parse_alloc_v(((float **)&vecs), 3, veclist, __func__);
+  len = mathutils_array_parse_alloc_v((reinterpret_cast<float **>(&vecs)), 3, veclist, __func__);
   if (len == -1) {
     return nullptr;
   }
@@ -84,7 +84,7 @@ static PyObject *M_Interpolate_poly_3d_calc(PyObject * /*self*/, PyObject *args)
 static PyMethodDef M_Interpolate_methods[] = {
 #ifndef MATH_STANDALONE
     {"poly_3d_calc",
-     (PyCFunction)M_Interpolate_poly_3d_calc,
+     static_cast<PyCFunction>(M_Interpolate_poly_3d_calc),
      METH_VARARGS,
      M_Interpolate_poly_3d_calc_doc},
 #endif

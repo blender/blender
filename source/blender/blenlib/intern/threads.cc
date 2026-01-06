@@ -172,7 +172,7 @@ int BLI_threadpool_available_thread_index(ListBaseT<ThreadSlot> *threadbase)
 
 static void *tslot_thread_start(void *tslot_p)
 {
-  ThreadSlot *tslot = (ThreadSlot *)tslot_p;
+  ThreadSlot *tslot = static_cast<ThreadSlot *>(tslot_p);
   return tslot->do_thread(tslot->callerdata);
 }
 

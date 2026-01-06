@@ -129,7 +129,7 @@ void TraceJob::ensure_output_object()
   }
 
   /* Create Layer. */
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(this->ob_grease_pencil->data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(this->ob_grease_pencil->data);
   this->layer = grease_pencil.get_active_layer();
   if (this->layer == nullptr) {
     Layer &new_layer = grease_pencil.add_layer(DATA_("Trace"));
@@ -301,7 +301,8 @@ static void trace_start_job(void *customdata, wmJobWorkerStatus *worker_status)
 static void trace_end_job(void *customdata)
 {
   TraceJob &trace_job = *static_cast<TraceJob *>(customdata);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(trace_job.ob_grease_pencil->data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(
+      trace_job.ob_grease_pencil->data);
 
   auto ensure_drawing_at_frame = [&](const int frame_number) {
     const std::optional<int> start_frame = trace_job.layer->start_frame_at(frame_number);
@@ -371,7 +372,7 @@ static bool grease_pencil_trace_image_poll(bContext *C)
     return false;
   }
 
-  Image *image = static_cast<Image *>(ob->data);
+  Image *image = blender::id_cast<Image *>(ob->data);
   if (!ELEM(image->source, IMA_SRC_FILE, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
     CTX_wm_operator_poll_msg_set(C, "No valid image format selected");
     return false;
@@ -392,7 +393,7 @@ static wmOperatorStatus grease_pencil_trace_image_exec(bContext *C, wmOperator *
   job->v3d = CTX_wm_view3d(C);
   job->base_active = CTX_data_active_base(C);
   job->ob_active = job->base_active->object;
-  job->image = static_cast<Image *>(job->ob_active->data);
+  job->image = blender::id_cast<Image *>(job->ob_active->data);
   job->frame_target = scene->r.cfra;
   job->use_current_frame = RNA_boolean_get(op->ptr, "use_current_frame");
 

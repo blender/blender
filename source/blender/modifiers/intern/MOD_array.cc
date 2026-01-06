@@ -53,7 +53,7 @@ using namespace blender;
 
 static void init_data(ModifierData *md)
 {
-  ArrayModifierData *amd = (ArrayModifierData *)md;
+  ArrayModifierData *amd = reinterpret_cast<ArrayModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(amd, modifier);
 
   /* Open the first sub-panel by default,
@@ -63,17 +63,17 @@ static void init_data(ModifierData *md)
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  ArrayModifierData *amd = (ArrayModifierData *)md;
+  ArrayModifierData *amd = reinterpret_cast<ArrayModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&amd->start_cap, IDWALK_CB_NOP);
-  walk(user_data, ob, (ID **)&amd->end_cap, IDWALK_CB_NOP);
-  walk(user_data, ob, (ID **)&amd->curve_ob, IDWALK_CB_NOP);
-  walk(user_data, ob, (ID **)&amd->offset_ob, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&amd->start_cap), IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&amd->end_cap), IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&amd->curve_ob), IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&amd->offset_ob), IDWALK_CB_NOP);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  ArrayModifierData *amd = (ArrayModifierData *)md;
+  ArrayModifierData *amd = reinterpret_cast<ArrayModifierData *>(md);
   bool need_transform_dependency = false;
   if (amd->start_cap != nullptr) {
     DEG_add_object_relation(
@@ -868,13 +868,13 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-  ArrayModifierData *amd = (ArrayModifierData *)md;
+  ArrayModifierData *amd = reinterpret_cast<ArrayModifierData *>(md);
   return arrayModifier_doArray(amd, ctx, mesh);
 }
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  ArrayModifierData *amd = (ArrayModifierData *)md;
+  ArrayModifierData *amd = reinterpret_cast<ArrayModifierData *>(md);
 
   /* The object type check is only needed here in case we have a placeholder
    * object assigned (because the library containing the curve/mesh is missing).

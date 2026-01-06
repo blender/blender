@@ -125,7 +125,7 @@ BMBVHTree *BKE_bmbvh_new_ex(BMesh *bm,
       copy_v3_v3(cos[2], looptris[i][2]->v->co);
     }
 
-    BLI_bvhtree_insert(bmtree->tree, i, (float *)cos, 3);
+    BLI_bvhtree_insert(bmtree->tree, i, reinterpret_cast<float *>(cos), 3);
   }
 
   BLI_bvhtree_balance(bmtree->tree);

@@ -189,7 +189,7 @@ void AbcNurbsReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSele
   }
 
   m_object = BKE_object_add_only_object(bmain, OB_SURF, m_object_name.c_str());
-  m_object->data = cu;
+  m_object->data = blender::id_cast<ID *>(cu);
 }
 
 void AbcNurbsReader::getNurbsPatches(const IObject &obj)

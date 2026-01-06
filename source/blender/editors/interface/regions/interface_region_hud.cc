@@ -123,12 +123,12 @@ static bool last_redo_poll(const bContext *C, short region_type, int region_inde
                                                    area, region_type, region_index_hint) :
                                                nullptr;
     ARegion *region_prev = CTX_wm_region(C);
-    CTX_wm_region_set((bContext *)C, region_op);
+    CTX_wm_region_set(const_cast<bContext *>(C), region_op);
 
     if (WM_operator_repeat_check(C, op) && WM_operator_ui_poll(op->type, op->ptr)) {
-      success = WM_operator_poll((bContext *)C, op->type);
+      success = WM_operator_poll(const_cast<bContext *>(C), op->type);
     }
-    CTX_wm_region_set((bContext *)C, region_prev);
+    CTX_wm_region_set(const_cast<bContext *>(C), region_prev);
   }
   return success;
 }

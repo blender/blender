@@ -33,7 +33,7 @@ char *BM_mesh_debug_info(BMesh *bm)
   const char *indent8 = "        ";
 
   BLI_dynstr_append(dynstr, "{\n");
-  BLI_dynstr_appendf(dynstr, "    'ptr': '%p',\n", (void *)bm);
+  BLI_dynstr_appendf(dynstr, "    'ptr': '%p',\n", static_cast<void *>(bm));
   BLI_dynstr_appendf(dynstr, "    'totvert': %d,\n", bm->totvert);
   BLI_dynstr_appendf(dynstr, "    'totedge': %d,\n", bm->totedge);
   BLI_dynstr_appendf(dynstr, "    'totface': %d,\n", bm->totface);

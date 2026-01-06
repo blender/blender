@@ -89,7 +89,7 @@ AnimData *BKE_animdata_from_id(const ID *id)
   /* Only some ID-blocks have this info for now, so we cast the types that do
    * to be of type IdAdtTemplate, and add the AnimData to it using the template. */
   if (id_can_have_animdata(id)) {
-    IdAdtTemplate *iat = (IdAdtTemplate *)id;
+    const IdAdtTemplate *iat = reinterpret_cast<const IdAdtTemplate *>(id);
     return iat->adt;
   }
   return nullptr;
@@ -103,7 +103,7 @@ AnimData *BKE_animdata_ensure_id(ID *id)
   /* Only some ID-blocks have this info for now, so we cast the types that do
    * to be of type IdAdtTemplate, and add the AnimData to it using the template. */
   if (id_can_have_animdata(id)) {
-    IdAdtTemplate *iat = (IdAdtTemplate *)id;
+    IdAdtTemplate *iat = reinterpret_cast<IdAdtTemplate *>(id);
 
     /* check if there's already AnimData, in which case, don't add */
     if (iat->adt == nullptr) {
@@ -192,7 +192,7 @@ void BKE_animdata_free(ID *id, const bool do_id_user)
     return;
   }
 
-  IdAdtTemplate *iat = (IdAdtTemplate *)id;
+  IdAdtTemplate *iat = reinterpret_cast<IdAdtTemplate *>(id);
   AnimData *adt = iat->adt;
   if (!adt) {
     return;
@@ -242,7 +242,7 @@ bool BKE_animdata_id_is_animated(const ID *id)
     return false;
   }
 
-  const AnimData *adt = BKE_animdata_from_id((ID *)id);
+  const AnimData *adt = BKE_animdata_from_id(const_cast<ID *>(id));
   if (adt == nullptr) {
     return false;
   }
@@ -328,8 +328,8 @@ AnimData *BKE_animdata_copy_in_lib(Main *bmain,
                            id_copy_flag));
   }
   else if (do_id_user) {
-    id_us_plus((ID *)dadt->action);
-    id_us_plus((ID *)dadt->tmpact);
+    id_us_plus(blender::id_cast<ID *>(dadt->action));
+    id_us_plus(blender::id_cast<ID *>(dadt->tmpact));
   }
 
   /* duplicate NLA data */
@@ -379,7 +379,7 @@ bool BKE_animdata_copy_id(Main *bmain, ID *id_to, ID *id_from, const int flag)
 
   adt = BKE_animdata_from_id(id_from);
   if (adt) {
-    IdAdtTemplate *iat = (IdAdtTemplate *)id_to;
+    IdAdtTemplate *iat = reinterpret_cast<IdAdtTemplate *>(id_to);
     iat->adt = BKE_animdata_copy(bmain, adt, flag);
   }
 
@@ -471,16 +471,16 @@ void BKE_animdata_merge_copy(
   /* handle actions... */
   if (action_mode == ADT_MERGECOPY_SRC_COPY) {
     /* make a copy of the actions */
-    dst->action = (bAction *)BKE_id_copy(bmain, &src->action->id);
-    dst->tmpact = (bAction *)BKE_id_copy(bmain, &src->tmpact->id);
+    dst->action = blender::id_cast<bAction *>(BKE_id_copy(bmain, &src->action->id));
+    dst->tmpact = blender::id_cast<bAction *>(BKE_id_copy(bmain, &src->tmpact->id));
   }
   else if (action_mode == ADT_MERGECOPY_SRC_REF) {
     /* make a reference to it */
     dst->action = src->action;
-    id_us_plus((ID *)dst->action);
+    id_us_plus(blender::id_cast<ID *>(dst->action));
 
     dst->tmpact = src->tmpact;
-    id_us_plus((ID *)dst->tmpact);
+    id_us_plus(blender::id_cast<ID *>(dst->tmpact));
   }
   dst->slot_handle = src->slot_handle;
   dst->tmp_slot_handle = src->tmp_slot_handle;
@@ -948,7 +948,7 @@ static bool drivers_path_rename_fix(ID *owner_id,
         /* also fix the bone-name (if applicable) */
         if (strstr(prefix, "bones")) {
           if (((dtar->id) && (GS(dtar->id->name) == ID_OB) &&
-               (!ref_id || ((Object *)(dtar->id))->data == ref_id)) &&
+               (!ref_id || (blender::id_cast<Object *>(dtar->id))->data == ref_id)) &&
               (dtar->pchan_name[0]) && STREQ(oldName, dtar->pchan_name))
           {
             is_changed = true;

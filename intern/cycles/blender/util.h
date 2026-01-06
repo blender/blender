@@ -42,7 +42,7 @@ CCL_NAMESPACE_BEGIN
 static inline ::ID *object_get_data(const ::Object &b_ob, const bool use_adaptive_subdivision)
 {
   if (!use_adaptive_subdivision && b_ob.type == OB_MESH) {
-    return &BKE_mesh_wrapper_ensure_subdivision(static_cast<::Mesh *>(b_ob.data))->id;
+    return &BKE_mesh_wrapper_ensure_subdivision(blender::id_cast<::Mesh *>(b_ob.data))->id;
   }
 
   return reinterpret_cast<ID *>(b_ob.data);

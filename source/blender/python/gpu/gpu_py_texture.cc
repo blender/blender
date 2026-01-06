@@ -643,7 +643,8 @@ static PyObject *pygpu_texture_read(BPyGPUTexture *self)
                                Py_ssize_t(GPU_texture_component_len(tex_format))};
 
   int shape_len = (shape[2] == 1) ? 2 : 3;
-  return (PyObject *)BPyGPU_Buffer_CreatePyObject(best_data_format, shape, shape_len, buf);
+  return reinterpret_cast<PyObject *>(
+      BPyGPU_Buffer_CreatePyObject(best_data_format, shape, shape_len, buf));
 }
 
 #ifdef BPYGPU_USE_GPUOBJ_FREE_METHOD
@@ -672,19 +673,23 @@ static void BPyGPUTexture__tp_dealloc(BPyGPUTexture *self)
 #endif
     GPU_texture_free(self->tex);
   }
-  Py_TYPE(self)->tp_free((PyObject *)self);
+  Py_TYPE(self)->tp_free(reinterpret_cast<PyObject *>(self));
 }
 
 static PyGetSetDef pygpu_texture__tp_getseters[] = {
-    {"width", (getter)pygpu_texture_width_get, (setter) nullptr, pygpu_texture_width_doc, nullptr},
+    {"width",
+     reinterpret_cast<getter>(pygpu_texture_width_get),
+     static_cast<setter>(nullptr),
+     pygpu_texture_width_doc,
+     nullptr},
     {"height",
-     (getter)pygpu_texture_height_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(pygpu_texture_height_get),
+     static_cast<setter>(nullptr),
      pygpu_texture_height_doc,
      nullptr},
     {"format",
-     (getter)pygpu_texture_format_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(pygpu_texture_format_get),
+     static_cast<setter>(nullptr),
      pygpu_texture_format_doc,
      nullptr},
     {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
@@ -702,29 +707,38 @@ static PyGetSetDef pygpu_texture__tp_getseters[] = {
 
 static PyMethodDef pygpu_texture__tp_methods[] = {
     {"clear",
-     (PyCFunction)pygpu_texture_clear,
+     reinterpret_cast<PyCFunction>(pygpu_texture_clear),
      METH_VARARGS | METH_KEYWORDS,
      pygpu_texture_clear_doc},
-    {"read", (PyCFunction)pygpu_texture_read, METH_NOARGS, pygpu_texture_read_doc},
+    {"read",
+     reinterpret_cast<PyCFunction>(pygpu_texture_read),
+     METH_NOARGS,
+     pygpu_texture_read_doc},
 #ifdef BPYGPU_USE_GPUOBJ_FREE_METHOD
     {"free", (PyCFunction)pygpu_texture_free, METH_NOARGS, pygpu_texture_free_doc},
 #endif
     {"extend_mode_x",
-     (PyCFunction)pygpu_texture_extend_mode_x,
+     reinterpret_cast<PyCFunction>(pygpu_texture_extend_mode_x),
      METH_O,
      pygpu_texture_extend_mode_x_doc},
     {"extend_mode_y",
-     (PyCFunction)pygpu_texture_extend_mode_y,
+     reinterpret_cast<PyCFunction>(pygpu_texture_extend_mode_y),
      METH_O,
      pygpu_texture_extend_mode_y_doc},
-    {"extend_mode", (PyCFunction)pygpu_texture_extend_mode, METH_O, pygpu_texture_extend_mode_doc},
-    {"filter_mode", (PyCFunction)pygpu_texture_filter_mode, METH_O, pygpu_texture_filter_mode_doc},
+    {"extend_mode",
+     reinterpret_cast<PyCFunction>(pygpu_texture_extend_mode),
+     METH_O,
+     pygpu_texture_extend_mode_doc},
+    {"filter_mode",
+     reinterpret_cast<PyCFunction>(pygpu_texture_filter_mode),
+     METH_O,
+     pygpu_texture_filter_mode_doc},
     {"mipmap_mode",
-     (PyCFunction)pygpu_texture_mipmap_mode,
+     reinterpret_cast<PyCFunction>(pygpu_texture_mipmap_mode),
      METH_VARARGS | METH_KEYWORDS,
      pygpu_texture_mipmap_mode_doc},
     {"anisotropic_filter",
-     (PyCFunction)pygpu_texture_anisotropic_filter,
+     reinterpret_cast<PyCFunction>(pygpu_texture_anisotropic_filter),
      METH_O,
      pygpu_texture_anisotropic_filter_doc},
     {nullptr, nullptr, 0, nullptr},
@@ -805,7 +819,7 @@ PyTypeObject BPyGPUTexture_Type = {
     /*tp_name*/ "GPUTexture",
     /*tp_basicsize*/ sizeof(BPyGPUTexture),
     /*tp_itemsize*/ 0,
-    /*tp_dealloc*/ (destructor)BPyGPUTexture__tp_dealloc,
+    /*tp_dealloc*/ reinterpret_cast<destructor>(BPyGPUTexture__tp_dealloc),
     /*tp_vectorcall_offset*/ 0,
     /*tp_getattr*/ nullptr,
     /*tp_setattr*/ nullptr,
@@ -888,7 +902,10 @@ static PyObject *pygpu_texture_from_image(PyObject * /*self*/, PyObject *arg)
 }
 
 static PyMethodDef pygpu_texture__m_methods[] = {
-    {"from_image", (PyCFunction)pygpu_texture_from_image, METH_O, pygpu_texture_from_image_doc},
+    {"from_image",
+     static_cast<PyCFunction>(pygpu_texture_from_image),
+     METH_O,
+     pygpu_texture_from_image_doc},
     {nullptr, nullptr, 0, nullptr},
 };
 
@@ -917,7 +934,7 @@ static PyModuleDef pygpu_texture_module_def = {
 int bpygpu_ParseTexture(PyObject *o, void *p)
 {
   if (o == Py_None) {
-    *(blender::gpu::Texture **)p = nullptr;
+    *static_cast<blender::gpu::Texture **>(p) = nullptr;
     return 1;
   }
 
@@ -931,7 +948,7 @@ int bpygpu_ParseTexture(PyObject *o, void *p)
     return 0;
   }
 
-  *(blender::gpu::Texture **)p = ((BPyGPUTexture *)o)->tex;
+  *static_cast<blender::gpu::Texture **>(p) = (reinterpret_cast<BPyGPUTexture *>(o))->tex;
   return 1;
 }
 
@@ -958,10 +975,10 @@ PyObject *BPyGPUTexture_CreatePyObject(blender::gpu::Texture *tex, bool shared_r
     void **ref = GPU_texture_py_reference_get(tex);
     if (ref) {
       /* Retrieve BPyGPUTexture reference. */
-      self = (BPyGPUTexture *)POINTER_OFFSET(ref, -offsetof(BPyGPUTexture, tex));
+      self = reinterpret_cast<BPyGPUTexture *> POINTER_OFFSET(ref, -offsetof(BPyGPUTexture, tex));
       BLI_assert(self->tex == tex);
       Py_INCREF(self);
-      return (PyObject *)self;
+      return reinterpret_cast<PyObject *>(self);
     }
 #endif
 
@@ -973,10 +990,10 @@ PyObject *BPyGPUTexture_CreatePyObject(blender::gpu::Texture *tex, bool shared_r
 
 #ifndef GPU_NO_USE_PY_REFERENCES
   BLI_assert(GPU_texture_py_reference_get(tex) == nullptr);
-  GPU_texture_py_reference_set(tex, (void **)&self->tex);
+  GPU_texture_py_reference_set(tex, reinterpret_cast<void **>(&self->tex));
 #endif
 
-  return (PyObject *)self;
+  return reinterpret_cast<PyObject *>(self);
 }
 
 /** \} */

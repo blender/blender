@@ -488,7 +488,7 @@ void BLI_mmap_free(BLI_mmap_file *file)
 {
   error_handler_remove(file);
 #ifndef WIN32
-  munmap((void *)file->memory, file->length);
+  munmap(static_cast<void *>(file->memory), file->length);
 #else
   UnmapViewOfFile(file->memory);
   CloseHandle(file->handle);

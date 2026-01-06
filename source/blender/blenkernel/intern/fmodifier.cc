@@ -89,7 +89,7 @@ static FModifierTypeInfo FMI_MODNAME = {
 
 static void fcm_generator_free(FModifier *fcm)
 {
-  FMod_Generator *data = (FMod_Generator *)fcm->data;
+  FMod_Generator *data = static_cast<FMod_Generator *>(fcm->data);
 
   /* free polynomial coefficients array */
   if (data->coefficients) {
@@ -99,8 +99,8 @@ static void fcm_generator_free(FModifier *fcm)
 
 static void fcm_generator_copy(FModifier *fcm, const FModifier *src)
 {
-  FMod_Generator *gen = (FMod_Generator *)fcm->data;
-  FMod_Generator *ogen = (FMod_Generator *)src->data;
+  FMod_Generator *gen = static_cast<FMod_Generator *>(fcm->data);
+  FMod_Generator *ogen = static_cast<FMod_Generator *>(src->data);
 
   /* copy coefficients array? */
   if (ogen->coefficients) {
@@ -110,7 +110,7 @@ static void fcm_generator_copy(FModifier *fcm, const FModifier *src)
 
 static void fcm_generator_new_data(void *mdata)
 {
-  FMod_Generator *data = (FMod_Generator *)mdata;
+  FMod_Generator *data = static_cast<FMod_Generator *>(mdata);
   float *cp;
 
   /* set default generator to be linear 0-1 (gradient = 1, y-offset = 0) */
@@ -123,7 +123,7 @@ static void fcm_generator_new_data(void *mdata)
 
 static void fcm_generator_verify(FModifier *fcm)
 {
-  FMod_Generator *data = (FMod_Generator *)fcm->data;
+  FMod_Generator *data = static_cast<FMod_Generator *>(fcm->data);
 
   /* requirements depend on mode */
   switch (data->mode) {
@@ -158,7 +158,7 @@ static void fcm_generator_evaluate(const FCurve * /*fcu*/,
                                    float evaltime,
                                    void * /*storage*/)
 {
-  FMod_Generator *data = (FMod_Generator *)fcm->data;
+  FMod_Generator *data = static_cast<FMod_Generator *>(fcm->data);
 
   /* behavior depends on mode
    * NOTE: the data in its default state is fine too
@@ -259,7 +259,7 @@ static FModifierTypeInfo FMI_GENERATOR = {
 
 static void fcm_fn_generator_new_data(void *mdata)
 {
-  FMod_FunctionGenerator *data = (FMod_FunctionGenerator *)mdata;
+  FMod_FunctionGenerator *data = static_cast<FMod_FunctionGenerator *>(mdata);
 
   /* set amplitude and phase multiplier to 1.0f so that something is generated */
   data->amplitude = 1.0f;
@@ -285,7 +285,7 @@ static void fcm_fn_generator_evaluate(const FCurve * /*fcu*/,
                                       float evaltime,
                                       void * /*storage*/)
 {
-  FMod_FunctionGenerator *data = (FMod_FunctionGenerator *)fcm->data;
+  FMod_FunctionGenerator *data = static_cast<FMod_FunctionGenerator *>(fcm->data);
   double arg = data->phase_multiplier * evaltime + data->phase_offset;
   double (*fn)(double v) = nullptr;
 
@@ -382,7 +382,7 @@ static FModifierTypeInfo FMI_FN_GENERATOR = {
 
 static void fcm_envelope_free(FModifier *fcm)
 {
-  FMod_Envelope *env = (FMod_Envelope *)fcm->data;
+  FMod_Envelope *env = static_cast<FMod_Envelope *>(fcm->data);
 
   /* free envelope data array */
   if (env->data) {
@@ -392,8 +392,8 @@ static void fcm_envelope_free(FModifier *fcm)
 
 static void fcm_envelope_copy(FModifier *fcm, const FModifier *src)
 {
-  FMod_Envelope *env = (FMod_Envelope *)fcm->data;
-  FMod_Envelope *oenv = (FMod_Envelope *)src->data;
+  FMod_Envelope *env = static_cast<FMod_Envelope *>(fcm->data);
+  FMod_Envelope *oenv = static_cast<FMod_Envelope *>(src->data);
 
   /* copy envelope data array */
   if (oenv->data) {
@@ -403,7 +403,7 @@ static void fcm_envelope_copy(FModifier *fcm, const FModifier *src)
 
 static void fcm_envelope_new_data(void *mdata)
 {
-  FMod_Envelope *env = (FMod_Envelope *)mdata;
+  FMod_Envelope *env = static_cast<FMod_Envelope *>(mdata);
 
   /* set default min/max ranges */
   env->min = -1.0f;
@@ -412,7 +412,7 @@ static void fcm_envelope_new_data(void *mdata)
 
 static void fcm_envelope_verify(FModifier *fcm)
 {
-  FMod_Envelope *env = (FMod_Envelope *)fcm->data;
+  FMod_Envelope *env = static_cast<FMod_Envelope *>(fcm->data);
 
   /* if the are points, perform bubble-sort on them, as user may have changed the order */
   if (env->data) {
@@ -426,7 +426,7 @@ static void fcm_envelope_evaluate(const FCurve * /*fcu*/,
                                   float evaltime,
                                   void * /*storage*/)
 {
-  FMod_Envelope *env = (FMod_Envelope *)fcm->data;
+  FMod_Envelope *env = static_cast<FMod_Envelope *>(fcm->data);
   FCM_EnvelopeData *fed, *prevfed, *lastfed;
   float min = 0.0f, max = 0.0f, fac = 0.0f;
   int a;
@@ -609,7 +609,7 @@ struct tFCMED_Cycles {
 
 static void fcm_cycles_new_data(void *mdata)
 {
-  FMod_Cycles *data = (FMod_Cycles *)mdata;
+  FMod_Cycles *data = static_cast<FMod_Cycles *>(mdata);
 
   /* turn on cycles by default */
   data->before_mode = data->after_mode = FCM_EXTRAPOLATE_CYCLIC;
@@ -618,7 +618,7 @@ static void fcm_cycles_new_data(void *mdata)
 static float fcm_cycles_time(
     const FCurve *fcu, const FModifier *fcm, float /*cvalue*/, float evaltime, void *storage_)
 {
-  const FMod_Cycles *data = (FMod_Cycles *)fcm->data;
+  const FMod_Cycles *data = static_cast<FMod_Cycles *>(fcm->data);
   tFCMED_Cycles *storage = static_cast<tFCMED_Cycles *>(storage_);
   float firstkey[2], lastkey[2], cycyofs = 0.0f;
   short side = 0, mode = 0;
@@ -795,7 +795,7 @@ static FModifierTypeInfo FMI_CYCLES = {
 
 static void fcm_noise_new_data(void *mdata)
 {
-  FMod_Noise *data = (FMod_Noise *)mdata;
+  FMod_Noise *data = static_cast<FMod_Noise *>(mdata);
 
   /* defaults */
   data->size = 1.0f;
@@ -815,7 +815,7 @@ static void fcm_noise_evaluate(const FCurve * /*fcu*/,
                                float evaltime,
                                void * /*storage*/)
 {
-  FMod_Noise *data = (FMod_Noise *)fcm->data;
+  FMod_Noise *data = static_cast<FMod_Noise *>(fcm->data);
   float noise;
   if (data->legacy_noise) {
     /* Generate legacy noise. This is deprecated, see #123875.
@@ -888,7 +888,7 @@ static float fcm_limits_time(const FCurve * /*fcu*/,
                              float evaltime,
                              void * /*storage*/)
 {
-  FMod_Limits *data = (FMod_Limits *)fcm->data;
+  FMod_Limits *data = static_cast<FMod_Limits *>(fcm->data);
 
   /* check for the time limits */
   if ((data->flag & FCM_LIMIT_XMIN) && (evaltime < data->rect.xmin)) {
@@ -908,7 +908,7 @@ static void fcm_limits_evaluate(const FCurve * /*fcu*/,
                                 float /*evaltime*/,
                                 void * /*storage*/)
 {
-  FMod_Limits *data = (FMod_Limits *)fcm->data;
+  FMod_Limits *data = static_cast<FMod_Limits *>(fcm->data);
 
   /* value limits now */
   if ((data->flag & FCM_LIMIT_YMIN) && (*cvalue < data->rect.ymin)) {
@@ -939,7 +939,7 @@ static FModifierTypeInfo FMI_LIMITS = {
 
 static void fcm_stepped_new_data(void *mdata)
 {
-  FMod_Stepped *data = (FMod_Stepped *)mdata;
+  FMod_Stepped *data = static_cast<FMod_Stepped *>(mdata);
 
   /* just need to set the step-size to 2-frames by default */
   /* XXX: or would 5 be more normal? */
@@ -952,7 +952,7 @@ static float fcm_stepped_time(const FCurve * /*fcu*/,
                               float evaltime,
                               void * /*storage*/)
 {
-  FMod_Stepped *data = (FMod_Stepped *)fcm->data;
+  FMod_Stepped *data = static_cast<FMod_Stepped *>(fcm->data);
   int snapblock;
 
   /* check range clamping to see if we should alter the timing to achieve the desired results */

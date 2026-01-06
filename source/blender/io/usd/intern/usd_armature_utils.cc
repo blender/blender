@@ -99,7 +99,7 @@ void visit_bones(const Object *ob_arm, FunctionRef<void(const Bone *)> visitor)
     return;
   }
 
-  const bArmature *armature = (bArmature *)ob_arm->data;
+  const bArmature *armature = blender::id_cast<bArmature *>(ob_arm->data);
   for (const Bone &bone : armature->bonebase) {
     visit_bones(&bone, visitor);
   }
@@ -181,7 +181,7 @@ bool is_armature_modifier_bone_name(const Object &obj,
     return false;
   }
 
-  bArmature *arm = static_cast<bArmature *>(arm_mod->object->data);
+  bArmature *arm = blender::id_cast<bArmature *>(arm_mod->object->data);
 
   return BKE_armature_find_bone_name(arm, name.c_str());
 }

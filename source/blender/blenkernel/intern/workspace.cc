@@ -44,7 +44,7 @@
 
 static void workspace_init_data(ID *id)
 {
-  WorkSpace *workspace = (WorkSpace *)id;
+  WorkSpace *workspace = blender::id_cast<WorkSpace *>(id);
 
   workspace->runtime = MEM_new<blender::bke::WorkSpaceRuntime>(__func__);
 
@@ -53,7 +53,7 @@ static void workspace_init_data(ID *id)
 
 static void workspace_free_data(ID *id)
 {
-  WorkSpace *workspace = (WorkSpace *)id;
+  WorkSpace *workspace = blender::id_cast<WorkSpace *>(id);
 
   BKE_workspace_relations_free(&workspace->hook_layout_relations);
 
@@ -115,7 +115,7 @@ static void workspace_copy_data(
 
 static void workspace_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  WorkSpace *workspace = (WorkSpace *)id;
+  WorkSpace *workspace = blender::id_cast<WorkSpace *>(id);
 
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, workspace->pin_scene, IDWALK_CB_DIRECT_WEAK_LINK);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, workspace->sequencer_scene, IDWALK_CB_DIRECT_WEAK_LINK);
@@ -129,7 +129,7 @@ static void workspace_foreach_id(ID *id, LibraryForeachIDData *data)
 
 static void workspace_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  WorkSpace *workspace = (WorkSpace *)id;
+  WorkSpace *workspace = blender::id_cast<WorkSpace *>(id);
 
   BLO_write_id_struct(writer, WorkSpace, id_address, &workspace->id);
   BKE_id_blend_write(writer, &workspace->id);
@@ -148,7 +148,7 @@ static void workspace_blend_write(BlendWriter *writer, ID *id, const void *id_ad
 
 static void workspace_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  WorkSpace *workspace = (WorkSpace *)id;
+  WorkSpace *workspace = blender::id_cast<WorkSpace *>(id);
 
   BLO_read_struct_list(reader, WorkSpaceLayout, &workspace->layouts);
   BLO_read_struct_list(reader, WorkSpaceDataRelation, &workspace->hook_layout_relations);

@@ -287,7 +287,7 @@ class StepObject {
 
   void encode(Object *ob, StepEncodeStatus &encode_status)
   {
-    const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
+    const GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(ob->data);
     this->obedit_ref.ptr = ob;
 
     this->encode_drawings(grease_pencil, encode_status);
@@ -296,7 +296,7 @@ class StepObject {
 
   void decode(StepDecodeStatus &decode_status) const
   {
-    GreasePencil &grease_pencil = *static_cast<GreasePencil *>(this->obedit_ref.ptr->data);
+    GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(this->obedit_ref.ptr->data);
 
     this->decode_drawings(grease_pencil, decode_status);
     this->decode_layers(grease_pencil, decode_status);

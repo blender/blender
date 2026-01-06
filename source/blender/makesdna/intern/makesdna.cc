@@ -1325,7 +1325,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
 static void dna_write(FILE *file, const void *pntr, const int size)
 {
   static int linelength = 0;
-  const char *data = (const char *)pntr;
+  const char *data = static_cast<const char *>(pntr);
 
   for (int i = 0; i < size; i++) {
     fprintf(file, "%d, ", data[i]);
@@ -1555,7 +1555,8 @@ static int make_structDNA(const char *base_directory,
     /* calc datablock size */
     const short *sp = structs[structs_num - 1];
     sp += 2 + 2 * (sp[1]);
-    len = intptr_t((char *)sp - (char *)structs[0]);
+    len = intptr_t(reinterpret_cast<char *>(const_cast<short *>(sp)) -
+                   reinterpret_cast<char *>(structs[0]));
     len = (len + 3) & ~3;
 
     dna_write(file, structs[0], len);

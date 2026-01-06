@@ -44,14 +44,14 @@ void USDShapeReader::create_object(Main *bmain)
 {
   Mesh *mesh = BKE_mesh_add(bmain, name_.c_str());
   object_ = BKE_object_add_only_object(bmain, OB_MESH, name_.c_str());
-  object_->data = mesh;
+  object_->data = blender::id_cast<ID *>(mesh);
 }
 
 void USDShapeReader::read_object_data(Main *bmain, pxr::UsdTimeCode time)
 {
   const USDMeshReadParams params = create_mesh_read_params(time.GetValue(),
                                                            import_params_.mesh_read_flag);
-  Mesh *mesh = (Mesh *)object_->data;
+  Mesh *mesh = blender::id_cast<Mesh *>(object_->data);
   Mesh *read_mesh = this->read_mesh(mesh, params, nullptr);
 
   if (read_mesh != mesh) {

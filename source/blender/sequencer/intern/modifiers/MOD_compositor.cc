@@ -275,7 +275,8 @@ static void compositor_modifier_panel_draw(const bContext *C, Panel *panel)
     StripModifierData *smd = seq::modifier_get_active(strip);
 
     if (smd && smd->type == eSeqModifierType_Compositor) {
-      SequencerCompositorModifierData *nmd = (SequencerCompositorModifierData *)smd;
+      SequencerCompositorModifierData *nmd = reinterpret_cast<SequencerCompositorModifierData *>(
+          smd);
       if (nmd->node_group != nullptr) {
         template_id(&layout,
                     C,

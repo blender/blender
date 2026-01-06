@@ -107,7 +107,7 @@ void animviz_build_motionpath_targets(Object *ob, blender::Vector<MPathTarget *>
 
   /* Bones. */
   if ((ob->pose) && (ob->pose->avs.recalc & ANIMVIZ_RECALC_PATHS)) {
-    bArmature *arm = static_cast<bArmature *>(ob->data);
+    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
     for (bPoseChannel &pchan : ob->pose->chanbase) {
       if ((pchan.bone) && ANIM_bonecoll_is_visible_pchan(arm, &pchan) && (pchan.mpath)) {
         /* New target for bone. */

@@ -312,7 +312,7 @@ bool SVGImporter::read(StringRefNull filepath)
     nsvgDelete(svg_data);
     return false;
   }
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object_->data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object_->data);
 
   const float scene_unit_scale = (context_.scene->unit.system != USER_UNIT_NONE &&
                                   params_.use_scene_unit) ?

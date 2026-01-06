@@ -43,7 +43,7 @@
 
 static void init_data(ModifierData *md)
 {
-  RemeshModifierData *rmd = (RemeshModifierData *)md;
+  RemeshModifierData *rmd = reinterpret_cast<RemeshModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(rmd, modifier);
 }
 

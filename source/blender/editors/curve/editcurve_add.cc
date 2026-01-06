@@ -110,7 +110,7 @@ Nurb *ED_curve_add_nurbs_primitive(
   Nurb *nu = nullptr;
   BezTriple *bezt;
   BPoint *bp;
-  Curve *cu = (Curve *)obedit->data;
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   float vec[3], zvec[3] = {0.0f, 0.0f, 1.0f};
   float umat[4][4], viewmat[4][4];
   float fac;
@@ -522,7 +522,7 @@ static wmOperatorStatus curvesurf_prim_add(bContext *C, wmOperator *op, int type
           C, OB_CURVES_LEGACY, name, loc, rot, true, local_view_bits);
       newob = true;
 
-      cu = (Curve *)obedit->data;
+      cu = blender::id_cast<Curve *>(obedit->data);
 
       if (type & CU_PRIM_PATH) {
         cu->flag |= CU_PATH | CU_3D;

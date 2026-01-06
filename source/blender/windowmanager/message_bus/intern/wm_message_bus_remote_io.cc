@@ -64,7 +64,8 @@ static void wm_msg_remote_io_gset_key_free(void *key_p)
 
 static void wm_msg_remote_io_repr(FILE *stream, const wmMsgSubscribeKey *msg_key)
 {
-  const wmMsgSubscribeKey_RemoteIO *m = (wmMsgSubscribeKey_RemoteIO *)msg_key;
+  const wmMsgSubscribeKey_RemoteIO *m = reinterpret_cast<wmMsgSubscribeKey_RemoteIO *>(
+      const_cast<wmMsgSubscribeKey *>(msg_key));
   fprintf(stream,
           "<wmMsg_RemoteIO %p, "
           "id='%s', "

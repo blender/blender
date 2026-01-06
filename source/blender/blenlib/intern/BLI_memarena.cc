@@ -110,7 +110,7 @@ static void memarena_curbuf_align(MemArena *ma)
 {
   uchar *tmp;
 
-  tmp = (uchar *)PADUP(intptr_t(ma->curbuf), int(ma->align));
+  tmp = reinterpret_cast<uchar *> PADUP(intptr_t(ma->curbuf), int(ma->align));
   ma->cursize -= size_t(tmp - ma->curbuf);
   ma->curbuf = tmp;
 }

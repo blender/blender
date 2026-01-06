@@ -44,7 +44,7 @@ static const ID *get_original_id(const ID *id)
     return id;
   }
   BLI_assert((id->tag & ID_TAG_COPIED_ON_EVAL) != 0);
-  return (ID *)id->orig_id;
+  return blender::id_cast<ID *>(id->orig_id);
 }
 
 static ID *get_original_id(ID *id)
@@ -202,8 +202,8 @@ ViewLayer *DEG_get_evaluated_view_layer(const Depsgraph *graph)
   /* Do name-based lookup. */
   /* TODO(sergey): Can this be optimized? */
   ViewLayer *view_layer_orig = deg_graph->view_layer;
-  ViewLayer *view_layer_cow = (ViewLayer *)BLI_findstring(
-      &scene_cow->view_layers, view_layer_orig->name, offsetof(ViewLayer, name));
+  ViewLayer *view_layer_cow = static_cast<ViewLayer *>(
+      BLI_findstring(&scene_cow->view_layers, view_layer_orig->name, offsetof(ViewLayer, name)));
   BLI_assert(view_layer_cow != nullptr);
   return view_layer_cow;
 }
@@ -230,18 +230,18 @@ void DEG_get_evaluated_rna_pointer(const Depsgraph *depsgraph,
   if (ptr->owner_id == ptr->data) {
     /* For ID pointers, it's easy... */
     r_ptr_eval->owner_id = cow_id;
-    r_ptr_eval->data = (void *)cow_id;
+    r_ptr_eval->data = static_cast<void *>(cow_id);
     r_ptr_eval->type = ptr->type;
   }
   else if (ptr->type == &RNA_PoseBone) {
     /* HACK: Since bone keyframing is quite commonly used,
      * speed things up for this case by doing a special lookup
      * for bones */
-    const Object *ob_eval = (Object *)cow_id;
-    bPoseChannel *pchan = (bPoseChannel *)ptr->data;
-    const bPoseChannel *pchan_eval = BKE_pose_channel_find_name(ob_eval->pose, pchan->name);
+    const Object *ob_eval = blender::id_cast<Object *>(cow_id);
+    bPoseChannel *pchan = static_cast<bPoseChannel *>(ptr->data);
+    bPoseChannel *pchan_eval = BKE_pose_channel_find_name(ob_eval->pose, pchan->name);
     r_ptr_eval->owner_id = cow_id;
-    r_ptr_eval->data = (void *)pchan_eval;
+    r_ptr_eval->data = pchan_eval;
     r_ptr_eval->type = ptr->type;
   }
   else {
@@ -258,7 +258,7 @@ void DEG_get_evaluated_rna_pointer(const Depsgraph *depsgraph,
                 "%s: Couldn't resolve RNA path ('%s') relative to evaluated ID (%p) for '%s'\n",
                 __func__,
                 path->c_str(),
-                (void *)cow_id,
+                static_cast<void *>(cow_id),
                 orig_id->name);
       }
     }
@@ -319,7 +319,7 @@ bool DEG_is_evaluated_id(const ID *id)
 
 bool DEG_is_fully_evaluated(const Depsgraph *depsgraph)
 {
-  const deg::Depsgraph *deg_graph = (const deg::Depsgraph *)depsgraph;
+  const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(depsgraph);
   /* Check whether relations are up to date. */
   if (deg_graph->need_update_relations) {
     return false;

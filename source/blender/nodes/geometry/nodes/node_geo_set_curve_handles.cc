@@ -168,7 +168,7 @@ static void set_position_in_component(Curves &curves_id,
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometrySetCurveHandlePositions &storage = node_storage(params.node());
-  const GeometryNodeCurveHandleMode mode = (GeometryNodeCurveHandleMode)storage.mode;
+  const GeometryNodeCurveHandleMode mode = GeometryNodeCurveHandleMode(storage.mode);
 
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");

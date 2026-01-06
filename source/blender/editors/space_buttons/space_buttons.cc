@@ -102,13 +102,13 @@ static SpaceLink *buttons_create(const ScrArea * /*area*/, const Scene * /*scene
   BLI_addtail(&sbuts->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;
 
-  return (SpaceLink *)sbuts;
+  return reinterpret_cast<SpaceLink *>(sbuts);
 }
 
 /* Doesn't free the space-link itself. */
 static void buttons_free(SpaceLink *sl)
 {
-  SpaceProperties *sbuts = (SpaceProperties *)sl;
+  SpaceProperties *sbuts = reinterpret_cast<SpaceProperties *>(sl);
 
   if (sbuts->path) {
     MEM_delete(static_cast<ButsContextPath *>(sbuts->path));
@@ -132,7 +132,7 @@ static void buttons_init(wmWindowManager * /*wm*/, ScrArea * /*area*/) {}
 
 static SpaceLink *buttons_duplicate(SpaceLink *sl)
 {
-  SpaceProperties *sfile_old = (SpaceProperties *)sl;
+  SpaceProperties *sfile_old = reinterpret_cast<SpaceProperties *>(sl);
   SpaceProperties *sbutsn = static_cast<SpaceProperties *>(MEM_dupallocN(sl));
 
   /* clear or remove stuff from old */
@@ -142,7 +142,7 @@ static SpaceLink *buttons_duplicate(SpaceLink *sl)
   sbutsn->runtime->search_string[0] = '\0';
   sbutsn->runtime->tab_search_results = BLI_BITMAP_NEW(BCONTEXT_TOT, __func__);
 
-  return (SpaceLink *)sbutsn;
+  return reinterpret_cast<SpaceLink *>(sbutsn);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -410,8 +410,8 @@ static void property_search_all_tabs(const bContext *C,
   /* Set the region visible field. Otherwise some layout code thinks we're drawing in a popup.
    * This likely isn't necessary, but it's nice to emulate a "real" region where possible. */
   region_copy->runtime->visible = true;
-  CTX_wm_area_set((bContext *)C, &area_copy);
-  CTX_wm_region_set((bContext *)C, region_copy);
+  CTX_wm_area_set(const_cast<bContext *>(C), &area_copy);
+  CTX_wm_region_set(const_cast<bContext *>(C), region_copy);
 
   SpaceProperties sbuts_copy = blender::dna::shallow_copy(*sbuts);
   sbuts_copy.path = nullptr;
@@ -445,10 +445,10 @@ static void property_search_all_tabs(const bContext *C,
 
   BKE_area_region_free(area_copy.type, region_copy);
   MEM_freeN(region_copy);
-  buttons_free((SpaceLink *)&sbuts_copy);
+  buttons_free(reinterpret_cast<SpaceLink *>(&sbuts_copy));
 
-  CTX_wm_area_set((bContext *)C, area_original);
-  CTX_wm_region_set((bContext *)C, region_original);
+  CTX_wm_area_set(const_cast<bContext *>(C), area_original);
+  CTX_wm_region_set(const_cast<bContext *>(C), region_original);
 }
 
 /**
@@ -949,7 +949,7 @@ static void buttons_id_remap(ScrArea * /*area*/,
                              SpaceLink *slink,
                              const blender::bke::id::IDRemapper &mappings)
 {
-  SpaceProperties *sbuts = (SpaceProperties *)slink;
+  SpaceProperties *sbuts = reinterpret_cast<SpaceProperties *>(slink);
 
   if (mappings.apply(&sbuts->pinid, ID_REMAP_APPLY_DEFAULT) == ID_REMAP_RESULT_SOURCE_UNASSIGNED) {
     sbuts->flag &= ~SB_PIN_CONTEXT;
@@ -1041,7 +1041,7 @@ static void buttons_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data
 
 static void buttons_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *sl)
 {
-  SpaceProperties *sbuts = (SpaceProperties *)sl;
+  SpaceProperties *sbuts = reinterpret_cast<SpaceProperties *>(sl);
   sbuts->runtime = MEM_new<SpaceProperties_Runtime>(__func__);
   sbuts->runtime->search_string[0] = '\0';
   sbuts->runtime->tab_search_results = BLI_BITMAP_NEW(BCONTEXT_TOT * 2, __func__);

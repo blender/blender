@@ -76,9 +76,9 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *resolution_socket = count_socket->next;
 
   const NodeGeometryMeshLine &storage = node_storage(*node);
-  const GeometryNodeMeshLineMode mode = (GeometryNodeMeshLineMode)storage.mode;
-  const GeometryNodeMeshLineCountMode count_mode = (GeometryNodeMeshLineCountMode)
-                                                       storage.count_mode;
+  const GeometryNodeMeshLineMode mode = GeometryNodeMeshLineMode(storage.mode);
+  const GeometryNodeMeshLineCountMode count_mode = GeometryNodeMeshLineCountMode(
+      storage.count_mode);
 
   bke::node_set_socket_availability(*ntree,
                                     *resolution_socket,
@@ -131,9 +131,9 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometryMeshLine &storage = node_storage(params.node());
-  const GeometryNodeMeshLineMode mode = (GeometryNodeMeshLineMode)storage.mode;
-  const GeometryNodeMeshLineCountMode count_mode = (GeometryNodeMeshLineCountMode)
-                                                       storage.count_mode;
+  const GeometryNodeMeshLineMode mode = GeometryNodeMeshLineMode(storage.mode);
+  const GeometryNodeMeshLineCountMode count_mode = GeometryNodeMeshLineCountMode(
+      storage.count_mode);
 
   Mesh *mesh = nullptr;
   const float3 start = params.extract_input<float3>("Start Location");

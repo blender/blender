@@ -132,7 +132,7 @@ static TreeElement *outliner_find_item_at_x_in_row_recursive(const TreeElement *
   }
 
   /* return parent if no child is hovered */
-  return (TreeElement *)parent_te;
+  return const_cast<TreeElement *>(parent_te);
 }
 
 TreeElement *outliner_find_item_at_x_in_row(const SpaceOutliner *space_outliner,
@@ -338,7 +338,7 @@ float outliner_right_columns_width(const SpaceOutliner *space_outliner)
     case SO_LIBRARIES:
       return 0.0f;
     case SO_OVERRIDES_LIBRARY:
-      switch ((eSpaceOutliner_LibOverrideViewMode)space_outliner->lib_override_view_mode) {
+      switch (eSpaceOutliner_LibOverrideViewMode(space_outliner->lib_override_view_mode)) {
         case SO_LIB_OVERRIDE_VIEW_PROPERTIES:
           num_columns = OL_RNA_COL_SIZEX / UI_UNIT_X;
           break;
@@ -494,9 +494,10 @@ Base *ED_outliner_give_base_under_cursor(bContext *C, const int mval[2])
   if (te) {
     TreeStoreElem *tselem = TREESTORE(te);
     if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
-      Object *ob = (Object *)tselem->id;
+      Object *ob = blender::id_cast<Object *>(tselem->id);
       BKE_view_layer_synced_ensure(scene, view_layer);
-      base = (te->directdata) ? (Base *)te->directdata : BKE_view_layer_base_find(view_layer, ob);
+      base = (te->directdata) ? static_cast<Base *>(te->directdata) :
+                                BKE_view_layer_base_find(view_layer, ob);
     }
   }
 
@@ -520,17 +521,17 @@ bool ED_outliner_give_rna_under_cursor(bContext *C, const int mval[2], PointerRN
   TreeStoreElem *tselem = TREESTORE(te);
   switch (tselem->type) {
     case TSE_BONE: {
-      Bone *bone = (Bone *)te->directdata;
+      Bone *bone = static_cast<Bone *>(te->directdata);
       *r_ptr = RNA_pointer_create_discrete(tselem->id, &RNA_Bone, bone);
       break;
     }
     case TSE_POSE_CHANNEL: {
-      bPoseChannel *pchan = (bPoseChannel *)te->directdata;
+      bPoseChannel *pchan = static_cast<bPoseChannel *>(te->directdata);
       *r_ptr = RNA_pointer_create_discrete(tselem->id, &RNA_PoseBone, pchan);
       break;
     }
     case TSE_EBONE: {
-      EditBone *bone = (EditBone *)te->directdata;
+      EditBone *bone = static_cast<EditBone *>(te->directdata);
       *r_ptr = RNA_pointer_create_discrete(tselem->id, &RNA_EditBone, bone);
       break;
     }

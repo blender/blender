@@ -39,7 +39,7 @@ void bmo_object_load_bmesh_exec(BMesh *bm, BMOperator *op)
 {
   Object *ob = static_cast<Object *>(BMO_slot_ptr_get(op->slots_in, "object"));
   // Scene *scene = BMO_slot_ptr_get(op, "scene");
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
 
   BMO_op_callf(bm, op->flag, "bmesh_to_mesh mesh=%p object=%p", mesh, ob);
 }

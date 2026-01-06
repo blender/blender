@@ -568,7 +568,7 @@ static int get_light(Scene *scene, ViewLayer *view_layer, float *light)
   BKE_view_layer_synced_ensure(scene, view_layer);
   for (Base &base_tmp : *BKE_view_layer_object_bases_get(view_layer)) {
     if (base_tmp.object->type == OB_LAMP) {
-      Light *la = static_cast<Light *>(base_tmp.object->data);
+      Light *la = blender::id_cast<Light *>(base_tmp.object->data);
 
       if (la->type == LA_LOCAL) {
         copy_v3_v3(light, base_tmp.object->object_to_world().location());

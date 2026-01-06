@@ -23,21 +23,21 @@ static bool listbase_is_valid(const ListBase *listbase)
 
   if (listbase->first) {
     const Link *prev, *link;
-    link = (Link *)listbase->first;
+    link = static_cast<Link *>(listbase->first);
     TESTFAIL(link->prev == nullptr);
 
-    link = (Link *)listbase->last;
+    link = static_cast<Link *>(listbase->last);
     TESTFAIL(link->next == nullptr);
 
     prev = nullptr;
-    link = (Link *)listbase->first;
+    link = static_cast<Link *>(listbase->first);
     do {
       TESTFAIL(link->prev == prev);
     } while ((void)(prev = link), (link = link->next));
     TESTFAIL(prev == listbase->last);
 
     prev = nullptr;
-    link = (Link *)listbase->last;
+    link = static_cast<Link *>(listbase->last);
     do {
       TESTFAIL(link->next == prev);
     } while ((void)(prev = link), (link = link->prev));
@@ -75,33 +75,33 @@ TEST(listbase, FindLinkOrIndex)
 
   /* Empty list */
   BLI_listbase_clear(&lb);
-  EXPECT_EQ(BLI_findlink(&lb, -1), (void *)nullptr);
-  EXPECT_EQ(BLI_findlink(&lb, 0), (void *)nullptr);
-  EXPECT_EQ(BLI_findlink(&lb, 1), (void *)nullptr);
-  EXPECT_EQ(BLI_rfindlink(&lb, -1), (void *)nullptr);
-  EXPECT_EQ(BLI_rfindlink(&lb, 0), (void *)nullptr);
-  EXPECT_EQ(BLI_rfindlink(&lb, 1), (void *)nullptr);
+  EXPECT_EQ(BLI_findlink(&lb, -1), static_cast<void *>(nullptr));
+  EXPECT_EQ(BLI_findlink(&lb, 0), static_cast<void *>(nullptr));
+  EXPECT_EQ(BLI_findlink(&lb, 1), static_cast<void *>(nullptr));
+  EXPECT_EQ(BLI_rfindlink(&lb, -1), static_cast<void *>(nullptr));
+  EXPECT_EQ(BLI_rfindlink(&lb, 0), static_cast<void *>(nullptr));
+  EXPECT_EQ(BLI_rfindlink(&lb, 1), static_cast<void *>(nullptr));
   EXPECT_EQ(BLI_findindex(&lb, link1), -1);
-  EXPECT_EQ(BLI_findlinkfrom((Link *)lb.first, -1), (void *)nullptr);
-  EXPECT_EQ(BLI_findlinkfrom((Link *)lb.first, 0), (void *)nullptr);
-  EXPECT_EQ(BLI_findlinkfrom((Link *)lb.first, 1), (void *)nullptr);
+  EXPECT_EQ(BLI_findlinkfrom(static_cast<Link *>(lb.first), -1), static_cast<void *>(nullptr));
+  EXPECT_EQ(BLI_findlinkfrom(static_cast<Link *>(lb.first), 0), static_cast<void *>(nullptr));
+  EXPECT_EQ(BLI_findlinkfrom(static_cast<Link *>(lb.first), 1), static_cast<void *>(nullptr));
 
   /* One link */
   BLI_addtail(&lb, link1);
   EXPECT_EQ(BLI_findlink(&lb, 0), link1);
   EXPECT_EQ(BLI_rfindlink(&lb, 0), link1);
   EXPECT_EQ(BLI_findindex(&lb, link1), 0);
-  EXPECT_EQ(BLI_findlinkfrom((Link *)lb.first, 0), link1);
+  EXPECT_EQ(BLI_findlinkfrom(static_cast<Link *>(lb.first), 0), link1);
 
   /* Two links */
   BLI_addtail(&lb, link2);
   EXPECT_EQ(BLI_findlink(&lb, 1), link2);
   EXPECT_EQ(BLI_rfindlink(&lb, 0), link2);
   EXPECT_EQ(BLI_findindex(&lb, link2), 1);
-  EXPECT_EQ(BLI_findlinkfrom((Link *)lb.first, 1), link2);
+  EXPECT_EQ(BLI_findlinkfrom(static_cast<Link *>(lb.first), 1), link2);
 
   /* After end of list */
-  EXPECT_EQ(BLI_findlinkfrom((Link *)lb.first, 2), (void *)nullptr);
+  EXPECT_EQ(BLI_findlinkfrom(static_cast<Link *>(lb.first), 2), static_cast<void *>(nullptr));
 
   BLI_freelistN(&lb);
 }
@@ -132,34 +132,44 @@ TEST(listbase, FindLinkFromStringOrPointer)
 
   /* Empty list */
   BLI_listbase_clear(&lb);
-  EXPECT_EQ(BLI_findptr(&lb, link1_ptr, ptr_offset), (void *)nullptr);
-  EXPECT_EQ(BLI_findstring(&lb, link1_name, name_offset), (void *)nullptr);
-  EXPECT_EQ(BLI_rfindptr(&lb, link1_ptr, ptr_offset), (void *)nullptr);
-  EXPECT_EQ(BLI_rfindstring(&lb, link1_name, name_offset), (void *)nullptr);
-  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, link1_name, name_offset, 0), (void *)nullptr);
+  EXPECT_EQ(BLI_findptr(&lb, link1_ptr, ptr_offset), static_cast<void *>(nullptr));
+  EXPECT_EQ(BLI_findstring(&lb, link1_name, name_offset), static_cast<void *>(nullptr));
+  EXPECT_EQ(BLI_rfindptr(&lb, link1_ptr, ptr_offset), static_cast<void *>(nullptr));
+  EXPECT_EQ(BLI_rfindstring(&lb, link1_name, name_offset), static_cast<void *>(nullptr));
+  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, link1_name, name_offset, 0),
+            static_cast<void *>(nullptr));
 
   /* One link */
   BLI_addtail(&lb, link1);
-  EXPECT_EQ(BLI_findptr(&lb, link1_ptr, ptr_offset), (void *)link1);
-  EXPECT_EQ(BLI_findstring(&lb, link1_name, name_offset), (void *)link1);
-  EXPECT_EQ(BLI_rfindptr(&lb, link1_ptr, ptr_offset), (void *)link1);
-  EXPECT_EQ(BLI_rfindstring(&lb, link1_name, name_offset), (void *)link1);
-  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, link1_name, name_offset, 0), (void *)link1);
-  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, "", name_offset, 0), (void *)link1);
-  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, nullptr, name_offset, 0), (void *)link1);
-  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, nullptr, name_offset, 1), (void *)nullptr);
+  EXPECT_EQ(BLI_findptr(&lb, link1_ptr, ptr_offset), static_cast<void *>(link1));
+  EXPECT_EQ(BLI_findstring(&lb, link1_name, name_offset), static_cast<void *>(link1));
+  EXPECT_EQ(BLI_rfindptr(&lb, link1_ptr, ptr_offset), static_cast<void *>(link1));
+  EXPECT_EQ(BLI_rfindstring(&lb, link1_name, name_offset), static_cast<void *>(link1));
+  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, link1_name, name_offset, 0),
+            static_cast<void *>(link1));
+  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, "", name_offset, 0),
+            static_cast<void *>(link1));
+  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, nullptr, name_offset, 0),
+            static_cast<void *>(link1));
+  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, nullptr, name_offset, 1),
+            static_cast<void *>(nullptr));
 
   /* Two links */
   BLI_addtail(&lb, link2);
-  EXPECT_EQ(BLI_findptr(&lb, link1_ptr, ptr_offset), (void *)link1);
-  EXPECT_EQ(BLI_findstring(&lb, link1_name, name_offset), (void *)link1);
-  EXPECT_EQ(BLI_rfindptr(&lb, link1_ptr, ptr_offset), (void *)link1);
-  EXPECT_EQ(BLI_rfindstring(&lb, link1_name, name_offset), (void *)link1);
-  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, link1_name, name_offset, 0), (void *)link1);
-  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, link2_name, name_offset, 0), (void *)link2);
-  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, nullptr, name_offset, 0), (void *)link1);
-  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, nullptr, name_offset, 1), (void *)link2);
-  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, nullptr, name_offset, -1), (void *)nullptr);
+  EXPECT_EQ(BLI_findptr(&lb, link1_ptr, ptr_offset), static_cast<void *>(link1));
+  EXPECT_EQ(BLI_findstring(&lb, link1_name, name_offset), static_cast<void *>(link1));
+  EXPECT_EQ(BLI_rfindptr(&lb, link1_ptr, ptr_offset), static_cast<void *>(link1));
+  EXPECT_EQ(BLI_rfindstring(&lb, link1_name, name_offset), static_cast<void *>(link1));
+  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, link1_name, name_offset, 0),
+            static_cast<void *>(link1));
+  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, link2_name, name_offset, 0),
+            static_cast<void *>(link2));
+  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, nullptr, name_offset, 0),
+            static_cast<void *>(link1));
+  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, nullptr, name_offset, 1),
+            static_cast<void *>(link2));
+  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, nullptr, name_offset, -1),
+            static_cast<void *>(nullptr));
 
   BLI_freelistN(&lb);
 }
@@ -401,15 +411,16 @@ TEST(listbase, MutableReversedIterator)
 
 static int testsort_array_str_cmp(const void *a, const void *b)
 {
-  int i = strcmp(*(const char **)a, *(const char **)b);
+  int i = strcmp(*static_cast<const char **>(const_cast<void *>(a)),
+                 *static_cast<const char **>(const_cast<void *>(b)));
   return (i > 0) ? 1 : (i < 0) ? -1 : 0;
 }
 
 static int testsort_listbase_str_cmp(const void *a, const void *b)
 {
-  const LinkData *link_a = (LinkData *)a;
-  const LinkData *link_b = (LinkData *)b;
-  int i = strcmp((const char *)link_a->data, (const char *)link_b->data);
+  const LinkData *link_a = static_cast<LinkData *>(const_cast<void *>(a));
+  const LinkData *link_b = static_cast<LinkData *>(const_cast<void *>(b));
+  int i = strcmp(static_cast<const char *>(link_a->data), static_cast<const char *>(link_b->data));
   return (i > 0) ? 1 : (i < 0) ? -1 : 0;
 }
 
@@ -429,7 +440,7 @@ static bool testsort_listbase_array_str_cmp(ListBaseT<LinkData> *lb, char **arr,
   LinkData *link_step;
   int i;
 
-  link_step = (LinkData *)lb->first;
+  link_step = static_cast<LinkData *>(lb->first);
   for (i = 0; i < arr_num; i++) {
     if (!STREQ(arr[i], (char *)link_step->data)) {
       return false;
@@ -448,7 +459,7 @@ static bool testsort_listbase_sort_is_stable(ListBaseT<LinkData> *lb, bool forwa
 {
   LinkData *link_step;
 
-  link_step = (LinkData *)lb->first;
+  link_step = static_cast<LinkData *>(lb->first);
   while (link_step && link_step->next) {
     if (STREQ((const char *)link_step->data, (const char *)link_step->next->data)) {
       if ((link_step < link_step->next) != forward) {

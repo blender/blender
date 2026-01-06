@@ -111,7 +111,7 @@ static wmOperatorStatus weight_from_bones_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
   Object *armob = BKE_modifiers_is_deformed_by_armature(ob);
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   int type = RNA_enum_get(op->ptr, "type");
 
   ED_object_vgroup_calc_from_armature(
@@ -408,7 +408,7 @@ void PAINT_OT_weight_sample_group(wmOperatorType *ot)
 static bool weight_paint_set(Object *ob, float paintweight)
 {
   using namespace blender;
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   MDeformWeight *dw, *dw_prev;
   int vgroup_active, vgroup_mirror = -1;
   const bool topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
@@ -723,7 +723,7 @@ static wmOperatorStatus paint_weight_gradient_modal(bContext *C,
 
   if (ret & OPERATOR_CANCELLED) {
     if (vert_cache != nullptr) {
-      Mesh *mesh = static_cast<Mesh *>(ob->data);
+      Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
       if (vert_cache->wpp.wpaint_prev) {
         MDeformVert *dvert = mesh->deform_verts_for_write().data();
         BKE_defvert_array_free_elems(dvert, mesh->verts_num);
@@ -752,7 +752,7 @@ static wmOperatorStatus paint_weight_gradient_exec(bContext *C, wmOperator *op)
   ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   MDeformVert *dverts = mesh->deform_verts_for_write().data();
   int x_start = RNA_int_get(op->ptr, "xstart");
   int y_start = RNA_int_get(op->ptr, "ystart");
@@ -774,8 +774,9 @@ static wmOperatorStatus paint_weight_gradient_exec(bContext *C, wmOperator *op)
       gesture->user_data.use_free = false;
       data.is_init = true;
 
-      wpaint_prev_create(
-          &((WPGradient_vertStoreBase *)gesture->user_data.data)->wpp, dverts, mesh->verts_num);
+      wpaint_prev_create(&(static_cast<WPGradient_vertStoreBase *>(gesture->user_data.data))->wpp,
+                         dverts,
+                         mesh->verts_num);
 
       /* On initialization only, convert face -> vert sel. */
       if (mesh->editflag & ME_EDIT_PAINT_FACE_SEL) {

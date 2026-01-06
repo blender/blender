@@ -651,7 +651,7 @@ static int gather_frames_to_render_for_id(LibraryIDLinkCallbackData *cb_data)
     case ID_GD_LEGACY: /* bGPdata, (Grease Pencil) */
       /* In addition to regular ID's animdata, GreasePencil uses a specific frame-based animation
        * system that requires specific handling here. */
-      gather_frames_to_render_for_grease_pencil(oglrender, (bGPdata *)id);
+      gather_frames_to_render_for_grease_pencil(oglrender, blender::id_cast<bGPdata *>(id));
       break;
     case ID_GP:
       /* TODO: gather frames. */
@@ -721,7 +721,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   const bool is_render_keyed_only = RNA_boolean_get(op->ptr, "render_keyed_only");
   const bool is_write_still = RNA_boolean_get(op->ptr, "write_still");
   const eImageFormatDepth color_depth = static_cast<eImageFormatDepth>(
-      (is_animation) ? (eImageFormatDepth)scene->r.im_format.depth : R_IMF_CHAN_DEPTH_32);
+      (is_animation) ? eImageFormatDepth(scene->r.im_format.depth) : R_IMF_CHAN_DEPTH_32);
   char err_out[256] = "unknown";
 
   if (G.background) {
@@ -1015,7 +1015,7 @@ struct WriteTaskData {
 
 static void write_result(TaskPool *__restrict pool, WriteTaskData *task_data)
 {
-  OGLRender *oglrender = (OGLRender *)BLI_task_pool_user_data(pool);
+  OGLRender *oglrender = static_cast<OGLRender *>(BLI_task_pool_user_data(pool));
   Scene *scene = &task_data->tmp_scene;
   RenderResult *rr = task_data->rr;
   const bool is_movie = BKE_imtype_is_movie(scene->r.im_format.imtype);
@@ -1110,7 +1110,7 @@ static void write_result_func(TaskPool *__restrict pool, void *task_data_v)
   /* Isolate task so that multithreaded image operations don't cause this thread to start
    * writing another frame. If that happens we may reach the MAX_SCHEDULED_FRAMES limit,
    * and cause the render thread and writing threads to deadlock waiting for each other. */
-  WriteTaskData *task_data = (WriteTaskData *)task_data_v;
+  WriteTaskData *task_data = static_cast<WriteTaskData *>(task_data_v);
   blender::threading::isolate_task([&] { write_result(pool, task_data); });
 }
 

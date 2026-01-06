@@ -114,7 +114,7 @@ bool BKE_blendfile_library_path_explode(const char *path,
 
   BLI_strncpy(r_dir, path, FILE_MAX_LIBEXTRA);
 
-  while ((slash = (char *)BLI_path_slash_rfind(r_dir))) {
+  while ((slash = const_cast<char *>(BLI_path_slash_rfind(r_dir)))) {
     char tc = *slash;
     *slash = '\0';
     if (BKE_blendfile_extension_check(r_dir) && BLI_is_file(r_dir)) {
@@ -594,8 +594,8 @@ static void swap_old_bmain_data_for_blendfile(ReuseOldBMainData *reuse_data, con
 
   /* NOTE: Full swapping is only supported for ID types that are assumed to be only local
    * data-blocks (like UI-like ones). Otherwise, the swapping could fail in many funny ways. */
-  BLI_assert(BLI_listbase_is_empty(old_lb) || !ID_IS_LINKED(old_lb->last));
-  BLI_assert(BLI_listbase_is_empty(new_lb) || !ID_IS_LINKED(new_lb->last));
+  BLI_assert(BLI_listbase_is_empty(old_lb) || !ID_IS_LINKED(static_cast<ID *>(old_lb->last)));
+  BLI_assert(BLI_listbase_is_empty(new_lb) || !ID_IS_LINKED(static_cast<ID *>(new_lb->last)));
 
   std::swap(*new_lb, *old_lb);
 

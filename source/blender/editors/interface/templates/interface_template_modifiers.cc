@@ -26,7 +26,7 @@ namespace blender::ui {
 
 static void modifier_panel_id(void *md_link, char *r_name)
 {
-  ModifierData *md = (ModifierData *)md_link;
+  ModifierData *md = static_cast<ModifierData *>(md_link);
   BKE_modifier_type_panel_id(ModifierType(md->type), r_name);
 }
 

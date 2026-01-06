@@ -57,7 +57,7 @@ static void mesh_corner_tris_raycast_backface_culling_cb(void *userdata,
                                                          const BVHTreeRay *ray,
                                                          BVHTreeRayHit *hit)
 {
-  const bke::BVHTreeFromMesh *data = (bke::BVHTreeFromMesh *)userdata;
+  const bke::BVHTreeFromMesh *data = static_cast<bke::BVHTreeFromMesh *>(userdata);
   const Span<float3> positions = data->vert_positions;
   const int3 &tri = data->corner_tris[index];
   const float *vtri_co[3] = {

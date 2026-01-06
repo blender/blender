@@ -101,7 +101,7 @@ static void blo_update_defaults_screen(bScreen *screen,
     /* Set default folder. */
     for (SpaceLink &sl : area.spacedata) {
       if (sl.spacetype == SPACE_FILE) {
-        SpaceFile *sfile = (SpaceFile *)&sl;
+        SpaceFile *sfile = reinterpret_cast<SpaceFile *>(&sl);
         if (sfile->params) {
           const char *dir_default = BKE_appdir_folder_default();
           if (dir_default) {
@@ -357,7 +357,7 @@ void BLO_update_defaults_workspace(WorkSpace *workspace, const char *app_templat
         for (ScrArea &area : screen->areabase) {
           for (SpaceLink &sl : area.spacedata) {
             if (sl.spacetype == SPACE_SEQ) {
-              if (((SpaceSeq *)&sl)->view == SEQ_VIEW_PREVIEW) {
+              if ((reinterpret_cast<SpaceSeq *>(&sl))->view == SEQ_VIEW_PREVIEW) {
                 continue;
               }
               ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first) ? &area.regionbase :
@@ -718,7 +718,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     for (Object &object : bmain->objects) {
       if (object.type == OB_GPENCIL_LEGACY) {
         /* Set grease pencil object in drawing mode */
-        bGPdata *gpd = (bGPdata *)object.data;
+        bGPdata *gpd = blender::id_cast<bGPdata *>(object.data);
         object.mode = OB_MODE_PAINT_GREASE_PENCIL;
         gpd->flag |= GP_DATA_STROKE_PAINTMODE;
         break;

@@ -28,11 +28,11 @@ BLI_STATIC_ASSERT(ENDIAN_ORDER == L_ENDIAN, "Blender only builds on little endia
 
 static void thumb_data_vertical_flip(Thumbnail *thumb)
 {
-  uint32_t *rect = (uint32_t *)thumb->data.data();
+  uint32_t *rect = reinterpret_cast<uint32_t *>(thumb->data.data());
   int x = thumb->width, y = thumb->height;
   uint32_t *top = rect;
   uint32_t *bottom = top + ((y - 1) * x);
-  uint32_t *line = (uint32_t *)malloc(x * sizeof(uint32_t));
+  uint32_t *line = static_cast<uint32_t *>(malloc(x * sizeof(uint32_t)));
 
   y >>= 1;
   for (; y > 0; y--) {

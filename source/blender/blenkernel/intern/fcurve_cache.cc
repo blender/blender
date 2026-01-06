@@ -47,8 +47,8 @@ struct FCurvePathCache {
  */
 static int fcurve_cmp_for_cache(const void *fcu_a_p, const void *fcu_b_p)
 {
-  const FCurve *fcu_a = *((const FCurve **)fcu_a_p);
-  const FCurve *fcu_b = *((const FCurve **)fcu_b_p);
+  const FCurve *fcu_a = *(static_cast<const FCurve **>(const_cast<void *>(fcu_a_p)));
+  const FCurve *fcu_b = *(static_cast<const FCurve **>(const_cast<void *>(fcu_b_p)));
   const int cmp = strcmp(fcu_a->rna_path, fcu_b->rna_path);
   if (cmp != 0) {
     return cmp;

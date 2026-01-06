@@ -39,7 +39,7 @@ static void template_recent_files_tooltip_func(bContext & /*C*/,
                                                Button * /*but*/,
                                                void *argN)
 {
-  char *path = (char *)argN;
+  char *path = static_cast<char *>(argN);
 
   /* File name and path. */
   char dirname[FILE_MAX];

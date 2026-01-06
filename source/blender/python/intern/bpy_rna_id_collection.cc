@@ -76,7 +76,7 @@ struct IDUserMapData {
 
 static int id_code_as_index(const short idcode)
 {
-  return int(*((ushort *)&idcode));
+  return int(*(reinterpret_cast<ushort *>(const_cast<short *>(&idcode))));
 }
 
 static bool id_check_type(const ID *id, const BLI_bitmap *types_bitmap)
@@ -948,31 +948,31 @@ static PyObject *bpy_orphans_purge(PyObject *self, PyObject *args, PyObject *kwd
 
 PyMethodDef BPY_rna_id_collection_user_map_method_def = {
     "user_map",
-    (PyCFunction)bpy_user_map,
+    reinterpret_cast<PyCFunction>(bpy_user_map),
     METH_VARARGS | METH_KEYWORDS,
     bpy_user_map_doc,
 };
 PyMethodDef BPY_rna_id_collection_file_path_map_method_def = {
     "file_path_map",
-    (PyCFunction)bpy_file_path_map,
+    reinterpret_cast<PyCFunction>(bpy_file_path_map),
     METH_VARARGS | METH_KEYWORDS,
     bpy_file_path_map_doc,
 };
 PyMethodDef BPY_rna_id_collection_file_path_foreach_method_def = {
     "file_path_foreach",
-    (PyCFunction)bpy_file_path_foreach,
+    reinterpret_cast<PyCFunction>(bpy_file_path_foreach),
     METH_VARARGS | METH_KEYWORDS,
     bpy_file_path_foreach_doc,
 };
 PyMethodDef BPY_rna_id_collection_batch_remove_method_def = {
     "batch_remove",
-    (PyCFunction)bpy_batch_remove,
+    reinterpret_cast<PyCFunction>(bpy_batch_remove),
     METH_VARARGS | METH_KEYWORDS,
     bpy_batch_remove_doc,
 };
 PyMethodDef BPY_rna_id_collection_orphans_purge_method_def = {
     "orphans_purge",
-    (PyCFunction)bpy_orphans_purge,
+    reinterpret_cast<PyCFunction>(bpy_orphans_purge),
     METH_VARARGS | METH_KEYWORDS,
     bpy_orphans_purge_doc,
 };

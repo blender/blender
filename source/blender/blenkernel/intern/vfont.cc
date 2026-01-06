@@ -62,7 +62,7 @@ int builtin_font_size = 0;
 
 static void vfont_init_data(ID *id)
 {
-  VFont *vfont = (VFont *)id;
+  VFont *vfont = blender::id_cast<VFont *>(id);
   PackedFile *pf = packedfile_new_from_builtin();
 
   if (pf) {
@@ -86,7 +86,7 @@ static void vfont_copy_data(Main * /*bmain*/,
                             const ID * /*id_src*/,
                             const int flag)
 {
-  VFont *vfont_dst = (VFont *)id_dst;
+  VFont *vfont_dst = blender::id_cast<VFont *>(id_dst);
 
   /* We never handle user-count here for own data. */
   const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
@@ -106,7 +106,7 @@ static void vfont_copy_data(Main * /*bmain*/,
 /** Free (or release) any data used by this font (does not free the font itself). */
 static void vfont_free_data(ID *id)
 {
-  VFont *vfont = (VFont *)id;
+  VFont *vfont = blender::id_cast<VFont *>(id);
   BKE_vfont_data_free(vfont);
 
   if (vfont->packedfile) {
@@ -117,7 +117,7 @@ static void vfont_free_data(ID *id)
 
 static void vfont_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
-  VFont *vfont = (VFont *)id;
+  VFont *vfont = blender::id_cast<VFont *>(id);
 
   if ((vfont->packedfile != nullptr) &&
       (bpath_data->flag & BKE_BPATH_FOREACH_PATH_SKIP_PACKED) != 0)
@@ -134,7 +134,7 @@ static void vfont_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 
 static void vfont_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  VFont *vf = (VFont *)id;
+  VFont *vf = blender::id_cast<VFont *>(id);
   const bool is_undo = BLO_write_is_undo(writer);
 
   /* Clean up, important in undo case to reduce false detection of changed datablocks. */
@@ -156,7 +156,7 @@ static void vfont_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 
 static void vfont_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  VFont *vf = (VFont *)id;
+  VFont *vf = blender::id_cast<VFont *>(id);
   vf->data = nullptr;
   vf->temp_pf = nullptr;
   BKE_packedfile_blend_read(reader, &vf->packedfile, vf->filepath);

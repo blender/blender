@@ -384,7 +384,7 @@ Manager::SubmitDebugOutput Manager::submit_debug(PassSimple &pass, View &view)
   output.resource_id = {pass.draw_commands_buf_.resource_id_buf_.data(),
                         pass.draw_commands_buf_.resource_id_count_};
   /* There is no visibility data for PassSimple. */
-  output.visibility = {(uint *)view.get_visibility_buffer().data(), 0};
+  output.visibility = {static_cast<uint *>(view.get_visibility_buffer().data()), 0};
   return output;
 }
 
@@ -400,7 +400,7 @@ Manager::SubmitDebugOutput Manager::submit_debug(PassMain &pass, View &view)
   Manager::SubmitDebugOutput output;
   output.resource_id = {pass.draw_commands_buf_.resource_id_buf_.data(),
                         pass.draw_commands_buf_.resource_id_count_};
-  output.visibility = {(uint *)view.get_visibility_buffer().data(),
+  output.visibility = {static_cast<uint *>(view.get_visibility_buffer().data()),
                        divide_ceil_u(resource_len_, 32)};
   return output;
 }

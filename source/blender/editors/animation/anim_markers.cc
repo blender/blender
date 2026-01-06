@@ -441,8 +441,11 @@ void debug_markers_print_list(ListBaseT<TimeMarker> *markers)
   printf("List of markers follows: -----\n");
 
   for (TimeMarker &marker : *markers) {
-    printf(
-        "\t'%s' on %d at %p with %u\n", marker.name, marker.frame, (void *)&marker, marker.flag);
+    printf("\t'%s' on %d at %p with %u\n",
+           marker.name,
+           marker.frame,
+           static_cast<void *>(&marker),
+           marker.flag);
   }
 
   printf("End of list ------------------\n");

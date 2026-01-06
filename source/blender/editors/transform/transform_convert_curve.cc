@@ -80,7 +80,7 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
                                                           NURB_HANDLE_TEST_KNOT_OR_EACH;
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    Curve *cu = static_cast<Curve *>(tc->obedit->data);
+    Curve *cu = blender::id_cast<Curve *>(tc->obedit->data);
     BLI_assert(cu->editnurb != nullptr);
     BezTriple *bezt;
     BPoint *bp;
@@ -166,7 +166,7 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
       continue;
     }
 
-    Curve *cu = static_cast<Curve *>(tc->obedit->data);
+    Curve *cu = blender::id_cast<Curve *>(tc->obedit->data);
     BezTriple *bezt;
     BPoint *bp;
     int a;
@@ -408,7 +408,7 @@ static void recalcData_curve(TransInfo *t)
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    Curve *cu = static_cast<Curve *>(tc->obedit->data);
+    Curve *cu = blender::id_cast<Curve *>(tc->obedit->data);
     ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
     Nurb *nu = static_cast<Nurb *>(nurbs->first);
 

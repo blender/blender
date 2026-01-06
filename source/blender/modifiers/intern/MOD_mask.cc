@@ -53,7 +53,7 @@ using blender::Vector;
 
 static void init_data(ModifierData *md)
 {
-  MaskModifierData *mmd = (MaskModifierData *)md;
+  MaskModifierData *mmd = reinterpret_cast<MaskModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(mmd, modifier);
 }
 
@@ -65,14 +65,14 @@ static void required_data_mask(ModifierData * /*md*/, CustomData_MeshMasks *r_cd
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   MaskModifierData *mmd = reinterpret_cast<MaskModifierData *>(md);
-  walk(user_data, ob, (ID **)&mmd->ob_arm, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&mmd->ob_arm), IDWALK_CB_NOP);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   MaskModifierData *mmd = reinterpret_cast<MaskModifierData *>(md);
   if (mmd->ob_arm) {
-    bArmature *arm = (bArmature *)mmd->ob_arm->data;
+    bArmature *arm = blender::id_cast<bArmature *>(mmd->ob_arm->data);
     /* Tag relationship in depsgraph, but also on the armature. */
     /* TODO(sergey): Is it a proper relation here? */
     DEG_add_object_relation(ctx->node, mmd->ob_arm, DEG_OB_COMP_TRANSFORM, "Mask Modifier");

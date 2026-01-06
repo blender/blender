@@ -175,7 +175,7 @@ static PyObject *BPy_InlineShaderNodes_get_node_tree(BPy_InlineShaderNodes *self
 
 static PyGetSetDef BPy_InlineShaderNodes_getseters[] = {
     {"node_tree",
-     (getter)BPy_InlineShaderNodes_get_node_tree,
+     reinterpret_cast<getter>(BPy_InlineShaderNodes_get_node_tree),
      nullptr,
      bpy_inline_shader_nodes_node_tree_doc,
      nullptr},
@@ -194,15 +194,15 @@ static PyGetSetDef BPy_InlineShaderNodes_getseters[] = {
 
 static PyMethodDef BPy_InlineShaderNodes_methods[] = {
     {"from_material",
-     (PyCFunction)BPy_InlineShaderNodes_static_from_material,
+     reinterpret_cast<PyCFunction>(BPy_InlineShaderNodes_static_from_material),
      METH_VARARGS | METH_KEYWORDS | METH_STATIC,
      bpy_inline_shader_nodes_from_material_doc},
     {"from_light",
-     (PyCFunction)BPy_InlineShaderNodes_static_from_light,
+     reinterpret_cast<PyCFunction>(BPy_InlineShaderNodes_static_from_light),
      METH_VARARGS | METH_KEYWORDS | METH_STATIC,
      bpy_inline_shader_nodes_from_light_doc},
     {"from_world",
-     (PyCFunction)BPy_InlineShaderNodes_static_from_world,
+     reinterpret_cast<PyCFunction>(BPy_InlineShaderNodes_static_from_world),
      METH_VARARGS | METH_KEYWORDS | METH_STATIC,
      bpy_inline_shader_nodes_from_world_doc},
     {nullptr},

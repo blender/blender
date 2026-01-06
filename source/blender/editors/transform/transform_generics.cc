@@ -70,10 +70,10 @@ static void *t_view_get(TransInfo *t)
 {
   if (t->spacetype == SPACE_VIEW3D) {
     View3D *v3d = static_cast<View3D *>(t->area->spacedata.first);
-    return (void *)v3d;
+    return static_cast<void *>(v3d);
   }
   if (t->region) {
-    return (void *)&t->region->v2d;
+    return static_cast<void *>(&t->region->v2d);
   }
   return nullptr;
 }
@@ -850,7 +850,7 @@ static void transdata_restore_basic(TransDataBasic *td_basic)
 
 static void restoreElement(TransData *td)
 {
-  transdata_restore_basic((TransDataBasic *)td);
+  transdata_restore_basic(static_cast<TransDataBasic *>(td));
 
   if (td->flag & TD_BEZTRIPLE) {
     *(td->hdata->h1) = td->hdata->ih1;
@@ -871,7 +871,7 @@ void restoreTransObjects(TransInfo *t)
     }
 
     for (tdm = tc->data_mirror; tdm < tc->data_mirror + tc->data_mirror_len; tdm++) {
-      transdata_restore_basic((TransDataBasic *)tdm);
+      transdata_restore_basic(static_cast<TransDataBasic *>(tdm));
     }
 
     if (tc->data_ext) {
@@ -959,17 +959,17 @@ void calculateCenterCursor2D(TransInfo *t, float r_center[2])
   const float *cursor = nullptr;
 
   if (t->spacetype == SPACE_IMAGE) {
-    SpaceImage *sima = (SpaceImage *)t->area->spacedata.first;
+    SpaceImage *sima = static_cast<SpaceImage *>(t->area->spacedata.first);
     cursor = sima->cursor;
   }
   if (t->spacetype == SPACE_SEQ) {
-    SpaceSeq *sseq = (SpaceSeq *)t->area->spacedata.first;
+    SpaceSeq *sseq = static_cast<SpaceSeq *>(t->area->spacedata.first);
     const float2 cursor_pixel = seq::image_preview_unit_to_px(t->scene, sseq->cursor);
     copy_v2_v2(cursor_local_buf, cursor_pixel);
     cursor = cursor_local_buf;
   }
   else if (t->spacetype == SPACE_CLIP) {
-    SpaceClip *space_clip = (SpaceClip *)t->area->spacedata.first;
+    SpaceClip *space_clip = static_cast<SpaceClip *>(t->area->spacedata.first);
     cursor = space_clip->cursor;
   }
 
@@ -978,11 +978,11 @@ void calculateCenterCursor2D(TransInfo *t, float r_center[2])
       float co[2];
 
       if (t->spacetype == SPACE_IMAGE) {
-        SpaceImage *sima = (SpaceImage *)t->area->spacedata.first;
+        SpaceImage *sima = static_cast<SpaceImage *>(t->area->spacedata.first);
         BKE_mask_coord_from_image(sima->image, &sima->iuser, co, cursor);
       }
       else if (t->spacetype == SPACE_CLIP) {
-        SpaceClip *space_clip = (SpaceClip *)t->area->spacedata.first;
+        SpaceClip *space_clip = static_cast<SpaceClip *>(t->area->spacedata.first);
         BKE_mask_coord_from_movieclip(space_clip->clip, &space_clip->user, co, cursor);
       }
       else {
@@ -1007,7 +1007,7 @@ void calculateCenterCursor2D(TransInfo *t, float r_center[2])
 
 void calculateCenterCursorGraph2D(TransInfo *t, float r_center[2])
 {
-  SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
+  SpaceGraph *sipo = static_cast<SpaceGraph *>(t->area->spacedata.first);
   Scene *scene = t->scene;
 
   /* Cursor is combination of current frame, and graph-editor cursor value. */
@@ -1047,13 +1047,15 @@ void calculateCenterMedian(TransInfo *t, float r_center[3])
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     float center[3];
     for (int i = 0; i < tc->data_len; i++) {
-      if (transdata_center_global_get(tc, (TransDataBasic *)&tc->data[i], center)) {
+      if (transdata_center_global_get(tc, static_cast<TransDataBasic *>(&tc->data[i]), center)) {
         add_v3_v3(partial, center);
         total++;
       }
     }
     for (int i = 0; i < tc->data_mirror_len; i++) {
-      if (transdata_center_global_get(tc, (TransDataBasic *)&tc->data_mirror[i], center)) {
+      if (transdata_center_global_get(
+              tc, static_cast<TransDataBasic *>(&tc->data_mirror[i]), center))
+      {
         add_v3_v3(partial, center);
         total++;
       }
@@ -1073,13 +1075,15 @@ void calculateCenterBound(TransInfo *t, float r_center[3])
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     float center[3];
     for (int i = 0; i < tc->data_len; i++) {
-      if (transdata_center_global_get(tc, (TransDataBasic *)&tc->data[i], center)) {
+      if (transdata_center_global_get(tc, static_cast<TransDataBasic *>(&tc->data[i]), center)) {
         minmax_v3v3_v3(min, max, center);
         changed = true;
       }
     }
     for (int i = 0; i < tc->data_mirror_len; i++) {
-      if (transdata_center_global_get(tc, (TransDataBasic *)&tc->data_mirror[i], center)) {
+      if (transdata_center_global_get(
+              tc, static_cast<TransDataBasic *>(&tc->data_mirror[i]), center))
+      {
         minmax_v3v3_v3(min, max, center);
         changed = true;
       }

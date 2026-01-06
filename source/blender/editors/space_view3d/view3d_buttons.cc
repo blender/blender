@@ -602,12 +602,12 @@ static void v3d_editvertex_buts(
   bool has_skinradius = false;
   PointerRNA data_ptr;
 
-  copy_vn_fl((float *)&median_basis, TRANSFORM_MEDIAN_ARRAY_LEN, 0.0f);
+  copy_vn_fl(reinterpret_cast<float *>(&median_basis), TRANSFORM_MEDIAN_ARRAY_LEN, 0.0f);
   tot = totedgedata = totcurvedata = totlattdata = totcurvebweight = 0;
 
   if (ob->type == OB_MESH) {
     TransformMedian_Mesh *median = &median_basis.mesh;
-    Mesh *mesh = static_cast<Mesh *>(ob->data);
+    Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
     BMEditMesh *em = mesh->runtime->edit_mesh.get();
     BMesh *bm = em->bm;
     BMVert *eve;
@@ -674,7 +674,7 @@ static void v3d_editvertex_buts(
   }
   else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
     TransformMedian_Curve *median = &median_basis.curve;
-    Curve *cu = static_cast<Curve *>(ob->data);
+    Curve *cu = blender::id_cast<Curve *>(ob->data);
     BPoint *bp;
     BezTriple *bezt;
     int a;
@@ -740,7 +740,7 @@ static void v3d_editvertex_buts(
     }
   }
   else if (ob->type == OB_LATTICE) {
-    Lattice *lt = static_cast<Lattice *>(ob->data);
+    Lattice *lt = blender::id_cast<Lattice *>(ob->data);
     TransformMedian_Lattice *median = &median_basis.lattice;
     BPoint *bp;
     int a;
@@ -774,7 +774,7 @@ static void v3d_editvertex_buts(
       using namespace ed::greasepencil;
       using namespace ed::curves;
       Scene &scene = *CTX_data_scene(C);
-      GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
+      GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(ob->data);
       Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
 
       status = threading::parallel_reduce(
@@ -793,7 +793,7 @@ static void v3d_editvertex_buts(
     }
     else {
       using namespace ed::curves;
-      const Curves &curves_id = *static_cast<Curves *>(ob->data);
+      const Curves &curves_id = *blender::id_cast<Curves *>(ob->data);
       status = init_curves_point_selection_status(curves_id.geometry.wrap());
     }
 
@@ -1288,7 +1288,7 @@ static void v3d_editvertex_buts(
     block_align_end(block);
 
     if (ob->type == OB_MESH) {
-      Mesh *mesh = static_cast<Mesh *>(ob->data);
+      Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
       if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
         blender::ui::BlockInteraction_CallbackData callback_data{};
         callback_data.begin_fn = editmesh_partial_update_begin_fn;
@@ -1307,9 +1307,9 @@ static void v3d_editvertex_buts(
       mul_m4_v3(ob->world_to_object().ptr(), median_basis.generic.location);
       mul_m4_v3(ob->world_to_object().ptr(), ve_median_basis.generic.location);
     }
-    sub_vn_vnvn((float *)&median_basis,
-                (float *)&ve_median_basis,
-                (float *)&median_basis,
+    sub_vn_vnvn(reinterpret_cast<float *>(&median_basis),
+                reinterpret_cast<float *>(&ve_median_basis),
+                reinterpret_cast<float *>(&median_basis),
                 TRANSFORM_MEDIAN_ARRAY_LEN);
 
     /* Note with a single element selected, we always do. */
@@ -1321,7 +1321,7 @@ static void v3d_editvertex_buts(
          median_basis.mesh.e_crease))
     {
       const TransformMedian_Mesh *median = &median_basis.mesh, *ve_median = &ve_median_basis.mesh;
-      Mesh *mesh = static_cast<Mesh *>(ob->data);
+      Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
       BMEditMesh *em = mesh->runtime->edit_mesh.get();
       BMesh *bm = em->bm;
       BMIter iter;
@@ -1465,7 +1465,7 @@ static void v3d_editvertex_buts(
     {
       const TransformMedian_Curve *median = &median_basis.curve,
                                   *ve_median = &ve_median_basis.curve;
-      Curve *cu = static_cast<Curve *>(ob->data);
+      Curve *cu = blender::id_cast<Curve *>(ob->data);
       BPoint *bp;
       BezTriple *bezt;
       int a;
@@ -1540,7 +1540,7 @@ static void v3d_editvertex_buts(
     else if ((ob->type == OB_LATTICE) && (apply_vcos || median_basis.lattice.weight)) {
       const TransformMedian_Lattice *median = &median_basis.lattice,
                                     *ve_median = &ve_median_basis.lattice;
-      Lattice *lt = static_cast<Lattice *>(ob->data);
+      Lattice *lt = blender::id_cast<Lattice *>(ob->data);
       BPoint *bp;
       int a;
       const float scale_w = compute_scale_factor(ve_median->weight, median->weight);
@@ -1566,7 +1566,7 @@ static void v3d_editvertex_buts(
       using namespace ed::greasepencil;
       using namespace ed::curves;
       Scene &scene = *CTX_data_scene(C);
-      GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
+      GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(ob->data);
       Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
 
       threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
@@ -1582,7 +1582,7 @@ static void v3d_editvertex_buts(
                                        median_basis.curves.radius || median_basis.curves.tilt))
     {
       using namespace ed::curves;
-      Curves &curves_id = *static_cast<Curves *>(ob->data);
+      Curves &curves_id = *blender::id_cast<Curves *>(ob->data);
       bke::CurvesGeometry &curves = curves_id.geometry.wrap();
       if (apply_to_curves_point_selection(
               tot, median_basis.curves, ve_median_basis.curves, curves))
@@ -2008,7 +2008,7 @@ static void v3d_posearmature_buts(blender::ui::Layout &layout, Object *ob)
 
 static void v3d_editarmature_buts(blender::ui::Layout &layout, Object *ob)
 {
-  bArmature *arm = static_cast<bArmature *>(ob->data);
+  bArmature *arm = blender::id_cast<bArmature *>(ob->data);
   EditBone *ebone = arm->act_edbone;
 
   if (!ebone || !ANIM_bonecoll_is_visible_editbone(arm, ebone)) {
@@ -2038,7 +2038,7 @@ static void v3d_editarmature_buts(blender::ui::Layout &layout, Object *ob)
 
 static void v3d_editmetaball_buts(blender::ui::Layout &layout, Object *ob)
 {
-  MetaBall *mball = static_cast<MetaBall *>(ob->data);
+  MetaBall *mball = blender::id_cast<MetaBall *>(ob->data);
 
   if (!mball || !(mball->lastelem)) {
     layout.label(IFACE_("Nothing selected"), ICON_NONE);
@@ -2193,7 +2193,7 @@ static void apply_to_active_object(
   if (ob->type == OB_GREASE_PENCIL) {
     using namespace ed::greasepencil;
     Scene &scene = *CTX_data_scene(C);
-    GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
+    GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(ob->data);
     Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
 
     threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
@@ -2209,7 +2209,7 @@ static void apply_to_active_object(
     });
   }
   else {
-    Curves &curves_id = *static_cast<Curves *>(ob->data);
+    Curves &curves_id = *blender::id_cast<Curves *>(ob->data);
     bke::CurvesGeometry &curves = curves_id.geometry.wrap();
     IndexMaskMemory memory;
     const IndexMask selection = ed::curves::retrieve_selected_curves(curves, memory);
@@ -2422,7 +2422,7 @@ static void view3d_panel_curve_data(const bContext *C, Panel *panel)
   if (ob->type == OB_GREASE_PENCIL) {
     using namespace ed::greasepencil;
     Scene &scene = *CTX_data_scene(C);
-    GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
+    GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(ob->data);
     Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
 
     status = threading::parallel_reduce(
@@ -2440,7 +2440,7 @@ static void view3d_panel_curve_data(const bContext *C, Panel *panel)
         CurvesSelectionStatus::sum);
   }
   else {
-    const Curves &curves_id = *static_cast<Curves *>(ob->data);
+    const Curves &curves_id = *blender::id_cast<Curves *>(ob->data);
     status = init_curves_selection_status(curves_id.geometry.wrap());
   }
 

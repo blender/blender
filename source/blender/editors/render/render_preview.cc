@@ -335,7 +335,7 @@ static void switch_preview_floor_visibility(Main *pr_main,
       }
       if (base.object->type == OB_MESH) {
         switch_preview_floor_material(
-            pr_main, static_cast<Mesh *>(base.object->data), scene, pr_method);
+            pr_main, blender::id_cast<Mesh *>(base.object->data), scene, pr_method);
       }
     }
   }
@@ -366,7 +366,7 @@ static World *preview_get_localized_world(ShaderPreview *sp, World *world)
                                nullptr,
                                LIB_ID_CREATE_LOCAL | LIB_ID_COPY_LOCALIZE |
                                    LIB_ID_COPY_NO_ANIMDATA);
-  sp->worldcopy = (World *)id_copy;
+  sp->worldcopy = blender::id_cast<World *>(id_copy);
   BLI_addtail(&sp->pr_main->worlds, sp->worldcopy);
   return sp->worldcopy;
 }
@@ -430,7 +430,7 @@ static ID *duplicate_ids(ID *id, const bool allow_failure)
       /* Doesn't really duplicate the collection. Just creates a collection instance empty. */
       BLI_assert(BKE_previewimg_id_supports_jobs(id));
       Object *instance_empty = BKE_object_add_only_object(nullptr, OB_EMPTY, nullptr);
-      instance_empty->instance_collection = (Collection *)id;
+      instance_empty->instance_collection = blender::id_cast<Collection *>(id);
       instance_empty->transflag |= OB_DUPLICOLLECTION;
       return &instance_empty->id;
     }
@@ -552,12 +552,12 @@ static Scene *preview_prepare_scene(
     }
 
     if (id_type == ID_MA) {
-      Material *mat = nullptr, *origmat = (Material *)id;
+      Material *mat = nullptr, *origmat = blender::id_cast<Material *>(id);
 
       if (origmat) {
         /* work on a copy */
         BLI_assert(sp->id_copy != nullptr);
-        mat = sp->matcopy = (Material *)sp->id_copy;
+        mat = sp->matcopy = blender::id_cast<Material *>(sp->id_copy);
         sp->id_copy = nullptr;
         BLI_addtail(&pr_main->materials, mat);
 
@@ -611,22 +611,22 @@ static Scene *preview_prepare_scene(
       }
     }
     else if (id_type == ID_TE) {
-      Tex *tex = nullptr, *origtex = (Tex *)id;
+      Tex *tex = nullptr, *origtex = blender::id_cast<Tex *>(id);
 
       if (origtex) {
         BLI_assert(sp->id_copy != nullptr);
-        tex = sp->texcopy = (Tex *)sp->id_copy;
+        tex = sp->texcopy = blender::id_cast<Tex *>(sp->id_copy);
         sp->id_copy = nullptr;
         BLI_addtail(&pr_main->textures, tex);
       }
     }
     else if (id_type == ID_LA) {
-      Light *la = nullptr, *origla = (Light *)id;
+      Light *la = nullptr, *origla = blender::id_cast<Light *>(id);
 
       /* work on a copy */
       if (origla) {
         BLI_assert(sp->id_copy != nullptr);
-        la = sp->lampcopy = (Light *)sp->id_copy;
+        la = sp->lampcopy = blender::id_cast<Light *>(sp->id_copy);
         sp->id_copy = nullptr;
         BLI_addtail(&pr_main->lights, la);
       }
@@ -644,17 +644,17 @@ static Scene *preview_prepare_scene(
       for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
         if (base.object->id.name[2] == 'p') {
           if (base.object->type == OB_LAMP) {
-            base.object->data = la;
+            base.object->data = blender::id_cast<ID *>(la);
           }
         }
       }
     }
     else if (id_type == ID_WO) {
-      World *wrld = nullptr, *origwrld = (World *)id;
+      World *wrld = nullptr, *origwrld = blender::id_cast<World *>(id);
 
       if (origwrld) {
         BLI_assert(sp->id_copy != nullptr);
-        wrld = sp->worldcopy = (World *)sp->id_copy;
+        wrld = sp->worldcopy = blender::id_cast<World *>(sp->id_copy);
         sp->id_copy = nullptr;
         BLI_addtail(&pr_main->worlds, wrld);
       }
@@ -680,7 +680,8 @@ static bool ed_preview_draw_rect(
   int offx = 0;
   int newx = BLI_rcti_size_x(rect);
   int newy = BLI_rcti_size_y(rect);
-  const void *split_owner = (!split || first) ? owner : (char *)owner + 1;
+  const void *split_owner = (!split || first) ? owner :
+                                                static_cast<char *>(const_cast<void *>(owner)) + 1;
   bool ok = false;
 
   if (split) {
@@ -740,9 +741,9 @@ void ED_preview_draw(
   if (idp) {
     Scene *scene = CTX_data_scene(C);
     wmWindowManager *wm = CTX_wm_manager(C);
-    ID *id = (ID *)idp;
-    ID *parent = (ID *)parentp;
-    MTex *slot = (MTex *)slotp;
+    ID *id = static_cast<ID *>(idp);
+    ID *parent = static_cast<ID *>(parentp);
+    MTex *slot = static_cast<MTex *>(slotp);
     SpaceProperties *sbuts = CTX_wm_space_properties(C);
     const void *owner = CTX_wm_area(C);
     ShaderPreview *sp = static_cast<ShaderPreview *>(
@@ -844,7 +845,7 @@ static Object *object_preview_camera_create(Main *preview_main,
   mat3_to_quat(camera->quat, rotmat);
 
   /* Nice focal length for close portraiture. */
-  ((Camera *)camera->data)->lens = 85;
+  (blender::id_cast<Camera *>(camera->data))->lens = 85;
 
   return camera;
 }
@@ -901,7 +902,7 @@ static void object_preview_render(IconPreview *preview, IconPreviewSize *preview
   ObjectPreviewData preview_data = {};
   preview_data.pr_main = preview_main;
   /* Act on a copy. */
-  preview_data.object = (Object *)preview->id_copy;
+  preview_data.object = blender::id_cast<Object *>(preview->id_copy);
   preview_data.cfra = preview->scene->r.cfra;
   preview_data.sizex = preview_sized->sizex;
   preview_data.sizey = preview_sized->sizey;
@@ -1163,7 +1164,7 @@ static void shader_preview_texture(ShaderPreview *sp, Tex *tex, Scene *sce, Rend
 
   /* Create buffer in empty RenderView created in the init step. */
   RenderResult *rr = RE_AcquireResultWrite(re);
-  RenderView *rv = (RenderView *)rr->views.first;
+  RenderView *rv = static_cast<RenderView *>(rr->views.first);
   ImBuf *rv_ibuf = RE_RenderViewEnsureImBuf(rr, rv);
   IMB_assign_float_buffer(rv_ibuf,
                           MEM_calloc_arrayN<float>(4 * width * height, "texture render result"),
@@ -1242,7 +1243,9 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
     return;
   }
 
-  const void *split_owner = (!split || first) ? sp->owner : (char *)sp->owner + 1;
+  const void *split_owner = (!split || first) ?
+                                sp->owner :
+                                static_cast<char *>(const_cast<void *>(sp->owner)) + 1;
   re = RE_GetRender(split_owner);
 
   /* full refreshed render from first tile */
@@ -1270,21 +1273,21 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
   RE_test_break_cb(re, sp, shader_preview_break);
 
   /* lens adjust */
-  oldlens = ((Camera *)sce->camera->data)->lens;
+  oldlens = (blender::id_cast<Camera *>(sce->camera->data))->lens;
   if (sizex > sp->sizey) {
-    ((Camera *)sce->camera->data)->lens *= float(sp->sizey) / float(sizex);
+    (blender::id_cast<Camera *>(sce->camera->data))->lens *= float(sp->sizey) / float(sizex);
   }
 
   /* entire cycle for render engine */
   if (idtype == ID_TE) {
-    shader_preview_texture(sp, (Tex *)id, sce, re);
+    shader_preview_texture(sp, blender::id_cast<Tex *>(id), sce, re);
   }
   else {
     /* Render preview scene */
     RE_PreviewRender(re, pr_main, sce);
   }
 
-  ((Camera *)sce->camera->data)->lens = oldlens;
+  (blender::id_cast<Camera *>(sce->camera->data))->lens = oldlens;
 
   /* handle results */
   if (sp->pr_method == PR_ICON_RENDER) {
@@ -1343,27 +1346,27 @@ static void shader_preview_free(void *customdata)
   ID *sub_id_copy = nullptr;
 
   if (sp->matcopy) {
-    main_id_copy = (ID *)sp->matcopy;
+    main_id_copy = blender::id_cast<ID *>(sp->matcopy);
     BLI_remlink(&pr_main->materials, sp->matcopy);
   }
   if (sp->texcopy) {
     BLI_assert(main_id_copy == nullptr);
-    main_id_copy = (ID *)sp->texcopy;
+    main_id_copy = blender::id_cast<ID *>(sp->texcopy);
     BLI_remlink(&pr_main->textures, sp->texcopy);
   }
   if (sp->worldcopy) {
     /* worldcopy is also created for material with `Preview World` enabled */
     if (main_id_copy) {
-      sub_id_copy = (ID *)sp->worldcopy;
+      sub_id_copy = blender::id_cast<ID *>(sp->worldcopy);
     }
     else {
-      main_id_copy = (ID *)sp->worldcopy;
+      main_id_copy = blender::id_cast<ID *>(sp->worldcopy);
     }
     BLI_remlink(&pr_main->worlds, sp->worldcopy);
   }
   if (sp->lampcopy) {
     BLI_assert(main_id_copy == nullptr);
-    main_id_copy = (ID *)sp->lampcopy;
+    main_id_copy = blender::id_cast<ID *>(sp->lampcopy);
     BLI_remlink(&pr_main->lights, sp->lampcopy);
   }
   if (sp->own_id_copy) {
@@ -1459,7 +1462,7 @@ static void icon_preview_startjob(void *customdata, bool *stop, bool *do_update)
   BLI_assert(id != nullptr);
 
   if (idtype == ID_IM) {
-    Image *ima = (Image *)id;
+    Image *ima = blender::id_cast<Image *>(id);
     ImBuf *ibuf = nullptr;
     ImageUser iuser;
     BKE_imageuser_default(&iuser);
@@ -1496,7 +1499,7 @@ static void icon_preview_startjob(void *customdata, bool *stop, bool *do_update)
     /* world is rendered with alpha=0, so it wasn't displayed
      * this could be render option for sky to, for later */
     if (idtype == ID_WO) {
-      set_alpha((char *)sp->pr_rect, sp->sizex, sp->sizey, 255);
+      set_alpha(reinterpret_cast<char *>(sp->pr_rect), sp->sizex, sp->sizey, 255);
     }
   }
 }
@@ -1548,7 +1551,7 @@ static void other_id_types_preview_render(IconPreview *ip,
 
     /* grease pencil use its own preview file */
     if (GS(ip->id->name) == ID_MA) {
-      ma = (Material *)ip->id;
+      ma = blender::id_cast<Material *>(ip->id);
     }
 
     if ((ma == nullptr) || (ma->gp_style == nullptr)) {
@@ -1583,7 +1586,7 @@ static int icon_previewimg_size_index_get(const IconPreviewSize *icon_size,
 
 static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus *worker_status)
 {
-  IconPreview *ip = (IconPreview *)customdata;
+  IconPreview *ip = static_cast<IconPreview *>(customdata);
 
   for (IconPreviewSize &cur_size : ip->sizes) {
     PreviewImage *prv = static_cast<PreviewImage *>(ip->owner);
@@ -1635,7 +1638,7 @@ static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus 
     if (ip->id != nullptr) {
       switch (GS(ip->id->name)) {
         case ID_OB:
-          if (object_preview_is_type_supported((Object *)ip->id)) {
+          if (object_preview_is_type_supported(blender::id_cast<Object *>(ip->id))) {
             /* Much simpler than the ShaderPreview mess used for other ID types. */
             object_preview_render(ip, &cur_size);
           }
@@ -1860,7 +1863,8 @@ void PreviewLoadJob::run_fn(void *customdata, wmJobWorkerStatus *worker_status)
         preview->w[request->icon_size] = thumb->x;
         preview->h[request->icon_size] = thumb->y;
         BLI_assert(preview->rect[request->icon_size] == nullptr);
-        preview->rect[request->icon_size] = (uint *)MEM_dupallocN(thumb->byte_buffer.data);
+        preview->rect[request->icon_size] = static_cast<uint *>(
+            MEM_dupallocN(thumb->byte_buffer.data));
       }
       else {
         icon_copy_rect(thumb,
@@ -1939,7 +1943,7 @@ void PreviewLoadJob::free_fn(void *customdata)
 
 static void icon_preview_free(void *customdata)
 {
-  IconPreview *ip = (IconPreview *)customdata;
+  IconPreview *ip = static_cast<IconPreview *>(customdata);
 
   if (ip->id_copy) {
     preview_id_copy_free(ip->id_copy);
@@ -1967,7 +1971,7 @@ bool ED_preview_id_is_supported(const ID *id, const char **r_disabled_hint)
       case ID_NT:
         return {false, RPT_("Node groups do not support automatic previews")};
       case ID_OB:
-        return {object_preview_is_type_supported((const Object *)id),
+        return {object_preview_is_type_supported(blender::id_cast<const Object *>(id)),
                 RPT_("Object type does not support automatic previews")};
       case ID_GR:
         return {
@@ -1975,7 +1979,7 @@ bool ED_preview_id_is_supported(const ID *id, const char **r_disabled_hint)
             RPT_("Collection does not contain object types that can be rendered for the automatic "
                  "preview")};
       case ID_SCE:
-        return {scene_preview_is_supported((const Scene *)id),
+        return {scene_preview_is_supported(blender::id_cast<const Scene *>(id)),
                 RPT_("Scenes without a camera do not support previews")};
       case ID_BR:
         return {false, RPT_("Brushes do not support automatic previews")};
@@ -2169,7 +2173,7 @@ void ED_preview_shader_job(const bContext *C,
 
   /* grease pencil use its own preview file */
   if (id_type == ID_MA) {
-    ma = (Material *)id;
+    ma = blender::id_cast<Material *>(id);
   }
 
   if ((ma == nullptr) || (ma->gp_style == nullptr)) {

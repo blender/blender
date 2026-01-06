@@ -249,7 +249,7 @@ void depsgraph_update_editors_tag(Main *bmain, Depsgraph *graph, ID *id)
   /* TODO(sergey): Make sure this works for evaluated data-blocks as well. */
   DEGEditorUpdateContext update_ctx = {nullptr};
   update_ctx.bmain = bmain;
-  update_ctx.depsgraph = (::Depsgraph *)graph;
+  update_ctx.depsgraph = reinterpret_cast<::Depsgraph *>(graph);
   update_ctx.scene = graph->scene;
   update_ctx.view_layer = graph->view_layer;
   deg_editors_id_update(&update_ctx, id);
@@ -311,8 +311,8 @@ void deg_graph_id_tag_legacy_compat(
   if (ELEM(tag, ID_RECALC_GEOMETRY, 0)) {
     switch (GS(id->name)) {
       case ID_OB: {
-        Object *object = (Object *)id;
-        ID *data_id = (ID *)object->data;
+        Object *object = blender::id_cast<Object *>(id);
+        ID *data_id = static_cast<ID *>(object->data);
         if (data_id != nullptr) {
           graph_id_tag_update(bmain, depsgraph, data_id, 0, update_source);
         }
@@ -322,7 +322,7 @@ void deg_graph_id_tag_legacy_compat(
        * way to chain geometry evaluation to them, so we don't need extra
        * tagging here. */
       case ID_ME: {
-        Mesh *mesh = (Mesh *)id;
+        Mesh *mesh = blender::id_cast<Mesh *>(id);
         if (mesh->key != nullptr) {
           ID *key_id = &mesh->key->id;
           if (key_id != nullptr) {
@@ -332,7 +332,7 @@ void deg_graph_id_tag_legacy_compat(
         break;
       }
       case ID_LT: {
-        Lattice *lattice = (Lattice *)id;
+        Lattice *lattice = blender::id_cast<Lattice *>(id);
         if (lattice->key != nullptr) {
           ID *key_id = &lattice->key->id;
           if (key_id != nullptr) {
@@ -342,7 +342,7 @@ void deg_graph_id_tag_legacy_compat(
         break;
       }
       case ID_CU_LEGACY: {
-        Curve *curve = (Curve *)id;
+        Curve *curve = blender::id_cast<Curve *>(id);
         if (curve->key != nullptr) {
           ID *key_id = &curve->key->id;
           if (key_id != nullptr) {
@@ -477,7 +477,7 @@ void deg_graph_node_tag_zero(Main *bmain,
 
     comp_node->tag_update(graph, update_source);
   }
-  deg_graph_id_tag_legacy_compat(bmain, graph, id, (IDRecalcFlag)0, update_source);
+  deg_graph_id_tag_legacy_compat(bmain, graph, id, IDRecalcFlag(0), update_source);
 }
 
 /* Implicit tagging of the parameters component on other changes.
@@ -604,7 +604,7 @@ NodeType geometry_tag_to_component(const ID *id)
   const ID_Type id_type = GS(id->name);
   switch (id_type) {
     case ID_OB: {
-      const Object *object = (Object *)id;
+      const Object *object = blender::id_cast<Object *>(const_cast<ID *>(id));
       switch (object->type) {
         case OB_MESH:
         case OB_CURVES_LEGACY:
@@ -691,7 +691,9 @@ static void set_id_update_count(ID *id)
 void graph_id_tag_update(
     Main *bmain, Depsgraph *graph, ID *id, uint flags, eUpdateSource update_source)
 {
-  const int debug_flags = (graph != nullptr) ? DEG_debug_flags_get((::Depsgraph *)graph) : G.debug;
+  const int debug_flags = (graph != nullptr) ?
+                              DEG_debug_flags_get(reinterpret_cast<::Depsgraph *>(graph)) :
+                              G.debug;
   if (graph != nullptr && graph->is_evaluating) {
     if (debug_flags & G_DEBUG_DEPSGRAPH_TAG) {
       printf("ID tagged for update during dependency graph evaluation.\n");
@@ -732,7 +734,7 @@ void graph_id_tag_update(
   }
   uint current_flag = flags;
   while (current_flag != 0) {
-    IDRecalcFlag tag = (IDRecalcFlag)(1 << bitscan_forward_clear_uint(&current_flag));
+    IDRecalcFlag tag = IDRecalcFlag(1 << bitscan_forward_clear_uint(&current_flag));
     graph_id_tag_update_single_flag(bmain, graph, id, id_node, tag, update_source);
   }
   /* Special case for nested node tree data-blocks. */
@@ -845,14 +847,14 @@ void DEG_id_tag_update_for_side_effect_request(Depsgraph *depsgraph, ID *id, uin
 {
   BLI_assert(depsgraph != nullptr);
   BLI_assert(id != nullptr);
-  deg::Depsgraph *graph = (deg::Depsgraph *)depsgraph;
+  deg::Depsgraph *graph = reinterpret_cast<deg::Depsgraph *>(depsgraph);
   Main *bmain = DEG_get_bmain(depsgraph);
   deg::graph_id_tag_update(bmain, graph, id, flags, deg::DEG_UPDATE_SOURCE_SIDE_EFFECT_REQUEST);
 }
 
 void DEG_graph_id_tag_update(Main *bmain, Depsgraph *depsgraph, ID *id, uint flags)
 {
-  deg::Depsgraph *graph = (deg::Depsgraph *)depsgraph;
+  deg::Depsgraph *graph = reinterpret_cast<deg::Depsgraph *>(depsgraph);
   deg::graph_id_tag_update(bmain, graph, id, flags, deg::DEG_UPDATE_SOURCE_USER_EDIT);
 }
 
@@ -894,7 +896,7 @@ void DEG_id_type_tag(Main *bmain, short id_type)
 
 void DEG_graph_tag_on_visible_update(Depsgraph *depsgraph, const bool do_time)
 {
-  deg::Depsgraph *graph = (deg::Depsgraph *)depsgraph;
+  deg::Depsgraph *graph = reinterpret_cast<deg::Depsgraph *>(depsgraph);
   deg::graph_tag_on_visible_update(graph, do_time);
 }
 
@@ -907,13 +909,13 @@ void DEG_tag_on_visible_update(Main *bmain, const bool do_time)
 
 void DEG_enable_editors_update(Depsgraph *depsgraph)
 {
-  deg::Depsgraph *graph = (deg::Depsgraph *)depsgraph;
+  deg::Depsgraph *graph = reinterpret_cast<deg::Depsgraph *>(depsgraph);
   graph->use_editors_update = true;
 }
 
 void DEG_editors_update(Depsgraph *depsgraph, bool time)
 {
-  deg::Depsgraph *graph = (deg::Depsgraph *)depsgraph;
+  deg::Depsgraph *graph = reinterpret_cast<deg::Depsgraph *>(depsgraph);
   if (!graph->use_editors_update) {
     return;
   }

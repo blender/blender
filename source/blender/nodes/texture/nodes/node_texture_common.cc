@@ -37,7 +37,7 @@ static void copy_stack(bNodeStack *to, bNodeStack *from)
 
 static void *group_initexec(bNodeExecContext *context, bNode *node, bNodeInstanceKey key)
 {
-  bNodeTree *ngroup = (bNodeTree *)node->id;
+  bNodeTree *ngroup = blender::id_cast<bNodeTree *>(node->id);
   void *exec;
 
   if (!ngroup) {
@@ -52,7 +52,7 @@ static void *group_initexec(bNodeExecContext *context, bNode *node, bNodeInstanc
 
 static void group_freeexec(void *nodedata)
 {
-  bNodeTreeExec *gexec = (bNodeTreeExec *)nodedata;
+  bNodeTreeExec *gexec = static_cast<bNodeTreeExec *>(nodedata);
 
   ntreeTexEndExecTree_internal(gexec);
 }
@@ -62,7 +62,7 @@ static void group_freeexec(void *nodedata)
  */
 static void group_copy_inputs(bNode *gnode, bNodeStack **in, bNodeStack *gstack)
 {
-  bNodeTree *ngroup = (bNodeTree *)gnode->id;
+  bNodeTree *ngroup = blender::id_cast<bNodeTree *>(gnode->id);
   bNodeSocket *sock;
   bNodeStack *ns;
   int a;

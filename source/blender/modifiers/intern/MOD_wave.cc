@@ -42,7 +42,7 @@
 
 static void init_data(ModifierData *md)
 {
-  WaveModifierData *wmd = (WaveModifierData *)md;
+  WaveModifierData *wmd = reinterpret_cast<WaveModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(wmd, modifier);
 }
 
@@ -53,11 +53,11 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData * /*md*/)
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  WaveModifierData *wmd = (WaveModifierData *)md;
+  WaveModifierData *wmd = reinterpret_cast<WaveModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&wmd->texture, IDWALK_CB_USER);
-  walk(user_data, ob, (ID **)&wmd->objectcenter, IDWALK_CB_NOP);
-  walk(user_data, ob, (ID **)&wmd->map_object, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&wmd->texture), IDWALK_CB_USER);
+  walk(user_data, ob, reinterpret_cast<ID **>(&wmd->objectcenter), IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&wmd->map_object), IDWALK_CB_NOP);
 }
 
 static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, void *user_data)
@@ -69,7 +69,7 @@ static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, voi
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  WaveModifierData *wmd = (WaveModifierData *)md;
+  WaveModifierData *wmd = reinterpret_cast<WaveModifierData *>(md);
   bool need_transform_relation = false;
 
   if (wmd->objectcenter != nullptr) {
@@ -97,7 +97,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  WaveModifierData *wmd = (WaveModifierData *)md;
+  WaveModifierData *wmd = reinterpret_cast<WaveModifierData *>(md);
 
   /* ask for UV coordinates if we need them */
   if (wmd->texture && wmd->texmapping == MOD_DISP_MAP_UV) {
@@ -168,9 +168,10 @@ static void waveModifier_do(WaveModifierData *wmd,
   Tex *tex_target = wmd->texture;
   if (mesh != nullptr && tex_target != nullptr) {
     tex_co = MEM_malloc_arrayN<float[3]>(size_t(verts_num), __func__);
-    MOD_get_texture_coords((MappingInfoModifierData *)wmd, ctx, ob, mesh, vertexCos, tex_co);
+    MOD_get_texture_coords(
+        reinterpret_cast<MappingInfoModifierData *>(wmd), ctx, ob, mesh, vertexCos, tex_co);
 
-    MOD_init_texture((MappingInfoModifierData *)wmd, ctx);
+    MOD_init_texture(reinterpret_cast<MappingInfoModifierData *>(wmd), ctx);
   }
 
   if (lifefac != 0.0f) {
@@ -277,7 +278,7 @@ static void deform_verts(ModifierData *md,
                          Mesh *mesh,
                          blender::MutableSpan<blender::float3> positions)
 {
-  WaveModifierData *wmd = (WaveModifierData *)md;
+  WaveModifierData *wmd = reinterpret_cast<WaveModifierData *>(md);
   waveModifier_do(wmd,
                   ctx,
                   ctx->object,

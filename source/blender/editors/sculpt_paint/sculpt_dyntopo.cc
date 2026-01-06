@@ -60,7 +60,7 @@ void triangulate(BMesh *bm)
 void enable_ex(Main &bmain, Depsgraph &depsgraph, Object &ob)
 {
   SculptSession &ss = *ob.sculpt;
-  Mesh *mesh = static_cast<Mesh *>(ob.data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob.data);
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
 
   BKE_sculptsession_free_pbvh(ob);
@@ -110,7 +110,7 @@ static void disable(
     Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &ob, undo::StepData *undo_step)
 {
   SculptSession &ss = *ob.sculpt;
-  Mesh *mesh = static_cast<Mesh *>(ob.data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob.data);
 
   if (BMesh *bm = ss.bm) {
     BM_data_layer_free_named(bm, &bm->vdata, ".sculpt_dyntopo_node_id_vertex");
@@ -225,7 +225,7 @@ static bool dyntopo_supports_layer(const bke::AttributeIter &iter)
 
 WarnFlag check_attribute_warning(Scene &scene, Object &ob)
 {
-  Mesh *mesh = static_cast<Mesh *>(ob.data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob.data);
   SculptSession &ss = *ob.sculpt;
 
   WarnFlag flag = WarnFlag::OKAY;

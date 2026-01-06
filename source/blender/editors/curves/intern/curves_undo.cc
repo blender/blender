@@ -61,7 +61,7 @@ static bool step_encode(bContext *C, Main *bmain, UndoStep *us_p)
   threading::parallel_for(us->objects.index_range(), 8, [&](const IndexRange range) {
     for (const int i : range) {
       Object *ob = objects[i];
-      const Curves &curves_id = *static_cast<Curves *>(ob->data);
+      const Curves &curves_id = *blender::id_cast<Curves *>(ob->data);
       StepObject &object = us->objects[i];
 
       object.obedit_ref.ptr = ob;
@@ -92,7 +92,7 @@ static void step_decode(
   BLI_assert(BKE_object_is_in_editmode(us->objects.first().obedit_ref.ptr));
 
   for (const StepObject &object : us->objects) {
-    Curves &curves_id = *static_cast<Curves *>(object.obedit_ref.ptr->data);
+    Curves &curves_id = *blender::id_cast<Curves *>(object.obedit_ref.ptr->data);
 
     /* Overwrite the curves geometry. */
     curves_id.geometry.wrap() = object.geometry;
@@ -120,9 +120,11 @@ static void foreach_ID_ref(UndoStep *us_p,
 {
   CurvesUndoStep *us = reinterpret_cast<CurvesUndoStep *>(us_p);
 
-  foreach_ID_ref_fn(user_data, ((UndoRefID *)&us->scene_ref));
+  foreach_ID_ref_fn(user_data, (reinterpret_cast<UndoRefID *>(&us->scene_ref)));
   for (const StepObject &object : us->objects) {
-    foreach_ID_ref_fn(user_data, ((UndoRefID *)&object.obedit_ref));
+    foreach_ID_ref_fn(
+        user_data,
+        (reinterpret_cast<UndoRefID *>(const_cast<UndoRefID_Object *>(&object.obedit_ref))));
   }
 }
 

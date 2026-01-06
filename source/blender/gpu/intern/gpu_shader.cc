@@ -515,7 +515,7 @@ int GPU_shader_get_constant(blender::gpu::Shader *shader, const char *name)
 int GPU_shader_get_builtin_uniform(blender::gpu::Shader *shader, int builtin)
 {
   const ShaderInterface *interface = shader->interface;
-  return interface->uniform_builtin((GPUUniformBuiltin)builtin);
+  return interface->uniform_builtin(GPUUniformBuiltin(builtin));
 }
 
 int GPU_shader_get_ssbo_binding(blender::gpu::Shader *shader, const char *name)
@@ -684,7 +684,7 @@ void GPU_shader_uniform_3iv(blender::gpu::Shader *sh, const char *name, const in
 void GPU_shader_uniform_mat4(blender::gpu::Shader *sh, const char *name, const float data[4][4])
 {
   const int loc = GPU_shader_get_uniform(sh, name);
-  GPU_shader_uniform_float_ex(sh, loc, 16, 1, (const float *)data);
+  GPU_shader_uniform_float_ex(sh, loc, 16, 1, reinterpret_cast<const float *>(data));
 }
 
 void GPU_shader_uniform_mat3_as_mat4(blender::gpu::Shader *sh,
@@ -711,7 +711,7 @@ void GPU_shader_uniform_2fv_array(blender::gpu::Shader *sh,
                                   const float (*val)[2])
 {
   const int loc = GPU_shader_get_uniform(sh, name);
-  GPU_shader_uniform_float_ex(sh, loc, 2, len, (const float *)val);
+  GPU_shader_uniform_float_ex(sh, loc, 2, len, reinterpret_cast<const float *>(val));
 }
 
 void GPU_shader_uniform_4fv_array(blender::gpu::Shader *sh,
@@ -720,7 +720,7 @@ void GPU_shader_uniform_4fv_array(blender::gpu::Shader *sh,
                                   const float (*val)[4])
 {
   const int loc = GPU_shader_get_uniform(sh, name);
-  GPU_shader_uniform_float_ex(sh, loc, 4, len, (const float *)val);
+  GPU_shader_uniform_float_ex(sh, loc, 4, len, reinterpret_cast<const float *>(val));
 }
 
 /** \} */

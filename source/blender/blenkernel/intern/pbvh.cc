@@ -917,7 +917,7 @@ struct PositionSourceResult {
 static PositionSourceResult cache_source_get(const Object &object_orig, const Object &object_eval)
 {
   const SculptSession &ss = *object_orig.sculpt;
-  const Mesh &mesh_orig = *static_cast<const Mesh *>(object_orig.data);
+  const Mesh &mesh_orig = *blender::id_cast<const Mesh *>(object_orig.data);
   BLI_assert(bke::object::pbvh_get(object_orig)->type() == Type::Mesh);
   if (object_orig.mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
     if (const Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(&object_eval)) {
@@ -946,7 +946,7 @@ static const SharedCache<Vector<float3>> &vert_normals_cache_eval(const Object &
                                                                   const Object &object_eval)
 {
   const SculptSession &ss = *object_orig.sculpt;
-  const Mesh &mesh_orig = *static_cast<const Mesh *>(object_orig.data);
+  const Mesh &mesh_orig = *blender::id_cast<const Mesh *>(object_orig.data);
   BLI_assert(bke::object::pbvh_get(object_orig)->type() == Type::Mesh);
 
   const PositionSourceResult result = cache_source_get(object_orig, object_eval);
@@ -974,7 +974,7 @@ static const SharedCache<Vector<float3>> &face_normals_cache_eval(const Object &
                                                                   const Object &object_eval)
 {
   const SculptSession &ss = *object_orig.sculpt;
-  const Mesh &mesh_orig = *static_cast<const Mesh *>(object_orig.data);
+  const Mesh &mesh_orig = *blender::id_cast<const Mesh *>(object_orig.data);
   BLI_assert(bke::object::pbvh_get(object_orig)->type() == Type::Mesh);
   const PositionSourceResult result = cache_source_get(object_orig, object_eval);
   switch (result.cache_source) {
@@ -1000,7 +1000,7 @@ static SharedCache<Vector<float3>> &face_normals_cache_eval_for_write(Object &ob
 static Span<float3> vert_positions_eval(const Object &object_orig, const Object &object_eval)
 {
   const SculptSession &ss = *object_orig.sculpt;
-  const Mesh &mesh_orig = *static_cast<const Mesh *>(object_orig.data);
+  const Mesh &mesh_orig = *blender::id_cast<const Mesh *>(object_orig.data);
   BLI_assert(bke::object::pbvh_get(object_orig)->type() == Type::Mesh);
   const PositionSourceResult result = cache_source_get(object_orig, object_eval);
   switch (result.cache_source) {
@@ -1020,7 +1020,7 @@ static Span<float3> vert_positions_eval(const Object &object_orig, const Object 
 static MutableSpan<float3> vert_positions_eval_for_write(Object &object_orig, Object &object_eval)
 {
   SculptSession &ss = *object_orig.sculpt;
-  Mesh &mesh_orig = *static_cast<Mesh *>(object_orig.data);
+  Mesh &mesh_orig = *blender::id_cast<Mesh *>(object_orig.data);
   BLI_assert(bke::object::pbvh_get(object_orig)->type() == Type::Mesh);
   const PositionSourceResult result = cache_source_get(object_orig, object_eval);
   switch (result.cache_source) {
@@ -1166,7 +1166,7 @@ static void update_normals_mesh(Object &object_orig,
    * Those boundary face and vertex indices are deduplicated with #VectorSet in order to avoid
    * duplicate work recalculation for the same vertex, and to make parallel storage for vertices
    * during recalculation thread-safe. */
-  Mesh &mesh = *static_cast<Mesh *>(object_orig.data);
+  Mesh &mesh = *blender::id_cast<Mesh *>(object_orig.data);
   const Span<float3> positions = bke::pbvh::vert_positions_eval_from_eval(object_eval);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
@@ -1586,7 +1586,7 @@ void Tree::update_visibility(const Object &object)
   visibility_dirty_.clear_and_shrink();
   switch (this->type()) {
     case Type::Mesh: {
-      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const Mesh &mesh = *blender::id_cast<const Mesh *>(object.data);
       update_visibility_faces(mesh, this->nodes<MeshNode>(), node_mask);
       break;
     }
@@ -2534,7 +2534,7 @@ void BKE_pbvh_sync_visibility_from_verts(Object &object)
   const SculptSession &ss = *object.sculpt;
   switch (object::pbvh_get(object)->type()) {
     case blender::bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
+      Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
       mesh_hide_vert_flush(mesh);
       break;
     }
@@ -2568,7 +2568,7 @@ void BKE_pbvh_sync_visibility_from_verts(Object &object)
       break;
     }
     case blender::bke::pbvh::Type::Grids: {
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
+      Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
       const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
       const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);

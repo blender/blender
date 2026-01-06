@@ -108,7 +108,8 @@ void Instance::init()
                               ctx->object_pose != nullptr;
   }
   else if (state.is_space_image()) {
-    SpaceImage *space_image = (SpaceImage *)state.space_data;
+    SpaceImage *space_image = reinterpret_cast<SpaceImage *>(
+        const_cast<SpaceLink *>(state.space_data));
 
     state.clear_in_front = false;
     state.use_in_front = false;

@@ -602,7 +602,7 @@ static bool transform_poll_property(const bContext *C, wmOperator *op, const Pro
 
   /* Orientation Axis. */
   if (STREQ(prop_id, "orient_axis")) {
-    eTfmMode mode = (eTfmMode)transformops_mode(op);
+    eTfmMode mode = eTfmMode(transformops_mode(op));
     return mode != TFM_ALIGN;
   }
 
@@ -1011,7 +1011,7 @@ static bool tilt_poll(bContext *C)
     return false;
   }
   if (obedit->type == OB_CURVES_LEGACY) {
-    Curve *cu = (Curve *)obedit->data;
+    Curve *cu = blender::id_cast<Curve *>(obedit->data);
     return (cu->flag & CU_3D) && (nullptr != cu->editnurb);
   }
   if (obedit->type == OB_CURVES) {

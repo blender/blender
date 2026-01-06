@@ -277,7 +277,8 @@ static ccd_Mesh *ccd_mesh_make(Object *ob)
   float hull;
   int i;
 
-  cmd = (CollisionModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Collision);
+  cmd = reinterpret_cast<CollisionModifierData *>(
+      BKE_modifiers_findby_type(ob, eModifierType_Collision));
 
   /* first some paranoia checks */
   if (!cmd) {
@@ -362,7 +363,8 @@ static void ccd_mesh_update(Object *ob, ccd_Mesh *pccd_M)
   float hull;
   int i;
 
-  cmd = (CollisionModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Collision);
+  cmd = reinterpret_cast<CollisionModifierData *>(
+      BKE_modifiers_findby_type(ob, eModifierType_Collision));
 
   /* first some paranoia checks */
   if (!cmd) {
@@ -576,7 +578,7 @@ static int count_mesh_quads(Mesh *mesh)
 
 static void add_mesh_quad_diag_springs(Object *ob)
 {
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   // BodyPoint *bp; /* UNUSED */
   if (ob->soft) {
     int nofquads;
@@ -1464,7 +1466,7 @@ static void _scan_for_ext_spring_forces(Scene *scene,
 
 static void *exec_scan_for_ext_spring_forces(void *data)
 {
-  SB_thread_context *pctx = (SB_thread_context *)data;
+  SB_thread_context *pctx = static_cast<SB_thread_context *>(data);
   _scan_for_ext_spring_forces(
       pctx->scene, pctx->ob, pctx->timenow, pctx->ifirst, pctx->ilast, pctx->effectors);
   return nullptr;
@@ -2123,7 +2125,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene,
 
 static void *exec_softbody_calc_forces(void *data)
 {
-  SB_thread_context *pctx = (SB_thread_context *)data;
+  SB_thread_context *pctx = static_cast<SB_thread_context *>(data);
   _softbody_calc_forces_slice_in_a_thread(pctx->scene,
                                           pctx->ob,
                                           pctx->forcetime,
@@ -2590,7 +2592,7 @@ static void interpolate_exciter(Object *ob, int timescale, int time)
 static void springs_from_mesh(Object *ob)
 {
   SoftBody *sb;
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   BodyPoint *bp;
   int a;
   float scale = 1.0f;
@@ -2625,7 +2627,7 @@ static void springs_from_mesh(Object *ob)
 static void mesh_to_softbody(Object *ob)
 {
   SoftBody *sb;
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   const blender::Span<blender::int2> edges = mesh->edges();
   BodyPoint *bp;
   int a, totedge;
@@ -2711,7 +2713,7 @@ static void mesh_to_softbody(Object *ob)
 static void mesh_faces_to_scratch(Object *ob)
 {
   SoftBody *sb = ob->soft;
-  const Mesh *mesh = static_cast<const Mesh *>(ob->data);
+  const Mesh *mesh = blender::id_cast<const Mesh *>(ob->data);
   BodyFace *bodyface;
   int a;
   const blender::Span<int> corner_verts = mesh->corner_verts();
@@ -2853,7 +2855,7 @@ static void makelatticesprings(Lattice *lt, BodySpring *bs, int dostiff, Object 
 /* makes totally fresh start situation */
 static void lattice_to_softbody(Object *ob)
 {
-  Lattice *lt = static_cast<Lattice *>(ob->data);
+  Lattice *lt = blender::id_cast<Lattice *>(ob->data);
   SoftBody *sb;
   int totvert, totspring = 0, a;
   BodyPoint *bp;
@@ -2916,7 +2918,7 @@ static void lattice_to_softbody(Object *ob)
 /* makes totally fresh start situation */
 static void curve_surf_to_softbody(Object *ob)
 {
-  Curve *cu = static_cast<Curve *>(ob->data);
+  Curve *cu = blender::id_cast<Curve *>(ob->data);
   SoftBody *sb;
   BodyPoint *bp;
   BodySpring *bs;
@@ -3150,7 +3152,7 @@ void sbObjectToSoftbody(Object *ob)
 static bool object_has_edges(const Object *ob)
 {
   if (ob->type == OB_MESH) {
-    return ((Mesh *)ob->data)->edges_num;
+    return (blender::id_cast<Mesh *>(ob->data))->edges_num;
   }
   if (ob->type == OB_LATTICE) {
     return true;

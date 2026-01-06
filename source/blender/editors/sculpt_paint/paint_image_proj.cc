@@ -1606,7 +1606,7 @@ static void screen_px_to_vector_persp(int winx,
   r_dir[0] = 2.0f * (co_px[0] / winx) - 1.0f;
   r_dir[1] = 2.0f * (co_px[1] / winy) - 1.0f;
   r_dir[2] = -0.5f;
-  mul_project_m4_v3((float (*)[4])projmat_inv, r_dir);
+  mul_project_m4_v3(const_cast<float (*)[4]>(projmat_inv), r_dir);
   sub_v3_v3(r_dir, view_pos);
 }
 
@@ -1929,12 +1929,16 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
 
   if (ibuf->float_buffer.data) {
     projPixel->pixel.f_pt = ibuf->float_buffer.data + ((x_px + y_px * ibuf->x) * 4);
-    projPixel->origColor.f_pt = (float *)projima->undoRect[tile_index] + 4 * tile_offset;
+    projPixel->origColor.f_pt = static_cast<float *>(
+                                    const_cast<void *>(projima->undoRect[tile_index])) +
+                                4 * tile_offset;
     zero_v4(projPixel->newColor.f);
   }
   else {
     projPixel->pixel.ch_pt = ibuf->byte_buffer.data + (x_px + y_px * ibuf->x) * 4;
-    projPixel->origColor.uint_pt = (uint *)projima->undoRect[tile_index] + tile_offset;
+    projPixel->origColor.uint_pt = static_cast<uint *>(
+                                       const_cast<void *>(projima->undoRect[tile_index])) +
+                                   tile_offset;
     projPixel->newColor.uint_ = 0;
   }
 
@@ -1977,8 +1981,11 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
 
         if (ibuf->float_buffer.data) {
           if (ibuf_other->float_buffer.data) { /* from float to float */
-            project_face_pixel(
-                other_tri_uv, ibuf_other, w, nullptr, ((ProjPixelClone *)projPixel)->clonepx.f);
+            project_face_pixel(other_tri_uv,
+                               ibuf_other,
+                               w,
+                               nullptr,
+                               (reinterpret_cast<ProjPixelClone *>(projPixel))->clonepx.f);
           }
           else { /* from char to float */
             uchar rgba_ub[4];
@@ -1987,7 +1994,8 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
             rgba_uchar_to_float(rgba, rgba_ub);
             IMB_colormanagement_colorspace_to_scene_linear_v3(rgba,
                                                               ibuf_other->byte_buffer.colorspace);
-            straight_to_premul_v4_v4(((ProjPixelClone *)projPixel)->clonepx.f, rgba);
+            straight_to_premul_v4_v4((reinterpret_cast<ProjPixelClone *>(projPixel))->clonepx.f,
+                                     rgba);
           }
         }
         else {
@@ -1996,11 +2004,14 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
             project_face_pixel(other_tri_uv, ibuf_other, w, nullptr, rgba);
             premul_to_straight_v4(rgba);
             IMB_colormanagement_scene_linear_to_colorspace_v3(rgba, ibuf->byte_buffer.colorspace);
-            rgba_float_to_uchar(((ProjPixelClone *)projPixel)->clonepx.ch, rgba);
+            rgba_float_to_uchar((reinterpret_cast<ProjPixelClone *>(projPixel))->clonepx.ch, rgba);
           }
           else { /* char to char */
-            project_face_pixel(
-                other_tri_uv, ibuf_other, w, ((ProjPixelClone *)projPixel)->clonepx.ch, nullptr);
+            project_face_pixel(other_tri_uv,
+                               ibuf_other,
+                               w,
+                               (reinterpret_cast<ProjPixelClone *>(projPixel))->clonepx.ch,
+                               nullptr);
           }
         }
 
@@ -2008,10 +2019,10 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
       }
       else {
         if (ibuf->float_buffer.data) {
-          ((ProjPixelClone *)projPixel)->clonepx.f[3] = 0;
+          (reinterpret_cast<ProjPixelClone *>(projPixel))->clonepx.f[3] = 0;
         }
         else {
-          ((ProjPixelClone *)projPixel)->clonepx.ch[3] = 0;
+          (reinterpret_cast<ProjPixelClone *>(projPixel))->clonepx.ch[3] = 0;
         }
       }
     }
@@ -2023,18 +2034,21 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
        * the faces are already initialized in project_paint_delayed_face_init(...) */
       if (ibuf->float_buffer.data) {
         if (!project_paint_PickColor(
-                ps, co, ((ProjPixelClone *)projPixel)->clonepx.f, nullptr, true))
+                ps, co, (reinterpret_cast<ProjPixelClone *>(projPixel))->clonepx.f, nullptr, true))
         {
           /* zero alpha - ignore */
-          ((ProjPixelClone *)projPixel)->clonepx.f[3] = 0;
+          (reinterpret_cast<ProjPixelClone *>(projPixel))->clonepx.f[3] = 0;
         }
       }
       else {
-        if (!project_paint_PickColor(
-                ps, co, nullptr, ((ProjPixelClone *)projPixel)->clonepx.ch, true))
+        if (!project_paint_PickColor(ps,
+                                     co,
+                                     nullptr,
+                                     (reinterpret_cast<ProjPixelClone *>(projPixel))->clonepx.ch,
+                                     true))
         {
           /* zero alpha - ignore */
-          ((ProjPixelClone *)projPixel)->clonepx.ch[3] = 0;
+          (reinterpret_cast<ProjPixelClone *>(projPixel))->clonepx.ch[3] = 0;
         }
       }
     }
@@ -2440,12 +2454,18 @@ static bool IsectPT2Df_limit(
  */
 static int float_z_sort_flip(const void *p1, const void *p2)
 {
-  return (((float *)p1)[2] < ((float *)p2)[2] ? 1 : -1);
+  return ((static_cast<float *>(const_cast<void *>(p1)))[2] <
+                  (static_cast<float *>(const_cast<void *>(p2)))[2] ?
+              1 :
+              -1);
 }
 
 static int float_z_sort(const void *p1, const void *p2)
 {
-  return (((float *)p1)[2] < ((float *)p2)[2] ? -1 : 1);
+  return ((static_cast<float *>(const_cast<void *>(p1)))[2] <
+                  (static_cast<float *>(const_cast<void *>(p2)))[2] ?
+              -1 :
+              1);
 }
 
 /* assumes one point is within the rectangle */
@@ -3397,7 +3417,7 @@ static void project_paint_face_init(const ProjPaintState *ps,
                     if (!is_ortho) {
                       pixel_on_edge[3] = 1.0f;
                       /* cast because of const */
-                      mul_m4_v4((float (*)[4])ps->projectMat, pixel_on_edge);
+                      mul_m4_v4(const_cast<float (*)[4]>(ps->projectMat), pixel_on_edge);
                       pixel_on_edge[0] = float(ps->winx * 0.5f) +
                                          (ps->winx * 0.5f) * pixel_on_edge[0] / pixel_on_edge[3];
                       pixel_on_edge[1] = float(ps->winy * 0.5f) +
@@ -4145,7 +4165,7 @@ struct ProjPaintLayerClone {
 static void proj_paint_layer_clone_init(ProjPaintState *ps, ProjPaintLayerClone *layer_clone)
 {
   using namespace blender;
-  const Mesh &mesh_orig = *static_cast<const Mesh *>(ps->ob->data);
+  const Mesh &mesh_orig = *blender::id_cast<const Mesh *>(ps->ob->data);
   const bke::AttributeAccessor attributes = ps->mesh_eval->attributes();
   const blender::float2 *uv_map_clone_base = nullptr;
 
@@ -4239,7 +4259,7 @@ static void proj_paint_face_lookup_init(const ProjPaintState *ps, ProjPaintFaceL
 {
   using namespace blender;
   memset(face_lookup, 0, sizeof(*face_lookup));
-  Mesh *orig_mesh = (Mesh *)ps->ob->data;
+  Mesh *orig_mesh = blender::id_cast<Mesh *>(ps->ob->data);
   face_lookup->index_mp_to_orig = static_cast<const int *>(
       CustomData_get_layer(&ps->mesh_eval->face_data, CD_ORIGINDEX));
   const bke::AttributeAccessor attributes = orig_mesh->attributes();
@@ -4369,8 +4389,8 @@ static void project_paint_build_proj_ima(ProjPaintState *ps,
     projIma->partRedrawRect = static_cast<ImagePaintPartialRedraw *>(
         BLI_memarena_alloc(arena, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED));
     partial_redraw_array_init(projIma->partRedrawRect);
-    projIma->undoRect = (volatile void **)BLI_memarena_alloc(arena, size);
-    memset((void *)projIma->undoRect, 0, size);
+    projIma->undoRect = static_cast<volatile void **>(BLI_memarena_alloc(arena, size));
+    memset(static_cast<void *>(projIma->undoRect), 0, size);
     projIma->maskRect = static_cast<ushort **>(BLI_memarena_alloc(arena, size));
     memset(projIma->maskRect, 0, size);
     projIma->valid = static_cast<bool **>(BLI_memarena_alloc(arena, size));
@@ -4606,7 +4626,7 @@ static void project_paint_begin(const bContext *C,
     ED_view3d_clipping_local(ps->rv3d, ps->ob->object_to_world().ptr());
   }
 
-  const Mesh &mesh_orig = *static_cast<const Mesh *>(ps->ob->data);
+  const Mesh &mesh_orig = *blender::id_cast<const Mesh *>(ps->ob->data);
 
   ps->do_face_sel = ((mesh_orig.editflag & ME_EDIT_PAINT_FACE_SEL) != 0);
   ps->is_flip_object = (ps->ob->transflag & OB_NEG_SCALE) != 0;
@@ -4953,7 +4973,7 @@ struct ProjectHandle {
 
 static void do_projectpaint_clone(ProjPaintState *ps, ProjPixel *projPixel, float mask)
 {
-  const uchar *clone_pt = ((ProjPixelClone *)projPixel)->clonepx.ch;
+  const uchar *clone_pt = (reinterpret_cast<ProjPixelClone *>(projPixel))->clonepx.ch;
 
   if (clone_pt[3]) {
     uchar clone_rgba[4];
@@ -4978,7 +4998,7 @@ static void do_projectpaint_clone(ProjPaintState *ps, ProjPixel *projPixel, floa
 
 static void do_projectpaint_clone_f(ProjPaintState *ps, ProjPixel *projPixel, float mask)
 {
-  const float *clone_pt = ((ProjPixelClone *)projPixel)->clonepx.f;
+  const float *clone_pt = (reinterpret_cast<ProjPixelClone *>(projPixel))->clonepx.f;
 
   if (clone_pt[3]) {
     float clone_rgba[4];
@@ -5014,9 +5034,11 @@ static void do_projectpaint_smear(ProjPaintState *ps,
     return;
   }
 
-  blend_color_interpolate_byte(
-      ((ProjPixelClone *)projPixel)->clonepx.ch, projPixel->pixel.ch_pt, rgba_ub, mask);
-  BLI_linklist_prepend_arena(smearPixels, (void *)projPixel, smearArena);
+  blend_color_interpolate_byte((reinterpret_cast<ProjPixelClone *>(projPixel))->clonepx.ch,
+                               projPixel->pixel.ch_pt,
+                               rgba_ub,
+                               mask);
+  BLI_linklist_prepend_arena(smearPixels, static_cast<void *>(projPixel), smearArena);
 }
 
 static void do_projectpaint_smear_f(ProjPaintState *ps,
@@ -5032,9 +5054,11 @@ static void do_projectpaint_smear_f(ProjPaintState *ps,
     return;
   }
 
-  blend_color_interpolate_float(
-      ((ProjPixelClone *)projPixel)->clonepx.f, projPixel->pixel.f_pt, rgba, mask);
-  BLI_linklist_prepend_arena(smearPixels_f, (void *)projPixel, smearArena);
+  blend_color_interpolate_float((reinterpret_cast<ProjPixelClone *>(projPixel))->clonepx.f,
+                                projPixel->pixel.f_pt,
+                                rgba,
+                                mask);
+  BLI_linklist_prepend_arena(smearPixels_f, static_cast<void *>(projPixel), smearArena);
 }
 
 static void do_projectpaint_soften_f(ProjPaintState *ps,
@@ -5093,7 +5117,7 @@ static void do_projectpaint_soften_f(ProjPaintState *ps,
       blend_color_interpolate_float(rgba, projPixel->pixel.f_pt, rgba, mask);
     }
 
-    BLI_linklist_prepend_arena(softenPixels, (void *)projPixel, softenArena);
+    BLI_linklist_prepend_arena(softenPixels, static_cast<void *>(projPixel), softenArena);
   }
 }
 
@@ -5161,7 +5185,7 @@ static void do_projectpaint_soften(ProjPaintState *ps,
       premul_float_to_straight_uchar(rgba_ub, rgba);
       blend_color_interpolate_byte(rgba_ub, projPixel->pixel.ch_pt, rgba_ub, mask);
     }
-    BLI_linklist_prepend_arena(softenPixels, (void *)projPixel, softenArena);
+    BLI_linklist_prepend_arena(softenPixels, static_cast<void *>(projPixel), softenArena);
   }
 }
 
@@ -5297,12 +5321,12 @@ static void copy_original_alpha_channel(ProjPixel *pixel, bool is_floatbuf)
 static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
 {
   /* First unpack args from the struct */
-  ProjPaintState *ps = ((ProjectHandle *)ph_v)->ps;
-  ProjPaintImage *projImages = ((ProjectHandle *)ph_v)->projImages;
-  const float *lastpos = ((ProjectHandle *)ph_v)->prevmval;
-  const float *pos = ((ProjectHandle *)ph_v)->mval;
-  const int thread_index = ((ProjectHandle *)ph_v)->thread_index;
-  ImagePool *pool = ((ProjectHandle *)ph_v)->pool;
+  ProjPaintState *ps = (static_cast<ProjectHandle *>(ph_v))->ps;
+  ProjPaintImage *projImages = (static_cast<ProjectHandle *>(ph_v))->projImages;
+  const float *lastpos = (static_cast<ProjectHandle *>(ph_v))->prevmval;
+  const float *pos = (static_cast<ProjectHandle *>(ph_v))->mval;
+  const int thread_index = (static_cast<ProjectHandle *>(ph_v))->thread_index;
+  ImagePool *pool = (static_cast<ProjectHandle *>(ph_v))->pool;
   /* Done with args from ProjectHandle */
 
   LinkNode *node;
@@ -5375,7 +5399,7 @@ static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
       /* Re-Projection, simple, no brushes! */
 
       for (node = ps->bucketRect[bucket_index]; node; node = node->next) {
-        projPixel = (ProjPixel *)node->link;
+        projPixel = static_cast<ProjPixel *>(node->link);
 
         /* copy of code below */
         if (last_index != projPixel->image_index) {
@@ -5520,7 +5544,7 @@ static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
 
       for (node = ps->bucketRect[bucket_index]; node; node = node->next) {
 
-        projPixel = (ProjPixel *)node->link;
+        projPixel = static_cast<ProjPixel *>(node->link);
 
         dist_sq = len_squared_v2v2(projPixel->projCoSS, pos);
 
@@ -5687,7 +5711,7 @@ static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
 
     for (node = smearPixels; node; node = node->next) { /* this won't run for a float image */
       projPixel = static_cast<ProjPixel *>(node->link);
-      *projPixel->pixel.uint_pt = ((ProjPixelClone *)projPixel)->clonepx.uint_;
+      *projPixel->pixel.uint_pt = (reinterpret_cast<ProjPixelClone *>(projPixel))->clonepx.uint_;
       if (lock_alpha) {
         copy_original_alpha_channel(projPixel, false);
       }
@@ -5695,7 +5719,8 @@ static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
 
     for (node = smearPixels_f; node; node = node->next) {
       projPixel = static_cast<ProjPixel *>(node->link);
-      copy_v4_v4(projPixel->pixel.f_pt, ((ProjPixelClone *)projPixel)->clonepx.f);
+      copy_v4_v4(projPixel->pixel.f_pt,
+                 (reinterpret_cast<ProjPixelClone *>(projPixel))->clonepx.f);
       if (lock_alpha) {
         copy_original_alpha_channel(projPixel, true);
       }
@@ -5728,7 +5753,7 @@ static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
 static bool project_paint_op(void *state, const float lastpos[2], const float pos[2])
 {
   /* First unpack args from the struct */
-  ProjPaintState *ps = (ProjPaintState *)state;
+  ProjPaintState *ps = static_cast<ProjPaintState *>(state);
   bool touch_any = false;
 
   ProjectHandle handles[BLENDER_MAX_THREADS];
@@ -6729,7 +6754,7 @@ static std::optional<std::string> proj_paint_color_attribute_create(wmOperator *
     type = eCustomDataType(RNA_enum_get(op->ptr, "data_type"));
   }
 
-  Mesh *mesh = static_cast<Mesh *>(ob.data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob.data);
   AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
   std::string unique_name = BKE_attribute_calc_unique_name(owner, name);
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
@@ -6848,8 +6873,8 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
     }
 
     const ePaintCanvasSource slot_type = ob->mode == OB_MODE_SCULPT ?
-                                             (ePaintCanvasSource)RNA_enum_get(op->ptr,
-                                                                              "slot_type") :
+                                             ePaintCanvasSource(
+                                                 RNA_enum_get(op->ptr, "slot_type")) :
                                              PAINT_CANVAS_SOURCE_IMAGE;
 
     /* Create a new node. */
@@ -7000,7 +7025,8 @@ static wmOperatorStatus texture_paint_add_texture_paint_slot_invoke(bContext *C,
 
   /* Set default name. */
   char imagename[MAX_ID_NAME - 2];
-  get_default_texture_layer_name_for_object(ob, type, (char *)&imagename, sizeof(imagename));
+  get_default_texture_layer_name_for_object(
+      ob, type, reinterpret_cast<char *>(&imagename), sizeof(imagename));
   RNA_string_set(op->ptr, "name", imagename);
 
   /* Set default color. Copy the color from nodes, so it matches the existing material.
@@ -7022,7 +7048,7 @@ static void texture_paint_add_texture_paint_slot_ui(bContext *C, wmOperator *op)
   ePaintCanvasSource slot_type = PAINT_CANVAS_SOURCE_IMAGE;
 
   if (ob->mode == OB_MODE_SCULPT) {
-    slot_type = (ePaintCanvasSource)RNA_enum_get(op->ptr, "slot_type");
+    slot_type = ePaintCanvasSource(RNA_enum_get(op->ptr, "slot_type"));
     layout.prop(op->ptr, "slot_type", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   }
 

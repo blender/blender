@@ -65,7 +65,7 @@ static void library_init_data(ID *id)
 
 static void library_free_data(ID *id)
 {
-  Library *library = (Library *)id;
+  Library *library = blender::id_cast<Library *>(id);
   library_runtime_reset(library);
   MEM_delete(library->runtime);
   if (library->packedfile) {
@@ -109,7 +109,7 @@ static void library_copy_data(Main *bmain,
 
 static void library_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  Library *lib = (Library *)id;
+  Library *lib = blender::id_cast<Library *>(id);
   const LibraryForeachIDFlag foreach_flag = BKE_lib_query_foreachid_process_flags_get(data);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, lib->runtime->parent, IDWALK_CB_NEVER_SELF);
 
@@ -145,7 +145,7 @@ static void library_foreach_id(ID *id, LibraryForeachIDData *data)
 
 static void library_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
-  Library *lib = (Library *)id;
+  Library *lib = blender::id_cast<Library *>(id);
 
   /* FIXME: Find if we should respect #BKE_BPATH_FOREACH_PATH_SKIP_PACKED here, and if not, explain
    * why. */

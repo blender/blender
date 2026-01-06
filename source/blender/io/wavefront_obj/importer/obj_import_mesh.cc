@@ -88,7 +88,7 @@ Object *MeshFromGeometry::create_mesh_object(
   }
 
   Object *obj = BKE_object_add_only_object(bmain, OB_MESH, ob_name.c_str());
-  obj->data = BKE_object_obdata_add_from_type(bmain, OB_MESH, ob_name.c_str());
+  obj->data = static_cast<ID *>(BKE_object_obdata_add_from_type(bmain, OB_MESH, ob_name.c_str()));
 
   this->create_materials(bmain,
                          materials,
@@ -97,7 +97,7 @@ Object *MeshFromGeometry::create_mesh_object(
                          import_params.relative_paths,
                          import_params.mtl_name_collision_mode);
 
-  BKE_mesh_nomain_to_mesh(mesh, static_cast<Mesh *>(obj->data), obj);
+  BKE_mesh_nomain_to_mesh(mesh, blender::id_cast<Mesh *>(obj->data), obj);
 
   transform_object(obj, import_params);
 
@@ -285,7 +285,7 @@ void MeshFromGeometry::create_faces(Mesh *mesh, bool use_vertex_groups)
 
 void MeshFromGeometry::create_vertex_groups(Object *obj)
 {
-  Mesh *mesh = static_cast<Mesh *>(obj->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(obj->data);
   if (mesh->deform_verts().is_empty()) {
     return;
   }
@@ -371,7 +371,8 @@ static Material *get_or_create_material(Main *bmain,
   }
 
   /* Check if a material with this name already exists in the main database */
-  Material *existing_mat = (Material *)BKE_libblock_find_name(bmain, ID_MA, name.c_str());
+  Material *existing_mat = blender::id_cast<Material *>(
+      BKE_libblock_find_name(bmain, ID_MA, name.c_str()));
   if (existing_mat != nullptr &&
       mtl_name_collision_mode == OBJ_MTL_NAME_COLLISION_REFERENCE_EXISTING)
   {

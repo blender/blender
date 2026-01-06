@@ -649,7 +649,7 @@ static std::unique_ptr<TooltipData> ui_tooltip_data_from_tool(bContext *C,
         }
         else if (BPY_run_string_as_intptr(C, expr_imports, expr, nullptr, &expr_result)) {
           if (expr_result != 0) {
-            wmKeyMap *keymap = (wmKeyMap *)expr_result;
+            wmKeyMap *keymap = reinterpret_cast<wmKeyMap *>(expr_result);
             for (wmKeyMapItem &kmi : keymap->items) {
               if (STREQ(kmi.idname, but->optype->idname)) {
                 char tool_id_test[MAX_NAME];
@@ -786,7 +786,7 @@ static std::unique_ptr<TooltipData> ui_tooltip_data_from_tool(bContext *C,
       if (expr_result != 0) {
         tooltip_text_field_add(
             *data, TIP_("Tool Keymap:"), {}, TIP_STYLE_NORMAL, TIP_LC_NORMAL, true);
-        wmKeyMap *keymap = (wmKeyMap *)expr_result;
+        wmKeyMap *keymap = reinterpret_cast<wmKeyMap *>(expr_result);
         ui_tooltip_data_append_from_keymap(C, *data, keymap);
       }
     }

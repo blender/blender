@@ -66,7 +66,7 @@ using blender::Set;
 
 static void window_manager_free_data(ID *id)
 {
-  wm_close_and_free(nullptr, (wmWindowManager *)id);
+  wm_close_and_free(nullptr, blender::id_cast<wmWindowManager *>(id));
 }
 
 static void window_manager_foreach_id(ID *id, LibraryForeachIDData *data)
@@ -79,10 +79,10 @@ static void window_manager_foreach_id(ID *id, LibraryForeachIDData *data)
 
     /* This pointer can be nullptr during old files reading. */
     if (win.workspace_hook != nullptr) {
-      ID *workspace = (ID *)BKE_workspace_active_get(win.workspace_hook);
+      ID *workspace = blender::id_cast<ID *>(BKE_workspace_active_get(win.workspace_hook));
       BKE_lib_query_foreachid_process(data, &workspace, IDWALK_CB_USER);
       /* Allow callback to set a different workspace. */
-      BKE_workspace_active_set(win.workspace_hook, (WorkSpace *)workspace);
+      BKE_workspace_active_set(win.workspace_hook, blender::id_cast<WorkSpace *>(workspace));
       if (BKE_lib_query_foreachid_iter_stop(data)) {
         return;
       }
@@ -113,7 +113,7 @@ static void write_wm_xr_data(BlendWriter *writer, wmXrData *xr_data)
 
 static void window_manager_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  wmWindowManager *wm = (wmWindowManager *)id;
+  wmWindowManager *wm = blender::id_cast<wmWindowManager *>(id);
 
   wm->runtime = nullptr;
 
@@ -143,7 +143,7 @@ static void direct_link_wm_xr_data(BlendDataReader *reader, wmXrData *xr_data)
 
 static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  wmWindowManager *wm = (wmWindowManager *)id;
+  wmWindowManager *wm = blender::id_cast<wmWindowManager *>(id);
 
   id_us_ensure_real(&wm->id);
   BLO_read_struct_list(reader, wmWindow, &wm->windows);
@@ -394,7 +394,7 @@ void WM_operator_handlers_clear(wmWindowManager *wm, const Set<wmOperatorType *>
     for (int i = 0; i < ARRAY_SIZE(lb); i++) {
       for (wmEventHandler &handler_base : *lb[i]) {
         if (handler_base.type == WM_HANDLER_TYPE_OP) {
-          wmEventHandler_Op *handler = (wmEventHandler_Op *)&handler_base;
+          wmEventHandler_Op *handler = reinterpret_cast<wmEventHandler_Op *>(&handler_base);
           if (handler->op && types.contains(handler->op->type)) {
             /* Don't run op->cancel because it needs the context,
              * assume whoever unregisters the operator will cleanup. */

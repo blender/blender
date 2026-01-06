@@ -63,7 +63,7 @@ bDeformGroup *BKE_object_defgroup_new(Object *ob, const StringRef name)
 
   if (ob->type == OB_GREASE_PENCIL) {
     blender::bke::greasepencil::validate_drawing_vertex_groups(
-        *static_cast<GreasePencil *>(ob->data));
+        *blender::id_cast<GreasePencil *>(ob->data));
   }
 
   BKE_object_batch_cache_dirty_tag(ob);
@@ -473,19 +473,19 @@ const ListBaseT<bDeformGroup> *BKE_id_defgroup_list_get(const ID *id)
 {
   switch (GS(id->name)) {
     case ID_ME: {
-      const Mesh *mesh = (const Mesh *)id;
+      const Mesh *mesh = blender::id_cast<const Mesh *>(id);
       return &mesh->vertex_group_names;
     }
     case ID_LT: {
-      const Lattice *lt = (const Lattice *)id;
+      const Lattice *lt = blender::id_cast<const Lattice *>(id);
       return &lt->vertex_group_names;
     }
     case ID_GD_LEGACY: {
-      const bGPdata *gpd = (const bGPdata *)id;
+      const bGPdata *gpd = blender::id_cast<const bGPdata *>(id);
       return &gpd->vertex_group_names;
     }
     case ID_GP: {
-      const GreasePencil *grease_pencil = (const GreasePencil *)id;
+      const GreasePencil *grease_pencil = blender::id_cast<const GreasePencil *>(id);
       return &grease_pencil->vertex_group_names;
     }
     default: {
@@ -500,19 +500,19 @@ static const int *object_defgroup_active_index_get_p(const Object *ob)
   BLI_assert(BKE_object_supports_vertex_groups(ob));
   switch (ob->type) {
     case OB_MESH: {
-      const Mesh *mesh = (const Mesh *)ob->data;
+      const Mesh *mesh = blender::id_cast<const Mesh *>(ob->data);
       return &mesh->vertex_group_active_index;
     }
     case OB_LATTICE: {
-      const Lattice *lattice = (const Lattice *)ob->data;
+      const Lattice *lattice = blender::id_cast<const Lattice *>(ob->data);
       return &lattice->vertex_group_active_index;
     }
     case OB_GPENCIL_LEGACY: {
-      const bGPdata *gpd = (const bGPdata *)ob->data;
+      const bGPdata *gpd = blender::id_cast<const bGPdata *>(ob->data);
       return &gpd->vertex_group_active_index;
     }
     case OB_GREASE_PENCIL: {
-      const GreasePencil *grease_pencil = (const GreasePencil *)ob->data;
+      const GreasePencil *grease_pencil = blender::id_cast<const GreasePencil *>(ob->data);
       return &grease_pencil->vertex_group_active_index;
     }
   }
@@ -589,18 +589,18 @@ bool BKE_id_defgroup_name_find(ID *id, const StringRef name, int *r_index, bDefo
 const ListBaseT<bDeformGroup> *BKE_object_defgroup_list(const Object *ob)
 {
   BLI_assert(BKE_object_supports_vertex_groups(ob));
-  return BKE_id_defgroup_list_get((const ID *)ob->data);
+  return BKE_id_defgroup_list_get(static_cast<const ID *>(ob->data));
 }
 
 int BKE_object_defgroup_name_index(const Object *ob, const StringRef name)
 {
-  return BKE_id_defgroup_name_index((ID *)ob->data, name);
+  return BKE_id_defgroup_name_index(ob->data, name);
 }
 
 ListBaseT<bDeformGroup> *BKE_object_defgroup_list_mutable(Object *ob)
 {
   BLI_assert(BKE_object_supports_vertex_groups(ob));
-  return BKE_id_defgroup_list_get_mutable((ID *)ob->data);
+  return BKE_id_defgroup_list_get_mutable(ob->data);
 }
 
 int BKE_object_defgroup_count(const Object *ob)
@@ -616,7 +616,7 @@ int BKE_object_defgroup_active_index_get(const Object *ob)
 void BKE_object_defgroup_active_index_set(Object *ob, const int new_index)
 {
   /* Cast away const just for the accessor. */
-  int *index = (int *)object_defgroup_active_index_get_p(ob);
+  int *index = const_cast<int *>(object_defgroup_active_index_get_p(ob));
   *index = new_index;
 }
 
@@ -1208,8 +1208,8 @@ static void vgroups_datatransfer_interp(const CustomDataTransferLayerMap *laymap
                                         const int count,
                                         const float mix_factor)
 {
-  MDeformVert **data_src = (MDeformVert **)sources;
-  MDeformVert *data_dst = (MDeformVert *)dest;
+  MDeformVert **data_src = reinterpret_cast<MDeformVert **>(const_cast<void **>(sources));
+  MDeformVert *data_dst = static_cast<MDeformVert *>(dest);
   const int idx_src = laymap->data_src_n;
   const int idx_dst = laymap->data_dst_n;
 

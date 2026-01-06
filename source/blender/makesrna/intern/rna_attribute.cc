@@ -380,7 +380,7 @@ void rna_Attribute_name_set(PointerRNA *ptr, const char *value)
   using namespace blender;
   AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
   if (owner.type() == AttributeOwnerType::Mesh) {
-    const CustomDataLayer *layer = (const CustomDataLayer *)ptr->data;
+    const CustomDataLayer *layer = static_cast<const CustomDataLayer *>(ptr->data);
     BKE_attribute_rename(owner, layer->name, value, nullptr);
     return;
   }
@@ -522,7 +522,7 @@ void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
   using namespace blender;
   AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
   if (owner.type() == AttributeOwnerType::Mesh) {
-    CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
+    CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
     if (!(CD_TYPE_AS_MASK(eCustomDataType(layer->type)) & CD_MASK_PROP_ALL)) {
       iter->valid = false;
     }
@@ -562,7 +562,7 @@ int rna_Attribute_data_length(PointerRNA *ptr)
   }
   AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
   if (owner.type() == AttributeOwnerType::Mesh) {
-    CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
+    CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
     return BKE_attribute_data_length(owner, layer);
   }
 
@@ -627,14 +627,14 @@ static void rna_Attribute_update_data(Main * /*bmain*/, Scene * /*scene*/, Point
 
 static void rna_ByteColorAttributeValue_color_get(PointerRNA *ptr, float *values)
 {
-  MLoopCol *mlcol = (MLoopCol *)ptr->data;
+  MLoopCol *mlcol = static_cast<MLoopCol *>(ptr->data);
   srgb_to_linearrgb_uchar4(values, &mlcol->r);
   IMB_colormanagement_rec709_to_scene_linear(values, values);
 }
 
 static void rna_ByteColorAttributeValue_color_set(PointerRNA *ptr, const float *values)
 {
-  MLoopCol *mlcol = (MLoopCol *)ptr->data;
+  MLoopCol *mlcol = static_cast<MLoopCol *>(ptr->data);
   float rec709[4];
   IMB_colormanagement_scene_linear_to_rec709(rec709, values);
   rec709[3] = values[3];
@@ -643,7 +643,7 @@ static void rna_ByteColorAttributeValue_color_set(PointerRNA *ptr, const float *
 
 static void rna_ByteColorAttributeValue_color_srgb_get(PointerRNA *ptr, float *values)
 {
-  MLoopCol *col = (MLoopCol *)ptr->data;
+  MLoopCol *col = static_cast<MLoopCol *>(ptr->data);
   values[0] = col->r / 255.0f;
   values[1] = col->g / 255.0f;
   values[2] = col->b / 255.0f;
@@ -652,7 +652,7 @@ static void rna_ByteColorAttributeValue_color_srgb_get(PointerRNA *ptr, float *v
 
 static void rna_ByteColorAttributeValue_color_srgb_set(PointerRNA *ptr, const float *values)
 {
-  MLoopCol *col = (MLoopCol *)ptr->data;
+  MLoopCol *col = static_cast<MLoopCol *>(ptr->data);
   col->r = round_fl_to_uchar_clamp(values[0] * 255.0f);
   col->g = round_fl_to_uchar_clamp(values[1] * 255.0f);
   col->b = round_fl_to_uchar_clamp(values[2] * 255.0f);
@@ -661,14 +661,14 @@ static void rna_ByteColorAttributeValue_color_srgb_set(PointerRNA *ptr, const fl
 
 static void rna_FloatColorAttributeValue_color_srgb_get(PointerRNA *ptr, float *values)
 {
-  MPropCol *col = (MPropCol *)ptr->data;
+  MPropCol *col = static_cast<MPropCol *>(ptr->data);
   IMB_colormanagement_scene_linear_to_srgb_v3(values, col->color);
   values[3] = col->color[3];
 }
 
 static void rna_FloatColorAttributeValue_color_srgb_set(PointerRNA *ptr, const float *values)
 {
-  MPropCol *col = (MPropCol *)ptr->data;
+  MPropCol *col = static_cast<MPropCol *>(ptr->data);
   IMB_colormanagement_srgb_to_scene_linear_v3(col->color, values);
   col->color[3] = values[3];
 }
@@ -716,7 +716,7 @@ static PointerRNA rna_AttributeGroupID_new(
     }
 
     if ((GS(id->name) == ID_ME)) {
-      Mesh *mesh = (Mesh *)id;
+      Mesh *mesh = blender::id_cast<Mesh *>(id);
       if (ELEM(layer->type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR)) {
         if (!mesh->active_color_attribute) {
           mesh->active_color_attribute = BLI_strdup(layer->name);
@@ -768,7 +768,7 @@ static void rna_AttributeGroupID_remove(ID *id, ReportList *reports, PointerRNA 
   using namespace blender;
   AttributeOwner owner = AttributeOwner::from_id(id);
   if (owner.type() == AttributeOwnerType::Mesh) {
-    const CustomDataLayer *layer = (const CustomDataLayer *)attribute_ptr->data;
+    const CustomDataLayer *layer = static_cast<const CustomDataLayer *>(attribute_ptr->data);
     BKE_attribute_remove(owner, layer->name, reports);
     attribute_ptr->invalidate();
 
@@ -1155,7 +1155,7 @@ static void rna_AttributeGroupMesh_default_color_name_set(PointerRNA *ptr, const
 {
   ID *id = ptr->owner_id;
   if (GS(id->name) == ID_ME) {
-    Mesh *mesh = (Mesh *)id;
+    Mesh *mesh = blender::id_cast<Mesh *>(id);
     MEM_SAFE_FREE(mesh->default_color_attribute);
     if (value[0]) {
       mesh->default_color_attribute = BLI_strdup(value);
@@ -1181,7 +1181,7 @@ static void rna_AttributeGroupMesh_active_color_name_set(PointerRNA *ptr, const 
 {
   ID *id = ptr->owner_id;
   if (GS(id->name) == ID_ME) {
-    Mesh *mesh = (Mesh *)id;
+    Mesh *mesh = blender::id_cast<Mesh *>(id);
     MEM_SAFE_FREE(mesh->active_color_attribute);
     if (value[0]) {
       mesh->active_color_attribute = BLI_strdup(value);

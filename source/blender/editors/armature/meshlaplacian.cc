@@ -459,9 +459,13 @@ static int heat_ray_source_visible(LaplacianSystem *sys, int vertex, int source)
   hit.index = -1;
   hit.dist = normalize_v3(data.vec);
 
-  visible =
-      BLI_bvhtree_ray_cast(
-          sys->heat.bvhtree, data.start, data.vec, 0.0f, &hit, bvh_callback, (void *)&data) == -1;
+  visible = BLI_bvhtree_ray_cast(sys->heat.bvhtree,
+                                 data.start,
+                                 data.vec,
+                                 0.0f,
+                                 &hit,
+                                 bvh_callback,
+                                 static_cast<void *>(&data)) == -1;
 
   return visible;
 }
@@ -1780,7 +1784,7 @@ void ED_mesh_deform_bind_callback(Object *object,
   harmonic_coordinates_bind(mmd_orig, &mdb);
 
   /* assign bind variables */
-  mmd_orig->bindcagecos = (float *)mdb.cagecos;
+  mmd_orig->bindcagecos = reinterpret_cast<float *>(mdb.cagecos);
   mmd_orig->bindcagecos_sharing_info = implicit_sharing::info_for_mem_free(mmd_orig->bindcagecos);
   mmd_orig->verts_num = mdb.verts_num;
   mmd_orig->cage_verts_num = mdb.cage_verts_num;

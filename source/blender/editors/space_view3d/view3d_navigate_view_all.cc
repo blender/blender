@@ -284,7 +284,8 @@ std::optional<blender::Bounds<float3>> view3d_calc_minmax_selected(Depsgraph *de
     /* this is weak code this way, we should make a generic
      * active/selection callback interface once... */
     Base *base_eval;
-    for (base_eval = (Base *)BKE_view_layer_object_bases_get(view_layer_eval)->first; base_eval;
+    for (base_eval = static_cast<Base *>(BKE_view_layer_object_bases_get(view_layer_eval)->first);
+         base_eval;
          base_eval = base_eval->next)
     {
       if (BASE_SELECTED_EDITABLE(v3d, base_eval)) {

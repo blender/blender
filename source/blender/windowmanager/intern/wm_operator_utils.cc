@@ -225,8 +225,7 @@ static wmOperatorStatus op_generic_value_invoke(bContext *C, wmOperator *op, con
   cd->objects_xform.reinitialize(objects.size());
   for (const int i : objects.index_range()) {
     Object *obedit = objects[i];
-    cd->objects_xform[i] = blender::ed::object::data_xform_create_from_edit_mode(
-        static_cast<ID *>(obedit->data));
+    cd->objects_xform[i] = blender::ed::object::data_xform_create_from_edit_mode(obedit->data);
   }
 
   op->customdata = cd;

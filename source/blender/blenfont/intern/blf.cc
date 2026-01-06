@@ -1162,7 +1162,7 @@ void BLF_state_print(int fontid)
 {
   FontBLF *font = blf_get(fontid);
   if (font) {
-    printf("fontid %d %p\n", fontid, (void *)font);
+    printf("fontid %d %p\n", fontid, static_cast<void *>(font));
     printf("  mem_name:    '%s'\n", font->mem_name ? font->mem_name : "<none>");
     printf("  filepath:    '%s'\n", font->filepath ? font->filepath : "<none>");
     printf("  size:     %f\n", font->size);

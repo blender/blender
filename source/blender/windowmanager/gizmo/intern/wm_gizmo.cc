@@ -596,7 +596,7 @@ void WM_gizmo_properties_create(PointerRNA *ptr, const StringRef gtstring)
   const wmGizmoType *gzt = WM_gizmotype_find(gtstring, false);
 
   if (gzt) {
-    WM_gizmo_properties_create_ptr(ptr, (wmGizmoType *)gzt);
+    WM_gizmo_properties_create_ptr(ptr, const_cast<wmGizmoType *>(gzt));
   }
   else {
     *ptr = RNA_pointer_create_discrete(nullptr, &RNA_GizmoProperties, nullptr);

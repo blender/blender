@@ -116,7 +116,7 @@ static bool transform_tied_to_other_node(bNode *node, VectorSet<bNode *> transfo
 
   /* Now check for child nodes of manually resized frames. */
   while ((node = node->parent)) {
-    const NodeFrame *parent_data = (const NodeFrame *)node->storage;
+    const NodeFrame *parent_data = static_cast<const NodeFrame *>(node->storage);
     const bool parent_shrinking = parent_data->flag & NODE_FRAME_SHRINK;
     const bool parent_transformed = transformed_nodes.contains(node);
 
@@ -276,7 +276,7 @@ static void flushTransNodes(TransInfo *t)
   const float dpi_fac = UI_SCALE_FAC;
   SpaceNode *snode = static_cast<SpaceNode *>(t->area->spacedata.first);
 
-  TransCustomDataNode *customdata = (TransCustomDataNode *)t->custom.type.data;
+  TransCustomDataNode *customdata = static_cast<TransCustomDataNode *>(t->custom.type.data);
 
   if (t->options & CTX_VIEW2D_EDGE_PAN) {
     if (t->state == TRANS_CANCEL) {
@@ -370,9 +370,9 @@ static void flushTransNodes(TransInfo *t)
 static void special_aftertrans_update__node(bContext *C, TransInfo *t)
 {
   Main *bmain = CTX_data_main(C);
-  SpaceNode *snode = (SpaceNode *)t->area->spacedata.first;
+  SpaceNode *snode = static_cast<SpaceNode *>(t->area->spacedata.first);
   bNodeTree *ntree = snode->edittree;
-  const TransCustomDataNode &customdata = *(TransCustomDataNode *)t->custom.type.data;
+  const TransCustomDataNode &customdata = *static_cast<TransCustomDataNode *>(t->custom.type.data);
 
   const bool canceled = (t->state == TRANS_CANCEL);
 

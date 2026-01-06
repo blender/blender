@@ -126,13 +126,13 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, 
 
 static void init_data(ModifierData *md)
 {
-  WeldModifierData *wmd = (WeldModifierData *)md;
+  WeldModifierData *wmd = reinterpret_cast<WeldModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(wmd, modifier);
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  WeldModifierData *wmd = (WeldModifierData *)md;
+  WeldModifierData *wmd = reinterpret_cast<WeldModifierData *>(md);
 
   /* Ask for vertex-groups if we need them. */
   if (wmd->defgrp_name[0] != '\0') {

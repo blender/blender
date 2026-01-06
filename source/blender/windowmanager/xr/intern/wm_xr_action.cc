@@ -250,10 +250,10 @@ bool WM_xr_action_create(wmXrData *xr,
   GHOST_XrActionInfo info{};
   info.name = action_name;
   info.count_subaction_paths = count;
-  info.subaction_paths = (const char **)subaction_paths;
+  info.subaction_paths = const_cast<const char **>(subaction_paths);
   info.states = action->states;
   info.float_thresholds = action->float_thresholds;
-  info.axis_flags = (int16_t *)action->axis_flags;
+  info.axis_flags = reinterpret_cast<int16_t *>(action->axis_flags);
   info.customdata_free_fn = action_destroy;
   info.customdata = action;
 
@@ -347,7 +347,7 @@ bool WM_xr_action_binding_create(wmXrData *xr,
     const XrComponentPath *component_path = static_cast<const XrComponentPath *>(
         BLI_findlink(component_paths, i));
 
-    subaction_paths[i] = (char *)user_path->path;
+    subaction_paths[i] = const_cast<char *>(user_path->path);
 
     binding_info->component_path = component_path->path;
     if (float_thresholds) {
@@ -366,7 +366,7 @@ bool WM_xr_action_binding_create(wmXrData *xr,
   profile_info.action_name = action_name;
   profile_info.profile_path = profile_path;
   profile_info.count_subaction_paths = count;
-  profile_info.subaction_paths = (const char **)subaction_paths;
+  profile_info.subaction_paths = const_cast<const char **>(subaction_paths);
   profile_info.bindings = binding_infos;
 
   const bool success = GHOST_XrCreateActionBindings(
@@ -471,7 +471,7 @@ bool WM_xr_action_state_get(const wmXrData *xr,
                             const char *subaction_path,
                             wmXrActionState *r_state)
 {
-  const wmXrAction *action = action_find((wmXrData *)xr, action_set_name, action_name);
+  const wmXrAction *action = action_find(const_cast<wmXrData *>(xr), action_set_name, action_name);
   if (!action) {
     return false;
   }
@@ -483,13 +483,13 @@ bool WM_xr_action_state_get(const wmXrData *xr,
     if (STREQ(subaction_path, action->subaction_paths[i])) {
       switch (action->type) {
         case XR_BOOLEAN_INPUT:
-          r_state->state_boolean = ((bool *)action->states)[i];
+          r_state->state_boolean = (static_cast<bool *>(action->states))[i];
           break;
         case XR_FLOAT_INPUT:
-          r_state->state_float = ((float *)action->states)[i];
+          r_state->state_float = (static_cast<float *>(action->states))[i];
           break;
         case XR_VECTOR2F_INPUT:
-          copy_v2_v2(r_state->state_vector2f, ((float (*)[2])action->states)[i]);
+          copy_v2_v2(r_state->state_vector2f, (static_cast<float (*)[2]>(action->states))[i]);
           break;
         case XR_POSE_INPUT: {
           const GHOST_XrPose *pose = &((GHOST_XrPose *)action->states)[i];

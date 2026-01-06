@@ -34,8 +34,8 @@ bool VolumeModifierData::is_volume_modifier(const Object *object)
     return false;
   }
 
-  const FluidModifierData *modifier = (const FluidModifierData *)BKE_modifiers_findby_type(
-      object, eModifierType_Fluid);
+  const FluidModifierData *modifier = reinterpret_cast<const FluidModifierData *>(
+      BKE_modifiers_findby_type(object, eModifierType_Fluid));
   return modifier && modifier->type & MOD_FLUID_TYPE_DOMAIN &&
          modifier->domain->type == FLUID_DOMAIN_TYPE_GAS;
 }
@@ -44,10 +44,10 @@ void VolumeModifierData::init()
 {
   field_descriptors_.clear();
 
-  const Object *object = (const Object *)this->id;
+  const Object *object = blender::id_cast<const Object *>(this->id);
   const ModifierData *md = BKE_modifiers_findby_type(object, eModifierType_Fluid);
-  modifier_ = (const FluidModifierData *)BKE_modifier_get_evaluated(
-      scene_delegate_->depsgraph, const_cast<Object *>(object), const_cast<ModifierData *>(md));
+  modifier_ = reinterpret_cast<const FluidModifierData *>(BKE_modifier_get_evaluated(
+      scene_delegate_->depsgraph, const_cast<Object *>(object), const_cast<ModifierData *>(md)));
 
   if ((modifier_->domain->cache_data_format & FLUID_DOMAIN_FILE_OPENVDB) == 0) {
     CLOG_WARN(LOG_HYDRA_SCENE,
@@ -78,8 +78,10 @@ void VolumeModifierData::init()
 
 void VolumeModifierData::update()
 {
-  Object *object = (Object *)id;
-  if ((id->recalc & ID_RECALC_GEOMETRY) || (((ID *)object->data)->recalc & ID_RECALC_GEOMETRY)) {
+  Object *object = blender::id_cast<Object *>(const_cast<ID *>(id));
+  if ((id->recalc & ID_RECALC_GEOMETRY) ||
+      ((static_cast<ID *>(object->data))->recalc & ID_RECALC_GEOMETRY))
+  {
     remove();
     init();
     insert();
@@ -105,7 +107,7 @@ void VolumeModifierData::update()
 
 void VolumeModifierData::write_transform()
 {
-  Object *object = (Object *)this->id;
+  Object *object = blender::id_cast<Object *>(const_cast<ID *>(this->id));
 
   /* set base scaling */
   transform = pxr::GfMatrix4d().SetScale(
@@ -117,7 +119,7 @@ void VolumeModifierData::write_transform()
 
   /* including texspace transform */
   float texspace_loc[3] = {0.0f, 0.0f, 0.0f}, texspace_scale[3] = {1.0f, 1.0f, 1.0f};
-  BKE_mesh_texspace_get((Mesh *)object->data, texspace_loc, texspace_scale);
+  BKE_mesh_texspace_get(blender::id_cast<Mesh *>(object->data), texspace_loc, texspace_scale);
   transform *= pxr::GfMatrix4d(1.0f).SetScale(pxr::GfVec3d(texspace_scale)) *
                pxr::GfMatrix4d(1.0f).SetTranslate(pxr::GfVec3d(texspace_loc));
 

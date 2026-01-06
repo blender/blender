@@ -475,7 +475,7 @@ struct Object {
   /** Pose data, armature objects only. */
   struct bPose *pose = nullptr;
   /** Pointer to objects data - an 'ID' or NULL. */
-  void *data = nullptr;
+  ID *data = nullptr;
 
   /** Grease Pencil data. */
   struct bGPdata *gpd DNA_DEPRECATED =

@@ -73,11 +73,11 @@ static bool eyedropper_colorband_init(bContext *C, wmOperator *op)
   else {
     if (but->type == ButtonType::ColorBand) {
       /* When invoked with a hotkey, we can find the band in 'but->poin'. */
-      band = (ColorBand *)but->poin;
+      band = reinterpret_cast<ColorBand *>(but->poin);
     }
     else {
       /* When invoked from a button it's in custom_data field. */
-      band = (ColorBand *)but->custom_data;
+      band = static_cast<ColorBand *>(but->custom_data);
     }
 
     if (band) {

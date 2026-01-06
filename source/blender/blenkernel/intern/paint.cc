@@ -88,7 +88,7 @@ using blender::bke::AttrDomain;
 
 static void palette_init_data(ID *id)
 {
-  Palette *palette = (Palette *)id;
+  Palette *palette = blender::id_cast<Palette *>(id);
 
   INIT_DEFAULT_STRUCT_AFTER(palette, id);
 
@@ -102,15 +102,15 @@ static void palette_copy_data(Main * /*bmain*/,
                               const ID *id_src,
                               const int /*flag*/)
 {
-  Palette *palette_dst = (Palette *)id_dst;
-  const Palette *palette_src = (const Palette *)id_src;
+  Palette *palette_dst = blender::id_cast<Palette *>(id_dst);
+  const Palette *palette_src = blender::id_cast<const Palette *>(id_src);
 
   BLI_duplicatelist(&palette_dst->colors, &palette_src->colors);
 }
 
 static void palette_free_data(ID *id)
 {
-  Palette *palette = (Palette *)id;
+  Palette *palette = blender::id_cast<Palette *>(id);
 
   BLI_freelistN(&palette->colors);
 }
@@ -118,7 +118,7 @@ static void palette_free_data(ID *id)
 static void palette_foreach_working_space_color(ID *id,
                                                 const IDTypeForeachColorFunctionCallback &fn)
 {
-  Palette *palette = (Palette *)id;
+  Palette *palette = blender::id_cast<Palette *>(id);
 
   for (PaletteColor &color : palette->colors) {
     fn.single(color.color);
@@ -128,7 +128,7 @@ static void palette_foreach_working_space_color(ID *id,
 
 static void palette_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  Palette *palette = (Palette *)id;
+  Palette *palette = blender::id_cast<Palette *>(id);
 
   BLO_write_id_struct(writer, Palette, id_address, &palette->id);
   BKE_id_blend_write(writer, &palette->id);
@@ -138,7 +138,7 @@ static void palette_blend_write(BlendWriter *writer, ID *id, const void *id_addr
 
 static void palette_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  Palette *palette = (Palette *)id;
+  Palette *palette = blender::id_cast<Palette *>(id);
   BLO_read_struct_list(reader, PaletteColor, &palette->colors);
 }
 
@@ -190,8 +190,8 @@ static void paint_curve_copy_data(Main * /*bmain*/,
                                   const ID *id_src,
                                   const int /*flag*/)
 {
-  PaintCurve *paint_curve_dst = (PaintCurve *)id_dst;
-  const PaintCurve *paint_curve_src = (const PaintCurve *)id_src;
+  PaintCurve *paint_curve_dst = blender::id_cast<PaintCurve *>(id_dst);
+  const PaintCurve *paint_curve_src = blender::id_cast<const PaintCurve *>(id_src);
 
   if (paint_curve_src->tot_points != 0) {
     paint_curve_dst->points = static_cast<PaintCurvePoint *>(
@@ -201,7 +201,7 @@ static void paint_curve_copy_data(Main * /*bmain*/,
 
 static void paint_curve_free_data(ID *id)
 {
-  PaintCurve *paint_curve = (PaintCurve *)id;
+  PaintCurve *paint_curve = blender::id_cast<PaintCurve *>(id);
 
   MEM_SAFE_FREE(paint_curve->points);
   paint_curve->tot_points = 0;
@@ -209,7 +209,7 @@ static void paint_curve_free_data(ID *id)
 
 static void paint_curve_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  PaintCurve *pc = (PaintCurve *)id;
+  PaintCurve *pc = blender::id_cast<PaintCurve *>(id);
 
   BLO_write_id_struct(writer, PaintCurve, id_address, &pc->id);
   BKE_id_blend_write(writer, &pc->id);
@@ -219,7 +219,7 @@ static void paint_curve_blend_write(BlendWriter *writer, ID *id, const void *id_
 
 static void paint_curve_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  PaintCurve *pc = (PaintCurve *)id;
+  PaintCurve *pc = blender::id_cast<PaintCurve *>(id);
   BLO_read_struct_array(reader, PaintCurvePoint, pc->tot_points, &pc->points);
 }
 
@@ -254,7 +254,7 @@ IDTypeInfo IDType_ID_PC = {
     /*lib_override_apply_post*/ nullptr,
 };
 
-static ePaintOverlayControlFlags overlay_flags = (ePaintOverlayControlFlags)0;
+static ePaintOverlayControlFlags overlay_flags = ePaintOverlayControlFlags(0);
 
 void BKE_paint_invalidate_overlay_tex(Scene *scene, ViewLayer *view_layer, const Tex *tex)
 {
@@ -333,33 +333,33 @@ bool BKE_paint_ensure_from_paintmode(Scene *sce, PaintMode mode)
 
   switch (mode) {
     case PaintMode::Sculpt:
-      paint_ptr = (Paint **)&ts->sculpt;
+      paint_ptr = reinterpret_cast<Paint **>(&ts->sculpt);
       break;
     case PaintMode::Vertex:
-      paint_ptr = (Paint **)&ts->vpaint;
+      paint_ptr = reinterpret_cast<Paint **>(&ts->vpaint);
       break;
     case PaintMode::Weight:
-      paint_ptr = (Paint **)&ts->wpaint;
+      paint_ptr = reinterpret_cast<Paint **>(&ts->wpaint);
       break;
     case PaintMode::Texture2D:
     case PaintMode::Texture3D:
-      paint_tmp = (Paint *)&ts->imapaint;
+      paint_tmp = reinterpret_cast<Paint *>(&ts->imapaint);
       paint_ptr = &paint_tmp;
       break;
     case PaintMode::GPencil:
-      paint_ptr = (Paint **)&ts->gp_paint;
+      paint_ptr = reinterpret_cast<Paint **>(&ts->gp_paint);
       break;
     case PaintMode::VertexGPencil:
-      paint_ptr = (Paint **)&ts->gp_vertexpaint;
+      paint_ptr = reinterpret_cast<Paint **>(&ts->gp_vertexpaint);
       break;
     case PaintMode::SculptGPencil:
-      paint_ptr = (Paint **)&ts->gp_sculptpaint;
+      paint_ptr = reinterpret_cast<Paint **>(&ts->gp_sculptpaint);
       break;
     case PaintMode::WeightGPencil:
-      paint_ptr = (Paint **)&ts->gp_weightpaint;
+      paint_ptr = reinterpret_cast<Paint **>(&ts->gp_weightpaint);
       break;
     case PaintMode::SculptCurves:
-      paint_ptr = (Paint **)&ts->curves_sculpt;
+      paint_ptr = reinterpret_cast<Paint **>(&ts->curves_sculpt);
       break;
     case PaintMode::Invalid:
       break;
@@ -1380,9 +1380,9 @@ Palette *BKE_paint_palette(Paint *paint)
 void BKE_paint_palette_set(Paint *paint, Palette *palette)
 {
   if (paint) {
-    id_us_min((ID *)paint->palette);
+    id_us_min(blender::id_cast<ID *>(paint->palette));
     paint->palette = palette;
-    id_us_plus((ID *)paint->palette);
+    id_us_plus(blender::id_cast<ID *>(paint->palette));
   }
 }
 
@@ -1640,14 +1640,14 @@ bool BKE_palette_from_hash(Main *bmain, GHash *color_table, const char *name)
 bool BKE_paint_select_face_test(const Object *ob)
 {
   return ((ob != nullptr) && (ob->type == OB_MESH) && (ob->data != nullptr) &&
-          (((Mesh *)ob->data)->editflag & ME_EDIT_PAINT_FACE_SEL) &&
+          ((blender::id_cast<Mesh *>(ob->data))->editflag & ME_EDIT_PAINT_FACE_SEL) &&
           (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)));
 }
 
 bool BKE_paint_select_vert_test(const Object *ob)
 {
   return ((ob != nullptr) && (ob->type == OB_MESH) && (ob->data != nullptr) &&
-          (((Mesh *)ob->data)->editflag & ME_EDIT_PAINT_VERT_SEL) &&
+          ((blender::id_cast<Mesh *>(ob->data))->editflag & ME_EDIT_PAINT_VERT_SEL) &&
           (ob->mode & OB_MODE_WEIGHT_PAINT || ob->mode & OB_MODE_VERTEX_PAINT));
 }
 
@@ -1742,7 +1742,8 @@ bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint)
     if (!(*r_paint)->runtime) {
       (*r_paint)->runtime = MEM_new<blender::bke::PaintRuntime>(__func__);
     }
-    if (!(*r_paint)->runtime->initialized && *r_paint == (Paint *)&ts->imapaint) {
+    if (!(*r_paint)->runtime->initialized && *r_paint == reinterpret_cast<Paint *>(&ts->imapaint))
+    {
       paint_runtime_init(ts, *r_paint);
     }
     else {
@@ -1768,38 +1769,40 @@ bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint)
     return true;
   }
 
-  if (((VPaint **)r_paint == &ts->vpaint) || ((VPaint **)r_paint == &ts->wpaint)) {
+  if ((reinterpret_cast<VPaint **>(r_paint) == &ts->vpaint) ||
+      (reinterpret_cast<VPaint **>(r_paint) == &ts->wpaint))
+  {
     VPaint *data = MEM_new_for_free<VPaint>(__func__);
     paint = &data->paint;
     paint_init_data(*paint);
   }
-  else if ((Sculpt **)r_paint == &ts->sculpt) {
+  else if (reinterpret_cast<Sculpt **>(r_paint) == &ts->sculpt) {
     Sculpt *data = MEM_new_for_free<Sculpt>(__func__);
 
     paint = &data->paint;
     paint_init_data(*paint);
   }
-  else if ((GpPaint **)r_paint == &ts->gp_paint) {
+  else if (reinterpret_cast<GpPaint **>(r_paint) == &ts->gp_paint) {
     GpPaint *data = MEM_new_for_free<GpPaint>(__func__);
     paint = &data->paint;
     paint_init_data(*paint);
   }
-  else if ((GpVertexPaint **)r_paint == &ts->gp_vertexpaint) {
+  else if (reinterpret_cast<GpVertexPaint **>(r_paint) == &ts->gp_vertexpaint) {
     GpVertexPaint *data = MEM_new_for_free<GpVertexPaint>(__func__);
     paint = &data->paint;
     paint_init_data(*paint);
   }
-  else if ((GpSculptPaint **)r_paint == &ts->gp_sculptpaint) {
+  else if (reinterpret_cast<GpSculptPaint **>(r_paint) == &ts->gp_sculptpaint) {
     GpSculptPaint *data = MEM_new_for_free<GpSculptPaint>(__func__);
     paint = &data->paint;
     paint_init_data(*paint);
   }
-  else if ((GpWeightPaint **)r_paint == &ts->gp_weightpaint) {
+  else if (reinterpret_cast<GpWeightPaint **>(r_paint) == &ts->gp_weightpaint) {
     GpWeightPaint *data = MEM_new_for_free<GpWeightPaint>(__func__);
     paint = &data->paint;
     paint_init_data(*paint);
   }
-  else if ((CurvesSculpt **)r_paint == &ts->curves_sculpt) {
+  else if (reinterpret_cast<CurvesSculpt **>(r_paint) == &ts->curves_sculpt) {
     CurvesSculpt *data = MEM_new_for_free<CurvesSculpt>(__func__);
     paint = &data->paint;
     paint_init_data(*paint);
@@ -1905,7 +1908,7 @@ void BKE_paint_copy(const Paint *src, Paint *dst, const int flag)
       src->unified_paint_settings.curve_rand_value);
 
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-    id_us_plus((ID *)dst->palette);
+    id_us_plus(blender::id_cast<ID *>(dst->palette));
   }
 
   dst->runtime = MEM_new<blender::bke::PaintRuntime>(__func__);
@@ -2259,7 +2262,7 @@ static void sculptsession_bm_to_me_update_data_only(Object *ob)
     if (ob->data) {
       BMeshToMeshParams params{};
       params.calc_object_remap = false;
-      BM_mesh_bm_to_me(nullptr, ss.bm, static_cast<Mesh *>(ob->data), &params);
+      BM_mesh_bm_to_me(nullptr, ss.bm, blender::id_cast<Mesh *>(ob->data), &params);
     }
   }
 }
@@ -2453,7 +2456,7 @@ static MultiresModifierData *sculpt_multires_modifier_get(const Scene *scene,
                                                           Object *ob,
                                                           const bool auto_create_mdisps)
 {
-  Mesh &mesh = *static_cast<Mesh *>(ob->data);
+  Mesh &mesh = *blender::id_cast<Mesh *>(ob->data);
 
   if (ob->sculpt && ob->sculpt->bm) {
     /* Can't combine multires and dynamic topology. */
@@ -2526,7 +2529,7 @@ int BKE_sculpt_get_grid_num_faces(const Object &object)
 /* Checks if there are any supported deformation modifiers active */
 static bool sculpt_modifiers_active(const Scene *scene, const Sculpt *sd, Object *ob)
 {
-  const Mesh &mesh = *static_cast<Mesh *>(ob->data);
+  const Mesh &mesh = *blender::id_cast<Mesh *>(ob->data);
 
   if (ob->sculpt->bm || BKE_sculpt_multires_active(scene, ob)) {
     return false;
@@ -2818,7 +2821,7 @@ void BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
 {
   using namespace blender;
   using namespace blender::bke;
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
   MutableAttributeAccessor attributes = mesh->attributes_for_write();
@@ -2891,7 +2894,7 @@ void BKE_sculpt_cavity_curves_ensure(Sculpt *sd)
 
 void BKE_sculpt_toolsettings_data_ensure(Main *bmain, Scene *scene)
 {
-  BKE_paint_ensure(scene->toolsettings, (Paint **)&scene->toolsettings->sculpt);
+  BKE_paint_ensure(scene->toolsettings, reinterpret_cast<Paint **>(&scene->toolsettings->sculpt));
   BKE_paint_brushes_ensure(bmain, &scene->toolsettings->sculpt->paint);
 
   Sculpt *sd = scene->toolsettings->sculpt;
@@ -3036,7 +3039,7 @@ pbvh::Tree &pbvh_ensure(Depsgraph &depsgraph, Object &object)
   }
   else {
     Object *object_eval = DEG_get_evaluated(&depsgraph, &object);
-    Mesh *mesh_eval = static_cast<Mesh *>(object_eval->data);
+    Mesh *mesh_eval = blender::id_cast<Mesh *>(object_eval->data);
     if (mesh_eval->runtime->subdiv_ccg != nullptr) {
       ss.pbvh = build_pbvh_from_ccg(&object, *mesh_eval->runtime->subdiv_ccg);
     }

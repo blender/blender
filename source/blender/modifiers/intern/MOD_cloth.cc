@@ -45,7 +45,7 @@
 
 static void init_data(ModifierData *md)
 {
-  ClothModifierData *clmd = (ClothModifierData *)md;
+  ClothModifierData *clmd = reinterpret_cast<ClothModifierData *>(md);
 
   INIT_DEFAULT_STRUCT_AFTER(clmd, modifier);
   clmd->sim_parms = MEM_new_for_free<ClothSimSettings>(__func__);
@@ -72,7 +72,7 @@ static void deform_verts(ModifierData *md,
                          Mesh *mesh,
                          blender::MutableSpan<blender::float3> positions)
 {
-  ClothModifierData *clmd = (ClothModifierData *)md;
+  ClothModifierData *clmd = reinterpret_cast<ClothModifierData *>(md);
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 
   /* check for alloc failing */
@@ -118,7 +118,7 @@ static void deform_verts(ModifierData *md,
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  ClothModifierData *clmd = (ClothModifierData *)md;
+  ClothModifierData *clmd = reinterpret_cast<ClothModifierData *>(md);
   if (clmd != nullptr) {
     if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED) {
       DEG_add_collision_relations(ctx->node,
@@ -136,7 +136,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  ClothModifierData *clmd = (ClothModifierData *)md;
+  ClothModifierData *clmd = reinterpret_cast<ClothModifierData *>(md);
 
   if (cloth_uses_vgroup(clmd)) {
     r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
@@ -149,8 +149,8 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
-  const ClothModifierData *clmd = (const ClothModifierData *)md;
-  ClothModifierData *tclmd = (ClothModifierData *)target;
+  const ClothModifierData *clmd = reinterpret_cast<const ClothModifierData *>(md);
+  ClothModifierData *tclmd = reinterpret_cast<ClothModifierData *>(target);
 
   if (tclmd->sim_parms) {
     if (tclmd->sim_parms->effector_weights) {
@@ -195,7 +195,7 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData * /*md*/)
 
 static void free_data(ModifierData *md)
 {
-  ClothModifierData *clmd = (ClothModifierData *)md;
+  ClothModifierData *clmd = reinterpret_cast<ClothModifierData *>(md);
 
   if (clmd) {
     if (G.debug & G_DEBUG_SIMDATA) {
@@ -234,14 +234,17 @@ static void free_data(ModifierData *md)
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  ClothModifierData *clmd = (ClothModifierData *)md;
+  ClothModifierData *clmd = reinterpret_cast<ClothModifierData *>(md);
 
   if (clmd->coll_parms) {
-    walk(user_data, ob, (ID **)&clmd->coll_parms->group, IDWALK_CB_NOP);
+    walk(user_data, ob, reinterpret_cast<ID **>(&clmd->coll_parms->group), IDWALK_CB_NOP);
   }
 
   if (clmd->sim_parms && clmd->sim_parms->effector_weights) {
-    walk(user_data, ob, (ID **)&clmd->sim_parms->effector_weights->group, IDWALK_CB_USER);
+    walk(user_data,
+         ob,
+         reinterpret_cast<ID **>(&clmd->sim_parms->effector_weights->group),
+         IDWALK_CB_USER);
   }
 }
 

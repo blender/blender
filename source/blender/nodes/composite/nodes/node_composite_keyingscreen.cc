@@ -11,6 +11,7 @@
 #include "BLI_string_utf8.h"
 
 #include "DNA_movieclip_types.h"
+#include "DNA_node_types.h"
 #include "DNA_tracking_types.h"
 
 #include "BKE_context.hh"
@@ -52,7 +53,7 @@ static void cmp_node_keyingscreen_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_keyingscreen(const bContext *C, PointerRNA *ptr)
 {
-  bNode *node = (bNode *)ptr->data;
+  bNode *node = static_cast<bNode *>(ptr->data);
 
   NodeKeyingScreenData *data = MEM_new_for_free<NodeKeyingScreenData>(__func__);
   node->storage = data;
@@ -71,12 +72,12 @@ static void node_composit_init_keyingscreen(const bContext *C, PointerRNA *ptr)
 
 static void node_composit_buts_keyingscreen(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
-  bNode *node = (bNode *)ptr->data;
+  bNode *node = static_cast<bNode *>(ptr->data);
 
   template_id(&layout, C, ptr, "clip", nullptr, nullptr, nullptr);
 
   if (node->id) {
-    MovieClip *clip = (MovieClip *)node->id;
+    MovieClip *clip = blender::id_cast<MovieClip *>(node->id);
     PointerRNA tracking_ptr = RNA_pointer_create_discrete(
         &clip->id, &RNA_MovieTracking, &clip->tracking);
 

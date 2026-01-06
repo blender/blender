@@ -51,8 +51,8 @@ static PyObject *bpy_rna_data_context_exit(BPy_DataContext *self, PyObject *args
 #endif
 
 static PyMethodDef bpy_rna_data_context_methods[] = {
-    {"__enter__", (PyCFunction)bpy_rna_data_context_enter, METH_NOARGS},
-    {"__exit__", (PyCFunction)bpy_rna_data_context_exit, METH_VARARGS},
+    {"__enter__", reinterpret_cast<PyCFunction>(bpy_rna_data_context_enter), METH_NOARGS},
+    {"__exit__", reinterpret_cast<PyCFunction>(bpy_rna_data_context_exit), METH_VARARGS},
     {nullptr} /* sentinel */
 };
 
@@ -87,7 +87,7 @@ static PyTypeObject bpy_rna_data_context_Type = {
     /*tp_name*/ "bpy_rna_data_context",
     /*tp_basicsize*/ sizeof(BPy_DataContext),
     /*tp_itemsize*/ 0,
-    /*tp_dealloc*/ (destructor)bpy_rna_data_context_dealloc,
+    /*tp_dealloc*/ reinterpret_cast<destructor>(bpy_rna_data_context_dealloc),
     /*tp_vectorcall_offset*/ 0,
     /*tp_getattr*/ nullptr,
     /*tp_setattr*/ nullptr,
@@ -104,8 +104,8 @@ static PyTypeObject bpy_rna_data_context_Type = {
     /*tp_as_buffer*/ nullptr,
     /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
     /*tp_doc*/ nullptr,
-    /*tp_traverse*/ (traverseproc)bpy_rna_data_context_traverse,
-    /*tp_clear*/ (inquiry)bpy_rna_data_context_clear,
+    /*tp_traverse*/ reinterpret_cast<traverseproc>(bpy_rna_data_context_traverse),
+    /*tp_clear*/ reinterpret_cast<inquiry>(bpy_rna_data_context_clear),
     /*tp_richcompare*/ nullptr,
     /*tp_weaklistoffset*/ 0,
     /*tp_iter*/ nullptr,
@@ -171,7 +171,7 @@ static PyObject *bpy_rna_data_temp_data(PyObject * /*self*/, PyObject *args, PyO
   STRNCPY(ret->filepath, filepath_data.value ? filepath_data.value : G_MAIN->filepath);
   Py_XDECREF(filepath_data.value_coerce);
 
-  return (PyObject *)ret;
+  return reinterpret_cast<PyObject *>(ret);
 }
 
 static PyObject *bpy_rna_data_context_enter(BPy_DataContext *self)
@@ -181,12 +181,12 @@ static PyObject *bpy_rna_data_context_enter(BPy_DataContext *self)
 
   PointerRNA ptr = RNA_pointer_create_discrete(nullptr, &RNA_BlendData, bmain_temp);
 
-  self->data_rna = (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);
+  self->data_rna = reinterpret_cast<BPy_StructRNA *>(pyrna_struct_CreatePyObject(&ptr));
 
   BLI_assert(!PyObject_GC_IsTracked((PyObject *)self));
   PyObject_GC_Track(self);
 
-  return (PyObject *)self->data_rna;
+  return reinterpret_cast<PyObject *>(self->data_rna);
 }
 
 static PyObject *bpy_rna_data_context_exit(BPy_DataContext *self, PyObject * /*args*/)
@@ -208,7 +208,7 @@ static PyObject *bpy_rna_data_context_exit(BPy_DataContext *self, PyObject * /*a
 
 PyMethodDef BPY_rna_data_context_method_def = {
     "temp_data",
-    (PyCFunction)bpy_rna_data_temp_data,
+    reinterpret_cast<PyCFunction>(bpy_rna_data_temp_data),
     METH_STATIC | METH_VARARGS | METH_KEYWORDS,
     bpy_rna_data_context_load_doc,
 };

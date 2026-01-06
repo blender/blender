@@ -85,7 +85,7 @@ void ED_outliner_select_sync_flag_outliners(const bContext *C)
     for (ScrArea &area : screen->areabase) {
       for (SpaceLink &sl : area.spacedata) {
         if (sl.spacetype == SPACE_OUTLINER) {
-          SpaceOutliner *space_outliner = (SpaceOutliner *)&sl;
+          SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(&sl);
 
           space_outliner->sync_select_dirty |= wm->outliner_sync_select_dirty;
         }
@@ -171,8 +171,8 @@ static void outliner_select_sync_to_object(ViewLayer *view_layer,
                                            TreeStoreElem *tselem,
                                            Set<Base *> &selected_objects)
 {
-  Object *ob = (Object *)tselem->id;
-  Base *base = (te->directdata) ? (Base *)te->directdata :
+  Object *ob = blender::id_cast<Object *>(tselem->id);
+  Base *base = (te->directdata) ? static_cast<Base *>(te->directdata) :
                                   BKE_view_layer_base_find(view_layer, ob);
 
   if (base && (base->flag & BASE_SELECTABLE)) {
@@ -192,8 +192,8 @@ static void outliner_select_sync_to_edit_bone(const Scene *scene,
                                               TreeStoreElem *tselem,
                                               Set<EditBone *> &selected_ebones)
 {
-  bArmature *arm = (bArmature *)tselem->id;
-  EditBone *ebone = (EditBone *)te->directdata;
+  bArmature *arm = blender::id_cast<bArmature *>(tselem->id);
+  EditBone *ebone = static_cast<EditBone *>(te->directdata);
 
   short bone_flag = ebone->flag;
 
@@ -223,9 +223,9 @@ static void outliner_select_sync_to_pose_bone(TreeElement *te,
                                               TreeStoreElem *tselem,
                                               Set<bPoseChannel *> &selected_pbones)
 {
-  Object *ob = (Object *)tselem->id;
-  bArmature *arm = static_cast<bArmature *>(ob->data);
-  bPoseChannel *pchan = (bPoseChannel *)te->directdata;
+  Object *ob = blender::id_cast<Object *>(tselem->id);
+  bArmature *arm = blender::id_cast<bArmature *>(ob->data);
+  bPoseChannel *pchan = static_cast<bPoseChannel *>(te->directdata);
 
   short bone_flag = pchan->flag;
 
@@ -361,9 +361,9 @@ static void outliner_select_sync_from_object(const Scene *scene,
                                              TreeElement *te,
                                              TreeStoreElem *tselem)
 {
-  Object *ob = (Object *)tselem->id;
+  Object *ob = blender::id_cast<Object *>(tselem->id);
   BKE_view_layer_synced_ensure(scene, view_layer);
-  Base *base = (te->directdata) ? (Base *)te->directdata :
+  Base *base = (te->directdata) ? static_cast<Base *>(te->directdata) :
                                   BKE_view_layer_base_find(view_layer, ob);
   const bool is_selected = (base != nullptr) && ((base->flag & BASE_SELECTED) != 0);
 
@@ -386,7 +386,7 @@ static void outliner_select_sync_from_edit_bone(EditBone *ebone_active,
                                                 TreeElement *te,
                                                 TreeStoreElem *tselem)
 {
-  EditBone *ebone = (EditBone *)te->directdata;
+  EditBone *ebone = static_cast<EditBone *>(te->directdata);
 
   if (ebone == ebone_active) {
     tselem->flag |= TSE_ACTIVE;
@@ -407,7 +407,7 @@ static void outliner_select_sync_from_pose_bone(bPoseChannel *pchan_active,
                                                 TreeElement *te,
                                                 TreeStoreElem *tselem)
 {
-  bPoseChannel *pchan = (bPoseChannel *)te->directdata;
+  bPoseChannel *pchan = static_cast<bPoseChannel *>(te->directdata);
 
   if (pchan == pchan_active) {
     tselem->flag |= TSE_ACTIVE;

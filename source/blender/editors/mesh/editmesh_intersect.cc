@@ -6,6 +6,7 @@
  * \ingroup edmesh
  */
 
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_linklist_stack.h"
@@ -227,7 +228,7 @@ static wmOperatorStatus edbm_intersect_exec(bContext *C, wmOperator *op)
           em->bm, BM_elem_cb_check_hflag_enabled_simple(const BMFace *, BM_ELEM_SELECT));
     }
 
-    edbm_intersect_select(em, static_cast<Mesh *>(obedit->data), has_isect);
+    edbm_intersect_select(em, blender::id_cast<Mesh *>(obedit->data), has_isect);
 
     if (!has_isect) {
       isect_len++;
@@ -386,7 +387,7 @@ static wmOperatorStatus edbm_intersect_boolean_exec(bContext *C, wmOperator *op)
                                     eps);
     }
 
-    edbm_intersect_select(em, static_cast<Mesh *>(obedit->data), has_isect);
+    edbm_intersect_select(em, blender::id_cast<Mesh *>(obedit->data), has_isect);
 
     if (!has_isect) {
       isect_len++;
@@ -596,8 +597,10 @@ static void ghash_insert_face_edge_link(blender::Map<BMFace *, LinkBase *> &gh,
 
 static int bm_edge_sort_length_cb(const void *e_a_v, const void *e_b_v)
 {
-  const float val_a = -BM_edge_calc_length_squared(*((BMEdge **)e_a_v));
-  const float val_b = -BM_edge_calc_length_squared(*((BMEdge **)e_b_v));
+  const float val_a = -BM_edge_calc_length_squared(
+      *(static_cast<BMEdge **>(const_cast<void *>(e_a_v))));
+  const float val_b = -BM_edge_calc_length_squared(
+      *(static_cast<BMEdge **>(const_cast<void *>(e_b_v))));
 
   if (val_a > val_b) {
     return 1;
@@ -942,7 +945,7 @@ static wmOperatorStatus edbm_face_split_by_edges_exec(bContext *C, wmOperator * 
     params.calc_looptris = true;
     params.calc_normals = true;
     params.is_destructive = true;
-    EDBM_update(static_cast<Mesh *>(obedit->data), &params);
+    EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
 
 #ifdef USE_NET_ISLAND_CONNECT
     /* we may have remaining isolated regions remaining,
@@ -1044,7 +1047,7 @@ static wmOperatorStatus edbm_face_split_by_edges_exec(bContext *C, wmOperator * 
       params.calc_looptris = true;
       params.calc_normals = true;
       params.is_destructive = true;
-      EDBM_update(static_cast<Mesh *>(obedit->data), &params);
+      EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
     }
 
     BLI_stack_free(edges_loose);

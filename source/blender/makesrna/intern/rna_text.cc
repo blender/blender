@@ -31,7 +31,7 @@
 
 static void rna_Text_filepath_get(PointerRNA *ptr, char *value)
 {
-  const Text *text = (const Text *)ptr->data;
+  const Text *text = static_cast<const Text *>(ptr->data);
 
   if (text->filepath) {
     strcpy(value, text->filepath);
@@ -43,13 +43,13 @@ static void rna_Text_filepath_get(PointerRNA *ptr, char *value)
 
 static int rna_Text_filepath_length(PointerRNA *ptr)
 {
-  const Text *text = (const Text *)ptr->data;
+  const Text *text = static_cast<const Text *>(ptr->data);
   return (text->filepath) ? strlen(text->filepath) : 0;
 }
 
 static void rna_Text_filepath_set(PointerRNA *ptr, const char *value)
 {
-  Text *text = (Text *)ptr->data;
+  Text *text = static_cast<Text *>(ptr->data);
 
   if (text->filepath) {
     MEM_freeN(text->filepath);
@@ -65,13 +65,13 @@ static void rna_Text_filepath_set(PointerRNA *ptr, const char *value)
 
 static bool rna_Text_modified_get(PointerRNA *ptr)
 {
-  const Text *text = (const Text *)ptr->data;
+  const Text *text = static_cast<const Text *>(ptr->data);
   return BKE_text_file_modified_check(text) != 0;
 }
 
 static int rna_Text_current_line_index_get(PointerRNA *ptr)
 {
-  const Text *text = (const Text *)ptr->data;
+  const Text *text = static_cast<const Text *>(ptr->data);
   return BLI_findindex(&text->lines, text->curl);
 }
 
@@ -133,7 +133,7 @@ static void rna_Text_select_end_character_set(PointerRNA *ptr, const int index)
 
 static void rna_TextLine_body_get(PointerRNA *ptr, char *value)
 {
-  const TextLine *line = (const TextLine *)ptr->data;
+  const TextLine *line = static_cast<const TextLine *>(ptr->data);
 
   if (line->line) {
     strcpy(value, line->line);
@@ -145,13 +145,13 @@ static void rna_TextLine_body_get(PointerRNA *ptr, char *value)
 
 static int rna_TextLine_body_length(PointerRNA *ptr)
 {
-  const TextLine *line = (const TextLine *)ptr->data;
+  const TextLine *line = static_cast<const TextLine *>(ptr->data);
   return line->len;
 }
 
 static void rna_TextLine_body_set(PointerRNA *ptr, const char *value)
 {
-  TextLine *line = (TextLine *)ptr->data;
+  TextLine *line = static_cast<TextLine *>(ptr->data);
   size_t len = strlen(value);
 
   if (line->line) {

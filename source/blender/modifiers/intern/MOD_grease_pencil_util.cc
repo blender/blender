@@ -71,7 +71,7 @@ void foreach_influence_ID_link(GreasePencilModifierInfluenceData *influence_data
                                IDWalkFunc walk,
                                void *user_data)
 {
-  walk(user_data, ob, (ID **)&influence_data->material, IDWALK_CB_USER);
+  walk(user_data, ob, reinterpret_cast<ID **>(&influence_data->material), IDWALK_CB_USER);
 }
 
 void write_influence_data(BlendWriter *writer,

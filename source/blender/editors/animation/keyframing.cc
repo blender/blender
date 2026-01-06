@@ -973,7 +973,7 @@ static bool can_delete_key(FCurve *fcu, Object *ob, ReportList *reports)
 
     /* skip if bone is not selected */
     if ((pchan) && (pchan->bone)) {
-      bArmature *arm = static_cast<bArmature *>(ob->data);
+      bArmature *arm = blender::id_cast<bArmature *>(ob->data);
 
       /* Only selected bones should be affected. */
       if (!blender::animrig::bone_is_selected(arm, pchan)) {
@@ -1381,7 +1381,7 @@ static wmOperatorStatus insert_key_button_exec(bContext *C, wmOperator *op)
                   "Button does not appear to have any property information attached (ptr.data = "
                   "%p, prop = %p)",
                   ptr.data,
-                  (void *)prop);
+                  static_cast<void *>(prop));
     }
   }
 
@@ -1500,7 +1500,7 @@ static wmOperatorStatus delete_key_button_exec(bContext *C, wmOperator *op)
     }
   }
   else if (G.debug & G_DEBUG) {
-    printf("ptr.data = %p, prop = %p\n", ptr.data, (void *)prop);
+    printf("ptr.data = %p, prop = %p\n", ptr.data, static_cast<void *>(prop));
   }
 
   if (changed) {
@@ -1564,7 +1564,7 @@ static wmOperatorStatus clear_key_button_exec(bContext *C, wmOperator *op)
     }
   }
   else if (G.debug & G_DEBUG) {
-    printf("ptr.data = %p, prop = %p\n", ptr.data, (void *)prop);
+    printf("ptr.data = %p, prop = %p\n", ptr.data, static_cast<void *>(prop));
   }
 
   if (changed) {

@@ -50,7 +50,7 @@ static int node_shader_gpu_tex_magic(GPUMaterial *mat,
                                      GPUNodeStack *in,
                                      GPUNodeStack *out)
 {
-  NodeTexMagic *tex = (NodeTexMagic *)node->storage;
+  NodeTexMagic *tex = static_cast<NodeTexMagic *>(node->storage);
   float depth = tex->depth;
 
   node_shader_gpu_default_tex_coord(mat, node, &in[0].link);
@@ -171,7 +171,7 @@ class MagicFunction : public mf::MultiFunction {
 static void sh_node_magic_tex_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   const bNode &node = builder.node();
-  NodeTexMagic *tex = (NodeTexMagic *)node.storage;
+  NodeTexMagic *tex = static_cast<NodeTexMagic *>(node.storage);
   builder.construct_and_set_matching_fn<MagicFunction>(tex->depth);
 }
 

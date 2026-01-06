@@ -335,7 +335,7 @@ bool searchbox_inside(ARegion *region, const int xy[2])
 bool searchbox_apply(Button *but, ARegion *region)
 {
   uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
-  ButtonSearch *search_but = (ButtonSearch *)but;
+  ButtonSearch *search_but = static_cast<ButtonSearch *>(but);
 
   BLI_assert(but->type == ButtonType::SearchMenu);
 
@@ -376,7 +376,7 @@ static ARegion *wm_searchbox_tooltip_init(
         continue;
       }
 
-      ButtonSearch *search_but = (ButtonSearch *)but.get();
+      ButtonSearch *search_but = static_cast<ButtonSearch *>(but.get());
       if (!search_but->item_tooltip_fn) {
         continue;
       }
@@ -400,7 +400,7 @@ bool searchbox_event(
     bContext *C, ARegion *region, Button *but, ARegion *butregion, const wmEvent *event)
 {
   uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
-  ButtonSearch *search_but = (ButtonSearch *)but;
+  ButtonSearch *search_but = static_cast<ButtonSearch *>(but);
   int type = event->type, val = event->val;
   bool handled = false;
   bool tooltip_timer_started = false;
@@ -514,7 +514,7 @@ static void searchbox_update_fn(bContext *C,
 
 void searchbox_update(bContext *C, ARegion *region, Button *but, const bool reset)
 {
-  ButtonSearch *search_but = (ButtonSearch *)but;
+  ButtonSearch *search_but = static_cast<ButtonSearch *>(but);
   uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
 
   BLI_assert(but->type == ButtonType::SearchMenu);
@@ -592,7 +592,7 @@ void searchbox_update(bContext *C, ARegion *region, Button *but, const bool rese
 
 int searchbox_autocomplete(bContext *C, ARegion *region, Button *but, char *str)
 {
-  ButtonSearch *search_but = (ButtonSearch *)but;
+  ButtonSearch *search_but = static_cast<ButtonSearch *>(but);
   uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
   int match = AUTOCOMPLETE_NO_MATCH;
 
@@ -846,7 +846,7 @@ static void searchbox_region_listen_fn(const wmRegionListenerParams *params)
 
 static void searchbox_region_layout_fn(const bContext *C, ARegion *region)
 {
-  uiSearchboxData *data = (uiSearchboxData *)region->regiondata;
+  uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
 
   if (data->size_set) {
     /* Already set. */
@@ -1214,7 +1214,8 @@ void button_search_refresh(ButtonSearch *but)
     items->names[i] = MEM_calloc_arrayN<char>(but->hardmax + 1, __func__);
   }
 
-  searchbox_update_fn((bContext *)but->block->evil_C, but, but->drawstr.c_str(), items);
+  searchbox_update_fn(
+      static_cast<bContext *>(but->block->evil_C), but, but->drawstr.c_str(), items);
 
   if (!but->results_are_suggestions) {
     /* Only red-alert when we are sure of it, this can miss cases when >10 matches. */

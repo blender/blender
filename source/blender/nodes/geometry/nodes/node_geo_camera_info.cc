@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "DNA_camera_types.h"
+
 #include "BKE_camera.h"
 
 #include "DEG_depsgraph_query.hh"
@@ -45,7 +47,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  Camera *camera = static_cast<Camera *>(camera_obj->data);
+  Camera *camera = blender::id_cast<Camera *>(camera_obj->data);
   if (!camera) {
     params.set_default_remaining_outputs();
     return;

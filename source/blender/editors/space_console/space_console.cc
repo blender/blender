@@ -70,13 +70,13 @@ static SpaceLink *console_create(const ScrArea * /*area*/, const Scene * /*scene
   /* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
   // region->v2d.keepzoom = (V2D_KEEPASPECT|V2D_LIMITZOOM);
 
-  return (SpaceLink *)sconsole;
+  return reinterpret_cast<SpaceLink *>(sconsole);
 }
 
 /* Doesn't free the space-link itself. */
 static void console_free(SpaceLink *sl)
 {
-  SpaceConsole *sc = (SpaceConsole *)sl;
+  SpaceConsole *sc = reinterpret_cast<SpaceConsole *>(sl);
 
   while (sc->scrollback.first) {
     console_scrollback_free(sc, static_cast<ConsoleLine *>(sc->scrollback.first));
@@ -100,7 +100,7 @@ static SpaceLink *console_duplicate(SpaceLink *sl)
   BLI_listbase_clear(&sconsolen->scrollback);
   BLI_listbase_clear(&sconsolen->history);
 
-  return (SpaceLink *)sconsolen;
+  return reinterpret_cast<SpaceLink *>(sconsolen);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -216,7 +216,7 @@ static void console_main_region_draw(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
 
   if (BLI_listbase_is_empty(&sc->scrollback)) {
-    WM_operator_name_call((bContext *)C,
+    WM_operator_name_call(const_cast<bContext *>(C),
                           "CONSOLE_OT_banner",
                           blender::wm::OpCallContext::ExecDefault,
                           nullptr,
@@ -313,7 +313,7 @@ static void console_main_region_listener(const wmRegionListenerParams *params)
 
 static void console_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
-  SpaceConsole *sconsole = (SpaceConsole *)sl;
+  SpaceConsole *sconsole = reinterpret_cast<SpaceConsole *>(sl);
 
   BLO_read_struct_list(reader, ConsoleLine, &sconsole->scrollback);
   BLO_read_struct_list(reader, ConsoleLine, &sconsole->history);
@@ -336,7 +336,7 @@ static void console_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 
 static void console_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
-  SpaceConsole *con = (SpaceConsole *)sl;
+  SpaceConsole *con = reinterpret_cast<SpaceConsole *>(sl);
 
   for (ConsoleLine &cl : con->history) {
     /* 'len_alloc' is invalid on write, set from 'len' on read */

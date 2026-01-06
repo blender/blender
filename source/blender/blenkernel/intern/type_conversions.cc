@@ -30,10 +30,10 @@ static void add_implicit_conversion(DataTypeConversions &conversions)
       [](const From &a) { return ConversionF(a); },
       mf::build::exec_presets::AllSpanOrSingle());
   static auto convert_single_to_initialized = [](const void *src, void *dst) {
-    *(To *)dst = ConversionF(*(const From *)src);
+    *static_cast<To *>(dst) = ConversionF(*static_cast<const From *>(src));
   };
   static auto convert_single_to_uninitialized = [](const void *src, void *dst) {
-    new (dst) To(ConversionF(*(const From *)src));
+    new (dst) To(ConversionF(*static_cast<const From *>(src)));
   };
   conversions.add(mf::DataType::ForSingle<From>(),
                   mf::DataType::ForSingle<To>(),

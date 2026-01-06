@@ -91,10 +91,10 @@ static void rna_PoseBone_bbone_segment_matrix(
   }
 
   if (rest) {
-    copy_m4_m4((float (*)[4])mat_ret, pchan->runtime.bbone_rest_mats[index].mat);
+    copy_m4_m4(reinterpret_cast<float (*)[4]>(mat_ret), pchan->runtime.bbone_rest_mats[index].mat);
   }
   else {
-    copy_m4_m4((float (*)[4])mat_ret, pchan->runtime.bbone_pose_mats[index].mat);
+    copy_m4_m4(reinterpret_cast<float (*)[4]>(mat_ret), pchan->runtime.bbone_pose_mats[index].mat);
   }
 }
 
@@ -126,7 +126,7 @@ static void rna_Pose_apply_pose_from_action(ID *pose_owner,
                                             const float evaluation_time)
 {
   BLI_assert(GS(pose_owner->name) == ID_OB);
-  Object *pose_owner_ob = (Object *)pose_owner;
+  Object *pose_owner_ob = blender::id_cast<Object *>(pose_owner);
 
   AnimationEvalContext anim_eval_context = {CTX_data_depsgraph_pointer(C), evaluation_time};
   animrig::pose_apply_action({pose_owner_ob}, action->wrap(), &anim_eval_context, 1.0);
@@ -143,7 +143,7 @@ static void rna_Pose_blend_pose_from_action(ID *pose_owner,
                                             const float evaluation_time)
 {
   BLI_assert(GS(pose_owner->name) == ID_OB);
-  Object *pose_owner_ob = (Object *)pose_owner;
+  Object *pose_owner_ob = blender::id_cast<Object *>(pose_owner);
 
   AnimationEvalContext anim_eval_context = {CTX_data_depsgraph_pointer(C), evaluation_time};
   animrig::pose_apply_action({pose_owner_ob}, action->wrap(), &anim_eval_context, blend_factor);
@@ -161,14 +161,14 @@ static void rna_Pose_backup_create(ID *pose_owner, bAction *action)
      * tagging an empty action as a pose asset. */
     return;
   }
-  Object *pose_owner_ob = (Object *)pose_owner;
+  Object *pose_owner_ob = blender::id_cast<Object *>(pose_owner);
   BKE_pose_backup_create_on_object(pose_owner_ob, action);
 }
 
 static bool rna_Pose_backup_restore(ID *pose_owner, bContext *C)
 {
   BLI_assert(GS(pose_owner->name) == ID_OB);
-  Object *pose_owner_ob = (Object *)pose_owner;
+  Object *pose_owner_ob = blender::id_cast<Object *>(pose_owner);
 
   const bool success = BKE_pose_backup_restore_on_object(pose_owner_ob);
   if (!success) {
@@ -185,7 +185,7 @@ static bool rna_Pose_backup_restore(ID *pose_owner, bContext *C)
 static void rna_Pose_backup_clear(ID *pose_owner)
 {
   BLI_assert(GS(pose_owner->name) == ID_OB);
-  Object *pose_owner_ob = (Object *)pose_owner;
+  Object *pose_owner_ob = blender::id_cast<Object *>(pose_owner);
 
   BKE_pose_backup_clear(pose_owner_ob);
 }

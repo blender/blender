@@ -83,7 +83,7 @@ static ID *rna_property_override_property_real_id_owner(Main * /*bmain*/,
 
     switch (GS(id->name)) {
       case ID_KE:
-        owner_id = ((Key *)id)->from;
+        owner_id = (blender::id_cast<Key *>(id))->from;
         rna_path_prefix = "shape_keys.";
         break;
       case ID_GR:
@@ -162,7 +162,7 @@ bool RNA_property_overridable_get(const PointerRNA *ptr, PropertyRNA *prop)
            (prop->flag_override & PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   }
   /* If this is a real 'pure' IDProp (aka custom property), we want to use the IDProp flag. */
-  IDProperty *idprop = (IDProperty *)prop;
+  IDProperty *idprop = reinterpret_cast<IDProperty *>(prop);
   return (idprop->flag & IDP_FLAG_OVERRIDABLE_LIBRARY) != 0;
 }
 
@@ -172,7 +172,7 @@ bool RNA_property_overridable_library_set(PointerRNA * /*ptr*/,
 {
   /* Only works for pure custom properties IDProps. */
   if (prop->magic != RNA_MAGIC) {
-    IDProperty *idprop = (IDProperty *)prop;
+    IDProperty *idprop = reinterpret_cast<IDProperty *>(prop);
     constexpr short flags = (IDP_FLAG_OVERRIDABLE_LIBRARY | IDP_FLAG_STATIC_TYPE);
     idprop->flag = is_overridable ? (idprop->flag | flags) : (idprop->flag & ~flags);
     return true;
@@ -646,13 +646,15 @@ bool RNA_struct_override_matches(Main *bmain,
      * missing updates (possibly due to dependencies?). Since calling this function on same ID
      * several time is almost free, and safe even in a threaded context as long as it has been done
      * at least once first outside of threaded processing, we do it another time here. */
-    Object *ob_local = (Object *)ptr_local->owner_id;
+    Object *ob_local = blender::id_cast<Object *>(ptr_local->owner_id);
     if (ob_local->type == OB_ARMATURE) {
-      Object *ob_reference = (Object *)ptr_local->owner_id->override_library->reference;
+      Object *ob_reference = blender::id_cast<Object *>(
+          ptr_local->owner_id->override_library->reference);
       BLI_assert(ob_local->data != nullptr);
       BLI_assert(ob_reference->data != nullptr);
-      BKE_pose_ensure(bmain, ob_local, static_cast<bArmature *>(ob_local->data), true);
-      BKE_pose_ensure(bmain, ob_reference, static_cast<bArmature *>(ob_reference->data), true);
+      BKE_pose_ensure(bmain, ob_local, blender::id_cast<bArmature *>(ob_local->data), true);
+      BKE_pose_ensure(
+          bmain, ob_reference, blender::id_cast<bArmature *>(ob_reference->data), true);
     }
   }
 

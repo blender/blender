@@ -34,7 +34,7 @@ Vector<ed::greasepencil::MutableDrawingInfo> get_drawings_for_stroke_operation(c
 
   const Scene &scene = *CTX_data_scene(&C);
   Object &ob_orig = *CTX_data_active_object(&C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob_orig.data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(ob_orig.data);
 
   /* Apply to all editable drawings. */
   return ed::greasepencil::retrieve_editable_drawings_with_falloff(scene, grease_pencil);
@@ -48,7 +48,7 @@ Vector<ed::greasepencil::MutableDrawingInfo> get_drawings_with_masking_for_strok
   const Scene &scene = *CTX_data_scene(&C);
   const ToolSettings &ts = *CTX_data_tool_settings(&C);
   Object &ob_orig = *CTX_data_active_object(&C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob_orig.data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(ob_orig.data);
 
   const bool active_layer_masking = (ts.gp_sculpt.flag &
                                      GP_SCULPT_SETT_FLAG_AUTOMASK_LAYER_ACTIVE) != 0;
@@ -289,7 +289,7 @@ GreasePencilStrokeParams GreasePencilStrokeParams::from_context(
     bke::greasepencil::Drawing &drawing)
 {
   Object &ob_eval = *DEG_get_evaluated(&depsgraph, &object);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object.data);
 
   const bke::greasepencil::Layer &layer = grease_pencil.layer(layer_index);
   return {*scene.toolsettings,
@@ -498,7 +498,7 @@ void GreasePencilStrokeOperationCommon::foreach_editable_drawing_with_automask(
   ARegion &region = *CTX_wm_region(&C);
   RegionView3D &rv3d = *CTX_wm_region_view3d(&C);
   Object &object = *CTX_data_active_object(&C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object.data);
 
   std::atomic<bool> changed = false;
   const Vector<MutableDrawingInfo> drawings = get_drawings_with_masking_for_stroke_operation(C);
@@ -541,7 +541,7 @@ void GreasePencilStrokeOperationCommon::foreach_editable_drawing_with_automask(
   RegionView3D &rv3d = *CTX_wm_region_view3d(&C);
   Object &object = *CTX_data_active_object(&C);
   Object &object_eval = *DEG_get_evaluated(&depsgraph, &object);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object.data);
 
   std::atomic<bool> changed = false;
   const Vector<MutableDrawingInfo> drawings = get_drawings_with_masking_for_stroke_operation(C);
@@ -582,7 +582,7 @@ void GreasePencilStrokeOperationCommon::foreach_editable_drawing(
   ARegion &region = *CTX_wm_region(&C);
   RegionView3D &rv3d = *CTX_wm_region_view3d(&C);
   Object &object = *CTX_data_active_object(&C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object.data);
 
   bool changed = false;
   const Vector<MutableDrawingInfo> drawings = get_drawings_for_stroke_operation(C);
@@ -622,7 +622,7 @@ void GreasePencilStrokeOperationCommon::foreach_editable_drawing(
   RegionView3D &rv3d = *CTX_wm_region_view3d(&C);
   Object &object = *CTX_data_active_object(&C);
   Object &object_eval = *DEG_get_evaluated(&depsgraph, &object);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object.data);
 
   bool changed = false;
   const Vector<MutableDrawingInfo> drawings = get_drawings_for_stroke_operation(C);
@@ -664,7 +664,7 @@ void GreasePencilStrokeOperationCommon::foreach_editable_drawing(
   ARegion &region = *CTX_wm_region(&C);
   RegionView3D &rv3d = *CTX_wm_region_view3d(&C);
   Object &object = *CTX_data_active_object(&C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object.data);
 
   std::atomic<bool> changed = false;
   const Vector<MutableDrawingInfo> drawings = get_drawings_for_stroke_operation(C);

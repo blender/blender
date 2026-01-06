@@ -48,8 +48,8 @@ void Film::init_aovs(const Set<std::string> &passes_used_by_viewport_compositor)
     /* Viewport case. */
     if (inst_.v3d->shading.render_pass == EEVEE_RENDER_PASS_AOV) {
       /* AOV display, request only a single AOV. */
-      ViewLayerAOV *aov = (ViewLayerAOV *)BLI_findstring(
-          &inst_.view_layer->aovs, inst_.v3d->shading.aov_name, offsetof(ViewLayerAOV, name));
+      ViewLayerAOV *aov = static_cast<ViewLayerAOV *>(BLI_findstring(
+          &inst_.view_layer->aovs, inst_.v3d->shading.aov_name, offsetof(ViewLayerAOV, name)));
 
       /* AOV found in view layer. */
       if (aov) {
@@ -110,7 +110,7 @@ float *Film::read_aov(ViewLayerAOV *aov)
 
   GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
 
-  return (float *)GPU_texture_read(pass_tx, GPU_DATA_FLOAT, 0);
+  return static_cast<float *>(GPU_texture_read(pass_tx, GPU_DATA_FLOAT, 0));
 }
 
 gpu::Texture *Film::get_aov_texture(ViewLayerAOV *aov)
@@ -906,7 +906,7 @@ float *Film::read_pass(eViewLayerEEVEEPassType pass_type, int layer_offset)
 
   GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
 
-  float *result = (float *)GPU_texture_read(pass_tx, GPU_DATA_FLOAT, 0);
+  float *result = static_cast<float *>(GPU_texture_read(pass_tx, GPU_DATA_FLOAT, 0));
 
   if (pass_is_float3(pass_type)) {
     /* Convert result in place as we cannot do this conversion on GPU. */

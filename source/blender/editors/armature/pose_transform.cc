@@ -523,7 +523,7 @@ static wmOperatorStatus pose_visual_transform_apply_exec(bContext *C, wmOperator
   CTX_data_ensure_evaluated_depsgraph(C);
 
   FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob) {
-    const bArmature *arm = static_cast<const bArmature *>(ob->data);
+    const bArmature *arm = blender::id_cast<const bArmature *>(ob->data);
 
     int chanbase_len = BLI_listbase_count(&ob->pose->chanbase);
     /* Storage for the calculated matrices to prevent reading from modified values.
@@ -782,7 +782,7 @@ static wmOperatorStatus pose_copy_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  bArmature *armature = static_cast<bArmature *>(ob->data);
+  bArmature *armature = blender::id_cast<bArmature *>(ob->data);
   BLI_assert_msg(armature, "If an armature object has a pose, it should have armature data");
   /* Taking off the selection flag in case bones are hidden so they are not
    * applied when pasting.  */

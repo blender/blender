@@ -89,7 +89,7 @@ static int node_shader_gpu_tex_wave(GPUMaterial *mat,
   node_shader_gpu_default_tex_coord(mat, node, &in[0].link);
   node_shader_gpu_tex_mapping(mat, node, in, out);
 
-  NodeTexWave *tex = (NodeTexWave *)node->storage;
+  NodeTexWave *tex = static_cast<NodeTexWave *>(node->storage);
   float wave_type = tex->wave_type;
   float bands_direction = tex->bands_direction;
   float rings_direction = tex->rings_direction;
@@ -232,7 +232,7 @@ class WaveFunction : public mf::MultiFunction {
 static void sh_node_wave_tex_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   const bNode &node = builder.node();
-  NodeTexWave *tex = (NodeTexWave *)node.storage;
+  NodeTexWave *tex = static_cast<NodeTexWave *>(node.storage);
   builder.construct_and_set_matching_fn<WaveFunction>(
       tex->wave_type, tex->bands_direction, tex->rings_direction, tex->wave_profile);
 }

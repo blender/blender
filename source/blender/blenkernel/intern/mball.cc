@@ -16,6 +16,7 @@
 #include <cstring>
 #include <optional>
 
+#include "DNA_ID.h"
 #include "MEM_guardedalloc.h"
 
 /* Allow using deprecated functionality for .blend file I/O. */
@@ -58,7 +59,7 @@ using blender::Span;
 
 static void metaball_init_data(ID *id)
 {
-  MetaBall *metaball = (MetaBall *)id;
+  MetaBall *metaball = blender::id_cast<MetaBall *>(id);
   INIT_DEFAULT_STRUCT_AFTER(metaball, id);
 }
 
@@ -68,8 +69,8 @@ static void metaball_copy_data(Main * /*bmain*/,
                                const ID *id_src,
                                const int /*flag*/)
 {
-  MetaBall *metaball_dst = (MetaBall *)id_dst;
-  const MetaBall *metaball_src = (const MetaBall *)id_src;
+  MetaBall *metaball_dst = blender::id_cast<MetaBall *>(id_dst);
+  const MetaBall *metaball_src = blender::id_cast<const MetaBall *>(id_src);
 
   BLI_duplicatelist(&metaball_dst->elems, &metaball_src->elems);
 
@@ -81,7 +82,7 @@ static void metaball_copy_data(Main * /*bmain*/,
 
 static void metaball_free_data(ID *id)
 {
-  MetaBall *metaball = (MetaBall *)id;
+  MetaBall *metaball = blender::id_cast<MetaBall *>(id);
 
   MEM_SAFE_FREE(metaball->mat);
 
@@ -98,7 +99,7 @@ static void metaball_foreach_id(ID *id, LibraryForeachIDData *data)
 
 static void metaball_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  MetaBall *mb = (MetaBall *)id;
+  MetaBall *mb = blender::id_cast<MetaBall *>(id);
 
   /* Clean up, important in undo case to reduce false detection of changed datablocks. */
   mb->editelems = nullptr;
@@ -120,9 +121,9 @@ static void metaball_blend_write(BlendWriter *writer, ID *id, const void *id_add
 
 static void metaball_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  MetaBall *mb = (MetaBall *)id;
+  MetaBall *mb = blender::id_cast<MetaBall *>(id);
 
-  BLO_read_pointer_array(reader, mb->totcol, (void **)&mb->mat);
+  BLO_read_pointer_array(reader, mb->totcol, reinterpret_cast<void **>(&mb->mat));
 
   BLO_read_struct_list(reader, MetaElem, &(mb->elems));
 
@@ -306,7 +307,7 @@ bool BKE_mball_is_any_selected_multi(const Span<Base *> bases)
 {
   for (Base *base : bases) {
     Object *obedit = base->object;
-    MetaBall *mb = (MetaBall *)obedit->data;
+    MetaBall *mb = blender::id_cast<MetaBall *>(obedit->data);
     if (BKE_mball_is_any_selected(mb)) {
       return true;
     }
@@ -355,7 +356,7 @@ void BKE_mball_properties_copy(Main *bmain, MetaBall *metaball_src)
   for (Object *ob_src = static_cast<Object *>(bmain->objects.first);
        ob_src != nullptr && ID_IS_EDITABLE(ob_src);)
   {
-    if (ob_src->data != metaball_src) {
+    if (ob_src->data != blender::id_cast<const ID *>(metaball_src)) {
       ob_src = static_cast<Object *>(ob_src->id.next);
       continue;
     }
@@ -380,7 +381,8 @@ void BKE_mball_properties_copy(Main *bmain, MetaBall *metaball_src)
       if (ob_iter->id.name[2] != obactive_name[0]) {
         break;
       }
-      if (ob_iter->type != OB_MBALL || ob_iter->data == metaball_src) {
+      if (ob_iter->type != OB_MBALL || ob_iter->data == blender::id_cast<const ID *>(metaball_src))
+      {
         continue;
       }
       BLI_string_split_name_number(ob_iter->id.name + 2, '.', ob_name, &ob_nr);
@@ -388,7 +390,7 @@ void BKE_mball_properties_copy(Main *bmain, MetaBall *metaball_src)
         break;
       }
 
-      mball_data_properties_copy(static_cast<MetaBall *>(ob_iter->data), metaball_src);
+      mball_data_properties_copy(blender::id_cast<MetaBall *>(ob_iter->data), metaball_src);
     }
 
     for (ob_iter = static_cast<Object *>(ob_src->id.next); ob_iter != nullptr;
@@ -397,7 +399,8 @@ void BKE_mball_properties_copy(Main *bmain, MetaBall *metaball_src)
       if (ob_iter->id.name[2] != obactive_name[0] || !ID_IS_EDITABLE(ob_iter)) {
         break;
       }
-      if (ob_iter->type != OB_MBALL || ob_iter->data == metaball_src) {
+      if (ob_iter->type != OB_MBALL || ob_iter->data == blender::id_cast<const ID *>(metaball_src))
+      {
         continue;
       }
       BLI_string_split_name_number(ob_iter->id.name + 2, '.', ob_name, &ob_nr);
@@ -405,7 +408,7 @@ void BKE_mball_properties_copy(Main *bmain, MetaBall *metaball_src)
         break;
       }
 
-      mball_data_properties_copy(static_cast<MetaBall *>(ob_iter->data), metaball_src);
+      mball_data_properties_copy(blender::id_cast<MetaBall *>(ob_iter->data), metaball_src);
     }
 
     ob_src = ob_iter;
@@ -567,7 +570,7 @@ int BKE_mball_select_count_multi(const Span<Base *> bases)
   int sel = 0;
   for (Base *base : bases) {
     Object *obedit = base->object;
-    const MetaBall *mb = (MetaBall *)obedit->data;
+    const MetaBall *mb = blender::id_cast<MetaBall *>(obedit->data);
     sel += BKE_mball_select_count(mb);
   }
   return sel;
@@ -590,7 +593,7 @@ bool BKE_mball_select_all_multi_ex(const Span<Base *> bases)
   bool changed_multi = false;
   for (Base *base : bases) {
     Object *obedit = base->object;
-    MetaBall *mb = static_cast<MetaBall *>(obedit->data);
+    MetaBall *mb = blender::id_cast<MetaBall *>(obedit->data);
     changed_multi |= BKE_mball_select_all(mb);
   }
   return changed_multi;
@@ -613,7 +616,7 @@ bool BKE_mball_deselect_all_multi_ex(const Span<Base *> bases)
   bool changed_multi = false;
   for (Base *base : bases) {
     Object *obedit = base->object;
-    MetaBall *mb = static_cast<MetaBall *>(obedit->data);
+    MetaBall *mb = blender::id_cast<MetaBall *>(obedit->data);
     changed_multi |= BKE_mball_deselect_all(mb);
     DEG_id_tag_update(&mb->id, ID_RECALC_SELECT);
   }
@@ -635,7 +638,7 @@ bool BKE_mball_select_swap_multi_ex(const Span<Base *> bases)
   bool changed_multi = false;
   for (Base *base : bases) {
     Object *obedit = base->object;
-    MetaBall *mb = (MetaBall *)obedit->data;
+    MetaBall *mb = blender::id_cast<MetaBall *>(obedit->data);
     changed_multi |= BKE_mball_select_swap(mb);
   }
   return changed_multi;
@@ -661,7 +664,7 @@ void BKE_mball_data_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
     return;
   }
 
-  const MetaBall *mball = static_cast<MetaBall *>(ob->data);
+  const MetaBall *mball = blender::id_cast<MetaBall *>(ob->data);
   mesh->mat = static_cast<Material **>(MEM_dupallocN(mball->mat));
   mesh->totcol = mball->totcol;
 

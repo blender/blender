@@ -140,7 +140,7 @@ static void shortcut_free_operator_property(IDProperty *prop)
 
 static void but_shortcut_name_func(bContext *C, void *arg1, int /*event*/)
 {
-  Button *but = (Button *)arg1;
+  Button *but = static_cast<Button *>(arg1);
 
   IDProperty *prop;
   const char *idname = shortcut_get_operator_property(C, but, &prop);
@@ -165,7 +165,7 @@ static void but_shortcut_name_func(bContext *C, void *arg1, int /*event*/)
 static Block *menu_change_shortcut(bContext *C, ARegion *region, void *arg)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  Button *but = (Button *)arg;
+  Button *but = static_cast<Button *>(arg);
   const uiStyle *style = style_get_dpi();
   IDProperty *prop;
   const char *idname = shortcut_get_operator_property(C, but, &prop);
@@ -217,7 +217,7 @@ static int g_kmi_id_hack;
 static Block *menu_add_shortcut(bContext *C, ARegion *region, void *arg)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  Button *but = (Button *)arg;
+  Button *but = static_cast<Button *>(arg);
   const uiStyle *style = style_get_dpi();
   IDProperty *prop;
   const char *idname = shortcut_get_operator_property(C, but, &prop);
@@ -274,7 +274,7 @@ static Block *menu_add_shortcut(bContext *C, ARegion *region, void *arg)
 
 static void menu_add_shortcut_cancel(bContext *C, void *arg1)
 {
-  Button *but = (Button *)arg1;
+  Button *but = static_cast<Button *>(arg1);
 
   IDProperty *prop;
   const char *idname = shortcut_get_operator_property(C, but, &prop);
@@ -343,8 +343,8 @@ static bUserMenuItem *ui_but_user_menu_find(bContext *C, Button *but, bUserMenu 
 {
   if (but->optype) {
     IDProperty *prop = (but->opptr) ? static_cast<IDProperty *>(but->opptr->data) : nullptr;
-    return (bUserMenuItem *)ED_screen_user_menu_item_find_operator(
-        &um->items, but->optype, prop, "", but->opcontext);
+    return reinterpret_cast<bUserMenuItem *>(
+        ED_screen_user_menu_item_find_operator(&um->items, but->optype, prop, "", but->opcontext));
   }
   if (but->rnaprop) {
     std::optional<std::string> member_id_data_path = WM_context_path_resolve_full(C,
@@ -361,21 +361,21 @@ static bUserMenuItem *ui_but_user_menu_find(bContext *C, Button *but, bUserMenu 
     const std::string prop_id = RNA_property_is_idprop(but->rnaprop) ?
                                     RNA_path_property_py(&but->rnapoin, but->rnaprop, -1) :
                                     RNA_property_identifier(but->rnaprop);
-    bUserMenuItem *umi = (bUserMenuItem *)ED_screen_user_menu_item_find_prop(
-        &um->items, member_id_data_path->c_str(), prop_id.c_str(), but->rnaindex);
+    bUserMenuItem *umi = reinterpret_cast<bUserMenuItem *>(ED_screen_user_menu_item_find_prop(
+        &um->items, member_id_data_path->c_str(), prop_id.c_str(), but->rnaindex));
     return umi;
   }
 
   wmOperatorType *ot = nullptr;
   PropertyRNA *prop_enum = nullptr;
   if ((ot = button_operatortype_get_from_enum_menu(but, &prop_enum))) {
-    return (bUserMenuItem *)ED_screen_user_menu_item_find_operator(
-        &um->items, ot, nullptr, RNA_property_identifier(prop_enum), but->opcontext);
+    return reinterpret_cast<bUserMenuItem *>(ED_screen_user_menu_item_find_operator(
+        &um->items, ot, nullptr, RNA_property_identifier(prop_enum), but->opcontext));
   }
 
   MenuType *mt = button_menutype_get(but);
   if (mt != nullptr) {
-    return (bUserMenuItem *)ED_screen_user_menu_item_find_menu(&um->items, mt);
+    return reinterpret_cast<bUserMenuItem *>(ED_screen_user_menu_item_find_menu(&um->items, mt));
   }
   return nullptr;
 }
@@ -540,7 +540,7 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
     /* Suppress editing commands. */
   }
   else if (but->type == ButtonType::Tab) {
-    ButtonTab *tab = (ButtonTab *)but;
+    ButtonTab *tab = static_cast<ButtonTab *>(but);
     if (tab->menu) {
       menutype_draw(C, tab->menu, &layout);
       layout.separator();
@@ -1027,7 +1027,8 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
     const PropertyType prop_type = RNA_property_type(but->rnaprop);
     if (((prop_type == PROP_POINTER) ||
          (prop_type == PROP_STRING && but->type == ButtonType::SearchMenu &&
-          ((ButtonSearch *)but)->items_update_fn == rna_collection_search_update_fn)) &&
+          (static_cast<ButtonSearch *>(but))->items_update_fn ==
+              rna_collection_search_update_fn)) &&
         jump_to_target_button_poll(C))
     {
       layout.op("UI_OT_jump_to_target_button",

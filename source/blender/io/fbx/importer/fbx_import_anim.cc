@@ -446,8 +446,8 @@ static void create_material_curves(const ElementAnimations &anim,
   const char *rna_path_2 = "nodes[\"Principled BSDF\"].inputs[0].default_value";
 
   /* Also create animation curves for the node tree diffuse color input. */
-  Material *target_mat = (Material *)anim.target_id;
-  ID *target_ntree = (ID *)target_mat->nodetree;
+  Material *target_mat = blender::id_cast<Material *>(anim.target_id);
+  ID *target_ntree = reinterpret_cast<ID *>(target_mat->nodetree);
   animrig::Action &act = action->wrap();
   const animrig::Slot *slot = animrig::assign_action_ensure_slot_for_keying(act, *target_ntree);
   BLI_assert(slot != nullptr);

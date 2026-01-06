@@ -52,7 +52,7 @@
 
 static void init_data(ModifierData *md)
 {
-  SubsurfModifierData *smd = (SubsurfModifierData *)md;
+  SubsurfModifierData *smd = reinterpret_cast<SubsurfModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(smd, modifier);
 }
 
@@ -61,7 +61,7 @@ static void free_runtime_data(void *runtime_data_v)
   if (runtime_data_v == nullptr) {
     return;
   }
-  SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)runtime_data_v;
+  SubsurfRuntimeData *runtime_data = static_cast<SubsurfRuntimeData *>(runtime_data_v);
   if (runtime_data->subdiv_cpu != nullptr) {
     blender::bke::subdiv::free(runtime_data->subdiv_cpu);
   }
@@ -73,14 +73,14 @@ static void free_runtime_data(void *runtime_data_v)
 
 static void free_data(ModifierData *md)
 {
-  SubsurfModifierData *smd = (SubsurfModifierData *)md;
+  SubsurfModifierData *smd = reinterpret_cast<SubsurfModifierData *>(md);
 
   free_runtime_data(smd->modifier.runtime);
 }
 
 static bool is_disabled(const Scene *scene, ModifierData *md, bool use_render_params)
 {
-  SubsurfModifierData *smd = (SubsurfModifierData *)md;
+  SubsurfModifierData *smd = reinterpret_cast<SubsurfModifierData *>(md);
   int levels = (use_render_params) ? smd->renderLevels : smd->levels;
 
   return get_render_subsurf_level(&scene->r, levels, use_render_params != 0) == 0;
@@ -195,12 +195,12 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   BKE_modifier_set_error(ctx->object, md, "Disabled, built without OpenSubdiv");
   return result;
 #endif
-  SubsurfModifierData *smd = (SubsurfModifierData *)md;
+  SubsurfModifierData *smd = reinterpret_cast<SubsurfModifierData *>(md);
   if (!BKE_subsurf_modifier_runtime_init(smd, (ctx->flag & MOD_APPLY_RENDER) != 0)) {
     return result;
   }
 
-  SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)smd->modifier.runtime;
+  SubsurfRuntimeData *runtime_data = static_cast<SubsurfRuntimeData *>(smd->modifier.runtime);
 
   /* Decrement the recent usage counters. */
   if (runtime_data->used_cpu) {
@@ -225,7 +225,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
     /* Check if we are the last modifier in the stack. */
     ModifierData *md = modifier_get_last_enabled_for_mode(scene, ctx->object, required_mode);
-    if (md == (const ModifierData *)smd) {
+    if (md == reinterpret_cast<const ModifierData *>(smd)) {
       const bool has_gpu_subdiv = BKE_subsurf_modifier_can_do_gpu_subdiv(smd, mesh);
       subdiv_cache_mesh_wrapper_settings(ctx, mesh, smd, runtime_data, has_gpu_subdiv);
 
@@ -295,11 +295,11 @@ static void deform_matrices(ModifierData *md,
 
   /* Subsurf does not require extra space mapping, keep matrices as is. */
 
-  SubsurfModifierData *smd = (SubsurfModifierData *)md;
+  SubsurfModifierData *smd = reinterpret_cast<SubsurfModifierData *>(md);
   if (!BKE_subsurf_modifier_runtime_init(smd, (ctx->flag & MOD_APPLY_RENDER) != 0)) {
     return;
   }
-  SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)smd->modifier.runtime;
+  SubsurfRuntimeData *runtime_data = static_cast<SubsurfRuntimeData *>(smd->modifier.runtime);
   blender::bke::subdiv::Subdiv *subdiv = BKE_subsurf_modifier_subdiv_descriptor_ensure(
       runtime_data, mesh, false);
   if (subdiv == nullptr) {
@@ -353,7 +353,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   SubsurfModifierData *smd = static_cast<SubsurfModifierData *>(ptr->data);
   Object *ob = static_cast<Object *>(ob_ptr.data);
   if (ob->type == OB_MESH && BKE_subsurf_modifier_force_disable_gpu_evaluation_for_mesh(
-                                 smd, static_cast<const Mesh *>(ob->data)))
+                                 smd, blender::id_cast<const Mesh *>(ob->data)))
   {
     layout.label(RPT_("Sharp edges or custom normals detected, disabling GPU subdivision"),
                  ICON_INFO);
@@ -361,7 +361,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   else if (Object *ob_eval = DEG_get_evaluated(depsgraph, ob)) {
     if (ModifierData *md_eval = BKE_modifiers_findby_name(ob_eval, smd->modifier.name)) {
       if (md_eval->type == eModifierType_Subsurf) {
-        SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)md_eval->runtime;
+        SubsurfRuntimeData *runtime_data = static_cast<SubsurfRuntimeData *>(md_eval->runtime);
 
         if (runtime_data && runtime_data->used_gpu) {
           if (runtime_data->used_cpu) {

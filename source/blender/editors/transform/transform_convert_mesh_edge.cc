@@ -117,7 +117,7 @@ static void createTransEdge(bContext * /*C*/, TransInfo *t)
 static void recalcData_mesh_edge(TransInfo *t)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    DEG_id_tag_update(static_cast<ID *>(tc->obedit->data), ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(tc->obedit->data, ID_RECALC_GEOMETRY);
   }
 }
 

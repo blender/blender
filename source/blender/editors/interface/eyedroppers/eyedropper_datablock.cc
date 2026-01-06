@@ -167,11 +167,11 @@ static void datadropper_id_sample_pt(
           Object *ob = base->object;
           ID *id = nullptr;
           if (ddr->idcode == ID_OB) {
-            id = (ID *)ob;
+            id = blender::id_cast<ID *>(ob);
           }
           else if (ob->data) {
             if (GS(((ID *)ob->data)->name) == ddr->idcode) {
-              id = (ID *)ob->data;
+              id = static_cast<ID *>(ob->data);
             }
             else {
               SNPRINTF_UTF8(ddr->name, "Incompatible, expected a %s", ddr->idcode_name);
@@ -257,7 +257,7 @@ static void datadropper_set_draw_callback_region(ScrArea *area, DataDropper *ddr
 /* main modal status check */
 static wmOperatorStatus datadropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  DataDropper *ddr = (DataDropper *)op->customdata;
+  DataDropper *ddr = static_cast<DataDropper *>(op->customdata);
 
   /* handle modal keymap */
   if (event->type == EVT_MODAL_MAP) {

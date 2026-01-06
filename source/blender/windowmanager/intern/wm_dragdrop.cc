@@ -466,7 +466,7 @@ static wmDropBox *dropbox_active(bContext *C,
 {
   for (wmEventHandler &handler_base : *handlers) {
     if (handler_base.type == WM_HANDLER_TYPE_DROPBOX) {
-      wmEventHandler_Dropbox *handler = (wmEventHandler_Dropbox *)&handler_base;
+      wmEventHandler_Dropbox *handler = reinterpret_cast<wmEventHandler_Dropbox *>(&handler_base);
       if (handler->dropboxes) {
         for (wmDropBox &drop : *handler->dropboxes) {
           if (drag->drop_state.ui_context) {

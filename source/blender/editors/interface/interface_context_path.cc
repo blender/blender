@@ -39,7 +39,7 @@ void context_path_add_generic(Vector<ContextPathItem> &path,
                                                       icon_override;
 
   if (&rna_type == &RNA_NodeTree) {
-    ID *id = (ID *)ptr;
+    ID *id = static_cast<ID *>(ptr);
     path.append({name, icon, ID_REAL_USERS(id), handle_func});
   }
   else {

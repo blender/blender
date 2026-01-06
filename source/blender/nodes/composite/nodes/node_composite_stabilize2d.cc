@@ -69,10 +69,10 @@ static void cmp_node_stabilize2d_declare(NodeDeclarationBuilder &b)
 
 static void init(const bContext *C, PointerRNA *ptr)
 {
-  bNode *node = (bNode *)ptr->data;
+  bNode *node = static_cast<bNode *>(ptr->data);
   Scene *scene = CTX_data_scene(C);
 
-  node->id = (ID *)scene->clip;
+  node->id = blender::id_cast<ID *>(scene->clip);
   id_us_plus(node->id);
 }
 

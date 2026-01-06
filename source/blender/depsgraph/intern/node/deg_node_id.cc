@@ -40,7 +40,7 @@ void IDNode::init(const ID *id, const char * /*subdata*/)
   BLI_assert(id != nullptr);
   /* Store ID-pointer. */
   id_type = GS(id->name);
-  id_orig = (ID *)id;
+  id_orig = const_cast<ID *>(id);
   id_orig_session_uid = id->session_uid;
   eval_flags = 0;
   previous_eval_flags = 0;
@@ -142,7 +142,7 @@ ComponentNode *IDNode::add_component(NodeType type, const StringRef name)
   if (!comp_node) {
     DepsNodeFactory *factory = type_get_factory(type);
     BLI_assert(factory);
-    comp_node = (ComponentNode *)factory->create_node(this->id_orig, "", name);
+    comp_node = static_cast<ComponentNode *>(factory->create_node(this->id_orig, "", name));
 
     /* Register. */
     ComponentIDKey key(type, comp_node->name);

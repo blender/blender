@@ -254,7 +254,7 @@ TreeElement *AbstractTreeDisplay::add_element(ListBaseT<TreeElement> *lb,
   ID *persistent_dataptr = owner_id ? owner_id : static_cast<ID *>(create_data);
 
   if ((owner_id == nullptr) && ELEM(type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
-    persistent_dataptr = static_cast<ID *>(((PointerRNA *)create_data)->data);
+    persistent_dataptr = static_cast<ID *>((static_cast<PointerRNA *>(create_data))->data);
   }
 
   /* exceptions */
@@ -880,8 +880,8 @@ static bool outliner_element_visible_get(const Scene *scene,
       return false;
     }
 
-    Object *ob = (Object *)tselem->id;
-    Base *base = (Base *)te->directdata;
+    Object *ob = blender::id_cast<Object *>(tselem->id);
+    Base *base = static_cast<Base *>(te->directdata);
     BLI_assert((base == nullptr) || (base->object == ob));
 
     if (exclude_filter & SO_FILTER_OB_TYPE) {

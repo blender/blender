@@ -799,13 +799,13 @@ using blender::nodes::FileOutputItemsAccessor;
 
 static int rna_ToolSettings_snap_mode_get(PointerRNA *ptr)
 {
-  ToolSettings *ts = (ToolSettings *)(ptr->data);
+  ToolSettings *ts = static_cast<ToolSettings *>(ptr->data);
   return ts->snap_mode;
 }
 
 static void rna_ToolSettings_snap_mode_set(PointerRNA *ptr, int value)
 {
-  ToolSettings *ts = (ToolSettings *)ptr->data;
+  ToolSettings *ts = static_cast<ToolSettings *>(ptr->data);
   if (value != 0) {
     ts->snap_mode = value;
   }
@@ -821,7 +821,7 @@ static void rna_ToolSettings_snap_uv_mode_set(PointerRNA *ptr, int value)
 
 static void rna_Gpencil_mask_point_update(bContext *C, PointerRNA *ptr)
 {
-  ToolSettings *ts = (ToolSettings *)ptr->data;
+  ToolSettings *ts = static_cast<ToolSettings *>(ptr->data);
 
   ts->gpencil_selectmode_sculpt &= ~GP_SCULPT_MASK_SELECTMODE_STROKE;
   ts->gpencil_selectmode_sculpt &= ~GP_SCULPT_MASK_SELECTMODE_SEGMENT;
@@ -834,7 +834,7 @@ static void rna_Gpencil_mask_point_update(bContext *C, PointerRNA *ptr)
 
 static void rna_Gpencil_mask_stroke_update(bContext *C, PointerRNA *ptr)
 {
-  ToolSettings *ts = (ToolSettings *)ptr->data;
+  ToolSettings *ts = static_cast<ToolSettings *>(ptr->data);
 
   ts->gpencil_selectmode_sculpt &= ~GP_SCULPT_MASK_SELECTMODE_POINT;
   ts->gpencil_selectmode_sculpt &= ~GP_SCULPT_MASK_SELECTMODE_SEGMENT;
@@ -847,7 +847,7 @@ static void rna_Gpencil_mask_stroke_update(bContext *C, PointerRNA *ptr)
 
 static void rna_Gpencil_mask_segment_update(bContext *C, PointerRNA *ptr)
 {
-  ToolSettings *ts = (ToolSettings *)ptr->data;
+  ToolSettings *ts = static_cast<ToolSettings *>(ptr->data);
 
   ts->gpencil_selectmode_sculpt &= ~GP_SCULPT_MASK_SELECTMODE_POINT;
   ts->gpencil_selectmode_sculpt &= ~GP_SCULPT_MASK_SELECTMODE_STROKE;
@@ -860,7 +860,7 @@ static void rna_Gpencil_mask_segment_update(bContext *C, PointerRNA *ptr)
 
 static void rna_Gpencil_vertex_mask_point_update(bContext *C, PointerRNA *ptr)
 {
-  ToolSettings *ts = (ToolSettings *)ptr->data;
+  ToolSettings *ts = static_cast<ToolSettings *>(ptr->data);
 
   ts->gpencil_selectmode_vertex &= ~GP_VERTEX_MASK_SELECTMODE_STROKE;
   ts->gpencil_selectmode_vertex &= ~GP_VERTEX_MASK_SELECTMODE_SEGMENT;
@@ -873,7 +873,7 @@ static void rna_Gpencil_vertex_mask_point_update(bContext *C, PointerRNA *ptr)
 
 static void rna_Gpencil_vertex_mask_stroke_update(bContext *C, PointerRNA *ptr)
 {
-  ToolSettings *ts = (ToolSettings *)ptr->data;
+  ToolSettings *ts = static_cast<ToolSettings *>(ptr->data);
 
   ts->gpencil_selectmode_vertex &= ~GP_VERTEX_MASK_SELECTMODE_POINT;
   ts->gpencil_selectmode_vertex &= ~GP_VERTEX_MASK_SELECTMODE_SEGMENT;
@@ -886,7 +886,7 @@ static void rna_Gpencil_vertex_mask_stroke_update(bContext *C, PointerRNA *ptr)
 
 static void rna_Gpencil_vertex_mask_segment_update(bContext *C, PointerRNA *ptr)
 {
-  ToolSettings *ts = (ToolSettings *)ptr->data;
+  ToolSettings *ts = static_cast<ToolSettings *>(ptr->data);
 
   ts->gpencil_selectmode_vertex &= ~GP_VERTEX_MASK_SELECTMODE_POINT;
   ts->gpencil_selectmode_vertex &= ~GP_VERTEX_MASK_SELECTMODE_STROKE;
@@ -911,18 +911,18 @@ static void rna_all_grease_pencil_update(bContext *C, PointerRNA * /*ptr*/)
 
 static void rna_Scene_objects_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->data;
+  Scene *scene = static_cast<Scene *>(ptr->data);
   iter->internal.custom = MEM_callocN<BLI_Iterator>(__func__);
 
   BKE_scene_objects_iterator_begin(static_cast<BLI_Iterator *>(iter->internal.custom),
-                                   (void *)scene);
-  iter->valid = ((BLI_Iterator *)iter->internal.custom)->valid;
+                                   static_cast<void *>(scene));
+  iter->valid = (static_cast<BLI_Iterator *>(iter->internal.custom))->valid;
 }
 
 static void rna_Scene_objects_next(CollectionPropertyIterator *iter)
 {
   BKE_scene_objects_iterator_next(static_cast<BLI_Iterator *>(iter->internal.custom));
-  iter->valid = ((BLI_Iterator *)iter->internal.custom)->valid;
+  iter->valid = (static_cast<BLI_Iterator *>(iter->internal.custom))->valid;
 }
 
 static void rna_Scene_objects_end(CollectionPropertyIterator *iter)
@@ -933,7 +933,8 @@ static void rna_Scene_objects_end(CollectionPropertyIterator *iter)
 
 static PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)
 {
-  Object *ob = static_cast<Object *>(((BLI_Iterator *)iter->internal.custom)->current);
+  Object *ob = static_cast<Object *>(
+      (static_cast<BLI_Iterator *>(iter->internal.custom))->current);
   return RNA_id_pointer_create(reinterpret_cast<ID *>(ob));
 }
 
@@ -941,8 +942,8 @@ static PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)
 
 static void rna_Scene_set_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
 {
-  Scene *scene = (Scene *)ptr->data;
-  Scene *set = (Scene *)value.data;
+  Scene *scene = static_cast<Scene *>(ptr->data);
+  Scene *set = static_cast<Scene *>(value.data);
   Scene *nested_set;
 
   for (nested_set = set; nested_set; nested_set = nested_set->set) {
@@ -955,13 +956,13 @@ static void rna_Scene_set_set(PointerRNA *ptr, PointerRNA value, ReportList * /*
     }
   }
 
-  id_lib_extern((ID *)set);
+  id_lib_extern(blender::id_cast<ID *>(set));
   scene->set = set;
 }
 
 void rna_Scene_set_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
 
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update_ex(bmain, &scene->id, ID_RECALC_BASE_FLAGS);
@@ -976,7 +977,7 @@ void rna_Scene_set_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 static void rna_Scene_camera_update(Main *bmain, Scene * /*scene_unused*/, PointerRNA *ptr)
 {
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
-  Scene *scene = (Scene *)ptr->data;
+  Scene *scene = static_cast<Scene *>(ptr->data);
 
   WM_windows_scene_data_sync(&wm->windows, scene);
   DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
@@ -985,7 +986,7 @@ static void rna_Scene_camera_update(Main *bmain, Scene * /*scene_unused*/, Point
 
 static void rna_Scene_fps_update(Main *bmain, Scene * /*active_scene*/, PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
   DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_FPS | ID_RECALC_SEQUENCER_STRIPS);
   /* NOTE: Tag via dependency graph will take care of all the updates ion the evaluated domain,
    * however, changes in FPS actually modifies an original skip length,
@@ -1002,7 +1003,7 @@ static void rna_Scene_listener_update(Main * /*bmain*/, Scene * /*scene*/, Point
 
 static void rna_Scene_volume_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
   DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_VOLUME | ID_RECALC_SEQUENCER_STRIPS);
 }
 
@@ -1025,13 +1026,13 @@ static const char *rna_Scene_statistics_string_get(Scene *scene,
 
 static void rna_Scene_framelen_update(Main * /*bmain*/, Scene * /*active_scene*/, PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
   scene->r.framelen = float(scene->r.framapto) / float(scene->r.images);
 }
 
 static void rna_Scene_frame_current_set(PointerRNA *ptr, int value)
 {
-  Scene *data = (Scene *)ptr->data;
+  Scene *data = static_cast<Scene *>(ptr->data);
 
   /* if negative frames aren't allowed, then we can't use them */
   FRAMENUMBER_MIN_CLAMP(value);
@@ -1040,13 +1041,13 @@ static void rna_Scene_frame_current_set(PointerRNA *ptr, int value)
 
 static float rna_Scene_frame_float_get(PointerRNA *ptr)
 {
-  Scene *data = (Scene *)ptr->data;
+  Scene *data = static_cast<Scene *>(ptr->data);
   return float(data->r.cfra) + data->r.subframe;
 }
 
 static void rna_Scene_frame_float_set(PointerRNA *ptr, float value)
 {
-  Scene *data = (Scene *)ptr->data;
+  Scene *data = static_cast<Scene *>(ptr->data);
   /* if negative frames aren't allowed, then we can't use them */
   FRAMENUMBER_MIN_CLAMP(value);
   data->r.cfra = int(value);
@@ -1055,14 +1056,14 @@ static void rna_Scene_frame_float_set(PointerRNA *ptr, float value)
 
 static float rna_Scene_frame_current_final_get(PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->data;
+  Scene *scene = static_cast<Scene *>(ptr->data);
 
   return BKE_scene_frame_to_ctime(scene, float(scene->r.cfra));
 }
 
 static void rna_Scene_start_frame_set(PointerRNA *ptr, int value)
 {
-  Scene *data = (Scene *)ptr->data;
+  Scene *data = static_cast<Scene *>(ptr->data);
   /* MINFRAME not MINAFRAME, since some output formats can't taken negative frames */
   CLAMP(value, MINFRAME, MAXFRAME);
   data->r.sfra = value;
@@ -1074,7 +1075,7 @@ static void rna_Scene_start_frame_set(PointerRNA *ptr, int value)
 
 static void rna_Scene_end_frame_set(PointerRNA *ptr, int value)
 {
-  Scene *data = (Scene *)ptr->data;
+  Scene *data = static_cast<Scene *>(ptr->data);
   CLAMP(value, MINFRAME, MAXFRAME);
   data->r.efra = value;
 
@@ -1085,7 +1086,7 @@ static void rna_Scene_end_frame_set(PointerRNA *ptr, int value)
 
 static void rna_Scene_use_preview_range_set(PointerRNA *ptr, bool value)
 {
-  Scene *data = (Scene *)ptr->data;
+  Scene *data = static_cast<Scene *>(ptr->data);
 
   if (value) {
     /* copy range from scene if not set before */
@@ -1103,7 +1104,7 @@ static void rna_Scene_use_preview_range_set(PointerRNA *ptr, bool value)
 
 static void rna_Scene_preview_range_start_frame_set(PointerRNA *ptr, int value)
 {
-  Scene *data = (Scene *)ptr->data;
+  Scene *data = static_cast<Scene *>(ptr->data);
 
   /* check if enabled already */
   if ((data->r.flag & SCER_PRV_RANGE) == 0) {
@@ -1121,7 +1122,7 @@ static void rna_Scene_preview_range_start_frame_set(PointerRNA *ptr, int value)
 
 static void rna_Scene_preview_range_end_frame_set(PointerRNA *ptr, int value)
 {
-  Scene *data = (Scene *)ptr->data;
+  Scene *data = static_cast<Scene *>(ptr->data);
 
   /* check if enabled already */
   if ((data->r.flag & SCER_PRV_RANGE) == 0) {
@@ -1141,13 +1142,13 @@ static void rna_Scene_show_subframe_update(Main * /*bmain*/,
                                            Scene * /*current_scene*/,
                                            PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
   scene->r.subframe = 0.0f;
 }
 
 static void rna_Scene_frame_update_context(bContext *C, PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
   blender::ed::vse::sync_active_scene_and_time_with_scene_strip(*C);
   DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
   WM_main_add_notifier(NC_SCENE | ND_FRAME, scene);
@@ -1155,14 +1156,14 @@ static void rna_Scene_frame_update_context(bContext *C, PointerRNA *ptr)
 
 static void rna_Scene_frame_update(Main * /*bmain*/, Scene * /*current_scene*/, PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
   DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
   WM_main_add_notifier(NC_SCENE | ND_FRAME, scene);
 }
 
 static PointerRNA rna_Scene_active_keying_set_get(PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->data;
+  Scene *scene = static_cast<Scene *>(ptr->data);
   return RNA_pointer_create_with_parent(
       *ptr, &RNA_KeyingSet, blender::animrig::scene_get_active_keyingset(scene));
 }
@@ -1171,8 +1172,8 @@ static void rna_Scene_active_keying_set_set(PointerRNA *ptr,
                                             PointerRNA value,
                                             ReportList * /*reports*/)
 {
-  Scene *scene = (Scene *)ptr->data;
-  KeyingSet *ks = (KeyingSet *)value.data;
+  Scene *scene = static_cast<Scene *>(ptr->data);
+  KeyingSet *ks = static_cast<KeyingSet *>(value.data);
 
   scene->active_keyingset = ANIM_scene_get_keyingset_index(scene, ks);
 }
@@ -1183,7 +1184,7 @@ static void rna_Scene_active_keying_set_set(PointerRNA *ptr,
  */
 static int rna_Scene_active_keying_set_index_get(PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->data;
+  Scene *scene = static_cast<Scene *>(ptr->data);
   return scene->active_keyingset - 1;
 }
 
@@ -1192,7 +1193,7 @@ static int rna_Scene_active_keying_set_index_get(PointerRNA *ptr)
  */
 static void rna_Scene_active_keying_set_index_set(PointerRNA *ptr, int value)
 {
-  Scene *scene = (Scene *)ptr->data;
+  Scene *scene = static_cast<Scene *>(ptr->data);
   scene->active_keyingset = value + 1;
 }
 
@@ -1202,7 +1203,7 @@ extern ListBaseT<KeyingSet> builtin_keyingsets;
 
 static void rna_Scene_all_keyingsets_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->data;
+  Scene *scene = static_cast<Scene *>(ptr->data);
 
   /* start going over the scene KeyingSets first, while we still have pointer to it
    * but only if we have any Keying Sets to use...
@@ -1218,15 +1219,15 @@ static void rna_Scene_all_keyingsets_begin(CollectionPropertyIterator *iter, Poi
 static void rna_Scene_all_keyingsets_next(CollectionPropertyIterator *iter)
 {
   ListBaseIterator *internal = &iter->internal.listbase;
-  KeyingSet *ks = (KeyingSet *)internal->link;
+  KeyingSet *ks = reinterpret_cast<KeyingSet *>(internal->link);
 
   /* If we've run out of links in Scene list,
    * jump over to the builtins list unless we're there already. */
   if ((ks->next == nullptr) && (ks != builtin_keyingsets.last)) {
-    internal->link = (Link *)builtin_keyingsets.first;
+    internal->link = static_cast<Link *>(builtin_keyingsets.first);
   }
   else {
-    internal->link = (Link *)ks->next;
+    internal->link = reinterpret_cast<Link *>(ks->next);
   }
 
   iter->valid = (internal->link != nullptr);
@@ -1279,7 +1280,7 @@ static std::optional<std::string> rna_SceneHydra_path(const PointerRNA * /*ptr*/
 static bool rna_RenderSettings_stereoViews_skip(CollectionPropertyIterator *iter, void * /*data*/)
 {
   ListBaseIterator *internal = &iter->internal.listbase;
-  SceneRenderView *srv = (SceneRenderView *)internal->link;
+  SceneRenderView *srv = reinterpret_cast<SceneRenderView *>(internal->link);
 
   if (STR_ELEM(srv->name, STEREO_LEFT_NAME, STEREO_RIGHT_NAME)) {
     return false;
@@ -1290,7 +1291,7 @@ static bool rna_RenderSettings_stereoViews_skip(CollectionPropertyIterator *iter
 
 static void rna_RenderSettings_stereoViews_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  RenderData *rd = (RenderData *)ptr->data;
+  RenderData *rd = static_cast<RenderData *>(ptr->data);
   rna_iterator_listbase_begin(iter, ptr, &rd->views, rna_RenderSettings_stereoViews_skip);
 }
 
@@ -1311,7 +1312,7 @@ static std::optional<std::string> rna_ImageFormatSettings_path(
 
   switch (GS(id->name)) {
     case ID_SCE: {
-      Scene *scene = (Scene *)id;
+      Scene *scene = blender::id_cast<Scene *>(id);
 
       if (match(&scene->r.im_format)) {
         return "render.image_settings";
@@ -1322,7 +1323,7 @@ static std::optional<std::string> rna_ImageFormatSettings_path(
       return std::nullopt;
     }
     case ID_NT: {
-      bNodeTree *ntree = (bNodeTree *)id;
+      bNodeTree *ntree = blender::id_cast<bNodeTree *>(id);
 
       for (bNode *node : ntree->all_nodes()) {
         if (node->type_legacy == CMP_NODE_OUTPUT_FILE) {
@@ -1406,13 +1407,13 @@ std::optional<std::string> rna_ColorManagedInputColorspaceSettings_path(const Po
 
 static int rna_RenderSettings_threads_get(PointerRNA *ptr)
 {
-  RenderData *rd = (RenderData *)ptr->data;
+  RenderData *rd = static_cast<RenderData *>(ptr->data);
   return BKE_render_num_threads(rd);
 }
 
 static int rna_RenderSettings_threads_mode_get(PointerRNA *ptr)
 {
-  RenderData *rd = (RenderData *)ptr->data;
+  RenderData *rd = static_cast<RenderData *>(ptr->data);
   int override = BLI_system_num_threads_override_get();
 
   if (override > 0) {
@@ -1425,7 +1426,7 @@ static int rna_RenderSettings_threads_mode_get(PointerRNA *ptr)
 
 static bool rna_RenderSettings_is_movie_format_get(PointerRNA *ptr)
 {
-  RenderData *rd = (RenderData *)ptr->data;
+  RenderData *rd = static_cast<RenderData *>(ptr->data);
   return BKE_imtype_is_movie(rd->im_format.imtype);
 }
 
@@ -1455,7 +1456,7 @@ static void rna_ImageFormatSettings_media_type_set(PointerRNA *ptr, int value)
 
 static void rna_ImageFormatSettings_file_format_set(PointerRNA *ptr, int value)
 {
-  BKE_image_format_set((ImageFormatData *)ptr->data, ptr->owner_id, value);
+  BKE_image_format_set(static_cast<ImageFormatData *>(ptr->data), ptr->owner_id, value);
 }
 
 static const EnumPropertyItem *rna_ImageFormatSettings_file_format_itemf(bContext * /*C*/,
@@ -1481,7 +1482,7 @@ static const EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext
                                                                         PropertyRNA * /*prop*/,
                                                                         bool *r_free)
 {
-  ImageFormatData *imf = (ImageFormatData *)ptr->data;
+  ImageFormatData *imf = static_cast<ImageFormatData *>(ptr->data);
   ID *id = ptr->owner_id;
   const bool is_render = (id && GS(id->name) == ID_SCE);
 
@@ -1496,7 +1497,7 @@ static const EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext
    * the same MPEG format with QTRLE codec can easily handle alpha channel.
    * not sure how to deal with such cases in a nicer way (sergey) */
   if (is_render) {
-    Scene *scene = (Scene *)ptr->owner_id;
+    Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
     RenderData *rd = &scene->r;
 
     if (MOV_codec_supports_alpha(rd->ffcodecdata.codec_id_get(),
@@ -1535,7 +1536,7 @@ static const EnumPropertyItem *rna_ImageFormatSettings_color_depth_itemf(bContex
                                                                          PropertyRNA * /*prop*/,
                                                                          bool *r_free)
 {
-  ImageFormatData *imf = (ImageFormatData *)ptr->data;
+  ImageFormatData *imf = static_cast<ImageFormatData *>(ptr->data);
 
   if (imf == nullptr) {
     return rna_enum_image_color_depth_items;
@@ -1606,7 +1607,7 @@ static const EnumPropertyItem *rna_ImageFormatSettings_views_format_itemf(bConte
                                                                           PropertyRNA * /*prop*/,
                                                                           bool * /*r_free*/)
 {
-  ImageFormatData *imf = (ImageFormatData *)ptr->data;
+  ImageFormatData *imf = static_cast<ImageFormatData *>(ptr->data);
 
   if (imf == nullptr) {
     return rna_enum_views_format_items;
@@ -1657,13 +1658,13 @@ static const EnumPropertyItem *rna_ImageFormatSettings_exr_codec_itemf(bContext 
 
 static bool rna_ImageFormatSettings_has_linear_colorspace_get(PointerRNA *ptr)
 {
-  ImageFormatData *imf = (ImageFormatData *)ptr->data;
+  ImageFormatData *imf = static_cast<ImageFormatData *>(ptr->data);
   return BKE_imtype_requires_linear_float(imf->imtype);
 }
 
 static void rna_ImageFormatSettings_color_management_set(PointerRNA *ptr, int value)
 {
-  ImageFormatData *imf = (ImageFormatData *)ptr->data;
+  ImageFormatData *imf = static_cast<ImageFormatData *>(ptr->data);
 
   if (imf->color_management != value) {
     imf->color_management = value;
@@ -1676,7 +1677,8 @@ static void rna_ImageFormatSettings_color_management_set(PointerRNA *ptr, int va
         owner_id = BKE_id_owner_get(owner_id);
       }
       if (owner_id && GS(owner_id->name) == ID_SCE) {
-        BKE_image_format_color_management_copy_from_scene(imf, (Scene *)owner_id);
+        BKE_image_format_color_management_copy_from_scene(imf,
+                                                          blender::id_cast<Scene *>(owner_id));
       }
     }
   }
@@ -1684,7 +1686,7 @@ static void rna_ImageFormatSettings_color_management_set(PointerRNA *ptr, int va
 
 static int rna_SceneRender_file_ext_length(PointerRNA *ptr)
 {
-  const RenderData *rd = (RenderData *)ptr->data;
+  const RenderData *rd = static_cast<RenderData *>(ptr->data);
   const char *ext_array[BKE_IMAGE_PATH_EXT_MAX];
   int ext_num = BKE_image_path_ext_from_imformat(&rd->im_format, ext_array);
   return ext_num ? strlen(ext_array[0]) : 0;
@@ -1692,7 +1694,7 @@ static int rna_SceneRender_file_ext_length(PointerRNA *ptr)
 
 static void rna_SceneRender_file_ext_get(PointerRNA *ptr, char *value)
 {
-  const RenderData *rd = (RenderData *)ptr->data;
+  const RenderData *rd = static_cast<RenderData *>(ptr->data);
   const char *ext_array[BKE_IMAGE_PATH_EXT_MAX];
   int ext_num = BKE_image_path_ext_from_imformat(&rd->im_format, ext_array);
   strcpy(value, ext_num ? ext_array[0] : "");
@@ -1715,20 +1717,20 @@ static void rna_FFmpegSettings_lossless_output_set(PointerRNA *ptr, bool value)
 
 static int rna_RenderSettings_active_view_index_get(PointerRNA *ptr)
 {
-  RenderData *rd = (RenderData *)ptr->data;
+  RenderData *rd = static_cast<RenderData *>(ptr->data);
   return rd->actview;
 }
 
 static void rna_RenderSettings_active_view_index_set(PointerRNA *ptr, int value)
 {
-  RenderData *rd = (RenderData *)ptr->data;
+  RenderData *rd = static_cast<RenderData *>(ptr->data);
   rd->actview = value;
 }
 
 static void rna_RenderSettings_active_view_index_range(
     PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)
 {
-  RenderData *rd = (RenderData *)ptr->data;
+  RenderData *rd = static_cast<RenderData *>(ptr->data);
 
   *min = 0;
   *max = max_ii(0, BLI_listbase_count(&rd->views) - 1);
@@ -1736,7 +1738,7 @@ static void rna_RenderSettings_active_view_index_range(
 
 static PointerRNA rna_RenderSettings_active_view_get(PointerRNA *ptr)
 {
-  RenderData *rd = (RenderData *)ptr->data;
+  RenderData *rd = static_cast<RenderData *>(ptr->data);
   SceneRenderView *srv = static_cast<SceneRenderView *>(BLI_findlink(&rd->views, rd->actview));
 
   return RNA_pointer_create_with_parent(*ptr, &RNA_SceneRenderView, srv);
@@ -1746,8 +1748,8 @@ static void rna_RenderSettings_active_view_set(PointerRNA *ptr,
                                                PointerRNA value,
                                                ReportList * /*reports*/)
 {
-  RenderData *rd = (RenderData *)ptr->data;
-  SceneRenderView *srv = (SceneRenderView *)value.data;
+  RenderData *rd = static_cast<RenderData *>(ptr->data);
+  SceneRenderView *srv = static_cast<SceneRenderView *>(value.data);
   const int index = BLI_findindex(&rd->views, srv);
   if (index != -1) {
     rd->actview = index;
@@ -1756,7 +1758,7 @@ static void rna_RenderSettings_active_view_set(PointerRNA *ptr,
 
 static SceneRenderView *rna_RenderView_new(ID *id, RenderData * /*rd*/, const char *name)
 {
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
   SceneRenderView *srv = BKE_scene_add_render_view(scene, name);
 
   WM_main_add_notifier(NC_SCENE | ND_RENDER_OPTIONS, nullptr);
@@ -1768,7 +1770,7 @@ static void rna_RenderView_remove(
     ID *id, RenderData * /*rd*/, Main * /*bmain*/, ReportList *reports, PointerRNA *srv_ptr)
 {
   SceneRenderView *srv = static_cast<SceneRenderView *>(srv_ptr->data);
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
 
   if (!BKE_scene_remove_render_view(scene, srv)) {
     BKE_reportf(reports,
@@ -1786,7 +1788,7 @@ static void rna_RenderView_remove(
 
 static void rna_RenderSettings_views_format_set(PointerRNA *ptr, int value)
 {
-  RenderData *rd = (RenderData *)ptr->data;
+  RenderData *rd = static_cast<RenderData *>(ptr->data);
 
   if (rd->views_format == SCE_VIEWS_FORMAT_MULTIVIEW && value == SCE_VIEWS_FORMAT_STEREO_3D) {
     /* make sure the actview is visible */
@@ -1800,7 +1802,7 @@ static void rna_RenderSettings_views_format_set(PointerRNA *ptr, int value)
 
 static void rna_RenderSettings_engine_set(PointerRNA *ptr, int value)
 {
-  RenderData *rd = (RenderData *)ptr->data;
+  RenderData *rd = static_cast<RenderData *>(ptr->data);
   RenderEngineType *type = static_cast<RenderEngineType *>(BLI_findlink(&R_engines, value));
 
   if (type) {
@@ -1834,7 +1836,7 @@ static const EnumPropertyItem *rna_RenderSettings_engine_itemf(bContext * /*C*/,
 
 static int rna_RenderSettings_engine_get(PointerRNA *ptr)
 {
-  RenderData *rd = (RenderData *)ptr->data;
+  RenderData *rd = static_cast<RenderData *>(ptr->data);
   RenderEngineType *type;
   int a = 0;
 
@@ -1864,20 +1866,20 @@ static bool rna_RenderSettings_multiple_engines_get(PointerRNA * /*ptr*/)
 
 static bool rna_RenderSettings_use_spherical_stereo_get(PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
   return BKE_scene_use_spherical_stereo(scene);
 }
 
 void rna_Scene_render_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
 }
 
 static void rna_Scene_world_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  Scene *screen = (Scene *)ptr->owner_id;
+  Scene *screen = blender::id_cast<Scene *>(ptr->owner_id);
 
   rna_Scene_render_update(bmain, scene, ptr);
   WM_main_add_notifier(NC_WORLD | ND_WORLD, &screen->id);
@@ -1886,7 +1888,7 @@ static void rna_Scene_world_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_Scene_mesh_quality_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
 
   FOREACH_SCENE_OBJECT_BEGIN (scene, ob) {
     if (ELEM(ob->type, OB_MESH, OB_CURVES_LEGACY, OB_VOLUME, OB_MBALL)) {
@@ -1900,14 +1902,14 @@ static void rna_Scene_mesh_quality_update(Main *bmain, Scene * /*scene*/, Pointe
 
 void rna_Scene_freestyle_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
 }
 
 void rna_Scene_use_freestyle_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
 
@@ -1917,7 +1919,7 @@ void rna_Scene_use_freestyle_update(Main *bmain, Scene * /*scene*/, PointerRNA *
 
 void rna_Scene_compositor_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
 
   if (scene->compositing_node_group) {
     bNodeTree *ntree = reinterpret_cast<bNodeTree *>(scene->compositing_node_group);
@@ -1936,16 +1938,16 @@ void rna_Scene_use_view_map_cache_update(Main * /*bmain*/, Scene * /*scene*/, Po
 
 void rna_ViewLayer_name_set(PointerRNA *ptr, const char *value)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
-  ViewLayer *view_layer = (ViewLayer *)ptr->data;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
+  ViewLayer *view_layer = static_cast<ViewLayer *>(ptr->data);
   BLI_assert(BKE_id_is_in_global_main(&scene->id));
   BKE_view_layer_rename(G_MAIN, scene, view_layer, value);
 }
 
 static void rna_SceneRenderView_name_set(PointerRNA *ptr, const char *value)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
-  SceneRenderView *rv = (SceneRenderView *)ptr->data;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
+  SceneRenderView *rv = static_cast<SceneRenderView *>(ptr->data);
   STRNCPY_UTF8(rv->name, value);
   BLI_uniquename(&scene->r.views,
                  rv,
@@ -1957,25 +1959,25 @@ static void rna_SceneRenderView_name_set(PointerRNA *ptr, const char *value)
 
 void rna_ViewLayer_override_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
   rna_Scene_render_update(bmain, scene, ptr);
   DEG_relations_tag_update(bmain);
 }
 
 void rna_ViewLayer_pass_update(Main *bmain, Scene *activescene, PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
 
   ViewLayer *view_layer = nullptr;
   if (ptr->type == &RNA_ViewLayer) {
-    view_layer = (ViewLayer *)ptr->data;
+    view_layer = static_cast<ViewLayer *>(ptr->data);
   }
   else if (ptr->type == &RNA_AOV) {
-    ViewLayerAOV *aov = (ViewLayerAOV *)ptr->data;
+    ViewLayerAOV *aov = static_cast<ViewLayerAOV *>(ptr->data);
     view_layer = BKE_view_layer_find_with_aov(scene, aov);
   }
   else if (ptr->type == &RNA_Lightgroup) {
-    ViewLayerLightgroup *lightgroup = (ViewLayerLightgroup *)ptr->data;
+    ViewLayerLightgroup *lightgroup = static_cast<ViewLayerLightgroup *>(ptr->data);
     view_layer = BKE_view_layer_find_with_lightgroup(scene, lightgroup);
   }
 
@@ -1999,9 +2001,10 @@ void rna_ViewLayer_pass_update(Main *bmain, Scene *activescene, PointerRNA *ptr)
 
 static std::optional<std::string> rna_ViewLayerEEVEE_path(const PointerRNA *ptr)
 {
-  const ViewLayerEEVEE *view_layer_eevee = (ViewLayerEEVEE *)ptr->data;
-  const ViewLayer *view_layer = (ViewLayer *)((uint8_t *)view_layer_eevee -
-                                              offsetof(ViewLayer, eevee));
+  const ViewLayerEEVEE *view_layer_eevee = static_cast<ViewLayerEEVEE *>(ptr->data);
+  const ViewLayer *view_layer = reinterpret_cast<ViewLayer *>(
+      reinterpret_cast<uint8_t *>(const_cast<ViewLayerEEVEE *>(view_layer_eevee)) -
+      offsetof(ViewLayer, eevee));
   char rna_path[sizeof(view_layer->name) * 3];
 
   const size_t view_layer_path_len = rna_ViewLayer_path_buffer_get(
@@ -2059,7 +2062,7 @@ static void rna_SceneEEVEE_shadow_resolution_update(Main * /*bmain*/,
 
 static std::optional<std::string> rna_SceneRenderView_path(const PointerRNA *ptr)
 {
-  const SceneRenderView *srv = (SceneRenderView *)ptr->data;
+  const SceneRenderView *srv = static_cast<SceneRenderView *>(ptr->data);
   char srv_name_esc[sizeof(srv->name) * 2];
   BLI_str_escape(srv_name_esc, srv->name, sizeof(srv_name_esc));
   return fmt::format("render.views[\"{}\"]", srv_name_esc);
@@ -2086,7 +2089,7 @@ static void rna_Physics_relations_update(Main *bmain, Scene * /*scene*/, Pointer
 
 static void rna_Physics_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
   FOREACH_SCENE_OBJECT_BEGIN (scene, ob) {
     BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_DEPSGRAPH);
   }
@@ -2097,7 +2100,7 @@ static void rna_Physics_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *
 
 static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const bool *value)
 {
-  ToolSettings *ts = (ToolSettings *)ptr->data;
+  ToolSettings *ts = static_cast<ToolSettings *>(ptr->data);
   const int selectmode = (value[0] ? SCE_SELECT_VERTEX : 0) | (value[1] ? SCE_SELECT_EDGE : 0) |
                          (value[2] ? SCE_SELECT_FACE : 0);
 
@@ -2244,7 +2247,7 @@ static void rna_Scene_simplify_update_impl(Main *bmain,
 
 static void rna_Scene_use_simplify_update(bContext *C, PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
   Main *bmain = CTX_data_main(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   rna_Scene_simplify_update_impl(bmain, scene, false, depsgraph);
@@ -2252,7 +2255,7 @@ static void rna_Scene_use_simplify_update(bContext *C, PointerRNA *ptr)
 
 static void rna_Scene_simplify_volume_update(bContext *C, PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
   Main *bmain = CTX_data_main(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   if (scene->r.mode & R_SIMPLIFY) {
@@ -2280,7 +2283,7 @@ static void rna_Scene_use_persistent_data_update(Main * /*bmain*/,
                                                  Scene * /*scene*/,
                                                  PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
 
   if (!(scene->r.mode & R_PERSISTENT_DATA)) {
     RE_FreePersistentData(scene);
@@ -2291,7 +2294,7 @@ static void rna_Scene_use_persistent_data_update(Main * /*bmain*/,
 static void rna_Scene_transform_orientation_slots_begin(CollectionPropertyIterator *iter,
                                                         PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
   TransformOrientationSlot *orient_slot = &scene->orientation_slots[0];
   rna_iterator_array_begin(iter,
                            ptr,
@@ -2304,18 +2307,18 @@ static void rna_Scene_transform_orientation_slots_begin(CollectionPropertyIterat
 
 static int rna_Scene_transform_orientation_slots_length(PointerRNA * /*ptr*/)
 {
-  return ARRAY_SIZE(((Scene *)nullptr)->orientation_slots);
+  return ARRAY_SIZE((static_cast<Scene *>(nullptr))->orientation_slots);
 }
 
 static bool rna_Scene_use_audio_get(PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->data;
+  Scene *scene = static_cast<Scene *>(ptr->data);
   return (scene->audio.flag & AUDIO_MUTE) == 0;
 }
 
 static void rna_Scene_use_audio_set(PointerRNA *ptr, bool value)
 {
-  Scene *scene = (Scene *)ptr->data;
+  Scene *scene = static_cast<Scene *>(ptr->data);
 
   if (!value) {
     scene->audio.flag |= AUDIO_MUTE;
@@ -2332,7 +2335,7 @@ static void rna_Scene_use_audio_update(Main * /*bmain*/, Scene * /*scene*/, Poin
 
 static int rna_Scene_sync_mode_get(PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->data;
+  Scene *scene = static_cast<Scene *>(ptr->data);
   if (scene->audio.flag & AUDIO_SYNC) {
     return AUDIO_SYNC;
   }
@@ -2341,7 +2344,7 @@ static int rna_Scene_sync_mode_get(PointerRNA *ptr)
 
 static void rna_Scene_sync_mode_set(PointerRNA *ptr, int value)
 {
-  Scene *scene = (Scene *)ptr->data;
+  Scene *scene = static_cast<Scene *>(ptr->data);
 
   if (value == AUDIO_SYNC) {
     scene->audio.flag |= AUDIO_SYNC;
@@ -2389,20 +2392,20 @@ static void rna_View3DCursor_rotation_axis_angle_set(PointerRNA *ptr, const floa
 static void rna_View3DCursor_matrix_get(PointerRNA *ptr, float *values)
 {
   const View3DCursor *cursor = static_cast<const View3DCursor *>(ptr->data);
-  copy_m4_m4((float (*)[4])values, cursor->matrix<blender::float4x4>().ptr());
+  copy_m4_m4(reinterpret_cast<float (*)[4]>(values), cursor->matrix<blender::float4x4>().ptr());
 }
 
 static void rna_View3DCursor_matrix_set(PointerRNA *ptr, const float *values)
 {
   View3DCursor *cursor = static_cast<View3DCursor *>(ptr->data);
   float unit_mat[4][4];
-  normalize_m4_m4(unit_mat, (const float (*)[4])values);
+  normalize_m4_m4(unit_mat, reinterpret_cast<const float (*)[4]>(values));
   cursor->set_matrix(blender::float4x4(unit_mat), false);
 }
 
 static std::optional<std::string> rna_TransformOrientationSlot_path(const PointerRNA *ptr)
 {
-  const Scene *scene = (Scene *)ptr->owner_id;
+  const Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
   const TransformOrientationSlot *orientation_slot = static_cast<const TransformOrientationSlot *>(
       ptr->data);
 
@@ -2542,7 +2545,7 @@ static void rna_Scene_update_active_object_data(bContext *C, PointerRNA * /*ptr*
 
 static void rna_SceneCamera_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
   Object *camera = scene->camera;
 
   blender::seq::cache_cleanup(scene, blender::seq::CacheCleanup::FinalAndIntra);
@@ -2554,7 +2557,8 @@ static void rna_SceneCamera_update(Main * /*bmain*/, Scene * /*scene*/, PointerR
 
 static void rna_SceneSequencer_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  blender::seq::cache_cleanup((Scene *)ptr->owner_id, blender::seq::CacheCleanup::FinalAndIntra);
+  blender::seq::cache_cleanup(blender::id_cast<Scene *>(ptr->owner_id),
+                              blender::seq::CacheCleanup::FinalAndIntra);
 }
 
 static std::optional<std::string> rna_ToolSettings_path(const PointerRNA * /*ptr*/)
@@ -2564,7 +2568,7 @@ static std::optional<std::string> rna_ToolSettings_path(const PointerRNA * /*ptr
 
 PointerRNA rna_FreestyleLineSet_linestyle_get(PointerRNA *ptr)
 {
-  FreestyleLineSet *lineset = (FreestyleLineSet *)ptr->data;
+  FreestyleLineSet *lineset = static_cast<FreestyleLineSet *>(ptr->data);
 
   return RNA_id_pointer_create(reinterpret_cast<ID *>(lineset->linestyle));
 }
@@ -2573,12 +2577,12 @@ void rna_FreestyleLineSet_linestyle_set(PointerRNA *ptr,
                                         PointerRNA value,
                                         ReportList * /*reports*/)
 {
-  FreestyleLineSet *lineset = (FreestyleLineSet *)ptr->data;
+  FreestyleLineSet *lineset = static_cast<FreestyleLineSet *>(ptr->data);
 
   if (lineset->linestyle) {
     id_us_min(&lineset->linestyle->id);
   }
-  lineset->linestyle = (FreestyleLineStyle *)value.data;
+  lineset->linestyle = static_cast<FreestyleLineStyle *>(value.data);
   id_us_plus(&lineset->linestyle->id);
 }
 
@@ -2587,8 +2591,9 @@ FreestyleLineSet *rna_FreestyleSettings_lineset_add(ID *id,
                                                     Main *bmain,
                                                     const char *name)
 {
-  Scene *scene = (Scene *)id;
-  FreestyleLineSet *lineset = BKE_freestyle_lineset_add(bmain, (FreestyleConfig *)config, name);
+  Scene *scene = blender::id_cast<Scene *>(id);
+  FreestyleLineSet *lineset = BKE_freestyle_lineset_add(
+      bmain, reinterpret_cast<FreestyleConfig *>(config), name);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
   WM_main_add_notifier(NC_SCENE | ND_RENDER_OPTIONS, nullptr);
@@ -2602,9 +2607,9 @@ void rna_FreestyleSettings_lineset_remove(ID *id,
                                           PointerRNA *lineset_ptr)
 {
   FreestyleLineSet *lineset = static_cast<FreestyleLineSet *>(lineset_ptr->data);
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
 
-  if (!BKE_freestyle_lineset_delete((FreestyleConfig *)config, lineset)) {
+  if (!BKE_freestyle_lineset_delete(reinterpret_cast<FreestyleConfig *>(config), lineset)) {
     BKE_reportf(reports, RPT_ERROR, "Line set '%s' could not be removed", lineset->name);
     return;
   }
@@ -2617,7 +2622,7 @@ void rna_FreestyleSettings_lineset_remove(ID *id,
 
 PointerRNA rna_FreestyleSettings_active_lineset_get(PointerRNA *ptr)
 {
-  FreestyleConfig *config = (FreestyleConfig *)ptr->data;
+  FreestyleConfig *config = static_cast<FreestyleConfig *>(ptr->data);
   FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(config);
   return RNA_pointer_create_with_parent(*ptr, &RNA_FreestyleLineSet, lineset);
 }
@@ -2625,7 +2630,7 @@ PointerRNA rna_FreestyleSettings_active_lineset_get(PointerRNA *ptr)
 void rna_FreestyleSettings_active_lineset_index_range(
     PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)
 {
-  FreestyleConfig *config = (FreestyleConfig *)ptr->data;
+  FreestyleConfig *config = static_cast<FreestyleConfig *>(ptr->data);
 
   *min = 0;
   *max = max_ii(0, BLI_listbase_count(&config->linesets) - 1);
@@ -2633,20 +2638,21 @@ void rna_FreestyleSettings_active_lineset_index_range(
 
 int rna_FreestyleSettings_active_lineset_index_get(PointerRNA *ptr)
 {
-  FreestyleConfig *config = (FreestyleConfig *)ptr->data;
+  FreestyleConfig *config = static_cast<FreestyleConfig *>(ptr->data);
   return BKE_freestyle_lineset_get_active_index(config);
 }
 
 void rna_FreestyleSettings_active_lineset_index_set(PointerRNA *ptr, int value)
 {
-  FreestyleConfig *config = (FreestyleConfig *)ptr->data;
+  FreestyleConfig *config = static_cast<FreestyleConfig *>(ptr->data);
   BKE_freestyle_lineset_set_active_index(config, value);
 }
 
 FreestyleModuleConfig *rna_FreestyleSettings_module_add(ID *id, FreestyleSettings *config)
 {
-  Scene *scene = (Scene *)id;
-  FreestyleModuleConfig *module = BKE_freestyle_module_add((FreestyleConfig *)config);
+  Scene *scene = blender::id_cast<Scene *>(id);
+  FreestyleModuleConfig *module = BKE_freestyle_module_add(
+      reinterpret_cast<FreestyleConfig *>(config));
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
   WM_main_add_notifier(NC_SCENE | ND_RENDER_OPTIONS, nullptr);
@@ -2659,10 +2665,10 @@ void rna_FreestyleSettings_module_remove(ID *id,
                                          ReportList *reports,
                                          PointerRNA *module_ptr)
 {
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
   FreestyleModuleConfig *module = static_cast<FreestyleModuleConfig *>(module_ptr->data);
 
-  if (!BKE_freestyle_module_delete((FreestyleConfig *)config, module)) {
+  if (!BKE_freestyle_module_delete(reinterpret_cast<FreestyleConfig *>(config), module)) {
     if (module->script) {
       BKE_reportf(reports,
                   RPT_ERROR,
@@ -2686,7 +2692,7 @@ static void rna_Stereo3dFormat_update(Main *bmain, Scene * /*scene*/, PointerRNA
   ID *id = ptr->owner_id;
 
   if (id && GS(id->name) == ID_IM) {
-    Image *ima = (Image *)id;
+    Image *ima = blender::id_cast<Image *>(id);
     ImBuf *ibuf;
     void *lock;
 
@@ -2705,7 +2711,7 @@ static void rna_Stereo3dFormat_update(Main *bmain, Scene * /*scene*/, PointerRNA
 
 static ViewLayer *rna_ViewLayer_new(ID *id, Scene * /*sce*/, Main *bmain, const char *name)
 {
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
   ViewLayer *view_layer = BKE_view_layer_add(scene, name, nullptr, VIEWLAYER_ADD_NEW);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
@@ -2718,7 +2724,7 @@ static ViewLayer *rna_ViewLayer_new(ID *id, Scene * /*sce*/, Main *bmain, const 
 static void rna_ViewLayer_remove(
     ID *id, Scene * /*sce*/, Main *bmain, ReportList *reports, PointerRNA *sl_ptr)
 {
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
   ViewLayer *view_layer = static_cast<ViewLayer *>(sl_ptr->data);
 
   if (ED_scene_view_layer_delete(bmain, scene, view_layer, reports)) {
@@ -2733,7 +2739,7 @@ static void rna_ViewLayer_move(
     return;
   }
 
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
 
   if (!BLI_listbase_move_index(&scene->view_layers, from, to)) {
     BKE_reportf(reports, RPT_ERROR, "Could not move layer from index '%d' to '%d'", from, to);
@@ -2748,7 +2754,7 @@ static void rna_ViewLayer_move(
 void rna_ViewLayer_active_aov_index_range(
     PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)
 {
-  ViewLayer *view_layer = (ViewLayer *)ptr->data;
+  ViewLayer *view_layer = static_cast<ViewLayer *>(ptr->data);
 
   *min = 0;
   *max = max_ii(0, BLI_listbase_count(&view_layer->aovs) - 1);
@@ -2756,13 +2762,13 @@ void rna_ViewLayer_active_aov_index_range(
 
 int rna_ViewLayer_active_aov_index_get(PointerRNA *ptr)
 {
-  ViewLayer *view_layer = (ViewLayer *)ptr->data;
+  ViewLayer *view_layer = static_cast<ViewLayer *>(ptr->data);
   return BLI_findindex(&view_layer->aovs, view_layer->active_aov);
 }
 
 void rna_ViewLayer_active_aov_index_set(PointerRNA *ptr, int value)
 {
-  ViewLayer *view_layer = (ViewLayer *)ptr->data;
+  ViewLayer *view_layer = static_cast<ViewLayer *>(ptr->data);
   ViewLayerAOV *aov = static_cast<ViewLayerAOV *>(BLI_findlink(&view_layer->aovs, value));
   view_layer->active_aov = aov;
 }
@@ -2770,7 +2776,7 @@ void rna_ViewLayer_active_aov_index_set(PointerRNA *ptr, int value)
 void rna_ViewLayer_active_lightgroup_index_range(
     PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)
 {
-  ViewLayer *view_layer = (ViewLayer *)ptr->data;
+  ViewLayer *view_layer = static_cast<ViewLayer *>(ptr->data);
 
   *min = 0;
   *max = max_ii(0, BLI_listbase_count(&view_layer->lightgroups) - 1);
@@ -2778,13 +2784,13 @@ void rna_ViewLayer_active_lightgroup_index_range(
 
 int rna_ViewLayer_active_lightgroup_index_get(PointerRNA *ptr)
 {
-  ViewLayer *view_layer = (ViewLayer *)ptr->data;
+  ViewLayer *view_layer = static_cast<ViewLayer *>(ptr->data);
   return BLI_findindex(&view_layer->lightgroups, view_layer->active_lightgroup);
 }
 
 void rna_ViewLayer_active_lightgroup_index_set(PointerRNA *ptr, int value)
 {
-  ViewLayer *view_layer = (ViewLayer *)ptr->data;
+  ViewLayer *view_layer = static_cast<ViewLayer *>(ptr->data);
   ViewLayerLightgroup *lightgroup = static_cast<ViewLayerLightgroup *>(
       BLI_findlink(&view_layer->lightgroups, value));
   view_layer->active_lightgroup = lightgroup;
@@ -2792,20 +2798,20 @@ void rna_ViewLayer_active_lightgroup_index_set(PointerRNA *ptr, int value)
 
 static void rna_ViewLayerLightgroup_name_get(PointerRNA *ptr, char *value)
 {
-  ViewLayerLightgroup *lightgroup = (ViewLayerLightgroup *)ptr->data;
+  ViewLayerLightgroup *lightgroup = static_cast<ViewLayerLightgroup *>(ptr->data);
   strcpy(value, lightgroup->name);
 }
 
 static int rna_ViewLayerLightgroup_name_length(PointerRNA *ptr)
 {
-  ViewLayerLightgroup *lightgroup = (ViewLayerLightgroup *)ptr->data;
+  ViewLayerLightgroup *lightgroup = static_cast<ViewLayerLightgroup *>(ptr->data);
   return strlen(lightgroup->name);
 }
 
 static void rna_ViewLayerLightgroup_name_set(PointerRNA *ptr, const char *value)
 {
-  ViewLayerLightgroup *lightgroup = (ViewLayerLightgroup *)ptr->data;
-  Scene *scene = (Scene *)ptr->owner_id;
+  ViewLayerLightgroup *lightgroup = static_cast<ViewLayerLightgroup *>(ptr->data);
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
   ViewLayer *view_layer = BKE_view_layer_find_with_lightgroup(scene, lightgroup);
 
   BKE_view_layer_rename_lightgroup(scene, view_layer, lightgroup, value);
@@ -2816,7 +2822,7 @@ static void rna_ViewLayerLightgroup_name_set(PointerRNA *ptr, const char *value)
 
 static int rna_TransformOrientationSlot_type_get(PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
   TransformOrientationSlot *orient_slot = static_cast<TransformOrientationSlot *>(ptr->data);
   if (orient_slot != &scene->orientation_slots[SCE_ORIENT_DEFAULT]) {
     if ((orient_slot->flag & SELECT) == 0) {
@@ -2828,7 +2834,7 @@ static int rna_TransformOrientationSlot_type_get(PointerRNA *ptr)
 
 void rna_TransformOrientationSlot_type_set(PointerRNA *ptr, int value)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
   TransformOrientationSlot *orient_slot = static_cast<TransformOrientationSlot *>(ptr->data);
 
   if (orient_slot != &scene->orientation_slots[SCE_ORIENT_DEFAULT]) {
@@ -2846,7 +2852,7 @@ void rna_TransformOrientationSlot_type_set(PointerRNA *ptr, int value)
 
 static PointerRNA rna_TransformOrientationSlot_get(PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
   TransformOrientationSlot *orient_slot = static_cast<TransformOrientationSlot *>(ptr->data);
   TransformOrientation *orientation;
   if (orient_slot->type < V3D_ORIENT_CUSTOM) {
@@ -2911,7 +2917,7 @@ const EnumPropertyItem *rna_TransformOrientation_itemf(bContext *C,
 
   Scene *scene;
   if (ptr->owner_id && (GS(ptr->owner_id->name) == ID_SCE)) {
-    scene = (Scene *)ptr->owner_id;
+    scene = blender::id_cast<Scene *>(ptr->owner_id);
   }
   else {
     scene = CTX_data_scene(C);
@@ -2928,7 +2934,7 @@ const EnumPropertyItem *rna_TransformOrientation_with_scene_itemf(bContext *C,
     return rna_enum_transform_orientation_items;
   }
 
-  Scene *scene = (Scene *)ptr->owner_id;
+  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
   TransformOrientationSlot *orient_slot = static_cast<TransformOrientationSlot *>(ptr->data);
   bool include_default = (orient_slot != &scene->orientation_slots[SCE_ORIENT_DEFAULT]);
   return rna_TransformOrientation_impl_itemf(scene, include_default, r_free);

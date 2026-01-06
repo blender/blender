@@ -84,13 +84,13 @@ static SpaceLink *text_create(const ScrArea * /*area*/, const Scene * /*scene*/)
   BLI_addtail(&stext->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;
 
-  return (SpaceLink *)stext;
+  return reinterpret_cast<SpaceLink *>(stext);
 }
 
 /* Doesn't free the space-link itself. */
 static void text_free(SpaceLink *sl)
 {
-  SpaceText *stext = (SpaceText *)sl;
+  SpaceText *stext = reinterpret_cast<SpaceText *>(sl);
   space_text_free_caches(stext);
   MEM_delete(stext->runtime);
   stext->text = nullptr;
@@ -106,7 +106,7 @@ static SpaceLink *text_duplicate(SpaceLink *sl)
   /* Add its own runtime data. */
   stextn->runtime = MEM_new<blender::ed::text::SpaceText_Runtime>(__func__);
 
-  return (SpaceLink *)stextn;
+  return reinterpret_cast<SpaceLink *>(stextn);
 }
 
 static void text_listener(const wmSpaceTypeListenerParams *params)
@@ -397,7 +397,7 @@ static void text_id_remap(ScrArea * /*area*/,
                           SpaceLink *slink,
                           const blender::bke::id::IDRemapper &mappings)
 {
-  SpaceText *stext = (SpaceText *)slink;
+  SpaceText *stext = reinterpret_cast<SpaceText *>(slink);
   mappings.apply(reinterpret_cast<ID **>(&stext->text), ID_REMAP_APPLY_ENSURE_REAL);
 }
 
@@ -410,7 +410,7 @@ static void text_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
 
 static void text_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *sl)
 {
-  SpaceText *st = (SpaceText *)sl;
+  SpaceText *st = reinterpret_cast<SpaceText *>(sl);
   st->runtime = MEM_new<blender::ed::text::SpaceText_Runtime>(__func__);
 }
 

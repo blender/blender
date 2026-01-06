@@ -418,7 +418,7 @@ void *BLI_mempool_alloc(BLI_mempool *pool)
   VALGRIND_MAKE_MEM_UNDEFINED(free_pop, pool->esize - POISON_REDZONE_SIZE);
 #endif
 
-  return (void *)free_pop;
+  return static_cast<void *>(free_pop);
 }
 
 void *BLI_mempool_calloc(BLI_mempool *pool)
@@ -729,7 +729,7 @@ void *mempool_iter_threadsafe_step(BLI_mempool_threadsafe_iter *ts_iter)
       /* Begin unique to the `threadsafe` version of this function. */
       for (iter->curchunk = *ts_iter->curchunk_threaded_shared;
            (iter->curchunk != nullptr) &&
-           (atomic_cas_ptr((void **)ts_iter->curchunk_threaded_shared,
+           (atomic_cas_ptr(reinterpret_cast<void **>(ts_iter->curchunk_threaded_shared),
                            iter->curchunk,
                            iter->curchunk->next) != iter->curchunk);
            iter->curchunk = *ts_iter->curchunk_threaded_shared)

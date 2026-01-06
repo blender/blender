@@ -37,14 +37,14 @@
 
 static void rna_MovieClip_reload_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  MovieClip *clip = (MovieClip *)ptr->owner_id;
+  MovieClip *clip = blender::id_cast<MovieClip *>(ptr->owner_id);
 
   DEG_id_tag_update(&clip->id, ID_RECALC_SOURCE);
 }
 
 static void rna_MovieClip_size_get(PointerRNA *ptr, int *values)
 {
-  MovieClip *clip = (MovieClip *)ptr->owner_id;
+  MovieClip *clip = blender::id_cast<MovieClip *>(ptr->owner_id);
 
   values[0] = clip->lastsize[0];
   values[1] = clip->lastsize[1];
@@ -52,13 +52,13 @@ static void rna_MovieClip_size_get(PointerRNA *ptr, int *values)
 
 static float rna_MovieClip_fps_get(PointerRNA *ptr)
 {
-  MovieClip *clip = (MovieClip *)ptr->owner_id;
+  MovieClip *clip = blender::id_cast<MovieClip *>(ptr->owner_id);
   return BKE_movieclip_get_fps(clip);
 }
 
 static void rna_MovieClip_use_proxy_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  MovieClip *clip = (MovieClip *)ptr->owner_id;
+  MovieClip *clip = blender::id_cast<MovieClip *>(ptr->owner_id);
   BKE_movieclip_clear_cache(clip);
   blender::seq::relations_invalidate_movieclip_strips(bmain, clip);
 }
@@ -68,21 +68,21 @@ static void rna_MovieClipUser_proxy_render_settings_update(Main *bmain,
                                                            PointerRNA *ptr)
 {
   ID *id = ptr->owner_id;
-  MovieClipUser *user = (MovieClipUser *)ptr->data;
+  MovieClipUser *user = static_cast<MovieClipUser *>(ptr->data);
 
   /* when changing render settings of space clip user
    * clear cache for clip, so all the memory is available
    * for new render settings
    */
   if (GS(id->name) == ID_SCR) {
-    bScreen *screen = (bScreen *)id;
+    bScreen *screen = blender::id_cast<bScreen *>(id);
     ScrArea *area;
     SpaceLink *sl;
 
     for (area = static_cast<ScrArea *>(screen->areabase.first); area; area = area->next) {
       for (sl = static_cast<SpaceLink *>(area->spacedata.first); sl; sl = sl->next) {
         if (sl->spacetype == SPACE_CLIP) {
-          SpaceClip *sc = (SpaceClip *)sl;
+          SpaceClip *sc = reinterpret_cast<SpaceClip *>(sl);
 
           if (&sc->user == user) {
             MovieClip *clip = ED_space_clip_get_clip(sc);

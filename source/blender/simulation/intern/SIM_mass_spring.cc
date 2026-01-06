@@ -41,7 +41,7 @@ static int cloth_count_nondiag_blocks(Cloth *cloth)
   int nondiag = 0;
 
   for (link = cloth->springs; link; link = link->next) {
-    ClothSpring *spring = (ClothSpring *)link->link;
+    ClothSpring *spring = static_cast<ClothSpring *>(link->link);
     switch (spring->type) {
       case CLOTH_SPRING_TYPE_BENDING_HAIR:
         /* angular bending combines 3 vertices */
@@ -303,7 +303,7 @@ static int UNUSED_FUNCTION(cloth_calc_helper_forces)(
       int v1, v2;
       float len, c, l, vec[3];
 
-      spring = (ClothSpring *)node->link;
+      spring = static_cast<ClothSpring *>(node->link);
       if (!ELEM(spring->type, CLOTH_SPRING_TYPE_STRUCTURAL, CLOTH_SPRING_TYPE_SHEAR)) {
         continue;
       }
@@ -775,7 +775,7 @@ static void cloth_calc_force(Scene *scene,
 
   /* calculate spring forces */
   for (LinkNode *link = cloth->springs; link; link = link->next) {
-    ClothSpring *spring = (ClothSpring *)link->link;
+    ClothSpring *spring = static_cast<ClothSpring *>(link->link);
     /* only handle active springs */
     if (!(spring->flags & CLOTH_SPRING_FLAG_DEACTIVATE)) {
       cloth_calc_spring_force(clmd, spring);
@@ -801,10 +801,10 @@ BLI_INLINE void cloth_get_grid_location(Implicit_Data *data,
 /* returns next spring forming a continuous hair sequence */
 BLI_INLINE LinkNode *hair_spring_next(LinkNode *spring_link)
 {
-  ClothSpring *spring = (ClothSpring *)spring_link->link;
+  ClothSpring *spring = static_cast<ClothSpring *>(spring_link->link);
   LinkNode *next = spring_link->next;
   if (next) {
-    ClothSpring *next_spring = (ClothSpring *)next->link;
+    ClothSpring *next_spring = static_cast<ClothSpring *>(next->link);
     if (next_spring->type == CLOTH_SPRING_TYPE_STRUCTURAL && next_spring->kl == spring->ij) {
       return next;
     }
@@ -835,7 +835,7 @@ static LinkNode *cloth_continuum_add_hair_segments(HairGrid *grid,
 
   spring1 = nullptr;
   spring2 = nullptr;
-  spring3 = (ClothSpring *)spring_link->link;
+  spring3 = static_cast<ClothSpring *>(spring_link->link);
 
   zero_v3(x1);
   zero_v3(v1);
@@ -873,7 +873,7 @@ static LinkNode *cloth_continuum_add_hair_segments(HairGrid *grid,
     spring_link = hair_spring_next(spring_link);
 
     if (spring_link) {
-      spring3 = (ClothSpring *)spring_link->link;
+      spring3 = static_cast<ClothSpring *>(spring_link->link);
       // vert4 = &verts[spring3->ij];
       cloth_get_grid_location(data, cell_scale, cell_offset, spring3->ij, x4, v4);
       sub_v3_v3v3(dir3, x4, x3);
@@ -932,7 +932,7 @@ static void cloth_continuum_fill_grid(HairGrid *grid, Cloth *cloth)
 
   link = cloth->springs;
   while (link) {
-    ClothSpring *spring = (ClothSpring *)link->link;
+    ClothSpring *spring = static_cast<ClothSpring *>(link->link);
     if (spring->type == CLOTH_SPRING_TYPE_STRUCTURAL) {
       link = cloth_continuum_add_hair_segments(grid, cell_scale, cell_offset, cloth, link);
     }

@@ -240,7 +240,7 @@ void drawSnapping(TransInfo *t)
 
     GPU_depth_test(GPU_DEPTH_NONE);
 
-    RegionView3D *rv3d = (RegionView3D *)t->region->regiondata;
+    RegionView3D *rv3d = static_cast<RegionView3D *>(t->region->regiondata);
     if (!BLI_listbase_is_empty(&t->tsnap.points)) {
       /* Draw snap points. */
 
@@ -837,7 +837,7 @@ static void snap_object_context_init(TransInfo *t)
     /* Ignore elements being transformed. */
     blender::ed::transform::snap_object_context_set_editmesh_callbacks(
         t->tsnap.object_context,
-        (bool (*)(BMVert *, void *))BM_elem_cb_check_hflag_disabled,
+        reinterpret_cast<bool (*)(BMVert *, void *)>(BM_elem_cb_check_hflag_disabled),
         bm_edge_is_snap_target,
         bm_face_is_snap_target,
         POINTER_FROM_UINT(BM_ELEM_SELECT | BM_ELEM_HIDDEN));
@@ -846,9 +846,9 @@ static void snap_object_context_init(TransInfo *t)
     /* Ignore hidden geometry in the general case. */
     blender::ed::transform::snap_object_context_set_editmesh_callbacks(
         t->tsnap.object_context,
-        (bool (*)(BMVert *, void *))BM_elem_cb_check_hflag_disabled,
-        (bool (*)(BMEdge *, void *))BM_elem_cb_check_hflag_disabled,
-        (bool (*)(BMFace *, void *))BM_elem_cb_check_hflag_disabled,
+        reinterpret_cast<bool (*)(BMVert *, void *)>(BM_elem_cb_check_hflag_disabled),
+        reinterpret_cast<bool (*)(BMEdge *, void *)>(BM_elem_cb_check_hflag_disabled),
+        reinterpret_cast<bool (*)(BMFace *, void *)>(BM_elem_cb_check_hflag_disabled),
         POINTER_FROM_UINT(BM_ELEM_HIDDEN));
   }
 }

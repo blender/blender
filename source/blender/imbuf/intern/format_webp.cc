@@ -174,7 +174,7 @@ bool imb_savewebp(ImBuf *ibuf, const char *filepath, int /*flags*/)
       rgb_rect[i * 3 + 2] = rgba_rect[i * 4 + 2];
     }
 
-    last_row = (uchar *)(rgb_rect + (size_t(ibuf->y - 1) * size_t(ibuf->x) * 3));
+    last_row = static_cast<uchar *>(rgb_rect + (size_t(ibuf->y - 1) * size_t(ibuf->x) * 3));
 
     if (ibuf->foptions.quality == 100) {
       encoded_data_size = WebPEncodeLosslessRGB(

@@ -156,7 +156,7 @@ VertProjHandle *ED_vpaint_proj_handle_create(Depsgraph &depsgraph,
                                              blender::Span<blender::float3> &r_vert_normals)
 {
   VertProjHandle *vp_handle = MEM_new<VertProjHandle>(__func__);
-  Mesh *mesh = static_cast<Mesh *>(ob.data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob.data);
 
   /* setup the handle */
   vp_handle->vert_positions.reinitialize(mesh->verts_num);

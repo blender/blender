@@ -882,7 +882,7 @@ bool BKE_fcurve_are_keyframes_usable(const FCurve *fcu)
 
         /* Sometimes harmful - depending on whether they're "additive" or not. */
         case FMODIFIER_TYPE_GENERATOR: {
-          FMod_Generator *data = (FMod_Generator *)fcm.data;
+          FMod_Generator *data = static_cast<FMod_Generator *>(fcm.data);
 
           if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0) {
             return false;
@@ -890,7 +890,7 @@ bool BKE_fcurve_are_keyframes_usable(const FCurve *fcu)
           break;
         }
         case FMODIFIER_TYPE_FN_GENERATOR: {
-          FMod_FunctionGenerator *data = (FMod_FunctionGenerator *)fcm.data;
+          FMod_FunctionGenerator *data = static_cast<FMod_FunctionGenerator *>(fcm.data);
 
           if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0) {
             return false;
@@ -1103,7 +1103,7 @@ eFCU_Cycle_Type BKE_fcurve_get_cycle_type(const FCurve *fcu)
     return FCU_CYCLE_NONE;
   }
 
-  FMod_Cycles *data = (FMod_Cycles *)fcm->data;
+  FMod_Cycles *data = static_cast<FMod_Cycles *>(fcm->data);
 
   if (data && data->after_cycles == 0 && data->before_cycles == 0) {
     if (data->before_mode == FCM_EXTRAPOLATE_CYCLIC && data->after_mode == FCM_EXTRAPOLATE_CYCLIC)
@@ -2550,12 +2550,12 @@ void BKE_fmodifiers_blend_read_data(BlendDataReader *reader,
     /* do relinking of data for specific types */
     switch (fcm.type) {
       case FMODIFIER_TYPE_GENERATOR: {
-        FMod_Generator *data = (FMod_Generator *)fcm.data;
+        FMod_Generator *data = static_cast<FMod_Generator *>(fcm.data);
         BLO_read_float_array(reader, data->arraysize, &data->coefficients);
         break;
       }
       case FMODIFIER_TYPE_ENVELOPE: {
-        FMod_Envelope *data = (FMod_Envelope *)fcm.data;
+        FMod_Envelope *data = static_cast<FMod_Envelope *>(fcm.data);
 
         BLO_read_struct_array(reader, FCM_EnvelopeData, data->totvert, &data->data);
 

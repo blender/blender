@@ -82,7 +82,7 @@ static void copy_bonechildren_custom_handles(Bone *bone_dst, bArmature *arm_dst)
 
 static void armature_init_data(ID *id)
 {
-  bArmature *armature = (bArmature *)id;
+  bArmature *armature = blender::id_cast<bArmature *>(id);
   INIT_DEFAULT_STRUCT_AFTER(armature, id);
 }
 
@@ -133,8 +133,8 @@ static void armature_copy_data(Main * /*bmain*/,
                                const ID *id_src,
                                const int flag)
 {
-  bArmature *armature_dst = (bArmature *)id_dst;
-  const bArmature *armature_src = (const bArmature *)id_src;
+  bArmature *armature_dst = blender::id_cast<bArmature *>(id_dst);
+  const bArmature *armature_src = blender::id_cast<const bArmature *>(id_src);
 
   Bone *bone_src, *bone_dst;
   Bone *bone_dst_act = nullptr;
@@ -195,7 +195,7 @@ static void armature_copy_data(Main * /*bmain*/,
 /** Free (or release) any data used by this armature (does not free the armature itself). */
 static void armature_free_data(ID *id)
 {
-  bArmature *armature = (bArmature *)id;
+  bArmature *armature = blender::id_cast<bArmature *>(id);
   ANIM_armature_runtime_free(armature);
 
   /* Free all BoneCollectionMembership objects. */
@@ -266,7 +266,7 @@ static void armature_foreach_id_bone_collection(BoneCollection *bcoll, LibraryFo
 
 static void armature_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  bArmature *arm = (bArmature *)id;
+  bArmature *arm = blender::id_cast<bArmature *>(id);
   for (Bone &bone : arm->bonebase) {
     BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, armature_foreach_id_bone(&bone, data));
   }
@@ -329,7 +329,7 @@ static void write_bone_collection(BlendWriter *writer, BoneCollection *bcoll)
 
 static void armature_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  bArmature *arm = (bArmature *)id;
+  bArmature *arm = blender::id_cast<bArmature *>(id);
 
   /* Clean up, important in undo case to reduce false detection of changed datablocks. */
   arm->bonehash = nullptr;
@@ -467,7 +467,7 @@ static void read_bone_collections(BlendDataReader *reader, bArmature *arm)
 
 static void armature_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  bArmature *arm = (bArmature *)id;
+  bArmature *arm = blender::id_cast<bArmature *>(id);
   BLO_read_struct_list(reader, Bone, &arm->bonebase);
   arm->bonehash = nullptr;
   arm->edbo = nullptr;
@@ -491,8 +491,8 @@ static void armature_blend_read_data(BlendDataReader *reader, ID *id)
 
 static void armature_undo_preserve(BlendLibReader * /*reader*/, ID *id_new, ID *id_old)
 {
-  bArmature *arm_new = (bArmature *)id_new;
-  bArmature *arm_old = (bArmature *)id_old;
+  bArmature *arm_new = blender::id_cast<bArmature *>(id_new);
+  bArmature *arm_old = blender::id_cast<bArmature *>(id_old);
 
   animrig::bonecolls_copy_expanded_flag(arm_new->collections_span(), arm_old->collections_span());
 }
@@ -546,7 +546,7 @@ bArmature *BKE_armature_add(Main *bmain, const char *name)
 bArmature *BKE_armature_from_object(Object *ob)
 {
   if (ob->type == OB_ARMATURE) {
-    return (bArmature *)ob->data;
+    return blender::id_cast<bArmature *>(ob->data);
   }
   return nullptr;
 }
@@ -3058,7 +3058,7 @@ void BKE_pose_where_is(Depsgraph *depsgraph, Scene *scene, Object *ob)
   if (ob->type != OB_ARMATURE) {
     return;
   }
-  arm = static_cast<bArmature *>(ob->data);
+  arm = blender::id_cast<bArmature *>(ob->data);
 
   if (ELEM(nullptr, arm, scene)) {
     return;
@@ -3143,7 +3143,7 @@ void BKE_pchan_minmax(const Object *ob,
                       blender::float3 &r_max)
 {
   using namespace blender;
-  const bArmature *arm = static_cast<const bArmature *>(ob->data);
+  const bArmature *arm = blender::id_cast<const bArmature *>(ob->data);
 
   Object *ob_custom = nullptr;
   if (!(arm->flag & ARM_NO_CUSTOM) && pchan->custom) {
@@ -3203,7 +3203,7 @@ std::optional<Bounds<blender::float3>> BKE_pose_minmax(const Object *ob, const b
   blender::float3 max(std::numeric_limits<float>::lowest());
 
   BLI_assert(ob->type == OB_ARMATURE);
-  const bArmature *arm = static_cast<const bArmature *>(ob->data);
+  const bArmature *arm = blender::id_cast<const bArmature *>(ob->data);
 
   bool found_pchan = false;
   for (const bPoseChannel &pchan : ob->pose->chanbase) {

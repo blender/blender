@@ -124,7 +124,7 @@ static PyObject *bvhtree_CreatePyObject(BVHTree *tree,
   result->orig_index = orig_index;
   result->orig_normal = orig_normal;
 
-  return (PyObject *)result;
+  return reinterpret_cast<PyObject *>(result);
 }
 
 /** \} */
@@ -249,7 +249,7 @@ static void py_bvhtree__tp_dealloc(PyBVHTree *self)
   MEM_SAFE_FREE(self->orig_index);
   MEM_SAFE_FREE(self->orig_normal);
 
-  Py_TYPE(self)->tp_free((PyObject *)self);
+  Py_TYPE(self)->tp_free(reinterpret_cast<PyObject *>(self));
 }
 
 /* -------------------------------------------------------------------- */
@@ -296,7 +296,7 @@ static void py_bvhtree_nearest_point_cb(void *userdata,
 {
   PyBVHTree *self = static_cast<PyBVHTree *>(userdata);
 
-  const float (*coords)[3] = (const float (*)[3])self->coords;
+  const float (*coords)[3] = const_cast<const float (*)[3]>(self->coords);
   const uint *tri = self->tris[index];
   const float *tri_co[3] = {coords[tri[0]], coords[tri[1]], coords[tri[2]]};
   float nearest_tmp[3], dist_sq;
@@ -671,7 +671,7 @@ static PyObject *C_BVHTree_FromPolygons(PyObject * /*cls*/, PyObject *args, PyOb
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwargs,
                                    "OO|$O&f:BVHTree.FromPolygons",
-                                   (char **)keywords,
+                                   const_cast<char **>(keywords),
                                    &py_coords,
                                    &py_tris,
                                    PyC_ParseBool,
@@ -947,7 +947,7 @@ static PyObject *C_BVHTree_FromBMesh(PyObject * /*cls*/, PyObject *args, PyObjec
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwargs,
                                    "O!|$f:BVHTree.FromBMesh",
-                                   (char **)keywords,
+                                   const_cast<char **>(keywords),
                                    &BPy_BMesh_Type,
                                    &py_bm,
                                    &epsilon))
@@ -1155,7 +1155,7 @@ static PyObject *C_BVHTree_FromObject(PyObject * /*cls*/, PyObject *args, PyObje
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwargs,
                                    "OO|$O&O&f:BVHTree.FromObject",
-                                   (char **)keywords,
+                                   const_cast<char **>(keywords),
                                    &py_ob,
                                    &py_depsgraph,
                                    PyC_ParseBool,
@@ -1299,7 +1299,7 @@ PyTypeObject PyBVHTree_Type = {
     /*tp_name*/ "BVHTree",
     /*tp_basicsize*/ sizeof(PyBVHTree),
     /*tp_itemsize*/ 0,
-    /*tp_dealloc*/ (destructor)py_bvhtree__tp_dealloc,
+    /*tp_dealloc*/ reinterpret_cast<destructor>(py_bvhtree__tp_dealloc),
     /*tp_vectorcall_offset*/ 0,
     /*tp_getattr*/ nullptr,
     /*tp_setattr*/ nullptr,
@@ -1331,16 +1331,16 @@ PyTypeObject PyBVHTree_Type = {
     /*tp_descr_set*/ nullptr,
     /*tp_dictoffset*/ 0,
     /*tp_init*/ nullptr,
-    /*tp_alloc*/ (allocfunc)PyType_GenericAlloc,
-    /*tp_new*/ (newfunc)PyType_GenericNew,
-    /*tp_free*/ (freefunc) nullptr,
+    /*tp_alloc*/ static_cast<allocfunc>(PyType_GenericAlloc),
+    /*tp_new*/ static_cast<newfunc>(PyType_GenericNew),
+    /*tp_free*/ static_cast<freefunc>(nullptr),
     /*tp_is_gc*/ nullptr,
     /*tp_bases*/ nullptr,
     /*tp_mro*/ nullptr,
     /*tp_cache*/ nullptr,
     /*tp_subclasses*/ nullptr,
     /*tp_weaklist*/ nullptr,
-    /*tp_del*/ (destructor) nullptr,
+    /*tp_del*/ static_cast<destructor>(nullptr),
     /*tp_version_tag*/ 0,
     /*tp_finalize*/ nullptr,
     /*tp_vectorcall*/ nullptr,

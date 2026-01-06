@@ -1019,9 +1019,9 @@ static void rna_NodeTree_get_from_context(const bContext *C,
   RNA_parameter_get_lookup(&list, "result_1", &ret1);
   RNA_parameter_get_lookup(&list, "result_2", &ret2);
   RNA_parameter_get_lookup(&list, "result_3", &ret3);
-  *r_ntree = *(bNodeTree **)ret1;
-  *r_id = *(ID **)ret2;
-  *r_from = *(ID **)ret3;
+  *r_ntree = *static_cast<bNodeTree **>(ret1);
+  *r_id = *static_cast<ID **>(ret2);
+  *r_from = *static_cast<ID **>(ret3);
 
   RNA_parameter_list_free(&list);
 }

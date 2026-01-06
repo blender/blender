@@ -280,14 +280,14 @@ static Material *rna_Main_materials_new(Main *bmain, const char *name)
 static void rna_Main_materials_gpencil_data(Main * /*bmain*/, PointerRNA *id_ptr)
 {
   ID *id = static_cast<ID *>(id_ptr->data);
-  Material *ma = (Material *)id;
+  Material *ma = blender::id_cast<Material *>(id);
   BKE_gpencil_material_attr_init(ma);
 }
 
 static void rna_Main_materials_gpencil_remove(Main * /*bmain*/, PointerRNA *id_ptr)
 {
   ID *id = static_cast<ID *>(id_ptr->data);
-  Material *ma = (Material *)id;
+  Material *ma = blender::id_cast<Material *>(id);
   if (ma->gp_style) {
     MEM_SAFE_FREE(ma->gp_style);
   }
@@ -426,7 +426,7 @@ static Image *rna_Main_images_load(Main *bmain,
                 errno ? strerror(errno) : RPT_("unsupported image format"));
   }
 
-  id_us_min((ID *)ima);
+  id_us_min(blender::id_cast<ID *>(ima));
 
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
 
@@ -677,7 +677,7 @@ static Palette *rna_Main_palettes_new(Main *bmain, const char *name)
 
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
 
-  return (Palette *)palette;
+  return static_cast<Palette *>(palette);
 }
 
 static MovieClip *rna_Main_movieclip_load(Main *bmain,
@@ -707,7 +707,7 @@ static MovieClip *rna_Main_movieclip_load(Main *bmain,
                 errno ? strerror(errno) : RPT_("unable to load movie clip"));
   }
 
-  id_us_min((ID *)clip);
+  id_us_min(blender::id_cast<ID *>(clip));
 
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
 

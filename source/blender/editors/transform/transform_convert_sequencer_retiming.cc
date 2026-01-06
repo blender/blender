@@ -82,7 +82,7 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
 
   VectorSet<Strip *> transformed_strips;
   for (int i = 0; i < tc->data_len; i++) {
-    Strip *strip = ((TransDataSeq *)(td + i)->extra)->strip;
+    Strip *strip = (static_cast<TransDataSeq *>((td + i)->extra))->strip;
     transformed_strips.add(strip);
   }
 
@@ -94,7 +94,7 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
   dependant.remove_if([&](Strip *strip) { return seq::transform_strip_can_be_translated(strip); });
 
   if (seq_transform_check_overlap(transformed_strips)) {
-    const bool use_sync_markers = (((SpaceSeq *)t->area->spacedata.first)->flag &
+    const bool use_sync_markers = ((static_cast<SpaceSeq *>(t->area->spacedata.first))->flag &
                                    SEQ_MARKER_TRANS) != 0;
     seq::transform_handle_overlap(
         scene, seqbasep, transformed_strips, dependant, use_sync_markers);
@@ -110,7 +110,7 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
 
 static void create_trans_seq_clamp_data(TransInfo *t, const Scene *scene)
 {
-  TransSeq *ts = (TransSeq *)TRANS_DATA_CONTAINER_FIRST_SINGLE(t)->custom.type.data;
+  TransSeq *ts = static_cast<TransSeq *>(TRANS_DATA_CONTAINER_FIRST_SINGLE(t)->custom.type.data);
   const Editing *ed = seq::editing_get(scene);
 
   /* Prevent snaps and change in `values` past `offset_clamp` for all selected retiming keys. */

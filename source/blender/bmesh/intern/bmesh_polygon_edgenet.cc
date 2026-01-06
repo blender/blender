@@ -793,8 +793,8 @@ struct EdgeGroupIsland {
 
 static int group_min_cmp_fn(const void *p1, const void *p2)
 {
-  const EdgeGroupIsland *g1 = *(EdgeGroupIsland **)p1;
-  const EdgeGroupIsland *g2 = *(EdgeGroupIsland **)p2;
+  const EdgeGroupIsland *g1 = *static_cast<EdgeGroupIsland **>(const_cast<void *>(p1));
+  const EdgeGroupIsland *g2 = *static_cast<EdgeGroupIsland **>(const_cast<void *>(p2));
   /* min->co[SORT_AXIS] hasn't been applied yet */
   int test = axis_pt_cmp(g1->vert_span.min_axis, g2->vert_span.min_axis);
   if (UNLIKELY(test == 0)) {
@@ -1087,7 +1087,7 @@ static int bm_face_split_edgenet_find_connection(const EdgeGroup_FindConnection_
  */
 static bool test_tagged_and_notface(BMEdge *e, void *fptr)
 {
-  BMFace *f = (BMFace *)fptr;
+  BMFace *f = static_cast<BMFace *>(fptr);
   return BM_elem_flag_test(e, BM_ELEM_INTERNAL_TAG) && !BM_edge_in_face(e, f);
 }
 
@@ -1378,7 +1378,7 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
       g->edge_len = unique_edges_in_group;
       edge_in_group_tot += unique_edges_in_group;
 
-      BLI_linklist_prepend_nlink(&group_head, edge_links, (LinkNode *)g);
+      BLI_linklist_prepend_nlink(&group_head, edge_links, reinterpret_cast<LinkNode *>(g));
 
       group_arr_len++;
 
@@ -1426,14 +1426,14 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
     /* fill 'groups_arr' in reverse order so the boundary face is first */
     EdgeGroupIsland **group_arr_p = &group_arr[group_arr_len];
 
-    for (EdgeGroupIsland *g = static_cast<EdgeGroupIsland *>((void *)group_head); g;
-         g = (EdgeGroupIsland *)g->edge_links.next)
+    for (EdgeGroupIsland *g = static_cast<EdgeGroupIsland *>(static_cast<void *>(group_head)); g;
+         g = reinterpret_cast<EdgeGroupIsland *>(g->edge_links.next))
     {
       LinkNode *edge_links = static_cast<LinkNode *>(g->edge_links.link);
 
       /* init with *any* different verts */
-      g->vert_span.min = ((BMEdge *)edge_links->link)->v1;
-      g->vert_span.max = ((BMEdge *)edge_links->link)->v2;
+      g->vert_span.min = (static_cast<BMEdge *>(edge_links->link))->v1;
+      g->vert_span.max = (static_cast<BMEdge *>(edge_links->link))->v2;
       float min_axis[2] = {FLT_MAX, FLT_MAX};
       float max_axis[2] = {-FLT_MAX, -FLT_MAX};
 
@@ -1541,7 +1541,7 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
         {UNPACK2(edge_arr[i]->v1->co), 0.0f},
         {UNPACK2(edge_arr[i]->v2->co), 0.0f},
     };
-    BLI_bvhtree_insert(bvhtree, i, (const float *)e_cos, 2);
+    BLI_bvhtree_insert(bvhtree, i, reinterpret_cast<const float *>(e_cos), 2);
   }
   BLI_bvhtree_balance(bvhtree);
 

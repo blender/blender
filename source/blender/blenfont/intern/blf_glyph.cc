@@ -66,7 +66,7 @@
  */
 static FT_Fixed to_16dot16(const double val)
 {
-  return (FT_Fixed)lround(val * 65536.0);
+  return FT_Fixed(lround(val * 65536.0));
 }
 
 /**
@@ -231,19 +231,19 @@ static GlyphBLF *blf_glyph_cache_add_glyph(GlyphCacheBLF *gc,
   std::unique_ptr<GlyphBLF> g = std::make_unique<GlyphBLF>();
   g->c = charcode;
   g->idx = glyph_index;
-  g->advance_x = (ft_pix)glyph->advance.x;
+  g->advance_x = ft_pix(glyph->advance.x);
   g->subpixel = subpixel;
 
   FT_BBox bbox;
   FT_Outline_Get_CBox(&(glyph->outline), &bbox);
-  g->box_xmin = (ft_pix)bbox.xMin;
-  g->box_xmax = (ft_pix)bbox.xMax;
-  g->box_ymin = (ft_pix)bbox.yMin;
-  g->box_ymax = (ft_pix)bbox.yMax;
+  g->box_xmin = ft_pix(bbox.xMin);
+  g->box_xmax = ft_pix(bbox.xMax);
+  g->box_ymin = ft_pix(bbox.yMin);
+  g->box_ymax = ft_pix(bbox.yMax);
 
   /* Used to improve advance when hinting is enabled. */
-  g->lsb_delta = (ft_pix)glyph->lsb_delta;
-  g->rsb_delta = (ft_pix)glyph->rsb_delta;
+  g->lsb_delta = ft_pix(glyph->lsb_delta);
+  g->rsb_delta = ft_pix(glyph->rsb_delta);
 
   if (glyph->format == FT_GLYPH_FORMAT_BITMAP) {
     /* This has been rendered and we have a bitmap. */
@@ -975,11 +975,11 @@ static const FT_Var_Axis *blf_var_axis_by_tag(const FT_MM_Var *variations,
   FT_Fixed value = axis->def;
   if (factor > 0) {
     /* Map 0-1 to axis->def - axis->maximum */
-    value += (FT_Fixed)(double(axis->maximum - axis->def) * factor);
+    value += FT_Fixed(double(axis->maximum - axis->def) * factor);
   }
   else if (factor < 0) {
     /* Map -1-0 to axis->minimum - axis->def */
-    value += (FT_Fixed)(double(axis->def - axis->minimum) * factor);
+    value += FT_Fixed(double(axis->def - axis->minimum) * factor);
   }
   return value;
 }
@@ -1140,10 +1140,10 @@ static bool blf_glyph_set_variation_optical_size(const FontBLF *font,
 static bool blf_glyph_transform_weight(FT_GlyphSlot glyph, float width, bool monospaced)
 {
   if (glyph->format == FT_GLYPH_FORMAT_OUTLINE) {
-    const FontBLF *font = (FontBLF *)glyph->face->generic.data;
+    const FontBLF *font = static_cast<FontBLF *>(glyph->face->generic.data);
     const FT_Pos average_width = font->ft_size->metrics.height;
     float factor = width * 0.000225f;
-    FT_Pos change = (FT_Pos)(float(average_width) * factor);
+    FT_Pos change = FT_Pos(float(average_width) * factor);
     FT_Outline_EmboldenXY(&glyph->outline, change, 0);
     if (monospaced) {
       /* Widened fixed-pitch font needs a nudge left. */
@@ -1171,9 +1171,9 @@ static bool blf_glyph_transform_slant(FT_GlyphSlot glyph, float degrees)
     FT_Outline_Transform(&glyph->outline, &transform);
     if (degrees < 0.0f) {
       /* Leftward slant could interfere with prior characters to nudge right. */
-      const FontBLF *font = (FontBLF *)glyph->face->generic.data;
+      const FontBLF *font = static_cast<FontBLF *>(glyph->face->generic.data);
       const FT_Pos average_width = font->ft_size->metrics.height;
-      FT_Pos change = (FT_Pos)(float(average_width) * degrees * -0.01f);
+      FT_Pos change = FT_Pos(float(average_width) * degrees * -0.01f);
       FT_Outline_Translate(&glyph->outline, change, 0);
     }
     return true;
@@ -1193,7 +1193,7 @@ static bool blf_glyph_transform_width(FT_GlyphSlot glyph, float factor)
     float scale = factor + 1.0f;
     FT_Matrix matrix = {to_16dot16(scale), 0, 0, to_16dot16(1)};
     FT_Outline_Transform(&glyph->outline, &matrix);
-    glyph->advance.x = (FT_Pos)(double(glyph->advance.x) * scale);
+    glyph->advance.x = FT_Pos(double(glyph->advance.x) * scale);
     return true;
   }
   return false;
@@ -1208,9 +1208,9 @@ static bool blf_glyph_transform_width(FT_GlyphSlot glyph, float factor)
 static bool blf_glyph_transform_spacing(FT_GlyphSlot glyph, float factor)
 {
   if (glyph->advance.x > 0) {
-    const FontBLF *font = (FontBLF *)glyph->face->generic.data;
+    const FontBLF *font = static_cast<FontBLF *>(glyph->face->generic.data);
     const long int size = font->ft_size->metrics.height;
-    glyph->advance.x += (FT_Pos)(factor * float(size) / 6.0f);
+    glyph->advance.x += FT_Pos(factor * float(size) / 6.0f);
     return true;
   }
   return false;
@@ -1227,7 +1227,7 @@ static bool blf_glyph_transform_monospace(FT_GlyphSlot glyph, int width)
     FT_Fixed current = glyph->linearHoriAdvance;
     FT_Fixed target = FT_Fixed(width) << 16; /* Do math in 16.16 values. */
     if (target < current) {
-      const FT_Pos embolden = (FT_Pos)((current - target) >> 13);
+      const FT_Pos embolden = FT_Pos((current - target) >> 13);
       /* Horizontally widen strokes to counteract narrowing. */
       FT_Outline_EmboldenXY(&glyph->outline, embolden, 0);
       const float scale = float(target - (embolden << 9)) / float(current);
@@ -1236,7 +1236,7 @@ static bool blf_glyph_transform_monospace(FT_GlyphSlot glyph, int width)
     }
     else if (target > current) {
       /* Center narrow glyphs. */
-      FT_Outline_Translate(&glyph->outline, (FT_Pos)((target - current) >> 11), 0);
+      FT_Outline_Translate(&glyph->outline, FT_Pos((target - current) >> 11), 0);
     }
     glyph->advance.x = width << 6;
     return true;
@@ -1334,7 +1334,7 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
     return glyph;
   }
 
-  FT_Outline_Translate(&glyph->outline, (FT_Pos)subpixel, 0);
+  FT_Outline_Translate(&glyph->outline, FT_Pos(subpixel), 0);
 
   if (blf_glyph_render_bitmap(glyph_font, glyph)) {
     return glyph;

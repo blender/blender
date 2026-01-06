@@ -597,13 +597,13 @@ void ED_space_clip_set_clip(bContext *C, bScreen *screen, SpaceClip *sc, MovieCl
   old_clip = sc->clip;
   sc->clip = clip;
 
-  id_us_ensure_real((ID *)sc->clip);
+  id_us_ensure_real(blender::id_cast<ID *>(sc->clip));
 
   if (screen && sc->view == SC_VIEW_CLIP) {
     for (ScrArea &area : screen->areabase) {
       for (SpaceLink &sl : area.spacedata) {
         if (sl.spacetype == SPACE_CLIP) {
-          SpaceClip *cur_sc = (SpaceClip *)&sl;
+          SpaceClip *cur_sc = reinterpret_cast<SpaceClip *>(&sl);
 
           if (cur_sc != sc) {
             if (cur_sc->view == SC_VIEW_CLIP) {
@@ -647,7 +647,7 @@ void ED_space_clip_set_mask(bContext *C, SpaceClip *sc, Mask *mask)
 {
   sc->mask_info.mask = mask;
 
-  id_us_ensure_real((ID *)sc->mask_info.mask);
+  id_us_ensure_real(blender::id_cast<ID *>(sc->mask_info.mask));
 
   if (C) {
     WM_event_add_notifier(C, NC_MASK | NA_SELECTED, mask);
@@ -840,8 +840,8 @@ static uchar *prefetch_thread_next_frame(PrefetchQueue *queue,
 
 static void prefetch_task_func(TaskPool *__restrict pool, void *task_data)
 {
-  PrefetchQueue *queue = (PrefetchQueue *)BLI_task_pool_user_data(pool);
-  MovieClip *clip = (MovieClip *)task_data;
+  PrefetchQueue *queue = static_cast<PrefetchQueue *>(BLI_task_pool_user_data(pool));
+  MovieClip *clip = static_cast<MovieClip *>(task_data);
   uchar *mem;
   size_t size;
   int current_frame;
@@ -1135,7 +1135,8 @@ void clip_start_prefetch_job(const bContext *C)
   /* Create a local copy of the clip, so that video file (clip->anim) access can happen without
    * acquiring the lock which will interfere with the main thread. */
   if (pj->clip->source == MCLIP_SRC_MOVIE) {
-    BKE_id_copy_ex(nullptr, (&pj->clip->id), (ID **)&pj->clip_local, LIB_ID_COPY_LOCALIZE);
+    BKE_id_copy_ex(
+        nullptr, (&pj->clip->id), reinterpret_cast<ID **>(&pj->clip_local), LIB_ID_COPY_LOCALIZE);
   }
 
   WM_jobs_customdata_set(wm_job, pj, prefetch_freejob);

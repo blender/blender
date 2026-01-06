@@ -2727,7 +2727,7 @@ void do_versions_after_linking_500(FileData *fd, Main *bmain)
       if (object.type != OB_ARMATURE || !object.data) {
         continue;
       }
-      BKE_pose_rebuild(nullptr, &object, static_cast<bArmature *>(object.data), false);
+      BKE_pose_rebuild(nullptr, &object, blender::id_cast<bArmature *>(object.data), false);
       for (bPoseChannel &pose_bone : object.pose->chanbase) {
         if (pose_bone.bone->flag & BONE_HIDDEN_P) {
           pose_bone.drawflag |= PCHAN_DRAW_HIDDEN;
@@ -2958,7 +2958,7 @@ static void do_version_adaptive_subdivision(Main *bmain)
 
     for (ModifierData &md : object.modifiers) {
       if (md.type == eModifierType_Subsurf) {
-        SubsurfModifierData *smd = (SubsurfModifierData *)&md;
+        SubsurfModifierData *smd = reinterpret_cast<SubsurfModifierData *>(&md);
         smd->adaptive_space = SUBSURF_ADAPTIVE_SPACE_PIXEL;
         smd->adaptive_pixel_size = dicing_rate;
         smd->adaptive_object_edge_length = 0.01f;
@@ -4049,7 +4049,7 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
       if (ntree->type == NTREE_SHADER) {
         for (bNode &node : ntree->nodes) {
           if (node.type_legacy == SH_NODE_TEX_SKY && node.storage) {
-            NodeTexSky *tex = (NodeTexSky *)node.storage;
+            NodeTexSky *tex = static_cast<NodeTexSky *>(node.storage);
             if (tex->sky_model == 0) {
               tex->sky_model = SHD_SKY_SINGLE_SCATTERING;
             }
@@ -4121,7 +4121,7 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
         for (ScrArea &area : screen.areabase) {
           for (SpaceLink &space : area.spacedata) {
             if (space.spacetype == SPACE_CLIP) {
-              SpaceClip *sclip = (SpaceClip *)&space;
+              SpaceClip *sclip = reinterpret_cast<SpaceClip *>(&space);
               sclip->overlay.flag |= SC_SHOW_OVERLAYS;
               sclip->overlay.flag |= SC_SHOW_CURSOR;
             }
@@ -4209,7 +4209,7 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
         for (ScrArea &area : screen.areabase) {
           for (SpaceLink &space : area.spacedata) {
             if (space.spacetype == SPACE_ACTION) {
-              SpaceAction *space_action = (SpaceAction *)&space;
+              SpaceAction *space_action = reinterpret_cast<SpaceAction *>(&space);
               space_action->overlays.flag |= ADS_OVERLAY_SHOW_OVERLAYS;
               space_action->overlays.flag |= ADS_SHOW_SCENE_STRIP_FRAME_RANGE;
             }

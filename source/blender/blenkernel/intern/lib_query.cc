@@ -162,7 +162,7 @@ void BKE_lib_query_idpropertiesForeachIDLink_callback(IDProperty *id_prop, void 
 {
   BLI_assert(id_prop->type == IDP_ID);
 
-  LibraryForeachIDData *data = (LibraryForeachIDData *)user_data;
+  LibraryForeachIDData *data = static_cast<LibraryForeachIDData *>(user_data);
   const LibraryForeachIDCallbackFlag cb_flag = IDWALK_CB_USER |
                                                ((id_prop->flag & IDP_FLAG_OVERRIDABLE_LIBRARY) ?
                                                     IDWALK_CB_NOP :
@@ -581,8 +581,11 @@ int BKE_library_ID_use_ID(ID *id_user, ID *id_used)
   iter.curr_id = id_user;
   iter.count_direct = iter.count_indirect = 0;
 
-  BKE_library_foreach_ID_link(
-      nullptr, iter.curr_id, foreach_libblock_id_users_callback, (void *)&iter, IDWALK_READONLY);
+  BKE_library_foreach_ID_link(nullptr,
+                              iter.curr_id,
+                              foreach_libblock_id_users_callback,
+                              static_cast<void *>(&iter),
+                              IDWALK_READONLY);
 
   return iter.count_direct + iter.count_indirect;
 }

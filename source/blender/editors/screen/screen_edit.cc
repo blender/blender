@@ -1480,7 +1480,7 @@ void ED_screen_scene_change(bContext *C,
   for (ScrArea &area : screen->areabase) {
     for (SpaceLink &sl : area.spacedata) {
       if (sl.spacetype == SPACE_VIEW3D) {
-        View3D *v3d = (View3D *)&sl;
+        View3D *v3d = reinterpret_cast<View3D *>(&sl);
         screen_set_3dview_camera(scene, view_layer, &area, v3d);
       }
     }
@@ -1619,7 +1619,7 @@ static bScreen *screen_state_to_nonnormal(bContext *C,
   screen->animtimer = oldscreen->animtimer;
   oldscreen->animtimer = nullptr;
 
-  newa = (ScrArea *)screen->areabase.first;
+  newa = static_cast<ScrArea *>(screen->areabase.first);
 
   /* swap area */
   if (toggle_area) {
@@ -1887,13 +1887,13 @@ ScrArea *ED_screen_temp_space_open(
         ScrArea *area = ctx_area;
         ED_area_newspace(C, ctx_area, space_type, true);
         area->flag |= AREA_FLAG_STACKED_FULLSCREEN;
-        ((SpaceLink *)area->spacedata.first)->link_flag |= SPACE_FLAG_TYPE_TEMPORARY;
+        (static_cast<SpaceLink *>(area->spacedata.first))->link_flag |= SPACE_FLAG_TYPE_TEMPORARY;
         return area;
       }
 
       /* Create a new fullscreen area. */
       ScrArea *area = ED_screen_full_newspace(C, ctx_area, int(space_type));
-      ((SpaceLink *)area->spacedata.first)->link_flag |= SPACE_FLAG_TYPE_TEMPORARY;
+      (static_cast<SpaceLink *>(area->spacedata.first))->link_flag |= SPACE_FLAG_TYPE_TEMPORARY;
       return area;
     }
   }

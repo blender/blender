@@ -43,7 +43,7 @@ static void tracking_segment_point_cb(void *userdata,
                                       int scene_framenr,
                                       float val)
 {
-  TrackMotionCurveUserData *data = (TrackMotionCurveUserData *)userdata;
+  TrackMotionCurveUserData *data = static_cast<TrackMotionCurveUserData *>(userdata);
 
   if (!clip_graph_value_visible(data->sc, value_source)) {
     return;
@@ -57,7 +57,7 @@ static void tracking_segment_start_cb(void *userdata,
                                       eClipCurveValueSource value_source,
                                       bool is_point)
 {
-  TrackMotionCurveUserData *data = (TrackMotionCurveUserData *)userdata;
+  TrackMotionCurveUserData *data = static_cast<TrackMotionCurveUserData *>(userdata);
   SpaceClip *sc = data->sc;
   float col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
@@ -106,7 +106,7 @@ static void tracking_segment_start_cb(void *userdata,
 
 static void tracking_segment_end_cb(void *userdata, eClipCurveValueSource value_source)
 {
-  TrackMotionCurveUserData *data = (TrackMotionCurveUserData *)userdata;
+  TrackMotionCurveUserData *data = static_cast<TrackMotionCurveUserData *>(userdata);
   SpaceClip *sc = data->sc;
   if (!clip_graph_value_visible(sc, value_source)) {
     return;
@@ -122,7 +122,7 @@ static void tracking_segment_knot_cb(void *userdata,
                                      int scene_framenr,
                                      float val)
 {
-  TrackMotionCurveUserData *data = (TrackMotionCurveUserData *)userdata;
+  TrackMotionCurveUserData *data = static_cast<TrackMotionCurveUserData *>(userdata);
 
   if (track != data->act_track) {
     return;

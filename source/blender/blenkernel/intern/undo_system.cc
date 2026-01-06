@@ -527,7 +527,8 @@ eUndoPushReturn BKE_undosys_step_push_with_type(UndoStack *ustack,
   /* Might not be final place for this to be called - probably only want to call it from some
    * undo handlers, not all of them? */
   eRNAOverrideMatchResult report_flags = RNA_OVERRIDE_MATCH_RESULT_INIT;
-  BKE_lib_override_library_main_operations_create(G_MAIN, false, (int *)&report_flags);
+  BKE_lib_override_library_main_operations_create(
+      G_MAIN, false, reinterpret_cast<int *>(&report_flags));
   if (report_flags & RNA_OVERRIDE_MATCH_RESULT_CREATED) {
     retval |= UNDO_PUSH_RET_OVERRIDE_CHANGED;
   }
@@ -1000,7 +1001,7 @@ void BKE_undosys_print(UndoStack *ustack)
            (&us == ustack->step_active_memfile) ? 'M' : ' ',
            us.skip ? 'S' : ' ',
            index,
-           (void *)&us,
+           static_cast<void *>(&us),
            us.type->name,
            us.name);
     index++;

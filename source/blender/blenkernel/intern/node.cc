@@ -2806,27 +2806,27 @@ static void socket_id_user_increment(bNodeSocket *sock)
     }
     case SOCK_FONT: {
       bNodeSocketValueFont &default_value = *sock->default_value_typed<bNodeSocketValueFont>();
-      id_us_plus(id_cast<ID *>(default_value.value));
+      id_us_plus(blender::id_cast<ID *>(default_value.value));
       break;
     }
     case SOCK_SCENE: {
       bNodeSocketValueScene &default_value = *sock->default_value_typed<bNodeSocketValueScene>();
-      id_us_plus(id_cast<ID *>(default_value.value));
+      id_us_plus(blender::id_cast<ID *>(default_value.value));
       break;
     }
     case SOCK_TEXT_ID: {
       bNodeSocketValueText &default_value = *sock->default_value_typed<bNodeSocketValueText>();
-      id_us_plus(id_cast<ID *>(default_value.value));
+      id_us_plus(blender::id_cast<ID *>(default_value.value));
       break;
     }
     case SOCK_MASK: {
       bNodeSocketValueMask &default_value = *sock->default_value_typed<bNodeSocketValueMask>();
-      id_us_plus(id_cast<ID *>(default_value.value));
+      id_us_plus(blender::id_cast<ID *>(default_value.value));
       break;
     }
     case SOCK_SOUND: {
       bNodeSocketValueSound &default_value = *sock->default_value_typed<bNodeSocketValueSound>();
-      id_us_plus(id_cast<ID *>(default_value.value));
+      id_us_plus(blender::id_cast<ID *>(default_value.value));
       break;
     }
     case SOCK_FLOAT:
@@ -2881,27 +2881,27 @@ static bool socket_id_user_decrement(bNodeSocket *sock)
     }
     case SOCK_FONT: {
       bNodeSocketValueFont &default_value = *sock->default_value_typed<bNodeSocketValueFont>();
-      id_us_min(id_cast<ID *>(default_value.value));
+      id_us_min(blender::id_cast<ID *>(default_value.value));
       return default_value.value != nullptr;
     }
     case SOCK_SCENE: {
       bNodeSocketValueScene &default_value = *sock->default_value_typed<bNodeSocketValueScene>();
-      id_us_min(id_cast<ID *>(default_value.value));
+      id_us_min(blender::id_cast<ID *>(default_value.value));
       return default_value.value != nullptr;
     }
     case SOCK_TEXT_ID: {
       bNodeSocketValueText &default_value = *sock->default_value_typed<bNodeSocketValueText>();
-      id_us_min(id_cast<ID *>(default_value.value));
+      id_us_min(blender::id_cast<ID *>(default_value.value));
       return default_value.value != nullptr;
     }
     case SOCK_MASK: {
       bNodeSocketValueMask &default_value = *sock->default_value_typed<bNodeSocketValueMask>();
-      id_us_min(id_cast<ID *>(default_value.value));
+      id_us_min(blender::id_cast<ID *>(default_value.value));
       return default_value.value != nullptr;
     }
     case SOCK_SOUND: {
       bNodeSocketValueSound &default_value = *sock->default_value_typed<bNodeSocketValueSound>();
-      id_us_min(id_cast<ID *>(default_value.value));
+      id_us_min(blender::id_cast<ID *>(default_value.value));
       return default_value.value != nullptr;
     }
     case SOCK_FLOAT:
@@ -5738,13 +5738,13 @@ void node_system_exit()
 
 void node_tree_iterator_init(NodeTreeIterStore *ntreeiter, Main *bmain)
 {
-  ntreeiter->ngroup = (bNodeTree *)bmain->nodetrees.first;
-  ntreeiter->scene = (Scene *)bmain->scenes.first;
-  ntreeiter->mat = (Material *)bmain->materials.first;
-  ntreeiter->tex = (Tex *)bmain->textures.first;
-  ntreeiter->light = (Light *)bmain->lights.first;
-  ntreeiter->world = (World *)bmain->worlds.first;
-  ntreeiter->linestyle = (FreestyleLineStyle *)bmain->linestyles.first;
+  ntreeiter->ngroup = static_cast<bNodeTree *>(bmain->nodetrees.first);
+  ntreeiter->scene = static_cast<Scene *>(bmain->scenes.first);
+  ntreeiter->mat = static_cast<Material *>(bmain->materials.first);
+  ntreeiter->tex = static_cast<Tex *>(bmain->textures.first);
+  ntreeiter->light = static_cast<Light *>(bmain->lights.first);
+  ntreeiter->world = static_cast<World *>(bmain->worlds.first);
+  ntreeiter->linestyle = static_cast<FreestyleLineStyle *>(bmain->linestyles.first);
 }
 bool node_tree_iterator_step(NodeTreeIterStore *ntreeiter, bNodeTree **r_nodetree, ID **r_id)
 {

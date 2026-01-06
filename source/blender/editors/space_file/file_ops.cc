@@ -924,7 +924,7 @@ static wmOperatorStatus file_walk_select_invoke(bContext *C,
                                                 wmOperator *op,
                                                 const wmEvent * /*event*/)
 {
-  SpaceFile *sfile = (SpaceFile *)CTX_wm_space_data(C);
+  SpaceFile *sfile = reinterpret_cast<SpaceFile *>(CTX_wm_space_data(C));
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   const int direction = RNA_enum_get(op->ptr, "direction");
   const bool extend = RNA_boolean_get(op->ptr, "extend");
@@ -1319,7 +1319,7 @@ static wmOperatorStatus bookmark_move_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  BLI_linklist_move_item((LinkNode **)&fsmentry, act_index, new_index);
+  BLI_linklist_move_item(reinterpret_cast<LinkNode **>(&fsmentry), act_index, new_index);
   if (fsmentry != fsmentry_org) {
     ED_fsmenu_set_category(fsmenu, FS_CATEGORY_BOOKMARKS, fsmentry);
   }
@@ -1963,7 +1963,7 @@ static void file_os_operations_menu_item(blender::ui::Layout &layout,
 
 static void file_os_operations_menu_draw(const bContext *C_const, Menu *menu)
 {
-  bContext *C = (bContext *)C_const;
+  bContext *C = const_cast<bContext *>(C_const);
 
   /* File browsing only operator (not asset browsing). */
   if (!ED_operator_file_browsing_active(C)) {
@@ -2029,7 +2029,7 @@ static void file_os_operations_menu_draw(const bContext *C_const, Menu *menu)
 
 static bool file_os_operations_menu_poll(const bContext *C_const, MenuType * /*mt*/)
 {
-  bContext *C = (bContext *)C_const;
+  bContext *C = const_cast<bContext *>(C_const);
 
   /* File browsing only operator (not asset browsing). */
   if (!ED_operator_file_browsing_active(C)) {
@@ -3203,7 +3203,7 @@ static void file_rename_state_activate(SpaceFile *sfile, int file_idx, bool requ
 static wmOperatorStatus file_rename_exec(bContext *C, wmOperator * /*op*/)
 {
   ScrArea *area = CTX_wm_area(C);
-  SpaceFile *sfile = (SpaceFile *)CTX_wm_space_data(C);
+  SpaceFile *sfile = reinterpret_cast<SpaceFile *>(CTX_wm_space_data(C));
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
 
   if (params) {

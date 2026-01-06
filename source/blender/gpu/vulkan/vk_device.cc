@@ -135,7 +135,7 @@ void VKDevice::init(void *ghost_context)
 {
   BLI_assert(!is_initialized());
   GHOST_VulkanHandles handles = {};
-  GHOST_GetVulkanHandles((GHOST_ContextHandle)ghost_context, &handles);
+  GHOST_GetVulkanHandles(static_cast<GHOST_ContextHandle>(ghost_context), &handles);
   vk_instance_ = handles.instance;
   vk_physical_device_ = handles.physical_device;
   vk_device_ = handles.device;

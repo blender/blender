@@ -213,11 +213,11 @@ struct MaskLayerShape {
 #ifdef __cplusplus
   const MaskLayerShapeElem *vertices() const
   {
-    return (const MaskLayerShapeElem *)this->data;
+    return reinterpret_cast<const MaskLayerShapeElem *>(this->data);
   }
   MaskLayerShapeElem *vertices()
   {
-    return (MaskLayerShapeElem *)this->data;
+    return reinterpret_cast<MaskLayerShapeElem *>(this->data);
   }
 #endif
 };

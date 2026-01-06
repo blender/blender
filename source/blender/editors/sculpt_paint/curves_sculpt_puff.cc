@@ -85,7 +85,7 @@ struct PuffOperationExecutor {
     self_ = &self;
 
     object_ = ctx_.object;
-    curves_id_ = static_cast<Curves *>(object_->data);
+    curves_id_ = blender::id_cast<Curves *>(object_->data);
     curves_ = &curves_id_->geometry.wrap();
     if (curves_->is_empty()) {
       return;
@@ -109,7 +109,7 @@ struct PuffOperationExecutor {
     const eBrushFalloffShape falloff_shape = eBrushFalloffShape(brush_->falloff_shape);
 
     surface_ob_ = curves_id_->surface;
-    surface_ = static_cast<const Mesh *>(surface_ob_->data);
+    surface_ = blender::id_cast<const Mesh *>(surface_ob_->data);
 
     transforms_ = CurvesSurfaceTransforms(*object_, surface_ob_);
 

@@ -847,7 +847,7 @@ void BKE_pose_eval_init_ik(Depsgraph *depsgraph, Scene *scene, Object *object)
   DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
   BLI_assert(object->type == OB_ARMATURE);
   const float ctime = BKE_scene_ctime_get(scene); /* not accurate... */
-  bArmature *armature = (bArmature *)object->data;
+  bArmature *armature = blender::id_cast<bArmature *>(object->data);
   if (armature->flag & ARM_RESTPOS) {
     return;
   }
@@ -861,7 +861,7 @@ void BKE_pose_eval_init_ik(Depsgraph *depsgraph, Scene *scene, Object *object)
 
 void BKE_pose_eval_bone(Depsgraph *depsgraph, Scene *scene, Object *object, int pchan_index)
 {
-  const bArmature *armature = (bArmature *)object->data;
+  const bArmature *armature = blender::id_cast<bArmature *>(object->data);
   if (armature->edbo != nullptr) {
     return;
   }
@@ -900,7 +900,7 @@ void BKE_pose_constraints_evaluate(Depsgraph *depsgraph,
                                    Object *object,
                                    int pchan_index)
 {
-  const bArmature *armature = (bArmature *)object->data;
+  const bArmature *armature = blender::id_cast<bArmature *>(object->data);
   if (armature->edbo != nullptr) {
     return;
   }
@@ -928,7 +928,7 @@ static void pose_channel_flush_to_orig_if_needed(Depsgraph *depsgraph,
   if (!DEG_is_active(depsgraph)) {
     return;
   }
-  const bArmature *armature = (bArmature *)object->data;
+  const bArmature *armature = blender::id_cast<bArmature *>(object->data);
   if (armature->edbo != nullptr) {
     return;
   }
@@ -947,7 +947,7 @@ void BKE_pose_bone_done(Depsgraph *depsgraph, Object *object, int pchan_index)
   /* Note: tests in `armature_deform_test.cc` update pose matrices locally to avoid creating a full
    * depsgraph. Keep these in sync if this function is changed! */
 
-  const bArmature *armature = (bArmature *)object->data;
+  const bArmature *armature = blender::id_cast<bArmature *>(object->data);
   if (armature->edbo != nullptr) {
     return;
   }
@@ -973,7 +973,7 @@ void BKE_pose_bone_done(Depsgraph *depsgraph, Object *object, int pchan_index)
 
 void BKE_pose_eval_bbone_segments(Depsgraph *depsgraph, Object *object, int pchan_index)
 {
-  const bArmature *armature = (bArmature *)object->data;
+  const bArmature *armature = blender::id_cast<bArmature *>(object->data);
   if (armature->edbo != nullptr) {
     return;
   }
@@ -993,7 +993,7 @@ void BKE_pose_iktree_evaluate(Depsgraph *depsgraph,
                               Object *object,
                               int rootchan_index)
 {
-  const bArmature *armature = (bArmature *)object->data;
+  const bArmature *armature = blender::id_cast<bArmature *>(object->data);
   if (armature->edbo != nullptr) {
     return;
   }
@@ -1014,7 +1014,7 @@ void BKE_pose_splineik_evaluate(Depsgraph *depsgraph,
                                 int rootchan_index)
 
 {
-  const bArmature *armature = (bArmature *)object->data;
+  const bArmature *armature = blender::id_cast<bArmature *>(object->data);
   if (armature->edbo != nullptr) {
     return;
   }

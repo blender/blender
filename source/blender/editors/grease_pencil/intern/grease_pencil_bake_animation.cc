@@ -171,7 +171,7 @@ static wmOperatorStatus bake_grease_pencil_animation_exec(bContext *C, wmOperato
 
   WM_cursor_wait(true);
 
-  GreasePencil &target = *static_cast<GreasePencil *>(target_object->data);
+  GreasePencil &target = *blender::id_cast<GreasePencil *>(target_object->data);
   Object *target_object_eval = DEG_get_evaluated(&depsgraph, target_object);
 
   std::optional<Set<int>> keyframes;
@@ -195,7 +195,7 @@ static wmOperatorStatus bake_grease_pencil_animation_exec(bContext *C, wmOperato
 
     for (Object *source_object : bake_targets) {
       Object *source_object_eval = DEG_get_evaluated(&depsgraph, source_object);
-      GreasePencil &source_eval_grease_pencil = *static_cast<GreasePencil *>(
+      GreasePencil &source_eval_grease_pencil = *blender::id_cast<GreasePencil *>(
           source_object_eval->data);
       const float4x4 to_target = source_object_eval->object_to_world() * target_imat;
 

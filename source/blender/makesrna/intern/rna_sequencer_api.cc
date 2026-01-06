@@ -45,7 +45,7 @@
 
 static StripElem *rna_Strip_elem_from_frame(ID *id, Strip *self, int timeline_frame)
 {
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
   return blender::seq::render_give_stripelem(scene, self, timeline_frame);
 }
 
@@ -55,7 +55,7 @@ static void rna_Strip_swap_internal(ID *id,
                                     Strip *strip_other)
 {
   const char *error_msg;
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
 
   if (blender::seq::edit_strip_swap(scene, strip_self, strip_other, &error_msg) == false) {
     BKE_report(reports, RPT_ERROR, error_msg);
@@ -65,7 +65,7 @@ static void rna_Strip_swap_internal(ID *id,
 static void rna_Strips_move_strip_to_meta(
     ID *id, Strip *strip_self, Main *bmain, ReportList *reports, Strip *meta_dst)
 {
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
   const char *error_msg;
 
   /* Move strip to meta. */
@@ -90,7 +90,7 @@ static Strip *rna_Strip_split(ID *id,
                               int split_method,
                               bool ignore_connections)
 {
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
   ListBaseT<Strip> *seqbase = blender::seq::get_seqbase_by_strip(scene, strip);
 
   const char *error_msg = nullptr;
@@ -117,7 +117,7 @@ static Strip *rna_Strip_split(ID *id,
 
 static Strip *rna_Strip_parent_meta(ID *id, Strip *strip_self)
 {
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
   return blender::seq::lookup_meta_by_strip(blender::seq::editing_get(scene), strip_self);
 }
 
@@ -129,7 +129,7 @@ static Strip *rna_Strips_new_clip(ID *id,
                                   int channel,
                                   int frame_start)
 {
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
   blender::seq::LoadData load_data;
   blender::seq::add_load_data_init(&load_data, name, nullptr, frame_start, channel);
   load_data.clip = clip;
@@ -172,7 +172,7 @@ static Strip *rna_Strips_new_mask(ID *id,
                                   int channel,
                                   int frame_start)
 {
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
   blender::seq::LoadData load_data;
   blender::seq::add_load_data_init(&load_data, name, nullptr, frame_start, channel);
   load_data.mask = mask;
@@ -204,7 +204,7 @@ static Strip *rna_Strips_new_scene(ID *id,
                                    int channel,
                                    int frame_start)
 {
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
   blender::seq::LoadData load_data;
   blender::seq::add_load_data_init(&load_data, name, nullptr, frame_start, channel);
   load_data.scene = sce_strip;
@@ -249,7 +249,7 @@ static Strip *rna_Strips_new_image(ID *id,
                                    int frame_start,
                                    int fit_method)
 {
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
 
   blender::seq::LoadData load_data;
   blender::seq::add_load_data_init(&load_data, name, file, frame_start, channel);
@@ -320,7 +320,7 @@ static Strip *rna_Strips_new_movie(ID *id,
                                    int frame_start,
                                    int fit_method)
 {
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
   blender::seq::LoadData load_data;
   blender::seq::add_load_data_init(&load_data, name, file, frame_start, channel);
   load_data.fit_method = eSeqImageFitMethod(fit_method);
@@ -456,7 +456,7 @@ static Strip *rna_Strips_meta_new_sound(ID *id,
 static Strip *rna_Strips_new_meta(
     ID *id, ListBaseT<Strip> *seqbase, const char *name, int channel, int frame_start)
 {
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
   blender::seq::LoadData load_data;
   blender::seq::add_load_data_init(&load_data, name, nullptr, frame_start, channel);
   Strip *seqm = blender::seq::add_meta_strip(scene, seqbase, &load_data);
@@ -487,7 +487,7 @@ static Strip *rna_Strips_new_effect(ID *id,
                                     Strip *input1,
                                     Strip *input2)
 {
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
   Strip *strip;
   const int num_inputs = blender::seq::effect_get_num_inputs(type);
 
@@ -567,7 +567,7 @@ static void rna_Strips_remove(
     ID *id, ListBaseT<Strip> *seqbase, Main *bmain, ReportList *reports, PointerRNA *strip_ptr)
 {
   Strip *strip = static_cast<Strip *>(strip_ptr->data);
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
 
   if (BLI_findindex(seqbase, strip) == -1) {
     BKE_reportf(
@@ -598,7 +598,7 @@ static void rna_Strips_meta_remove(
 
 static StripElem *rna_StripElements_append(ID *id, Strip *strip, const char *filename)
 {
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
   StripElem *se;
 
   strip->data->stripdata = se = static_cast<StripElem *>(
@@ -616,7 +616,7 @@ static StripElem *rna_StripElements_append(ID *id, Strip *strip, const char *fil
 
 static void rna_StripElements_pop(ID *id, Strip *strip, ReportList *reports, int index)
 {
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
   StripElem *new_se, *se;
 
   if (strip->len == 1) {
@@ -660,17 +660,17 @@ static void rna_Strip_invalidate_cache_rnafunc(ID *id, Strip *self, int type)
 {
   switch (type) {
     case SEQ_CACHE_STORE_RAW:
-      blender::seq::relations_invalidate_cache_raw((Scene *)id, self);
+      blender::seq::relations_invalidate_cache_raw(blender::id_cast<Scene *>(id), self);
       break;
     case SEQ_CACHE_STORE_FINAL_OUT:
-      blender::seq::relations_invalidate_cache((Scene *)id, self);
+      blender::seq::relations_invalidate_cache(blender::id_cast<Scene *>(id), self);
       break;
   }
 }
 
 static SeqRetimingKey *rna_Strip_retiming_keys_add(ID *id, Strip *strip, int timeline_frame)
 {
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
 
   SeqRetimingKey *key = blender::seq::retiming_add_key(scene, strip, timeline_frame);
 
@@ -681,7 +681,7 @@ static SeqRetimingKey *rna_Strip_retiming_keys_add(ID *id, Strip *strip, int tim
 
 static void rna_Strip_retiming_keys_reset(ID *id, Strip *strip)
 {
-  Scene *scene = (Scene *)id;
+  Scene *scene = blender::id_cast<Scene *>(id);
 
   blender::seq::retiming_data_clear(strip);
 

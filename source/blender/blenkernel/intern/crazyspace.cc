@@ -232,7 +232,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(
     blender::Array<blender::float3, 0> &deformcos)
 {
   ModifierData *md;
-  Mesh *me_input = static_cast<Mesh *>(ob->data);
+  Mesh *me_input = blender::id_cast<Mesh *>(ob->data);
   Mesh *mesh = nullptr;
   int i, modifiers_left_num = 0;
   const int verts_num = em->bm->totvert;
@@ -261,7 +261,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(
         CDMaskLink *datamasks = BKE_modifier_calc_data_masks(
             scene, md, &cd_mask_extra, required_mode);
         cd_mask_extra = datamasks->mask;
-        BLI_linklist_free((LinkNode *)datamasks, nullptr);
+        BLI_linklist_free(reinterpret_cast<LinkNode *>(datamasks), nullptr);
 
         mesh = BKE_mesh_wrapper_from_editmesh(
             std::make_shared<BMEditMesh>(*em), &cd_mask_extra, me_input);
@@ -361,7 +361,7 @@ int BKE_sculpt_get_first_deform_matrices(Depsgraph *depsgraph,
       const ModifierTypeInfo *mti = BKE_modifier_get_info(static_cast<ModifierType>(md->type));
       if (deformmats.is_empty()) {
         /* NOTE: Evaluated object is re-set to its original un-deformed state. */
-        Mesh *mesh = static_cast<Mesh *>(object_eval.data);
+        Mesh *mesh = blender::id_cast<Mesh *>(object_eval.data);
         mesh_eval = BKE_mesh_copy_for_eval(*mesh);
         deformcos = mesh->vert_positions();
         deformmats.reinitialize(mesh->verts_num);
@@ -410,7 +410,7 @@ void BKE_crazyspace_build_sculpt(Depsgraph *depsgraph,
     /* There are deformation modifier which doesn't support deformation matrices calculation.
      * Need additional crazy-space correction. */
 
-    Mesh *mesh = (Mesh *)object->data;
+    Mesh *mesh = blender::id_cast<Mesh *>(object->data);
     Mesh *mesh_eval = nullptr;
 
     if (deformcos.is_empty()) {
@@ -473,7 +473,7 @@ void BKE_crazyspace_build_sculpt(Depsgraph *depsgraph,
   }
 
   if (deformmats.is_empty()) {
-    Mesh *mesh = (Mesh *)object->data;
+    Mesh *mesh = blender::id_cast<Mesh *>(object->data);
 
     deformcos = mesh->vert_positions();
     deformmats.reinitialize(mesh->verts_num);
@@ -566,7 +566,7 @@ namespace blender::bke::crazyspace {
 GeometryDeformation get_evaluated_curves_deformation(const Object *ob_eval, const Object &ob_orig)
 {
   BLI_assert(ob_orig.type == OB_CURVES);
-  const Curves &curves_id_orig = *static_cast<const Curves *>(ob_orig.data);
+  const Curves &curves_id_orig = *blender::id_cast<const Curves *>(ob_orig.data);
   const CurvesGeometry &curves_orig = curves_id_orig.geometry.wrap();
   const int points_num = curves_orig.points_num();
 
@@ -639,7 +639,7 @@ GeometryDeformation get_evaluated_grease_pencil_drawing_deformation(
     const Object *ob_eval, const Object &ob_orig, const bke::greasepencil::Drawing &drawing_orig)
 {
   BLI_assert(ob_orig.type == OB_GREASE_PENCIL);
-  const GreasePencil &grease_pencil_orig = *static_cast<const GreasePencil *>(ob_orig.data);
+  const GreasePencil &grease_pencil_orig = *blender::id_cast<const GreasePencil *>(ob_orig.data);
 
   GeometryDeformation deformation;
   /* Use the undeformed positions by default. */

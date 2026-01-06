@@ -432,10 +432,10 @@ void import_blendshapes(Main *bmain,
     return;
   }
 
-  Mesh *mesh = static_cast<Mesh *>(mesh_obj->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(mesh_obj->data);
 
   /* Insert key to source mesh. */
-  Key *key = BKE_key_add(bmain, (ID *)mesh);
+  Key *key = BKE_key_add(bmain, blender::id_cast<ID *>(mesh));
   key->type = KEY_RELATIVE;
 
   mesh->key = key;
@@ -774,7 +774,7 @@ void import_skeleton(Main *bmain,
     return;
   }
 
-  bArmature *arm = static_cast<bArmature *>(arm_obj->data);
+  bArmature *arm = blender::id_cast<bArmature *>(arm_obj->data);
 
   /* Set the armature to edit mode when creating the bones. */
   ED_armature_to_edit(arm);
@@ -1092,7 +1092,7 @@ void import_mesh_skel_bindings(Object *mesh_obj, const pxr::UsdPrim &prim, Repor
     return;
   }
 
-  Mesh *mesh = static_cast<Mesh *>(mesh_obj->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(mesh_obj->data);
 
   const pxr::TfToken interp = joint_weights_primvar.GetInterpolation();
 

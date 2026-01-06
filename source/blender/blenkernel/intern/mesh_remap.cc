@@ -187,7 +187,8 @@ static void mesh_calc_eigen_matrix(const Span<float3> positions, float r_mat[4][
                         covmat,
                         center);
 
-  eigen_success = BLI_eigen_solve_selfadjoint_m3((const float (*)[3])covmat, eigen_val, eigen_vec);
+  eigen_success = BLI_eigen_solve_selfadjoint_m3(
+      const_cast<const float (*)[3]>(covmat), eigen_val, eigen_vec);
   BLI_assert(eigen_success);
   UNUSED_VARS_NDEBUG(eigen_success);
 
@@ -1172,8 +1173,8 @@ static float mesh_remap_calc_loops_astar_f_cost(BLI_AStarGraph *as_graph,
   /* Our heuristic part of current f_cost is distance from next node to destination one.
    * It is guaranteed to be less than (or equal to)
    * actual shortest face-path between next node and destination one. */
-  co_next = (float *)as_graph->nodes[node_idx_next].custom_data;
-  co_dest = (float *)as_graph->nodes[node_idx_dst].custom_data;
+  co_next = static_cast<float *>(as_graph->nodes[node_idx_next].custom_data);
+  co_dest = static_cast<float *>(as_graph->nodes[node_idx_dst].custom_data);
   return (link ? (as_solution->g_costs[node_idx_curr] + link->cost) : 0.0f) +
          len_v3v3(co_next, co_dest);
 }
@@ -1693,7 +1694,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
         if (best_island_index != -1 && isld_steps_src) {
           best_island = use_islands ? island_store.islands[best_island_index] : nullptr;
           as_graph = &as_graphdata[best_island_index];
-          face_island_index_map = (int *)as_graph->custom_data;
+          face_island_index_map = static_cast<int *>(as_graph->custom_data);
           BLI_astar_solution_init(as_graph, &as_solution, nullptr);
         }
 
@@ -2181,7 +2182,8 @@ void BKE_mesh_remap_calc_faces_from_mesh(const int mode,
           tri_vidx_2d[1][2] = 3;
         }
         else {
-          BLI_polyfill_calc(face_vcos_2d, uint(face.size()), -1, (uint(*)[3])tri_vidx_2d);
+          BLI_polyfill_calc(
+              face_vcos_2d, uint(face.size()), -1, reinterpret_cast<uint(*)[3]>(tri_vidx_2d));
         }
 
         for (j = 0; j < tris_num; j++) {

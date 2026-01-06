@@ -224,7 +224,7 @@ static void test_framebuffer_cube()
     GPU_framebuffer_clear_color(framebuffers[i], clear_colors[i]);
   };
 
-  float4 *data = (float4 *)GPU_texture_read(tex, GPU_DATA_FLOAT, 0);
+  float4 *data = static_cast<float4 *>(GPU_texture_read(tex, GPU_DATA_FLOAT, 0));
   for (int side : IndexRange(6)) {
     for (int pixel_index : IndexRange(SIZE * SIZE)) {
       int index = pixel_index + (SIZE * SIZE) * side;

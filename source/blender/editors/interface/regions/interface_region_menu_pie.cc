@@ -242,8 +242,8 @@ struct PieMenuLevelData {
  */
 static void ui_pie_menu_level_invoke(bContext *C, void *argN, void *arg2)
 {
-  EnumPropertyItem *item_array = (EnumPropertyItem *)argN;
-  PieMenuLevelData *lvl = (PieMenuLevelData *)arg2;
+  EnumPropertyItem *item_array = static_cast<EnumPropertyItem *>(argN);
+  PieMenuLevelData *lvl = static_cast<PieMenuLevelData *>(arg2);
   wmWindow *win = CTX_wm_window(C);
 
   PieMenu *pie = pie_menu_begin(C, IFACE_(lvl->title), lvl->icon, win->runtime->eventstate);

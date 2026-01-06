@@ -53,7 +53,7 @@ using namespace blender;
 
 static void init_data(ModifierData *md)
 {
-  ScrewModifierData *ltmd = (ScrewModifierData *)md;
+  ScrewModifierData *ltmd = reinterpret_cast<ScrewModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(ltmd, modifier);
 }
 
@@ -195,7 +195,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   using namespace blender;
   const Mesh *mesh = meshData;
   Mesh *result;
-  ScrewModifierData *ltmd = (ScrewModifierData *)md;
+  ScrewModifierData *ltmd = reinterpret_cast<ScrewModifierData *>(md);
   const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER) != 0;
 
   int face_index = 0;
@@ -1024,7 +1024,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  ScrewModifierData *ltmd = (ScrewModifierData *)md;
+  ScrewModifierData *ltmd = reinterpret_cast<ScrewModifierData *>(md);
   if (ltmd->ob_axis != nullptr) {
     DEG_add_object_relation(ctx->node, ltmd->ob_axis, DEG_OB_COMP_TRANSFORM, "Screw Modifier");
     DEG_add_depends_on_transform_relation(ctx->node, "Screw Modifier");
@@ -1033,9 +1033,9 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  ScrewModifierData *ltmd = (ScrewModifierData *)md;
+  ScrewModifierData *ltmd = reinterpret_cast<ScrewModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&ltmd->ob_axis, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&ltmd->ob_axis), IDWALK_CB_NOP);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)

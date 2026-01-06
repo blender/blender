@@ -37,14 +37,14 @@
 
 static void init_data(ModifierData *md)
 {
-  DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+  DynamicPaintModifierData *pmd = reinterpret_cast<DynamicPaintModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(pmd, modifier);
 }
 
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
-  const DynamicPaintModifierData *pmd = (const DynamicPaintModifierData *)md;
-  DynamicPaintModifierData *tpmd = (DynamicPaintModifierData *)target;
+  const DynamicPaintModifierData *pmd = reinterpret_cast<const DynamicPaintModifierData *>(md);
+  DynamicPaintModifierData *tpmd = reinterpret_cast<DynamicPaintModifierData *>(target);
 
   dynamicPaint_Modifier_copy(pmd, tpmd, flag);
 }
@@ -54,19 +54,19 @@ static void free_runtime_data(void *runtime_data_v)
   if (runtime_data_v == nullptr) {
     return;
   }
-  DynamicPaintRuntime *runtime_data = (DynamicPaintRuntime *)runtime_data_v;
+  DynamicPaintRuntime *runtime_data = static_cast<DynamicPaintRuntime *>(runtime_data_v);
   dynamicPaint_Modifier_free_runtime(runtime_data);
 }
 
 static void free_data(ModifierData *md)
 {
-  DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+  DynamicPaintModifierData *pmd = reinterpret_cast<DynamicPaintModifierData *>(md);
   dynamicPaint_Modifier_free(pmd);
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+  DynamicPaintModifierData *pmd = reinterpret_cast<DynamicPaintModifierData *>(md);
 
   if (pmd->canvas) {
     DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(pmd->canvas->surfaces.first);
@@ -93,7 +93,7 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-  DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+  DynamicPaintModifierData *pmd = reinterpret_cast<DynamicPaintModifierData *>(md);
 
   /* Don't apply dynamic paint on ORCO mesh stack. */
   if (!(ctx->flag & MOD_APPLY_ORCO)) {
@@ -105,13 +105,13 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
 static bool is_brush_cb(Object * /*ob*/, ModifierData *md)
 {
-  DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+  DynamicPaintModifierData *pmd = reinterpret_cast<DynamicPaintModifierData *>(md);
   return (pmd->brush != nullptr && pmd->type == MOD_DYNAMICPAINT_TYPE_BRUSH);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+  DynamicPaintModifierData *pmd = reinterpret_cast<DynamicPaintModifierData *>(md);
   /* Add relation from canvases to all brush objects. */
   if (pmd->canvas != nullptr && pmd->type == MOD_DYNAMICPAINT_TYPE_CANVAS) {
     for (DynamicPaintSurface &surface : pmd->canvas->surfaces) {
@@ -139,16 +139,19 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData * /*md*/)
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+  DynamicPaintModifierData *pmd = reinterpret_cast<DynamicPaintModifierData *>(md);
 
   if (pmd->canvas) {
     DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(pmd->canvas->surfaces.first);
 
     for (; surface; surface = surface->next) {
-      walk(user_data, ob, (ID **)&surface->brush_group, IDWALK_CB_NOP);
-      walk(user_data, ob, (ID **)&surface->init_texture, IDWALK_CB_USER);
+      walk(user_data, ob, reinterpret_cast<ID **>(&surface->brush_group), IDWALK_CB_NOP);
+      walk(user_data, ob, reinterpret_cast<ID **>(&surface->init_texture), IDWALK_CB_USER);
       if (surface->effector_weights) {
-        walk(user_data, ob, (ID **)&surface->effector_weights->group, IDWALK_CB_USER);
+        walk(user_data,
+             ob,
+             reinterpret_cast<ID **>(&surface->effector_weights->group),
+             IDWALK_CB_USER);
       }
     }
   }

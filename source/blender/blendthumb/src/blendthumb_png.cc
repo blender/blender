@@ -24,7 +24,7 @@ static void png_extend_native_int32(blender::Vector<uint8_t> &output, int32_t da
   /* NOTE: this is endianness-sensitive. */
   /* PNG is big-endian, its values need to be switched on little-endian systems. */
   BLI_endian_switch_int32(&data);
-  output.extend_unchecked(blender::Span((uint8_t *)&data, 4));
+  output.extend_unchecked(blender::Span(reinterpret_cast<uint8_t *>(&data), 4));
 }
 
 /** The number of bytes each chunk uses on top of the data that's written. */
@@ -35,11 +35,12 @@ static void png_chunk_create(blender::Vector<uint8_t> &output,
                              const blender::Vector<uint8_t> &data)
 {
   uint32_t crc = crc32(0, nullptr, 0);
-  crc = crc32(crc, (uint8_t *)&tag, sizeof(tag));
-  crc = crc32(crc, (uint8_t *)data.data(), data.size());
+  crc = crc32(crc, reinterpret_cast<uint8_t *>(const_cast<uint32_t *>(&tag)), sizeof(tag));
+  crc = crc32(crc, const_cast<uint8_t *>(data.data()), data.size());
 
   png_extend_native_int32(output, data.size());
-  output.extend_unchecked(blender::Span((uint8_t *)&tag, sizeof(tag)));
+  output.extend_unchecked(
+      blender::Span(reinterpret_cast<uint8_t *>(const_cast<uint32_t *>(&tag)), sizeof(tag)));
   output.extend_unchecked(data);
   png_extend_native_int32(output, crc);
 }
@@ -67,9 +68,9 @@ static std::optional<blender::Vector<uint8_t>> zlib_compress(const blender::Vect
 
   blender::Vector<uint8_t> compressed(compressed_size, 0x00);
 
-  int return_value = compress2((uchar *)compressed.data(),
+  int return_value = compress2(static_cast<uchar *>(compressed.data()),
                                &compressed_size,
-                               (uchar *)data.data(),
+                               const_cast<uchar *>(data.data()),
                                uncompressed_size,
                                Z_NO_COMPRESSION);
   if (return_value != Z_OK) {

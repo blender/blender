@@ -131,7 +131,7 @@ void BKE_volumes_init()
 
 static void volume_init_data(ID *id)
 {
-  Volume *volume = (Volume *)id;
+  Volume *volume = blender::id_cast<Volume *>(id);
 
   INIT_DEFAULT_STRUCT_AFTER(volume, id);
 
@@ -148,15 +148,15 @@ static void volume_copy_data(Main * /*bmain*/,
                              const ID *id_src,
                              const int /*flag*/)
 {
-  Volume *volume_dst = (Volume *)id_dst;
-  const Volume *volume_src = (const Volume *)id_src;
+  Volume *volume_dst = blender::id_cast<Volume *>(id_dst);
+  const Volume *volume_src = blender::id_cast<const Volume *>(id_src);
   volume_dst->runtime = MEM_new<blender::bke::VolumeRuntime>(__func__);
 
   if (volume_src->packedfile) {
     volume_dst->packedfile = BKE_packedfile_duplicate(volume_src->packedfile);
   }
 
-  volume_dst->mat = (Material **)MEM_dupallocN(volume_src->mat);
+  volume_dst->mat = static_cast<Material **>(MEM_dupallocN(volume_src->mat));
 #ifdef WITH_OPENVDB
   if (volume_src->runtime->grids) {
     const VolumeGridVector &grids_src = *(volume_src->runtime->grids);
@@ -179,7 +179,7 @@ static void volume_copy_data(Main * /*bmain*/,
 
 static void volume_free_data(ID *id)
 {
-  Volume *volume = (Volume *)id;
+  Volume *volume = blender::id_cast<Volume *>(id);
   BKE_animdata_free(&volume->id, false);
   BKE_volume_batch_cache_free(volume);
   MEM_SAFE_FREE(volume->mat);
@@ -198,7 +198,7 @@ static void volume_free_data(ID *id)
 
 static void volume_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  Volume *volume = (Volume *)id;
+  Volume *volume = blender::id_cast<Volume *>(id);
   for (int i = 0; i < volume->totcol; i++) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, volume->mat[i], IDWALK_CB_USER);
   }
@@ -208,13 +208,13 @@ static void volume_foreach_cache(ID *id,
                                  IDTypeForeachCacheFunctionCallback function_callback,
                                  void *user_data)
 {
-  Volume *volume = (Volume *)id;
+  Volume *volume = blender::id_cast<Volume *>(id);
   IDCacheKey key = {
       /*id_session_uid*/ id->session_uid,
       /*identifier*/ 1,
   };
 
-  function_callback(id, &key, (void **)&volume->runtime->grids, 0, user_data);
+  function_callback(id, &key, reinterpret_cast<void **>(&volume->runtime->grids), 0, user_data);
 }
 
 static void volume_foreach_path(ID *id, BPathForeachPathData *bpath_data)
@@ -232,7 +232,7 @@ static void volume_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 
 static void volume_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  Volume *volume = (Volume *)id;
+  Volume *volume = blender::id_cast<Volume *>(id);
   const bool is_undo = BLO_write_is_undo(writer);
 
   /* Do not store packed files in case this is a library override ID. */
@@ -252,14 +252,14 @@ static void volume_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 
 static void volume_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  Volume *volume = (Volume *)id;
+  Volume *volume = blender::id_cast<Volume *>(id);
   volume->runtime = MEM_new<blender::bke::VolumeRuntime>(__func__);
 
   BKE_packedfile_blend_read(reader, &volume->packedfile, volume->filepath);
   volume->runtime->frame = 0;
 
   /* materials */
-  BLO_read_pointer_array(reader, volume->totcol, (void **)&volume->mat);
+  BLO_read_pointer_array(reader, volume->totcol, reinterpret_cast<void **>(&volume->mat));
 }
 
 static void volume_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *id)
@@ -335,7 +335,7 @@ static int volume_sequence_frame(const Depsgraph *depsgraph, const Volume *volum
   }
 
   const int scene_frame = DEG_get_ctime(depsgraph);
-  const VolumeSequenceMode mode = (VolumeSequenceMode)volume->sequence_mode;
+  const VolumeSequenceMode mode = VolumeSequenceMode(volume->sequence_mode);
   const int frame_duration = volume->frame_duration;
   const int frame_start = volume->frame_start;
   const int frame_offset = volume->frame_offset;
@@ -707,7 +707,7 @@ static void volume_evaluate_modifiers(Depsgraph *depsgraph,
 
   /* Evaluate modifiers. */
   for (; md; md = md->next) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
     if (!BKE_modifier_is_enabled(scene, md, required_mode)) {
       continue;
@@ -768,7 +768,7 @@ void BKE_volume_data_update(Depsgraph *depsgraph, Scene *scene, Object *object)
   BKE_object_free_derived_caches(object);
 
   /* Evaluate modifiers. */
-  Volume *volume = (Volume *)object->data;
+  Volume *volume = blender::id_cast<Volume *>(object->data);
   blender::bke::GeometrySet geometry_set;
   geometry_set.replace_volume(volume, blender::bke::GeometryOwnershipType::ReadOnly);
   volume_evaluate_modifiers(depsgraph, scene, object, geometry_set);
@@ -943,7 +943,7 @@ Volume *BKE_volume_new_for_eval(const Volume *volume_src)
   Volume *volume_dst = BKE_id_new_nomain<Volume>(nullptr);
 
   STRNCPY(volume_dst->id.name, volume_src->id.name);
-  volume_dst->mat = (Material **)MEM_dupallocN(volume_src->mat);
+  volume_dst->mat = static_cast<Material **>(MEM_dupallocN(volume_src->mat));
   volume_dst->totcol = volume_src->totcol;
   volume_dst->render = volume_src->render;
   volume_dst->display = volume_src->display;

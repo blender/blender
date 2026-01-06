@@ -31,7 +31,7 @@
 
 static void init_data(ShaderFxData *md)
 {
-  ShadowShaderFxData *gpfx = (ShadowShaderFxData *)md;
+  ShadowShaderFxData *gpfx = reinterpret_cast<ShadowShaderFxData *>(md);
   gpfx->rotation = 0.0f;
   ARRAY_SET_ITEMS(gpfx->offset, 15, 20);
   ARRAY_SET_ITEMS(gpfx->scale, 1.0f, 1.0f);
@@ -55,7 +55,7 @@ static void copy_data(const ShaderFxData *md, ShaderFxData *target)
 
 static void update_depsgraph(ShaderFxData *fx, const ModifierUpdateDepsgraphContext *ctx)
 {
-  ShadowShaderFxData *fxd = (ShadowShaderFxData *)fx;
+  ShadowShaderFxData *fxd = reinterpret_cast<ShadowShaderFxData *>(fx);
   if (fxd->object != nullptr) {
     DEG_add_object_relation(ctx->node, fxd->object, DEG_OB_COMP_TRANSFORM, "Shadow ShaderFx");
   }
@@ -64,16 +64,16 @@ static void update_depsgraph(ShaderFxData *fx, const ModifierUpdateDepsgraphCont
 
 static bool is_disabled(ShaderFxData *fx, bool /*use_render_params*/)
 {
-  ShadowShaderFxData *fxd = (ShadowShaderFxData *)fx;
+  ShadowShaderFxData *fxd = reinterpret_cast<ShadowShaderFxData *>(fx);
 
   return (!fxd->object) && (fxd->flag & FX_SHADOW_USE_OBJECT);
 }
 
 static void foreach_ID_link(ShaderFxData *fx, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  ShadowShaderFxData *fxd = (ShadowShaderFxData *)fx;
+  ShadowShaderFxData *fxd = reinterpret_cast<ShadowShaderFxData *>(fx);
 
-  walk(user_data, ob, (ID **)&fxd->object, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&fxd->object), IDWALK_CB_NOP);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
@@ -155,7 +155,7 @@ static void panel_register(ARegionType *region_type)
 static void foreach_working_space_color(ShaderFxData *fx,
                                         const IDTypeForeachColorFunctionCallback &fn)
 {
-  ShadowShaderFxData *fxd = (ShadowShaderFxData *)fx;
+  ShadowShaderFxData *fxd = reinterpret_cast<ShadowShaderFxData *>(fx);
   fn.single(fxd->shadow_rgba);
 }
 

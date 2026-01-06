@@ -45,19 +45,19 @@
 
 static void init_data(ModifierData *md)
 {
-  MeshCacheModifierData *mcmd = (MeshCacheModifierData *)md;
+  MeshCacheModifierData *mcmd = reinterpret_cast<MeshCacheModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(mcmd, modifier);
 }
 
 static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
 {
-  MeshCacheModifierData *mcmd = (MeshCacheModifierData *)md;
+  MeshCacheModifierData *mcmd = reinterpret_cast<MeshCacheModifierData *>(md);
   return (mcmd->play_mode == MOD_MESHCACHE_PLAY_CFEA);
 }
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  MeshCacheModifierData *mcmd = (MeshCacheModifierData *)md;
+  MeshCacheModifierData *mcmd = reinterpret_cast<MeshCacheModifierData *>(md);
 
   /* leave it up to the modifier to check the file is valid on calculation */
   return (mcmd->factor <= 0.0f) || (mcmd->filepath[0] == '\0');
@@ -155,7 +155,7 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
   /* -------------------------------------------------------------------- */
   /* tricky shape key integration (slow!) */
   if (mcmd->deform_mode == MOD_MESHCACHE_DEFORM_INTEGRATE) {
-    Mesh *mesh = static_cast<Mesh *>(ob->data);
+    Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
 
     /* we could support any object type */
     if (UNLIKELY(ob->type != OB_MESH)) {
@@ -271,7 +271,7 @@ static void deform_verts(ModifierData *md,
                          Mesh *mesh,
                          blender::MutableSpan<blender::float3> positions)
 {
-  MeshCacheModifierData *mcmd = (MeshCacheModifierData *)md;
+  MeshCacheModifierData *mcmd = reinterpret_cast<MeshCacheModifierData *>(md);
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 
   meshcache_do(mcmd,

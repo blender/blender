@@ -28,7 +28,7 @@ namespace blender::ui {
  */
 static void shaderfx_panel_id(void *fx_v, char *r_idname)
 {
-  ShaderFxData *fx = (ShaderFxData *)fx_v;
+  ShaderFxData *fx = static_cast<ShaderFxData *>(fx_v);
   BKE_shaderfxType_panel_id(ShaderFxType(fx->type), r_idname);
 }
 

@@ -140,7 +140,7 @@ blender::Array<blender::float3> BKE_multires_create_deformed_base_mesh_vert_coor
   ModifierData *first_md = BKE_modifiers_get_virtual_modifierlist(&object_for_eval,
                                                                   &virtual_modifier_data);
 
-  Mesh *base_mesh = static_cast<Mesh *>(object->data);
+  Mesh *base_mesh = blender::id_cast<Mesh *>(object->data);
 
   blender::Array<blender::float3> deformed_verts(base_mesh->vert_positions());
 
@@ -259,7 +259,7 @@ void multires_mark_as_modified(Depsgraph *depsgraph,
    *
    * In a longer term maybe special dependency graph tag can help sanitizing this a bit. */
   Object *object_eval = DEG_get_evaluated(depsgraph, object);
-  Mesh *mesh = static_cast<Mesh *>(object_eval->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(object_eval->data);
   SubdivCCG *subdiv_ccg = mesh->runtime->subdiv_ccg.get();
   if (subdiv_ccg == nullptr) {
     return;
@@ -293,7 +293,7 @@ void multires_flush_sculpt_updates(Object *object)
     return;
   }
 
-  Mesh *mesh = static_cast<Mesh *>(object->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(object->data);
 
   /* Check that the multires modifier still exists.
    * Fixes crash when deleting multires modifier
@@ -347,7 +347,7 @@ void multires_force_external_reload(Object *object)
 /* reset the multires levels to match the number of mdisps */
 static int get_levels_from_disps(Object *ob)
 {
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   const blender::OffsetIndices faces = mesh->faces();
   int totlvl = 0;
 
@@ -384,7 +384,7 @@ static int get_levels_from_disps(Object *ob)
 
 void multiresModifier_set_levels_from_disps(MultiresModifierData *mmd, Object *ob)
 {
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   const MDisps *mdisp;
 
   if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
@@ -464,7 +464,7 @@ static void multires_grid_paint_mask_downsample(GridPaintMask *gpm, const int le
 
 static void multires_del_higher(MultiresModifierData *mmd, Object *ob, const int lvl)
 {
-  Mesh *mesh = (Mesh *)ob->data;
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   const blender::OffsetIndices faces = mesh->faces();
   const int levels = mmd->totlvl - lvl;
   MDisps *mdisps;
@@ -642,7 +642,7 @@ static void multires_sync_levels(Scene *scene, Object *ob_src, Object *ob_dst)
     /* NOTE(@sergey): object could have MDISP even when there is no multires modifier
      * this could lead to troubles due to I've got no idea how mdisp could be
      * up-sampled correct without modifier data. Just remove mdisps if no multires present. */
-    multires_customdata_delete(static_cast<Mesh *>(ob_src->data));
+    multires_customdata_delete(blender::id_cast<Mesh *>(ob_src->data));
   }
 
   if (mmd_src && mmd_dst) {
@@ -652,7 +652,7 @@ static void multires_sync_levels(Scene *scene, Object *ob_src, Object *ob_dst)
 
 static void multires_apply_uniform_scale(Object *object, const float scale)
 {
-  Mesh *mesh = static_cast<Mesh *>(object->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(object->data);
   MDisps *mdisps = static_cast<MDisps *>(
       CustomData_get_layer_for_write(&mesh->corner_data, CD_MDISPS, mesh->corners_num));
   for (int i = 0; i < mesh->corners_num; i++) {
@@ -673,7 +673,7 @@ static void multires_apply_smat(Depsgraph * /*depsgraph*/,
     return;
   }
   /* Make sure layer present. */
-  Mesh *mesh = static_cast<Mesh *>(object->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(object->data);
   multiresModifier_ensure_external_read(mesh, mmd);
   if (!CustomData_get_layer(&mesh->corner_data, CD_MDISPS)) {
     return;

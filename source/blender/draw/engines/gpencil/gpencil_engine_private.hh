@@ -379,13 +379,13 @@ struct Instance final : public DrawEngine {
 
   static void material_pool_free(void *storage)
   {
-    MaterialPool *matpool = (MaterialPool *)storage;
+    MaterialPool *matpool = static_cast<MaterialPool *>(storage);
     GPU_UBO_FREE_SAFE(matpool->ubo);
   }
 
   static void light_pool_free(void *storage)
   {
-    LightPool *lightpool = (LightPool *)storage;
+    LightPool *lightpool = static_cast<LightPool *>(storage);
     GPU_UBO_FREE_SAFE(lightpool->ubo);
   }
 };

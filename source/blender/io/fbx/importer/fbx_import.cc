@@ -180,7 +180,7 @@ void FbxImportContext::import_cameras()
     bcam->clip_end = fcam->far_plane * this->fbx.metadata.root_scale;
 
     Object *obj = BKE_object_add_only_object(this->bmain, OB_CAMERA, get_fbx_name(node->name));
-    obj->data = bcam;
+    obj->data = blender::id_cast<ID *>(bcam);
     if (!node->visible) {
       obj->visibility_flag |= OB_HIDE_VIEWPORT;
     }
@@ -232,7 +232,7 @@ void FbxImportContext::import_lights()
     //@TODO: if hasattr(lamp, "cycles"): lamp.cycles.cast_shadow = lamp.use_shadow
 
     Object *obj = BKE_object_add_only_object(this->bmain, OB_LAMP, get_fbx_name(node->name));
-    obj->data = lamp;
+    obj->data = blender::id_cast<ID *>(lamp);
     if (!node->visible) {
       obj->visibility_flag |= OB_HIDE_VIEWPORT;
     }

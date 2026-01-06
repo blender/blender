@@ -129,7 +129,7 @@ void WM_event_print(const wmEvent *event)
         event->xy[1],
         BLI_str_utf8_size_or_error(event->utf8_buf),
         event->utf8_buf,
-        (const void *)event);
+        static_cast<const void *>(event));
 
 #ifdef WITH_INPUT_NDOF
     if (ISNDOF(event->type)) {

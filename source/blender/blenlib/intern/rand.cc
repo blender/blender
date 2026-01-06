@@ -109,8 +109,8 @@ void BLI_rng_shuffle_array(RNG *rng, void *data, uint elem_size_i, uint elem_num
   while (i--) {
     const uint j = BLI_rng_get_uint(rng) % elem_num;
     if (i != j) {
-      void *iElem = (uchar *)data + i * elem_size_i;
-      void *jElem = (uchar *)data + j * elem_size_i;
+      void *iElem = static_cast<uchar *>(data) + i * elem_size_i;
+      void *jElem = static_cast<uchar *>(data) + j * elem_size_i;
       memcpy(temp, iElem, elem_size);
       memcpy(iElem, jElem, elem_size);
       memcpy(jElem, temp, elem_size);
@@ -387,7 +387,7 @@ void RandomNumberGenerator::get_bytes(MutableSpan<char> r_bytes)
     last_len = r_bytes.size();
   }
 
-  const char *data_src = (const char *)&x_;
+  const char *data_src = reinterpret_cast<const char *>(&x_);
   int64_t i = 0;
   while (i != trim_len) {
     BLI_assert(i < trim_len);

@@ -86,7 +86,7 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometryMeshCone &storage = node_storage(params.node());
-  const GeometryNodeMeshCircleFillType fill = (GeometryNodeMeshCircleFillType)storage.fill_type;
+  const GeometryNodeMeshCircleFillType fill = GeometryNodeMeshCircleFillType(storage.fill_type);
 
   const int circle_segments = params.extract_input<int>("Vertices");
   if (circle_segments < 3) {

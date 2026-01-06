@@ -116,7 +116,7 @@ static int node_shader_gpu_tex_brick(GPUMaterial *mat,
 {
   node_shader_gpu_default_tex_coord(mat, node, &in[0].link);
   node_shader_gpu_tex_mapping(mat, node, in, out);
-  NodeTexBrick *tex = (NodeTexBrick *)node->storage;
+  NodeTexBrick *tex = static_cast<NodeTexBrick *>(node->storage);
   float offset_freq = tex->offset_freq;
   float squash_freq = tex->squash_freq;
   return GPU_stack_link(mat,
@@ -285,7 +285,7 @@ class BrickFunction : public mf::MultiFunction {
 static void sh_node_brick_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   const bNode &node = builder.node();
-  NodeTexBrick *tex = (NodeTexBrick *)node.storage;
+  NodeTexBrick *tex = static_cast<NodeTexBrick *>(node.storage);
 
   builder.construct_and_set_matching_fn<BrickFunction>(
       tex->offset, tex->offset_freq, tex->squash, tex->squash_freq);

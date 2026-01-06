@@ -112,7 +112,7 @@ bool ED_view3d_context_user_region(bContext *C, View3D **r_v3d, ARegion **r_regi
 
   if (area && area->spacetype == SPACE_VIEW3D) {
     ARegion *region = CTX_wm_region(C);
-    View3D *v3d = (View3D *)area->spacedata.first;
+    View3D *v3d = static_cast<View3D *>(area->spacedata.first);
 
     if (region) {
       RegionView3D *rv3d;

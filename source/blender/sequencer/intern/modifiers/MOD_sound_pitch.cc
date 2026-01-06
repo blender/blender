@@ -24,7 +24,7 @@ namespace blender::seq {
 
 static void pitchmodifier_init_data(StripModifierData *smd)
 {
-  PitchModifierData *pmd = (PitchModifierData *)smd;
+  PitchModifierData *pmd = reinterpret_cast<PitchModifierData *>(smd);
   pmd->mode = ePitchMode::PITCH_MODE_SEMITONES;
   pmd->semitones = 0;
   pmd->cents = 0;

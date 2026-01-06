@@ -65,7 +65,7 @@ bArmature *ED_armature_context(const bContext *C)
   if (armature == nullptr) {
     Object *object = blender::ed::object::context_active_object(C);
     if (object && object->type == OB_ARMATURE) {
-      armature = static_cast<bArmature *>(object->data);
+      armature = blender::id_cast<bArmature *>(object->data);
     }
   }
 
@@ -124,7 +124,7 @@ void ED_armature_origin_set(
     Main *bmain, Object *ob, const float cursor[3], int centermode, int around)
 {
   const bool is_editmode = BKE_object_is_in_editmode(ob);
-  bArmature *arm = static_cast<bArmature *>(ob->data);
+  bArmature *arm = blender::id_cast<bArmature *>(ob->data);
   float cent[3];
 
   /* Put the armature into edit-mode. */
@@ -291,7 +291,7 @@ static wmOperatorStatus armature_calc_roll_exec(bContext *C, wmOperator *op)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
   for (Object *ob : objects) {
-    bArmature *arm = static_cast<bArmature *>(ob->data);
+    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
     bool changed = false;
 
     float imat[3][3];
@@ -397,8 +397,8 @@ static wmOperatorStatus armature_calc_roll_exec(bContext *C, wmOperator *op)
       }
       else if (type == CALC_ROLL_ACTIVE) {
         float mat[3][3];
-        bArmature *arm_active = static_cast<bArmature *>(ob_active->data);
-        ebone = (EditBone *)arm_active->act_edbone;
+        bArmature *arm_active = blender::id_cast<bArmature *>(ob_active->data);
+        ebone = static_cast<EditBone *>(arm_active->act_edbone);
         if (ebone == nullptr) {
           BKE_report(op->reports, RPT_ERROR, "No active bone set");
           return OPERATOR_CANCELLED;
@@ -493,7 +493,7 @@ static wmOperatorStatus armature_roll_clear_exec(bContext *C, wmOperator *op)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
   for (Object *ob : objects) {
-    bArmature *arm = static_cast<bArmature *>(ob->data);
+    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
     bool changed = false;
 
     for (EditBone &ebone : *arm->edbo) {
@@ -736,7 +736,7 @@ static wmOperatorStatus armature_fill_bones_exec(bContext *C, wmOperator *op)
   {
     ViewLayer *view_layer = CTX_data_view_layer(C);
     FOREACH_OBJECT_IN_EDIT_MODE_BEGIN (scene, view_layer, v3d, ob_iter) {
-      if (ob_iter->data == arm) {
+      if (ob_iter->data == blender::id_cast<const ID *>(arm)) {
         obedit = ob_iter;
       }
     }
@@ -911,7 +911,7 @@ static wmOperatorStatus armature_switch_direction_exec(bContext *C, wmOperator *
       scene, view_layer, CTX_wm_view3d(C));
 
   for (Object *ob : objects) {
-    bArmature *arm = static_cast<bArmature *>(ob->data);
+    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
 
     ListBaseT<LinkData> chains = {nullptr, nullptr};
 
@@ -1077,7 +1077,7 @@ static void bone_align_to_bone(ListBaseT<EditBone> *edbo, EditBone *selbone, Edi
 static wmOperatorStatus armature_align_bones_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_edit_object(C);
-  bArmature *arm = static_cast<bArmature *>(ob->data);
+  bArmature *arm = blender::id_cast<bArmature *>(ob->data);
   EditBone *actbone = CTX_data_active_bone(C);
   EditBone *actmirb = nullptr;
   int num_selected_bones;
@@ -1184,7 +1184,7 @@ static wmOperatorStatus armature_split_exec(bContext *C, wmOperator * /*op*/)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
   for (Object *ob : objects) {
-    bArmature *arm = static_cast<bArmature *>(ob->data);
+    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
 
     for (EditBone &bone : *arm->edbo) {
       if (bone.parent && (bone.flag & BONE_SELECTED) != (bone.parent->flag & BONE_SELECTED)) {
@@ -1250,7 +1250,7 @@ static wmOperatorStatus armature_delete_selected_exec(bContext *C, wmOperator * 
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
   for (Object *obedit : objects) {
-    bArmature *arm = static_cast<bArmature *>(obedit->data);
+    bArmature *arm = blender::id_cast<bArmature *>(obedit->data);
     bool changed = false;
 
     armature_select_mirrored(arm);
@@ -1338,7 +1338,7 @@ static wmOperatorStatus armature_dissolve_selected_exec(bContext *C, wmOperator 
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
   for (Object *obedit : objects) {
-    bArmature *arm = static_cast<bArmature *>(obedit->data);
+    bArmature *arm = blender::id_cast<bArmature *>(obedit->data);
     bool changed = false;
 
     /* store for mirror */
@@ -1495,7 +1495,7 @@ static wmOperatorStatus armature_hide_exec(bContext *C, wmOperator *op)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
   for (Object *obedit : objects) {
-    bArmature *arm = static_cast<bArmature *>(obedit->data);
+    bArmature *arm = blender::id_cast<bArmature *>(obedit->data);
     bool changed = false;
 
     for (EditBone &ebone : *arm->edbo) {
@@ -1552,7 +1552,7 @@ static wmOperatorStatus armature_reveal_exec(bContext *C, wmOperator *op)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
   for (Object *obedit : objects) {
-    bArmature *arm = static_cast<bArmature *>(obedit->data);
+    bArmature *arm = blender::id_cast<bArmature *>(obedit->data);
     bool changed = false;
 
     for (EditBone &ebone : *arm->edbo) {

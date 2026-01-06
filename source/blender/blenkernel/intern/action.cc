@@ -723,7 +723,7 @@ static IDProperty *action_asset_type_property(const bAction *action)
 
 static void action_asset_metadata_ensure(void *asset_ptr, AssetMetaData *asset_data)
 {
-  bAction *action = (bAction *)asset_ptr;
+  bAction *action = static_cast<bAction *>(asset_ptr);
   BLI_assert(GS(action->id.name) == ID_AC);
 
   IDProperty *action_type = action_asset_type_property(action);
@@ -1095,7 +1095,8 @@ bPoseChannel *BKE_pose_channel_find_name(const bPose *pose, const char *name)
   }
 
   if (pose->chanhash) {
-    return static_cast<bPoseChannel *>(BLI_ghash_lookup(pose->chanhash, (const void *)name));
+    return static_cast<bPoseChannel *>(
+        BLI_ghash_lookup(pose->chanhash, static_cast<const void *>(name)));
   }
 
   return static_cast<bPoseChannel *>(
@@ -1176,7 +1177,7 @@ bool BKE_pose_is_bonecoll_visible(const bArmature *arm, const bPoseChannel *pcha
 
 bPoseChannel *BKE_pose_channel_active(Object *ob, const bool check_bonecoll)
 {
-  bArmature *arm = static_cast<bArmature *>((ob) ? ob->data : nullptr);
+  bArmature *arm = blender::id_cast<bArmature *>((ob) ? ob->data : nullptr);
   if (ELEM(nullptr, ob, ob->pose, arm)) {
     return nullptr;
   }
@@ -1200,7 +1201,7 @@ bPoseChannel *BKE_pose_channel_active_if_bonecoll_visible(Object *ob)
 
 bPoseChannel *BKE_pose_channel_active_or_first_selected(Object *ob)
 {
-  bArmature *arm = static_cast<bArmature *>((ob) ? ob->data : nullptr);
+  bArmature *arm = blender::id_cast<bArmature *>((ob) ? ob->data : nullptr);
 
   if (ELEM(nullptr, ob, ob->pose, arm)) {
     return nullptr;
@@ -1280,7 +1281,7 @@ void BKE_pose_copy_data_ex(bPose **dst,
 
   for (bPoseChannel &pchan : outPose->chanbase) {
     if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-      id_us_plus((ID *)pchan.custom);
+      id_us_plus(blender::id_cast<ID *>(pchan.custom));
     }
 
     if ((flag & LIB_ID_CREATE_NO_MAIN) == 0) {
@@ -1730,7 +1731,7 @@ void BKE_pose_update_constraint_flags(bPose *pose)
 
       switch (con.type) {
         case CONSTRAINT_TYPE_KINEMATIC: {
-          bKinematicConstraint *data = (bKinematicConstraint *)con.data;
+          bKinematicConstraint *data = static_cast<bKinematicConstraint *>(con.data);
 
           pchan.constflag |= PCHAN_HAS_IK;
 
@@ -1769,7 +1770,7 @@ void BKE_pose_update_constraint_flags(bPose *pose)
         }
 
         case CONSTRAINT_TYPE_FOLLOWPATH: {
-          bFollowPathConstraint *data = (bFollowPathConstraint *)con.data;
+          bFollowPathConstraint *data = static_cast<bFollowPathConstraint *>(con.data);
 
           /* if we have a valid target, make sure that this will get updated on frame-change
            * (needed for when there is no anim-data for this pose)
@@ -2181,11 +2182,11 @@ void BKE_pose_blend_read_data(BlendDataReader *reader, ID *id_owner, bPose *pose
 
 void BKE_pose_blend_read_after_liblink(BlendLibReader *reader, Object *ob, bPose *pose)
 {
-  bArmature *arm = static_cast<bArmature *>(ob->data);
-
-  if (!pose || !arm) {
+  if (!pose || !ob->data) {
     return;
   }
+
+  bArmature *arm = blender::id_cast<bArmature *>(ob->data);
 
   /* Always rebuild to match library changes, except on Undo. */
   bool rebuild = false;

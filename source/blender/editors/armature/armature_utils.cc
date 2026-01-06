@@ -417,7 +417,7 @@ void ED_armature_ebone_transform_mirror_update(bArmature *arm, EditBone *ebo, bo
 
 void ED_armature_edit_transform_mirror_update(Object *obedit)
 {
-  bArmature *arm = static_cast<bArmature *>(obedit->data);
+  bArmature *arm = blender::id_cast<bArmature *>(obedit->data);
   for (EditBone &ebo : *arm->edbo) {
     ED_armature_ebone_transform_mirror_update(arm, &ebo, true);
   }
@@ -829,7 +829,7 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
   for (obt = static_cast<Object *>(bmain->objects.first); obt;
        obt = static_cast<Object *>(obt->id.next))
   {
-    if (obt->data == arm) {
+    if (obt->data == blender::id_cast<const ID *>(arm)) {
       BKE_pose_rebuild(bmain, obt, arm, true);
     }
   }

@@ -87,7 +87,8 @@ static VectorSet<Strip *> query_snap_sources_preview(const Scene *scene)
 
 static int cmp_fn(const void *a, const void *b)
 {
-  return round_fl_to_int((*(float2 *)a)[0] - (*(float2 *)b)[0]);
+  return round_fl_to_int((*static_cast<float2 *>(const_cast<void *>(a)))[0] -
+                         (*static_cast<float2 *>(const_cast<void *>(b)))[0]);
 }
 
 static void points_build_sources_timeline_strips(const Scene *scene,

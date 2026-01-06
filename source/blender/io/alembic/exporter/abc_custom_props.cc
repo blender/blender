@@ -207,7 +207,8 @@ void CustomPropertiesExporter::write_idparray_flattened_typed(const IDProperty *
   const uint64_t num_rows = idp_array->len;
   std::vector<BlenderValueType> matrix_values;
   for (size_t row_idx = 0; row_idx < num_rows; ++row_idx) {
-    const BlenderValueType *row = (BlenderValueType *)IDP_array_voidp_get(&idp_rows[row_idx]);
+    const BlenderValueType *row = static_cast<BlenderValueType *> IDP_array_voidp_get(
+        &idp_rows[row_idx]);
     for (size_t col_idx = 0; col_idx < idp_rows[row_idx].len; col_idx++) {
       matrix_values.push_back(row[col_idx]);
     }

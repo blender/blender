@@ -207,7 +207,7 @@ static AbstractViewItem *find_item_from_rename_button(const Button &rename_but)
       continue;
     }
 
-    ButtonViewItem *view_item_but = (ButtonViewItem *)but.get();
+    ButtonViewItem *view_item_but = static_cast<ButtonViewItem *>(but.get());
     AbstractViewItem *item = reinterpret_cast<AbstractViewItem *>(view_item_but->view_item);
     const AbstractView &view = item->get_view();
 

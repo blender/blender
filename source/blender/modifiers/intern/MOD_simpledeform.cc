@@ -381,19 +381,20 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd,
   /* Do deformation. */
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
-  BLI_task_parallel_range(0, verts_num, (void *)&deform_pool_data, simple_helper, &settings);
+  BLI_task_parallel_range(
+      0, verts_num, static_cast<void *>(&deform_pool_data), simple_helper, &settings);
 }
 
 /* SimpleDeform */
 static void init_data(ModifierData *md)
 {
-  SimpleDeformModifierData *smd = (SimpleDeformModifierData *)md;
+  SimpleDeformModifierData *smd = reinterpret_cast<SimpleDeformModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(smd, modifier);
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  SimpleDeformModifierData *smd = (SimpleDeformModifierData *)md;
+  SimpleDeformModifierData *smd = reinterpret_cast<SimpleDeformModifierData *>(md);
 
   /* Ask for vertex-groups if we need them. */
   if (smd->vgroup_name[0] != '\0') {
@@ -403,13 +404,13 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  SimpleDeformModifierData *smd = (SimpleDeformModifierData *)md;
-  walk(user_data, ob, (ID **)&smd->origin, IDWALK_CB_NOP);
+  SimpleDeformModifierData *smd = reinterpret_cast<SimpleDeformModifierData *>(md);
+  walk(user_data, ob, reinterpret_cast<ID **>(&smd->origin), IDWALK_CB_NOP);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  SimpleDeformModifierData *smd = (SimpleDeformModifierData *)md;
+  SimpleDeformModifierData *smd = reinterpret_cast<SimpleDeformModifierData *>(md);
   if (smd->origin != nullptr) {
     DEG_add_object_relation(
         ctx->node, smd->origin, DEG_OB_COMP_TRANSFORM, "SimpleDeform Modifier");
@@ -422,7 +423,7 @@ static void deform_verts(ModifierData *md,
                          Mesh *mesh,
                          blender::MutableSpan<blender::float3> positions)
 {
-  SimpleDeformModifierData *sdmd = (SimpleDeformModifierData *)md;
+  SimpleDeformModifierData *sdmd = reinterpret_cast<SimpleDeformModifierData *>(md);
   SimpleDeformModifier_do(sdmd,
                           ctx,
                           ctx->object,

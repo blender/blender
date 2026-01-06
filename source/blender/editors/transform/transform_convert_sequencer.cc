@@ -209,7 +209,7 @@ static TransData *SeqToTransData(Scene *scene,
   tdsq->flag = flag;
   tdsq->sel_flag = sel_flag;
 
-  td->extra = (void *)tdsq; /* Allow us to update the strip from here. */
+  td->extra = static_cast<void *>(tdsq); /* Allow us to update the strip from here. */
 
   td->flag = 0;
   td->loc = td2d->loc;
@@ -324,7 +324,7 @@ static VectorSet<Strip *> seq_transform_collection_from_transdata(TransDataConta
   VectorSet<Strip *> strips;
   TransData *td = tc->data;
   for (int a = 0; a < tc->data_len; a++, td++) {
-    Strip *strip = ((TransDataSeq *)td->extra)->strip;
+    Strip *strip = (static_cast<TransDataSeq *>(td->extra))->strip;
     strips.add(strip);
   }
   return strips;
@@ -356,7 +356,7 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
 
   TransSeq *ts = static_cast<TransSeq *>(tc->custom.type.data);
   ListBaseT<Strip> *seqbasep = seqbase_active_get(t);
-  const bool use_sync_markers = (((SpaceSeq *)t->area->spacedata.first)->flag &
+  const bool use_sync_markers = ((static_cast<SpaceSeq *>(t->area->spacedata.first))->flag &
                                  SEQ_MARKER_TRANS) != 0;
   if (seq_transform_check_overlap(transformed_strips)) {
     seq::transform_handle_overlap(
@@ -470,7 +470,7 @@ static void query_time_dependent_strips_strips(TransInfo *t,
 
 static void create_trans_seq_clamp_data(TransInfo *t, const Scene *scene)
 {
-  TransSeq *ts = (TransSeq *)TRANS_DATA_CONTAINER_FIRST_SINGLE(t)->custom.type.data;
+  TransSeq *ts = static_cast<TransSeq *>(TRANS_DATA_CONTAINER_FIRST_SINGLE(t)->custom.type.data);
   const Editing *ed = seq::editing_get(scene);
 
   bool only_handles_selected = true;
@@ -632,7 +632,7 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 
 static void view2d_edge_pan_loc_compensate(TransInfo *t, float r_offset[2])
 {
-  TransSeq *ts = (TransSeq *)TRANS_DATA_CONTAINER_FIRST_SINGLE(t)->custom.type.data;
+  TransSeq *ts = static_cast<TransSeq *>(TRANS_DATA_CONTAINER_FIRST_SINGLE(t)->custom.type.data);
 
   const rctf rect_prev = t->region->v2d.cur;
 
@@ -683,7 +683,7 @@ static void flushTransSeq(TransInfo *t)
 
   /* Flush to 2D vector from internally used 3D vector. */
   for (int a = 0; a < tc->data_len; a++, td++, td2d++) {
-    TransDataSeq *tdsq = (TransDataSeq *)td->extra;
+    TransDataSeq *tdsq = static_cast<TransDataSeq *>(td->extra);
     Strip *strip = tdsq->strip;
 
     /* Apply extra offset caused by edge panning. */
@@ -759,7 +759,7 @@ static void flushTransSeq(TransInfo *t)
     }
   }
 
-  TransSeq *ts = (TransSeq *)TRANS_DATA_CONTAINER_FIRST_SINGLE(t)->custom.type.data;
+  TransSeq *ts = static_cast<TransSeq *>(TRANS_DATA_CONTAINER_FIRST_SINGLE(t)->custom.type.data);
 
   /* Update animation for effects. */
   for (Strip *strip : ts->time_dependent_strips) {
@@ -791,7 +791,7 @@ static void recalcData_sequencer(TransInfo *t)
   Scene *scene = CTX_data_sequencer_scene(t->context);
 
   for (a = 0, td = tc->data; a < tc->data_len; a++, td++) {
-    TransDataSeq *tdsq = (TransDataSeq *)td->extra;
+    TransDataSeq *tdsq = static_cast<TransDataSeq *>(td->extra);
     Strip *strip = tdsq->strip;
 
     if (strip != strip_prev) {
@@ -816,7 +816,7 @@ static void recalcData_sequencer(TransInfo *t)
 static void special_aftertrans_update__sequencer(bContext *C, TransInfo *t)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
-  SpaceSeq *sseq = (SpaceSeq *)t->area->spacedata.first;
+  SpaceSeq *sseq = static_cast<SpaceSeq *>(t->area->spacedata.first);
   if ((sseq->flag & SPACE_SEQ_DESELECT_STRIP_HANDLE) != 0 &&
       transform_mode_edge_seq_slide_use_restore_handle_selection(t))
   {
@@ -862,7 +862,8 @@ bool transform_convert_sequencer_clamp(const TransInfo *t, float r_val[2])
     return false;
   }
 
-  const TransSeq *ts = (TransSeq *)TRANS_DATA_CONTAINER_FIRST_SINGLE(t)->custom.type.data;
+  const TransSeq *ts = static_cast<TransSeq *>(
+      TRANS_DATA_CONTAINER_FIRST_SINGLE(t)->custom.type.data);
   int val[2] = {round_fl_to_int(r_val[0]), round_fl_to_int(r_val[1])};
   bool clamped = false;
 

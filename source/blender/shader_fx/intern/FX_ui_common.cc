@@ -46,7 +46,7 @@
 static void shaderfx_reorder(bContext *C, Panel *panel, int new_index)
 {
   PointerRNA *fx_ptr = blender::ui::panel_custom_data_get(panel);
-  ShaderFxData *fx = (ShaderFxData *)fx_ptr->data;
+  ShaderFxData *fx = static_cast<ShaderFxData *>(fx_ptr->data);
 
   wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_shaderfx_move_to_index", false);
   PointerRNA props_ptr = WM_operator_properties_create_ptr(ot);
@@ -62,7 +62,7 @@ static void shaderfx_reorder(bContext *C, Panel *panel, int new_index)
 static short get_shaderfx_expand_flag(const bContext * /*C*/, Panel *panel)
 {
   PointerRNA *fx_ptr = blender::ui::panel_custom_data_get(panel);
-  ShaderFxData *fx = (ShaderFxData *)fx_ptr->data;
+  ShaderFxData *fx = static_cast<ShaderFxData *>(fx_ptr->data);
   return fx->ui_expand_flag;
 }
 
@@ -72,7 +72,7 @@ static short get_shaderfx_expand_flag(const bContext * /*C*/, Panel *panel)
 static void set_shaderfx_expand_flag(const bContext * /*C*/, Panel *panel, short expand_flag)
 {
   PointerRNA *fx_ptr = blender::ui::panel_custom_data_get(panel);
-  ShaderFxData *fx = (ShaderFxData *)fx_ptr->data;
+  ShaderFxData *fx = static_cast<ShaderFxData *>(fx_ptr->data);
   fx->ui_expand_flag = expand_flag;
 }
 
@@ -109,7 +109,7 @@ PointerRNA *shaderfx_panel_get_property_pointers(Panel *panel, PointerRNA *r_ob_
 
 static void gpencil_shaderfx_ops_extra_draw(bContext *C, blender::ui::Layout *layout, void *fx_v)
 {
-  ShaderFxData *fx = (ShaderFxData *)fx_v;
+  ShaderFxData *fx = static_cast<ShaderFxData *>(fx_v);
 
   Object *ob = blender::ed::object::context_active_object(C);
   PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, &RNA_ShaderFx, fx);
@@ -156,8 +156,8 @@ static void shaderfx_panel_header(const bContext * /*C*/, Panel *panel)
   bool narrow_panel = (panel->sizex < UI_UNIT_X * 7 && panel->sizex != 0);
 
   PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
-  Object *ob = (Object *)ptr->owner_id;
-  ShaderFxData *fx = (ShaderFxData *)ptr->data;
+  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
+  ShaderFxData *fx = static_cast<ShaderFxData *>(ptr->data);
 
   const ShaderFxTypeInfo *fxti = BKE_shaderfx_get_info(ShaderFxType(fx->type));
 

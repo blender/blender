@@ -443,7 +443,7 @@ static void view_to_string__frame_number(
 static void view_to_string__time(
     void *user_data, float v2d_pos, float v2d_step, char *r_str, uint str_maxncpy)
 {
-  const Scene *scene = (const Scene *)user_data;
+  const Scene *scene = static_cast<const Scene *>(user_data);
 
   int brevity_level = -1;
   if (U.timecode_style == USER_TIMECODE_MINIMAL && v2d_step >= scene->frames_per_second()) {

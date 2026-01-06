@@ -130,7 +130,7 @@ void VKVertexBuffer::resize_data()
     return;
   }
 
-  data_ = (uchar *)MEM_reallocN(data_, sizeof(uchar) * this->size_alloc_get());
+  data_ = static_cast<uchar *>(MEM_reallocN(data_, sizeof(uchar) * this->size_alloc_get()));
 }
 
 void VKVertexBuffer::release_data()

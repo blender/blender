@@ -370,9 +370,12 @@ static void init_mv_jit(float *jit, int num, int seed2, float amount)
   jit2 = MEM_malloc_arrayN<float>(3 + 2 * size_t(num), "initjit");
 
   for (i = 0; i < 4; i++) {
-    BLI_jitterate1((float (*)[2])jit, (float (*)[2])jit2, num, rad1);
-    BLI_jitterate1((float (*)[2])jit, (float (*)[2])jit2, num, rad1);
-    BLI_jitterate2((float (*)[2])jit, (float (*)[2])jit2, num, rad2);
+    BLI_jitterate1(
+        reinterpret_cast<float (*)[2]>(jit), reinterpret_cast<float (*)[2]>(jit2), num, rad1);
+    BLI_jitterate1(
+        reinterpret_cast<float (*)[2]>(jit), reinterpret_cast<float (*)[2]>(jit2), num, rad1);
+    BLI_jitterate2(
+        reinterpret_cast<float (*)[2]>(jit), reinterpret_cast<float (*)[2]>(jit2), num, rad2);
   }
   MEM_freeN(jit2);
   BLI_rng_free(rng);
@@ -525,8 +528,8 @@ static void distribute_from_faces_exec(ParticleTask *thread, ParticleData *pa, i
   int i;
   int rng_skip_tot = PSYS_RND_DIST_SKIP; /* count how many rng_* calls won't need skipping */
 
-  MFace *mfaces = (MFace *)CustomData_get_layer_for_write(
-      &mesh->fdata_legacy, CD_MFACE, mesh->totface_legacy);
+  MFace *mfaces = static_cast<MFace *>(
+      CustomData_get_layer_for_write(&mesh->fdata_legacy, CD_MFACE, mesh->totface_legacy));
   MFace *mface;
 
   pa->num = i = ctx->index[p];
@@ -581,8 +584,8 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
   const blender::Span<blender::float3> positions = mesh->vert_positions();
 
   pa->num = i = ctx->index[p];
-  MFace *mfaces = (MFace *)CustomData_get_layer_for_write(
-      &mesh->fdata_legacy, CD_MFACE, mesh->totface_legacy);
+  MFace *mfaces = static_cast<MFace *>(
+      CustomData_get_layer_for_write(&mesh->fdata_legacy, CD_MFACE, mesh->totface_legacy));
   mface = &mfaces[i];
 
   switch (distr) {
@@ -705,8 +708,8 @@ static void distribute_children_exec(ParticleTask *thread, ChildParticle *cpa, i
     return;
   }
 
-  MFace *mfaces = (MFace *)CustomData_get_layer_for_write(
-      &mesh->fdata_legacy, CD_MFACE, mesh->totface_legacy);
+  MFace *mfaces = static_cast<MFace *>(
+      CustomData_get_layer_for_write(&mesh->fdata_legacy, CD_MFACE, mesh->totface_legacy));
   mf = &mfaces[ctx->index[p]];
 
   randu = BLI_rng_get_float(thread->rng);
@@ -735,7 +738,7 @@ static void distribute_children_exec(ParticleTask *thread, ChildParticle *cpa, i
                         nullptr,
                         nullptr,
                         orco1);
-    BKE_mesh_orco_verts_transform(static_cast<Mesh *>(ob->data), &orco1, 1, true);
+    BKE_mesh_orco_verts_transform(blender::id_cast<Mesh *>(ob->data), &orco1, 1, true);
     maxw = blender::kdtree_3d_find_nearest_n(ctx->tree, orco1, ptn, 3);
 
     maxd = ptn[maxw - 1].dist;
@@ -827,9 +830,9 @@ static void exec_distribute_child(TaskPool *__restrict /*pool*/, void *taskdata)
 
 static int distribute_compare_orig_index(const void *p1, const void *p2, void *user_data)
 {
-  const int *orig_index = (const int *)user_data;
-  int index1 = orig_index[*(const int *)p1];
-  int index2 = orig_index[*(const int *)p2];
+  const int *orig_index = static_cast<const int *>(user_data);
+  int index1 = orig_index[*static_cast<const int *>(p1)];
+  int index2 = orig_index[*static_cast<const int *>(p2)];
 
   if (index1 < index2) {
     return -1;
@@ -948,8 +951,8 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
         mesh = final_mesh;
       }
       else {
-        mesh = (Mesh *)BKE_id_copy_ex(
-            nullptr, static_cast<const ID *>(ob->data), nullptr, LIB_ID_COPY_LOCALIZE);
+        mesh = blender::id_cast<Mesh *>(BKE_id_copy_ex(
+            nullptr, static_cast<const ID *>(ob->data), nullptr, LIB_ID_COPY_LOCALIZE));
       }
       BKE_mesh_tessface_ensure(mesh);
 
@@ -991,7 +994,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
                           nullptr,
                           nullptr,
                           orco);
-      BKE_mesh_orco_verts_transform(static_cast<Mesh *>(ob->data), &orco, 1, true);
+      BKE_mesh_orco_verts_transform(blender::id_cast<Mesh *>(ob->data), &orco, 1, true);
       blender::kdtree_3d_insert(tree, p, orco);
     }
 
@@ -1009,8 +1012,8 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
       mesh = final_mesh;
     }
     else {
-      mesh = (Mesh *)BKE_id_copy_ex(
-          nullptr, static_cast<const ID *>(ob->data), nullptr, LIB_ID_COPY_LOCALIZE);
+      mesh = blender::id_cast<Mesh *>(BKE_id_copy_ex(
+          nullptr, static_cast<const ID *>(ob->data), nullptr, LIB_ID_COPY_LOCALIZE));
     }
 
     BKE_mesh_tessface_ensure(mesh);
@@ -1029,7 +1032,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
       for (p = 0; p < totvert; p++) {
         if (orcodata) {
           copy_v3_v3(co, orcodata[p]);
-          BKE_mesh_orco_verts_transform(static_cast<Mesh *>(ob->data), &co, 1, true);
+          BKE_mesh_orco_verts_transform(blender::id_cast<Mesh *>(ob->data), &co, 1, true);
         }
         else {
           copy_v3_v3(co, positions[p]);
@@ -1072,8 +1075,8 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
 
     orcodata = static_cast<const float (*)[3]>(CustomData_get_layer(&mesh->vert_data, CD_ORCO));
 
-    MFace *mfaces = (MFace *)CustomData_get_layer_for_write(
-        &mesh->fdata_legacy, CD_MFACE, mesh->totface_legacy);
+    MFace *mfaces = static_cast<MFace *>(
+        CustomData_get_layer_for_write(&mesh->fdata_legacy, CD_MFACE, mesh->totface_legacy));
     for (i = 0; i < totelem; i++) {
       MFace *mf = &mfaces[i];
 
@@ -1082,12 +1085,12 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
         copy_v3_v3(co1, orcodata[mf->v1]);
         copy_v3_v3(co2, orcodata[mf->v2]);
         copy_v3_v3(co3, orcodata[mf->v3]);
-        BKE_mesh_orco_verts_transform(static_cast<Mesh *>(ob->data), &co1, 1, true);
-        BKE_mesh_orco_verts_transform(static_cast<Mesh *>(ob->data), &co2, 1, true);
-        BKE_mesh_orco_verts_transform(static_cast<Mesh *>(ob->data), &co3, 1, true);
+        BKE_mesh_orco_verts_transform(blender::id_cast<Mesh *>(ob->data), &co1, 1, true);
+        BKE_mesh_orco_verts_transform(blender::id_cast<Mesh *>(ob->data), &co2, 1, true);
+        BKE_mesh_orco_verts_transform(blender::id_cast<Mesh *>(ob->data), &co3, 1, true);
         if (mf->v4) {
           copy_v3_v3(co4, orcodata[mf->v4]);
-          BKE_mesh_orco_verts_transform(static_cast<Mesh *>(ob->data), &co4, 1, true);
+          BKE_mesh_orco_verts_transform(blender::id_cast<Mesh *>(ob->data), &co4, 1, true);
         }
       }
       else {
@@ -1132,8 +1135,8 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
       }
     }
     else { /* PART_FROM_FACE / PART_FROM_VOLUME */
-      MFace *mfaces = (MFace *)CustomData_get_layer_for_write(
-          &mesh->fdata_legacy, CD_MFACE, mesh->totface_legacy);
+      MFace *mfaces = static_cast<MFace *>(
+          CustomData_get_layer_for_write(&mesh->fdata_legacy, CD_MFACE, mesh->totface_legacy));
       for (i = 0; i < totelem; i++) {
         MFace *mf = &mfaces[i];
         tweight = vweight[mf->v1] + vweight[mf->v2] + vweight[mf->v3];

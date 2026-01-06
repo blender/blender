@@ -58,7 +58,7 @@ using MapFn = void (*)(Tex *tex, bNodeStack **in, TexParams *p, const short thre
 static void texfn(
     float *result, TexParams *p, bNode *node, bNodeStack **in, MapFn map_inputs, short thread)
 {
-  Tex tex = blender::dna::shallow_copy(*((Tex *)(node->storage)));
+  Tex tex = blender::dna::shallow_copy(*(static_cast<Tex *>(node->storage)));
   float col1[4], col2[4];
   tex_input_rgba(col1, in[0], p, thread);
   tex_input_rgba(col2, in[1], p, thread);

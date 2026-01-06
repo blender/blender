@@ -89,7 +89,7 @@ static void draw_fcurve_modifier_controls_envelope(FModifier *fcm,
                                                    View2D *v2d,
                                                    bAnimListElem *ale_nla_remap)
 {
-  FMod_Envelope *env = (FMod_Envelope *)fcm->data;
+  FMod_Envelope *env = static_cast<FMod_Envelope *>(fcm->data);
   FCM_EnvelopeData *fed;
   const float fac = 0.05f * BLI_rctf_size_x(&v2d->cur);
   int i;
@@ -1140,7 +1140,7 @@ static void draw_fcurve_curve_keys(
 
 static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAnimListElem *ale)
 {
-  FCurve *fcu = (FCurve *)ale->key_data;
+  FCurve *fcu = static_cast<FCurve *>(ale->key_data);
   FModifier *fcm = find_active_fmodifier(&fcu->modifiers);
 
   /* map keyframes for drawing if scaled F-Curve */
@@ -1493,7 +1493,7 @@ void graph_draw_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, shor
    */
   bAnimListElem *ale_active_fcurve = nullptr;
   for (bAnimListElem &ale : anim_data) {
-    const FCurve *fcu = (FCurve *)ale.key_data;
+    const FCurve *fcu = static_cast<FCurve *>(ale.key_data);
     if ((fcu->flag & FCURVE_ACTIVE) && !ale_active_fcurve) {
       ale_active_fcurve = &ale;
       continue;

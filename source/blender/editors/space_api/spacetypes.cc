@@ -249,7 +249,7 @@ void *ED_region_draw_cb_activate(ARegionType *art,
 bool ED_region_draw_cb_exit(ARegionType *art, void *handle)
 {
   for (RegionDrawCB &rdc : art->drawcalls) {
-    if (&rdc == (RegionDrawCB *)handle) {
+    if (&rdc == static_cast<RegionDrawCB *>(handle)) {
       BLI_remlink(&art->drawcalls, &rdc);
       MEM_freeN(&rdc);
       return true;

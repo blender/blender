@@ -271,7 +271,7 @@ static void view3d_preselect_mesh_edgering_update_edges_from_edge(
   }
   BMW_end(&walker);
 
-  eed_start = *(BMEdge **)BLI_stack_peek(edge_stack);
+  eed_start = *static_cast<BMEdge **>(BLI_stack_peek(edge_stack));
 
   edges = static_cast<float (*)[2][3]>(MEM_mallocN(
       (sizeof(*edges) * (BLI_stack_count(edge_stack) + (eed_last != eed_start))) * previewlines,

@@ -180,7 +180,7 @@ static void wm_gesture_draw_line_active_side(const rcti *rect, const bool flip)
 
 static void wm_gesture_draw_line(wmGesture *gt)
 {
-  const rcti *rect = (rcti *)gt->customdata;
+  const rcti *rect = static_cast<rcti *>(gt->customdata);
 
   if (gt->draw_active_side) {
     wm_gesture_draw_line_active_side(rect, gt->use_flip);
@@ -418,7 +418,7 @@ static void draw_lasso_smooth_stroke_indicator(wmGesture *gt, const uint shdr_po
 
 static void wm_gesture_draw_lasso(wmGesture *gt, bool filled)
 {
-  const float *lasso = (float *)gt->customdata;
+  const float *lasso = static_cast<float *>(gt->customdata);
   int i;
 
   if (filled) {
@@ -519,7 +519,7 @@ static void wm_gesture_draw_polyline(wmGesture *gt)
 
   immBegin(GPU_PRIM_LINE_LOOP, numverts);
 
-  const short *border = (short *)gt->customdata;
+  const short *border = static_cast<short *>(gt->customdata);
   for (int i = 0; i < gt->points; i++, border += 2) {
     immVertex2f(shdr_pos, float(border[0]), float(border[1]));
   }
@@ -579,7 +579,7 @@ static void wm_gesture_draw_cross(const wmWindow *win, const wmGesture *gt)
 
 void wm_gesture_draw(wmWindow *win)
 {
-  wmGesture *gt = (wmGesture *)win->runtime->gesture.first;
+  wmGesture *gt = static_cast<wmGesture *>(win->runtime->gesture.first);
 
   GPU_line_width(1.0f);
   for (; gt; gt = gt->next) {

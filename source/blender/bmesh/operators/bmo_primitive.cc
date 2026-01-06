@@ -738,7 +738,7 @@ void bmo_create_grid_exec(BMesh *bm, BMOperator *op)
   BMO_slot_mat4_get(op->slots_in, "matrix", mat);
 
   BMO_slot_buffer_alloc(op, op->slots_out, "verts.out", (xtot + 1) * (ytot + 1));
-  varr = (BMVert **)slot_verts_out->data.buf;
+  varr = reinterpret_cast<BMVert **>(slot_verts_out->data.buf);
 
   i = 0;
   vec[2] = 0.0f;

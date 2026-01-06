@@ -196,7 +196,7 @@ static void mesh_copy_data(Main *bmain,
     }
   }
 
-  mesh_dst->mat = (Material **)MEM_dupallocN(mesh_src->mat);
+  mesh_dst->mat = static_cast<Material **>(MEM_dupallocN(mesh_src->mat));
 
   BKE_defgroup_copy_list(&mesh_dst->vertex_group_names, &mesh_src->vertex_group_names);
   mesh_dst->active_color_attribute = static_cast<char *>(
@@ -234,7 +234,7 @@ static void mesh_copy_data(Main *bmain,
     mesh_tessface_clear_intern(mesh_dst, false);
   }
 
-  mesh_dst->mselect = (MSelect *)MEM_dupallocN(mesh_dst->mselect);
+  mesh_dst->mselect = static_cast<MSelect *>(MEM_dupallocN(mesh_dst->mselect));
 
   if (mesh_src->key && (flag & LIB_ID_COPY_SHAPEKEY)) {
     BKE_id_copy_in_lib(bmain,
@@ -423,7 +423,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
 static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Mesh *mesh = reinterpret_cast<Mesh *>(id);
-  BLO_read_pointer_array(reader, mesh->totcol, (void **)&mesh->mat);
+  BLO_read_pointer_array(reader, mesh->totcol, reinterpret_cast<void **>(&mesh->mat));
   /* This check added for python created meshes. */
   if (!mesh->mat) {
     mesh->totcol = 0;
@@ -535,7 +535,8 @@ void BKE_mesh_ensure_skin_customdata(Mesh *mesh)
 
       /* Mark an arbitrary vertex as root */
       BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-        vs = (MVertSkin *)CustomData_bmesh_get(&bm->vdata, v->head.data, CD_MVERT_SKIN);
+        vs = static_cast<MVertSkin *>(
+            CustomData_bmesh_get(&bm->vdata, v->head.data, CD_MVERT_SKIN));
         vs->flag |= MVERT_SKIN_ROOT;
         break;
       }
@@ -543,8 +544,8 @@ void BKE_mesh_ensure_skin_customdata(Mesh *mesh)
   }
   else {
     if (!CustomData_has_layer(&mesh->vert_data, CD_MVERT_SKIN)) {
-      vs = (MVertSkin *)CustomData_add_layer(
-          &mesh->vert_data, CD_MVERT_SKIN, CD_SET_DEFAULT, mesh->verts_num);
+      vs = static_cast<MVertSkin *>(
+          CustomData_add_layer(&mesh->vert_data, CD_MVERT_SKIN, CD_SET_DEFAULT, mesh->verts_num));
 
       /* Mark an arbitrary vertex as root */
       if (vs) {
@@ -1407,7 +1408,7 @@ void BKE_mesh_copy_parameters_for_eval(Mesh *me_dst, const Mesh *me_src)
   if (me_dst->mat != nullptr) {
     MEM_freeN(me_dst->mat);
   }
-  me_dst->mat = (Material **)MEM_dupallocN(me_src->mat);
+  me_dst->mat = static_cast<Material **>(MEM_dupallocN(me_src->mat));
   me_dst->totcol = me_src->totcol;
 
   me_dst->runtime->edit_mesh = me_src->runtime->edit_mesh;
@@ -1427,7 +1428,7 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
 
   Mesh *me_dst = BKE_id_new_nomain<Mesh>(nullptr);
 
-  me_dst->mselect = (MSelect *)MEM_dupallocN(me_src->mselect);
+  me_dst->mselect = static_cast<MSelect *>(MEM_dupallocN(me_src->mselect));
 
   me_dst->verts_num = verts_num;
   me_dst->edges_num = edges_num;
@@ -1532,7 +1533,8 @@ static void ensure_orig_index_layer(CustomData &data, const int size)
   if (CustomData_has_layer(&data, CD_ORIGINDEX)) {
     return;
   }
-  int *indices = (int *)CustomData_add_layer(&data, CD_ORIGINDEX, CD_SET_DEFAULT, size);
+  int *indices = static_cast<int *>(
+      CustomData_add_layer(&data, CD_ORIGINDEX, CD_SET_DEFAULT, size));
   range_vn_i(indices, size, 0);
 }
 
@@ -1623,7 +1625,7 @@ void BKE_mesh_texspace_get_reference(Mesh *mesh,
 
 blender::Array<float3> BKE_mesh_orco_verts_get(const Object *ob)
 {
-  const Mesh *mesh = static_cast<const Mesh *>(ob->data);
+  const Mesh *mesh = blender::id_cast<const Mesh *>(ob->data);
   const Mesh *tme = mesh->texcomesh ? mesh->texcomesh : mesh;
 
   blender::Array<float3> result(mesh->verts_num);
@@ -1682,7 +1684,7 @@ Mesh *BKE_mesh_from_object(Object *ob)
     return nullptr;
   }
   if (ob->type == OB_MESH) {
-    return static_cast<Mesh *>(ob->data);
+    return blender::id_cast<Mesh *>(ob->data);
   }
 
   return nullptr;
@@ -1690,7 +1692,7 @@ Mesh *BKE_mesh_from_object(Object *ob)
 
 void BKE_mesh_assign_object(Main *bmain, Object *ob, Mesh *mesh)
 {
-  Mesh *old = nullptr;
+  ID *old = nullptr;
 
   if (ob == nullptr) {
     return;
@@ -1699,15 +1701,15 @@ void BKE_mesh_assign_object(Main *bmain, Object *ob, Mesh *mesh)
   multires_force_sculpt_rebuild(ob);
 
   if (ob->type == OB_MESH) {
-    old = static_cast<Mesh *>(ob->data);
+    old = ob->data;
     if (old) {
-      id_us_min(&old->id);
+      id_us_min(old);
     }
-    ob->data = mesh;
-    id_us_plus((ID *)mesh);
+    ob->data = blender::id_cast<ID *>(mesh);
+    id_us_plus(ob->data);
   }
 
-  BKE_object_materials_sync_length(bmain, ob, (ID *)mesh);
+  BKE_object_materials_sync_length(bmain, ob, blender::id_cast<ID *>(mesh));
 
   BKE_modifiers_test_object(ob);
 }
@@ -2092,7 +2094,7 @@ void BKE_mesh_mselect_validate(Mesh *mesh)
     mselect_dst = nullptr;
   }
   else if (i_dst != mesh->totselect) {
-    mselect_dst = (MSelect *)MEM_reallocN(mselect_dst, sizeof(MSelect) * i_dst);
+    mselect_dst = static_cast<MSelect *>(MEM_reallocN(mselect_dst, sizeof(MSelect) * i_dst));
   }
 
   mesh->totselect = i_dst;
@@ -2130,8 +2132,8 @@ void BKE_mesh_mselect_active_set(Mesh *mesh, int index, int type)
 
   if (msel_index == -1) {
     /* add to the end */
-    mesh->mselect = (MSelect *)MEM_reallocN(mesh->mselect,
-                                            sizeof(MSelect) * (mesh->totselect + 1));
+    mesh->mselect = static_cast<MSelect *>(
+        MEM_reallocN(mesh->mselect, sizeof(MSelect) * (mesh->totselect + 1)));
     mesh->mselect[mesh->totselect].index = index;
     mesh->mselect[mesh->totselect].type = type;
     mesh->totselect++;

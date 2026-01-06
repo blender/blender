@@ -100,7 +100,7 @@ static wmOperatorStatus set_persistent_base_exec(bContext *C, wmOperator * /*op*
 
   switch (bke::object::pbvh_get(ob)->type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *static_cast<Mesh *>(ob.data);
+      Mesh &mesh = *blender::id_cast<Mesh *>(ob.data);
       bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
       attributes.remove(".sculpt_persistent_co");
       attributes.remove(".sculpt_persistent_no");
@@ -269,7 +269,7 @@ static wmOperatorStatus symmetrize_exec(bContext *C, wmOperator *op)
     case bke::pbvh::Type::Mesh: {
       /* Mesh Symmetrize. */
       undo::geometry_begin(scene, ob, op);
-      Mesh *mesh = static_cast<Mesh *>(ob.data);
+      Mesh *mesh = blender::id_cast<Mesh *>(ob.data);
 
       BKE_mesh_mirror_apply_mirror_on_axis(bmain, mesh, sd.symmetrize_direction, dist);
 
@@ -340,7 +340,7 @@ static void init_sculpt_mode_session(Main &bmain, Depsgraph &depsgraph, Scene &s
   /* This function expects a fully evaluated depsgraph. */
   BKE_sculpt_update_object_for_edit(&depsgraph, &ob, false);
 
-  Mesh &mesh = *static_cast<Mesh *>(ob.data);
+  Mesh &mesh = *blender::id_cast<Mesh *>(ob.data);
   if (mesh.attributes().contains(".sculpt_face_set")) {
     /* Here we can detect geometry that was just added to Sculpt Mode as it has the
      * SCULPT_FACE_SET_NONE assigned, so we can create a new face set for it. */
@@ -353,7 +353,7 @@ static void init_sculpt_mode_session(Main &bmain, Depsgraph &depsgraph, Scene &s
      * objects, like moving the transform pivot position to the new area or masking existing
      * geometry. */
     const int new_face_set = face_set::find_next_available_id(ob);
-    face_set::initialize_none_to_id(static_cast<Mesh *>(ob.data), new_face_set);
+    face_set::initialize_none_to_id(blender::id_cast<Mesh *>(ob.data), new_face_set);
   }
 }
 
@@ -563,7 +563,7 @@ static wmOperatorStatus sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
     BKE_paint_brushes_validate(&bmain, &ts.sculpt->paint);
 
     if (ob.mode & mode_flag) {
-      Mesh *mesh = static_cast<Mesh *>(ob.data);
+      Mesh *mesh = blender::id_cast<Mesh *>(ob.data);
       /* Dyntopo adds its own undo step. */
       if ((mesh->flag & ME_SCULPT_DYNAMIC_TOPOLOGY) == 0) {
         /* Without this the memfile undo step is used,
@@ -664,7 +664,7 @@ static void mask_by_color_contiguous_mesh(const Depsgraph &depsgraph,
                                           const bool preserve_mask)
 {
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
-  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  const Mesh &mesh = *blender::id_cast<const Mesh *>(object.data);
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan colors = *attributes.lookup_or_default<ColorGeometry4f>(
@@ -707,7 +707,7 @@ static void mask_by_color_full_mesh(const Depsgraph &depsgraph,
                                     const bool preserve_mask)
 {
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
-  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  const Mesh &mesh = *blender::id_cast<const Mesh *>(object.data);
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan colors = *attributes.lookup_or_default<ColorGeometry4f>(
       mesh.active_color_attribute, bke::AttrDomain::Point, {});
@@ -1042,7 +1042,7 @@ static void apply_mask_from_settings(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
+      Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
       bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
       bke::SpanAttributeWriter mask = attributes.lookup_or_add_for_write_span<float>(
           ".sculpt_mask", bke::AttrDomain::Point);
@@ -1124,7 +1124,7 @@ static wmOperatorStatus mask_from_cavity_exec(bContext *C, wmOperator *op)
   /* Set up automasking settings. */
   Sculpt scene_copy = dna::shallow_copy(sd);
 
-  MaskSettingsSource src = (MaskSettingsSource)RNA_enum_get(op->ptr, "settings_source");
+  MaskSettingsSource src = MaskSettingsSource(RNA_enum_get(op->ptr, "settings_source"));
   switch (src) {
     case MaskSettingsSource::Operator:
       if (RNA_boolean_get(op->ptr, "invert")) {
@@ -1212,7 +1212,7 @@ static void mask_from_cavity_ui(bContext *C, wmOperator *op)
 
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
-  MaskSettingsSource source = (MaskSettingsSource)RNA_enum_get(op->ptr, "settings_source");
+  MaskSettingsSource source = MaskSettingsSource(RNA_enum_get(op->ptr, "settings_source"));
 
   if (!sd) {
     source = MaskSettingsSource::Operator;
@@ -1325,7 +1325,7 @@ static wmOperatorStatus mask_from_boundary_exec(bContext *C, wmOperator *op)
   /* Set up automasking settings. */
   Sculpt scene_copy = dna::shallow_copy(sd);
 
-  MaskSettingsSource src = (MaskSettingsSource)RNA_enum_get(op->ptr, "settings_source");
+  MaskSettingsSource src = MaskSettingsSource(RNA_enum_get(op->ptr, "settings_source"));
   switch (src) {
     case MaskSettingsSource::Operator: {
       const MaskBoundaryMode boundary_mode = MaskBoundaryMode(
@@ -1401,7 +1401,7 @@ static void mask_from_boundary_ui(bContext *C, wmOperator *op)
 
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
-  MaskSettingsSource source = (MaskSettingsSource)RNA_enum_get(op->ptr, "settings_source");
+  MaskSettingsSource source = MaskSettingsSource(RNA_enum_get(op->ptr, "settings_source"));
 
   if (!sd) {
     source = MaskSettingsSource::Operator;

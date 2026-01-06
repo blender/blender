@@ -86,7 +86,7 @@ static wmOperatorStatus stroke_trim_execute(const bContext *C, const Span<int2> 
   Object *obact = CTX_data_active_object(C);
   Object *ob_eval = DEG_get_evaluated(depsgraph, obact);
 
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(obact->data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(obact->data);
 
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);

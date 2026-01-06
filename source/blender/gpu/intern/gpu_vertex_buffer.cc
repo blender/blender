@@ -235,7 +235,7 @@ void GPU_vertbuf_attr_fill_stride(VertBuf *verts, uint a_idx, uint stride, const
     /* we must copy it per vertex */
     for (uint v = 0; v < vertex_len; v++) {
       memcpy(verts->data<uchar>().data() + a->offset + v * format->stride,
-             (const uchar *)data + v * stride,
+             static_cast<const uchar *>(data) + v * stride,
              a->type.size());
     }
   }
@@ -252,7 +252,7 @@ void GPU_vertbuf_attr_get_raw_data(VertBuf *verts, uint a_idx, GPUVertBufRaw *ac
   verts->flag &= ~GPU_VERTBUF_DATA_UPLOADED;
   access->size = a->type.size();
   access->stride = format->stride;
-  access->data = (uchar *)verts->data<uchar>().data() + a->offset;
+  access->data = static_cast<uchar *>(verts->data<uchar>().data()) + a->offset;
   access->data_init = access->data;
 #ifndef NDEBUG
   access->_data_end = access->data_init + size_t(verts->vertex_alloc * format->stride);

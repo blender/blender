@@ -261,8 +261,8 @@ BLI_INLINE unsigned int float_uint(float value, unsigned int max)
   if (value < 0.0f) {
     return 0;
   }
-  if (value > (1.0f - 0.5f / (float)max)) {
+  if (value > (1.0f - 0.5f / float(max))) {
     return max;
   }
-  return (unsigned int)(((float)max * value) + 0.5f);
+  return static_cast<unsigned int>((float(max) * value) + 0.5f);
 }

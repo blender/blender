@@ -629,7 +629,7 @@ static void autotrack_context_step_cb(void *__restrict userdata,
                                       const TaskParallelTLS *__restrict tls)
 {
   AutoTrackContext *context = static_cast<AutoTrackContext *>(userdata);
-  AutoTrackTLS *autotrack_tls = (AutoTrackTLS *)tls->userdata_chunk;
+  AutoTrackTLS *autotrack_tls = static_cast<AutoTrackTLS *>(tls->userdata_chunk);
 
   const AutoTrackMarker &autotrack_marker = context->autotrack_markers[marker_index];
   const libmv_Marker &libmv_current_marker = autotrack_marker.libmv_marker;
@@ -693,13 +693,13 @@ static void autotrack_context_reduce(const void *__restrict /*userdata*/,
                                      void *__restrict chunk_join,
                                      void *__restrict chunk)
 {
-  AutoTrackTLS *autotrack_tls = (AutoTrackTLS *)chunk;
+  AutoTrackTLS *autotrack_tls = static_cast<AutoTrackTLS *>(chunk);
   if (BLI_listbase_is_empty(&autotrack_tls->results)) {
     /* Nothing to be joined from. */
     return;
   }
 
-  AutoTrackTLS *autotrack_tls_join = (AutoTrackTLS *)chunk_join;
+  AutoTrackTLS *autotrack_tls_join = static_cast<AutoTrackTLS *>(chunk_join);
   BLI_movelisttolist(&autotrack_tls_join->results, &autotrack_tls->results);
 }
 

@@ -26,20 +26,20 @@
 
 static void lightprobe_init_data(ID *id)
 {
-  LightProbe *probe = (LightProbe *)id;
+  LightProbe *probe = blender::id_cast<LightProbe *>(id);
   INIT_DEFAULT_STRUCT_AFTER(probe, id);
 }
 
 static void lightprobe_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  LightProbe *probe = (LightProbe *)id;
+  LightProbe *probe = blender::id_cast<LightProbe *>(id);
 
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, probe->visibility_grp, IDWALK_CB_NOP);
 }
 
 static void lightprobe_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  LightProbe *prb = (LightProbe *)id;
+  LightProbe *prb = blender::id_cast<LightProbe *>(id);
 
   /* write LibData */
   BLO_write_id_struct(writer, LightProbe, id_address, &prb->id);
@@ -117,17 +117,18 @@ static void lightprobe_grid_cache_frame_blend_write(BlendWriter *writer,
 
   int64_t sample_count = BKE_lightprobe_grid_cache_frame_sample_count(cache);
 
-  BLO_write_float3_array(writer, sample_count, (float *)cache->irradiance.L0);
-  BLO_write_float3_array(writer, sample_count, (float *)cache->irradiance.L1_a);
-  BLO_write_float3_array(writer, sample_count, (float *)cache->irradiance.L1_b);
-  BLO_write_float3_array(writer, sample_count, (float *)cache->irradiance.L1_c);
+  BLO_write_float3_array(writer, sample_count, reinterpret_cast<float *>(cache->irradiance.L0));
+  BLO_write_float3_array(writer, sample_count, reinterpret_cast<float *>(cache->irradiance.L1_a));
+  BLO_write_float3_array(writer, sample_count, reinterpret_cast<float *>(cache->irradiance.L1_b));
+  BLO_write_float3_array(writer, sample_count, reinterpret_cast<float *>(cache->irradiance.L1_c));
 
   BLO_write_float_array(writer, sample_count, cache->visibility.L0);
   BLO_write_float_array(writer, sample_count, cache->visibility.L1_a);
   BLO_write_float_array(writer, sample_count, cache->visibility.L1_b);
   BLO_write_float_array(writer, sample_count, cache->visibility.L1_c);
 
-  BLO_write_int8_array(writer, sample_count, (int8_t *)cache->connectivity.validity);
+  BLO_write_int8_array(
+      writer, sample_count, reinterpret_cast<int8_t *>(cache->connectivity.validity));
 }
 
 static void lightprobe_grid_cache_frame_blend_read(BlendDataReader *reader,
@@ -155,17 +156,18 @@ static void lightprobe_grid_cache_frame_blend_read(BlendDataReader *reader,
   cache->surfels = nullptr;
   cache->surfels_len = 0;
 
-  BLO_read_float3_array(reader, sample_count, (float **)&cache->irradiance.L0);
-  BLO_read_float3_array(reader, sample_count, (float **)&cache->irradiance.L1_a);
-  BLO_read_float3_array(reader, sample_count, (float **)&cache->irradiance.L1_b);
-  BLO_read_float3_array(reader, sample_count, (float **)&cache->irradiance.L1_c);
+  BLO_read_float3_array(reader, sample_count, reinterpret_cast<float **>(&cache->irradiance.L0));
+  BLO_read_float3_array(reader, sample_count, reinterpret_cast<float **>(&cache->irradiance.L1_a));
+  BLO_read_float3_array(reader, sample_count, reinterpret_cast<float **>(&cache->irradiance.L1_b));
+  BLO_read_float3_array(reader, sample_count, reinterpret_cast<float **>(&cache->irradiance.L1_c));
 
   BLO_read_float_array(reader, sample_count, &cache->visibility.L0);
   BLO_read_float_array(reader, sample_count, &cache->visibility.L1_a);
   BLO_read_float_array(reader, sample_count, &cache->visibility.L1_b);
   BLO_read_float_array(reader, sample_count, &cache->visibility.L1_c);
 
-  BLO_read_int8_array(reader, sample_count, (int8_t **)&cache->connectivity.validity);
+  BLO_read_int8_array(
+      reader, sample_count, reinterpret_cast<int8_t **>(&cache->connectivity.validity));
 }
 
 void BKE_lightprobe_cache_blend_write(BlendWriter *writer, LightProbeObjectCache *cache)
@@ -194,10 +196,10 @@ template<typename T> static void spherical_harmonic_free(T &data)
 
 template<typename DataT, typename T> static void spherical_harmonic_copy(T &dst, T &src)
 {
-  dst.L0 = (DataT *)MEM_dupallocN(src.L0);
-  dst.L1_a = (DataT *)MEM_dupallocN(src.L1_a);
-  dst.L1_b = (DataT *)MEM_dupallocN(src.L1_b);
-  dst.L1_c = (DataT *)MEM_dupallocN(src.L1_c);
+  dst.L0 = static_cast<DataT *>(MEM_dupallocN(src.L0));
+  dst.L1_a = static_cast<DataT *>(MEM_dupallocN(src.L1_a));
+  dst.L1_b = static_cast<DataT *>(MEM_dupallocN(src.L1_b));
+  dst.L1_c = static_cast<DataT *>(MEM_dupallocN(src.L1_c));
 }
 
 LightProbeGridCacheFrame *BKE_lightprobe_grid_cache_frame_create()

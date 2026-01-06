@@ -27,6 +27,7 @@
 #include "BKE_object_types.hh"
 #include "BKE_report.hh"
 
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "WM_api.hh"
@@ -451,7 +452,7 @@ static wmOperatorStatus similar_face_select_exec(bContext *C, wmOperator *op)
       params.calc_looptris = false;
       params.calc_normals = false;
       params.is_destructive = false;
-      EDBM_update(static_cast<Mesh *>(ob->data), &params);
+      EDBM_update(blender::id_cast<Mesh *>(ob->data), &params);
     }
   }
 
@@ -478,7 +479,7 @@ static wmOperatorStatus similar_face_select_exec(bContext *C, wmOperator *op)
       params.calc_looptris = false;
       params.calc_normals = false;
       params.is_destructive = false;
-      EDBM_update(static_cast<Mesh *>(ob->data), &params);
+      EDBM_update(blender::id_cast<Mesh *>(ob->data), &params);
     }
   }
 
@@ -889,7 +890,7 @@ static wmOperatorStatus similar_edge_select_exec(bContext *C, wmOperator *op)
       params.calc_looptris = false;
       params.calc_normals = false;
       params.is_destructive = false;
-      EDBM_update(static_cast<Mesh *>(ob->data), &params);
+      EDBM_update(blender::id_cast<Mesh *>(ob->data), &params);
     }
   }
 
@@ -916,7 +917,7 @@ static wmOperatorStatus similar_edge_select_exec(bContext *C, wmOperator *op)
       params.calc_looptris = false;
       params.calc_normals = false;
       params.is_destructive = false;
-      EDBM_update(static_cast<Mesh *>(ob->data), &params);
+      EDBM_update(blender::id_cast<Mesh *>(ob->data), &params);
     }
   }
 
@@ -1234,7 +1235,7 @@ static wmOperatorStatus similar_vert_select_exec(bContext *C, wmOperator *op)
       params.calc_looptris = false;
       params.calc_normals = false;
       params.is_destructive = false;
-      EDBM_update(static_cast<Mesh *>(ob->data), &params);
+      EDBM_update(blender::id_cast<Mesh *>(ob->data), &params);
     }
   }
 

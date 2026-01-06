@@ -81,7 +81,7 @@ ListBaseT<TreeElement> TreeDisplayViewLayer::build_tree(const TreeSourceData &so
         continue;
       }
 
-      add_view_layer(*scene, tree, (TreeElement *)nullptr);
+      add_view_layer(*scene, tree, static_cast<TreeElement *>(nullptr));
     }
     else {
       TreeElement &te_view_layer = *add_element(
@@ -229,7 +229,7 @@ void ObjectsChildrenBuilder::object_tree_elements_lookup_create_recursive(TreeEl
     }
 
     if ((tselem->type == TSE_SOME_ID) && (te.idcode == ID_OB)) {
-      Object *ob = (Object *)tselem->id;
+      Object *ob = blender::id_cast<Object *>(tselem->id);
       /* Lookup children or add new, empty children vector. */
       Vector<TreeElement *> &tree_elements = object_tree_elements_map_.lookup_or_add(ob, {});
       add_object_and_parents_in_order(ob);

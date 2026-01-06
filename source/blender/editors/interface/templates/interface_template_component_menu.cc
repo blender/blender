@@ -23,7 +23,7 @@ struct ComponentMenuArgs {
 /* NOTE: this is a block-menu, needs 0 events, otherwise the menu closes */
 static Block *component_menu(bContext *C, ARegion *region, void *args_v)
 {
-  ComponentMenuArgs *args = (ComponentMenuArgs *)args_v;
+  ComponentMenuArgs *args = static_cast<ComponentMenuArgs *>(args_v);
 
   Block *block = block_begin(C, region, __func__, EmbossType::Emboss);
   block_flag_enable(block, BLOCK_KEEP_OPEN);

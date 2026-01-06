@@ -9,6 +9,8 @@
 #include "BLI_sys_types.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_gpencil_legacy_types.h"
+#include "DNA_grease_pencil_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -383,7 +385,7 @@ void ANIM_nla_mapping_apply_fcurve(AnimData *adt, FCurve *fcu, bool restore, boo
    * - AnimData is stored in 'data'
    * - only_keys is stored in 'i1'
    */
-  ked.data = (void *)adt;
+  ked.data = static_cast<void *>(adt);
   ked.i1 = int(only_keys);
 
   /* get editing callback */
@@ -694,7 +696,7 @@ static bool find_prev_next_keyframes(bContext *C, int *r_nextfra, int *r_prevfra
 
   if (ob) {
     ob_to_keylist(&ads, ob, keylist, 0, {-FLT_MAX, FLT_MAX});
-    gpencil_to_keylist(&ads, static_cast<bGPdata *>(ob->data), keylist, false);
+    gpencil_to_keylist(&ads, blender::id_cast<bGPdata *>(ob->data), keylist, false);
   }
 
   if (mask) {

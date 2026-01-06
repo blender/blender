@@ -62,14 +62,14 @@ void ED_space_image_set(Main *bmain, SpaceImage *sima, Image *ima, bool automati
     BKE_image_signal(bmain, sima->image, &sima->iuser, IMA_SIGNAL_USER_NEW_IMAGE);
   }
 
-  id_us_ensure_real((ID *)sima->image);
+  id_us_ensure_real(blender::id_cast<ID *>(sima->image));
 
   WM_main_add_notifier(NC_SPACE | ND_SPACE_IMAGE, nullptr);
 }
 
 void ED_space_image_sync(Main *bmain, Image *image, bool ignore_render_viewer)
 {
-  wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
+  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
   for (wmWindow &win : wm->windows) {
     const bScreen *screen = WM_window_get_active_screen(&win);
     for (ScrArea &area : screen->areabase) {
@@ -77,7 +77,7 @@ void ED_space_image_sync(Main *bmain, Image *image, bool ignore_render_viewer)
         if (sl.spacetype != SPACE_IMAGE) {
           continue;
         }
-        SpaceImage *sima = (SpaceImage *)&sl;
+        SpaceImage *sima = reinterpret_cast<SpaceImage *>(&sl);
         if (sima->pin) {
           continue;
         }
@@ -134,7 +134,7 @@ void ED_space_image_set_mask(bContext *C, SpaceImage *sima, Mask *mask)
   sima->mask_info.mask = mask;
 
   /* weak, but same as image/space */
-  id_us_ensure_real((ID *)sima->mask_info.mask);
+  id_us_ensure_real(blender::id_cast<ID *>(sima->mask_info.mask));
 
   if (C) {
     WM_event_add_notifier(C, NC_MASK | NA_SELECTED, mask);

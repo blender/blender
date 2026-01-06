@@ -639,8 +639,8 @@ static void *ml_addview_cb(void *base, const char *str)
 static int order_render_passes(const void *a, const void *b)
 {
   /* 1 if `a` is after `b`. */
-  const RenderPass *rpa = (const RenderPass *)a;
-  const RenderPass *rpb = (const RenderPass *)b;
+  const RenderPass *rpa = static_cast<const RenderPass *>(a);
+  const RenderPass *rpb = static_cast<const RenderPass *>(b);
   uint passtype_a = passtype_from_name(rpa->name);
   uint passtype_b = passtype_from_name(rpb->name);
 
@@ -1217,7 +1217,7 @@ void render_result_rect_get_pixels(RenderResult *rr,
       return;
     }
     if (ibuf->float_buffer.data) {
-      IMB_display_buffer_transform_apply((uchar *)rect,
+      IMB_display_buffer_transform_apply(reinterpret_cast<uchar *>(rect),
                                          ibuf->float_buffer.data,
                                          rr->rectx,
                                          rr->recty,

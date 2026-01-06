@@ -516,7 +516,7 @@ static void generate_margin(ImBuf *ibuf,
   /* Now the map contains 3 sorts of values: 0xFFFFFFFF for empty pixels, `0x80000000 + polyindex`
    * for margin pixels, just `polyindex` for face pixels. */
   if (mask) {
-    mask = (char *)MEM_dupallocN(mask);
+    mask = static_cast<char *>(MEM_dupallocN(mask));
   }
   else {
     mask = MEM_calloc_arrayN<char>(size_t(ibuf->x) * size_t(ibuf->y), __func__);
@@ -544,7 +544,7 @@ static void generate_margin(ImBuf *ibuf,
     map.rasterize_tri(vec[0], vec[1], vec[2], tri_faces[i], mask, draw_new_mask);
   }
 
-  char *tmpmask = (char *)MEM_dupallocN(mask);
+  char *tmpmask = static_cast<char *>(MEM_dupallocN(mask));
   /* Extend (with averaging) by 2 pixels. Those will be overwritten, but it
    * helps linear interpolations on the edges of polygons. */
   IMB_filter_extend(ibuf, tmpmask, 2);

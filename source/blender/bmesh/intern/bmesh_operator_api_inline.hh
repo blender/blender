@@ -48,7 +48,7 @@ ATTR_NONNULL(1, 2)
 BLI_INLINE void _bmo_elem_flag_disable(BMesh *bm, BMFlagLayer *oflags, const short oflag)
 {
   BLI_assert(bm->use_toolflags);
-  oflags[bm->toolflag_index].f &= (short)~oflag;
+  oflags[bm->toolflag_index].f &= short(~oflag);
 }
 
 ATTR_NONNULL(1, 2)
@@ -59,7 +59,7 @@ BLI_INLINE void _bmo_elem_flag_set(BMesh *bm, BMFlagLayer *oflags, const short o
     oflags[bm->toolflag_index].f |= oflag;
   }
   else {
-    oflags[bm->toolflag_index].f &= (short)~oflag;
+    oflags[bm->toolflag_index].f &= short(~oflag);
   }
 }
 
@@ -167,7 +167,7 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE
 
   data = BMO_slot_map_data_get(slot, element);
   if (data) {
-    return *(float *)data;
+    return *reinterpret_cast<float *>(data);
   }
   return 0.0f;
 }
@@ -180,7 +180,7 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE
 
   data = BMO_slot_map_data_get(slot, element);
   if (data) {
-    return *(int *)data;
+    return *reinterpret_cast<int *>(data);
   }
   return 0;
 }
@@ -193,7 +193,7 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE
 
   data = BMO_slot_map_data_get(slot, element);
   if (data) {
-    return *(bool *)data;
+    return *reinterpret_cast<bool *>(data);
   }
   return false;
 }
@@ -213,7 +213,7 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE
 ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE
     void *BMO_slot_map_elem_get(BMOpSlot *slot, const void *element)
 {
-  void **val = (void **)BMO_slot_map_data_get(slot, element);
+  void **val = static_cast<void **>(BMO_slot_map_data_get(slot, element));
   BLI_assert(slot->slot_subtype.map == BMO_OP_SLOT_SUBTYPE_MAP_ELEM);
   if (val) {
     return *val;

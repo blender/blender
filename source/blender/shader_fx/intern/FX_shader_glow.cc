@@ -29,7 +29,7 @@
 
 static void init_data(ShaderFxData *md)
 {
-  GlowShaderFxData *gpfx = (GlowShaderFxData *)md;
+  GlowShaderFxData *gpfx = reinterpret_cast<GlowShaderFxData *>(md);
   ARRAY_SET_ITEMS(gpfx->glow_color, 0.75f, 1.0f, 1.0f, 1.0f);
   ARRAY_SET_ITEMS(gpfx->select_color, 0.0f, 0.0f, 0.0f);
   copy_v2_fl(gpfx->blur, 50.0f);
@@ -81,7 +81,7 @@ static void panel_register(ARegionType *region_type)
 static void foreach_working_space_color(ShaderFxData *fx,
                                         const IDTypeForeachColorFunctionCallback &fn)
 {
-  GlowShaderFxData *gpfx = (GlowShaderFxData *)fx;
+  GlowShaderFxData *gpfx = reinterpret_cast<GlowShaderFxData *>(fx);
   fn.single(gpfx->glow_color);
   fn.single(gpfx->select_color);
 }

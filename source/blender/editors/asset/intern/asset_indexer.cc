@@ -144,7 +144,7 @@ static void add_id_name(DictionaryValue &result, const short idcode, const Strin
 {
   char idcode_prefix[2];
   /* Similar to `BKE_libblock_alloc`. */
-  *((short *)idcode_prefix) = idcode;
+  *(reinterpret_cast<short *>(idcode_prefix)) = idcode;
   std::string name_with_idcode = std::string(idcode_prefix, sizeof(idcode_prefix)) + name;
 
   result.append_str(ATTRIBUTE_ENTRIES_NAME, name_with_idcode);
@@ -727,7 +727,7 @@ static void *init_user_data(const char *root_directory, size_t root_directory_ma
 
 static void free_user_data(void *user_data)
 {
-  MEM_delete((AssetLibraryIndex *)user_data);
+  MEM_delete(static_cast<AssetLibraryIndex *>(user_data));
 }
 
 static void filelist_finished(void *user_data)

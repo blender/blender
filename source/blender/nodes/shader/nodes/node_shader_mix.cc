@@ -472,7 +472,7 @@ class MixColorFunction : public mf::MultiFunction {
 
 static const mf::MultiFunction *get_multi_function(const bNode &node)
 {
-  const NodeShaderMix *data = (NodeShaderMix *)node.storage;
+  const NodeShaderMix *data = static_cast<NodeShaderMix *>(node.storage);
   bool uniform_factor = data->factor_mode == NODE_MIX_MODE_UNIFORM;
   const bool clamp_factor = data->clamp_factor;
   switch (data->data_type) {

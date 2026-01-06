@@ -128,7 +128,7 @@ static void bmw_VertShellWalker_begin(BMWalker *walker, void *data)
   switch (h->htype) {
     case BM_VERT: {
       /* Starting the walk at a vert, add all the edges to the work-list. */
-      v = (BMVert *)h;
+      v = reinterpret_cast<BMVert *>(h);
       BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
         bmw_VertShellWalker_visitEdge(walker, e);
       }
@@ -137,7 +137,7 @@ static void bmw_VertShellWalker_begin(BMWalker *walker, void *data)
 
     case BM_EDGE: {
       /* Starting the walk at an edge, add the single edge to the work-list. */
-      e = (BMEdge *)h;
+      e = reinterpret_cast<BMEdge *>(h);
       bmw_VertShellWalker_visitEdge(walker, e);
       break;
     }
@@ -257,13 +257,13 @@ static void bmw_LoopShellWalker_begin(BMWalker *walker, void *data)
   switch (h->htype) {
     case BM_LOOP: {
       /* Starting the walk at a vert, add all the edges to the work-list. */
-      BMLoop *l = (BMLoop *)h;
+      BMLoop *l = reinterpret_cast<BMLoop *>(h);
       bmw_LoopShellWalker_visitLoop(walker, l);
       break;
     }
 
     case BM_VERT: {
-      BMVert *v = (BMVert *)h;
+      BMVert *v = reinterpret_cast<BMVert *>(h);
       BMLoop *l;
       BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
         bmw_LoopShellWalker_visitLoop(walker, l);
@@ -271,7 +271,7 @@ static void bmw_LoopShellWalker_begin(BMWalker *walker, void *data)
       break;
     }
     case BM_EDGE: {
-      BMEdge *e = (BMEdge *)h;
+      BMEdge *e = reinterpret_cast<BMEdge *>(h);
       BMLoop *l;
       BM_ITER_ELEM (l, &iter, e, BM_LOOPS_OF_EDGE) {
         bmw_LoopShellWalker_visitLoop(walker, l);
@@ -279,7 +279,7 @@ static void bmw_LoopShellWalker_begin(BMWalker *walker, void *data)
       break;
     }
     case BM_FACE: {
-      BMFace *f = (BMFace *)h;
+      BMFace *f = reinterpret_cast<BMFace *>(h);
       BMLoop *l = BM_FACE_FIRST_LOOP(f);
       /* Walker will handle other loops within the face. */
       bmw_LoopShellWalker_visitLoop(walker, l);
@@ -371,7 +371,7 @@ static void bmw_LoopShellWalker_visitEdgeWire(BMWalker *walker, BMEdge *e)
   }
 
   shellWalk = static_cast<BMwLoopShellWireWalker *>(BMW_state_add(walker));
-  shellWalk->curelem = (BMElem *)e;
+  shellWalk->curelem = reinterpret_cast<BMElem *>(e);
   walker->visit_set_alt->add(e);
 }
 
@@ -422,20 +422,20 @@ static void bmw_LoopShellWireWalker_begin(BMWalker *walker, void *data)
 
   switch (h->htype) {
     case BM_LOOP: {
-      BMLoop *l = (BMLoop *)h;
+      BMLoop *l = reinterpret_cast<BMLoop *>(h);
       bmw_LoopShellWireWalker_visitVert(walker, l->v, nullptr);
       break;
     }
 
     case BM_VERT: {
-      BMVert *v = (BMVert *)h;
+      BMVert *v = reinterpret_cast<BMVert *>(h);
       if (v->e) {
         bmw_LoopShellWireWalker_visitVert(walker, v, nullptr);
       }
       break;
     }
     case BM_EDGE: {
-      BMEdge *e = (BMEdge *)h;
+      BMEdge *e = reinterpret_cast<BMEdge *>(h);
       if (bmw_mask_check_edge(walker, e)) {
         bmw_LoopShellWireWalker_visitVert(walker, e->v1, nullptr);
         bmw_LoopShellWireWalker_visitVert(walker, e->v2, nullptr);
@@ -475,7 +475,7 @@ static void *bmw_LoopShellWireWalker_step(BMWalker *walker)
   swalk = &owalk;
 
   if (swalk->curelem->head.htype == BM_LOOP) {
-    BMLoop *l = (BMLoop *)swalk->curelem;
+    BMLoop *l = reinterpret_cast<BMLoop *>(swalk->curelem);
 
     bmw_LoopShellWalker_step_impl(walker, l);
 
@@ -484,7 +484,7 @@ static void *bmw_LoopShellWireWalker_step(BMWalker *walker)
     return l;
   }
 
-  BMEdge *e = (BMEdge *)swalk->curelem;
+  BMEdge *e = reinterpret_cast<BMEdge *>(swalk->curelem);
 
   BLI_assert(e->head.htype == BM_EDGE);
 

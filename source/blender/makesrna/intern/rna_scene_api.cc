@@ -198,7 +198,7 @@ static void rna_Scene_ray_cast(Scene *scene,
   else {
     *r_success = false;
 
-    unit_m4((float (*)[4])r_obmat);
+    unit_m4(reinterpret_cast<float (*)[4]>(r_obmat));
     zero_v3(r_location);
     zero_v3(r_normal);
   }

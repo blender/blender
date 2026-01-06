@@ -539,9 +539,13 @@ static PyObject *app_translations_locales_get(PyObject * /*self*/, void * /*user
 
 static PyGetSetDef app_translations_getseters[] = {
     /* {name, getter, setter, doc, userdata} */
-    {"locale", (getter)app_translations_locale_get, nullptr, app_translations_locale_doc, nullptr},
+    {"locale",
+     static_cast<getter>(app_translations_locale_get),
+     nullptr,
+     app_translations_locale_doc,
+     nullptr},
     {"locales",
-     (getter)app_translations_locales_get,
+     static_cast<getter>(app_translations_locales_get),
      nullptr,
      app_translations_locales_doc,
      nullptr},
@@ -569,8 +573,12 @@ static PyObject *_py_pgettext(PyObject *args,
   PyObject *msgid, *msgctxt;
   (void)_pgettext;
 
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kw, "O|O:bpy.app.translations.pgettext", (char **)kwlist, &msgid, &msgctxt))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kw,
+                                   "O|O:bpy.app.translations.pgettext",
+                                   const_cast<char **>(kwlist),
+                                   &msgid,
+                                   &msgctxt))
   {
     return nullptr;
   }
@@ -640,8 +648,12 @@ static PyObject *app_translations_pgettext_n(BlenderAppTranslations * /*self*/,
   PyObject *msgid, *msgctxt;
   // (void)_pgettext;
 
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kw, "O|O:bpy.app.translations.pgettext", (char **)kwlist, &msgid, &msgctxt))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kw,
+                                   "O|O:bpy.app.translations.pgettext",
+                                   const_cast<char **>(kwlist),
+                                   &msgid,
+                                   &msgctxt))
   {
     return nullptr;
   }
@@ -771,7 +783,7 @@ static PyObject *app_translations_locale_explode(BlenderAppTranslations * /*self
   char *language, *country, *variant, *language_country, *language_variant;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kw, "s:bpy.app.translations.locale_explode", (char **)kwlist, &locale))
+          args, kw, "s:bpy.app.translations.locale_explode", const_cast<char **>(kwlist), &locale))
   {
     return nullptr;
   }
@@ -804,39 +816,39 @@ static PyObject *app_translations_locale_explode(BlenderAppTranslations * /*self
 static PyMethodDef app_translations_methods[] = {
     /* Can't use METH_KEYWORDS alone, see http://bugs.python.org/issue11587 */
     {"register",
-     (PyCFunction)app_translations_py_messages_register,
+     reinterpret_cast<PyCFunction>(app_translations_py_messages_register),
      METH_VARARGS | METH_KEYWORDS,
      app_translations_py_messages_register_doc},
     {"unregister",
-     (PyCFunction)app_translations_py_messages_unregister,
+     reinterpret_cast<PyCFunction>(app_translations_py_messages_unregister),
      METH_VARARGS | METH_KEYWORDS,
      app_translations_py_messages_unregister_doc},
     {"pgettext",
-     (PyCFunction)app_translations_pgettext,
+     reinterpret_cast<PyCFunction>(app_translations_pgettext),
      METH_VARARGS | METH_KEYWORDS | METH_STATIC,
      app_translations_pgettext_doc},
     {"pgettext_n",
-     (PyCFunction)app_translations_pgettext_n,
+     reinterpret_cast<PyCFunction>(app_translations_pgettext_n),
      METH_VARARGS | METH_KEYWORDS | METH_STATIC,
      app_translations_pgettext_n_doc},
     {"pgettext_iface",
-     (PyCFunction)app_translations_pgettext_iface,
+     reinterpret_cast<PyCFunction>(app_translations_pgettext_iface),
      METH_VARARGS | METH_KEYWORDS | METH_STATIC,
      app_translations_pgettext_iface_doc},
     {"pgettext_tip",
-     (PyCFunction)app_translations_pgettext_tip,
+     reinterpret_cast<PyCFunction>(app_translations_pgettext_tip),
      METH_VARARGS | METH_KEYWORDS | METH_STATIC,
      app_translations_pgettext_tip_doc},
     {"pgettext_rpt",
-     (PyCFunction)app_translations_pgettext_rpt,
+     reinterpret_cast<PyCFunction>(app_translations_pgettext_rpt),
      METH_VARARGS | METH_KEYWORDS | METH_STATIC,
      app_translations_pgettext_rpt_doc},
     {"pgettext_data",
-     (PyCFunction)app_translations_pgettext_data,
+     reinterpret_cast<PyCFunction>(app_translations_pgettext_data),
      METH_VARARGS | METH_KEYWORDS | METH_STATIC,
      app_translations_pgettext_data_doc},
     {"locale_explode",
-     (PyCFunction)app_translations_locale_explode,
+     reinterpret_cast<PyCFunction>(app_translations_locale_explode),
      METH_VARARGS | METH_KEYWORDS | METH_STATIC,
      app_translations_locale_explode_doc},
     {nullptr},
@@ -859,7 +871,7 @@ static PyObject *app_translations_new(PyTypeObject *type, PyObject *args, PyObje
   UNUSED_VARS_NDEBUG(args, kw);
 
   if (!_translations) {
-    _translations = (BlenderAppTranslations *)type->tp_alloc(type, 0);
+    _translations = reinterpret_cast<BlenderAppTranslations *>(type->tp_alloc(type, 0));
     if (_translations) {
       PyObject *py_ctxts;
       BLT_i18n_contexts_descriptor *ctxt;
@@ -879,7 +891,7 @@ static PyObject *app_translations_new(PyTypeObject *type, PyObject *args, PyObje
     }
   }
 
-  return (PyObject *)_translations;
+  return reinterpret_cast<PyObject *>(_translations);
 }
 
 static void app_translations_free(void *self_v)
@@ -981,12 +993,12 @@ PyObject *BPY_app_translations_struct()
     return nullptr;
   }
 
-  ret = PyObject_CallObject((PyObject *)&BlenderAppTranslationsType, nullptr);
+  ret = PyObject_CallObject(reinterpret_cast<PyObject *>(&BlenderAppTranslationsType), nullptr);
 
   /* prevent user from creating new instances */
   BlenderAppTranslationsType.tp_new = nullptr;
   /* Without this we can't do `set(sys.modules)` #29635. */
-  BlenderAppTranslationsType.tp_hash = (hashfunc)Py_HashPointer;
+  BlenderAppTranslationsType.tp_hash = reinterpret_cast<hashfunc>(Py_HashPointer);
 
   return ret;
 }

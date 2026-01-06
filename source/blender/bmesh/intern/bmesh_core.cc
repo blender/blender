@@ -163,7 +163,7 @@ BMVert *BM_vert_create(BMesh *bm,
 
   /* allocate flags */
   if (bm->use_toolflags) {
-    ((BMVert_OFlag *)v)->oflags = static_cast<BMFlagLayer *>(
+    (reinterpret_cast<BMVert_OFlag *>(v))->oflags = static_cast<BMFlagLayer *>(
         bm->vtoolflagpool ? BLI_mempool_calloc(bm->vtoolflagpool) : nullptr);
   }
 
@@ -252,7 +252,7 @@ BMEdge *BM_edge_create(
 
   /* allocate flags */
   if (bm->use_toolflags) {
-    ((BMEdge_OFlag *)e)->oflags = static_cast<BMFlagLayer *>(
+    (reinterpret_cast<BMEdge_OFlag *>(e))->oflags = static_cast<BMFlagLayer *>(
         bm->etoolflagpool ? BLI_mempool_calloc(bm->etoolflagpool) : nullptr);
   }
 
@@ -495,7 +495,7 @@ BLI_INLINE BMFace *bm_face_create__internal(BMesh *bm)
 
   /* allocate flags */
   if (bm->use_toolflags) {
-    ((BMFace_OFlag *)f)->oflags = static_cast<BMFlagLayer *>(
+    (reinterpret_cast<BMFace_OFlag *>(f))->oflags = static_cast<BMFlagLayer *>(
         bm->ftoolflagpool ? BLI_mempool_calloc(bm->ftoolflagpool) : nullptr);
   }
 
@@ -857,7 +857,7 @@ static void bm_kill_only_vert(BMesh *bm, BMVert *v)
   }
 
   if (bm->vtoolflagpool) {
-    BLI_mempool_free(bm->vtoolflagpool, ((BMVert_OFlag *)v)->oflags);
+    BLI_mempool_free(bm->vtoolflagpool, (reinterpret_cast<BMVert_OFlag *>(v))->oflags);
   }
   BLI_mempool_free(bm->vpool, v);
 }
@@ -880,7 +880,7 @@ static void bm_kill_only_edge(BMesh *bm, BMEdge *e)
   }
 
   if (bm->etoolflagpool) {
-    BLI_mempool_free(bm->etoolflagpool, ((BMEdge_OFlag *)e)->oflags);
+    BLI_mempool_free(bm->etoolflagpool, (reinterpret_cast<BMEdge_OFlag *>(e))->oflags);
   }
   BLI_mempool_free(bm->epool, e);
 }
@@ -907,7 +907,7 @@ static void bm_kill_only_face(BMesh *bm, BMFace *f)
   }
 
   if (bm->ftoolflagpool) {
-    BLI_mempool_free(bm->ftoolflagpool, ((BMFace_OFlag *)f)->oflags);
+    BLI_mempool_free(bm->ftoolflagpool, (reinterpret_cast<BMFace_OFlag *>(f))->oflags);
   }
   BLI_mempool_free(bm->fpool, f);
 }
@@ -2142,7 +2142,7 @@ BMFace *bmesh_kernel_join_face_kill_edge(BMesh *bm, BMFace *f1, BMFace *f2, BMEd
 
   /* deallocate edge and its two loops as well as f2 */
   if (bm->etoolflagpool) {
-    BLI_mempool_free(bm->etoolflagpool, ((BMEdge_OFlag *)l_f1->e)->oflags);
+    BLI_mempool_free(bm->etoolflagpool, (reinterpret_cast<BMEdge_OFlag *>(l_f1->e))->oflags);
   }
   BLI_mempool_free(bm->epool, l_f1->e);
   bm->totedge--;
@@ -2151,7 +2151,7 @@ BMFace *bmesh_kernel_join_face_kill_edge(BMesh *bm, BMFace *f1, BMFace *f2, BMEd
   BLI_mempool_free(bm->lpool, l_f2);
   bm->totloop--;
   if (bm->ftoolflagpool) {
-    BLI_mempool_free(bm->ftoolflagpool, ((BMFace_OFlag *)f2)->oflags);
+    BLI_mempool_free(bm->ftoolflagpool, (reinterpret_cast<BMFace_OFlag *>(f2))->oflags);
   }
   BLI_mempool_free(bm->fpool, f2);
   bm->totface--;

@@ -141,7 +141,7 @@ struct CurveDrawData {
 
 static float stroke_elem_radius_from_pressure(const CurveDrawData *cdd, const float pressure)
 {
-  const Curve *cu = static_cast<const Curve *>(cdd->vc.obedit->data);
+  const Curve *cu = blender::id_cast<const Curve *>(cdd->vc.obedit->data);
   return ((pressure * cdd->radius.range) + cdd->radius.min) * cu->bevel_radius;
 }
 
@@ -361,7 +361,7 @@ static void curve_draw_stroke_3d(const bContext * /*C*/, ARegion * /*region*/, v
   }
 
   Object *obedit = cdd->vc.obedit;
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
 
   if (cu->bevel_radius > 0.0f) {
     BLI_mempool_iter iter;
@@ -777,7 +777,7 @@ static wmOperatorStatus curve_draw_exec(bContext *C, wmOperator *op)
 
   const CurvePaintSettings *cps = &cdd->vc.scene->toolsettings->curve_paint_settings;
   Object *obedit = cdd->vc.obedit;
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   ListBaseT<Nurb> *nurblist = object_editcurve_get(obedit);
 
   int stroke_len = BLI_mempool_len(cdd->stroke_elem_pool);
@@ -1094,7 +1094,7 @@ static wmOperatorStatus curve_draw_invoke(bContext *C, wmOperator *op, const wmE
     View3D *v3d = cdd->vc.v3d;
     RegionView3D *rv3d = cdd->vc.rv3d;
     Object *obedit = cdd->vc.obedit;
-    Curve *cu = static_cast<Curve *>(obedit->data);
+    Curve *cu = blender::id_cast<Curve *>(obedit->data);
 
     const float *plane_no = nullptr;
     const float *plane_co = nullptr;

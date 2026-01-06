@@ -116,9 +116,9 @@ static int edge_isect_ls_sort_cb(void *thunk, const void *def_a_ptr, const void 
   const float *co = static_cast<const float *>(thunk);
 
   const ScanFillIsect *i_a = static_cast<const ScanFillIsect *>(
-      ((const LinkData *)def_a_ptr)->data);
+      (static_cast<const LinkData *>(def_a_ptr))->data);
   const ScanFillIsect *i_b = static_cast<const ScanFillIsect *>(
-      ((const LinkData *)def_b_ptr)->data);
+      (static_cast<const LinkData *>(def_b_ptr))->data);
   const float a = len_squared_v2v2(co, i_a->co);
   const float b = len_squared_v2v2(co, i_b->co);
 

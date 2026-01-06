@@ -48,7 +48,7 @@ static int gpu_shader_curve_vec(GPUMaterial *mat,
                                 GPUNodeStack *in,
                                 GPUNodeStack *out)
 {
-  CurveMapping *curve_mapping = (CurveMapping *)node->storage;
+  CurveMapping *curve_mapping = static_cast<CurveMapping *>(node->storage);
 
   BKE_curvemapping_init(curve_mapping);
   float *band_values;
@@ -117,7 +117,7 @@ class CurveVecFunction : public mf::MultiFunction {
 static void sh_node_curve_vec_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   const bNode &bnode = builder.node();
-  CurveMapping *cumap = (CurveMapping *)bnode.storage;
+  CurveMapping *cumap = static_cast<CurveMapping *>(bnode.storage);
   BKE_curvemapping_init(cumap);
   builder.construct_and_set_matching_fn<CurveVecFunction>(*cumap, builder.shared_tree());
 }
@@ -188,7 +188,7 @@ static int gpu_shader_curve_rgb(GPUMaterial *mat,
                                 GPUNodeStack *in,
                                 GPUNodeStack *out)
 {
-  CurveMapping *curve_mapping = (CurveMapping *)node->storage;
+  CurveMapping *curve_mapping = static_cast<CurveMapping *>(node->storage);
 
   BKE_curvemapping_init(curve_mapping);
   float *band_values;
@@ -286,7 +286,7 @@ class CurveRGBFunction : public mf::MultiFunction {
 static void sh_node_curve_rgb_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   const bNode &bnode = builder.node();
-  CurveMapping *cumap = (CurveMapping *)bnode.storage;
+  CurveMapping *cumap = static_cast<CurveMapping *>(bnode.storage);
   BKE_curvemapping_init(cumap);
   builder.construct_and_set_matching_fn<CurveRGBFunction>(*cumap, builder.shared_tree());
 }
@@ -356,7 +356,7 @@ static int gpu_shader_curve_float(GPUMaterial *mat,
                                   GPUNodeStack *in,
                                   GPUNodeStack *out)
 {
-  CurveMapping *curve_mapping = (CurveMapping *)node->storage;
+  CurveMapping *curve_mapping = static_cast<CurveMapping *>(node->storage);
 
   BKE_curvemapping_init(curve_mapping);
   float *band_values;
@@ -425,7 +425,7 @@ class CurveFloatFunction : public mf::MultiFunction {
 static void sh_node_curve_float_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   const bNode &bnode = builder.node();
-  CurveMapping *cumap = (CurveMapping *)bnode.storage;
+  CurveMapping *cumap = static_cast<CurveMapping *>(bnode.storage);
   BKE_curvemapping_init(cumap);
   builder.construct_and_set_matching_fn<CurveFloatFunction>(*cumap, builder.shared_tree());
 }

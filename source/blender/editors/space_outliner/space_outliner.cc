@@ -407,13 +407,13 @@ static SpaceLink *outliner_create(const ScrArea * /*area*/, const Scene * /*scen
   BLI_addtail(&space_outliner->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;
 
-  return (SpaceLink *)space_outliner;
+  return reinterpret_cast<SpaceLink *>(space_outliner);
 }
 
 /* Doesn't free the space-link itself. */
 static void outliner_free(SpaceLink *sl)
 {
-  SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
+  SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(sl);
 
   outliner_free_tree(&space_outliner->tree);
   if (space_outliner->treestore) {
@@ -428,7 +428,7 @@ static void outliner_init(wmWindowManager * /*wm*/, ScrArea * /*area*/) {}
 
 static SpaceLink *outliner_duplicate(SpaceLink *sl)
 {
-  SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
+  SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(sl);
   SpaceOutliner *space_outliner_new = MEM_dupallocN<SpaceOutliner>(__func__, *space_outliner);
   space_outliner_new->runtime = MEM_new<SpaceOutliner_Runtime>(__func__, *space_outliner->runtime);
 
@@ -437,14 +437,14 @@ static SpaceLink *outliner_duplicate(SpaceLink *sl)
 
   space_outliner_new->sync_select_dirty = WM_OUTLINER_SYNC_SELECT_FROM_ALL;
 
-  return (SpaceLink *)space_outliner_new;
+  return reinterpret_cast<SpaceLink *>(space_outliner_new);
 }
 
 static void outliner_id_remap(ScrArea *area,
                               SpaceLink *slink,
                               const blender::bke::id::IDRemapper &mappings)
 {
-  SpaceOutliner *space_outliner = (SpaceOutliner *)slink;
+  SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(slink);
 
   if (!space_outliner->treestore) {
     return;
@@ -532,7 +532,7 @@ static void outliner_deactivate(ScrArea *area)
 
 static void outliner_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
-  SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
+  SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(sl);
   space_outliner->runtime = MEM_new<SpaceOutliner_Runtime>(__func__);
 
   /* use #BLO_read_get_new_data_address_no_us and do not free old memory avoiding double
@@ -610,7 +610,7 @@ static void write_space_outliner(BlendWriter *writer, const SpaceOutliner *space
        * hold the #TreeStore directly. */
 
       /* Address relative to the tree-store, as noted above. */
-      void *data_addr = (void *)POINTER_OFFSET(ts, sizeof(void *));
+      void *data_addr = static_cast<void *> POINTER_OFFSET(ts, sizeof(void *));
       /* There should be plenty of memory addresses within the mempool data that we can point into,
        * just double-check we don't potentially end up with a memory address that another DNA
        * struct might use. Assumes BLI_mempool uses the guarded allocator. */
@@ -639,7 +639,7 @@ static void write_space_outliner(BlendWriter *writer, const SpaceOutliner *space
 
 static void outliner_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
-  SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
+  SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(sl);
   write_space_outliner(writer, space_outliner);
 }
 

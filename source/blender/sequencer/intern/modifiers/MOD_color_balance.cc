@@ -238,7 +238,7 @@ struct ColorBalanceApplyOp {
 
 static void colorBalance_init_data(StripModifierData *smd)
 {
-  ColorBalanceModifierData *cbmd = (ColorBalanceModifierData *)smd;
+  ColorBalanceModifierData *cbmd = reinterpret_cast<ColorBalanceModifierData *>(smd);
 
   cbmd->color_multiply = 1.0f;
   cbmd->color_balance.method = 0;
@@ -255,7 +255,7 @@ static void colorBalance_init_data(StripModifierData *smd)
 
 static void colorBalance_apply(ModifierApplyContext &context, StripModifierData *smd, ImBuf *mask)
 {
-  const ColorBalanceModifierData *cbmd = (const ColorBalanceModifierData *)smd;
+  const ColorBalanceModifierData *cbmd = reinterpret_cast<const ColorBalanceModifierData *>(smd);
 
   ColorBalanceApplyOp op;
   op.init(*cbmd, context.image->byte_buffer.data != nullptr);

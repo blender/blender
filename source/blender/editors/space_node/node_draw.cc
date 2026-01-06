@@ -388,7 +388,7 @@ static bool node_update_basis_buttons(const bContext &C,
 
   layout.context_ptr_set("node", &nodeptr);
 
-  draw_buttons(layout, (bContext *)&C, &nodeptr);
+  draw_buttons(layout, const_cast<bContext *>(&C), &nodeptr);
 
   block_align_end(&block);
   const int buty = ui::block_layout_resolve(&block).y;
@@ -1524,7 +1524,7 @@ void node_socket_color_get(const bContext &C,
   BLI_assert(RNA_struct_is_a(node_ptr.type, &RNA_Node));
   PointerRNA ptr = RNA_pointer_create_discrete(
       &const_cast<ID &>(ntree.id), &RNA_NodeSocket, &const_cast<bNodeSocket &>(sock));
-  sock.typeinfo->draw_color((bContext *)&C, &ptr, &node_ptr, r_color);
+  sock.typeinfo->draw_color(const_cast<bContext *>(&C), &ptr, &node_ptr, r_color);
 }
 
 static void node_socket_add_tooltip_in_node_editor(const bNodeSocket &sock, ui::Layout &layout)
@@ -1682,7 +1682,7 @@ static void node_toggle_button_cb(bContext *C, void *node_argv, void *op_argv)
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &node_tree = *snode.edittree;
   bNode &node = *node_tree.node_by_id(POINTER_AS_INT(node_argv));
-  const char *opname = (const char *)op_argv;
+  const char *opname = static_cast<const char *>(op_argv);
 
   /* Select & activate only the button's node. */
   node_select_single(*C, node);
@@ -3045,7 +3045,7 @@ static void node_draw_basis(const bContext &C,
     button_func_set(but,
                     node_toggle_button_cb,
                     POINTER_FROM_INT(node.identifier),
-                    (void *)"NODE_OT_preview_toggle");
+                    (void *)("NODE_OT_preview_toggle"));
     block_emboss_set(&block, ui::EmbossType::Emboss);
   }
   if (ELEM(node.type_legacy, NODE_CUSTOM, NODE_CUSTOM_GROUP) &&
@@ -3085,7 +3085,7 @@ static void node_draw_basis(const bContext &C,
     const char *operator_idname = is_active ? "NODE_OT_deactivate_viewer" :
                                               "NODE_OT_activate_viewer";
     button_func_set(
-        but, node_toggle_button_cb, POINTER_FROM_INT(node.identifier), (void *)operator_idname);
+        but, node_toggle_button_cb, POINTER_FROM_INT(node.identifier), (void *)(operator_idname));
 
     short shortcut_icon = get_viewer_shortcut_icon(node);
     uiDefIconBut(&block,
@@ -3122,7 +3122,7 @@ static void node_draw_basis(const bContext &C,
     button_func_set(but,
                     node_toggle_button_cb,
                     POINTER_FROM_INT(node.identifier),
-                    (void *)"NODE_OT_activate_viewer");
+                    (void *)("NODE_OT_activate_viewer"));
 
     uiDefIconBut(&block,
                  ui::ButtonType::But,
@@ -3168,7 +3168,7 @@ static void node_draw_basis(const bContext &C,
     button_func_set(but,
                     node_toggle_button_cb,
                     POINTER_FROM_INT(node.identifier),
-                    (void *)"NODE_OT_hide_toggle");
+                    (void *)("NODE_OT_hide_toggle"));
     block_emboss_set(&block, ui::EmbossType::Emboss);
   }
 
@@ -3364,7 +3364,7 @@ static void node_draw_collapsed(const bContext &C,
     button_func_set(but,
                     node_toggle_button_cb,
                     POINTER_FROM_INT(node.identifier),
-                    (void *)"NODE_OT_hide_toggle");
+                    (void *)("NODE_OT_hide_toggle"));
     block_emboss_set(&block, ui::EmbossType::Emboss);
   }
 
@@ -3516,7 +3516,7 @@ static FrameNodeLayout frame_node_layout(const bNode &frame_node)
 {
   BLI_assert(frame_node.is_frame());
 
-  const NodeFrame *frame_data = (NodeFrame *)frame_node.storage;
+  const NodeFrame *frame_data = static_cast<NodeFrame *>(frame_node.storage);
 
   FrameNodeLayout frame_layout;
 
@@ -3589,7 +3589,7 @@ static rctf calc_node_frame_dimensions(const bContext &C,
     return node_bounds;
   }
 
-  NodeFrame *data = (NodeFrame *)node.storage;
+  NodeFrame *data = static_cast<NodeFrame *>(node.storage);
 
   const FrameNodeLayout frame_layout = frame_node_layout(node);
 
@@ -3735,7 +3735,7 @@ static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
 {
   /* XXX font id is crap design */
   const int fontid = ui::style_get()->widget.uifont_id;
-  const NodeFrame *data = (const NodeFrame *)node.storage;
+  const NodeFrame *data = static_cast<const NodeFrame *>(node.storage);
 
   /* Setting BLF_aspect() and then counter-scaling by aspect in BLF_size() has no effect on the
    * rendered text size, because the two adjustments cancel each other out. But, using aspect
@@ -3770,7 +3770,7 @@ static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
 
   /* Draw text body. */
   if (node.id) {
-    const Text *text = (const Text *)node.id;
+    const Text *text = blender::id_cast<const Text *>(node.id);
     const float line_spacing = BLF_height_max(fontid) * aspect;
     const float line_width = (BLI_rctf_size_x(&rct) - 2 * frame_layout.margin) / aspect;
 
@@ -4832,7 +4832,7 @@ void node_draw_space(const bContext &C, ARegion &region)
 
   /* Draw parent node trees. */
   if (snode.treepath.last) {
-    bNodeTreePath *path = (bNodeTreePath *)snode.treepath.last;
+    bNodeTreePath *path = static_cast<bNodeTreePath *>(snode.treepath.last);
 
     /* Update tree path name (drawn in the bottom left). */
     ID *name_id = (path->nodetree && path->nodetree != snode.nodetree) ? &path->nodetree->id :

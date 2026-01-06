@@ -47,7 +47,7 @@ static const EnumPropertyItem region_draw_mode_items[] = {
 static void cb_region_draw(const bContext *C, ARegion * /*region*/, void *customdata)
 {
   PyGILState_STATE gilstate;
-  bpy_context_set((bContext *)C, &gilstate);
+  bpy_context_set(const_cast<bContext *>(C), &gilstate);
 
   PyObject *cb_func, *cb_args, *result;
 
@@ -62,7 +62,7 @@ static void cb_region_draw(const bContext *C, ARegion * /*region*/, void *custom
     PyErr_Print();
   }
 
-  bpy_context_clear((bContext *)C, &gilstate);
+  bpy_context_clear(const_cast<bContext *>(C), &gilstate);
 }
 
 /* We could make generic utility */
@@ -305,7 +305,7 @@ PyObject *pyrna_callback_classmethod_add(PyObject * /*self*/, PyObject *args)
                                       params.region_type_enum.value,
                                       nullptr,
                                       cb_wm_cursor_draw,
-                                      (void *)args);
+                                      static_cast<void *>(args));
   }
   else if (RNA_struct_is_a(srna, &RNA_Space)) {
     struct {
@@ -343,7 +343,7 @@ PyObject *pyrna_callback_classmethod_add(PyObject * /*self*/, PyObject *args)
       return nullptr;
     }
     handle = ED_region_draw_cb_activate(
-        art, cb_region_draw, (void *)args, params.event_enum.value);
+        art, cb_region_draw, static_cast<void *>(args), params.event_enum.value);
   }
   else {
     PyErr_SetString(PyExc_TypeError, "callback_add(): type does not support callbacks");

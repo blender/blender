@@ -250,7 +250,7 @@ bool ED_curve_deselect_all_multi_ex(Span<Base *> bases)
   bool changed_multi = false;
   for (Base *base : bases) {
     Object *obedit = base->object;
-    Curve *cu = static_cast<Curve *>(obedit->data);
+    Curve *cu = blender::id_cast<Curve *>(obedit->data);
     changed_multi |= ED_curve_deselect_all(cu->editnurb);
     DEG_id_tag_update(&cu->id, ID_RECALC_SELECT);
   }
@@ -429,7 +429,7 @@ static void selectend_nurb(Object *obedit, eEndPoint_Types selfirst, bool doswap
     return;
   }
 
-  cu = (Curve *)obedit->data;
+  cu = blender::id_cast<Curve *>(obedit->data);
   cu->actvert = CU_ACT_NONE;
 
   for (Nurb &nu : *editnurb) {
@@ -499,7 +499,7 @@ static wmOperatorStatus de_select_first_exec(bContext *C, wmOperator * /*op*/)
     selectend_nurb(obedit, FIRST, true, false);
     DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
-    BKE_curve_nurb_vert_active_validate(static_cast<Curve *>(obedit->data));
+    BKE_curve_nurb_vert_active_validate(blender::id_cast<Curve *>(obedit->data));
   }
   return OPERATOR_FINISHED;
 }
@@ -530,7 +530,7 @@ static wmOperatorStatus de_select_last_exec(bContext *C, wmOperator * /*op*/)
     selectend_nurb(obedit, LAST, true, false);
     DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
-    BKE_curve_nurb_vert_active_validate(static_cast<Curve *>(obedit->data));
+    BKE_curve_nurb_vert_active_validate(blender::id_cast<Curve *>(obedit->data));
   }
 
   return OPERATOR_FINISHED;
@@ -569,7 +569,7 @@ static wmOperatorStatus de_select_all_exec(bContext *C, wmOperator *op)
   if (action == SEL_TOGGLE) {
     action = SEL_SELECT;
     for (Object *obedit : objects) {
-      Curve *cu = static_cast<Curve *>(obedit->data);
+      Curve *cu = blender::id_cast<Curve *>(obedit->data);
 
       if (ED_curve_select_check(v3d, cu->editnurb)) {
         action = SEL_DESELECT;
@@ -579,7 +579,7 @@ static wmOperatorStatus de_select_all_exec(bContext *C, wmOperator *op)
   }
 
   for (Object *obedit : objects) {
-    Curve *cu = static_cast<Curve *>(obedit->data);
+    Curve *cu = blender::id_cast<Curve *>(obedit->data);
     bool changed = false;
 
     switch (action) {
@@ -638,7 +638,7 @@ static wmOperatorStatus select_linked_exec(bContext *C, wmOperator * /*op*/)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
   for (Object *obedit : objects) {
-    Curve *cu = static_cast<Curve *>(obedit->data);
+    Curve *cu = blender::id_cast<Curve *>(obedit->data);
     EditNurb *editnurb = cu->editnurb;
     ListBaseT<Nurb> *nurbs = &editnurb->nurbs;
     bool changed = false;
@@ -732,7 +732,7 @@ static wmOperatorStatus select_linked_pick_invoke(bContext *C,
   WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
   if (!select) {
-    BKE_curve_nurb_vert_active_validate(static_cast<Curve *>(obedit->data));
+    BKE_curve_nurb_vert_active_validate(blender::id_cast<Curve *>(obedit->data));
   }
 
   return OPERATOR_FINISHED;
@@ -769,7 +769,7 @@ void CURVE_OT_select_linked_pick(wmOperatorType *ot)
 static wmOperatorStatus select_row_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
   static BPoint *last = nullptr;
   static int direction = 0;
@@ -777,7 +777,7 @@ static wmOperatorStatus select_row_exec(bContext *C, wmOperator * /*op*/)
   BPoint *bp = nullptr;
   int u = 0, v = 0, a, b;
 
-  if (!BKE_curve_nurb_vert_active_get(cu, &nu, static_cast<void **>((void *)&bp))) {
+  if (!BKE_curve_nurb_vert_active_get(cu, &nu, static_cast<void **>(static_cast<void *>(&bp)))) {
     return OPERATOR_CANCELLED;
   }
 
@@ -1324,7 +1324,7 @@ static wmOperatorStatus curve_select_random_exec(bContext *C, wmOperator *op)
     }
 
     MEM_freeN(verts_selection_mask);
-    BKE_curve_nurb_vert_active_validate(static_cast<Curve *>(obedit->data));
+    BKE_curve_nurb_vert_active_validate(blender::id_cast<Curve *>(obedit->data));
     DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
@@ -1436,13 +1436,13 @@ static wmOperatorStatus select_nth_exec(bContext *C, wmOperator *op)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
   for (Object *obedit : objects) {
-    Curve *cu = static_cast<Curve *>(obedit->data);
+    Curve *cu = blender::id_cast<Curve *>(obedit->data);
 
     if (!ED_curve_select_check(v3d, cu->editnurb)) {
       continue;
     }
 
-    if (ed_curve_select_nth(static_cast<Curve *>(obedit->data), &op_params) == true) {
+    if (ed_curve_select_nth(blender::id_cast<Curve *>(obedit->data), &op_params) == true) {
       changed = true;
 
       DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
@@ -1728,7 +1728,7 @@ static wmOperatorStatus curve_select_similar_exec(bContext *C, wmOperator *op)
       scene, view_layer, CTX_wm_view3d(C));
 
   for (Object *obedit : objects) {
-    Curve *cu = static_cast<Curve *>(obedit->data);
+    Curve *cu = blender::id_cast<Curve *>(obedit->data);
     tot_nurbs_selected_all += ED_curve_select_count(v3d, cu->editnurb);
   }
 
@@ -1753,7 +1753,7 @@ static wmOperatorStatus curve_select_similar_exec(bContext *C, wmOperator *op)
 
   /* Get type of selected control points. */
   for (Object *obedit : objects) {
-    Curve *cu = static_cast<Curve *>(obedit->data);
+    Curve *cu = blender::id_cast<Curve *>(obedit->data);
     EditNurb *editnurb = cu->editnurb;
 
     for (Nurb &nu : editnurb->nurbs) {
@@ -1785,7 +1785,7 @@ static wmOperatorStatus curve_select_similar_exec(bContext *C, wmOperator *op)
 
   /* Select control points with desired type. */
   for (Object *obedit : objects) {
-    Curve *cu = static_cast<Curve *>(obedit->data);
+    Curve *cu = blender::id_cast<Curve *>(obedit->data);
     EditNurb *editnurb = cu->editnurb;
     bool changed = false;
 
@@ -1949,7 +1949,7 @@ static void curve_select_shortest_path_surf(Nurb *nu, int vert_src, int vert_dst
   data[vert_src].vert_prev = vert_src; /* nop */
 
   while (!BLI_heapsimple_is_empty(heap)) {
-    vert_curr = *((int *)BLI_heapsimple_pop_min(heap));
+    vert_curr = *(static_cast<int *>(BLI_heapsimple_pop_min(heap)));
     if (vert_curr == vert_dst) {
       break;
     }
@@ -2022,7 +2022,7 @@ static wmOperatorStatus edcu_shortest_path_pick_invoke(bContext *C,
 
   ED_view3d_viewcontext_init_object(&vc, basact->object);
   Object *obedit = basact->object;
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   Nurb *nu_src = BKE_curve_nurb_active_get(cu);
   int vert_src = cu->actvert;
 
@@ -2035,7 +2035,7 @@ static wmOperatorStatus edcu_shortest_path_pick_invoke(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  vert_dst_p = bezt_dst ? (void *)bezt_dst : (void *)bp_dst;
+  vert_dst_p = bezt_dst ? static_cast<void *>(bezt_dst) : static_cast<void *>(bp_dst);
   vert_dst = BKE_curve_nurb_vert_index_get(nu_dst, vert_dst_p);
   if (vert_src == vert_dst) {
     return OPERATOR_CANCELLED;

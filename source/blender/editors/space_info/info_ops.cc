@@ -606,7 +606,7 @@ static wmOperatorStatus update_reports_display_invoke(bContext *C,
   }
 
   wmWindowManager *wm = CTX_wm_manager(C);
-  ReportTimerInfo *rti = (ReportTimerInfo *)reports->reporttimer->customdata;
+  ReportTimerInfo *rti = static_cast<ReportTimerInfo *>(reports->reporttimer->customdata);
   const float flash_timeout = FLASH_TIMEOUT;
   bool send_notifier = false;
 

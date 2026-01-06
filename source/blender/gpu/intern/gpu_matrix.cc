@@ -623,30 +623,35 @@ void GPU_matrix_bind(blender::gpu::Shader *shader)
 
   if (MV != -1) {
     GPU_shader_uniform_float_ex(
-        shader, MV, 16, 1, (const float *)GPU_matrix_model_view_get(nullptr));
+        shader, MV, 16, 1, reinterpret_cast<const float *>(GPU_matrix_model_view_get(nullptr)));
   }
   if (P != -1) {
     GPU_shader_uniform_float_ex(
-        shader, P, 16, 1, (const float *)GPU_matrix_projection_get(nullptr));
+        shader, P, 16, 1, reinterpret_cast<const float *>(GPU_matrix_projection_get(nullptr)));
   }
   if (MVP != -1) {
     GPU_shader_uniform_float_ex(
-        shader, MVP, 16, 1, (const float *)GPU_matrix_model_view_projection_get(nullptr));
+        shader,
+        MVP,
+        16,
+        1,
+        reinterpret_cast<const float *>(GPU_matrix_model_view_projection_get(nullptr)));
   }
   if (N != -1) {
-    GPU_shader_uniform_float_ex(shader, N, 9, 1, (const float *)GPU_matrix_normal_get(nullptr));
+    GPU_shader_uniform_float_ex(
+        shader, N, 9, 1, reinterpret_cast<const float *>(GPU_matrix_normal_get(nullptr)));
   }
   if (MV_inv != -1) {
     Mat4 m;
     GPU_matrix_model_view_get(m);
     invert_m4(m);
-    GPU_shader_uniform_float_ex(shader, MV_inv, 16, 1, (const float *)m);
+    GPU_shader_uniform_float_ex(shader, MV_inv, 16, 1, reinterpret_cast<const float *>(m));
   }
   if (P_inv != -1) {
     Mat4 m;
     GPU_matrix_projection_get(m);
     invert_m4(m);
-    GPU_shader_uniform_float_ex(shader, P_inv, 16, 1, (const float *)m);
+    GPU_shader_uniform_float_ex(shader, P_inv, 16, 1, reinterpret_cast<const float *>(m));
   }
 
   gpu_matrix_state_active_set_dirty(false);

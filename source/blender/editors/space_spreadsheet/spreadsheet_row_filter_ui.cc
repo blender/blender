@@ -147,9 +147,9 @@ static void spreadsheet_filter_panel_draw_header(const bContext *C, Panel *panel
   ui::Layout &layout = *panel->layout;
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   PointerRNA *filter_ptr = ui::panel_custom_data_get(panel);
-  const SpreadsheetRowFilter *filter = (SpreadsheetRowFilter *)filter_ptr->data;
+  const SpreadsheetRowFilter *filter = static_cast<SpreadsheetRowFilter *>(filter_ptr->data);
   const StringRef column_name = filter->column_name;
-  const eSpreadsheetFilterOperation operation = (eSpreadsheetFilterOperation)filter->operation;
+  const eSpreadsheetFilterOperation operation = eSpreadsheetFilterOperation(filter->operation);
 
   const SpreadsheetColumn *column = lookup_visible_column_for_filter(*sspreadsheet, column_name);
   if (!(sspreadsheet->filter_flag & SPREADSHEET_FILTER_ENABLE) ||
@@ -169,7 +169,7 @@ static void spreadsheet_filter_panel_draw_header(const bContext *C, Panel *panel
     row->label(column_name.data(), ICON_NONE);
   }
   else {
-    const eSpreadsheetColumnValueType data_type = (eSpreadsheetColumnValueType)column->data_type;
+    const eSpreadsheetColumnValueType data_type = eSpreadsheetColumnValueType(column->data_type);
     std::stringstream ss;
     ss << column_name;
     ss << " ";
@@ -193,9 +193,9 @@ static void spreadsheet_filter_panel_draw(const bContext *C, Panel *panel)
   ui::Layout &layout = *panel->layout;
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   PointerRNA *filter_ptr = ui::panel_custom_data_get(panel);
-  SpreadsheetRowFilter *filter = (SpreadsheetRowFilter *)filter_ptr->data;
+  SpreadsheetRowFilter *filter = static_cast<SpreadsheetRowFilter *>(filter_ptr->data);
   const StringRef column_name = filter->column_name;
-  const eSpreadsheetFilterOperation operation = (eSpreadsheetFilterOperation)filter->operation;
+  const eSpreadsheetFilterOperation operation = eSpreadsheetFilterOperation(filter->operation);
 
   const SpreadsheetColumn *column = lookup_visible_column_for_filter(*sspreadsheet, column_name);
   if (!(sspreadsheet->filter_flag & SPREADSHEET_FILTER_ENABLE) ||
@@ -311,7 +311,7 @@ static void spreadsheet_row_filters_layout(const bContext *C, Panel *panel)
   }
   else {
     /* Assuming there's only one group of instanced panels, update the custom data pointers. */
-    Panel *panel_iter = (Panel *)region->panels.first;
+    Panel *panel_iter = static_cast<Panel *>(region->panels.first);
     for (SpreadsheetRowFilter &row_filter : *row_filters) {
 
       /* Move to the next instanced panel corresponding to the next filter. */
@@ -335,7 +335,7 @@ static void filter_reorder(bContext *C, Panel *panel, int new_index)
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   ListBaseT<SpreadsheetRowFilter> *row_filters = &sspreadsheet->row_filters;
   PointerRNA *filter_ptr = ui::panel_custom_data_get(panel);
-  SpreadsheetRowFilter *filter = (SpreadsheetRowFilter *)filter_ptr->data;
+  SpreadsheetRowFilter *filter = static_cast<SpreadsheetRowFilter *>(filter_ptr->data);
 
   int current_index = BLI_findindex(row_filters, filter);
   BLI_assert(current_index >= 0);
@@ -347,7 +347,7 @@ static void filter_reorder(bContext *C, Panel *panel, int new_index)
 static short get_filter_expand_flag(const bContext * /*C*/, Panel *panel)
 {
   PointerRNA *filter_ptr = ui::panel_custom_data_get(panel);
-  SpreadsheetRowFilter *filter = (SpreadsheetRowFilter *)filter_ptr->data;
+  SpreadsheetRowFilter *filter = static_cast<SpreadsheetRowFilter *>(filter_ptr->data);
 
   return short(filter->flag) & SPREADSHEET_ROW_FILTER_UI_EXPAND;
 }
@@ -355,7 +355,7 @@ static short get_filter_expand_flag(const bContext * /*C*/, Panel *panel)
 static void set_filter_expand_flag(const bContext * /*C*/, Panel *panel, short expand_flag)
 {
   PointerRNA *filter_ptr = ui::panel_custom_data_get(panel);
-  SpreadsheetRowFilter *filter = (SpreadsheetRowFilter *)filter_ptr->data;
+  SpreadsheetRowFilter *filter = static_cast<SpreadsheetRowFilter *>(filter_ptr->data);
 
   SET_FLAG_FROM_TEST(filter->flag,
                      expand_flag & SPREADSHEET_ROW_FILTER_UI_EXPAND,

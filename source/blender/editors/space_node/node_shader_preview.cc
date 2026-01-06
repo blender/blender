@@ -473,18 +473,21 @@ static void connect_nodes_to_aovs(const Span<bNodeTreePath *> treepath,
         PointerRNA ptr;
         switch (socket_preview->type) {
           case SOCK_FLOAT:
-            ptr = RNA_pointer_create_discrete((ID *)active_nt, &RNA_NodeSocket, socket_preview);
+            ptr = RNA_pointer_create_discrete(
+                blender::id_cast<ID *>(active_nt), &RNA_NodeSocket, socket_preview);
             vec[0] = RNA_float_get(&ptr, "default_value");
             vec[1] = vec[0];
             vec[2] = vec[0];
             break;
           case SOCK_VECTOR:
           case SOCK_RGBA:
-            ptr = RNA_pointer_create_discrete((ID *)active_nt, &RNA_NodeSocket, socket_preview);
+            ptr = RNA_pointer_create_discrete(
+                blender::id_cast<ID *>(active_nt), &RNA_NodeSocket, socket_preview);
             RNA_float_get_array(&ptr, "default_value", vec);
             break;
         }
-        ptr = RNA_pointer_create_discrete((ID *)active_nt, &RNA_NodeSocket, aov_socket);
+        ptr = RNA_pointer_create_discrete(
+            blender::id_cast<ID *>(active_nt), &RNA_NodeSocket, aov_socket);
         RNA_float_set_array(&ptr, "default_value", vec);
         continue;
       }
@@ -771,7 +774,7 @@ static void ensure_nodetree_previews(const bContext &C,
   bNodeTree *displayed_nodetree = static_cast<bNodeTreePath *>(treepath.last)->nodetree;
   ePreviewType preview_type = MA_FLAT;
   if (CTX_wm_space_node(&C)->overlay.preview_shape == SN_OVERLAY_PREVIEW_3D) {
-    preview_type = (ePreviewType)material.pr_type;
+    preview_type = ePreviewType(material.pr_type);
   }
   update_needed_flag(tree_previews, *displayed_nodetree, preview_type);
   if (!(tree_previews.restart_needed)) {

@@ -117,7 +117,9 @@ static int curve_render_normal_len_get(const ListBaseT<Nurb> *lb, const CurveCac
   int normal_len = 0;
   const BevList *bl;
   const Nurb *nu;
-  for (bl = (const BevList *)ob_curve_cache->bev.first, nu = (const Nurb *)lb->first; nu && bl;
+  for (bl = static_cast<const BevList *>(ob_curve_cache->bev.first),
+      nu = static_cast<const Nurb *>(lb->first);
+       nu && bl;
        bl = bl->next, nu = nu->next)
   {
     int nr = bl->nr;
@@ -331,7 +333,7 @@ struct CurveBatchCache {
 
 static bool curve_batch_cache_valid(Curve *cu)
 {
-  CurveBatchCache *cache = (CurveBatchCache *)cu->batch_cache;
+  CurveBatchCache *cache = static_cast<CurveBatchCache *>(cu->batch_cache);
 
   if (cache == nullptr) {
     return false;
@@ -356,7 +358,7 @@ static bool curve_batch_cache_valid(Curve *cu)
 
 static void curve_batch_cache_init(Curve *cu)
 {
-  CurveBatchCache *cache = (CurveBatchCache *)cu->batch_cache;
+  CurveBatchCache *cache = static_cast<CurveBatchCache *>(cu->batch_cache);
 
   if (!cache) {
     cache = MEM_callocN<CurveBatchCache>(__func__);
@@ -392,12 +394,12 @@ void DRW_curve_batch_cache_validate(Curve *cu)
 
 static CurveBatchCache *curve_batch_cache_get(Curve *cu)
 {
-  return (CurveBatchCache *)cu->batch_cache;
+  return static_cast<CurveBatchCache *>(cu->batch_cache);
 }
 
 void DRW_curve_batch_cache_dirty_tag(Curve *cu, int mode)
 {
-  CurveBatchCache *cache = (CurveBatchCache *)cu->batch_cache;
+  CurveBatchCache *cache = static_cast<CurveBatchCache *>(cu->batch_cache);
   if (cache == nullptr) {
     return;
   }
@@ -418,25 +420,25 @@ void DRW_curve_batch_cache_dirty_tag(Curve *cu, int mode)
 
 static void curve_batch_cache_clear(Curve *cu)
 {
-  CurveBatchCache *cache = (CurveBatchCache *)cu->batch_cache;
+  CurveBatchCache *cache = static_cast<CurveBatchCache *>(cu->batch_cache);
   if (!cache) {
     return;
   }
 
   for (int i = 0; i < sizeof(cache->ordered) / sizeof(void *); i++) {
-    gpu::VertBuf **vbo = (gpu::VertBuf **)&cache->ordered;
+    gpu::VertBuf **vbo = reinterpret_cast<gpu::VertBuf **>(&cache->ordered);
     GPU_VERTBUF_DISCARD_SAFE(vbo[i]);
   }
   for (int i = 0; i < sizeof(cache->edit) / sizeof(void *); i++) {
-    gpu::VertBuf **vbo = (gpu::VertBuf **)&cache->edit;
+    gpu::VertBuf **vbo = reinterpret_cast<gpu::VertBuf **>(&cache->edit);
     GPU_VERTBUF_DISCARD_SAFE(vbo[i]);
   }
   for (int i = 0; i < sizeof(cache->ibo) / sizeof(void *); i++) {
-    gpu::IndexBuf **ibo = (gpu::IndexBuf **)&cache->ibo;
+    gpu::IndexBuf **ibo = reinterpret_cast<gpu::IndexBuf **>(&cache->ibo);
     GPU_INDEXBUF_DISCARD_SAFE(ibo[i]);
   }
   for (int i = 0; i < sizeof(cache->batch) / sizeof(void *); i++) {
-    gpu::Batch **batch = (gpu::Batch **)&cache->batch;
+    gpu::Batch **batch = reinterpret_cast<gpu::Batch **>(&cache->batch);
     GPU_BATCH_DISCARD_SAFE(batch[i]);
   }
 }
@@ -582,8 +584,8 @@ static void curve_create_edit_curves_nor(CurveRenderData *rdata,
   const uint tan_id = do_hq_normals ? attr_id.tan_hq : attr_id.tan;
   const uint rad_id = do_hq_normals ? attr_id.rad_hq : attr_id.rad;
 
-  for (bl = (const BevList *)rdata->ob_curve_cache->bev.first,
-      nu = (const Nurb *)rdata->nurbs->first;
+  for (bl = static_cast<const BevList *>(rdata->ob_curve_cache->bev.first),
+      nu = static_cast<const Nurb *>(rdata->nurbs->first);
        nu && bl;
        bl = bl->next, nu = nu->next)
   {
@@ -710,7 +712,7 @@ static void curve_create_edit_data_and_handles(CurveRenderData *rdata,
 #undef DRW_TEST_ASSIGN_IBO
 
   int nu_id = 0;
-  for (Nurb *nu = (Nurb *)rdata->nurbs->first; nu; nu = nu->next, nu_id++) {
+  for (Nurb *nu = static_cast<Nurb *>(rdata->nurbs->first); nu; nu = nu->next, nu_id++) {
     const BezTriple *bezt = nu->bezt;
     const BPoint *bp = nu->bp;
 
@@ -845,7 +847,7 @@ void DRW_curve_batch_cache_create_requested(Object *ob, const Scene *scene)
 {
   BLI_assert(ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF, OB_FONT));
 
-  Curve *cu = (Curve *)ob->data;
+  Curve *cu = blender::id_cast<Curve *>(ob->data);
   CurveBatchCache *cache = curve_batch_cache_get(cu);
 
   /* Init batches and request VBOs & IBOs */

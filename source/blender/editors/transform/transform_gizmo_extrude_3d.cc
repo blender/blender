@@ -137,8 +137,10 @@ static void gizmo_mesh_extrude_setup(const bContext *C, wmGizmoGroup *gzgroup)
   {
     PropertyRNA *prop = RNA_struct_find_property(ggd->invoke_xyz_no[3]->ptr, "shape");
     for (int i = 0; i < 4; i++) {
-      RNA_property_string_set_bytes(
-          ggd->invoke_xyz_no[i]->ptr, prop, (const char *)shape_plus, ARRAY_SIZE(shape_plus));
+      RNA_property_string_set_bytes(ggd->invoke_xyz_no[i]->ptr,
+                                    prop,
+                                    reinterpret_cast<const char *>(shape_plus),
+                                    ARRAY_SIZE(shape_plus));
     }
   }
 
@@ -240,7 +242,7 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   int axis_type;
   {
     PointerRNA ptr;
-    bToolRef *tref = WM_toolsystem_ref_from_context((bContext *)C);
+    bToolRef *tref = WM_toolsystem_ref_from_context(const_cast<bContext *>(C));
     WM_toolsystem_ref_properties_ensure_from_gizmo_group(tref, gzgroup->type, &ptr);
     axis_type = RNA_property_enum_get(&ptr, ggd->gzgt_axis_type_prop);
   }

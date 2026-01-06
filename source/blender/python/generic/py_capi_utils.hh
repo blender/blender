@@ -358,14 +358,14 @@ struct PyC_StringEnum {
 [[nodiscard]] Py_LOCAL_INLINE(int32_t) PyC_Long_AsI32(PyObject *value)
 {
 #if PY_VERSION_HEX < 0x030d0000 /* <3.13 */
-  return (int32_t)_PyLong_AsInt(value);
+  return int32_t(_PyLong_AsInt(value));
 #else
-  return (int32_t)PyLong_AsInt(value);
+  return int32_t(PyLong_AsInt(value));
 #endif
 }
 [[nodiscard]] Py_LOCAL_INLINE(int64_t) PyC_Long_AsI64(PyObject *value)
 {
-  return (int64_t)PyLong_AsLongLong(value);
+  return int64_t(PyLong_AsLongLong(value));
 }
 
 /* utils for format string in `struct` module style syntax */

@@ -312,7 +312,7 @@ struct FontBLF {
   char *filepath;
 
   /** Pointer to in-memory font, or NULL when from a file. */
-  void *mem;
+  const void *mem;
   size_t mem_size;
   /** Handle for in-memory fonts to avoid loading them multiple times. */
   char *mem_name;

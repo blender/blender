@@ -77,7 +77,7 @@ static bool is_last_line_art(const GreasePencilLineartModifierData &md, const bo
 
 static void init_data(ModifierData *md)
 {
-  GreasePencilLineartModifierData *gpmd = (GreasePencilLineartModifierData *)md;
+  GreasePencilLineartModifierData *gpmd = reinterpret_cast<GreasePencilLineartModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(gpmd, modifier);
 }
 
@@ -110,7 +110,7 @@ static void free_data(ModifierData *md)
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  GreasePencilLineartModifierData *lmd = (GreasePencilLineartModifierData *)md;
+  GreasePencilLineartModifierData *lmd = reinterpret_cast<GreasePencilLineartModifierData *>(md);
 
   if (lmd->target_layer[0] == '\0' || !lmd->target_material) {
     return true;
@@ -167,7 +167,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 {
   DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Line Art Modifier");
 
-  GreasePencilLineartModifierData *lmd = (GreasePencilLineartModifierData *)md;
+  GreasePencilLineartModifierData *lmd = reinterpret_cast<GreasePencilLineartModifierData *>(md);
 
   /* Always add whole master collection because line art will need the whole scene for
    * visibility computation. Line art exclusion is handled inside #add_this_collection. */
@@ -207,14 +207,14 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  GreasePencilLineartModifierData *lmd = (GreasePencilLineartModifierData *)md;
+  GreasePencilLineartModifierData *lmd = reinterpret_cast<GreasePencilLineartModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&lmd->target_material, IDWALK_CB_USER);
-  walk(user_data, ob, (ID **)&lmd->source_collection, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&lmd->target_material), IDWALK_CB_USER);
+  walk(user_data, ob, reinterpret_cast<ID **>(&lmd->source_collection), IDWALK_CB_NOP);
 
-  walk(user_data, ob, (ID **)&lmd->source_object, IDWALK_CB_NOP);
-  walk(user_data, ob, (ID **)&lmd->source_camera, IDWALK_CB_NOP);
-  walk(user_data, ob, (ID **)&lmd->light_contour_object, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&lmd->source_object), IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&lmd->source_camera), IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&lmd->light_contour_object), IDWALK_CB_NOP);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)

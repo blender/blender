@@ -79,7 +79,7 @@ static void screen_init_data(ID *id)
 
 static void screen_free_data(ID *id)
 {
-  bScreen *screen = (bScreen *)id;
+  bScreen *screen = blender::id_cast<bScreen *>(id);
 
   /* No animation-data here. */
 
@@ -198,7 +198,7 @@ static void screen_foreach_id(ID *id, LibraryForeachIDData *data)
 
 static void screen_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  bScreen *screen = (bScreen *)id;
+  bScreen *screen = blender::id_cast<bScreen *>(id);
 
   /* write LibData */
   /* in 2.50+ files, the file identifier for screens is patched, forward compatibility */
@@ -1145,7 +1145,7 @@ void BKE_screen_view3d_scene_sync(bScreen *screen, Scene *scene)
   for (ScrArea &area : screen->areabase) {
     for (SpaceLink &sl : area.spacedata) {
       if (sl.spacetype == SPACE_VIEW3D) {
-        View3D *v3d = (View3D *)&sl;
+        View3D *v3d = reinterpret_cast<View3D *>(&sl);
         BKE_screen_view3d_sync(v3d, scene);
       }
     }

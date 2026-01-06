@@ -135,7 +135,7 @@ static void bli_builddir(BuildDirCtx *dir_ctx, const char *dirname)
   }
 
   while ((fname = readdir(dir)) != nullptr) {
-    dirlink *const dlink = (dirlink *)malloc(sizeof(dirlink));
+    dirlink *const dlink = static_cast<dirlink *>(malloc(sizeof(dirlink)));
     if (dlink != nullptr) {
       dlink->name = BLI_strdup(fname->d_name);
       if (FILENAME_IS_PARENT(dlink->name)) {
@@ -154,7 +154,7 @@ static void bli_builddir(BuildDirCtx *dir_ctx, const char *dirname)
 
     STRNCPY(pardir, dirname);
     if (BLI_path_parent_dir(pardir) && (BLI_access(pardir, R_OK) == 0)) {
-      dirlink *const dlink = (dirlink *)malloc(sizeof(dirlink));
+      dirlink *const dlink = static_cast<dirlink *>(malloc(sizeof(dirlink)));
       if (dlink != nullptr) {
         dlink->name = BLI_strdup(FILENAME_PARENT);
         BLI_addhead(&dirbase, dlink);
@@ -163,7 +163,7 @@ static void bli_builddir(BuildDirCtx *dir_ctx, const char *dirname)
     }
   }
   if (!has_current) {
-    dirlink *const dlink = (dirlink *)malloc(sizeof(dirlink));
+    dirlink *const dlink = static_cast<dirlink *>(malloc(sizeof(dirlink)));
     if (dlink != nullptr) {
       dlink->name = BLI_strdup(FILENAME_CURRENT);
       BLI_addhead(&dirbase, dlink);
@@ -176,7 +176,7 @@ static void bli_builddir(BuildDirCtx *dir_ctx, const char *dirname)
       void *const tmp = MEM_reallocN(dir_ctx->files,
                                      (dir_ctx->files_num + newnum) * sizeof(direntry));
       if (tmp) {
-        dir_ctx->files = (direntry *)tmp;
+        dir_ctx->files = static_cast<direntry *>(tmp);
       }
       else { /* Reallocation may fail. */
         MEM_freeN(dir_ctx->files);
@@ -193,7 +193,7 @@ static void bli_builddir(BuildDirCtx *dir_ctx, const char *dirname)
       dir_ctx->files_num = 0;
     }
     else {
-      dirlink *dlink = (dirlink *)dirbase.first;
+      dirlink *dlink = static_cast<dirlink *>(dirbase.first);
       direntry *file = &dir_ctx->files[dir_ctx->files_num];
 
       while (dlink) {
@@ -216,7 +216,7 @@ static void bli_builddir(BuildDirCtx *dir_ctx, const char *dirname)
       qsort(dir_ctx->files,
             dir_ctx->files_num,
             sizeof(direntry),
-            (int (*)(const void *, const void *))direntry_cmp);
+            reinterpret_cast<int (*)(const void *, const void *)>(direntry_cmp));
     }
 
     BLI_freelist(&dirbase);

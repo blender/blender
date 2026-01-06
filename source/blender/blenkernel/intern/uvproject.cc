@@ -128,7 +128,7 @@ ProjCameraInfo *BKE_uvproject_camera_info(const Object *ob,
                                           float winy)
 {
   ProjCameraInfo uci;
-  const Camera *camera = static_cast<Camera *>(ob->data);
+  const Camera *camera = blender::id_cast<Camera *>(ob->data);
 
   uci.do_pano = (camera->type == CAM_PANO);
   uci.do_persp = ELEM(camera->type, CAM_PERSP, CAM_CUSTOM);

@@ -406,8 +406,8 @@ PyObject *pyop_getrna_type(PyObject * /*self*/, PyObject *value)
   }
 
   PointerRNA ptr = RNA_pointer_create_discrete(nullptr, &RNA_Struct, ot->srna);
-  BPy_StructRNA *pyrna = (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);
-  return (PyObject *)pyrna;
+  BPy_StructRNA *pyrna = reinterpret_cast<BPy_StructRNA *>(pyrna_struct_CreatePyObject(&ptr));
+  return reinterpret_cast<PyObject *>(pyrna);
 }
 
 PyObject *pyop_get_bl_options(PyObject * /*self*/, PyObject *value)
@@ -430,10 +430,10 @@ PyObject *pyop_get_bl_options(PyObject * /*self*/, PyObject *value)
 #endif
 
 static PyMethodDef bpy_ops_methods[] = {
-    {"dir", (PyCFunction)pyop_dir, METH_NOARGS, nullptr},
-    {"get_rna_type", (PyCFunction)pyop_getrna_type, METH_O, nullptr},
-    {"create_function", (PyCFunction)pyop_create_function, METH_VARARGS, nullptr},
-    {"macro_define", (PyCFunction)PYOP_wrap_macro_define, METH_VARARGS, nullptr},
+    {"dir", reinterpret_cast<PyCFunction>(pyop_dir), METH_NOARGS, nullptr},
+    {"get_rna_type", static_cast<PyCFunction>(pyop_getrna_type), METH_O, nullptr},
+    {"create_function", static_cast<PyCFunction>(pyop_create_function), METH_VARARGS, nullptr},
+    {"macro_define", static_cast<PyCFunction>(PYOP_wrap_macro_define), METH_VARARGS, nullptr},
     {nullptr, nullptr, 0, nullptr},
 };
 

@@ -71,7 +71,7 @@ void flush_init_id_node_func(void *__restrict data_v,
                              const int i,
                              const TaskParallelTLS *__restrict /*tls*/)
 {
-  Depsgraph *graph = (Depsgraph *)data_v;
+  Depsgraph *graph = static_cast<Depsgraph *>(data_v);
   IDNode *id_node = graph->id_nodes[i];
   id_node->custom_flags = ID_STATE_NONE;
   for (ComponentNode *comp_node : id_node->components.values()) {
@@ -179,7 +179,7 @@ inline OperationNode *flush_schedule_children(OperationNode *op_node, FlushQueue
     {
       continue;
     }
-    OperationNode *to_node = (OperationNode *)rel->to;
+    OperationNode *to_node = static_cast<OperationNode *>(rel->to);
     /* Always flush flushable flags, so children always know what happened
      * to their parents. */
     to_node->flag |= (op_node->flag & DEPSOP_FLAG_FLUSH);
@@ -322,7 +322,7 @@ void deg_graph_flush_updates(Depsgraph *graph)
   /* Prepare update context for editors. */
   DEGEditorUpdateContext update_ctx;
   update_ctx.bmain = bmain;
-  update_ctx.depsgraph = (::Depsgraph *)graph;
+  update_ctx.depsgraph = reinterpret_cast<::Depsgraph *>(graph);
   update_ctx.scene = graph->scene;
   update_ctx.view_layer = graph->view_layer;
   /* Do actual flush. */

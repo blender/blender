@@ -1811,7 +1811,7 @@ bool GLCompilerWorker::load_program_binary(GLint program)
     return false;
   }
 
-  ShaderBinaryHeader *binary = (ShaderBinaryHeader *)shared_mem_->get_data();
+  ShaderBinaryHeader *binary = static_cast<ShaderBinaryHeader *>(shared_mem_->get_data());
 
   state_ = COMPILATION_FINISHED;
 

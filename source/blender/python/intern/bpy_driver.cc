@@ -234,7 +234,7 @@ static void bpy_pydriver_namespace_update_depsgraph(Depsgraph *depsgraph)
     PyDict_SetItem(bpy_pydriver_Dict, bpy_intern_str_depsgraph, item);
     Py_DECREF(item);
 
-    g_pydriver_state_prev.depsgraph = (BPy_StructRNA *)item;
+    g_pydriver_state_prev.depsgraph = reinterpret_cast<BPy_StructRNA *>(item);
   }
 }
 
@@ -438,7 +438,7 @@ bool BPY_driver_secure_bytecode_test_ex(PyObject *expr_code,
                                         const bool verbose,
                                         const char *error_prefix)
 {
-  PyCodeObject *py_code = (PyCodeObject *)expr_code;
+  PyCodeObject *py_code = reinterpret_cast<PyCodeObject *>(expr_code);
 
   /* Check names. */
   {
@@ -750,7 +750,7 @@ float BPY_driver_exec(PathResolvedRNA *anim_rna,
   /* Evaluate the compiled expression. */
   if (expr_code) {
     retval = PyEval_EvalCode(
-        static_cast<PyObject *>((void *)expr_code), bpy_pydriver_Dict, driver_vars);
+        static_cast<PyObject *>(static_cast<void *>(expr_code)), bpy_pydriver_Dict, driver_vars);
   }
 #endif
 

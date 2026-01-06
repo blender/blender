@@ -92,7 +92,7 @@ static PyObject *idprop_py_from_idp_group(ID *id, IDProperty *prop, IDProperty *
   group->owner_id = id;
   group->prop = prop;
   group->parent = parent; /* can be nullptr */
-  return (PyObject *)group;
+  return reinterpret_cast<PyObject *>(group);
 }
 
 static PyObject *idprop_py_from_idp_id(IDProperty *prop)
@@ -105,7 +105,7 @@ static PyObject *idprop_py_from_idp_array(ID *id, IDProperty *prop)
   BPy_IDProperty *array = PyObject_New(BPy_IDProperty, &BPy_IDArray_Type);
   array->owner_id = id;
   array->prop = prop;
-  return (PyObject *)array;
+  return reinterpret_cast<PyObject *>(array);
 }
 
 static PyObject *idprop_py_from_idp_idparray(ID *id, IDProperty *prop)
@@ -295,8 +295,8 @@ static PyObject *BPy_IDGroup_GetType(BPy_IDProperty *self)
 
 static PyGetSetDef BPy_IDGroup_getseters[] = {
     {"name",
-     (getter)BPy_IDGroup_GetName,
-     (setter)BPy_IDGroup_SetName,
+     reinterpret_cast<getter>(BPy_IDGroup_GetName),
+     reinterpret_cast<setter>(BPy_IDGroup_SetName),
      "The name of this Group.",
      nullptr},
     {nullptr, nullptr, nullptr, nullptr, nullptr},
@@ -1417,9 +1417,9 @@ static void IDGroup_Iter_init_type()
   v_ty->tp_name = "IDPropertyGroupIterValues";
   i_ty->tp_name = "IDPropertyGroupIterItems";
 
-  k_ty->tp_iternext = (iternextfunc)BPy_Group_IterKeys_next;
-  v_ty->tp_iternext = (iternextfunc)BPy_Group_IterValues_next;
-  i_ty->tp_iternext = (iternextfunc)BPy_Group_IterItems_next;
+  k_ty->tp_iternext = reinterpret_cast<iternextfunc>(BPy_Group_IterKeys_next);
+  v_ty->tp_iternext = reinterpret_cast<iternextfunc>(BPy_Group_IterValues_next);
+  i_ty->tp_iternext = reinterpret_cast<iternextfunc>(BPy_Group_IterItems_next);
 
   /* Shared members. */
   SHARED_MEMBER_SET(tp_basicsize, sizeof(BPy_IDGroup_Iter));
@@ -1454,7 +1454,7 @@ static PyObject *IDGroup_Iter_New_WithType(BPy_IDProperty *group,
     iter->cur = nullptr;
     iter->len_init = 0;
   }
-  return (PyObject *)iter;
+  return reinterpret_cast<PyObject *>(iter);
 }
 
 static PyObject *BPy_IDGroup_IterKeys_CreatePyObject(BPy_IDProperty *group, const bool reversed)
@@ -1561,7 +1561,7 @@ static int BPy_Group_ViewValues_Contains(BPy_IDGroup_View *self, PyObject *value
     return 0;
   }
   /* TODO: implement this without first converting to a list. */
-  PyObject *list = PySequence_List((PyObject *)self);
+  PyObject *list = PySequence_List(reinterpret_cast<PyObject *>(self));
   const int result = PySequence_Contains(list, value);
   Py_DECREF(list);
   return result;
@@ -1573,43 +1573,43 @@ static int BPy_Group_ViewItems_Contains(BPy_IDGroup_View *self, PyObject *value)
     return 0;
   }
   /* TODO: implement this without first converting to a list. */
-  PyObject *list = PySequence_List((PyObject *)self);
+  PyObject *list = PySequence_List(reinterpret_cast<PyObject *>(self));
   const int result = PySequence_Contains(list, value);
   Py_DECREF(list);
   return result;
 }
 
 static PySequenceMethods BPy_IDGroup_ViewKeys_as_sequence = {
-    /*sq_length*/ (lenfunc)BPy_Group_View_len,
+    /*sq_length*/ reinterpret_cast<lenfunc>(BPy_Group_View_len),
     /*sq_concat*/ nullptr,
     /*sq_repeat*/ nullptr,
     /*sq_item*/ nullptr,
     /*was_sq_slice*/ nullptr,
     /*sq_ass_item*/ nullptr,
     /*was_sq_ass_slice*/ nullptr,
-    /*sq_contains*/ (objobjproc)BPy_Group_ViewKeys_Contains,
+    /*sq_contains*/ reinterpret_cast<objobjproc>(BPy_Group_ViewKeys_Contains),
 };
 
 static PySequenceMethods BPy_IDGroup_ViewValues_as_sequence = {
-    /*sq_length*/ (lenfunc)BPy_Group_View_len,
+    /*sq_length*/ reinterpret_cast<lenfunc>(BPy_Group_View_len),
     /*sq_concat*/ nullptr,
     /*sq_repeat*/ nullptr,
     /*sq_item*/ nullptr,
     /*was_sq_slice*/ nullptr,
     /*sq_ass_item*/ nullptr,
     /*was_sq_ass_slice*/ nullptr,
-    /*sq_contains*/ (objobjproc)BPy_Group_ViewValues_Contains,
+    /*sq_contains*/ reinterpret_cast<objobjproc>(BPy_Group_ViewValues_Contains),
 };
 
 static PySequenceMethods BPy_IDGroup_ViewItems_as_sequence = {
-    /*sq_length*/ (lenfunc)BPy_Group_View_len,
+    /*sq_length*/ reinterpret_cast<lenfunc>(BPy_Group_View_len),
     /*sq_concat*/ nullptr,
     /*sq_repeat*/ nullptr,
     /*sq_item*/ nullptr,
     /*was_sq_slice*/ nullptr,
     /*sq_ass_item*/ nullptr,
     /*was_sq_ass_slice*/ nullptr,
-    /*sq_contains*/ (objobjproc)BPy_Group_ViewItems_Contains,
+    /*sq_contains*/ reinterpret_cast<objobjproc>(BPy_Group_ViewItems_Contains),
 };
 
 /* Methods. */
@@ -1622,7 +1622,7 @@ static PyObject *BPy_IDGroup_View_reversed(BPy_IDGroup_View *self, PyObject * /*
 {
   BPy_IDGroup_View *result = IDGroup_View_New_WithType(self->group, Py_TYPE(self));
   result->reversed = !self->reversed;
-  return (PyObject *)result;
+  return reinterpret_cast<PyObject *>(result);
 }
 
 static PyMethodDef BPy_IDGroup_View_methods[] = {
@@ -1649,9 +1649,9 @@ static void IDGroup_View_init_type()
   v_ty->tp_name = "IDPropertyGroupViewValues";
   i_ty->tp_name = "IDPropertyGroupViewItems";
 
-  k_ty->tp_iter = (getiterfunc)BPy_Group_ViewKeys_iter;
-  v_ty->tp_iter = (getiterfunc)BPy_Group_ViewValues_iter;
-  i_ty->tp_iter = (getiterfunc)BPy_Group_ViewItems_iter;
+  k_ty->tp_iter = reinterpret_cast<getiterfunc>(BPy_Group_ViewKeys_iter);
+  v_ty->tp_iter = reinterpret_cast<getiterfunc>(BPy_Group_ViewValues_iter);
+  i_ty->tp_iter = reinterpret_cast<getiterfunc>(BPy_Group_ViewItems_iter);
 
   k_ty->tp_as_sequence = &BPy_IDGroup_ViewKeys_as_sequence;
   v_ty->tp_as_sequence = &BPy_IDGroup_ViewValues_as_sequence;
@@ -1820,7 +1820,7 @@ PyObject *BPy_Wrap_GetItems(ID *id, IDProperty *prop)
 PyObject *BPy_Wrap_GetKeys_View_WithID(ID *id, IDProperty *prop)
 {
   PyObject *self = prop ? idprop_py_from_idp_group(id, prop, nullptr) : nullptr;
-  PyObject *ret = BPy_IDGroup_ViewKeys_CreatePyObject((BPy_IDProperty *)self);
+  PyObject *ret = BPy_IDGroup_ViewKeys_CreatePyObject(reinterpret_cast<BPy_IDProperty *>(self));
   Py_XDECREF(self); /* Owned by `ret`. */
   return ret;
 }
@@ -1828,7 +1828,7 @@ PyObject *BPy_Wrap_GetKeys_View_WithID(ID *id, IDProperty *prop)
 PyObject *BPy_Wrap_GetValues_View_WithID(ID *id, IDProperty *prop)
 {
   PyObject *self = prop ? idprop_py_from_idp_group(id, prop, nullptr) : nullptr;
-  PyObject *ret = BPy_IDGroup_ViewValues_CreatePyObject((BPy_IDProperty *)self);
+  PyObject *ret = BPy_IDGroup_ViewValues_CreatePyObject(reinterpret_cast<BPy_IDProperty *>(self));
   Py_XDECREF(self); /* Owned by `ret`. */
   return ret;
 }
@@ -1836,7 +1836,7 @@ PyObject *BPy_Wrap_GetValues_View_WithID(ID *id, IDProperty *prop)
 PyObject *BPy_Wrap_GetItems_View_WithID(ID *id, IDProperty *prop)
 {
   PyObject *self = prop ? idprop_py_from_idp_group(id, prop, nullptr) : nullptr;
-  PyObject *ret = BPy_IDGroup_ViewItems_CreatePyObject((BPy_IDProperty *)self);
+  PyObject *ret = BPy_IDGroup_ViewItems_CreatePyObject(reinterpret_cast<BPy_IDProperty *>(self));
   Py_XDECREF(self); /* Owned by `ret`. */
   return ret;
 }
@@ -1902,7 +1902,7 @@ static PyObject *BPy_IDGroup_update(BPy_IDProperty *self, PyObject *value)
   Py_ssize_t i = 0;
 
   if (BPy_IDGroup_Check(value)) {
-    BPy_IDProperty *other = (BPy_IDProperty *)value;
+    BPy_IDProperty *other = reinterpret_cast<BPy_IDProperty *>(value);
     if (UNLIKELY(self->prop == other->prop)) {
       Py_RETURN_NONE;
     }
@@ -1990,14 +1990,26 @@ static PyObject *BPy_IDGroup_get(BPy_IDProperty *self, PyObject *args)
 #endif
 
 static PyMethodDef BPy_IDGroup_methods[] = {
-    {"pop", (PyCFunction)BPy_IDGroup_pop, METH_VARARGS, BPy_IDGroup_pop_doc},
-    {"keys", (PyCFunction)BPy_IDGroup_keys, METH_NOARGS, BPy_IDGroup_keys_doc},
-    {"values", (PyCFunction)BPy_IDGroup_values, METH_NOARGS, BPy_IDGroup_values_doc},
-    {"items", (PyCFunction)BPy_IDGroup_items, METH_NOARGS, BPy_IDGroup_items_doc},
-    {"update", (PyCFunction)BPy_IDGroup_update, METH_O, BPy_IDGroup_update_doc},
-    {"get", (PyCFunction)BPy_IDGroup_get, METH_VARARGS, BPy_IDGroup_get_doc},
-    {"to_dict", (PyCFunction)BPy_IDGroup_to_dict, METH_NOARGS, BPy_IDGroup_to_dict_doc},
-    {"clear", (PyCFunction)BPy_IDGroup_clear, METH_NOARGS, BPy_IDGroup_clear_doc},
+    {"pop", reinterpret_cast<PyCFunction>(BPy_IDGroup_pop), METH_VARARGS, BPy_IDGroup_pop_doc},
+    {"keys", reinterpret_cast<PyCFunction>(BPy_IDGroup_keys), METH_NOARGS, BPy_IDGroup_keys_doc},
+    {"values",
+     reinterpret_cast<PyCFunction>(BPy_IDGroup_values),
+     METH_NOARGS,
+     BPy_IDGroup_values_doc},
+    {"items",
+     reinterpret_cast<PyCFunction>(BPy_IDGroup_items),
+     METH_NOARGS,
+     BPy_IDGroup_items_doc},
+    {"update", reinterpret_cast<PyCFunction>(BPy_IDGroup_update), METH_O, BPy_IDGroup_update_doc},
+    {"get", reinterpret_cast<PyCFunction>(BPy_IDGroup_get), METH_VARARGS, BPy_IDGroup_get_doc},
+    {"to_dict",
+     reinterpret_cast<PyCFunction>(BPy_IDGroup_to_dict),
+     METH_NOARGS,
+     BPy_IDGroup_to_dict_doc},
+    {"clear",
+     reinterpret_cast<PyCFunction>(BPy_IDGroup_clear),
+     METH_NOARGS,
+     BPy_IDGroup_clear_doc},
     {nullptr, nullptr, 0, nullptr},
 };
 
@@ -2016,7 +2028,7 @@ static PyMethodDef BPy_IDGroup_methods[] = {
  * \{ */
 
 static PySequenceMethods BPy_IDGroup_Seq = {
-    /*sq_length*/ (lenfunc)BPy_IDGroup_Map_Len,
+    /*sq_length*/ reinterpret_cast<lenfunc>(BPy_IDGroup_Map_Len),
     /*sq_concat*/ nullptr,
     /*sq_repeat*/ nullptr,
     /* TODO: setting this will allow `PySequence_Check()` to return True. */
@@ -2024,15 +2036,15 @@ static PySequenceMethods BPy_IDGroup_Seq = {
     /*was_sq_slice*/ nullptr, /* DEPRECATED. */
     /*sq_ass_item*/ nullptr,
     /*was_sq_ass_slice*/ nullptr, /* DEPRECATED. */
-    /*sq_contains*/ (objobjproc)BPy_IDGroup_Contains,
+    /*sq_contains*/ reinterpret_cast<objobjproc>(BPy_IDGroup_Contains),
     /*sq_inplace_concat*/ nullptr,
     /*sq_inplace_repeat*/ nullptr,
 };
 
 static PyMappingMethods BPy_IDGroup_Mapping = {
-    /*mp_length*/ (lenfunc)BPy_IDGroup_Map_Len,
-    /*mp_subscript*/ (binaryfunc)BPy_IDGroup_Map_GetItem,
-    /*mp_ass_subscript*/ (objobjargproc)BPy_IDGroup_Map_SetItem,
+    /*mp_length*/ reinterpret_cast<lenfunc>(BPy_IDGroup_Map_Len),
+    /*mp_subscript*/ reinterpret_cast<binaryfunc>(BPy_IDGroup_Map_GetItem),
+    /*mp_ass_subscript*/ reinterpret_cast<objobjargproc>(BPy_IDGroup_Map_SetItem),
 };
 
 PyTypeObject BPy_IDGroup_Type = {
@@ -2046,11 +2058,11 @@ PyTypeObject BPy_IDGroup_Type = {
     /*tp_getattr*/ nullptr,
     /*tp_setattr*/ nullptr,
     /*tp_as_async*/ nullptr,
-    /*tp_repr*/ (reprfunc)BPy_IDGroup_repr,
+    /*tp_repr*/ reinterpret_cast<reprfunc>(BPy_IDGroup_repr),
     /*tp_as_number*/ nullptr,
     /*tp_as_sequence*/ &BPy_IDGroup_Seq,
     /*tp_as_mapping*/ &BPy_IDGroup_Mapping,
-    /*tp_hash*/ (hashfunc)BPy_IDGroup_hash,
+    /*tp_hash*/ reinterpret_cast<hashfunc>(BPy_IDGroup_hash),
     /*tp_call*/ nullptr,
     /*tp_str*/ nullptr,
     /*tp_getattro*/ nullptr,
@@ -2062,7 +2074,7 @@ PyTypeObject BPy_IDGroup_Type = {
     /*tp_clear*/ nullptr,
     /*tp_richcompare*/ nullptr,
     /*tp_weaklistoffset*/ 0,
-    /*tp_iter*/ (getiterfunc)BPy_IDGroup_iter,
+    /*tp_iter*/ reinterpret_cast<getiterfunc>(BPy_IDGroup_iter),
     /*tp_iternext*/ nullptr,
     /*tp_methods*/ BPy_IDGroup_methods,
     /*tp_members*/ nullptr,
@@ -2155,8 +2167,8 @@ static PyObject *BPy_IDArray_get_typecode(BPy_IDArray *self, void * /*closure*/)
 static PyGetSetDef BPy_IDArray_getseters[] = {
     /* matches pythons array.typecode */
     {"typecode",
-     (getter)BPy_IDArray_get_typecode,
-     (setter) nullptr,
+     reinterpret_cast<getter>(BPy_IDArray_get_typecode),
+     static_cast<setter>(nullptr),
      BPy_IDArray_get_typecode_doc,
      nullptr},
     {nullptr, nullptr, nullptr, nullptr, nullptr},
@@ -2184,7 +2196,10 @@ static PyObject *BPy_IDArray_to_list(BPy_IDArray *self)
 #endif
 
 static PyMethodDef BPy_IDArray_methods[] = {
-    {"to_list", (PyCFunction)BPy_IDArray_to_list, METH_NOARGS, BPy_IDArray_to_list_doc},
+    {"to_list",
+     reinterpret_cast<PyCFunction>(BPy_IDArray_to_list),
+     METH_NOARGS,
+     BPy_IDArray_to_list_doc},
     {nullptr, nullptr, 0, nullptr},
 };
 
@@ -2272,12 +2287,12 @@ static int BPy_IDArray_SetItem(BPy_IDArray *self, Py_ssize_t index, PyObject *va
 }
 
 static PySequenceMethods BPy_IDArray_Seq = {
-    /*sq_length*/ (lenfunc)BPy_IDArray_Len,
+    /*sq_length*/ reinterpret_cast<lenfunc>(BPy_IDArray_Len),
     /*sq_concat*/ nullptr,
     /*sq_repeat*/ nullptr,
-    /*sq_item*/ (ssizeargfunc)BPy_IDArray_GetItem,
+    /*sq_item*/ reinterpret_cast<ssizeargfunc>(BPy_IDArray_GetItem),
     /*was_sq_slice*/ nullptr, /* DEPRECATED. */
-    /*sq_ass_item*/ (ssizeobjargproc)BPy_IDArray_SetItem,
+    /*sq_ass_item*/ reinterpret_cast<ssizeobjargproc>(BPy_IDArray_SetItem),
     /*was_sq_ass_slice*/ nullptr, /* DEPRECATED. */
     /*sq_contains*/ nullptr,
     /*sq_inplace_concat*/ nullptr,
@@ -2358,7 +2373,10 @@ static int BPy_IDArray_ass_slice(BPy_IDArray *self, int begin, int end, PyObject
     return -1;
   }
 
-  memcpy((void *)(((char *)IDP_array_voidp_get(prop)) + (begin * elem_size)), vec, alloc_len);
+  memcpy(
+      static_cast<void *>((static_cast<char *> IDP_array_voidp_get(prop)) + (begin * elem_size)),
+      vec,
+      alloc_len);
 
   MEM_freeN(vec);
   return 0;
@@ -2435,9 +2453,9 @@ static int BPy_IDArray_ass_subscript(BPy_IDArray *self, PyObject *item, PyObject
 }
 
 static PyMappingMethods BPy_IDArray_AsMapping = {
-    /*mp_length*/ (lenfunc)BPy_IDArray_Len,
-    /*mp_subscript*/ (binaryfunc)BPy_IDArray_subscript,
-    /*mp_ass_subscript*/ (objobjargproc)BPy_IDArray_ass_subscript,
+    /*mp_length*/ reinterpret_cast<lenfunc>(BPy_IDArray_Len),
+    /*mp_subscript*/ reinterpret_cast<binaryfunc>(BPy_IDArray_subscript),
+    /*mp_ass_subscript*/ reinterpret_cast<objobjargproc>(BPy_IDArray_ass_subscript),
 };
 
 static int itemsize_by_idarray_type(int array_type)
@@ -2463,14 +2481,18 @@ static int BPy_IDArray_getbuffer(BPy_IDArray *self, Py_buffer *view, int flags)
   const int itemsize = itemsize_by_idarray_type(prop->subtype);
   const int length = itemsize * prop->len;
 
-  if (PyBuffer_FillInfo(view, (PyObject *)self, IDP_array_voidp_get(prop), length, false, flags) ==
-      -1)
+  if (PyBuffer_FillInfo(view,
+                        reinterpret_cast<PyObject *>(self),
+                        IDP_array_voidp_get(prop),
+                        length,
+                        false,
+                        flags) == -1)
   {
     return -1;
   }
 
   view->itemsize = itemsize;
-  view->format = (char *)idp_format_from_array_type(prop->subtype);
+  view->format = const_cast<char *>(idp_format_from_array_type(prop->subtype));
 
   Py_ssize_t *shape = MEM_mallocN<Py_ssize_t>(__func__);
   shape[0] = prop->len;
@@ -2485,8 +2507,8 @@ static void BPy_IDArray_releasebuffer(BPy_IDArray * /*self*/, Py_buffer *view)
 }
 
 static PyBufferProcs BPy_IDArray_Buffer = {
-    /*bf_getbuffer*/ (getbufferproc)BPy_IDArray_getbuffer,
-    /*bf_releasebuffer*/ (releasebufferproc)BPy_IDArray_releasebuffer,
+    /*bf_getbuffer*/ reinterpret_cast<getbufferproc>(BPy_IDArray_getbuffer),
+    /*bf_releasebuffer*/ reinterpret_cast<releasebufferproc>(BPy_IDArray_releasebuffer),
 };
 
 /** \} */
@@ -2506,7 +2528,7 @@ PyTypeObject BPy_IDArray_Type = {
     /*tp_getattr*/ nullptr,
     /*tp_setattr*/ nullptr,
     /*tp_as_async*/ nullptr,
-    /*tp_repr*/ (reprfunc)BPy_IDArray_repr,
+    /*tp_repr*/ reinterpret_cast<reprfunc>(BPy_IDArray_repr),
     /*tp_as_number*/ nullptr,
     /*tp_as_sequence*/ &BPy_IDArray_Seq,
     /*tp_as_mapping*/ &BPy_IDArray_AsMapping,
@@ -2594,17 +2616,20 @@ static BPy_IDGroup_View *IDGroup_View_New_WithType(BPy_IDProperty *group, PyType
 
 static PyObject *BPy_IDGroup_ViewKeys_CreatePyObject(BPy_IDProperty *group)
 {
-  return (PyObject *)IDGroup_View_New_WithType(group, &BPy_IDGroup_ViewKeys_Type);
+  return reinterpret_cast<PyObject *>(
+      IDGroup_View_New_WithType(group, &BPy_IDGroup_ViewKeys_Type));
 }
 
 static PyObject *BPy_IDGroup_ViewValues_CreatePyObject(BPy_IDProperty *group)
 {
-  return (PyObject *)IDGroup_View_New_WithType(group, &BPy_IDGroup_ViewValues_Type);
+  return reinterpret_cast<PyObject *>(
+      IDGroup_View_New_WithType(group, &BPy_IDGroup_ViewValues_Type));
 }
 
 static PyObject *BPy_IDGroup_ViewItems_CreatePyObject(BPy_IDProperty *group)
 {
-  return (PyObject *)IDGroup_View_New_WithType(group, &BPy_IDGroup_ViewItems_Type);
+  return reinterpret_cast<PyObject *>(
+      IDGroup_View_New_WithType(group, &BPy_IDGroup_ViewItems_Type));
 }
 
 /** \} */

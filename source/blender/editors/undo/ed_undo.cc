@@ -707,12 +707,12 @@ bool ED_undo_operator_repeat(bContext *C, wmOperator *op)
 
 void ED_undo_operator_repeat_cb(bContext *C, void *arg_op, void * /*arg_unused*/)
 {
-  ED_undo_operator_repeat(C, (wmOperator *)arg_op);
+  ED_undo_operator_repeat(C, static_cast<wmOperator *>(arg_op));
 }
 
 void ED_undo_operator_repeat_cb_evt(bContext *C, void *arg_op, int /*arg_unused*/)
 {
-  ED_undo_operator_repeat(C, (wmOperator *)arg_op);
+  ED_undo_operator_repeat(C, static_cast<wmOperator *>(arg_op));
 }
 
 /** \} */
@@ -820,7 +820,7 @@ void ED_undo_object_editmode_restore_helper(Scene *scene,
    * for that to be done on all objects we can't skip ones that share data. */
   Vector<Base *> bases = ED_undo_editmode_bases_from_view_layer(scene, view_layer);
   for (Base *base : bases) {
-    ((ID *)base->object->data)->tag |= ID_TAG_DOIT;
+    (base->object->data)->tag |= ID_TAG_DOIT;
   }
   Object **ob_p = object_array;
   for (uint i = 0; i < object_array_len;
@@ -828,10 +828,10 @@ void ED_undo_object_editmode_restore_helper(Scene *scene,
   {
     Object *obedit = *ob_p;
     object::editmode_enter_ex(bmain, scene, obedit, object::EM_NO_CONTEXT);
-    ((ID *)obedit->data)->tag &= ~ID_TAG_DOIT;
+    (obedit->data)->tag &= ~ID_TAG_DOIT;
   }
   for (Base *base : bases) {
-    const ID *id = static_cast<ID *>(base->object->data);
+    const ID *id = base->object->data;
     if (id->tag & ID_TAG_DOIT) {
       object::editmode_exit_ex(bmain, scene, base->object, object::EM_FREEDATA);
       /* Ideally we would know the selection state it was before entering edit-mode,

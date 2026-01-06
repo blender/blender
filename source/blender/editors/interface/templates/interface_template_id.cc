@@ -63,7 +63,7 @@ struct TemplateID {
 /* Search browse menu, assign. */
 static void template_ID_set_property_exec_fn(bContext *C, void *arg_template, void *item)
 {
-  TemplateID *template_ui = (TemplateID *)arg_template;
+  TemplateID *template_ui = static_cast<TemplateID *>(arg_template);
 
   /* ID */
   if (item) {
@@ -138,7 +138,7 @@ static void id_search_cb(const bContext *C,
                          SearchItems *items,
                          const bool /*is_first*/)
 {
-  TemplateID *template_ui = (TemplateID *)arg_template;
+  TemplateID *template_ui = static_cast<TemplateID *>(arg_template);
   ListBaseT<ID> *lb = template_ui->idlb;
   const int flag = RNA_property_flag(template_ui->prop);
 
@@ -168,7 +168,7 @@ static void id_search_cb_tagged(const bContext *C,
                                 const char *str,
                                 SearchItems *items)
 {
-  TemplateID *template_ui = (TemplateID *)arg_template;
+  TemplateID *template_ui = static_cast<TemplateID *>(arg_template);
   ListBaseT<ID> *lb = template_ui->idlb;
   const int flag = RNA_property_flag(template_ui->prop);
 
@@ -203,13 +203,13 @@ static void id_search_cb_objects_from_scene(const bContext *C,
                                             SearchItems *items,
                                             const bool /*is_first*/)
 {
-  TemplateID *template_ui = (TemplateID *)arg_template;
+  TemplateID *template_ui = static_cast<TemplateID *>(arg_template);
   ListBaseT<ID> *lb = template_ui->idlb;
   Scene *scene = nullptr;
   ID *id_from = template_ui->ptr.owner_id;
 
   if (id_from && GS(id_from->name) == ID_SCE) {
-    scene = (Scene *)id_from;
+    scene = blender::id_cast<Scene *>(id_from);
   }
   else {
     scene = CTX_data_scene(C);
@@ -240,7 +240,7 @@ static Block *id_search_menu(bContext *C, ARegion *region, void *arg_litem)
       const bContext *, void *, const char *, SearchItems *, const bool) = id_search_cb;
 
   /* arg_litem is malloced, can be freed by parent button */
-  template_ui = *((TemplateID *)arg_litem);
+  template_ui = *(static_cast<TemplateID *>(arg_litem));
   active_item_ptr = RNA_property_pointer_get(&template_ui.ptr, template_ui.prop);
 
   if (template_ui.filter) {
@@ -338,12 +338,14 @@ static void template_id_liboverride_hierarchy_collections_tag_recursive(
       continue;
     }
     if (GS(target_id->name) == ID_OB &&
-        !BKE_collection_has_object_recursive(iter->collection, (Object *)target_id))
+        !BKE_collection_has_object_recursive(iter->collection,
+                                             blender::id_cast<Object *>(target_id)))
     {
       continue;
     }
     if (GS(target_id->name) == ID_GR &&
-        !BKE_collection_has_collection(iter->collection, (Collection *)target_id))
+        !BKE_collection_has_collection(iter->collection,
+                                       blender::id_cast<Collection *>(target_id)))
     {
       continue;
     }
@@ -391,7 +393,7 @@ ID *template_id_liboverride_hierarchy_make(
 
   Object *object_active = CTX_data_active_object(C);
   if (object_active == nullptr && GS(owner_id->name) == ID_OB) {
-    object_active = (Object *)owner_id;
+    object_active = blender::id_cast<Object *>(owner_id);
   }
   if (object_active != nullptr) {
     if (ID_IS_LINKED(object_active)) {
@@ -411,7 +413,7 @@ ID *template_id_liboverride_hierarchy_make(
   Collection *collection_active_context = CTX_data_collection(C);
   Collection *collection_active = collection_active_context;
   if (collection_active == nullptr && GS(owner_id->name) == ID_GR) {
-    collection_active = (Collection *)owner_id;
+    collection_active = blender::id_cast<Collection *>(owner_id);
   }
   if (collection_active != nullptr) {
     if (ID_IS_LINKED(collection_active)) {
@@ -465,7 +467,7 @@ ID *template_id_liboverride_hierarchy_make(
   switch (GS(id->name)) {
     case ID_GR:
       if (collection_active != nullptr &&
-          BKE_collection_has_collection(collection_active, (Collection *)id))
+          BKE_collection_has_collection(collection_active, blender::id_cast<Collection *>(id)))
       {
         template_id_liboverride_hierarchy_collections_tag_recursive(collection_active, id, true);
         if (object_active != nullptr) {
@@ -498,7 +500,7 @@ ID *template_id_liboverride_hierarchy_make(
       break;
     case ID_OB:
       if (collection_active != nullptr &&
-          BKE_collection_has_object_recursive(collection_active, (Object *)id))
+          BKE_collection_has_object_recursive(collection_active, blender::id_cast<Object *>(id)))
       {
         template_id_liboverride_hierarchy_collections_tag_recursive(collection_active, id, true);
         if (object_active != nullptr) {
@@ -520,7 +522,7 @@ ID *template_id_liboverride_hierarchy_make(
         }
         BKE_lib_override_library_create(
             bmain, scene, view_layer, nullptr, id, nullptr, nullptr, &id_override, false);
-        BKE_scene_collections_object_remove(bmain, scene, (Object *)id, true);
+        BKE_scene_collections_object_remove(bmain, scene, blender::id_cast<Object *>(id), true);
         WM_event_add_notifier(C, NC_ID | NA_REMOVED, nullptr);
       }
       break;
@@ -663,7 +665,7 @@ static void template_id_liboverride_hierarchy_make(bContext *C,
 
 static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 {
-  TemplateID *template_ui = (TemplateID *)arg_litem;
+  TemplateID *template_ui = static_cast<TemplateID *>(arg_litem);
   PointerRNA idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
   ID *id = static_cast<ID *>(idptr.data);
   const int event = POINTER_AS_INT(arg_event);
@@ -764,7 +766,8 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
         if (do_scene_obj) {
           Main *bmain = CTX_data_main(C);
           Scene *scene = CTX_data_scene(C);
-          blender::ed::object::object_single_user_make(bmain, scene, (Object *)id);
+          blender::ed::object::object_single_user_make(
+              bmain, scene, blender::id_cast<Object *>(id));
           WM_event_add_notifier(C, NC_WINDOW, nullptr);
           DEG_relations_tag_update(bmain);
         }
@@ -793,7 +796,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 static StringRef template_id_browse_tip(const StructRNA *type)
 {
   if (type) {
-    switch ((ID_Type)RNA_type_to_ID_code(type)) {
+    switch (ID_Type(RNA_type_to_ID_code(type))) {
       case ID_SCE:
         return N_("Browse Scene to be linked");
       case ID_OB:
@@ -1166,7 +1169,7 @@ static void template_ID(const bContext *C,
          * the object data instead of the object. In that case disable the button if the object
          * data is non-editable. Otherwise the button does nothing. */
         else if (Object *object;
-                 (GS(idfrom->name) == ID_OB) && (object = id_cast<Object *>(idfrom)) &&
+                 (GS(idfrom->name) == ID_OB) && (object = blender::id_cast<Object *>(idfrom)) &&
                  (template_ui.idcode == ID_MA) &&
                  /* Trying to assign to linked/packed object data. */
                  (object->data && ID_IS_LINKED(object->data)) &&
@@ -1238,7 +1241,8 @@ static void template_ID(const bContext *C,
                        but_func_argN_copy<TemplateID>);
       if (!BKE_id_copy_is_allowed(id) || (idfrom && !ID_IS_EDITABLE(idfrom)) || (!editable) ||
           /* object in editmode - don't change data */
-          (idfrom && GS(idfrom->name) == ID_OB && (((Object *)idfrom)->mode & OB_MODE_EDIT)))
+          (idfrom && GS(idfrom->name) == ID_OB &&
+           ((blender::id_cast<Object *>(idfrom))->mode & OB_MODE_EDIT)))
       {
         button_flag_enable(but, BUT_DISABLED);
       }
@@ -1465,19 +1469,19 @@ static void template_ID_tabs(const bContext *C,
     const int name_width = fontstyle_string_width(&style->widget, id->name + 2);
     const int but_width = name_width + UI_UNIT_X;
 
-    ButtonTab *tab = (ButtonTab *)uiDefButR_prop(block,
-                                                 ButtonType::Tab,
-                                                 id->name + 2,
-                                                 0,
-                                                 0,
-                                                 but_width,
-                                                 but_height,
-                                                 &template_id.ptr,
-                                                 template_id.prop,
-                                                 0,
-                                                 0.0f,
-                                                 sizeof(id->name) - 2,
-                                                 "");
+    ButtonTab *tab = static_cast<ButtonTab *>(uiDefButR_prop(block,
+                                                             ButtonType::Tab,
+                                                             id->name + 2,
+                                                             0,
+                                                             0,
+                                                             but_width,
+                                                             but_height,
+                                                             &template_id.ptr,
+                                                             template_id.prop,
+                                                             0,
+                                                             0.0f,
+                                                             sizeof(id->name) - 2,
+                                                             ""));
     button_funcN_set(tab,
                      template_ID_set_property_exec_fn,
                      MEM_new<TemplateID>(__func__, template_id),
@@ -1485,7 +1489,7 @@ static void template_ID_tabs(const bContext *C,
                      but_func_argN_free<TemplateID>,
                      but_func_argN_copy<TemplateID>);
     button_drag_set_id(tab, id);
-    tab->custom_data = (void *)id;
+    tab->custom_data = static_cast<void *>(id);
     tab->menu = mt;
 
     button_drawflag_enable(tab, but_align);

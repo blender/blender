@@ -117,7 +117,7 @@ void nested_id_hack_discard_pointers(ID *id_cow)
     SPECIAL_CASE(ID_ME, Mesh, key)
 
     case ID_SCE: {
-      Scene *scene_cow = (Scene *)id_cow;
+      Scene *scene_cow = blender::id_cast<Scene *>(id_cow);
       /* Tool settings pointer is shared with the original scene. */
       scene_cow->toolsettings = nullptr;
       break;
@@ -125,7 +125,7 @@ void nested_id_hack_discard_pointers(ID *id_cow)
 
     case ID_OB: {
       /* Clear the ParticleSettings pointer to prevent doubly-freeing it. */
-      Object *ob = (Object *)id_cow;
+      Object *ob = blender::id_cast<Object *>(id_cow);
       for (ParticleSystem &psys : ob->particlesystem) {
         psys.part = nullptr;
       }
@@ -164,7 +164,7 @@ const ID *nested_id_hack_get_discarded_pointers(void *storage, const ID *id)
 
     case ID_SCE: {
       Scene *scene = static_cast<Scene *>(storage);
-      *scene = blender::dna::shallow_copy(*(Scene *)id);
+      *scene = blender::dna::shallow_copy(*id_cast<Scene *>(const_cast<ID *>(id)));
       scene->toolsettings = nullptr;
       scene->nodetree = nullptr;
       return &scene->id;
@@ -268,7 +268,7 @@ bool id_copy_inplace_no_main(const ID *id, ID *newid)
 #endif
 
   bool result = (BKE_id_copy_ex(nullptr,
-                                (ID *)id_for_copy,
+                                const_cast<ID *>(id_for_copy),
                                 &newid,
                                 (LIB_ID_COPY_LOCALIZE | LIB_ID_CREATE_NO_ALLOCATE |
                                  LIB_ID_COPY_SET_COPIED_ON_WRITE)) != nullptr);
@@ -299,7 +299,7 @@ bool scene_copy_inplace_no_main(const Scene *scene, Scene *new_scene)
 #endif
   bool result = (BKE_id_copy_ex(nullptr,
                                 id_for_copy,
-                                (ID **)&new_scene,
+                                reinterpret_cast<ID **>(&new_scene),
                                 (LIB_ID_COPY_LOCALIZE | LIB_ID_CREATE_NO_ALLOCATE |
                                  LIB_ID_COPY_SET_COPIED_ON_WRITE)) != nullptr);
 
@@ -484,7 +484,7 @@ int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
     return IDWALK_RET_NOP;
   }
 
-  RemapCallbackUserData *user_data = (RemapCallbackUserData *)cb_data->user_data;
+  RemapCallbackUserData *user_data = static_cast<RemapCallbackUserData *>(cb_data->user_data);
   const Depsgraph *depsgraph = user_data->depsgraph;
   ID *id_orig = *id_p;
   if (deg_eval_copy_is_needed(id_orig)) {
@@ -501,8 +501,8 @@ void update_armature_edit_mode_pointers(const Depsgraph * /*depsgraph*/,
                                         const ID *id_orig,
                                         ID *id_cow)
 {
-  const bArmature *armature_orig = (const bArmature *)id_orig;
-  bArmature *armature_cow = (bArmature *)id_cow;
+  const bArmature *armature_orig = blender::id_cast<const bArmature *>(id_orig);
+  bArmature *armature_cow = blender::id_cast<bArmature *>(id_cow);
   armature_cow->edbo = armature_orig->edbo;
   armature_cow->act_edbone = armature_orig->act_edbone;
 }
@@ -511,8 +511,8 @@ void update_curve_edit_mode_pointers(const Depsgraph * /*depsgraph*/,
                                      const ID *id_orig,
                                      ID *id_cow)
 {
-  const Curve *curve_orig = (const Curve *)id_orig;
-  Curve *curve_cow = (Curve *)id_cow;
+  const Curve *curve_orig = blender::id_cast<const Curve *>(id_orig);
+  Curve *curve_cow = blender::id_cast<Curve *>(id_cow);
   curve_cow->editnurb = curve_orig->editnurb;
   curve_cow->editfont = curve_orig->editfont;
 }
@@ -521,8 +521,8 @@ void update_mball_edit_mode_pointers(const Depsgraph * /*depsgraph*/,
                                      const ID *id_orig,
                                      ID *id_cow)
 {
-  const MetaBall *mball_orig = (const MetaBall *)id_orig;
-  MetaBall *mball_cow = (MetaBall *)id_cow;
+  const MetaBall *mball_orig = blender::id_cast<const MetaBall *>(id_orig);
+  MetaBall *mball_cow = blender::id_cast<MetaBall *>(id_cow);
   mball_cow->editelems = mball_orig->editelems;
 }
 
@@ -530,15 +530,15 @@ void update_lattice_edit_mode_pointers(const Depsgraph * /*depsgraph*/,
                                        const ID *id_orig,
                                        ID *id_cow)
 {
-  const Lattice *lt_orig = (const Lattice *)id_orig;
-  Lattice *lt_cow = (Lattice *)id_cow;
+  const Lattice *lt_orig = blender::id_cast<const Lattice *>(id_orig);
+  Lattice *lt_cow = blender::id_cast<Lattice *>(id_cow);
   lt_cow->editlatt = lt_orig->editlatt;
 }
 
 void update_mesh_edit_mode_pointers(const ID *id_orig, ID *id_cow)
 {
-  const Mesh *mesh_orig = (const Mesh *)id_orig;
-  Mesh *mesh_cow = (Mesh *)id_cow;
+  const Mesh *mesh_orig = blender::id_cast<const Mesh *>(id_orig);
+  Mesh *mesh_cow = blender::id_cast<Mesh *>(id_cow);
   if (mesh_orig->runtime->edit_mesh == nullptr) {
     return;
   }
@@ -689,14 +689,14 @@ void update_id_after_copy(const Depsgraph *depsgraph,
     case ID_OB: {
       /* Ensure we don't drag someone's else derived mesh to the
        * new copy of the object. */
-      Object *object_cow = (Object *)id_cow;
-      const Object *object_orig = (const Object *)id_orig;
+      Object *object_cow = blender::id_cast<Object *>(id_cow);
+      const Object *object_orig = blender::id_cast<const Object *>(id_orig);
       object_cow->mode = object_orig->mode;
       object_cow->sculpt = object_orig->sculpt;
-      object_cow->runtime->data_orig = (ID *)object_cow->data;
+      object_cow->runtime->data_orig = object_cow->data;
       if (object_cow->type == OB_ARMATURE) {
-        const bArmature *armature_orig = (bArmature *)object_orig->data;
-        bArmature *armature_cow = (bArmature *)object_cow->data;
+        const bArmature *armature_orig = blender::id_cast<bArmature *>(object_orig->data);
+        bArmature *armature_cow = blender::id_cast<bArmature *>(object_cow->data);
         BKE_pose_remap_bone_pointers(armature_cow, object_cow->pose);
         if (armature_orig->edbo == nullptr) {
           update_pose_orig_pointers(object_orig->pose, object_cow->pose);
@@ -707,8 +707,8 @@ void update_id_after_copy(const Depsgraph *depsgraph,
       break;
     }
     case ID_SCE: {
-      Scene *scene_cow = (Scene *)id_cow;
-      const Scene *scene_orig = (const Scene *)id_orig;
+      Scene *scene_cow = blender::id_cast<Scene *>(id_cow);
+      const Scene *scene_orig = blender::id_cast<const Scene *>(id_orig);
       scene_cow->toolsettings = scene_orig->toolsettings;
       scene_setup_view_layers_after_remap(depsgraph, id_node, reinterpret_cast<Scene *>(id_cow));
       break;
@@ -724,7 +724,7 @@ void update_id_after_copy(const Depsgraph *depsgraph,
  * properly expanded. */
 int foreach_libblock_validate_callback(LibraryIDLinkCallbackData *cb_data)
 {
-  ValidateData *data = (ValidateData *)cb_data->user_data;
+  ValidateData *data = static_cast<ValidateData *>(cb_data->user_data);
   ID **id_p = cb_data->id_pointer;
 
   if (*id_p != nullptr) {
@@ -780,11 +780,13 @@ ID *deg_expand_eval_copy_datablock(const Depsgraph *depsgraph, const IDNode *id_
   const ID_Type id_type = GS(id_orig->name);
   switch (id_type) {
     case ID_SCE: {
-      done = scene_copy_inplace_no_main((Scene *)id_orig, (Scene *)id_cow);
+      done = scene_copy_inplace_no_main(blender::id_cast<Scene *>(const_cast<ID *>(id_orig)),
+                                        reinterpret_cast<Scene *>(id_cow));
       if (done) {
         /* NOTE: This is important to do before remap, because this
          * function will make it so less IDs are to be remapped. */
-        scene_setup_view_layers_before_remap(depsgraph, id_node, (Scene *)id_cow);
+        scene_setup_view_layers_before_remap(
+            depsgraph, id_node, blender::id_cast<Scene *>(id_cow));
       }
       break;
     }
@@ -825,7 +827,7 @@ ID *deg_expand_eval_copy_datablock(const Depsgraph *depsgraph, const IDNode *id_
   BKE_library_foreach_ID_link(nullptr,
                               id_cow,
                               foreach_libblock_remap_callback,
-                              (void *)&user_data,
+                              static_cast<void *>(&user_data),
                               IDWALK_IGNORE_EMBEDDED_ID | IDWALK_IGNORE_MISSING_OWNER_ID);
   /* Correct or tweak some pointers which are not taken care by foreach
    * from above. */
@@ -890,38 +892,38 @@ namespace {
 
 void discard_armature_edit_mode_pointers(ID *id_cow)
 {
-  bArmature *armature_cow = (bArmature *)id_cow;
+  bArmature *armature_cow = blender::id_cast<bArmature *>(id_cow);
   armature_cow->edbo = nullptr;
 }
 
 void discard_curve_edit_mode_pointers(ID *id_cow)
 {
-  Curve *curve_cow = (Curve *)id_cow;
+  Curve *curve_cow = blender::id_cast<Curve *>(id_cow);
   curve_cow->editnurb = nullptr;
   curve_cow->editfont = nullptr;
 }
 
 void discard_mball_edit_mode_pointers(ID *id_cow)
 {
-  MetaBall *mball_cow = (MetaBall *)id_cow;
+  MetaBall *mball_cow = blender::id_cast<MetaBall *>(id_cow);
   mball_cow->editelems = nullptr;
 }
 
 void discard_lattice_edit_mode_pointers(ID *id_cow)
 {
-  Lattice *lt_cow = (Lattice *)id_cow;
+  Lattice *lt_cow = blender::id_cast<Lattice *>(id_cow);
   lt_cow->editlatt = nullptr;
 }
 
 void discard_mesh_edit_mode_pointers(ID *id_cow)
 {
-  Mesh *mesh_cow = (Mesh *)id_cow;
+  Mesh *mesh_cow = blender::id_cast<Mesh *>(id_cow);
   mesh_cow->runtime->edit_mesh = nullptr;
 }
 
 void discard_scene_pointers(ID *id_cow)
 {
-  Scene *scene_cow = (Scene *)id_cow;
+  Scene *scene_cow = blender::id_cast<Scene *>(id_cow);
   scene_cow->toolsettings = nullptr;
 }
 
@@ -980,7 +982,7 @@ void deg_free_eval_copy_datablock(ID *id_cow)
       /* TODO(sergey): This workaround is only to prevent free derived
        * caches from modifying object->data. This is currently happening
        * due to mesh/curve data-block bound-box tagging dirty. */
-      Object *ob_cow = (Object *)id_cow;
+      Object *ob_cow = blender::id_cast<Object *>(id_cow);
       ob_cow->data = nullptr;
       ob_cow->sculpt = nullptr;
       break;
@@ -1027,7 +1029,7 @@ void deg_tag_eval_copy_id(deg::Depsgraph &depsgraph, ID *id_cow, const ID *id_or
   id_cow->tag |= ID_TAG_COPIED_ON_EVAL;
   /* This ID is no longer localized, is a self-sustaining copy now. */
   id_cow->tag &= ~ID_TAG_LOCALIZED;
-  id_cow->orig_id = (ID *)id_orig;
+  id_cow->orig_id = const_cast<ID *>(id_orig);
   id_cow->runtime->depsgraph = &reinterpret_cast<::Depsgraph &>(depsgraph);
 }
 

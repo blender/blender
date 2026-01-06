@@ -77,7 +77,7 @@ enum class NURBSValidationStatus {
 
 static void curve_init_data(ID *id)
 {
-  Curve *curve = (Curve *)id;
+  Curve *curve = blender::id_cast<Curve *>(id);
 
   INIT_DEFAULT_STRUCT_AFTER(curve, id);
 }
@@ -88,17 +88,17 @@ static void curve_copy_data(Main *bmain,
                             const ID *id_src,
                             const int flag)
 {
-  Curve *curve_dst = (Curve *)id_dst;
-  const Curve *curve_src = (const Curve *)id_src;
+  Curve *curve_dst = blender::id_cast<Curve *>(id_dst);
+  const Curve *curve_src = blender::id_cast<const Curve *>(id_src);
 
   BLI_listbase_clear(&curve_dst->nurb);
   BKE_nurbList_duplicate(&(curve_dst->nurb), &(curve_src->nurb));
 
-  curve_dst->mat = (Material **)MEM_dupallocN(curve_src->mat);
+  curve_dst->mat = static_cast<Material **>(MEM_dupallocN(curve_src->mat));
 
-  curve_dst->str = (char *)MEM_dupallocN(curve_src->str);
-  curve_dst->strinfo = (CharInfo *)MEM_dupallocN(curve_src->strinfo);
-  curve_dst->tb = (TextBox *)MEM_dupallocN(curve_src->tb);
+  curve_dst->str = static_cast<char *>(MEM_dupallocN(curve_src->str));
+  curve_dst->strinfo = static_cast<CharInfo *>(MEM_dupallocN(curve_src->strinfo));
+  curve_dst->tb = static_cast<TextBox *>(MEM_dupallocN(curve_src->tb));
   curve_dst->batch_cache = nullptr;
 
   curve_dst->bevel_profile = BKE_curveprofile_copy(curve_src->bevel_profile);
@@ -118,7 +118,7 @@ static void curve_copy_data(Main *bmain,
 
 static void curve_free_data(ID *id)
 {
-  Curve *curve = (Curve *)id;
+  Curve *curve = blender::id_cast<Curve *>(id);
 
   BKE_curve_batch_cache_free(curve);
 
@@ -157,7 +157,7 @@ static void curve_foreach_id(ID *id, LibraryForeachIDData *data)
 
 static void curve_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  Curve *cu = (Curve *)id;
+  Curve *cu = blender::id_cast<Curve *>(id);
 
   /* Clean up, important in undo case to reduce false detection of changed datablocks. */
   cu->editnurb = nullptr;
@@ -204,7 +204,7 @@ static void curve_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 
 static void curve_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  Curve *cu = (Curve *)id;
+  Curve *cu = blender::id_cast<Curve *>(id);
 
   BLO_read_string(reader, &cu->str);
 
@@ -217,7 +217,7 @@ static void curve_blend_read_data(BlendDataReader *reader, ID *id)
   /* Protect against integer overflow vulnerability. */
   CLAMP(cu->len_char32, 0, INT_MAX - 4);
 
-  BLO_read_pointer_array(reader, cu->totcol, (void **)&cu->mat);
+  BLO_read_pointer_array(reader, cu->totcol, reinterpret_cast<void **>(&cu->mat));
 
   BLO_read_struct_array(reader, CharInfo, cu->len_char32 + 1, &cu->strinfo);
   BLO_read_struct_array(reader, TextBox, cu->totbox, &cu->tb);
@@ -410,7 +410,7 @@ Curve *BKE_curve_add(Main *bmain, const char *name, int type)
   Curve *cu;
 
   /* We cannot use #BKE_id_new here as we need some custom initialization code. */
-  cu = (Curve *)BKE_libblock_alloc(bmain, ID_CU_LEGACY, name, 0);
+  cu = static_cast<Curve *>(BKE_libblock_alloc(bmain, ID_CU_LEGACY, name, 0));
 
   BKE_curve_init(cu, type);
 
@@ -454,7 +454,7 @@ void BKE_curve_dimension_update(Curve *cu)
 
 void BKE_curve_type_test(Object *ob, const bool dimension_update)
 {
-  Curve *cu = static_cast<Curve *>(ob->data);
+  Curve *cu = blender::id_cast<Curve *>(ob->data);
   ob->type = cu->ob_type;
 
   if (dimension_update) {
@@ -863,7 +863,7 @@ float BKE_nurb_calc_length(const Nurb *nu, int resolution)
 
 void BKE_nurb_points_add(Nurb *nu, int number)
 {
-  nu->bp = (BPoint *)MEM_recallocN(nu->bp, (nu->pntsu + number) * sizeof(BPoint));
+  nu->bp = static_cast<BPoint *>(MEM_recallocN(nu->bp, (nu->pntsu + number) * sizeof(BPoint)));
 
   BPoint *bp;
   int i;
@@ -879,7 +879,8 @@ void BKE_nurb_bezierPoints_add(Nurb *nu, int number)
   BezTriple *bezt;
   int i;
 
-  nu->bezt = (BezTriple *)MEM_recallocN(nu->bezt, (nu->pntsu + number) * sizeof(BezTriple));
+  nu->bezt = static_cast<BezTriple *>(
+      MEM_recallocN(nu->bezt, (nu->pntsu + number) * sizeof(BezTriple)));
 
   for (i = 0, bezt = &nu->bezt[nu->pntsu]; i < number; i++, bezt++) {
     bezt->radius = 1.0f;
@@ -1453,7 +1454,8 @@ void BKE_nurb_makeFaces(const Nurb *nu, float *coord_array, int rowstride, int r
     }
     u += ustep;
     if (rowstride != 0) {
-      in = (float *)(((uchar *)in) + (rowstride - 3 * totv * sizeof(*in)));
+      in = reinterpret_cast<float *>((reinterpret_cast<uchar *>(in)) +
+                                     (rowstride - 3 * totv * sizeof(*in)));
     }
   }
 
@@ -1581,16 +1583,16 @@ void BKE_nurb_makeCurve(const Nurb *nu,
       }
     }
 
-    coord_fp = (float *)POINTER_OFFSET(coord_fp, stride);
+    coord_fp = static_cast<float *> POINTER_OFFSET(coord_fp, stride);
 
     if (tilt_fp) {
-      tilt_fp = (float *)POINTER_OFFSET(tilt_fp, stride);
+      tilt_fp = static_cast<float *> POINTER_OFFSET(tilt_fp, stride);
     }
     if (radius_fp) {
-      radius_fp = (float *)POINTER_OFFSET(radius_fp, stride);
+      radius_fp = static_cast<float *> POINTER_OFFSET(radius_fp, stride);
     }
     if (weight_fp) {
-      weight_fp = (float *)POINTER_OFFSET(weight_fp, stride);
+      weight_fp = static_cast<float *> POINTER_OFFSET(weight_fp, stride);
     }
 
     u += ustep;
@@ -1638,7 +1640,7 @@ void BKE_curve_calc_coords_axis(const BezTriple *bezt_array,
                                   r_points_offset,
                                   int(resolu),
                                   stride);
-    r_points_offset = (float *)POINTER_OFFSET(r_points_offset, resolu_stride);
+    r_points_offset = static_cast<float *> POINTER_OFFSET(r_points_offset, resolu_stride);
   }
 
   if (is_cyclic) {
@@ -1651,16 +1653,17 @@ void BKE_curve_calc_coords_axis(const BezTriple *bezt_array,
                                   r_points_offset,
                                   int(resolu),
                                   stride);
-    r_points_offset = (float *)POINTER_OFFSET(r_points_offset, resolu_stride);
+    r_points_offset = static_cast<float *> POINTER_OFFSET(r_points_offset, resolu_stride);
     if (use_cyclic_duplicate_endpoint) {
       *r_points_offset = *r_points;
-      r_points_offset = (float *)POINTER_OFFSET(r_points_offset, stride);
+      r_points_offset = static_cast<float *> POINTER_OFFSET(r_points_offset, stride);
     }
   }
   else {
-    float *r_points_last = (float *)POINTER_OFFSET(r_points, bezt_array_last * resolu_stride);
+    float *r_points_last = static_cast<float *> POINTER_OFFSET(r_points,
+                                                               bezt_array_last * resolu_stride);
     *r_points_last = bezt_array[bezt_array_last].vec[1][axis];
-    r_points_offset = (float *)POINTER_OFFSET(r_points_offset, stride);
+    r_points_offset = static_cast<float *> POINTER_OFFSET(r_points_offset, stride);
   }
 
   BLI_assert((float *)POINTER_OFFSET(r_points, points_len * stride) == r_points_offset);
@@ -1688,7 +1691,7 @@ void BKE_curve_forward_diff_bezier(
 
   for (a = 0; a <= it; a++) {
     *p = q0;
-    p = (float *)POINTER_OFFSET(p, stride);
+    p = static_cast<float *> POINTER_OFFSET(p, stride);
     q0 += q1;
     q1 += q2;
     q2 += q3;
@@ -1713,7 +1716,7 @@ void BKE_curve_forward_diff_tangent_bezier(
 
   for (a = 0; a <= it; a++) {
     *p = q0;
-    p = (float *)POINTER_OFFSET(p, stride);
+    p = static_cast<float *> POINTER_OFFSET(p, stride);
     q0 += q1;
     q1 += q2;
   }
@@ -1739,7 +1742,7 @@ static void forward_diff_bezier_cotangent(const float p0[3],
              (-18.0f * t + 6.0f) * p2[i] + (6.0f * t) * p3[i];
     }
     normalize_v3(p);
-    p = (float *)POINTER_OFFSET(p, stride);
+    p = static_cast<float *> POINTER_OFFSET(p, stride);
   }
 }
 
@@ -1852,7 +1855,8 @@ struct BevelSort {
 
 static int vergxcobev(const void *a1, const void *a2)
 {
-  const BevelSort *x1 = (BevelSort *)a1, *x2 = (BevelSort *)a2;
+  const BevelSort *x1 = static_cast<BevelSort *>(const_cast<void *>(a1)),
+                  *x2 = static_cast<BevelSort *>(const_cast<void *>(a2));
 
   if (x1->left > x2->left) {
     return 1;
@@ -1974,7 +1978,7 @@ static void tilt_bezpart(const BezTriple *prevbezt,
                       t[3] * next->tilt;
       }
 
-      tilt_array = (float *)POINTER_OFFSET(tilt_array, stride);
+      tilt_array = static_cast<float *> POINTER_OFFSET(tilt_array, stride);
     }
 
     if (radius_array) {
@@ -1995,7 +1999,7 @@ static void tilt_bezpart(const BezTriple *prevbezt,
                         t[3] * next->radius;
       }
 
-      radius_array = (float *)POINTER_OFFSET(radius_array, stride);
+      radius_array = static_cast<float *> POINTER_OFFSET(radius_array, stride);
     }
 
     if (weight_array) {
@@ -2003,7 +2007,7 @@ static void tilt_bezpart(const BezTriple *prevbezt,
       *weight_array = prevbezt->weight + (bezt->weight - prevbezt->weight) *
                                              (3.0f * fac * fac - 2.0f * fac * fac * fac);
 
-      weight_array = (float *)POINTER_OFFSET(weight_array, stride);
+      weight_array = static_cast<float *> POINTER_OFFSET(weight_array, stride);
     }
   }
 }
@@ -2541,7 +2545,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBaseT<Nurb> *nurbs, const bo
    */
 
   /* This function needs an object, because of `tflag` and `upflag`. */
-  Curve *cu = (Curve *)ob->data;
+  Curve *cu = blender::id_cast<Curve *>(ob->data);
   BezTriple *bezt, *prevbezt;
   BPoint *bp;
   BevList *blnew;
@@ -3368,13 +3372,13 @@ static void *allocate_arrays(int count, float ***floats, char ***chars, const ch
     return nullptr;
   }
 
-  float *fptr = (float *)buffer;
+  float *fptr = static_cast<float *>(buffer);
 
   for (int i = 0; i < num_floats; i++, fptr += count) {
     *floats[i] = fptr;
   }
 
-  char *cptr = (char *)fptr;
+  char *cptr = reinterpret_cast<char *>(fptr);
 
   for (int i = 0; i < num_chars; i++, cptr += count) {
     *chars[i] = cptr;
@@ -3940,7 +3944,7 @@ void BKE_nurb_handle_smooth_fcurve(BezTriple *bezt, int total, bool cyclic)
 void BKE_nurb_handle_calc(
     BezTriple *bezt, BezTriple *prev, BezTriple *next, const bool is_fcurve, const char smoothing)
 {
-  calchandleNurb_intern(bezt, prev, next, (eBezTriple_Flag)SELECT, is_fcurve, false, smoothing);
+  calchandleNurb_intern(bezt, prev, next, eBezTriple_Flag(SELECT), is_fcurve, false, smoothing);
 }
 
 void BKE_nurb_handle_calc_ex(BezTriple *bezt,
@@ -3951,12 +3955,12 @@ void BKE_nurb_handle_calc_ex(BezTriple *bezt,
                              const char smoothing)
 {
   calchandleNurb_intern(
-      bezt, prev, next, (eBezTriple_Flag)handle_sel_flag, is_fcurve, false, smoothing);
+      bezt, prev, next, eBezTriple_Flag(handle_sel_flag), is_fcurve, false, smoothing);
 }
 
 void BKE_nurb_handles_calc(Nurb *nu) /* first, if needed, set handle flags */
 {
-  calchandlesNurb_intern(nu, (eBezTriple_Flag)SELECT, false);
+  calchandlesNurb_intern(nu, eBezTriple_Flag(SELECT), false);
 }
 
 /**
@@ -4591,7 +4595,7 @@ void BKE_curve_nurbs_vert_coords_apply_with_mat4(ListBaseT<Nurb> *lb,
       BKE_nurb_project_2d(&nu);
     }
 
-    calchandlesNurb_intern(&nu, (eBezTriple_Flag)SELECT, true);
+    calchandlesNurb_intern(&nu, eBezTriple_Flag(SELECT), true);
   }
 }
 
@@ -4626,7 +4630,7 @@ void BKE_curve_nurbs_vert_coords_apply(ListBaseT<Nurb> *lb,
       BKE_nurb_project_2d(&nu);
     }
 
-    calchandlesNurb_intern(&nu, (eBezTriple_Flag)SELECT, true);
+    calchandlesNurb_intern(&nu, eBezTriple_Flag(SELECT), true);
   }
 }
 
@@ -4988,7 +4992,7 @@ void BKE_curve_nurb_active_set(Curve *cu, const Nurb *nu)
 Nurb *BKE_curve_nurb_active_get(Curve *cu)
 {
   ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
-  return (Nurb *)BLI_findlink(nurbs, cu->actnu);
+  return static_cast<Nurb *>(BLI_findlink(nurbs, cu->actnu));
 }
 
 void *BKE_curve_vert_active_get(Curve *cu)
@@ -5004,11 +5008,11 @@ int BKE_curve_nurb_vert_index_get(const Nurb *nu, const void *vert)
 {
   if (nu->type == CU_BEZIER) {
     BLI_assert(ARRAY_HAS_ITEM((BezTriple *)vert, nu->bezt, nu->pntsu));
-    return (BezTriple *)vert - nu->bezt;
+    return static_cast<BezTriple *>(const_cast<void *>(vert)) - nu->bezt;
   }
 
   BLI_assert(ARRAY_HAS_ITEM((BPoint *)vert, nu->bp, nu->pntsu * nu->pntsv));
-  return (BPoint *)vert - nu->bp;
+  return static_cast<BPoint *>(const_cast<void *>(vert)) - nu->bp;
 }
 
 void BKE_curve_nurb_vert_active_set(Curve *cu, const Nurb *nu, const void *vert)
@@ -5035,7 +5039,7 @@ bool BKE_curve_nurb_vert_active_get(Curve *cu, Nurb **r_nu, void **r_vert)
 
   if (cu->actvert != CU_ACT_NONE) {
     ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
-    nu = (Nurb *)BLI_findlink(nurbs, cu->actnu);
+    nu = static_cast<Nurb *>(BLI_findlink(nurbs, cu->actnu));
 
     if (nu) {
       if (nu->type == CU_BEZIER) {
@@ -5062,13 +5066,13 @@ void BKE_curve_nurb_vert_active_validate(Curve *cu)
 
   if (BKE_curve_nurb_vert_active_get(cu, &nu, &vert)) {
     if (nu->type == CU_BEZIER) {
-      BezTriple *bezt = (BezTriple *)vert;
+      BezTriple *bezt = static_cast<BezTriple *>(vert);
       if (BEZT_ISSEL_ANY(bezt) == 0) {
         cu->actvert = CU_ACT_NONE;
       }
     }
     else {
-      BPoint *bp = (BPoint *)vert;
+      BPoint *bp = static_cast<BPoint *>(vert);
       if ((bp->f1 & SELECT) == 0) {
         cu->actvert = CU_ACT_NONE;
       }
@@ -5194,7 +5198,7 @@ void BKE_curve_transform_ex(Curve *cu,
 
   if (do_keys && cu->key) {
     for (KeyBlock &kb : cu->key->block) {
-      float *fp = (float *)kb.data;
+      float *fp = static_cast<float *>(kb.data);
       int n = kb.totelem;
 
       for (Nurb &nu : cu->nurb) {
@@ -5252,7 +5256,7 @@ void BKE_curve_translate(Curve *cu, const float offset[3], const bool do_keys)
 
   if (do_keys && cu->key) {
     for (KeyBlock &kb : cu->key->block) {
-      float *fp = (float *)kb.data;
+      float *fp = static_cast<float *>(kb.data);
       int n = kb.totelem;
 
       for (Nurb &nu : cu->nurb) {

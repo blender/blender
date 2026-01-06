@@ -266,7 +266,7 @@ class Empties : Overlay {
   {
     Object *ob = ob_ref.object;
     gpu::Texture *tex = nullptr;
-    ::Image *ima = static_cast<::Image *>(ob_ref.object->data);
+    ::Image *ima = blender::id_cast<::Image *>(ob_ref.object->data);
     float4x4 mat;
 
     const bool show_frame = BKE_object_empty_image_frame_is_visible_in_view3d(ob, state.rv3d);

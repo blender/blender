@@ -347,11 +347,11 @@ static void layerInterp_normal(const void **sources,
   float no[3] = {0.0f};
 
   for (const int i : IndexRange(count)) {
-    madd_v3_v3fl(no, (const float *)sources[i], weights[i]);
+    madd_v3_v3fl(no, static_cast<const float *>(sources[i]), weights[i]);
   }
 
   /* Weighted sum of normalized vectors will **not** be normalized, even if weights are. */
-  normalize_v3_v3((float *)dest, no);
+  normalize_v3_v3(static_cast<float *>(dest), no);
 }
 
 static void layerCopyValue_normal(const void *source,
@@ -359,8 +359,8 @@ static void layerCopyValue_normal(const void *source,
                                   const int mixmode,
                                   const float mixfactor)
 {
-  const float *no_src = (const float *)source;
-  float *no_dst = (float *)dest;
+  const float *no_src = static_cast<const float *>(source);
+  float *no_dst = static_cast<float *>(dest);
   float no_tmp[3];
 
   if (ELEM(mixmode,
@@ -400,8 +400,8 @@ static void layerCopyValue_normal(const void *source,
 
 static void layerCopy_tface(const void *source, void *dest, const int count)
 {
-  const MTFace *source_tf = (const MTFace *)source;
-  MTFace *dest_tf = (MTFace *)dest;
+  const MTFace *source_tf = static_cast<const MTFace *>(source);
+  MTFace *dest_tf = static_cast<MTFace *>(dest);
   for (int i = 0; i < count; i++) {
     dest_tf[i] = source_tf[i];
   }
@@ -425,7 +425,7 @@ static void layerInterp_tface(const void **sources,
   }
 
   /* Delay writing to the destination in case dest is in sources. */
-  *tf = *(MTFace *)(*sources);
+  *tf = *static_cast<MTFace *>(const_cast<void *>((*sources)));
   memcpy(tf->uv, uv, sizeof(tf->uv));
 }
 
@@ -445,7 +445,7 @@ static void layerSwap_tface(void *data, const int *corner_indices)
 static void layerDefault_tface(void *data, const int count)
 {
   static MTFace default_tf = {{{0, 0}, {1, 0}, {1, 1}, {0, 1}}};
-  MTFace *tf = (MTFace *)data;
+  MTFace *tf = static_cast<MTFace *>(data);
 
   for (int i = 0; i < count; i++) {
     tf[i] = default_tf;
@@ -476,10 +476,10 @@ static void layerInterp_propFloat(const void **sources,
   float result = 0.0f;
   for (int i = 0; i < count; i++) {
     const float interp_weight = weights[i];
-    const float src = *(const float *)sources[i];
+    const float src = *static_cast<const float *>(sources[i]);
     result += src * interp_weight;
   }
-  *(float *)dest = result;
+  *static_cast<float *>(dest) = result;
 }
 
 static bool layerValidate_propFloat(void *data, const uint totitems, const bool do_fixes)
@@ -539,8 +539,8 @@ static void layerCopy_propString(const void *source, void *dest, const int count
 
 static void layerCopy_origspace_face(const void *source, void *dest, const int count)
 {
-  const OrigSpaceFace *source_tf = (const OrigSpaceFace *)source;
-  OrigSpaceFace *dest_tf = (OrigSpaceFace *)dest;
+  const OrigSpaceFace *source_tf = static_cast<const OrigSpaceFace *>(source);
+  OrigSpaceFace *dest_tf = static_cast<OrigSpaceFace *>(dest);
 
   for (int i = 0; i < count; i++) {
     dest_tf[i] = source_tf[i];
@@ -582,7 +582,7 @@ static void layerSwap_origspace_face(void *data, const int *corner_indices)
 static void layerDefault_origspace_face(void *data, const int count)
 {
   static OrigSpaceFace default_osf = {{{0, 0}, {1, 0}, {1, 1}, {0, 1}}};
-  OrigSpaceFace *osf = (OrigSpaceFace *)data;
+  OrigSpaceFace *osf = static_cast<OrigSpaceFace *>(data);
 
   for (int i = 0; i < count; i++) {
     osf[i] = default_osf;
@@ -717,7 +717,7 @@ static void layerCopy_bmesh_elem_py_ptr(const void * /*source*/, void *dest, con
   const int size = sizeof(void *);
 
   for (int i = 0; i < count; i++) {
-    void **ptr = (void **)POINTER_OFFSET(dest, i * size);
+    void **ptr = static_cast<void **> POINTER_OFFSET(dest, i * size);
     *ptr = nullptr;
   }
 }
@@ -732,7 +732,7 @@ void bpy_bm_generic_invalidate(struct BPy_BMGeneric * /*self*/)
 static void layerFree_bmesh_elem_py_ptr(void *data, const int count)
 {
   for (int i = 0; i < count; i++) {
-    void **ptr = (void **)POINTER_OFFSET(data, i * sizeof(void *));
+    void **ptr = static_cast<void **> POINTER_OFFSET(data, i * sizeof(void *));
     if (*ptr) {
       bpy_bm_generic_invalidate(static_cast<BPy_BMGeneric *>(*ptr));
     }
@@ -910,7 +910,7 @@ static void layerInitMinMax_mloopcol(void *vmin, void *vmax)
 static void layerDefault_mloopcol(void *data, const int count)
 {
   MLoopCol default_mloopcol = {255, 255, 255, 255};
-  MLoopCol *mlcol = (MLoopCol *)data;
+  MLoopCol *mlcol = static_cast<MLoopCol *>(data);
   for (int i = 0; i < count; i++) {
     mlcol[i] = default_mloopcol;
   }
@@ -1018,7 +1018,7 @@ static void layerInterp_mloop_origspace(const void **sources,
   }
 
   /* Delay writing to the destination in case dest is in sources. */
-  copy_v2_v2(((OrigSpaceLoop *)dest)->uv, uv);
+  copy_v2_v2((static_cast<OrigSpaceLoop *>(dest))->uv, uv);
 }
 /* --- end copy */
 
@@ -1074,7 +1074,7 @@ static void layerSwap_mcol(void *data, const int *corner_indices)
 static void layerDefault_mcol(void *data, const int count)
 {
   static MCol default_mcol = {255, 255, 255, 255};
-  MCol *mcol = (MCol *)data;
+  MCol *mcol = static_cast<MCol *>(data);
 
   for (int i = 0; i < 4 * count; i++) {
     mcol[i] = default_mcol;
@@ -1083,12 +1083,12 @@ static void layerDefault_mcol(void *data, const int count)
 
 static void layerDefault_origindex(void *data, const int count)
 {
-  copy_vn_i((int *)data, count, ORIGINDEX_NONE);
+  copy_vn_i(static_cast<int *>(data), count, ORIGINDEX_NONE);
 }
 
 static void layerInterp_shapekey(const void **sources, const float *weights, int count, void *dest)
 {
-  float **in = (float **)sources;
+  float **in = reinterpret_cast<float **>(const_cast<void **>(sources));
 
   if (count <= 0) {
     return;
@@ -1103,7 +1103,7 @@ static void layerInterp_shapekey(const void **sources, const float *weights, int
   }
 
   /* Delay writing to the destination in case dest is in sources. */
-  copy_v3_v3((float *)dest, co);
+  copy_v3_v3(static_cast<float *>(dest), co);
 }
 
 /** \} */
@@ -1268,7 +1268,7 @@ static void layerDefault_propcol(void *data, const int count)
 {
   /* Default to white, full alpha. */
   MPropCol default_propcol = {{1.0f, 1.0f, 1.0f, 1.0f}};
-  MPropCol *pcol = (MPropCol *)data;
+  MPropCol *pcol = static_cast<MPropCol *>(data);
   for (int i = 0; i < count; i++) {
     copy_v4_v4(pcol[i].color, default_propcol.color);
   }
@@ -1303,7 +1303,7 @@ static void layerInterp_propfloat3(const void **sources,
     const vec3f *src = static_cast<const vec3f *>(sources[i]);
     madd_v3_v3fl(&result.x, &src->x, interp_weight);
   }
-  copy_v3_v3((float *)dest, &result.x);
+  copy_v3_v3(static_cast<float *>(dest), &result.x);
 }
 
 static void layerMultiply_propfloat3(void *data, const float fac)
@@ -1355,7 +1355,7 @@ static void layerInterp_propfloat2(const void **sources,
     const vec2f *src = static_cast<const vec2f *>(sources[i]);
     madd_v2_v2fl(&result.x, &src->x, interp_weight);
   }
-  copy_v2_v2((float *)dest, &result.x);
+  copy_v2_v2(static_cast<float *>(dest), &result.x);
 }
 
 static void layerMultiply_propfloat2(void *data, const float fac)
@@ -1439,10 +1439,10 @@ static void layerInterp_propbool(const void **sources, const float *weights, int
   bool result = false;
   for (int i = 0; i < count; i++) {
     const float interp_weight = weights[i];
-    const bool src = *(const bool *)sources[i];
+    const bool src = *static_cast<const bool *>(sources[i]);
     result |= src && (interp_weight > 0.0f);
   }
-  *(bool *)dest = result;
+  *static_cast<bool *>(dest) = result;
 }
 
 /** \} */
@@ -4075,7 +4075,7 @@ void CustomData_bmesh_interp(
   }
 
   void *source_buf[SOURCE_BUF_SIZE];
-  const void **sources = (const void **)source_buf;
+  const void **sources = const_cast<const void **>(source_buf);
 
   /* Slow fallback in case we're interpolating a ridiculous number of elements. */
   if (count > SOURCE_BUF_SIZE) {
@@ -4793,8 +4793,8 @@ void CustomData_data_transfer(const MeshPairRemap *me_remap, CustomDataTransferL
     if (tmp_data_src) {
       if (UNLIKELY(sources_num > tmp_buff_size)) {
         tmp_buff_size = size_t(sources_num);
-        tmp_data_src = (const void **)MEM_reallocN((void *)tmp_data_src,
-                                                   sizeof(*tmp_data_src) * tmp_buff_size);
+        tmp_data_src = static_cast<const void **>(
+            MEM_reallocN((void *)tmp_data_src, sizeof(*tmp_data_src) * tmp_buff_size));
       }
 
       for (int j = 0; j < sources_num; j++) {

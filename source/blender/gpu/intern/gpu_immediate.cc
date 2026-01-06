@@ -373,7 +373,7 @@ void immAttr1f(uint attr_id, float x)
   BLI_assert(imm->prim_type != GPU_PRIM_NONE); /* make sure we're between a Begin/End pair */
   setAttrValueBit(attr_id);
 
-  float *data = (float *)(imm->vertex_data + attr->offset);
+  float *data = reinterpret_cast<float *>(imm->vertex_data + attr->offset);
   // printf("%s %td %p\n", __FUNCTION__, (GLubyte*)data - imm->buffer_data, data);
 
   data[0] = x;
@@ -388,7 +388,7 @@ void immAttr2f(uint attr_id, float x, float y)
   BLI_assert(imm->prim_type != GPU_PRIM_NONE); /* make sure we're between a Begin/End pair */
   setAttrValueBit(attr_id);
 
-  float *data = (float *)(imm->vertex_data + attr->offset);
+  float *data = reinterpret_cast<float *>(imm->vertex_data + attr->offset);
   // printf("%s %td %p\n", __FUNCTION__, (GLubyte*)data - imm->buffer_data, data);
 
   data[0] = x;
@@ -404,7 +404,7 @@ void immAttr3f(uint attr_id, float x, float y, float z)
   BLI_assert(imm->prim_type != GPU_PRIM_NONE); /* make sure we're between a Begin/End pair */
   setAttrValueBit(attr_id);
 
-  float *data = (float *)(imm->vertex_data + attr->offset);
+  float *data = reinterpret_cast<float *>(imm->vertex_data + attr->offset);
   // printf("%s %td %p\n", __FUNCTION__, (GLubyte*)data - imm->buffer_data, data);
 
   data[0] = x;
@@ -421,7 +421,7 @@ void immAttr4f(uint attr_id, float x, float y, float z, float w)
   BLI_assert(imm->prim_type != GPU_PRIM_NONE); /* make sure we're between a Begin/End pair */
   setAttrValueBit(attr_id);
 
-  float *data = (float *)(imm->vertex_data + attr->offset);
+  float *data = reinterpret_cast<float *>(imm->vertex_data + attr->offset);
   // printf("%s %td %p\n", __FUNCTION__, (GLubyte*)data - imm->buffer_data, data);
 
   data[0] = x;
@@ -439,7 +439,7 @@ void immAttr1u(uint attr_id, uint x)
   BLI_assert(imm->prim_type != GPU_PRIM_NONE); /* make sure we're between a Begin/End pair */
   setAttrValueBit(attr_id);
 
-  uint *data = (uint *)(imm->vertex_data + attr->offset);
+  uint *data = reinterpret_cast<uint *>(imm->vertex_data + attr->offset);
 
   data[0] = x;
 }
@@ -453,7 +453,7 @@ void immAttr2i(uint attr_id, int x, int y)
   BLI_assert(imm->prim_type != GPU_PRIM_NONE); /* make sure we're between a Begin/End pair */
   setAttrValueBit(attr_id);
 
-  int *data = (int *)(imm->vertex_data + attr->offset);
+  int *data = reinterpret_cast<int *>(imm->vertex_data + attr->offset);
 
   data[0] = x;
   data[1] = y;
@@ -615,7 +615,8 @@ void immUniform4fv(const char *name, const float data[4])
 
 void immUniformArray4fv(const char *name, const float *data, int count)
 {
-  GPU_shader_uniform_4fv_array(imm->shader, name, count, (const float (*)[4])data);
+  GPU_shader_uniform_4fv_array(
+      imm->shader, name, count, reinterpret_cast<const float (*)[4]>(data));
 }
 
 void immUniformMatrix4fv(const char *name, const float data[4][4])

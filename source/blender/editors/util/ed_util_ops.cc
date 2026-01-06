@@ -103,7 +103,7 @@ static bool lib_id_preview_editing_poll(bContext *C)
   const PointerRNA idptr = CTX_data_pointer_get(C, "id");
   BLI_assert(!idptr.data || RNA_struct_is_ID(idptr.type));
 
-  const ID *id = (ID *)idptr.data;
+  const ID *id = static_cast<ID *>(idptr.data);
   const char *disabled_hint = nullptr;
   if (!lib_id_preview_editing_poll_ex(id, &disabled_hint)) {
     CTX_wm_operator_poll_msg_set(C, disabled_hint);
@@ -423,7 +423,7 @@ static wmOperatorStatus lib_id_fake_user_toggle_exec(bContext *C, wmOperator *op
     return OPERATOR_CANCELLED;
   }
 
-  ID *id = (ID *)idptr.data;
+  ID *id = static_cast<ID *>(idptr.data);
 
   if (!BKE_id_is_editable(CTX_data_main(C), id) ||
       ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_TXT, ID_OB, ID_WS))

@@ -134,7 +134,7 @@ static const EnumPropertyItem blend_type_items[] = {
 
 static StructRNA *rna_Texture_refine(PointerRNA *ptr)
 {
-  Tex *tex = (Tex *)ptr->data;
+  Tex *tex = static_cast<Tex *>(ptr->data);
 
   switch (tex->type) {
     case TEX_BLEND:
@@ -169,7 +169,7 @@ static void rna_Texture_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
   ID *id = ptr->owner_id;
 
   if (GS(id->name) == ID_TE) {
-    Tex *tex = (Tex *)ptr->owner_id;
+    Tex *tex = blender::id_cast<Tex *>(ptr->owner_id);
 
     DEG_id_tag_update(&tex->id, 0);
     DEG_id_tag_update(&tex->id, ID_RECALC_EDITORS);
@@ -177,7 +177,7 @@ static void rna_Texture_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
     WM_main_add_notifier(NC_MATERIAL | ND_SHADING_DRAW, nullptr);
   }
   else if (GS(id->name) == ID_NT) {
-    bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
+    bNodeTree *ntree = blender::id_cast<bNodeTree *>(ptr->owner_id);
     BKE_main_ensure_invariants(*bmain, ntree->id);
   }
 }
@@ -189,7 +189,7 @@ static void rna_Texture_mapping_update(Main *bmain, Scene *scene, PointerRNA *pt
   BKE_texture_mapping_init(texmap);
 
   if (GS(id->name) == ID_NT) {
-    bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
+    bNodeTree *ntree = blender::id_cast<bNodeTree *>(ptr->owner_id);
     /* Try to find and tag the node that this #TexMapping belongs to. */
     for (bNode *node : ntree->all_nodes()) {
       /* This assumes that the #TexMapping is stored at the beginning of the node storage. This is
@@ -212,7 +212,7 @@ static void rna_Color_mapping_update(Main * /*bmain*/, Scene * /*scene*/, Pointe
 /* Used for Texture Properties, used (also) for/in Nodes */
 static void rna_Texture_nodes_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Tex *tex = (Tex *)ptr->owner_id;
+  Tex *tex = blender::id_cast<Tex *>(ptr->owner_id);
 
   DEG_id_tag_update(&tex->id, 0);
   DEG_id_tag_update(&tex->id, ID_RECALC_EDITORS);
@@ -221,7 +221,7 @@ static void rna_Texture_nodes_update(Main * /*bmain*/, Scene * /*scene*/, Pointe
 
 static void rna_Texture_type_set(PointerRNA *ptr, int value)
 {
-  Tex *tex = (Tex *)ptr->data;
+  Tex *tex = static_cast<Tex *>(ptr->data);
 
   BKE_texture_type_set(tex, value);
 }
@@ -394,7 +394,7 @@ static const EnumPropertyItem *rna_TextureSlot_output_node_itemf(bContext * /*C*
       for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
         if (node->type_legacy == TEX_NODE_OUTPUT) {
           tmp.value = node->custom1;
-          tmp.name = ((TexNodeOutput *)node->storage)->name;
+          tmp.name = (static_cast<TexNodeOutput *>(node->storage))->name;
           tmp.identifier = tmp.name;
           RNA_enum_item_add(&item, &totitem, &tmp);
         }
@@ -410,7 +410,7 @@ static const EnumPropertyItem *rna_TextureSlot_output_node_itemf(bContext * /*C*
 
 static void rna_Texture_use_color_ramp_set(PointerRNA *ptr, bool value)
 {
-  Tex *tex = (Tex *)ptr->data;
+  Tex *tex = static_cast<Tex *>(ptr->data);
 
   if (value) {
     tex->flag |= TEX_COLORBAND;
@@ -426,7 +426,7 @@ static void rna_Texture_use_color_ramp_set(PointerRNA *ptr, bool value)
 
 static void rna_Texture_use_nodes_update(bContext *C, PointerRNA *ptr)
 {
-  Tex *tex = (Tex *)ptr->data;
+  Tex *tex = static_cast<Tex *>(ptr->data);
 
   if (tex->use_nodes) {
     tex->type = 0;

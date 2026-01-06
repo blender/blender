@@ -339,7 +339,7 @@ template<typename T> class GVArrayImpl_For_VArray : public GVArrayImpl {
 
   bool try_assign_VArray(void *varray) const override
   {
-    *(VArray<T> *)varray = varray_;
+    *static_cast<VArray<T> *>(varray) = varray_;
     return true;
   }
 
@@ -422,7 +422,7 @@ template<typename T> class GVMutableArrayImpl_For_VMutableArray : public GVMutab
 
   void set_by_copy(const int64_t index, const void *value) override
   {
-    const T &value_ = *(const T *)value;
+    const T &value_ = *static_cast<const T *>(value);
     varray_.set(index, value_);
   }
 
@@ -461,13 +461,13 @@ template<typename T> class GVMutableArrayImpl_For_VMutableArray : public GVMutab
 
   bool try_assign_VArray(void *varray) const override
   {
-    *(VArray<T> *)varray = varray_;
+    *static_cast<VArray<T> *>(varray) = varray_;
     return true;
   }
 
   bool try_assign_VMutableArray(void *varray) const override
   {
-    *(VMutableArray<T> *)varray = varray_;
+    *static_cast<VMutableArray<T> *>(varray) = varray_;
     return true;
   }
 };
@@ -814,14 +814,14 @@ template<typename StorageT> constexpr GVArrayAnyExtraInfo GVArrayAnyExtraInfo::g
 
   if constexpr (std::is_base_of_v<GVArrayImpl, StorageT>) {
     return {[](const void *buffer) {
-      return static_cast<const GVArrayImpl *>((const StorageT *)buffer);
+      return static_cast<const GVArrayImpl *>(static_cast<const StorageT *>(buffer));
     }};
   }
   else if constexpr (std::is_same_v<StorageT, const GVArrayImpl *>) {
-    return {[](const void *buffer) { return *(const StorageT *)buffer; }};
+    return {[](const void *buffer) { return *static_cast<const StorageT *>(buffer); }};
   }
   else if constexpr (std::is_same_v<StorageT, std::shared_ptr<const GVArrayImpl>>) {
-    return {[](const void *buffer) { return ((const StorageT *)buffer)->get(); }};
+    return {[](const void *buffer) { return (static_cast<const StorageT *>(buffer))->get(); }};
   }
   else {
     BLI_assert_unreachable();

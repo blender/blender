@@ -321,7 +321,7 @@ void DEG_graph_tag_relations_update(Depsgraph *graph)
 
 void DEG_graph_relations_update(Depsgraph *graph)
 {
-  deg::Depsgraph *deg_graph = (deg::Depsgraph *)graph;
+  deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(graph);
   if (!deg_graph->need_update_relations) {
     /* Graph is up to date, nothing to do. */
     return;

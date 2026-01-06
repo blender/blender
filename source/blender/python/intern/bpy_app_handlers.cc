@@ -291,7 +291,7 @@ PyObject *BPY_app_handlers_struct()
   BlenderAppCbType.tp_init = nullptr;
   BlenderAppCbType.tp_new = nullptr;
   /* Without this we can't do `set(sys.modules)` #29635. */
-  BlenderAppCbType.tp_hash = (hashfunc)Py_HashPointer;
+  BlenderAppCbType.tp_hash = reinterpret_cast<hashfunc>(Py_HashPointer);
 
   /* assign the C callbacks */
   if (ret) {
@@ -366,7 +366,7 @@ static PyObject *choose_arguments(PyObject *func, PyObject *args_all, PyObject *
   if (!PyFunction_Check(func)) {
     return args_all;
   }
-  PyCodeObject *code = (PyCodeObject *)PyFunction_GetCode(func);
+  PyCodeObject *code = reinterpret_cast<PyCodeObject *>(PyFunction_GetCode(func));
   if (code->co_argcount == 1) {
     return args_single;
   }

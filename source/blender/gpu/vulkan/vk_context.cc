@@ -61,7 +61,8 @@ void VKContext::sync_backbuffer()
 {
   if (ghost_window_) {
     GHOST_VulkanSwapChainData swap_chain_data = {};
-    GHOST_GetVulkanSwapChainFormat((GHOST_WindowHandle)ghost_window_, &swap_chain_data);
+    GHOST_GetVulkanSwapChainFormat(static_cast<GHOST_WindowHandle>(ghost_window_),
+                                   &swap_chain_data);
 
     const bool reset_framebuffer = swap_chain_format_.format !=
                                        swap_chain_data.surface_format.format ||

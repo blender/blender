@@ -35,8 +35,8 @@ bool filter_matches_asset(const AssetFilterSettings *filter,
   for (const AssetTag &filter_tag : filter->tags) {
     AssetMetaData &asset_data = asset.get_metadata();
 
-    AssetTag *matched_tag = (AssetTag *)BLI_findstring(
-        &asset_data.tags, filter_tag.name, offsetof(AssetTag, name));
+    AssetTag *matched_tag = static_cast<AssetTag *>(
+        BLI_findstring(&asset_data.tags, filter_tag.name, offsetof(AssetTag, name)));
     if (matched_tag == nullptr) {
       return false;
     }

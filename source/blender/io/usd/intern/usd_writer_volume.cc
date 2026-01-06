@@ -49,13 +49,13 @@ USDVolumeWriter::USDVolumeWriter(const USDExporterContext &ctx) : USDAbstractWri
 
 bool USDVolumeWriter::check_is_animated(const HierarchyContext &context) const
 {
-  const Volume *volume = static_cast<Volume *>(context.object->data);
+  const Volume *volume = blender::id_cast<Volume *>(context.object->data);
   return volume->is_sequence || has_varying_modifiers(context.object);
 }
 
 void USDVolumeWriter::do_write(HierarchyContext &context)
 {
-  Volume *volume = static_cast<Volume *>(context.object->data);
+  Volume *volume = blender::id_cast<Volume *>(context.object->data);
   if (!BKE_volume_load(volume, usd_export_context_.bmain)) {
     return;
   }

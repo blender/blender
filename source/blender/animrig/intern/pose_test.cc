@@ -67,7 +67,7 @@ class PoseTest : public testing::Test {
     obj_armature_b = BKE_object_add_only_object(bmain, OB_ARMATURE, "obj_armature_b");
 
     bArmature *armature = BKE_armature_add(bmain, "ArmatureA");
-    obj_armature_a->data = armature;
+    obj_armature_a->data = blender::id_cast<ID *>(armature);
 
     Bone *bone = MEM_new_for_free<Bone>("BONE");
     STRNCPY(bone->name, "BoneA");
@@ -80,7 +80,7 @@ class PoseTest : public testing::Test {
     BKE_pose_ensure(bmain, obj_armature_a, armature, false);
 
     armature = BKE_armature_add(bmain, "ArmatureB");
-    obj_armature_b->data = armature;
+    obj_armature_b->data = blender::id_cast<ID *>(armature);
 
     bone = MEM_new_for_free<Bone>("BONE");
     STRNCPY(bone->name, "BoneA");

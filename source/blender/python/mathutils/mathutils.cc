@@ -84,10 +84,10 @@ Py_hash_t mathutils_array_hash(const float *array, size_t array_len)
     }
     x = (x ^ y) * mult;
     /* the cast might truncate len; that doesn't change hash stability */
-    mult += (Py_hash_t)(82520UL + len + len);
+    mult += Py_hash_t(82520UL + len + len);
   }
   x += 97531UL;
-  if (x == (Py_uhash_t)-1) {
+  if (x == Py_uhash_t(-1)) {
     x = -2;
   }
   return x;
@@ -103,7 +103,7 @@ int mathutils_array_parse(
 
 #if 1 /* approx 6x speedup for mathutils types */
 
-  if ((num = VectorObject_Check(value) ? ((VectorObject *)value)->vec_num : 0) ||
+  if ((num = VectorObject_Check(value) ? (reinterpret_cast<VectorObject *>(value))->vec_num : 0) ||
       (num = EulerObject_Check(value) ? 3 : 0) || (num = QuaternionObject_Check(value) ? 4 : 0) ||
       (num = ColorObject_Check(value) ? 3 : 0))
   {
@@ -134,7 +134,7 @@ int mathutils_array_parse(
       return -1;
     }
 
-    memcpy(array, ((const BaseMathObject *)value)->data, num * sizeof(float));
+    memcpy(array, (reinterpret_cast<const BaseMathObject *>(value))->data, num * sizeof(float));
   }
   else
 #endif
@@ -198,7 +198,7 @@ int mathutils_array_parse_alloc(float **array,
 
 #if 1 /* approx 6x speedup for mathutils types */
 
-  if ((num = VectorObject_Check(value) ? ((VectorObject *)value)->vec_num : 0) ||
+  if ((num = VectorObject_Check(value) ? (reinterpret_cast<VectorObject *>(value))->vec_num : 0) ||
       (num = EulerObject_Check(value) ? 3 : 0) || (num = QuaternionObject_Check(value) ? 4 : 0) ||
       (num = ColorObject_Check(value) ? 3 : 0))
   {
@@ -216,7 +216,7 @@ int mathutils_array_parse_alloc(float **array,
     }
 
     *array = static_cast<float *>(PyMem_Malloc(num * sizeof(float)));
-    memcpy(*array, ((const BaseMathObject *)value)->data, num * sizeof(float));
+    memcpy(*array, (reinterpret_cast<const BaseMathObject *>(value))->data, num * sizeof(float));
     return num;
   }
 
@@ -412,7 +412,9 @@ int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error
       return -1;
     }
 
-    eulO_to_mat3(rmat, ((const EulerObject *)value)->eul, ((const EulerObject *)value)->order);
+    eulO_to_mat3(rmat,
+                 (reinterpret_cast<const EulerObject *>(value))->eul,
+                 (reinterpret_cast<const EulerObject *>(value))->order);
     return 0;
   }
   if (QuaternionObject_Check(value)) {
@@ -421,7 +423,7 @@ int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error
     }
 
     float tquat[4];
-    normalize_qt_qt(tquat, ((const QuaternionObject *)value)->quat);
+    normalize_qt_qt(tquat, (reinterpret_cast<const QuaternionObject *>(value))->quat);
     quat_to_mat3(rmat, tquat);
     return 0;
   }
@@ -429,13 +431,15 @@ int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error
     if (BaseMath_ReadCallback((BaseMathObject *)value) == -1) {
       return -1;
     }
-    if (((MatrixObject *)value)->row_num < 3 || ((MatrixObject *)value)->col_num < 3) {
+    if ((reinterpret_cast<MatrixObject *>(value))->row_num < 3 ||
+        (reinterpret_cast<MatrixObject *>(value))->col_num < 3)
+    {
       PyErr_Format(
           PyExc_ValueError, "%.200s: matrix must have minimum 3x3 dimensions", error_prefix);
       return -1;
     }
 
-    matrix_as_3x3(rmat, (MatrixObject *)value);
+    matrix_as_3x3(rmat, reinterpret_cast<MatrixObject *>(value));
     normalize_m3(rmat);
     return 0;
   }
@@ -471,8 +475,8 @@ int EXPP_FloatsAreEqual(float af, float bf, int maxDiff)
 {
   /* solid, fast routine across all platforms
    * with constant time behavior */
-  const int ai = *(const int *)(&af);
-  const int bi = *(const int *)(&bf);
+  const int ai = *reinterpret_cast<const int *>(&af);
+  const int bi = *reinterpret_cast<const int *>(&bf);
   const int test = SIGNMASK(ai ^ bi);
   int diff, v1, v2;
 
@@ -730,8 +734,8 @@ int BaseMathObject_clear(BaseMathObject *self)
 static bool BaseMathObject_is_tracked(BaseMathObject *self)
 {
   PyObject *cb_user = self->cb_user;
-  self->cb_user = (PyObject *)uintptr_t(-1);
-  bool is_tracked = PyObject_GC_IsTracked((PyObject *)self);
+  self->cb_user = reinterpret_cast<PyObject *>(uintptr_t(-1));
+  bool is_tracked = PyObject_GC_IsTracked(reinterpret_cast<PyObject *>(self));
   self->cb_user = cb_user;
   return is_tracked;
 }

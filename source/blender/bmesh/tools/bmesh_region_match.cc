@@ -155,7 +155,7 @@ BLI_INLINE bool bm_uidwalk_vert_lookup(UIDWalk *uidwalk, BMVert *v, UID_Int *r_u
   void **ret;
   ret = BLI_ghash_lookup_p(uidwalk->verts_uid, v);
   if (ret) {
-    *r_uid = (UID_Int)(*ret);
+    *r_uid = reinterpret_cast<UID_Int>(*ret);
     return true;
   }
   return false;
@@ -166,7 +166,7 @@ BLI_INLINE bool bm_uidwalk_face_lookup(UIDWalk *uidwalk, BMFace *f, UID_Int *r_u
   void **ret;
   ret = BLI_ghash_lookup_p(uidwalk->faces_uid, f);
   if (ret) {
-    *r_uid = (UID_Int)(*ret);
+    *r_uid = reinterpret_cast<UID_Int>(*ret);
     return true;
   }
   return false;
@@ -405,7 +405,7 @@ static void bm_uidwalk_rehash(UIDWalk *uidwalk)
   i = 0;
   GHASH_ITER (gh_iter, uidwalk->verts_uid) {
     void **uid_p = BLI_ghashIterator_getValue_p(&gh_iter);
-    *((UID_Int *)uid_p) = uid_store[i++];
+    *(reinterpret_cast<UID_Int *>(uid_p)) = uid_store[i++];
   }
 
   /* faces */
@@ -417,7 +417,7 @@ static void bm_uidwalk_rehash(UIDWalk *uidwalk)
   i = 0;
   GHASH_ITER (gh_iter, uidwalk->faces_uid) {
     void **uid_p = BLI_ghashIterator_getValue_p(&gh_iter);
-    *((UID_Int *)uid_p) = uid_store[i++];
+    *(reinterpret_cast<UID_Int *>(uid_p)) = uid_store[i++];
   }
 }
 
@@ -443,14 +443,14 @@ static void bm_uidwalk_rehash_facelinks(UIDWalk *uidwalk,
   if (is_init) {
     for (f_link = faces; f_link; f_link = f_link->next) {
       BMFace *f = static_cast<BMFace *>(f_link->link);
-      BLI_ghash_insert(uidwalk->faces_uid, f, (void *)uid_store[i++]);
+      BLI_ghash_insert(uidwalk->faces_uid, f, reinterpret_cast<void *>(uid_store[i++]));
     }
   }
   else {
     for (f_link = faces; f_link; f_link = f_link->next) {
       BMFace *f = static_cast<BMFace *>(f_link->link);
       void **uid_p = BLI_ghash_lookup_p(uidwalk->faces_uid, f);
-      *((UID_Int *)uid_p) = uid_store[i++];
+      *(reinterpret_cast<UID_Int *>(uid_p)) = uid_store[i++];
     }
   }
 }
@@ -508,7 +508,7 @@ static void bm_uidwalk_pass_add(UIDWalk *uidwalk, LinkNode *faces_pass, const ui
           (bm_vert_is_uid_connect(uidwalk, l_iter->v) == true))
       {
         const UID_Int uid = bm_uidwalk_calc_vert_uid(uidwalk, l_iter->v);
-        *val_p = (void *)uid;
+        *val_p = reinterpret_cast<void *>(uid);
       }
 
       /* fill faces_step_next */
@@ -568,8 +568,8 @@ static uint bm_uidwalk_init_from_edge(UIDWalk *uidwalk, BMEdge *e)
   /* start us off! */
   {
     const UID_Int uid = PRIME_VERT_INIT;
-    BLI_ghash_insert(uidwalk->verts_uid, e->v1, (void *)uid);
-    BLI_ghash_insert(uidwalk->verts_uid, e->v2, (void *)uid);
+    BLI_ghash_insert(uidwalk->verts_uid, e->v1, reinterpret_cast<void *>(uid));
+    BLI_ghash_insert(uidwalk->verts_uid, e->v2, reinterpret_cast<void *>(uid));
   }
 
   /* turning an array into LinkNode's seems odd,
@@ -632,7 +632,8 @@ static bool bm_uidwalk_facestep_begin(UIDWalk *uidwalk, UIDFaceStep *fstep)
 
       ok = true;
 
-      if (BLI_ghash_ensure_p(uidwalk->cache.faces_from_uid, (void *)uid, &val_p)) {
+      if (BLI_ghash_ensure_p(uidwalk->cache.faces_from_uid, reinterpret_cast<void *>(uid), &val_p))
+      {
         fstep_item = static_cast<UIDFaceStepItem *>(*val_p);
       }
       else {

@@ -36,13 +36,13 @@
 
 static void init_data(ModifierData *md)
 {
-  CollisionModifierData *collmd = (CollisionModifierData *)md;
+  CollisionModifierData *collmd = reinterpret_cast<CollisionModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(collmd, modifier);
 }
 
 static void free_data(ModifierData *md)
 {
-  CollisionModifierData *collmd = (CollisionModifierData *)md;
+  CollisionModifierData *collmd = reinterpret_cast<CollisionModifierData *>(md);
 
   if (collmd) { /* Seriously? */
     if (collmd->bvhtree) {
@@ -75,7 +75,7 @@ static void deform_verts(ModifierData *md,
                          Mesh *mesh,
                          blender::MutableSpan<blender::float3> positions)
 {
-  CollisionModifierData *collmd = (CollisionModifierData *)md;
+  CollisionModifierData *collmd = reinterpret_cast<CollisionModifierData *>(md);
   Object *ob = ctx->object;
 
   /* If collision is disabled, free the stale data and exit. */
@@ -104,17 +104,17 @@ static void deform_verts(ModifierData *md,
     mvert_num = mesh->verts_num;
 
     if (current_time < collmd->time_xnew) {
-      free_data((ModifierData *)collmd);
+      free_data(reinterpret_cast<ModifierData *>(collmd));
     }
     else if (current_time == collmd->time_xnew) {
       if (mvert_num != collmd->mvert_num) {
-        free_data((ModifierData *)collmd);
+        free_data(reinterpret_cast<ModifierData *>(collmd));
       }
     }
 
     /* check if mesh has changed */
     if (collmd->x && (mvert_num != collmd->mvert_num)) {
-      free_data((ModifierData *)collmd);
+      free_data(reinterpret_cast<ModifierData *>(collmd));
     }
 
     if (collmd->time_xnew == -1000) { /* first time */
@@ -214,7 +214,7 @@ static void deform_verts(ModifierData *md,
       collmd->time_xnew = current_time;
     }
     else if (mvert_num != collmd->mvert_num) {
-      free_data((ModifierData *)collmd);
+      free_data(reinterpret_cast<ModifierData *>(collmd));
     }
   }
 }
@@ -242,7 +242,7 @@ static void panel_register(ARegionType *region_type)
 
 static void blend_read(BlendDataReader * /*reader*/, ModifierData *md)
 {
-  CollisionModifierData *collmd = (CollisionModifierData *)md;
+  CollisionModifierData *collmd = reinterpret_cast<CollisionModifierData *>(md);
 #if 0
   /* TODO: #CollisionModifier should use point-cache
    * + have proper reset events before enabling this. */

@@ -49,7 +49,7 @@ void TreeElementGPencilEffect::expand(SpaceOutliner & /*space_outliner*/) const
 {
   if (fx_.type == eShaderFxType_Swirl) {
     add_element(&legacy_te_.subtree,
-                reinterpret_cast<ID *>(((SwirlShaderFxData *)(&fx_))->object),
+                reinterpret_cast<ID *>((reinterpret_cast<SwirlShaderFxData *>(&fx_))->object),
                 nullptr,
                 &legacy_te_,
                 TSE_LINKED_OB,

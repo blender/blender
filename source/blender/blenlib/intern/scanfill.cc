@@ -298,10 +298,10 @@ static bool addedgetoscanvert(ScanFillVertLink *sc, ScanFillEdge *eed)
     }
   }
   if (ed) {
-    BLI_insertlinkbefore((ListBase *)&(sc->edge_first), ed, eed);
+    BLI_insertlinkbefore(reinterpret_cast<ListBase *>(&(sc->edge_first)), ed, eed);
   }
   else {
-    BLI_addtail((ListBase *)&(sc->edge_first), eed);
+    BLI_addtail(reinterpret_cast<ListBase *>(&(sc->edge_first)), eed);
   }
 
   return true;
@@ -329,10 +329,11 @@ static ScanFillVertLink *addedgetoscanlist(ScanFillVertLink *scdata, ScanFillEdg
   }
   /* find location in list */
   scsearch.vert = eed->v1;
-  sc = (ScanFillVertLink *)bsearch(&scsearch, scdata, len, sizeof(ScanFillVertLink), vergscdata);
+  sc = static_cast<ScanFillVertLink *>(
+      bsearch(&scsearch, scdata, len, sizeof(ScanFillVertLink), vergscdata));
 
   if (UNLIKELY(sc == nullptr)) {
-    printf("Error in search edge: %p\n", (void *)eed);
+    printf("Error in search edge: %p\n", static_cast<void *>(eed));
   }
   else if (addedgetoscanvert(sc, eed) == false) {
     return sc;
@@ -595,7 +596,7 @@ static uint scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
     for (ed1 = sc->edge_first; ed1; ed1 = eed_next) {
       eed_next = ed1->next;
       if (ed1->v1->edge_count == 1 || ed1->v2->edge_count == 1) {
-        BLI_remlink((ListBase *)&(sc->edge_first), ed1);
+        BLI_remlink(reinterpret_cast<ListBase *>(&(sc->edge_first)), ed1);
         BLI_addtail(&sf_ctx->filledgebase, ed1);
         if (ed1->v1->edge_count > 1) {
           ed1->v1->edge_count--;
@@ -695,7 +696,7 @@ static uint scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
 
           ed3 = BLI_scanfill_edge_add(sf_ctx, v2, best_sc->vert);
           BLI_remlink(&sf_ctx->filledgebase, ed3);
-          BLI_insertlinkbefore((ListBase *)&(sc->edge_first), ed2, ed3);
+          BLI_insertlinkbefore(reinterpret_cast<ListBase *>(&(sc->edge_first)), ed2, ed3);
           ed3->v2->f = SF_VERT_AVAILABLE;
           ed3->f = SF_EDGE_INTERNAL;
           ed3->v1->edge_count++;
@@ -706,14 +707,14 @@ static uint scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
           // printf("add face %d %d %d\n", v1->tmp.u, v2->tmp.u, v3->tmp.u);
           addfillface(sf_ctx, v1, v2, v3);
           totface++;
-          BLI_remlink((ListBase *)&(sc->edge_first), ed1);
+          BLI_remlink(reinterpret_cast<ListBase *>(&(sc->edge_first)), ed1);
           BLI_addtail(&sf_ctx->filledgebase, ed1);
           ed1->v2->f = SF_VERT_NEW;
           ed1->v1->edge_count--;
           ed1->v2->edge_count--;
           /* ed2 can be removed when it's a boundary edge */
           if (((ed2->f == SF_EDGE_NEW) && twoconnected) /* || (ed2->f == SF_EDGE_BOUNDARY) */) {
-            BLI_remlink((ListBase *)&(sc->edge_first), ed2);
+            BLI_remlink(reinterpret_cast<ListBase *>(&(sc->edge_first)), ed2);
             BLI_addtail(&sf_ctx->filledgebase, ed2);
             ed2->v2->f = SF_VERT_NEW;
             ed2->v1->edge_count--;
@@ -738,7 +739,7 @@ static uint scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
             for (ed3 = sc1->edge_first; ed3; ed3 = ed3->next) {
               if ((ed3->v1 == v1 && ed3->v2 == v3) || (ed3->v1 == v3 && ed3->v2 == v1)) {
                 if (twoconnected /* || (ed3->f == SF_EDGE_BOUNDARY) */) {
-                  BLI_remlink((ListBase *)&(sc1->edge_first), ed3);
+                  BLI_remlink(reinterpret_cast<ListBase *>(&(sc1->edge_first)), ed3);
                   BLI_addtail(&sf_ctx->filledgebase, ed3);
                   ed3->v1->edge_count--;
                   ed3->v2->edge_count--;
@@ -754,7 +755,7 @@ static uint scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
       for (ed1 = sc->edge_first; ed1; ed1 = eed_next) {
         eed_next = ed1->next;
         if (ed1->v1->edge_count < 2 || ed1->v2->edge_count < 2) {
-          BLI_remlink((ListBase *)&(sc->edge_first), ed1);
+          BLI_remlink(reinterpret_cast<ListBase *>(&(sc->edge_first)), ed1);
           BLI_addtail(&sf_ctx->filledgebase, ed1);
           if (ed1->v1->edge_count > 1) {
             ed1->v1->edge_count--;

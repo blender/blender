@@ -1157,7 +1157,7 @@ void PaintOperation::on_stroke_begin(const bContext &C, const InputSample &start
   scene_ = CTX_data_scene(&C);
   object_ = CTX_data_active_object(&C);
   Object *eval_object = DEG_get_evaluated(depsgraph, object_);
-  GreasePencil *grease_pencil = static_cast<GreasePencil *>(object_->data);
+  GreasePencil *grease_pencil = blender::id_cast<GreasePencil *>(object_->data);
 
   if (do_fill_guides_) {
     this->toggle_fill_guides_brush_on(C);
@@ -1237,7 +1237,7 @@ void PaintOperation::on_stroke_begin(const bContext &C, const InputSample &start
 
 void PaintOperation::on_stroke_extended(const bContext &C, const InputSample &extension_sample)
 {
-  GreasePencil *grease_pencil = static_cast<GreasePencil *>(object_->data);
+  GreasePencil *grease_pencil = blender::id_cast<GreasePencil *>(object_->data);
 
   PaintOperationExecutor executor{*scene_};
   executor.execute(*this, C, extension_sample);
@@ -1635,7 +1635,7 @@ void PaintOperation::on_stroke_done(const bContext &C)
   using namespace blender::bke;
   RegionView3D *rv3d = CTX_wm_region_view3d(&C);
   const ARegion *region = CTX_wm_region(&C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object_->data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object_->data);
 
   Paint *paint = &scene_->toolsettings->gp_paint->paint;
   Brush *brush = BKE_paint_brush(paint);

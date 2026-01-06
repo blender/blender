@@ -528,7 +528,7 @@ TEST_F(keyframes_paste, pastebuf_match_path_property)
     }
 
     Object *armature_object = BKE_object_add_only_object(bmain, OB_ARMATURE, "Armature");
-    armature_object->data = armature;
+    armature_object->data = blender::id_cast<ID *>(armature);
     BKE_pose_ensure(bmain, armature_object, armature, false);
 
     arm_ob_id = &armature_object->id;

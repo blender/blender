@@ -1300,7 +1300,7 @@ static void paint_2d_op_foreach_do(void *__restrict data_v,
                                    const int iter,
                                    const TaskParallelTLS *__restrict /*tls*/)
 {
-  Paint2DForeachData *data = (Paint2DForeachData *)data_v;
+  Paint2DForeachData *data = static_cast<Paint2DForeachData *>(data_v);
   paint_2d_do_making_brush(data->s,
                            data->tile,
                            data->region,
@@ -1318,7 +1318,7 @@ static int paint_2d_op(void *state,
                        const float lastpos[2],
                        const float pos[2])
 {
-  ImagePaintState *s = ((ImagePaintState *)state);
+  ImagePaintState *s = (static_cast<ImagePaintState *>(state));
   const ImagePaintSettings &image_paint_settings = s->scene->toolsettings->imapaint;
   ImBuf *clonebuf = nullptr, *frombuf;
   ImBuf *canvas = tile->canvas;
@@ -1887,8 +1887,8 @@ void paint_2d_bucket_fill(const bContext *C,
   if (!do_float) {
     blender::float3 ibuf_color = color;
     IMB_colormanagement_scene_linear_to_colorspace_v3(ibuf_color, ibuf->byte_buffer.colorspace);
-    rgb_float_to_uchar((uchar *)&color_b, ibuf_color);
-    *(((char *)&color_b) + 3) = strength * 255;
+    rgb_float_to_uchar(reinterpret_cast<uchar *>(&color_b), ibuf_color);
+    *((reinterpret_cast<char *>(&color_b)) + 3) = strength * 255;
   }
   else {
     copy_v3_v3(color_f, color);
@@ -1913,7 +1913,7 @@ void paint_2d_bucket_fill(const bContext *C,
         for (y_px = 0; y_px < ibuf->y; y_px++) {
           blend_color_mix_byte(ibuf->byte_buffer.data + 4 * (size_t(y_px) * ibuf->x + x_px),
                                ibuf->byte_buffer.data + 4 * (size_t(y_px) * ibuf->x + x_px),
-                               (uchar *)&color_b);
+                               reinterpret_cast<uchar *>(&color_b));
         }
       }
     }
@@ -1995,7 +1995,7 @@ void paint_2d_bucket_fill(const bContext *C,
 
         IMB_blend_color_byte(ibuf->byte_buffer.data + 4 * coordinate,
                              ibuf->byte_buffer.data + 4 * coordinate,
-                             (uchar *)&color_b,
+                             reinterpret_cast<uchar *>(&color_b),
                              IMB_BlendMode(br->blend));
 
         /* reconstruct the coordinates here */
@@ -2137,11 +2137,11 @@ void paint_2d_gradient_fill(
 
         BKE_colorband_evaluate(br->gradient, f, color_f);
         IMB_colormanagement_scene_linear_to_colorspace_v3(color_f, ibuf->byte_buffer.colorspace);
-        rgba_float_to_uchar((uchar *)&color_b, color_f);
-        ((uchar *)&color_b)[3] *= brush_alpha;
+        rgba_float_to_uchar(reinterpret_cast<uchar *>(&color_b), color_f);
+        (reinterpret_cast<uchar *>(&color_b))[3] *= brush_alpha;
         IMB_blend_color_byte(ibuf->byte_buffer.data + 4 * (size_t(y_px) * ibuf->x + x_px),
                              ibuf->byte_buffer.data + 4 * (size_t(y_px) * ibuf->x + x_px),
-                             (uchar *)&color_b,
+                             reinterpret_cast<uchar *>(&color_b),
                              IMB_BlendMode(br->blend));
       }
     }

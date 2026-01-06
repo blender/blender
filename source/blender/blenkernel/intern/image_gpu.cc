@@ -93,7 +93,7 @@ static blender::gpu::Texture *gpu_texture_create_tile_mapping(Image *ima, const 
 
   /* Determine maximum tile number. */
   BKE_image_sort_tiles(ima);
-  ImageTile *last_tile = (ImageTile *)ima->tiles.last;
+  ImageTile *last_tile = static_cast<ImageTile *>(ima->tiles.last);
   int max_tile = last_tile->tile_number - 1001;
 
   /* create image */
@@ -137,8 +137,8 @@ struct PackTile {
 
 static int compare_packtile(const void *a, const void *b)
 {
-  const PackTile *tile_a = (const PackTile *)a;
-  const PackTile *tile_b = (const PackTile *)b;
+  const PackTile *tile_a = static_cast<const PackTile *>(a);
+  const PackTile *tile_b = static_cast<const PackTile *>(b);
 
   return tile_a->pack_score < tile_b->pack_score;
 }
@@ -716,8 +716,8 @@ static void gpu_texture_update_scaled(blender::gpu::Texture *tex,
     ibuf = update_do_scale(rect, rect_float, &x, &y, &w, &h, limit_w, limit_h, full_w, full_h);
   }
 
-  void *data = (ibuf->float_buffer.data) ? (void *)(ibuf->float_buffer.data) :
-                                           (void *)(ibuf->byte_buffer.data);
+  void *data = (ibuf->float_buffer.data) ? static_cast<void *>(ibuf->float_buffer.data) :
+                                           static_cast<void *>(ibuf->byte_buffer.data);
   eGPUDataFormat data_format = (ibuf->float_buffer.data) ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;
 
   GPU_texture_update_sub(tex, data_format, data, x, y, blender::math::max(layer, 0), w, h, 1);
@@ -743,7 +743,8 @@ static void gpu_texture_update_unscaled(blender::gpu::Texture *tex,
     y += tile_offset[1];
   }
 
-  void *data = (rect_float) ? (void *)(rect_float + tex_offset) : (void *)(rect + tex_offset);
+  void *data = (rect_float) ? static_cast<void *>(rect_float + tex_offset) :
+                              static_cast<void *>(rect + tex_offset);
   eGPUDataFormat data_format = (rect_float) ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;
 
   /* Partial update without scaling. Stride and offset are used to copy only a

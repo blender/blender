@@ -161,7 +161,7 @@ PassType *volume_object_grids_init(PassType &ps,
                                                 module.dummy_zero :
                                                 module.grid_default_texture(attr->default_value);
     /* TODO(@pragma37): bind_texture const support ? */
-    sub->bind_texture(attr->input_name, (gpu::Texture *)grid_tex);
+    sub->bind_texture(attr->input_name, const_cast<gpu::Texture *>(grid_tex));
 
     volume_infos.grids_xform[grid_id++] = drw_grid ? float4x4(drw_grid->object_to_texture) :
                                                      float4x4::identity();
@@ -192,8 +192,9 @@ PassType *drw_volume_object_mesh_init(PassType &ps,
 
   bool has_fluid_modifier = (md = BKE_modifiers_findby_type(ob, eModifierType_Fluid)) &&
                             BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime) &&
-                            ((FluidModifierData *)md)->domain != nullptr;
-  FluidModifierData *fmd = has_fluid_modifier ? (FluidModifierData *)md : nullptr;
+                            (reinterpret_cast<FluidModifierData *>(md))->domain != nullptr;
+  FluidModifierData *fmd = has_fluid_modifier ? reinterpret_cast<FluidModifierData *>(md) :
+                                                nullptr;
   FluidDomainSettings *fds = has_fluid_modifier ? fmd->domain : nullptr;
 
   PassType *sub = nullptr;

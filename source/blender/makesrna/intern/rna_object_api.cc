@@ -86,7 +86,7 @@ static Base *find_view_layer_base_with_synced_ensure(
   Scene *scene;
   ViewLayer *view_layer;
   if (view_layer_ptr->data) {
-    scene = (Scene *)view_layer_ptr->owner_id;
+    scene = blender::id_cast<Scene *>(view_layer_ptr->owner_id);
     view_layer = static_cast<ViewLayer *>(view_layer_ptr->data);
   }
   else {
@@ -261,7 +261,7 @@ static void rna_Object_local_view_set(Object *ob,
                                       PointerRNA *v3d_ptr,
                                       bool state)
 {
-  bScreen *screen = (bScreen *)v3d_ptr->owner_id;
+  bScreen *screen = blender::id_cast<bScreen *>(v3d_ptr->owner_id);
   View3D *v3d = static_cast<View3D *>(v3d_ptr->data);
   Scene *scene;
   Base *base = rna_Object_local_view_property_helper(screen, v3d, nullptr, ob, reports, &scene);
@@ -272,7 +272,8 @@ static void rna_Object_local_view_set(Object *ob,
   SET_FLAG_FROM_TEST(base->local_view_bits, state, v3d->local_view_uid);
   if (local_view_bits_prev != base->local_view_bits) {
     DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
-    ScrArea *area = ED_screen_area_find_with_spacedata(screen, (SpaceLink *)v3d, true);
+    ScrArea *area = ED_screen_area_find_with_spacedata(
+        screen, reinterpret_cast<SpaceLink *>(v3d), true);
     if (area) {
       ED_area_tag_redraw(area);
     }
@@ -294,7 +295,8 @@ static void rna_Object_mat_convert_space(Object *ob,
                                          int from,
                                          int to)
 {
-  copy_m4_m4((float (*)[4])mat_ret, (float (*)[4])mat);
+  copy_m4_m4(reinterpret_cast<float (*)[4]>(mat_ret),
+             reinterpret_cast<float (*)[4]>(const_cast<float *>(mat)));
 
   BLI_assert(!ELEM(from, CONSTRAINT_SPACE_OWNLOCAL));
   BLI_assert(!ELEM(to, CONSTRAINT_SPACE_OWNLOCAL));
@@ -340,7 +342,8 @@ static void rna_Object_mat_convert_space(Object *ob,
     return;
   }
 
-  BKE_constraint_mat_convertspace(ob, pchan, nullptr, (float (*)[4])mat_ret, from, to, false);
+  BKE_constraint_mat_convertspace(
+      ob, pchan, nullptr, reinterpret_cast<float (*)[4]>(mat_ret), from, to, false);
 }
 
 static void rna_Object_calc_matrix_camera(Object *ob,
@@ -362,7 +365,7 @@ static void rna_Object_calc_matrix_camera(Object *ob,
   BKE_camera_params_compute_viewplane(&params, width, height, scalex, scaley);
   BKE_camera_params_compute_matrix(&params);
 
-  copy_m4_m4((float (*)[4])mat_ret, params.winmat);
+  copy_m4_m4(reinterpret_cast<float (*)[4]>(mat_ret), params.winmat);
 }
 
 static void rna_Object_camera_fit_coords(Object *ob,
@@ -373,7 +376,7 @@ static void rna_Object_camera_fit_coords(Object *ob,
                                          float *scale_ret)
 {
   BKE_camera_view_frame_fit_to_coords(
-      depsgraph, (const float (*)[3])cos, cos_num / 3, ob, co_ret, scale_ret);
+      depsgraph, reinterpret_cast<const float (*)[3]>(cos), cos_num / 3, ob, co_ret, scale_ret);
 }
 
 static void rna_Object_crazyspace_eval(Object *object,
@@ -472,7 +475,7 @@ static PointerRNA rna_Object_shape_key_add(
     CLAMP(kb->curval, kb->slidermin, kb->slidermax);
 
     PointerRNA keyptr = RNA_pointer_create_discrete(
-        (ID *)BKE_key_from_object(ob), &RNA_ShapeKey, kb);
+        blender::id_cast<ID *>(BKE_key_from_object(ob)), &RNA_ShapeKey, kb);
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -755,7 +758,7 @@ void rna_Object_me_eval_info(
   switch (type) {
     case 0:
       if (ob->type == OB_MESH) {
-        mesh_eval = static_cast<Mesh *>(ob->data);
+        mesh_eval = blender::id_cast<Mesh *>(ob->data);
       }
       break;
     case 1:

@@ -167,7 +167,7 @@ class GLBackend : public GPUBackend {
     /* This barrier needs to be here as it only work on the currently bound indirect buffer. */
     glMemoryBarrier(GL_COMMAND_BARRIER_BIT);
 
-    glDispatchComputeIndirect((GLintptr)0);
+    glDispatchComputeIndirect(GLintptr(0));
     /* Unbind. */
     glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, 0);
   }

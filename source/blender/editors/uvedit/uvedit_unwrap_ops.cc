@@ -96,7 +96,7 @@ static bool uvedit_ensure_uvs(Object *obedit)
   BMIter iter;
 
   if (em && em->bm->totface && !CustomData_has_layer(&em->bm->ldata, CD_PROP_FLOAT2)) {
-    ED_mesh_uv_add(static_cast<Mesh *>(obedit->data), nullptr, true, true, nullptr);
+    ED_mesh_uv_add(blender::id_cast<Mesh *>(obedit->data), nullptr, true, true, nullptr);
   }
 
   /* Happens when there are no faces. */
@@ -619,7 +619,7 @@ static void construct_param_handle_face_add(ParamHandle *handle,
 
     /* Optional vertex group weighting. */
     if (cd_weight_offset >= 0 && cd_weight_index >= 0) {
-      MDeformVert *dv = (MDeformVert *)BM_ELEM_CD_GET_VOID_P(l->v, cd_weight_offset);
+      MDeformVert *dv = static_cast<MDeformVert *> BM_ELEM_CD_GET_VOID_P(l->v, cd_weight_offset);
       weight[i] = BKE_defvert_find_weight(dv, cd_weight_index);
     }
     else {
@@ -829,7 +829,7 @@ static Mesh *subdivide_edit_mesh(const Object *object,
 {
   using namespace blender;
   Mesh *me_from_em = BKE_mesh_from_bmesh_for_eval_nomain(
-      em->bm, nullptr, static_cast<const Mesh *>(object->data));
+      em->bm, nullptr, blender::id_cast<const Mesh *>(object->data));
   BKE_mesh_ensure_default_orig_index_customdata(me_from_em);
 
   bke::subdiv::Settings settings = BKE_subsurf_modifier_settings_init(smd, false);
@@ -889,7 +889,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
 
   /* number of subdivisions to perform */
   ModifierData *md = static_cast<ModifierData *>(ob->modifiers.first);
-  smd_real = (SubsurfModifierData *)md;
+  smd_real = reinterpret_cast<SubsurfModifierData *>(md);
 
   smd.levels = smd_real->levels;
   smd.subdivType = smd_real->subdivType;
@@ -957,11 +957,11 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
 
     /* We will not check for v4 here. Sub-surface faces always have 4 vertices. */
     BLI_assert(poly_corner_verts.size() == 4);
-    key = (ParamKey)i;
-    vkeys[0] = (ParamKey)poly_corner_verts[0];
-    vkeys[1] = (ParamKey)poly_corner_verts[1];
-    vkeys[2] = (ParamKey)poly_corner_verts[2];
-    vkeys[3] = (ParamKey)poly_corner_verts[3];
+    key = ParamKey(i);
+    vkeys[0] = ParamKey(poly_corner_verts[0]);
+    vkeys[1] = ParamKey(poly_corner_verts[1]);
+    vkeys[2] = ParamKey(poly_corner_verts[2]);
+    vkeys[3] = ParamKey(poly_corner_verts[3]);
 
     co[0] = subsurf_positions[poly_corner_verts[0]];
     co[1] = subsurf_positions[poly_corner_verts[1]];
@@ -1031,8 +1031,8 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
     if ((edgeMap[i] != nullptr) && BM_elem_flag_test(edgeMap[i], BM_ELEM_SEAM)) {
       const blender::int2 &edge = subsurf_edges[i];
       ParamKey vkeys[2];
-      vkeys[0] = (ParamKey)edge[0];
-      vkeys[1] = (ParamKey)edge[1];
+      vkeys[0] = ParamKey(edge[0]);
+      vkeys[1] = ParamKey(edge[1]);
       blender::geometry::uv_parametrizer_edge_set_seam(handle, vkeys);
     }
   }
@@ -3092,8 +3092,8 @@ struct ThickFace {
 
 static int smart_uv_project_thickface_area_cmp_fn(const void *tf_a_p, const void *tf_b_p)
 {
-  const ThickFace *tf_a = (ThickFace *)tf_a_p;
-  const ThickFace *tf_b = (ThickFace *)tf_b_p;
+  const ThickFace *tf_a = static_cast<ThickFace *>(const_cast<void *>(tf_a_p));
+  const ThickFace *tf_b = static_cast<ThickFace *>(const_cast<void *>(tf_b_p));
 
   /* Ignore the area of small faces.
    * Also, order checks so `!isfinite(...)` values are counted as zero area. */
@@ -3654,7 +3654,7 @@ static wmOperatorStatus reset_exec(bContext *C, wmOperator * /*op*/)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, v3d);
   for (Object *obedit : objects) {
-    Mesh *mesh = (Mesh *)obedit->data;
+    Mesh *mesh = blender::id_cast<Mesh *>(obedit->data);
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
     if (em->bm->totfacesel == 0) {
@@ -4324,7 +4324,7 @@ void UV_OT_cube_project(wmOperatorType *ot)
 
 void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
 {
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   bool sync_selection = (scene->toolsettings->uv_flag & UV_FLAG_SELECT_SYNC) != 0;
 
   BMeshCreateParams create_params{};

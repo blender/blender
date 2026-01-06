@@ -6,6 +6,7 @@
  * \ingroup edmesh
  */
 
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -207,7 +208,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
       params.calc_looptris = true;
       params.calc_normals = false;
       params.is_destructive = true;
-      EDBM_update(static_cast<Mesh *>(lcd->ob->data), &params);
+      EDBM_update(blender::id_cast<Mesh *>(lcd->ob->data), &params);
 
       if (is_single) {
         /* de-select endpoints */

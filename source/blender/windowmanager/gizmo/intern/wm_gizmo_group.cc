@@ -529,7 +529,7 @@ static wmOperatorStatus gizmo_tweak_modal(bContext *C, wmOperator *op, const wmE
     /* Ugly hack to ensure Python won't get 'EVT_MODAL_MAP' which isn't supported, see #73727.
      * note that we could move away from wrapping modal gizmos in a modal operator,
      * since it's causing the need for code like this. */
-    wmEvent *evil_event = (wmEvent *)event;
+    wmEvent *evil_event = const_cast<wmEvent *>(event);
     short event_modal_val = 0;
 
     if (event->type == EVT_MODAL_MAP) {
@@ -979,7 +979,8 @@ void WM_gizmomaptype_group_init_runtime_keymap(const Main *bmain, wmGizmoGroupTy
 {
   /* Initialize key-map.
    * On startup there's an extra call to initialize keymaps for 'permanent' gizmo-groups. */
-  wm_gizmogrouptype_setup_keymap(gzgt, ((wmWindowManager *)bmain->wm.first)->runtime->defaultconf);
+  wm_gizmogrouptype_setup_keymap(
+      gzgt, (static_cast<wmWindowManager *>(bmain->wm.first))->runtime->defaultconf);
 }
 
 void WM_gizmomaptype_group_init_runtime(const Main *bmain,
@@ -1248,7 +1249,7 @@ bool WM_gizmo_group_type_poll(const bContext *C, const wmGizmoGroupType *gzgt)
   }
   /* Check for poll function, if gizmo-group belongs to an operator,
    * also check if the operator is running. */
-  return (!gzgt->poll || gzgt->poll(C, (wmGizmoGroupType *)gzgt));
+  return (!gzgt->poll || gzgt->poll(C, const_cast<wmGizmoGroupType *>(gzgt)));
 }
 
 void WM_gizmo_group_refresh(const bContext *C, wmGizmoGroup *gzgroup)

@@ -612,7 +612,7 @@ void nurbs_foreachScreenVert(const ViewContext *vc,
                              void *user_data,
                              const eV3DProjTest clip_flag)
 {
-  Curve *cu = static_cast<Curve *>(vc->obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(vc->obedit->data);
   int i;
   ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
   /* If no point in the triple is selected, the handles are invisible. */
@@ -707,7 +707,7 @@ void mball_foreachScreenElem(const ViewContext *vc,
                              void *user_data,
                              const eV3DProjTest clip_flag)
 {
-  MetaBall *mb = (MetaBall *)vc->obedit->data;
+  MetaBall *mb = blender::id_cast<MetaBall *>(vc->obedit->data);
 
   ED_view3d_check_mats_rv3d(vc->rv3d);
 
@@ -732,7 +732,7 @@ void lattice_foreachScreenVert(const ViewContext *vc,
                                const eV3DProjTest clip_flag)
 {
   Object *obedit = vc->obedit;
-  Lattice *lt = static_cast<Lattice *>(obedit->data);
+  Lattice *lt = blender::id_cast<Lattice *>(obedit->data);
   BPoint *bp = lt->editlatt->latt->def;
   DispList *dl = obedit->runtime->curve_cache ?
                      BKE_displist_find(&obedit->runtime->curve_cache->disp, DL_VERTS) :
@@ -773,7 +773,7 @@ void armature_foreachScreenBone(const ViewContext *vc,
                                 void *user_data,
                                 const eV3DProjTest clip_flag)
 {
-  bArmature *arm = static_cast<bArmature *>(vc->obedit->data);
+  bArmature *arm = blender::id_cast<bArmature *>(vc->obedit->data);
 
   ED_view3d_check_mats_rv3d(vc->rv3d);
 
@@ -844,7 +844,7 @@ void pose_foreachScreenBone(const ViewContext *vc,
   /* Almost _exact_ copy of #armature_foreachScreenBone */
 
   const Object *ob_eval = DEG_get_evaluated(vc->depsgraph, vc->obact);
-  const bArmature *arm_eval = static_cast<const bArmature *>(ob_eval->data);
+  const bArmature *arm_eval = blender::id_cast<const bArmature *>(ob_eval->data);
   bPose *pose = vc->obact->pose;
 
   ED_view3d_check_mats_rv3d(vc->rv3d);

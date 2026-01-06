@@ -233,7 +233,7 @@ class KeylistSummaryTest : public testing::Test {
     BKE_armature_bone_hash_make(armature_data);
 
     armature = BKE_object_add_only_object(bmain, OB_ARMATURE, "OBArmature");
-    armature->data = armature_data;
+    armature->data = blender::id_cast<ID *>(armature_data);
     BKE_pose_ensure(bmain, armature, armature_data, false);
 
     /*

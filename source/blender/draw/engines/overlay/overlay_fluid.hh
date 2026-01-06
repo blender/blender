@@ -95,7 +95,7 @@ class Fluids : Overlay {
       return;
     }
 
-    FluidModifierData *fmd = (FluidModifierData *)md;
+    FluidModifierData *fmd = reinterpret_cast<FluidModifierData *>(md);
     FluidDomainSettings *fds = fmd->domain;
 
     if (fds == nullptr) {

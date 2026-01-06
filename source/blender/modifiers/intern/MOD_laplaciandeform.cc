@@ -570,7 +570,7 @@ static void initSystem(
                                             anchors_num,
                                             lmd->anchor_grp_name,
                                             lmd->repeat);
-    sys = (LaplacianSystem *)lmd->cache_system;
+    sys = static_cast<LaplacianSystem *>(lmd->cache_system);
     memcpy(sys->index_anchors, index_anchors, sizeof(int) * anchors_num);
     memcpy(sys->co, vertexCos, sizeof(float[3]) * verts_num);
     MEM_freeN(index_anchors);
@@ -602,7 +602,7 @@ static int isSystemDifferent(LaplacianDeformModifierData *lmd,
   float wpaint;
   const MDeformVert *dvert = nullptr;
   const MDeformVert *dv = nullptr;
-  LaplacianSystem *sys = (LaplacianSystem *)lmd->cache_system;
+  LaplacianSystem *sys = static_cast<LaplacianSystem *>(lmd->cache_system);
   const bool invert_vgroup = (lmd->flag & MOD_LAPLACIANDEFORM_INVERT_VGROUP) != 0;
 
   if (sys->verts_num != verts_num) {
@@ -722,14 +722,15 @@ static void LaplacianDeformModifier_do(
 
 static void init_data(ModifierData *md)
 {
-  LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)md;
+  LaplacianDeformModifierData *lmd = reinterpret_cast<LaplacianDeformModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(lmd, modifier);
 }
 
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
-  const LaplacianDeformModifierData *lmd = (const LaplacianDeformModifierData *)md;
-  LaplacianDeformModifierData *tlmd = (LaplacianDeformModifierData *)target;
+  const LaplacianDeformModifierData *lmd = reinterpret_cast<const LaplacianDeformModifierData *>(
+      md);
+  LaplacianDeformModifierData *tlmd = reinterpret_cast<LaplacianDeformModifierData *>(target);
 
   BKE_modifier_copydata_generic(md, target, flag);
 
@@ -740,7 +741,7 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)md;
+  LaplacianDeformModifierData *lmd = reinterpret_cast<LaplacianDeformModifierData *>(md);
   if (lmd->anchor_grp_name[0]) {
     return false;
   }
@@ -749,7 +750,7 @@ static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_re
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)md;
+  LaplacianDeformModifierData *lmd = reinterpret_cast<LaplacianDeformModifierData *>(md);
 
   if (lmd->anchor_grp_name[0] != '\0') {
     r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
@@ -761,7 +762,7 @@ static void deform_verts(ModifierData *md,
                          Mesh *mesh,
                          blender::MutableSpan<blender::float3> positions)
 {
-  LaplacianDeformModifier_do((LaplacianDeformModifierData *)md,
+  LaplacianDeformModifier_do(reinterpret_cast<LaplacianDeformModifierData *>(md),
                              ctx->object,
                              mesh,
                              reinterpret_cast<float (*)[3]>(positions.data()),
@@ -770,8 +771,8 @@ static void deform_verts(ModifierData *md,
 
 static void free_data(ModifierData *md)
 {
-  LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)md;
-  LaplacianSystem *sys = (LaplacianSystem *)lmd->cache_system;
+  LaplacianDeformModifierData *lmd = reinterpret_cast<LaplacianDeformModifierData *>(md);
+  LaplacianSystem *sys = static_cast<LaplacianSystem *>(lmd->cache_system);
   if (sys) {
     deleteLaplacianSystem(sys);
   }
@@ -811,7 +812,7 @@ static void panel_register(ARegionType *region_type)
 
 static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierData *md)
 {
-  LaplacianDeformModifierData lmd = *(const LaplacianDeformModifierData *)md;
+  LaplacianDeformModifierData lmd = *reinterpret_cast<const LaplacianDeformModifierData *>(md);
   const bool is_undo = BLO_write_is_undo(writer);
 
   if (ID_IS_OVERRIDE_LIBRARY(id_owner) && !is_undo) {
@@ -838,7 +839,7 @@ static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierD
 
 static void blend_read(BlendDataReader *reader, ModifierData *md)
 {
-  LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)md;
+  LaplacianDeformModifierData *lmd = reinterpret_cast<LaplacianDeformModifierData *>(md);
 
   if (lmd->vertexco) {
     lmd->vertexco_sharing_info = BLO_read_shared(reader, &lmd->vertexco, [&]() {

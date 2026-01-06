@@ -181,7 +181,7 @@ void do_grab_brush(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      const Mesh &mesh = *static_cast<Mesh *>(object.data);
+      const Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
       const MeshAttributeData attribute_data(mesh);
       const PositionDeformData position_data(depsgraph, object);
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
@@ -251,7 +251,7 @@ void geometry_preview_lines_update(Depsgraph &depsgraph,
 
   BKE_sculpt_update_object_for_edit(&depsgraph, &object, false);
 
-  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  const Mesh &mesh = *blender::id_cast<const Mesh *>(object.data);
   /* Always grab active shape key if the sculpt happens on shapekey. */
   const Span<float3> positions = ss.shapekey_active ?
                                      bke::pbvh::vert_positions_eval(depsgraph, object) :

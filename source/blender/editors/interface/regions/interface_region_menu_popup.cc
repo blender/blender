@@ -723,7 +723,7 @@ void popup_block_ex(bContext *C,
 
 static void popup_block_template_close_cb(bContext *C, void *arg1, void * /*arg2*/)
 {
-  Block *block = (Block *)arg1;
+  Block *block = static_cast<Block *>(arg1);
 
   PopupBlockHandle *handle = block->handle;
   if (handle == nullptr) {

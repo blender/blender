@@ -61,7 +61,7 @@ Object *CurveFromGeometry::create_curve_object(Main *bmain, const OBJImportParam
   BLI_addtail(BKE_curve_nurbs_get(curve), nurb);
   this->create_nurbs(curve, import_params);
 
-  obj->data = curve;
+  obj->data = blender::id_cast<ID *>(curve);
   transform_object(obj, import_params);
 
   return obj;

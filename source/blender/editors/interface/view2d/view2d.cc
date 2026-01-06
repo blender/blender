@@ -986,7 +986,7 @@ void view2d_totRect_set_resize(View2D *v2d, int width, int height, bool resize)
     if (G.debug & G_DEBUG) {
       /* XXX: temp debug info. */
       printf("Error: View2D totRect set exiting: v2d=%p width=%d height=%d\n",
-             (void *)v2d,
+             static_cast<void *>(v2d),
              width,
              height);
     }
@@ -2096,7 +2096,7 @@ void view2d_text_cache_add(
 
     BLI_LINKS_PREPEND(g_v2d_strings, v2s);
 
-    v2s->col.pack = *((const int *)col);
+    v2s->col.pack = *(reinterpret_cast<const int *>(col));
 
     v2s->rect = rcti{};
 
@@ -2126,7 +2126,7 @@ void view2d_text_cache_add_rectf(
 
     BLI_LINKS_PREPEND(g_v2d_strings, v2s);
 
-    v2s->col.pack = *((const int *)col);
+    v2s->col.pack = *(reinterpret_cast<const int *>(col));
 
     v2s->rect = rect;
 

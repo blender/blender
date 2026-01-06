@@ -1836,7 +1836,7 @@ Span<gpu::Batch *> DrawCacheImpl::ensure_tris_batches(const Object &object,
                                                       const IndexMask &nodes_to_update)
 {
   const Object &object_orig = *DEG_get_original(&object);
-  const OrigMeshData orig_mesh_data{*static_cast<const Mesh *>(object_orig.data)};
+  const OrigMeshData orig_mesh_data{*blender::id_cast<const Mesh *>(object_orig.data)};
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
   this->ensure_use_flat_layout(object, orig_mesh_data);
@@ -1880,7 +1880,7 @@ Span<gpu::Batch *> DrawCacheImpl::ensure_lines_batches(const Object &object,
                                                        const IndexMask &nodes_to_update)
 {
   const Object &object_orig = *DEG_get_original(&object);
-  const OrigMeshData orig_mesh_data(*static_cast<const Mesh *>(object_orig.data));
+  const OrigMeshData orig_mesh_data(*blender::id_cast<const Mesh *>(object_orig.data));
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
   this->ensure_use_flat_layout(object, orig_mesh_data);
@@ -1911,7 +1911,7 @@ Span<int> DrawCacheImpl::ensure_material_indices(const Object &object)
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   if (material_indices_.size() != pbvh.nodes_num()) {
     const Object &object_orig = *DEG_get_original(&object);
-    const OrigMeshData orig_mesh_data(*static_cast<const Mesh *>(object_orig.data));
+    const OrigMeshData orig_mesh_data(*blender::id_cast<const Mesh *>(object_orig.data));
     material_indices_ = calc_material_indices(object, orig_mesh_data);
   }
   return material_indices_;

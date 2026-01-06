@@ -300,7 +300,7 @@ static void process_usdz_textures(const ExportJobData *data, const char *path)
 
       /* Make sure to free the image so it doesn't stick
        * around in the library of the open file. */
-      BKE_id_free(data->bmain, (void *)im);
+      BKE_id_free(data->bmain, static_cast<void *>(im));
     }
   }
 

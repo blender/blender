@@ -46,7 +46,7 @@ static void rna_window_update_all(Main * /*bmain*/, Scene * /*scene*/, PointerRN
 
 void rna_workspace_screens_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  WorkSpace *workspace = (WorkSpace *)ptr->owner_id;
+  WorkSpace *workspace = blender::id_cast<WorkSpace *>(ptr->owner_id);
   rna_iterator_listbase_begin(iter, ptr, &workspace->layouts, nullptr);
 }
 

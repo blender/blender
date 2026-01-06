@@ -13,6 +13,7 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
+#include "DNA_light_types.h"
 #include "DNA_particle_types.h"
 
 #include "hydra_scene_delegate.hh"
@@ -268,7 +269,10 @@ void InstancerData::update_nonmesh_instance(NonmeshInstance &nm_inst)
   /* NOTE: Special case: recreate instances when prim_type was changed.
    * Doing only update for other Nonmesh objects. */
   LightData *l_data = dynamic_cast<LightData *>(obj_data);
-  if (l_data && l_data->prim_type((Light *)((Object *)l_data->id)->data) != l_data->prim_type_) {
+  if (l_data &&
+      l_data->prim_type(blender::id_cast<Light *>(
+          (blender::id_cast<Object *>(const_cast<ID *>(l_data->id)))->data)) != l_data->prim_type_)
+  {
     for (i = 0; i < nm_inst.count; ++i) {
       obj_data->prim_id = nonmesh_prim_id(prev_id, i);
       obj_data->remove();

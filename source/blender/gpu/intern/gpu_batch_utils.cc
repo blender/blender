@@ -148,8 +148,8 @@ blender::gpu::Batch *GPU_batch_wire_from_poly_2d_encoded(const uchar *polys_flat
           uint16_t as_u16[2];
           uint32_t as_u32;
         } data;
-        data.as_u16[0] = *((const uint16_t *)polys_step[i_prev]);
-        data.as_u16[1] = *((const uint16_t *)polys_step[i]);
+        data.as_u16[0] = *(reinterpret_cast<const uint16_t *>(polys_step[i_prev]));
+        data.as_u16[1] = *(reinterpret_cast<const uint16_t *>(polys_step[i]));
         if (data.as_u16[0] > data.as_u16[1]) {
           std::swap(data.as_u16[0], data.as_u16[1]);
         }

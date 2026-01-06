@@ -511,7 +511,7 @@ static bool ui_but_is_active_view_item(const Button *but, const void * /*customd
     return false;
   }
 
-  const auto *view_item_but = (const ButtonViewItem *)but;
+  const auto *view_item_but = static_cast<const ButtonViewItem *>(but);
   return view_item_but->view_item->is_active();
 }
 

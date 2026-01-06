@@ -343,7 +343,7 @@ inline ResourceHandleRange Manager::resource_handle(const ObjectRef &ref, float 
 
       ObjectInfos &info = infos_buf.current().get_or_resize(resource_len_);
       info = proto_info;
-      info.random = dupli->random_id * (1.0f / (float)0xFFFFFFFF);
+      info.random = dupli->random_id * (1.0f / float(0xFFFFFFFF));
 
       resource_len_++;
     }

@@ -334,7 +334,7 @@ void ED_view3d_smooth_view_ex(
       /* Use orthographic if we move from an orthographic view to an orthographic camera. */
       Object *ob_camera_eval = DEG_get_evaluated(depsgraph, sview->camera);
       rv3d->persp = ((rv3d->is_persp == false) && (ob_camera_eval->type == OB_CAMERA) &&
-                     (static_cast<Camera *>(ob_camera_eval->data)->type == CAM_ORTHO)) ?
+                     (blender::id_cast<Camera *>(ob_camera_eval->data)->type == CAM_ORTHO)) ?
                         RV3D_ORTHO :
                         RV3D_PERSP;
     }

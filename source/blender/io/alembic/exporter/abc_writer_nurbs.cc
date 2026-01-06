@@ -33,7 +33,7 @@ ABCNurbsWriter::ABCNurbsWriter(const ABCWriterConstructorArgs &args) : ABCAbstra
 
 void ABCNurbsWriter::create_alembic_objects(const HierarchyContext *context)
 {
-  Curve *curve = static_cast<Curve *>(context->object->data);
+  Curve *curve = blender::id_cast<Curve *>(context->object->data);
   size_t num_nurbs = BLI_listbase_count(&curve->nurb);
   OObject abc_parent = args_.abc_parent;
   const char *abc_parent_path = abc_parent.getFullName().c_str();
@@ -79,7 +79,7 @@ Alembic::Abc::OCompoundProperty ABCNurbsWriter::abc_prop_for_custom_props()
 bool ABCNurbsWriter::check_is_animated(const HierarchyContext &context) const
 {
   /* Check if object has shape keys. */
-  Curve *cu = static_cast<Curve *>(context.object->data);
+  Curve *cu = blender::id_cast<Curve *>(context.object->data);
   return (cu->key != nullptr);
 }
 
@@ -110,7 +110,7 @@ static void get_knots(std::vector<float> &knots, const int num_knots, float *nu_
 
 void ABCNurbsWriter::do_write(HierarchyContext &context)
 {
-  Curve *curve = static_cast<Curve *>(context.object->data);
+  Curve *curve = blender::id_cast<Curve *>(context.object->data);
   ListBaseT<Nurb> *nulb;
 
   if (context.object->runtime->curve_cache->deformed_nurbs.first != nullptr) {

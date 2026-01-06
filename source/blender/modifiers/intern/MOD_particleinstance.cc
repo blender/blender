@@ -43,13 +43,13 @@
 
 static void init_data(ModifierData *md)
 {
-  ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
+  ParticleInstanceModifierData *pimd = reinterpret_cast<ParticleInstanceModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(pimd, modifier);
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
+  ParticleInstanceModifierData *pimd = reinterpret_cast<ParticleInstanceModifierData *>(md);
 
   if (pimd->index_layer_name[0] != '\0' || pimd->value_layer_name[0] != '\0') {
     r_cddata_masks->lmask |= CD_MASK_PROP_BYTE_COLOR;
@@ -58,7 +58,7 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 
 static bool is_disabled(const Scene *scene, ModifierData *md, bool use_render_params)
 {
-  ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
+  ParticleInstanceModifierData *pimd = reinterpret_cast<ParticleInstanceModifierData *>(md);
   ParticleSystem *psys;
 
   /* The object type check is only needed here in case we have a placeholder
@@ -80,7 +80,7 @@ static bool is_disabled(const Scene *scene, ModifierData *md, bool use_render_pa
    */
   for (ModifierData &ob_md : pimd->ob->modifiers) {
     if (ob_md.type == eModifierType_ParticleSystem) {
-      ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)&ob_md;
+      ParticleSystemModifierData *psmd = reinterpret_cast<ParticleSystemModifierData *>(&ob_md);
       if (psmd->psys == psys) {
         int required_mode;
 
@@ -105,7 +105,7 @@ static bool is_disabled(const Scene *scene, ModifierData *md, bool use_render_pa
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
+  ParticleInstanceModifierData *pimd = reinterpret_cast<ParticleInstanceModifierData *>(md);
   if (pimd->ob != nullptr) {
     DEG_add_object_relation(
         ctx->node, pimd->ob, DEG_OB_COMP_TRANSFORM, "Particle Instance Modifier");
@@ -116,9 +116,9 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
+  ParticleInstanceModifierData *pimd = reinterpret_cast<ParticleInstanceModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&pimd->ob, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&pimd->ob), IDWALK_CB_NOP);
 }
 
 static bool particle_skip(ParticleInstanceModifierData *pimd, ParticleSystem *psys, int p)
@@ -186,7 +186,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 {
   using namespace blender;
   Mesh *result;
-  ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
+  ParticleInstanceModifierData *pimd = reinterpret_cast<ParticleInstanceModifierData *>(md);
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
   ParticleSimulationData sim;
   ParticleSystem *psys = nullptr;

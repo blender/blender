@@ -172,7 +172,7 @@ static void do_wipe_effect(
     const Strip *strip, float fac, int width, int height, const T *rect1, const T *rect2, T *out)
 {
   using namespace blender;
-  const WipeVars *wipe = (const WipeVars *)strip->effectdata;
+  const WipeVars *wipe = static_cast<const WipeVars *>(strip->effectdata);
 
   const WipeData data(wipe, width, height, fac);
 

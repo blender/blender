@@ -177,7 +177,7 @@ static Object *editarm_object_from_context(bContext *C)
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit && obedit->type == OB_ARMATURE) {
-    bArmature *arm = static_cast<bArmature *>(obedit->data);
+    bArmature *arm = blender::id_cast<bArmature *>(obedit->data);
     if (arm->edbo != nullptr) {
       return obedit;
     }
@@ -231,7 +231,7 @@ static bool armature_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_
     ArmatureUndoStep_Elem *elem = &us->elems[i];
 
     elem->obedit_ref.ptr = ob;
-    bArmature *arm = static_cast<bArmature *>(elem->obedit_ref.ptr->data);
+    bArmature *arm = blender::id_cast<bArmature *>(elem->obedit_ref.ptr->data);
     undoarm_from_editarm(&elem->data, arm);
     arm->needs_flush_to_id = 1;
     us->step.data_size += elem->data.undo_size;
@@ -259,7 +259,7 @@ static void armature_undosys_step_decode(
   for (uint i = 0; i < us->elems_len; i++) {
     ArmatureUndoStep_Elem *elem = &us->elems[i];
     Object *obedit = elem->obedit_ref.ptr;
-    bArmature *arm = static_cast<bArmature *>(obedit->data);
+    bArmature *arm = blender::id_cast<bArmature *>(obedit->data);
     if (arm->edbo == nullptr) {
       /* Should never fail, may not crash but can give odd behavior. */
       CLOG_ERROR(&LOG,

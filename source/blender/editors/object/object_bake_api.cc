@@ -490,7 +490,7 @@ static bool bake_object_check(const Scene *scene,
     return false;
   }
 
-  Mesh *mesh = (Mesh *)ob->data;
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
 
   if (mesh->faces_num == 0) {
     BKE_reportf(reports, RPT_ERROR, "No faces found in the object \"%s\"", ob->id.name + 2);
@@ -668,7 +668,7 @@ static bool bake_objects_check(Main *bmain,
     }
 
     for (const PointerRNA &ptr : selected_objects) {
-      Object *ob_iter = (Object *)ptr.data;
+      Object *ob_iter = static_cast<Object *>(ptr.data);
       if (ob_iter == ob) {
         continue;
       }
@@ -1016,7 +1016,7 @@ static bool bake_targets_init_vertex_colors(Main *bmain,
     return false;
   }
 
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   if (!BKE_id_attributes_color_find(&mesh->id, mesh->active_color_attribute)) {
     BKE_report(reports, RPT_ERROR, "No active color attribute to bake to");
     return false;
@@ -1075,7 +1075,7 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
                                                           Mesh *mesh_eval,
                                                           BakePixel *pixel_array)
 {
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   const int pixels_num = targets->pixels_num;
 
   /* Initialize blank pixels. */
@@ -1197,7 +1197,7 @@ static void convert_float_color_to_byte_color(const ColorGeometry4f *float_color
 
 static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
 {
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   const StringRef attr_name = mesh->active_color_attribute;
   const bke::AttrDomain domain = [&]() {
     if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
@@ -1457,7 +1457,7 @@ static wmOperatorStatus bake(const BakeAPIRender *bkr,
   }
 
   if (!bkr->uv_layer.empty()) {
-    Mesh *mesh = (Mesh *)ob_low->data;
+    Mesh *mesh = blender::id_cast<Mesh *>(ob_low->data);
     const bke::AttributeAccessor attributes = mesh->attributes();
     if (!bke::mesh::is_uv_map(attributes.lookup_meta_data(bkr->uv_layer))) {
       BKE_reportf(reports,
@@ -1505,7 +1505,8 @@ static wmOperatorStatus bake(const BakeAPIRender *bkr,
   if (bkr->pass_type == SCE_PASS_NORMAL && bkr->normal_space == R_BAKE_SPACE_TANGENT &&
       !bkr->is_selected_to_active)
   {
-    mmd_low = (MultiresModifierData *)BKE_modifiers_findby_type(ob_low, eModifierType_Multires);
+    mmd_low = reinterpret_cast<MultiresModifierData *>(
+        BKE_modifiers_findby_type(ob_low, eModifierType_Multires));
     if (mmd_low) {
       mmd_flags_low = mmd_low->flags;
       mmd_low->uv_smooth = SUBSURF_UV_SMOOTH_NONE;
@@ -1888,8 +1889,8 @@ static void bake_init_api_data(wmOperator *op, bContext *C, BakeAPIRender *bkr)
   bkr->margin = RNA_int_get(op->ptr, "margin");
   bkr->margin_type = eBakeMarginType(RNA_enum_get(op->ptr, "margin_type"));
 
-  bkr->save_mode = (eBakeSaveMode)RNA_enum_get(op->ptr, "save_mode");
-  bkr->target = (eBakeTarget)RNA_enum_get(op->ptr, "target");
+  bkr->save_mode = eBakeSaveMode(RNA_enum_get(op->ptr, "save_mode"));
+  bkr->target = eBakeTarget(RNA_enum_get(op->ptr, "target"));
 
   bkr->is_clear = RNA_boolean_get(op->ptr, "use_clear");
   bkr->is_split_materials = (bkr->target == R_BAKE_TARGET_IMAGE_TEXTURES &&
@@ -2003,7 +2004,7 @@ static wmOperatorStatus bake_exec(bContext *C, wmOperator *op)
 
 static void bake_startjob(void *bkv, wmJobWorkerStatus *worker_status)
 {
-  BakeAPIRender *bkr = (BakeAPIRender *)bkv;
+  BakeAPIRender *bkr = static_cast<BakeAPIRender *>(bkv);
 
   /* setup new render */
   bkr->do_update = &worker_status->do_update;
@@ -2055,18 +2056,18 @@ static void bake_startjob(void *bkv, wmJobWorkerStatus *worker_status)
 
 static void bake_job_complete(void *bkv)
 {
-  BakeAPIRender *bkr = (BakeAPIRender *)bkv;
+  BakeAPIRender *bkr = static_cast<BakeAPIRender *>(bkv);
   BKE_callback_exec_id(bkr->main, &bkr->ob->id, BKE_CB_EVT_OBJECT_BAKE_COMPLETE);
 }
 static void bake_job_canceled(void *bkv)
 {
-  BakeAPIRender *bkr = (BakeAPIRender *)bkv;
+  BakeAPIRender *bkr = static_cast<BakeAPIRender *>(bkv);
   BKE_callback_exec_id(bkr->main, &bkr->ob->id, BKE_CB_EVT_OBJECT_BAKE_CANCEL);
 }
 
 static void bake_freejob(void *bkv)
 {
-  BakeAPIRender *bkr = (BakeAPIRender *)bkv;
+  BakeAPIRender *bkr = static_cast<BakeAPIRender *>(bkv);
 
   MEM_delete(bkr);
 

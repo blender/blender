@@ -198,7 +198,7 @@ Main *BLO_memfile_main_get(MemFile *memfile, Main *bmain, Scene **r_scene)
 
 static int64_t undo_read(FileReader *reader, void *buffer, size_t size)
 {
-  UndoReader *undo = (UndoReader *)reader;
+  UndoReader *undo = reinterpret_cast<UndoReader *>(reader);
 
   static size_t seek = SIZE_MAX; /* The current position. */
   static size_t offset = 0;      /* Size of previous chunks. */
@@ -254,7 +254,7 @@ static int64_t undo_read(FileReader *reader, void *buffer, size_t size)
 
       memcpy(POINTER_OFFSET(buffer, totread), chunk->buf + chunkoffset, readsize);
       totread += readsize;
-      undo->reader.offset += (off64_t)readsize;
+      undo->reader.offset += off64_t(readsize);
       seek += readsize;
 
       /* `is_identical` of current chunk represents whether it changed compared to previous undo
@@ -287,5 +287,5 @@ FileReader *BLO_memfile_new_filereader(MemFile *memfile, int undo_direction)
   undo->reader.seek = nullptr;
   undo->reader.close = undo_close;
 
-  return (FileReader *)undo;
+  return reinterpret_cast<FileReader *>(undo);
 }

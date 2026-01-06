@@ -39,7 +39,7 @@ void TreeElementIDArmature::expand(SpaceOutliner &space_outliner) const
     /* Do not extend Armature when we have pose-mode. */
     TreeStoreElem *tselem = TREESTORE(legacy_te_.parent);
     if (TSE_IS_REAL_ID(tselem) && GS(tselem->id->name) == ID_OB &&
-        ((Object *)tselem->id)->mode & OB_MODE_POSE)
+        (blender::id_cast<Object *>(tselem->id))->mode & OB_MODE_POSE)
     {
       /* pass */
     }
@@ -62,12 +62,12 @@ void TreeElementIDArmature::expand_edit_bones() const
     ebone.temp.p = ten;
   }
   /* make hierarchy */
-  TreeElement *ten = arm_.edbo->first ?
-                         static_cast<TreeElement *>(((EditBone *)arm_.edbo->first)->temp.p) :
-                         nullptr;
+  TreeElement *ten = arm_.edbo->first ? static_cast<TreeElement *>(
+                                            (static_cast<EditBone *>(arm_.edbo->first))->temp.p) :
+                                        nullptr;
   while (ten) {
     TreeElement *nten = ten->next, *par;
-    EditBone *ebone = (EditBone *)ten->directdata;
+    EditBone *ebone = static_cast<EditBone *>(ten->directdata);
     if (ebone->parent) {
       BLI_remlink(&legacy_te_.subtree, ten);
       par = static_cast<TreeElement *>(ebone->parent->temp.p);

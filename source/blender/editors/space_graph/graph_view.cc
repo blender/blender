@@ -83,7 +83,7 @@ void get_graph_keyframe_extents(bAnimContext *ac,
 
     /* Go through channels, finding max extents. */
     for (bAnimListElem &ale : anim_data) {
-      FCurve *fcu = (FCurve *)ale.key_data;
+      FCurve *fcu = static_cast<FCurve *>(ale.key_data);
       rctf bounds;
       float unitFac, offset;
 
@@ -380,7 +380,7 @@ void GRAPH_OT_view_frame(wmOperatorType *ot)
 /* Bake each F-Curve into a set of samples, and store as a ghost curve. */
 static void create_ghost_curves(bAnimContext *ac, int start, int end)
 {
-  SpaceGraph *sipo = (SpaceGraph *)ac->sl;
+  SpaceGraph *sipo = reinterpret_cast<SpaceGraph *>(ac->sl);
   ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
@@ -401,7 +401,7 @@ static void create_ghost_curves(bAnimContext *ac, int start, int end)
 
   /* Loop through filtered data and add keys between selected keyframes on every frame. */
   for (bAnimListElem &ale : anim_data) {
-    FCurve *fcu = (FCurve *)ale.key_data;
+    FCurve *fcu = static_cast<FCurve *>(ale.key_data);
     FCurve *gcu = BKE_fcurve_create();
     ChannelDriver *driver = fcu->driver;
     FPoint *fpt;
@@ -510,7 +510,7 @@ static wmOperatorStatus graphkeys_clear_ghostcurves_exec(bContext *C, wmOperator
   if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
   }
-  sipo = (SpaceGraph *)ac.sl;
+  sipo = reinterpret_cast<SpaceGraph *>(ac.sl);
 
   /* If no ghost curves, don't do anything. */
   if (BLI_listbase_is_empty(&sipo->runtime.ghost_curves)) {

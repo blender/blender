@@ -604,7 +604,7 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
   bool changed = false;
   BMO_slot_buffer_flag_enable(bm, op->slots_in, "edges", BM_EDGE, EDGE_MARK);
 
-  count = BM_mesh_edgeloops_find(bm, &eloops, bm_edge_test_cb, (void *)bm);
+  count = BM_mesh_edgeloops_find(bm, &eloops, bm_edge_test_cb, static_cast<void *>(bm));
 
   if (count != 2) {
     /* Note that this error message has been adjusted to make sense when called
@@ -621,10 +621,14 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
   estore_a = static_cast<BMEdgeLoopStore *>(eloops.first);
   estore_b = static_cast<BMEdgeLoopStore *>(eloops.last);
 
-  v_a_first = static_cast<BMVert *>(((LinkData *)BM_edgeloop_verts_get(estore_a)->first)->data);
-  v_a_last = static_cast<BMVert *>(((LinkData *)BM_edgeloop_verts_get(estore_a)->last)->data);
-  v_b_first = static_cast<BMVert *>(((LinkData *)BM_edgeloop_verts_get(estore_b)->first)->data);
-  v_b_last = static_cast<BMVert *>(((LinkData *)BM_edgeloop_verts_get(estore_b)->last)->data);
+  v_a_first = static_cast<BMVert *>(
+      (static_cast<LinkData *>(BM_edgeloop_verts_get(estore_a)->first))->data);
+  v_a_last = static_cast<BMVert *>(
+      (static_cast<LinkData *>(BM_edgeloop_verts_get(estore_a)->last))->data);
+  v_b_first = static_cast<BMVert *>(
+      (static_cast<LinkData *>(BM_edgeloop_verts_get(estore_b)->first))->data);
+  v_b_last = static_cast<BMVert *>(
+      (static_cast<LinkData *>(BM_edgeloop_verts_get(estore_b)->last))->data);
 
   if (BM_edgeloop_is_closed(estore_a) || BM_edgeloop_is_closed(estore_b)) {
     BMO_error_raise(bm, op, BMO_ERROR_CANCEL, "Closed loops unsupported");

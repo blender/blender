@@ -54,7 +54,7 @@ static const char *ATTR_POSITION = "position";
 
 static void curves_init_data(ID *id)
 {
-  Curves *curves = (Curves *)id;
+  Curves *curves = blender::id_cast<Curves *>(id);
   INIT_DEFAULT_STRUCT_AFTER(curves, id);
 
   new (&curves->geometry) blender::bke::CurvesGeometry();
@@ -66,8 +66,8 @@ static void curves_copy_data(Main * /*bmain*/,
                              const ID *id_src,
                              const int /*flag*/)
 {
-  Curves *curves_dst = (Curves *)id_dst;
-  const Curves *curves_src = (const Curves *)id_src;
+  Curves *curves_dst = blender::id_cast<Curves *>(id_dst);
+  const Curves *curves_src = blender::id_cast<const Curves *>(id_src);
   curves_dst->mat = static_cast<Material **>(MEM_dupallocN(curves_src->mat));
 
   new (&curves_dst->geometry) blender::bke::CurvesGeometry(curves_src->geometry.wrap());
@@ -81,7 +81,7 @@ static void curves_copy_data(Main * /*bmain*/,
 
 static void curves_free_data(ID *id)
 {
-  Curves *curves = (Curves *)id;
+  Curves *curves = blender::id_cast<Curves *>(id);
   BKE_animdata_free(&curves->id, false);
 
   curves->geometry.wrap().~CurvesGeometry();
@@ -94,7 +94,7 @@ static void curves_free_data(ID *id)
 
 static void curves_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  Curves *curves = (Curves *)id;
+  Curves *curves = blender::id_cast<Curves *>(id);
   for (int i = 0; i < curves->totcol; i++) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, curves->mat[i], IDWALK_CB_USER);
   }
@@ -110,7 +110,7 @@ static void curves_foreach_working_space_color(ID *id,
 
 static void curves_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  Curves *curves = (Curves *)id;
+  Curves *curves = blender::id_cast<Curves *>(id);
 
   /* Only for forward compatibility. */
   curves->attributes_active_index_legacy = curves->geometry.attributes_active_index;
@@ -136,7 +136,7 @@ static void curves_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 
 static void curves_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  Curves *curves = (Curves *)id;
+  Curves *curves = blender::id_cast<Curves *>(id);
 
   /* Geometry */
   curves->geometry.wrap().blend_read(*reader);
@@ -144,7 +144,7 @@ static void curves_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_string(reader, &curves->surface_uv_map);
 
   /* Materials */
-  BLO_read_pointer_array(reader, curves->totcol, (void **)&curves->mat);
+  BLO_read_pointer_array(reader, curves->totcol, reinterpret_cast<void **>(&curves->mat));
 }
 
 IDTypeInfo IDType_ID_CV = {
@@ -205,7 +205,7 @@ static void curves_evaluate_modifiers(Depsgraph *depsgraph,
   const bool use_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
   int required_mode = use_render ? eModifierMode_Render : eModifierMode_Realtime;
   if (BKE_object_is_in_editmode(object)) {
-    required_mode = (ModifierMode)(required_mode | eModifierMode_Editmode);
+    required_mode = ModifierMode(required_mode | eModifierMode_Editmode);
   }
   ModifierApplyFlag apply_flag = use_render ? MOD_APPLY_RENDER : MOD_APPLY_USECACHE;
   const ModifierEvalContext mectx = {depsgraph, object, apply_flag};
@@ -241,7 +241,7 @@ void BKE_curves_data_update(Depsgraph *depsgraph, Scene *scene, Object *object)
   BKE_object_free_derived_caches(object);
 
   /* Evaluate modifiers. */
-  Curves *curves = static_cast<Curves *>(object->data);
+  Curves *curves = blender::id_cast<Curves *>(object->data);
   GeometrySet geometry_set = GeometrySet::from_curves(curves, GeometryOwnershipType::ReadOnly);
   if (ELEM(object->mode, OB_MODE_EDIT, OB_MODE_SCULPT_CURVES)) {
     /* Try to propagate deformation data through modifier evaluation, so that sculpt mode can work
@@ -249,7 +249,7 @@ void BKE_curves_data_update(Depsgraph *depsgraph, Scene *scene, Object *object)
     GeometryComponentEditData &edit_component =
         geometry_set.get_component_for_write<GeometryComponentEditData>();
     edit_component.curves_edit_hints_ = std::make_unique<CurvesEditHints>(
-        *static_cast<const Curves *>(DEG_get_original(object)->data));
+        *blender::id_cast<const Curves *>(DEG_get_original(object)->data));
   }
   curves_evaluate_modifiers(depsgraph, scene, object, geometry_set);
 

@@ -206,7 +206,7 @@ void deg_graph_flush_visibility_flags(Depsgraph *graph)
     /* Schedule parent nodes. */
     for (Relation *rel : op_node->inlinks) {
       if (rel->from->type == NodeType::OPERATION) {
-        OperationNode *op_from = (OperationNode *)rel->from;
+        OperationNode *op_from = static_cast<OperationNode *>(rel->from);
         if ((rel->flag & RELATION_FLAG_CYCLIC) == 0) {
           BLI_assert(op_from->num_links_pending > 0);
           --op_from->num_links_pending;

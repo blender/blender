@@ -216,7 +216,7 @@ static bool draw_show_annotation()
   if (space_data != nullptr) {
     switch (space_data->spacetype) {
       case SPACE_IMAGE: {
-        SpaceImage *sima = (SpaceImage *)space_data;
+        SpaceImage *sima = reinterpret_cast<SpaceImage *>(space_data);
         return (sima->flag & SI_SHOW_GPENCIL) != 0;
       }
       case SPACE_NODE:
@@ -323,7 +323,9 @@ bool DRW_object_is_visible_psys_in_active_context(const Object *object, const Pa
   /* NOTE: psys_check_enabled is using object and particle system for only
    * reading, but is using some other functions which are more generic and
    * which are hard to make const-pointer. */
-  if (!psys_check_enabled((Object *)object, (ParticleSystem *)psys, for_render)) {
+  if (!psys_check_enabled(
+          const_cast<Object *>(object), const_cast<ParticleSystem *>(psys), for_render))
+  {
     return false;
   }
   const DRWContext *draw_ctx = DRW_context_get();
@@ -1072,7 +1074,7 @@ void DRWContext::enable_engines(bool gpencil_engine_needed, RenderEngineType *re
 
   if (space_data && space_data->spacetype == SPACE_NODE) {
     /* Only enable when drawing the space image backdrop. */
-    SpaceNode *snode = (SpaceNode *)space_data;
+    SpaceNode *snode = reinterpret_cast<SpaceNode *>(space_data);
     if ((snode->flag & SNODE_BACKDRAW) != 0) {
       view_data.image.set_used(true);
       view_data.overlay.set_used(true);

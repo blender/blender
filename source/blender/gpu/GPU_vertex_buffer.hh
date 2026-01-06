@@ -317,7 +317,7 @@ GPU_INLINE void *GPU_vertbuf_raw_step(GPUVertBufRaw *a)
 #ifndef NDEBUG
   BLI_assert(data < a->_data_end);
 #endif
-  return (void *)data;
+  return static_cast<void *>(data);
 }
 
 GPU_INLINE uint GPU_vertbuf_raw_used(const GPUVertBufRaw *a)

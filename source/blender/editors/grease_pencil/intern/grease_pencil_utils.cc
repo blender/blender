@@ -969,7 +969,7 @@ IndexMask retrieve_editable_strokes(Object &object,
     return IndexMask(curves_range);
   }
 
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object.data);
   const bke::greasepencil::Layer &layer = *grease_pencil.layers()[layer_index];
 
   /* If we're not using material locking, the entire curves range is editable. */
@@ -1081,7 +1081,7 @@ IndexMask retrieve_editable_points(Object &object,
     return IndexMask(points_range);
   }
 
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object.data);
   const bke::greasepencil::Layer &layer = *grease_pencil.layers()[layer_index];
 
   /* If we're not using material locking, the entire points range is editable. */
@@ -1674,7 +1674,7 @@ wmOperatorStatus grease_pencil_draw_operator_invoke(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
   if (!grease_pencil.has_active_layer()) {
     BKE_report(op->reports, RPT_ERROR, "No active Grease Pencil layer");
     return OPERATOR_CANCELLED;
@@ -1762,7 +1762,7 @@ GreasePencil *from_context(bContext &C)
   if (grease_pencil == nullptr) {
     Object *object = CTX_data_active_object(&C);
     if (object && object->type == OB_GREASE_PENCIL) {
-      grease_pencil = static_cast<GreasePencil *>(object->data);
+      grease_pencil = blender::id_cast<GreasePencil *>(object->data);
     }
   }
   return grease_pencil;

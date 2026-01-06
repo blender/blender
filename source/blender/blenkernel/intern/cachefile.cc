@@ -51,7 +51,7 @@ static void cachefile_handle_free(CacheFile *cache_file);
 
 static void cache_file_init_data(ID *id)
 {
-  CacheFile *cache_file = (CacheFile *)id;
+  CacheFile *cache_file = blender::id_cast<CacheFile *>(id);
 
   cache_file->scale = 1.0f;
   cache_file->velocity_unit = CACHEFILE_VELOCITY_UNIT_SECOND;
@@ -64,8 +64,8 @@ static void cache_file_copy_data(Main * /*bmain*/,
                                  const ID *id_src,
                                  const int /*flag*/)
 {
-  CacheFile *cache_file_dst = (CacheFile *)id_dst;
-  const CacheFile *cache_file_src = (const CacheFile *)id_src;
+  CacheFile *cache_file_dst = blender::id_cast<CacheFile *>(id_dst);
+  const CacheFile *cache_file_src = blender::id_cast<const CacheFile *>(id_src);
 
   cache_file_dst->handle = nullptr;
   cache_file_dst->handle_readers = nullptr;
@@ -75,7 +75,7 @@ static void cache_file_copy_data(Main * /*bmain*/,
 
 static void cache_file_free_data(ID *id)
 {
-  CacheFile *cache_file = (CacheFile *)id;
+  CacheFile *cache_file = blender::id_cast<CacheFile *>(id);
   cachefile_handle_free(cache_file);
   BLI_freelistN(&cache_file->object_paths);
   BLI_freelistN(&cache_file->layers);
@@ -83,14 +83,14 @@ static void cache_file_free_data(ID *id)
 
 static void cache_file_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
-  CacheFile *cache_file = (CacheFile *)id;
+  CacheFile *cache_file = blender::id_cast<CacheFile *>(id);
   BKE_bpath_foreach_path_fixed_process(
       bpath_data, cache_file->filepath, sizeof(cache_file->filepath));
 }
 
 static void cache_file_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  CacheFile *cache_file = (CacheFile *)id;
+  CacheFile *cache_file = blender::id_cast<CacheFile *>(id);
 
   /* Clean up, important in undo case to reduce false detection of changed datablocks. */
   BLI_listbase_clear(&cache_file->object_paths);
@@ -109,7 +109,7 @@ static void cache_file_blend_write(BlendWriter *writer, ID *id, const void *id_a
 
 static void cache_file_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  CacheFile *cache_file = (CacheFile *)id;
+  CacheFile *cache_file = blender::id_cast<CacheFile *>(id);
   BLI_listbase_clear(&cache_file->object_paths);
   cache_file->handle = nullptr;
   cache_file->handle_filepath[0] = '\0';

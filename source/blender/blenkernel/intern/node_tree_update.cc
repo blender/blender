@@ -254,7 +254,7 @@ struct NodeTreeRelations {
         }
         ID *id = node->id;
         if (GS(id->name) == ID_NT) {
-          bNodeTree *group = (bNodeTree *)id;
+          bNodeTree *group = blender::id_cast<bNodeTree *>(id);
           group_node_users_->add(group, {ntree, node});
         }
       }
@@ -274,7 +274,7 @@ struct NodeTreeRelations {
     for (Object &object : bmain_->objects) {
       for (ModifierData &md : object.modifiers) {
         if (md.type == eModifierType_Nodes) {
-          NodesModifierData *nmd = (NodesModifierData *)&md;
+          NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(&md);
           if (nmd->node_group != nullptr) {
             modifiers_users_->add(nmd->node_group, {&object, &md});
           }
@@ -392,7 +392,7 @@ class NodeTreeMainUpdater {
             ModifierData *md = pair.second;
 
             if (md->type == eModifierType_Nodes) {
-              MOD_nodes_update_interface(object, (NodesModifierData *)md);
+              MOD_nodes_update_interface(object, reinterpret_cast<NodesModifierData *>(md));
             }
           }
         }

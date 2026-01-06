@@ -118,7 +118,7 @@ void DEG_add_collision_relations(DepsNodeHandle *handle,
                                  const char *name)
 {
   Depsgraph *depsgraph = DEG_get_graph_from_handle(handle);
-  deg::Depsgraph *deg_graph = (deg::Depsgraph *)depsgraph;
+  deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(depsgraph);
   ListBaseT<CollisionRelation> *relations = build_collision_relations(
       deg_graph, collection, modifier_type);
 
@@ -139,7 +139,7 @@ void DEG_add_collision_relations(DepsNodeHandle *handle,
       continue;
     }
     if (filter_function &&
-        !filter_function(ob1, BKE_modifiers_findby_type(ob1, (ModifierType)modifier_type)))
+        !filter_function(ob1, BKE_modifiers_findby_type(ob1, ModifierType(modifier_type))))
     {
       continue;
     }
@@ -209,7 +209,7 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle,
                                   const char *name)
 {
   Depsgraph *depsgraph = DEG_get_graph_from_handle(handle);
-  deg::Depsgraph *deg_graph = (deg::Depsgraph *)depsgraph;
+  deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(depsgraph);
   ListBaseT<EffectorRelation> *relations = build_effector_relations(deg_graph,
                                                                     effector_weights->group);
   for (EffectorRelation &relation : *relations) {

@@ -102,7 +102,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometryCurvePrimitiveBezierSegment &storage = node_storage(params.node());
   const GeometryNodeCurvePrimitiveBezierSegmentMode mode =
-      (const GeometryNodeCurvePrimitiveBezierSegmentMode)storage.mode;
+      GeometryNodeCurvePrimitiveBezierSegmentMode(storage.mode);
 
   Curves *curves = create_bezier_segment_curve(
       params.extract_input<float3>("Start"),

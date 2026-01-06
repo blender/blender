@@ -300,7 +300,7 @@ static void do_map(Object *ob,
  **************************************/
 static void init_data(ModifierData *md)
 {
-  WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
+  WeightVGProximityModifierData *wmd = reinterpret_cast<WeightVGProximityModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(wmd, modifier);
 
   wmd->cmap_curve = BKE_curvemapping_add(1, 0.0, 0.0, 1.0, 1.0);
@@ -309,14 +309,15 @@ static void init_data(ModifierData *md)
 
 static void free_data(ModifierData *md)
 {
-  WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
+  WeightVGProximityModifierData *wmd = reinterpret_cast<WeightVGProximityModifierData *>(md);
   BKE_curvemapping_free(wmd->cmap_curve);
 }
 
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
-  const WeightVGProximityModifierData *wmd = (const WeightVGProximityModifierData *)md;
-  WeightVGProximityModifierData *twmd = (WeightVGProximityModifierData *)target;
+  const WeightVGProximityModifierData *wmd =
+      reinterpret_cast<const WeightVGProximityModifierData *>(md);
+  WeightVGProximityModifierData *twmd = reinterpret_cast<WeightVGProximityModifierData *>(target);
 
   BKE_modifier_copydata_generic(md, target, flag);
 
@@ -325,7 +326,7 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
+  WeightVGProximityModifierData *wmd = reinterpret_cast<WeightVGProximityModifierData *>(md);
 
   /* We need vertex groups! */
   r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
@@ -338,7 +339,7 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 
 static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
 {
-  WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
+  WeightVGProximityModifierData *wmd = reinterpret_cast<WeightVGProximityModifierData *>(md);
 
   if (wmd->mask_texture) {
     return BKE_texture_dependsOnTime(wmd->mask_texture);
@@ -348,11 +349,11 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
+  WeightVGProximityModifierData *wmd = reinterpret_cast<WeightVGProximityModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&wmd->mask_texture, IDWALK_CB_USER);
-  walk(user_data, ob, (ID **)&wmd->proximity_ob_target, IDWALK_CB_NOP);
-  walk(user_data, ob, (ID **)&wmd->mask_tex_map_obj, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&wmd->mask_texture), IDWALK_CB_USER);
+  walk(user_data, ob, reinterpret_cast<ID **>(&wmd->proximity_ob_target), IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&wmd->mask_tex_map_obj), IDWALK_CB_NOP);
 }
 
 static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, void *user_data)
@@ -364,7 +365,7 @@ static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, voi
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
+  WeightVGProximityModifierData *wmd = reinterpret_cast<WeightVGProximityModifierData *>(md);
   bool need_transform_relation = false;
 
   if (wmd->proximity_ob_target != nullptr) {
@@ -399,7 +400,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
+  WeightVGProximityModifierData *wmd = reinterpret_cast<WeightVGProximityModifierData *>(md);
   /* If no vertex group, bypass. */
   if (wmd->defgrp_name[0] == '\0') {
     return true;
@@ -412,7 +413,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 {
   BLI_assert(mesh != nullptr);
 
-  WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
+  WeightVGProximityModifierData *wmd = reinterpret_cast<WeightVGProximityModifierData *>(md);
   MDeformWeight **dw, **tdw;
   Object *ob = ctx->object;
   Object *obr = nullptr; /* Our target object. */
@@ -692,7 +693,8 @@ static void panel_register(ARegionType *region_type)
 
 static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const ModifierData *md)
 {
-  const WeightVGProximityModifierData *wmd = (const WeightVGProximityModifierData *)md;
+  const WeightVGProximityModifierData *wmd =
+      reinterpret_cast<const WeightVGProximityModifierData *>(md);
 
   writer->write_struct(wmd);
 
@@ -703,7 +705,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 
 static void blend_read(BlendDataReader *reader, ModifierData *md)
 {
-  WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
+  WeightVGProximityModifierData *wmd = reinterpret_cast<WeightVGProximityModifierData *>(md);
 
   BLO_read_struct(reader, CurveMapping, &wmd->cmap_curve);
   if (wmd->cmap_curve) {

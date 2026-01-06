@@ -252,7 +252,7 @@ void Instance::begin_sync()
     pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
 
-  Camera *cam = static_cast<Camera *>(
+  Camera *cam = blender::id_cast<Camera *>(
       (this->camera != nullptr && this->camera->type == OB_CAMERA) ? this->camera->data : nullptr);
 
   /* Pseudo DOF setup. */
@@ -591,13 +591,13 @@ void Instance::end_sync()
   BLI_memblock_iter iter;
   BLI_memblock_iternew(this->gp_material_pool, &iter);
   MaterialPool *pool;
-  while ((pool = (MaterialPool *)BLI_memblock_iterstep(&iter))) {
+  while ((pool = static_cast<MaterialPool *>(BLI_memblock_iterstep(&iter)))) {
     GPU_uniformbuf_update(pool->ubo, pool->mat_data);
   }
 
   BLI_memblock_iternew(this->gp_light_pool, &iter);
   LightPool *lpool;
-  while ((lpool = (LightPool *)BLI_memblock_iterstep(&iter))) {
+  while ((lpool = static_cast<LightPool *>(BLI_memblock_iterstep(&iter)))) {
     GPU_uniformbuf_update(lpool->ubo, lpool->light_data);
   }
 }

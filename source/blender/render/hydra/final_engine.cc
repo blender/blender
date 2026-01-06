@@ -53,7 +53,7 @@ void FinalEngine::render()
   }
 
   RenderResult *rr = RE_engine_get_result(bl_engine_);
-  RenderLayer *rlayer = (RenderLayer *)rr->layers.first;
+  RenderLayer *rlayer = static_cast<RenderLayer *>(rr->layers.first);
   for (RenderPass &rpass : rlayer->passes) {
     pxr::TfToken *aov_token = aov_tokens_.lookup_ptr(rpass.name);
     if (!aov_token) {

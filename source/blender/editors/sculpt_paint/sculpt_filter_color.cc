@@ -381,7 +381,7 @@ static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object &ob)
 
   RNA_float_get_array(op->ptr, "fill_color", fill_color);
 
-  Mesh &mesh = *static_cast<Mesh *>(ob.data);
+  Mesh &mesh = *blender::id_cast<Mesh *>(ob.data);
   if (filter_strength < 0.0 && ss.filter_cache->pre_smoothed_color.is_empty()) {
     sculpt_color_presmooth_init(mesh, ob);
   }

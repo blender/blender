@@ -1398,7 +1398,8 @@ static void preview_plane_free_fn(void *customdata)
 
 static bool snap_cursor_poll(ARegion *region, void *data)
 {
-  if (WM_gizmomap_group_find_ptr(region->runtime->gizmo_map, (wmGizmoGroupType *)data) == nullptr)
+  if (WM_gizmomap_group_find_ptr(region->runtime->gizmo_map,
+                                 static_cast<wmGizmoGroupType *>(data)) == nullptr)
   {
     /* Wrong viewport. */
     return false;

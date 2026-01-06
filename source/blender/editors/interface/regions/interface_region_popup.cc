@@ -431,21 +431,21 @@ static void block_region_refresh(const bContext *C, ARegion *region)
         handle_ctx_region = handle->ctx_region;
 
         if (handle_ctx_area) {
-          CTX_wm_area_set((bContext *)C, handle_ctx_area);
+          CTX_wm_area_set(const_cast<bContext *>(C), handle_ctx_area);
         }
         if (handle_ctx_region) {
-          CTX_wm_region_set((bContext *)C, handle_ctx_region);
+          CTX_wm_region_set(const_cast<bContext *>(C), handle_ctx_region);
         }
 
         Button *but = handle->popup_create_vars.but;
         ARegion *butregion = handle->popup_create_vars.butregion;
-        popup_block_refresh((bContext *)C, handle, butregion, but);
+        popup_block_refresh(const_cast<bContext *>(C), handle, butregion, but);
       }
     }
   }
 
-  CTX_wm_area_set((bContext *)C, ctx_area);
-  CTX_wm_region_set((bContext *)C, ctx_region);
+  CTX_wm_area_set(const_cast<bContext *>(C), ctx_area);
+  CTX_wm_region_set(const_cast<bContext *>(C), ctx_region);
 }
 
 static void block_region_draw(const bContext *C, ARegion *region)

@@ -268,8 +268,9 @@ static void *undofont_from_editfont(UndoFont *uf, Curve *cu)
 #ifdef USE_ARRAY_STORE
   {
     const UndoFont *uf_ref = static_cast<const UndoFont *>(
-        uf_arraystore.local_links.last ? ((LinkData *)uf_arraystore.local_links.last)->data :
-                                         nullptr);
+        uf_arraystore.local_links.last ?
+            (static_cast<LinkData *>(uf_arraystore.local_links.last))->data :
+            nullptr);
 
     /* Add ourselves. */
     BLI_addtail(&uf_arraystore.local_links, BLI_genericNodeN(uf));
@@ -312,7 +313,7 @@ static Object *editfont_object_from_context(bContext *C)
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit && obedit->type == OB_FONT) {
-    const Curve *cu = static_cast<Curve *>(obedit->data);
+    const Curve *cu = blender::id_cast<Curve *>(obedit->data);
     const EditFont *ef = cu->editfont;
     if (ef != nullptr) {
       return obedit;
@@ -343,10 +344,10 @@ static bool font_undosys_poll(bContext *C)
 
 static bool font_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 {
-  FontUndoStep *us = (FontUndoStep *)us_p;
+  FontUndoStep *us = reinterpret_cast<FontUndoStep *>(us_p);
   us->scene_ref.ptr = CTX_data_scene(C);
   us->obedit_ref.ptr = editfont_object_from_context(C);
-  Curve *cu = static_cast<Curve *>(us->obedit_ref.ptr->data);
+  Curve *cu = blender::id_cast<Curve *>(us->obedit_ref.ptr->data);
   undofont_from_editfont(&us->data, cu);
   us->step.data_size = us->data.undo_size;
   cu->editfont->needs_flush_to_id = 1;
@@ -359,7 +360,7 @@ static void font_undosys_step_decode(
     bContext *C, Main *bmain, UndoStep *us_p, const eUndoStepDir /*dir*/, bool /*is_final*/)
 {
 
-  FontUndoStep *us = (FontUndoStep *)us_p;
+  FontUndoStep *us = reinterpret_cast<FontUndoStep *>(us_p);
   Object *obedit = us->obedit_ref.ptr;
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -369,7 +370,7 @@ static void font_undosys_step_decode(
       CTX_wm_manager(C), us->scene_ref.ptr, &scene, &view_layer);
   ED_undo_object_editmode_restore_helper(scene, view_layer, &obedit, 1, sizeof(Object *));
 
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   undofont_to_editfont(&us->data, cu);
   DEG_id_tag_update(&cu->id, ID_RECALC_GEOMETRY);
 
@@ -385,7 +386,7 @@ static void font_undosys_step_decode(
 
 static void font_undosys_step_free(UndoStep *us_p)
 {
-  FontUndoStep *us = (FontUndoStep *)us_p;
+  FontUndoStep *us = reinterpret_cast<FontUndoStep *>(us_p);
   undofont_free_data(&us->data);
 }
 
@@ -393,9 +394,9 @@ static void font_undosys_foreach_ID_ref(UndoStep *us_p,
                                         UndoTypeForEachIDRefFn foreach_ID_ref_fn,
                                         void *user_data)
 {
-  FontUndoStep *us = (FontUndoStep *)us_p;
-  foreach_ID_ref_fn(user_data, ((UndoRefID *)&us->scene_ref));
-  foreach_ID_ref_fn(user_data, ((UndoRefID *)&us->obedit_ref));
+  FontUndoStep *us = reinterpret_cast<FontUndoStep *>(us_p);
+  foreach_ID_ref_fn(user_data, (reinterpret_cast<UndoRefID *>(&us->scene_ref)));
+  foreach_ID_ref_fn(user_data, (reinterpret_cast<UndoRefID *>(&us->obedit_ref)));
 }
 
 void ED_font_undosys_type(UndoType *ut)

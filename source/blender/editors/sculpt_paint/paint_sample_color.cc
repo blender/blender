@@ -261,7 +261,7 @@ static std::optional<float3> sample_mesh_attribute_color(ViewContext &vc,
                                                          Object &object,
                                                          int2 mval)
 {
-  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  const Mesh &mesh = *id_cast<const Mesh *>(object.data);
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
@@ -413,8 +413,8 @@ static wmOperatorStatus sample_color_exec(bContext *C, wmOperator *op)
 
   int2 location;
   RNA_int_get_array(op->ptr, "location", location);
-  location.x = std::clamp(location.x, 0, (int)region->winx);
-  location.y = std::clamp(location.y, 0, (int)region->winy);
+  location.x = std::clamp(location.x, 0, int(region->winx));
+  location.y = std::clamp(location.y, 0, int(region->winy));
 
   const bool use_palette = RNA_boolean_get(op->ptr, "palette");
 
@@ -503,8 +503,8 @@ static wmOperatorStatus sample_color_modal(bContext *C, wmOperator *op, const wm
     return OPERATOR_FINISHED;
   }
   ARegion *region = CTX_wm_region(C);
-  int2 mval(std::clamp(event->mval[0], 0, (int)region->winx),
-            std::clamp(event->mval[1], 0, (int)region->winy));
+  int2 mval(std::clamp(event->mval[0], 0, int(region->winx)),
+            std::clamp(event->mval[1], 0, int(region->winy)));
 
   const bool use_merged_texture = RNA_boolean_get(op->ptr, "merged");
 

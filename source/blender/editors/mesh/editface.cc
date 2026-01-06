@@ -68,9 +68,9 @@ void paintface_flush_flags(bContext *C,
   }
 
   bke::AttributeAccessor attributes_me = mesh->attributes();
-  Mesh *me_orig = (Mesh *)ob_eval->runtime->data_orig;
+  Mesh *me_orig = blender::id_cast<Mesh *>(ob_eval->runtime->data_orig);
   bke::MutableAttributeAccessor attributes_orig = me_orig->attributes_for_write();
-  Mesh *mesh_eval = (Mesh *)ob_eval->runtime->data_eval;
+  Mesh *mesh_eval = blender::id_cast<Mesh *>(ob_eval->runtime->data_eval);
   bke::MutableAttributeAccessor attributes_eval = mesh_eval->attributes_for_write();
   bool updated = false;
 
@@ -96,7 +96,9 @@ void paintface_flush_flags(bContext *C,
     }
 
     /* Mesh faces => Final derived faces */
-    if ((index_array = (const int *)CustomData_get_layer(&mesh_eval->face_data, CD_ORIGINDEX))) {
+    if ((index_array = static_cast<const int *>(
+             CustomData_get_layer(&mesh_eval->face_data, CD_ORIGINDEX))))
+    {
       if (flush_hidden) {
         const VArray<bool> hide_poly_orig = *attributes_orig.lookup_or_default<bool>(
             ".hide_poly", bke::AttrDomain::Face, false);
@@ -804,7 +806,8 @@ void paintvert_flush_flags(Object *ob)
   const bke::AttributeAccessor attributes_orig = mesh->attributes();
   bke::MutableAttributeAccessor attributes_eval = mesh_eval->attributes_for_write();
 
-  const int *orig_indices = (const int *)CustomData_get_layer(&mesh_eval->vert_data, CD_ORIGINDEX);
+  const int *orig_indices = static_cast<const int *>(
+      CustomData_get_layer(&mesh_eval->vert_data, CD_ORIGINDEX));
 
   const VArray<bool> hide_vert_orig = *attributes_orig.lookup_or_default<bool>(
       ".hide_vert", bke::AttrDomain::Point, false);

@@ -193,7 +193,7 @@ static PyObject *bpy_lib_write(BPy_PropertyRNA *self, PyObject *args, PyObject *
 
 PyMethodDef BPY_library_write_method_def = {
     "write",
-    (PyCFunction)bpy_lib_write,
+    reinterpret_cast<PyCFunction>(bpy_lib_write),
     METH_VARARGS | METH_KEYWORDS,
     bpy_lib_write_doc,
 };

@@ -118,7 +118,7 @@ static PyObject *pygpu_compute_dispatch(PyObject * /*self*/, PyObject *args, PyO
 
 static PyMethodDef pygpu_compute__tp_methods[] = {
     {"dispatch",
-     (PyCFunction)pygpu_compute_dispatch,
+     reinterpret_cast<PyCFunction>(pygpu_compute_dispatch),
      METH_VARARGS | METH_KEYWORDS,
      pygpu_compute_dispatch_doc},
     {nullptr, nullptr, 0, nullptr},

@@ -589,7 +589,7 @@ Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
 {
   if (ghost_window) {
     BLI_assert(ghost_context == nullptr);
-    ghost_context = GHOST_GetDrawingContext((GHOST_WindowHandle)ghost_window);
+    ghost_context = GHOST_GetDrawingContext(static_cast<GHOST_WindowHandle>(ghost_window));
   }
 
   BLI_assert(ghost_context != nullptr);
@@ -597,12 +597,12 @@ Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
     device.init(ghost_context);
     device.extensions_get().log();
     device.workarounds_get().log();
-    init_device_list((GHOST_ContextHandle)ghost_context);
+    init_device_list(static_cast<GHOST_ContextHandle>(ghost_context));
   }
 
   VKContext *context = new VKContext(ghost_window, ghost_context);
   device.context_register(*context);
-  GHOST_SetVulkanSwapBuffersCallbacks((GHOST_ContextHandle)ghost_context,
+  GHOST_SetVulkanSwapBuffersCallbacks(static_cast<GHOST_ContextHandle>(ghost_context),
                                       VKContext::swap_buffer_draw_callback,
                                       VKContext::swap_buffer_acquired_callback,
                                       VKContext::openxr_acquire_framebuffer_image_callback,

@@ -17,7 +17,7 @@ namespace blender::ed::outliner {
 std::unique_ptr<AbstractTreeDisplay> AbstractTreeDisplay::create_from_display_mode(
     int /*eSpaceOutliner_Mode*/ mode, SpaceOutliner &space_outliner)
 {
-  switch ((eSpaceOutliner_Mode)mode) {
+  switch (eSpaceOutliner_Mode(mode)) {
     case SO_SCENES:
       return std::make_unique<TreeDisplayScenes>(space_outliner);
     case SO_LIBRARIES:
@@ -29,7 +29,7 @@ std::unique_ptr<AbstractTreeDisplay> AbstractTreeDisplay::create_from_display_mo
     case SO_ID_ORPHANS:
       return std::make_unique<TreeDisplayIDOrphans>(space_outliner);
     case SO_OVERRIDES_LIBRARY:
-      switch ((eSpaceOutliner_LibOverrideViewMode)space_outliner.lib_override_view_mode) {
+      switch (eSpaceOutliner_LibOverrideViewMode(space_outliner.lib_override_view_mode)) {
         case SO_LIB_OVERRIDE_VIEW_PROPERTIES:
           return std::make_unique<TreeDisplayOverrideLibraryProperties>(space_outliner);
         case SO_LIB_OVERRIDE_VIEW_HIERARCHIES:

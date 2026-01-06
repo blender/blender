@@ -131,7 +131,7 @@ static bool return_editmesh_vgroup(Object *obedit, BMEditMesh *em, char *r_name,
 
 static void select_editbmesh_hook(Object *ob, HookModifierData *hmd)
 {
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   BMEditMesh *em = mesh->runtime->edit_mesh.get();
   BMVert *eve;
   BMIter iter;
@@ -205,7 +205,7 @@ static int return_editlattice_indexar(Lattice *editlatt,
 
 static void select_editlattice_hook(Object *obedit, HookModifierData *hmd)
 {
-  Lattice *lt = static_cast<Lattice *>(obedit->data), *editlt;
+  Lattice *lt = blender::id_cast<Lattice *>(obedit->data), *editlt;
   BPoint *bp;
   int index = 0, nr = 0, a;
 
@@ -332,7 +332,7 @@ static bool object_hook_index_array(Main *bmain,
 
   switch (obedit->type) {
     case OB_MESH: {
-      Mesh *mesh = static_cast<Mesh *>(obedit->data);
+      Mesh *mesh = blender::id_cast<Mesh *>(obedit->data);
 
       EDBM_mesh_load(bmain, obedit);
       EDBM_mesh_make(obedit, scene->toolsettings->selectmode, true);
@@ -355,7 +355,7 @@ static bool object_hook_index_array(Main *bmain,
       ED_curve_editnurb_make(obedit);
       return return_editcurve_indexar(obedit, r_indexar, r_indexar_num, r_cent);
     case OB_LATTICE: {
-      Lattice *lt = static_cast<Lattice *>(obedit->data);
+      Lattice *lt = blender::id_cast<Lattice *>(obedit->data);
       return return_editlattice_indexar(lt->editlatt->latt, r_indexar, r_indexar_num, r_cent);
     }
     default:
@@ -424,12 +424,12 @@ static void object_hook_from_context(
   HookModifierData *hmd;
 
   if (ptr->data) { /* if modifier context is available, use that */
-    ob = (Object *)ptr->owner_id;
+    ob = blender::id_cast<Object *>(ptr->owner_id);
     hmd = static_cast<HookModifierData *>(ptr->data);
   }
   else { /* use the provided property */
     ob = CTX_data_edit_object(C);
-    hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
+    hmd = static_cast<HookModifierData *>(BLI_findlink(&ob->modifiers, num));
   }
 
   if (ob && hmd && (hmd->modifier.type == eModifierType_Hook)) {
@@ -537,10 +537,10 @@ static int add_hook_object(const bContext *C,
     mul_v3_m4v3(ob->loc, obedit->object_to_world().ptr(), cent);
   }
 
-  hmd = (HookModifierData *)BKE_modifier_new(eModifierType_Hook);
+  hmd = reinterpret_cast<HookModifierData *>(BKE_modifier_new(eModifierType_Hook));
   BKE_modifiers_add_at_end_if_possible(obedit, &hmd->modifier);
   SNPRINTF_UTF8(hmd->modifier.name, "Hook-%s", ob->id.name + 2);
-  BKE_modifier_unique_name(&obedit->modifiers, (ModifierData *)hmd);
+  BKE_modifier_unique_name(&obedit->modifiers, reinterpret_cast<ModifierData *>(hmd));
   BKE_modifiers_persistent_uid_init(*obedit, hmd->modifier);
 
   hmd->object = ob;
@@ -561,7 +561,7 @@ static int add_hook_object(const bContext *C,
   }
 
   if (mode == OBJECT_ADDHOOK_SELOB_BONE) {
-    bArmature *arm = static_cast<bArmature *>(ob->data);
+    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
     BLI_assert(ob->type == OB_ARMATURE);
     if (arm->act_bone) {
       bPoseChannel *pchan_act;
@@ -700,7 +700,7 @@ static wmOperatorStatus object_hook_remove_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_edit_object(C);
   HookModifierData *hmd = nullptr;
 
-  hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
+  hmd = static_cast<HookModifierData *>(BLI_findlink(&ob->modifiers, num));
   if (!hmd) {
     BKE_report(op->reports, RPT_ERROR, "Could not find hook modifier");
     return OPERATOR_CANCELLED;
@@ -708,8 +708,8 @@ static wmOperatorStatus object_hook_remove_exec(bContext *C, wmOperator *op)
 
   /* remove functionality */
 
-  BKE_modifier_remove_from_list(ob, (ModifierData *)hmd);
-  BKE_modifier_free((ModifierData *)hmd);
+  BKE_modifier_remove_from_list(ob, reinterpret_cast<ModifierData *>(hmd));
+  BKE_modifier_free(reinterpret_cast<ModifierData *>(hmd));
 
   DEG_relations_tag_update(CTX_data_main(C));
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);

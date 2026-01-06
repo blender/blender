@@ -108,8 +108,8 @@ static void version_bonegroup_migrate_color(Main *bmain)
 
     for (bPose *pose : pose_set) {
       for (bPoseChannel &pchan : pose->chanbase) {
-        const bActionGroup *bgrp = (const bActionGroup *)BLI_findlink(&pose->agroups,
-                                                                      (pchan.agrp_index - 1));
+        const bActionGroup *bgrp = static_cast<const bActionGroup *>(
+            BLI_findlink(&pose->agroups, (pchan.agrp_index - 1)));
         if (!bgrp) {
           continue;
         }
@@ -210,8 +210,8 @@ static void version_bonegroups_to_bonecollections(Main *bmain)
     /* Assign the bones to their bone group based collection. */
     for (bPoseChannel &pchan : pose->chanbase) {
       /* Find the bone group of this pose channel. */
-      const bActionGroup *bgrp = (const bActionGroup *)BLI_findlink(&pose->agroups,
-                                                                    (pchan.agrp_index - 1));
+      const bActionGroup *bgrp = static_cast<const bActionGroup *>(
+          BLI_findlink(&pose->agroups, (pchan.agrp_index - 1)));
       if (!bgrp) {
         continue;
       }
@@ -492,7 +492,8 @@ static void versioning_remove_microfacet_sharp_distribution(bNodeTree *ntree)
       if (socket.link != nullptr) {
         blender::bke::node_remove_link(ntree, *socket.link);
       }
-      bNodeSocketValueFloat *socket_value = (bNodeSocketValueFloat *)socket.default_value;
+      bNodeSocketValueFloat *socket_value = static_cast<bNodeSocketValueFloat *>(
+          socket.default_value);
       socket_value->value = 0.0f;
 
       break;
@@ -563,7 +564,8 @@ static void version_replace_texcoord_normal_socket(bNodeTree *ntree)
         vec_in_socket = blender::bke::node_find_socket(*transform_node, SOCK_IN, "Vector");
         vec_out_socket = blender::bke::node_find_socket(*transform_node, SOCK_OUT, "Vector");
 
-        NodeShaderVectTransform *nodeprop = (NodeShaderVectTransform *)transform_node->storage;
+        NodeShaderVectTransform *nodeprop = static_cast<NodeShaderVectTransform *>(
+            transform_node->storage);
         nodeprop->type = SHD_VECT_TRANSFORM_TYPE_NORMAL;
 
         blender::bke::node_add_link(
@@ -1393,7 +1395,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
               tex->type = SHD_NOISE_FBM;
               node.storage = tex;
             }
-            ((NodeTexNoise *)node.storage)->normalize = true;
+            (static_cast<NodeTexNoise *>(node.storage))->normalize = true;
           }
         }
       }
@@ -1627,7 +1629,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       for (ScrArea &area : screen.areabase) {
         for (SpaceLink &sl : area.spacedata) {
           if (sl.spacetype == SPACE_SEQ) {
-            SpaceSeq *sseq = (SpaceSeq *)&sl;
+            SpaceSeq *sseq = reinterpret_cast<SpaceSeq *>(&sl);
             sseq->timeline_overlay.flag |= SEQ_TIMELINE_SHOW_STRIP_RETIMING;
           }
         }

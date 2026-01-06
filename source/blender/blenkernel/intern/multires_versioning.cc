@@ -38,7 +38,7 @@ static blender::bke::subdiv::Subdiv *subdiv_for_simple_to_catmull_clark(Object *
   subdiv::Settings subdiv_settings;
   BKE_multires_subdiv_settings_init(&subdiv_settings, mmd);
 
-  const Mesh *base_mesh = static_cast<const Mesh *>(object->data);
+  const Mesh *base_mesh = blender::id_cast<const Mesh *>(object->data);
 
   OpenSubdiv_Converter converter;
   subdiv::converter_init_for_mesh(&converter, &subdiv_settings, base_mesh);
@@ -61,7 +61,7 @@ static blender::bke::subdiv::Subdiv *subdiv_for_simple_to_catmull_clark(Object *
 void multires_do_versions_simple_to_catmull_clark(Object *object, MultiresModifierData *mmd)
 {
 #ifdef WITH_OPENSUBDIV
-  const Mesh *base_mesh = static_cast<const Mesh *>(object->data);
+  const Mesh *base_mesh = blender::id_cast<const Mesh *>(object->data);
   if (base_mesh->corners_num == 0) {
     return;
   }

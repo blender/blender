@@ -136,7 +136,7 @@ static bool fluid_initjob(
   FluidDomainSettings *fds;
   Object *ob = blender::ed::object::context_active_object(C);
 
-  fmd = (FluidModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Fluid);
+  fmd = reinterpret_cast<FluidModifierData *>(BKE_modifiers_findby_type(ob, eModifierType_Fluid));
   if (!fmd) {
     BLI_strncpy_utf8(error_msg, N_("Bake failed: no Fluid modifier found"), error_size);
     return false;
@@ -619,7 +619,7 @@ static wmOperatorStatus fluid_free_exec(bContext *C, wmOperator *op)
   /*
    * Get modifier data
    */
-  fmd = (FluidModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Fluid);
+  fmd = reinterpret_cast<FluidModifierData *>(BKE_modifiers_findby_type(ob, eModifierType_Fluid));
   if (!fmd) {
     BKE_report(op->reports, RPT_ERROR, "Bake free failed: no Fluid modifier found");
     return OPERATOR_CANCELLED;
@@ -683,7 +683,7 @@ static wmOperatorStatus fluid_pause_exec(bContext *C, wmOperator *op)
   /*
    * Get modifier data
    */
-  fmd = (FluidModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Fluid);
+  fmd = reinterpret_cast<FluidModifierData *>(BKE_modifiers_findby_type(ob, eModifierType_Fluid));
   if (!fmd) {
     BKE_report(op->reports, RPT_ERROR, "Bake free failed: no Fluid modifier found");
     return OPERATOR_CANCELLED;

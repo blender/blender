@@ -338,7 +338,7 @@ struct SelectReadData {
 static bool select_buffer_test_fn(const void *__restrict value, void *__restrict userdata)
 {
   SelectReadData *data = static_cast<SelectReadData *>(userdata);
-  uint hit_id = *(uint *)value;
+  uint hit_id = *static_cast<uint *>(const_cast<void *>(value));
   if (hit_id && hit_id >= data->id_min && hit_id < data->id_max) {
     /* Start at 1 to confirm. */
     data->val_ptr = value;

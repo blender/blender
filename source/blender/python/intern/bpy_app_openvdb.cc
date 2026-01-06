@@ -91,7 +91,7 @@ PyObject *BPY_app_openvdb_struct()
   BlenderAppOVDBType.tp_init = nullptr;
   BlenderAppOVDBType.tp_new = nullptr;
   /* Without this we can't do `set(sys.modules)` #29635. */
-  BlenderAppOVDBType.tp_hash = (hashfunc)Py_HashPointer;
+  BlenderAppOVDBType.tp_hash = reinterpret_cast<hashfunc>(Py_HashPointer);
 
   return ret;
 }

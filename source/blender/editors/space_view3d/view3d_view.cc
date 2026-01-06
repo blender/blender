@@ -522,7 +522,7 @@ eV3DSelectObjectFilter ED_view3d_select_filter_from_mode(const Scene *scene, con
 {
   if (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
     if (obact && (obact->mode & OB_MODE_ALL_WEIGHT_PAINT) &&
-        BKE_object_pose_armature_get((Object *)obact))
+        BKE_object_pose_armature_get(const_cast<Object *>(obact)))
     {
       return VIEW3D_SELECT_FILTER_WPAINT_POSE_MODE_LOCK;
     }
@@ -906,7 +906,7 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
 
         if (rv3d->persp == RV3D_CAMOB) {
           camera_old = v3d->camera;
-          const Camera &camera = *static_cast<Camera *>(camera_old->data);
+          const Camera &camera = *blender::id_cast<Camera *>(camera_old->data);
           rv3d->persp = (camera.type == CAM_ORTHO) ? RV3D_ORTHO : RV3D_PERSP;
         }
 

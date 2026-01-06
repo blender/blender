@@ -101,7 +101,7 @@ static void cmp_node_planetrackdeform_declare(NodeDeclarationBuilder &b)
 
 static void init(const bContext *C, PointerRNA *ptr)
 {
-  bNode *node = (bNode *)ptr->data;
+  bNode *node = static_cast<bNode *>(ptr->data);
 
   NodePlaneTrackDeformData *data = MEM_new_for_free<NodePlaneTrackDeformData>(__func__);
   node->storage = data;

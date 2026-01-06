@@ -55,7 +55,7 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
     BM_mesh_normals_update(em->bm);
   }
   else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
-    Curve *cu = static_cast<Curve *>(obedit->data);
+    Curve *cu = blender::id_cast<Curve *>(obedit->data);
     ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
     Nurb *nu = static_cast<Nurb *>(nurbs->first);
 
@@ -113,7 +113,7 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
     }
   }
   else if (obedit->type == OB_ARMATURE) {
-    bArmature *arm = static_cast<bArmature *>(obedit->data);
+    bArmature *arm = blender::id_cast<bArmature *>(obedit->data);
     TransVert *tv = tvs->transverts;
     int a = 0;
 
@@ -157,19 +157,19 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
     }
   }
   else if (obedit->type == OB_LATTICE) {
-    Lattice *lt = static_cast<Lattice *>(obedit->data);
+    Lattice *lt = blender::id_cast<Lattice *>(obedit->data);
 
     if (lt->editlatt->latt->flag & LT_OUTSIDE) {
       outside_lattice(lt->editlatt->latt);
     }
   }
   else if (obedit->type == OB_CURVES) {
-    Curves *curves_id = static_cast<Curves *>(obedit->data);
+    Curves *curves_id = blender::id_cast<Curves *>(obedit->data);
     blender::ed::curves::transverts_update_curves(
         curves_id->geometry.wrap(), tvs, (mode & TM_SKIP_HANDLES) != 0);
   }
   else if (obedit->type == OB_POINTCLOUD) {
-    PointCloud *pointcloud = static_cast<PointCloud *>(obedit->data);
+    PointCloud *pointcloud = blender::id_cast<PointCloud *>(obedit->data);
     pointcloud->tag_positions_changed();
   }
 }
@@ -230,7 +230,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
 
   if (obedit->type == OB_MESH) {
     const Object *object_orig = DEG_get_original(obedit);
-    const Mesh &mesh = *static_cast<Mesh *>(object_orig->data);
+    const Mesh &mesh = *blender::id_cast<Mesh *>(object_orig->data);
     BMEditMesh *em = mesh.runtime->edit_mesh.get();
     BMesh *bm = em->bm;
     BMIter iter;
@@ -339,7 +339,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     }
   }
   else if (obedit->type == OB_ARMATURE) {
-    bArmature *arm = static_cast<bArmature *>(obedit->data);
+    bArmature *arm = blender::id_cast<bArmature *>(obedit->data);
     int totmalloc = BLI_listbase_count(arm->edbo);
 
     totmalloc *= 2; /* probably overkill but bones can have 2 trans verts each */
@@ -386,7 +386,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     }
   }
   else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
-    Curve *cu = static_cast<Curve *>(obedit->data);
+    Curve *cu = blender::id_cast<Curve *>(obedit->data);
     int totmalloc = 0;
     ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
 
@@ -475,7 +475,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     }
   }
   else if (obedit->type == OB_MBALL) {
-    MetaBall *mb = static_cast<MetaBall *>(obedit->data);
+    MetaBall *mb = blender::id_cast<MetaBall *>(obedit->data);
     int totmalloc = BLI_listbase_count(mb->editelems);
 
     tv = tvs->transverts = MEM_calloc_arrayN<TransVert>(totmalloc, __func__);
@@ -493,7 +493,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     }
   }
   else if (obedit->type == OB_LATTICE) {
-    Lattice *lt = static_cast<Lattice *>(obedit->data);
+    Lattice *lt = blender::id_cast<Lattice *>(obedit->data);
 
     bp = lt->editlatt->latt->def;
 
@@ -515,12 +515,12 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     }
   }
   else if (obedit->type == OB_CURVES) {
-    Curves *curves_id = static_cast<Curves *>(obedit->data);
+    Curves *curves_id = blender::id_cast<Curves *>(obedit->data);
     blender::ed::curves::transverts_from_curves_positions_create(
         curves_id->geometry.wrap(), tvs, ((mode & TM_SKIP_HANDLES) != 0));
   }
   else if (obedit->type == OB_POINTCLOUD) {
-    PointCloud *pointcloud = static_cast<PointCloud *>(obedit->data);
+    PointCloud *pointcloud = blender::id_cast<PointCloud *>(obedit->data);
 
     IndexMaskMemory memory;
     const IndexMask selection = blender::ed::pointcloud::retrieve_selected_points(*pointcloud,

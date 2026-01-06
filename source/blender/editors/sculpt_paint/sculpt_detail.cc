@@ -205,7 +205,7 @@ static bool sample_detail_voxel(bContext *C, ViewContext *vc, const int mval[2])
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object &ob = *vc->obact;
   SculptSession &ss = *ob.sculpt;
-  Mesh &mesh = *static_cast<Mesh *>(ob.data);
+  Mesh &mesh = *blender::id_cast<Mesh *>(ob.data);
   const Span<float3> positions = bke::pbvh::vert_positions_eval(*depsgraph, ob);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();

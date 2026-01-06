@@ -918,7 +918,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
       BLI_rctf_init_minmax(&bounds);
 
       /* coords */
-      cos = (float *)face_coords;
+      cos = reinterpret_cast<float *>(face_coords);
       for (sf_vert = static_cast<ScanFillVert *>(sf_ctx.fillvertbase.first); sf_vert;
            sf_vert = sf_vert_next)
       {
@@ -1014,7 +1014,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
       face_index = 0;
 
       /* faces */
-      face = (uint *)face_array;
+      face = reinterpret_cast<uint *>(face_array);
       for (sf_tri = static_cast<ScanFillFace *>(sf_ctx.fillfacebase.first); sf_tri;
            sf_tri = sf_tri->next)
       {

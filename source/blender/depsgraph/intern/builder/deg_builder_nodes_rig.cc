@@ -58,7 +58,7 @@ void DepsgraphNodeBuilder::build_pose_constraints(Object *object,
 
 void DepsgraphNodeBuilder::build_ik_pose(Object *object, bPoseChannel *pchan, bConstraint *con)
 {
-  bKinematicConstraint *data = (bKinematicConstraint *)con->data;
+  bKinematicConstraint *data = static_cast<bKinematicConstraint *>(con->data);
 
   /* Find the chain's root. */
   bPoseChannel *rootchan = BKE_armature_ik_solver_find_root(pchan, data);
@@ -91,7 +91,7 @@ void DepsgraphNodeBuilder::build_splineik_pose(Object *object,
                                                bPoseChannel *pchan,
                                                bConstraint *con)
 {
-  bSplineIKConstraint *data = (bSplineIKConstraint *)con->data;
+  bSplineIKConstraint *data = static_cast<bSplineIKConstraint *>(con->data);
 
   /* Find the chain's root. */
   bPoseChannel *rootchan = BKE_armature_splineik_solver_find_root(pchan, data);
@@ -123,7 +123,7 @@ void DepsgraphNodeBuilder::build_splineik_pose(Object *object,
 /* Pose/Armature Bones Graph */
 void DepsgraphNodeBuilder::build_rig(Object *object)
 {
-  bArmature *armature = (bArmature *)object->data;
+  bArmature *armature = blender::id_cast<bArmature *>(object->data);
   Scene *scene_cow = get_cow_datablock(scene_);
   Object *object_cow = get_cow_datablock(object);
   OperationNode *op_node;

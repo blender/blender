@@ -38,7 +38,7 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
      * of visible light and commonly used for VFX balls. */
     bNode *bsdf = bke::node_add_static_node(nullptr, *ntree, SH_NODE_BSDF_DIFFUSE);
     bNodeSocket *base_color = bke::node_find_socket(*bsdf, SOCK_IN, "Color");
-    copy_v3_fl(((bNodeSocketValueRGBA *)base_color->default_value)->value, 0.18f);
+    copy_v3_fl((static_cast<bNodeSocketValueRGBA *>(base_color->default_value))->value, 0.18f);
 
     bNode *output = bke::node_add_static_node(nullptr, *ntree, SH_NODE_OUTPUT_MATERIAL);
 
@@ -58,9 +58,9 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
 
     bNode *bsdf = bke::node_add_static_node(nullptr, *ntree, SH_NODE_BSDF_GLOSSY);
     bNodeSocket *base_color = bke::node_find_socket(*bsdf, SOCK_IN, "Color");
-    copy_v3_fl(((bNodeSocketValueRGBA *)base_color->default_value)->value, 1.0f);
+    copy_v3_fl((static_cast<bNodeSocketValueRGBA *>(base_color->default_value))->value, 1.0f);
     bNodeSocket *roughness = bke::node_find_socket(*bsdf, SOCK_IN, "Roughness");
-    ((bNodeSocketValueFloat *)roughness->default_value)->value = 0.0f;
+    (static_cast<bNodeSocketValueFloat *>(roughness->default_value))->value = 0.0f;
 
     bNode *output = bke::node_add_static_node(nullptr, *ntree, SH_NODE_OUTPUT_MATERIAL);
 
@@ -86,7 +86,8 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
     /* Use emission and output material to be compatible with both World and Material. */
     bNode *bsdf = bke::node_add_static_node(nullptr, *ntree, SH_NODE_EMISSION);
     bNodeSocket *color = bke::node_find_socket(*bsdf, SOCK_IN, "Color");
-    copy_v3_fl3(((bNodeSocketValueRGBA *)color->default_value)->value, 1.0f, 0.0f, 1.0f);
+    copy_v3_fl3(
+        (static_cast<bNodeSocketValueRGBA *>(color->default_value))->value, 1.0f, 0.0f, 1.0f);
 
     bNode *output = bke::node_add_static_node(nullptr, *ntree, SH_NODE_OUTPUT_MATERIAL);
 

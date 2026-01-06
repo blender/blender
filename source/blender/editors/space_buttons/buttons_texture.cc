@@ -166,7 +166,8 @@ static void buttons_texture_users_find_nodetree(ListBaseT<ButsTextureUser> *user
                                       node->name);
       }
       else if (node->is_group() && node->id) {
-        buttons_texture_users_find_nodetree(users, id, (bNodeTree *)node->id, category);
+        buttons_texture_users_find_nodetree(
+            users, id, blender::id_cast<bNodeTree *>(node->id), category);
       }
     }
   }
@@ -186,7 +187,7 @@ static void buttons_texture_modifier_geonodes_users_add(
       if (handled_groups.add(reinterpret_cast<bNodeTree *>(node->id))) {
         /* Recurse into the node group */
         buttons_texture_modifier_geonodes_users_add(
-            ob, nmd, (bNodeTree *)node->id, users, handled_groups);
+            ob, nmd, blender::id_cast<bNodeTree *>(node->id), users, handled_groups);
       }
     }
     for (bNodeSocket &socket : node->inputs) {
@@ -200,7 +201,8 @@ static void buttons_texture_modifier_geonodes_users_add(
       prop = RNA_struct_find_property(&ptr, "default_value");
 
       PointerRNA texptr = RNA_property_pointer_get(&ptr, prop);
-      Tex *tex = RNA_struct_is_a(texptr.type, &RNA_Texture) ? (Tex *)texptr.data : nullptr;
+      Tex *tex = RNA_struct_is_a(texptr.type, &RNA_Texture) ? static_cast<Tex *>(texptr.data) :
+                                                              nullptr;
       if (tex != nullptr) {
         buttons_texture_user_socket_property_add(users,
                                                  &ob->id,
@@ -226,14 +228,14 @@ static void buttons_texture_modifier_foreach(void *user_data,
   ListBaseT<ButsTextureUser> *users = static_cast<ListBaseT<ButsTextureUser> *>(user_data);
 
   if (md->type == eModifierType_Nodes) {
-    NodesModifierData *nmd = (NodesModifierData *)md;
+    NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
     if (nmd->node_group != nullptr) {
       blender::Set<const bNodeTree *> handled_groups;
       buttons_texture_modifier_geonodes_users_add(ob, nmd, nmd->node_group, users, handled_groups);
     }
   }
   else {
-    const ModifierTypeInfo *modifier_type = BKE_modifier_get_info((ModifierType)md->type);
+    const ModifierTypeInfo *modifier_type = BKE_modifier_get_info(ModifierType(md->type));
 
     buttons_texture_user_property_add(
         users, &ob->id, *ptr, texture_prop, N_("Modifiers"), modifier_type->icon, md->name);
@@ -254,16 +256,16 @@ static void buttons_texture_users_from_context(ListBaseT<ButsTextureUser> *users
   /* get data from context */
   if (pinid) {
     if (GS(pinid->name) == ID_SCE) {
-      scene = (Scene *)pinid;
+      scene = blender::id_cast<Scene *>(pinid);
     }
     else if (GS(pinid->name) == ID_OB) {
-      ob = (Object *)pinid;
+      ob = blender::id_cast<Object *>(pinid);
     }
     else if (GS(pinid->name) == ID_BR) {
       brush = reinterpret_cast<Brush *>(pinid);
     }
     else if (GS(pinid->name) == ID_LS) {
-      linestyle = (FreestyleLineStyle *)pinid;
+      linestyle = blender::id_cast<FreestyleLineStyle *>(pinid);
     }
   }
 
@@ -386,7 +388,7 @@ void buttons_texture_context_compute(const bContext *C, SpaceProperties *sbuts)
 
   if (pinid && GS(pinid->name) == ID_TE) {
     ct->user = nullptr;
-    ct->texture = (Tex *)pinid;
+    ct->texture = blender::id_cast<Tex *>(pinid);
   }
   else {
     /* set one user as active based on active index */
@@ -433,7 +435,7 @@ static void template_texture_select(bContext *C, void *user_p, void * /*arg*/)
   /* callback when selecting a texture user in the menu */
   SpaceProperties *sbuts = find_space_properties(C);
   ButsContextTexture *ct = (sbuts) ? static_cast<ButsContextTexture *>(sbuts->texuser) : nullptr;
-  ButsTextureUser *user = (ButsTextureUser *)user_p;
+  ButsTextureUser *user = static_cast<ButsTextureUser *>(user_p);
   PointerRNA texptr;
   Tex *tex;
 
@@ -462,7 +464,7 @@ static void template_texture_select(bContext *C, void *user_p, void * /*arg*/)
     if (user->ptr.type == &RNA_ParticleSettingsTextureSlot) {
       /* stupid exception for particle systems which still uses influence
        * from the old texture system, set the active texture slots as well */
-      ParticleSettings *part = (ParticleSettings *)user->ptr.owner_id;
+      ParticleSettings *part = blender::id_cast<ParticleSettings *>(user->ptr.owner_id);
       int a;
 
       for (a = 0; a < MAX_MTEX; a++) {
@@ -599,7 +601,9 @@ static ScrArea *find_area_properties(const bContext *C)
       /* Only if unpinned, or if pinned object matches. */
       SpaceProperties *sbuts = static_cast<SpaceProperties *>(area.spacedata.first);
       ID *pinid = sbuts->pinid;
-      if (pinid == nullptr || ((GS(pinid->name) == ID_OB) && (Object *)pinid == ob)) {
+      if (pinid == nullptr ||
+          ((GS(pinid->name) == ID_OB) && blender::id_cast<Object *>(pinid) == ob))
+      {
         return &area;
       }
     }
@@ -629,7 +633,7 @@ static void template_texture_show(bContext *C, void *data_p, void *prop_p)
     return;
   }
 
-  SpaceProperties *sbuts = (SpaceProperties *)area->spacedata.first;
+  SpaceProperties *sbuts = static_cast<SpaceProperties *>(area->spacedata.first);
   ButsContextTexture *ct = (sbuts) ? static_cast<ButsContextTexture *>(sbuts->texuser) : nullptr;
   if (!ct) {
     return;

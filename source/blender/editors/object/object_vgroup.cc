@@ -95,8 +95,8 @@ static bool vertex_group_use_vert_sel(Object *ob)
   if (ob->mode == OB_MODE_EDIT) {
     return true;
   }
-  if ((ob->type == OB_MESH) &&
-      ((Mesh *)ob->data)->editflag & (ME_EDIT_PAINT_VERT_SEL | ME_EDIT_PAINT_FACE_SEL))
+  if ((ob->type == OB_MESH) && (blender::id_cast<Mesh *>(ob->data))->editflag &
+                                   (ME_EDIT_PAINT_VERT_SEL | ME_EDIT_PAINT_FACE_SEL))
   {
     return true;
   }
@@ -105,7 +105,7 @@ static bool vertex_group_use_vert_sel(Object *ob)
 
 static Lattice *vgroup_edit_lattice(Object *ob)
 {
-  Lattice *lt = static_cast<Lattice *>(ob->data);
+  Lattice *lt = blender::id_cast<Lattice *>(ob->data);
   BLI_assert(ob->type == OB_LATTICE);
   return (lt->editlatt) ? lt->editlatt->latt : lt;
 }
@@ -120,7 +120,7 @@ bool vgroup_sync_from_pose(Object *ob)
 {
   Object *armobj = BKE_object_pose_armature_get(ob);
   if (armobj && (armobj->mode & OB_MODE_POSE)) {
-    bArmature *arm = static_cast<bArmature *>(armobj->data);
+    bArmature *arm = blender::id_cast<bArmature *>(armobj->data);
     if (arm->act_bone) {
       int def_num = BKE_object_defgroup_name_index(ob, arm->act_bone->name);
       if (def_num != -1) {
@@ -162,7 +162,7 @@ bool vgroup_parray_alloc(ID *id,
   if (id) {
     switch (GS(id->name)) {
       case ID_ME: {
-        Mesh *mesh = (Mesh *)id;
+        Mesh *mesh = blender::id_cast<Mesh *>(id);
 
         if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
           BMesh *bm = em->bm;
@@ -226,7 +226,7 @@ bool vgroup_parray_alloc(ID *id,
         return false;
       }
       case ID_LT: {
-        Lattice *lt = (Lattice *)id;
+        Lattice *lt = blender::id_cast<Lattice *>(id);
         lt = (lt->editlatt) ? lt->editlatt->latt : lt;
 
         if (lt->dvert) {
@@ -299,9 +299,7 @@ void vgroup_parray_mirror_sync(Object *ob,
   int dvert_tot_all;
 
   /* get an array of all verts, not only selected */
-  if (vgroup_parray_alloc(static_cast<ID *>(ob->data), &dvert_array_all, &dvert_tot_all, false) ==
-      false)
-  {
+  if (vgroup_parray_alloc(ob->data, &dvert_array_all, &dvert_tot_all, false) == false) {
     BLI_assert(0);
     return;
   }
@@ -340,9 +338,7 @@ void vgroup_parray_mirror_assign(Object *ob, MDeformVert **dvert_array, const in
   int dvert_tot_all;
 
   /* get an array of all verts, not only selected */
-  if (vgroup_parray_alloc(static_cast<ID *>(ob->data), &dvert_array_all, &dvert_tot_all, false) ==
-      false)
-  {
+  if (vgroup_parray_alloc(ob->data, &dvert_array_all, &dvert_tot_all, false) == false) {
     BLI_assert(0);
     return;
   }
@@ -422,14 +418,13 @@ bool vgroup_array_copy(Object *ob, Object *ob_from)
   /* In case we copy vgroup between two objects using same data,
    * we only have to care about object side of things. */
   if (ob->data != ob_from->data) {
-    vgroup_parray_alloc(
-        static_cast<ID *>(ob_from->data), &dvert_array_from, &dvert_tot_from, false);
-    vgroup_parray_alloc(static_cast<ID *>(ob->data), &dvert_array, &dvert_tot, false);
+    vgroup_parray_alloc(ob_from->data, &dvert_array_from, &dvert_tot_from, false);
+    vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, false);
 
     if ((dvert_array == nullptr) && (dvert_array_from != nullptr) &&
-        BKE_object_defgroup_data_create(static_cast<ID *>(ob->data)))
+        BKE_object_defgroup_data_create(ob->data))
     {
-      vgroup_parray_alloc(static_cast<ID *>(ob->data), &dvert_array, &dvert_tot, false);
+      vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, false);
       new_vgroup = true;
     }
 
@@ -559,7 +554,7 @@ static void mesh_defvert_mirror_update_internal(Object *ob,
 static void mesh_defvert_mirror_update_em(
     Object *ob, BMVert *eve, int def_nr, int vidx, const int cd_dvert_offset)
 {
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   BMEditMesh *em = mesh->runtime->edit_mesh.get();
   BMVert *eve_mirr;
   bool use_topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
@@ -578,7 +573,7 @@ static void mesh_defvert_mirror_update_em(
 static void mesh_defvert_mirror_update_ob(Object *ob, int def_nr, int vidx)
 {
   int vidx_mirr;
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   bool use_topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
   if (vidx == -1) {
@@ -597,7 +592,7 @@ static void mesh_defvert_mirror_update_ob(Object *ob, int def_nr, int vidx)
 
 void vgroup_vert_active_mirror(Object *ob, int def_nr)
 {
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   BMEditMesh *em = mesh->runtime->edit_mesh.get();
   MDeformVert *dvert_act;
 
@@ -633,7 +628,7 @@ static void vgroup_remove_weight(Object *ob, const int def_nr)
 
 static bool vgroup_normalize_active_vertex(Object *ob, eVGroupSelect subset_type)
 {
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   BMEditMesh *em = mesh->runtime->edit_mesh.get();
   BMVert *eve_act;
   int v_act;
@@ -683,7 +678,7 @@ static bool vgroup_normalize_active_vertex(Object *ob, eVGroupSelect subset_type
 
 static void vgroup_copy_active_to_sel(Object *ob, eVGroupSelect subset_type)
 {
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   MDeformVert *dvert_act;
   int i, vgroup_tot, subset_count;
   const bool *vgroup_validmap = BKE_object_defgroup_subset_from_select_type(
@@ -858,7 +853,7 @@ static void vgroup_nr_vert_add(
   int tot;
 
   /* Get the vert. */
-  BKE_object_defgroup_array_get(static_cast<ID *>(ob->data), &dvert, &tot);
+  BKE_object_defgroup_array_get(ob->data, &dvert, &tot);
 
   if (dvert == nullptr) {
     return;
@@ -930,8 +925,8 @@ void vgroup_vert_add(Object *ob, bDeformGroup *dg, int vertnum, float weight, in
 
     /* if there's no deform verts then create some,
      */
-    if (BKE_object_defgroup_array_get(static_cast<ID *>(ob->data), &dv, &tot) && dv == nullptr) {
-      BKE_object_defgroup_data_create(static_cast<ID *>(ob->data));
+    if (BKE_object_defgroup_array_get(ob->data, &dv, &tot) && dv == nullptr) {
+      BKE_object_defgroup_data_create(ob->data);
     }
 
     /* call another function to do the work
@@ -958,7 +953,7 @@ void vgroup_vert_remove(Object *ob, bDeformGroup *dg, int vertnum)
     /* get the deform vertices corresponding to the
      * vertnum
      */
-    BKE_object_defgroup_array_get(static_cast<ID *>(ob->data), &dvert, &tot);
+    BKE_object_defgroup_array_get(ob->data, &dvert, &tot);
 
     if (dvert) {
       MDeformVert *dv = &dvert[vertnum];
@@ -976,7 +971,7 @@ static float get_vert_def_nr(Object *ob, const int def_nr, const int vertnum)
 
   /* get the deform vertices corresponding to the vertnum */
   if (ob->type == OB_MESH) {
-    Mesh *mesh = static_cast<Mesh *>(ob->data);
+    Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
 
     if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
       const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
@@ -1058,7 +1053,7 @@ static void vgroup_grease_pencil_select_verts(const Scene &scene,
   using namespace ed::greasepencil;
   const bke::AttrDomain selection_domain = ED_grease_pencil_edit_selection_domain_get(
       &tool_settings);
-  GreasePencil *grease_pencil = static_cast<GreasePencil *>(object.data);
+  GreasePencil *grease_pencil = blender::id_cast<GreasePencil *>(object.data);
 
   Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, *grease_pencil);
   for (MutableDrawingInfo &info : drawings) {
@@ -1132,7 +1127,7 @@ static void vgroup_select_verts(const ToolSettings &tool_settings,
   }
 
   if (ob->type == OB_MESH) {
-    Mesh *mesh = static_cast<Mesh *>(ob->data);
+    Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
 
     if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
       const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
@@ -1246,7 +1241,7 @@ static void vgroup_duplicate(Object *ob)
   icdg = BKE_object_defgroup_active_index_get(ob) - 1;
 
   /* TODO(@ideasman42): we might want to allow only copy selected verts here? */
-  vgroup_parray_alloc(static_cast<ID *>(ob->data), &dvert_array, &dvert_tot, false);
+  vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, false);
 
   if (dvert_array) {
     for (i = 0; i < dvert_tot; i++) {
@@ -1278,7 +1273,7 @@ static bool vgroup_normalize(Object *ob)
     return false;
   }
 
-  vgroup_parray_alloc(static_cast<ID *>(ob->data), &dvert_array, &dvert_tot, use_vert_sel);
+  vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
   if (dvert_array) {
     float weight_max = 0.0f;
@@ -1334,11 +1329,11 @@ static void vgroup_levels_subset(Object *ob,
   int dvert_tot = 0;
 
   const bool use_vert_sel = vertex_group_use_vert_sel(ob);
-  const bool use_mirror = (ob->type == OB_MESH) ?
-                              (((Mesh *)ob->data)->symmetry & ME_SYMMETRY_X) != 0 :
-                              false;
+  const bool use_mirror = (ob->type == OB_MESH) ? ((blender::id_cast<Mesh *>(ob->data))->symmetry &
+                                                   ME_SYMMETRY_X) != 0 :
+                                                  false;
 
-  vgroup_parray_alloc(static_cast<ID *>(ob->data), &dvert_array, &dvert_tot, use_vert_sel);
+  vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
   if (dvert_array) {
 
@@ -1403,8 +1398,7 @@ static bool vgroup_normalize_all(Object *ob,
 
   MDeformVert **dvert_array = nullptr;
   int dvert_tot = 0;
-  vgroup_parray_alloc(
-      static_cast<ID *>(ob->data), &dvert_array, &dvert_tot, use_vert_sel, current_frame);
+  vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, use_vert_sel, current_frame);
 
   if (!dvert_array) {
     return false;
@@ -1636,11 +1630,11 @@ static void vgroup_invert_subset(Object *ob,
   MDeformVert *dv, **dvert_array = nullptr;
   int dvert_tot = 0;
   const bool use_vert_sel = vertex_group_use_vert_sel(ob);
-  const bool use_mirror = (ob->type == OB_MESH) ?
-                              (((Mesh *)ob->data)->symmetry & ME_SYMMETRY_X) != 0 :
-                              false;
+  const bool use_mirror = (ob->type == OB_MESH) ? ((blender::id_cast<Mesh *>(ob->data))->symmetry &
+                                                   ME_SYMMETRY_X) != 0 :
+                                                  false;
 
-  vgroup_parray_alloc(static_cast<ID *>(ob->data), &dvert_array, &dvert_tot, use_vert_sel);
+  vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
   if (dvert_array) {
     for (int i = 0; i < dvert_tot; i++) {
@@ -1696,9 +1690,9 @@ static void vgroup_smooth_subset(Object *ob,
   int dvert_tot = 0;
   Array<int, 32> vgroup_subset_map(subset_count);
   Array<float, 32> vgroup_subset_weights(subset_count);
-  const bool use_mirror = (ob->type == OB_MESH) ?
-                              (((Mesh *)ob->data)->symmetry & ME_SYMMETRY_X) != 0 :
-                              false;
+  const bool use_mirror = (ob->type == OB_MESH) ? ((blender::id_cast<Mesh *>(ob->data))->symmetry &
+                                                   ME_SYMMETRY_X) != 0 :
+                                                  false;
   const bool use_select = vertex_group_use_vert_sel(ob);
   const bool use_hide = use_select;
 
@@ -1708,7 +1702,7 @@ static void vgroup_smooth_subset(Object *ob,
 
   BMEditMesh *em = BKE_editmesh_from_object(ob);
   BMesh *bm = em ? em->bm : nullptr;
-  Mesh *mesh = em ? nullptr : static_cast<Mesh *>(ob->data);
+  Mesh *mesh = em ? nullptr : blender::id_cast<Mesh *>(ob->data);
 
   float *weight_accum_prev;
   float *weight_accum_curr;
@@ -1720,7 +1714,7 @@ static void vgroup_smooth_subset(Object *ob,
   STACK_DECLARE(verts_used);
 
   BKE_object_defgroup_subset_to_index_array(vgroup_validmap, vgroup_tot, vgroup_subset_map.data());
-  vgroup_parray_alloc(static_cast<ID *>(ob->data), &dvert_array, &dvert_tot, false);
+  vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, false);
   vgroup_subset_weights.fill(0.0f);
 
   Array<int> vert_to_edge_offsets;
@@ -1898,7 +1892,7 @@ static void vgroup_smooth_subset(Object *ob,
 
   /* not so efficient to get 'dvert_array' again just so unselected verts are nullptr'd */
   if (use_mirror) {
-    vgroup_parray_alloc(static_cast<ID *>(ob->data), &dvert_array, &dvert_tot, true);
+    vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, true);
     vgroup_parray_mirror_sync(ob, dvert_array, dvert_tot, vgroup_validmap, vgroup_tot);
     if (dvert_array) {
       MEM_freeN(dvert_array);
@@ -1949,7 +1943,7 @@ static int vgroup_limit_total_subset(Object *ob,
   const bool use_vert_sel = vertex_group_use_vert_sel(ob);
   int remove_tot = 0;
 
-  vgroup_parray_alloc(static_cast<ID *>(ob->data), &dvert_array, &dvert_tot, use_vert_sel);
+  vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
   if (dvert_array) {
     int num_to_drop = 0;
@@ -2019,11 +2013,11 @@ static void vgroup_clean_subset(Object *ob,
   MDeformVert **dvert_array = nullptr;
   int dvert_tot = 0;
   const bool use_vert_sel = vertex_group_use_vert_sel(ob);
-  const bool use_mirror = (ob->type == OB_MESH) ?
-                              (((Mesh *)ob->data)->symmetry & ME_SYMMETRY_X) != 0 :
-                              false;
+  const bool use_mirror = (ob->type == OB_MESH) ? ((blender::id_cast<Mesh *>(ob->data))->symmetry &
+                                                   ME_SYMMETRY_X) != 0 :
+                                                  false;
 
-  vgroup_parray_alloc(static_cast<ID *>(ob->data), &dvert_array, &dvert_tot, use_vert_sel);
+  vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
   if (dvert_array) {
     if (use_mirror && use_vert_sel) {
@@ -2049,10 +2043,10 @@ static void vgroup_quantize_subset(Object *ob,
   MDeformVert **dvert_array = nullptr;
   int dvert_tot = 0;
   const bool use_vert_sel = vertex_group_use_vert_sel(ob);
-  const bool use_mirror = (ob->type == OB_MESH) ?
-                              (((Mesh *)ob->data)->symmetry & ME_SYMMETRY_X) != 0 :
-                              false;
-  vgroup_parray_alloc(static_cast<ID *>(ob->data), &dvert_array, &dvert_tot, use_vert_sel);
+  const bool use_mirror = (ob->type == OB_MESH) ? ((blender::id_cast<Mesh *>(ob->data))->symmetry &
+                                                   ME_SYMMETRY_X) != 0 :
+                                                  false;
+  vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
   if (dvert_array) {
     const float steps_fl = steps;
@@ -2192,7 +2186,7 @@ void vgroup_mirror(Object *ob,
 
   /* only the active group */
   if (ob->type == OB_MESH) {
-    Mesh *mesh = static_cast<Mesh *>(ob->data);
+    Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
 
     if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
       const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
@@ -2383,7 +2377,7 @@ static void vgroup_assign_verts(Object *ob, Scene &scene, const float weight)
   }
 
   if (ob->type == OB_MESH) {
-    Mesh *mesh = static_cast<Mesh *>(ob->data);
+    Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
 
     if (mesh->runtime->edit_mesh) {
       BMEditMesh *em = mesh->runtime->edit_mesh.get();
@@ -2455,7 +2449,7 @@ static void vgroup_assign_verts(Object *ob, Scene &scene, const float weight)
     }
   }
   else if (ob->type == OB_GREASE_PENCIL) {
-    GreasePencil *grease_pencil = static_cast<GreasePencil *>(ob->data);
+    GreasePencil *grease_pencil = blender::id_cast<GreasePencil *>(ob->data);
     const bDeformGroup *defgroup = static_cast<const bDeformGroup *>(
         BLI_findlink(BKE_object_defgroup_list(ob), def_nr));
 
@@ -2678,7 +2672,7 @@ static void grease_pencil_clear_from_vgroup(Scene &scene,
                                             const bool all_drawings = false)
 {
   using namespace ed::greasepencil;
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob.data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(ob.data);
 
   if (all_drawings) {
     /* When removing vgroup, iterate over all the drawing. */
@@ -2964,7 +2958,7 @@ static wmOperatorStatus vertex_group_select_exec(bContext *C, wmOperator * /*op*
   }
 
   vgroup_select_verts(tool_settings, ob, scene, 1);
-  DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
+  DEG_id_tag_update(ob->data, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
 
   return OPERATOR_FINISHED;
@@ -2998,7 +2992,7 @@ static wmOperatorStatus vertex_group_deselect_exec(bContext *C, wmOperator * /*o
   Scene &scene = *CTX_data_scene(C);
 
   vgroup_select_verts(tool_settings, ob, scene, 0);
-  DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
+  DEG_id_tag_update(ob->data, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
 
   return OPERATOR_FINISHED;
@@ -3948,7 +3942,7 @@ static wmOperatorStatus vgroup_do_remap(Object *ob, const char *name_array, wmOp
   }
   else {
     int dvert_tot = 0;
-    BKE_object_defgroup_array_get(static_cast<ID *>(ob->data), &dvert, &dvert_tot);
+    BKE_object_defgroup_array_get(ob->data, &dvert, &dvert_tot);
 
     /* Create as necessary. */
     if (dvert) {
@@ -3995,7 +3989,7 @@ static void vgroup_sort_bone_hierarchy(Object *ob, ListBaseT<Bone> *bonebase)
   if (bonebase == nullptr) {
     Object *armobj = BKE_modifiers_is_deformed_by_armature(ob);
     if (armobj != nullptr) {
-      bArmature *armature = static_cast<bArmature *>(armobj->data);
+      bArmature *armature = blender::id_cast<bArmature *>(armobj->data);
       bonebase = &armature->bonebase;
     }
   }
@@ -4156,7 +4150,7 @@ static void vgroup_copy_active_to_sel_single(Object *ob, const int def_nr)
 {
   MDeformVert *dvert_act;
 
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   int i;
 
   if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {

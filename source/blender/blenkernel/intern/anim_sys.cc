@@ -539,7 +539,7 @@ static bool animsys_construct_orig_pointer_rna(const PointerRNA *ptr, PointerRNA
     if (ptr->type != &RNA_NlaStrip) {
       return false;
     }
-    NlaStrip *strip = ((NlaStrip *)ptr_orig->data);
+    NlaStrip *strip = (static_cast<NlaStrip *>(ptr_orig->data));
     if (strip->orig_strip == nullptr) {
       return false;
     }

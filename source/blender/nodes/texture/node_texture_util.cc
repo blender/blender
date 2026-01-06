@@ -151,7 +151,7 @@ void ntreeTexCheckCyclics(bNodeTree *ntree)
         node.custom1 = 0;
       }
       else {
-        Tex *tex = (Tex *)node.id;
+        Tex *tex = blender::id_cast<Tex *>(node.id);
 
         node.custom2 = 0;
 

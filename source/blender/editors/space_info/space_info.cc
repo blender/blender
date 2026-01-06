@@ -67,7 +67,7 @@ static SpaceLink *info_create(const ScrArea * /*area*/, const Scene * /*scene*/)
   /* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
   // region->v2d.keepzoom = (V2D_KEEPASPECT|V2D_LIMITZOOM);
 
-  return (SpaceLink *)sinfo;
+  return reinterpret_cast<SpaceLink *>(sinfo);
 }
 
 /* Doesn't free the space-link itself. */
@@ -85,7 +85,7 @@ static SpaceLink *info_duplicate(SpaceLink *sl)
 
   /* clear or remove stuff from old */
 
-  return (SpaceLink *)sinfon;
+  return reinterpret_cast<SpaceLink *>(sinfon);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */

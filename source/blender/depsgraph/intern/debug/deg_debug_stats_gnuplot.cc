@@ -145,7 +145,7 @@ void DEG_debug_stats_gnuplot(const Depsgraph *depsgraph,
   }
   deg::DebugContext ctx;
   ctx.file = fp;
-  ctx.graph = (deg::Depsgraph *)depsgraph;
+  ctx.graph = reinterpret_cast<deg::Depsgraph *>(const_cast<Depsgraph *>(depsgraph));
   ctx.label = label;
   ctx.output_filename = output_filename;
   deg::deg_debug_stats_gnuplot(ctx);

@@ -119,7 +119,7 @@ struct MTLVertexDescriptor {
 
   uint64_t hash() const
   {
-    uint64_t hash = (uint64_t)(this->max_attribute_value ^ this->num_vert_buffers);
+    uint64_t hash = uint64_t(this->max_attribute_value ^ this->num_vert_buffers);
     for (const int a : IndexRange(this->max_attribute_value + 1)) {
       hash ^= this->attributes[a].hash() << a;
     }
@@ -253,8 +253,7 @@ struct MTLRenderPipelineStateDescriptor {
     hash ^= uint64_t(this->num_color_attachments) << 16;     /* up to 6 (3 bits). */
     hash ^= uint64_t(this->depth_attachment_format) << 18;   /* up to 555 (9 bits). */
     hash ^= uint64_t(this->stencil_attachment_format) << 20; /* up to 555 (9 bits). */
-    hash ^= uint64_t(
-        *((uint64_t *)&this->vertex_descriptor.prim_topology_class)); /* Up to 3 (2 bits). */
+    hash ^= (*((uint64_t *)&this->vertex_descriptor.prim_topology_class)); /* Up to 3 (2 bits). */
 
     /* Only include elements in Hash if they are needed - avoids variable null assignments
      * influencing hash. */

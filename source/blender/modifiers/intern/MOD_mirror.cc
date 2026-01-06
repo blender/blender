@@ -36,20 +36,20 @@ using namespace blender;
 
 static void init_data(ModifierData *md)
 {
-  MirrorModifierData *mmd = (MirrorModifierData *)md;
+  MirrorModifierData *mmd = reinterpret_cast<MirrorModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(mmd, modifier);
 }
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  MirrorModifierData *mmd = (MirrorModifierData *)md;
+  MirrorModifierData *mmd = reinterpret_cast<MirrorModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&mmd->mirror_ob, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&mmd->mirror_ob), IDWALK_CB_NOP);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  MirrorModifierData *mmd = (MirrorModifierData *)md;
+  MirrorModifierData *mmd = reinterpret_cast<MirrorModifierData *>(md);
   if (mmd->mirror_ob != nullptr) {
     DEG_add_object_relation(ctx->node, mmd->mirror_ob, DEG_OB_COMP_TRANSFORM, "Mirror Modifier");
     DEG_add_depends_on_transform_relation(ctx->node, "Mirror Modifier");
@@ -118,7 +118,7 @@ static Mesh *mirrorModifier__doMirror(MirrorModifierData *mmd, Object *ob, Mesh 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   Mesh *result;
-  MirrorModifierData *mmd = (MirrorModifierData *)md;
+  MirrorModifierData *mmd = reinterpret_cast<MirrorModifierData *>(md);
 
   result = mirrorModifier__doMirror(mmd, ctx->object, mesh);
 
@@ -134,7 +134,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   PropertyRNA *prop;
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
-  MirrorModifierData *mmd = (MirrorModifierData *)ptr->data;
+  MirrorModifierData *mmd = static_cast<MirrorModifierData *>(ptr->data);
   bool has_bisect = (mmd->flag &
                      (MOD_MIR_BISECT_AXIS_X | MOD_MIR_BISECT_AXIS_Y | MOD_MIR_BISECT_AXIS_Z));
 

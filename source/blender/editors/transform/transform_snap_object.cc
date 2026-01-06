@@ -583,7 +583,8 @@ void raycast_all_cb(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRay
     float depth;
 
     /* World-space location. */
-    mul_v3_m4v3(location, (float (*)[4])data->obmat, hit->co);
+    mul_v3_m4v3(
+        location, reinterpret_cast<float (*)[4]>(const_cast<float4x4 *>(data->obmat)), hit->co);
     depth = (hit->dist + data->len_diff) / data->local_scale;
 
     SnapObjectHitDepth *hit_item = hit_depth_create(depth, location, data->ob_uuid);

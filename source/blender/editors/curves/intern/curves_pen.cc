@@ -1360,14 +1360,14 @@ class CurvesPenToolOperation : public PenToolOperation {
 
     Object *object = CTX_data_active_object(C);
     if (object && object_has_editable_curves(bmain, *object)) {
-      unique_curves.add_new(static_cast<Curves *>(object->data));
+      unique_curves.add_new(blender::id_cast<Curves *>(object->data));
       this->layer_to_world_per_curves.append(object->object_to_world());
       this->active_drawing_index = 0;
     }
 
     CTX_DATA_BEGIN (C, Object *, object, selected_objects) {
       if (object_has_editable_curves(bmain, *object)) {
-        if (unique_curves.add(static_cast<Curves *>(object->data))) {
+        if (unique_curves.add(blender::id_cast<Curves *>(object->data))) {
           this->layer_to_world_per_curves.append(object->object_to_world());
         }
       }

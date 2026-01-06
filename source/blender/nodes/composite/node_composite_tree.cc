@@ -101,8 +101,8 @@ static void foreach_nodeclass(void *calldata, blender::bke::bNodeClassCallback f
 static void localize(bNodeTree *localtree, bNodeTree *ntree)
 {
 
-  bNode *node = (bNode *)ntree->nodes.first;
-  bNode *local_node = (bNode *)localtree->nodes.first;
+  bNode *node = static_cast<bNode *>(ntree->nodes.first);
+  bNode *local_node = static_cast<bNode *>(localtree->nodes.first);
   while (node != nullptr) {
 
     /* Ensure new user input gets handled ok. */
@@ -223,8 +223,8 @@ void ntreeCompositTagRender(Scene *scene)
    * This is still rather weak though,
    * ideally render struct would store its own main AND original G_MAIN. */
 
-  for (Scene *sce_iter = (Scene *)G_MAIN->scenes.first; sce_iter;
-       sce_iter = (Scene *)sce_iter->id.next)
+  for (Scene *sce_iter = static_cast<Scene *>(G_MAIN->scenes.first); sce_iter;
+       sce_iter = static_cast<Scene *>(sce_iter->id.next))
   {
     if (sce_iter->compositing_node_group) {
       for (bNode *node : sce_iter->compositing_node_group->all_nodes()) {
@@ -248,7 +248,7 @@ void ntreeCompositClearTags(bNodeTree *ntree)
   for (bNode *node : ntree->all_nodes()) {
     node->runtime->need_exec = 0;
     if (node->is_group()) {
-      ntreeCompositClearTags((bNodeTree *)node->id);
+      ntreeCompositClearTags(blender::id_cast<bNodeTree *>(node->id));
     }
   }
 }

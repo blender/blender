@@ -43,7 +43,7 @@ static void recount_totsels_range_vert_func(void * /*userdata*/,
                                             const TaskParallelTLS *__restrict tls)
 {
   SelectionCountChunkData *count = static_cast<SelectionCountChunkData *>(tls->userdata_chunk);
-  const BMVert *eve = (const BMVert *)iter;
+  const BMVert *eve = reinterpret_cast<const BMVert *>(iter);
   if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
     count->selection_len += 1;
   }
@@ -54,7 +54,7 @@ static void recount_totsels_range_edge_func(void * /*userdata*/,
                                             const TaskParallelTLS *__restrict tls)
 {
   SelectionCountChunkData *count = static_cast<SelectionCountChunkData *>(tls->userdata_chunk);
-  const BMEdge *eed = (const BMEdge *)iter;
+  const BMEdge *eed = reinterpret_cast<const BMEdge *>(iter);
   if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
     count->selection_len += 1;
   }
@@ -65,7 +65,7 @@ static void recount_totsels_range_face_func(void * /*userdata*/,
                                             const TaskParallelTLS *__restrict tls)
 {
   SelectionCountChunkData *count = static_cast<SelectionCountChunkData *>(tls->userdata_chunk);
-  const BMFace *efa = (const BMFace *)iter;
+  const BMFace *efa = reinterpret_cast<const BMFace *>(iter);
   if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
     count->selection_len += 1;
   }
@@ -330,7 +330,7 @@ static void bm_mesh_select_mode_flush_vert_to_edge_iter_fn(void * /*userdata*/,
 {
   SelectionFlushChunkData *chunk_data = static_cast<SelectionFlushChunkData *>(
       tls->userdata_chunk);
-  BMEdge *e = (BMEdge *)iter;
+  BMEdge *e = reinterpret_cast<BMEdge *>(iter);
   const bool is_selected = BM_elem_flag_test(e, BM_ELEM_SELECT);
   const bool is_hidden = BM_elem_flag_test(e, BM_ELEM_HIDDEN);
   if (!is_hidden &&
@@ -351,7 +351,7 @@ static void bm_mesh_select_mode_flush_edge_to_face_iter_fn(void * /*userdata*/,
 {
   SelectionFlushChunkData *chunk_data = static_cast<SelectionFlushChunkData *>(
       tls->userdata_chunk);
-  BMFace *f = (BMFace *)iter;
+  BMFace *f = reinterpret_cast<BMFace *>(iter);
   BMLoop *l_iter;
   BMLoop *l_first;
   const bool is_selected = BM_elem_flag_test(f, BM_ELEM_SELECT);
@@ -833,7 +833,7 @@ void BM_mesh_select_mode_set(BMesh *bm, int selectmode)
 
     BM_ITER_MESH (ele, &iter, bm, BM_EDGES_OF_MESH) {
       if (BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
-        BM_edge_select_set(bm, (BMEdge *)ele, true);
+        BM_edge_select_set(bm, reinterpret_cast<BMEdge *>(ele), true);
       }
     }
     BM_mesh_select_mode_flush(bm);
@@ -847,7 +847,7 @@ void BM_mesh_select_mode_set(BMesh *bm, int selectmode)
 #endif
     BM_ITER_MESH (ele, &iter, bm, BM_FACES_OF_MESH) {
       if (BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
-        BM_face_select_set(bm, (BMFace *)ele, true);
+        BM_face_select_set(bm, reinterpret_cast<BMFace *>(ele), true);
       }
     }
     BM_mesh_select_mode_flush(bm);
@@ -923,13 +923,13 @@ void BM_elem_select_set(BMesh *bm, BMElem *ele, const bool select)
 {
   switch (ele->head.htype) {
     case BM_VERT:
-      BM_vert_select_set(bm, (BMVert *)ele, select);
+      BM_vert_select_set(bm, reinterpret_cast<BMVert *>(ele), select);
       break;
     case BM_EDGE:
-      BM_edge_select_set(bm, (BMEdge *)ele, select);
+      BM_edge_select_set(bm, reinterpret_cast<BMEdge *>(ele), select);
       break;
     case BM_FACE:
-      BM_face_select_set(bm, (BMFace *)ele, select);
+      BM_face_select_set(bm, reinterpret_cast<BMFace *>(ele), select);
       break;
     default:
       BLI_assert(0);
@@ -974,7 +974,7 @@ BMFace *BM_mesh_active_face_get(BMesh *bm, const bool is_sloppy, const bool is_s
     ese = static_cast<BMEditSelection *>(bm->selected.last);
     for (; ese; ese = ese->prev) {
       if (ese->htype == BM_FACE) {
-        f = (BMFace *)ese->ele;
+        f = reinterpret_cast<BMFace *>(ese->ele);
 
         if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
           f = nullptr;
@@ -1006,7 +1006,7 @@ BMEdge *BM_mesh_active_edge_get(BMesh *bm)
     BMEditSelection *ese = static_cast<BMEditSelection *>(bm->selected.last);
 
     if (ese && ese->htype == BM_EDGE) {
-      return (BMEdge *)ese->ele;
+      return reinterpret_cast<BMEdge *>(ese->ele);
     }
   }
 
@@ -1019,7 +1019,7 @@ BMVert *BM_mesh_active_vert_get(BMesh *bm)
     BMEditSelection *ese = static_cast<BMEditSelection *>(bm->selected.last);
 
     if (ese && ese->htype == BM_VERT) {
-      return (BMVert *)ese->ele;
+      return reinterpret_cast<BMVert *>(ese->ele);
     }
   }
 
@@ -1042,15 +1042,15 @@ BMElem *BM_mesh_active_elem_get(BMesh *bm)
 void BM_editselection_center(BMEditSelection *ese, float r_center[3])
 {
   if (ese->htype == BM_VERT) {
-    BMVert *eve = (BMVert *)ese->ele;
+    BMVert *eve = reinterpret_cast<BMVert *>(ese->ele);
     copy_v3_v3(r_center, eve->co);
   }
   else if (ese->htype == BM_EDGE) {
-    BMEdge *eed = (BMEdge *)ese->ele;
+    BMEdge *eed = reinterpret_cast<BMEdge *>(ese->ele);
     mid_v3_v3v3(r_center, eed->v1->co, eed->v2->co);
   }
   else if (ese->htype == BM_FACE) {
-    BMFace *efa = (BMFace *)ese->ele;
+    BMFace *efa = reinterpret_cast<BMFace *>(ese->ele);
     BM_face_calc_center_median(efa, r_center);
   }
 }
@@ -1058,11 +1058,11 @@ void BM_editselection_center(BMEditSelection *ese, float r_center[3])
 void BM_editselection_normal(BMEditSelection *ese, float r_normal[3])
 {
   if (ese->htype == BM_VERT) {
-    BMVert *eve = (BMVert *)ese->ele;
+    BMVert *eve = reinterpret_cast<BMVert *>(ese->ele);
     copy_v3_v3(r_normal, eve->no);
   }
   else if (ese->htype == BM_EDGE) {
-    BMEdge *eed = (BMEdge *)ese->ele;
+    BMEdge *eed = reinterpret_cast<BMEdge *>(ese->ele);
     float plane[3]; /* need a plane to correct the normal */
     float vec[3];   /* temp vec storage */
 
@@ -1078,7 +1078,7 @@ void BM_editselection_normal(BMEditSelection *ese, float r_normal[3])
     normalize_v3(r_normal);
   }
   else if (ese->htype == BM_FACE) {
-    BMFace *efa = (BMFace *)ese->ele;
+    BMFace *efa = reinterpret_cast<BMFace *>(ese->ele);
     copy_v3_v3(r_normal, efa->no);
   }
 }
@@ -1086,7 +1086,7 @@ void BM_editselection_normal(BMEditSelection *ese, float r_normal[3])
 void BM_editselection_plane(BMEditSelection *ese, float r_plane[3])
 {
   if (ese->htype == BM_VERT) {
-    BMVert *eve = (BMVert *)ese->ele;
+    BMVert *eve = reinterpret_cast<BMVert *>(ese->ele);
     float vec[3] = {0.0f, 0.0f, 0.0f};
 
     if (ese->prev) { /* use previously selected data to make a useful vertex plane */
@@ -1112,7 +1112,7 @@ void BM_editselection_plane(BMEditSelection *ese, float r_plane[3])
     normalize_v3(r_plane);
   }
   else if (ese->htype == BM_EDGE) {
-    BMEdge *eed = (BMEdge *)ese->ele;
+    BMEdge *eed = reinterpret_cast<BMEdge *>(ese->ele);
 
     if (BM_edge_is_boundary(eed)) {
       sub_v3_v3v3(r_plane, eed->l->v->co, eed->l->next->v->co);
@@ -1134,7 +1134,7 @@ void BM_editselection_plane(BMEditSelection *ese, float r_plane[3])
     normalize_v3(r_plane);
   }
   else if (ese->htype == BM_FACE) {
-    BMFace *efa = (BMFace *)ese->ele;
+    BMFace *efa = reinterpret_cast<BMFace *>(ese->ele);
     BM_face_calc_tangent_auto(efa, r_plane);
   }
 }
@@ -1143,7 +1143,7 @@ static BMEditSelection *bm_select_history_create(BMHeader *ele)
 {
   BMEditSelection *ese = MEM_callocN<BMEditSelection>("BMEdit Selection");
   ese->htype = ele->htype;
-  ese->ele = (BMElem *)ele;
+  ese->ele = reinterpret_cast<BMElem *>(ele);
   return ese;
 }
 
@@ -1246,7 +1246,7 @@ bool BM_select_history_active_get(BMesh *bm, BMEditSelection *ese)
     /* If there is an active face, use it over the last selected face. */
     if (ese_last->htype == BM_FACE) {
       if (efa) {
-        ese->ele = (BMElem *)efa;
+        ese->ele = reinterpret_cast<BMElem *>(efa);
       }
       else {
         ese->ele = ese_last->ele;
@@ -1260,7 +1260,7 @@ bool BM_select_history_active_get(BMesh *bm, BMEditSelection *ese)
   }
   else if (efa) {
     /* no edit-selection, fall back to active face */
-    ese->ele = (BMElem *)efa;
+    ese->ele = reinterpret_cast<BMElem *>(efa);
     ese->htype = BM_FACE;
   }
   else {
@@ -1612,21 +1612,21 @@ void _bm_elem_hide_set(BMesh *bm, BMHeader *head, const bool hide)
   switch (head->htype) {
     case BM_VERT:
       if (hide) {
-        BM_vert_select_set(bm, (BMVert *)head, false);
+        BM_vert_select_set(bm, reinterpret_cast<BMVert *>(head), false);
       }
-      BM_vert_hide_set((BMVert *)head, hide);
+      BM_vert_hide_set(reinterpret_cast<BMVert *>(head), hide);
       break;
     case BM_EDGE:
       if (hide) {
-        BM_edge_select_set(bm, (BMEdge *)head, false);
+        BM_edge_select_set(bm, reinterpret_cast<BMEdge *>(head), false);
       }
-      BM_edge_hide_set((BMEdge *)head, hide);
+      BM_edge_hide_set(reinterpret_cast<BMEdge *>(head), hide);
       break;
     case BM_FACE:
       if (hide) {
-        BM_face_select_set(bm, (BMFace *)head, false);
+        BM_face_select_set(bm, reinterpret_cast<BMFace *>(head), false);
       }
-      BM_face_hide_set((BMFace *)head, hide);
+      BM_face_hide_set(reinterpret_cast<BMFace *>(head), hide);
       break;
     default:
       BMESH_ASSERT(0);

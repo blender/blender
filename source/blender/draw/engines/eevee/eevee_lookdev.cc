@@ -92,7 +92,7 @@ LookdevWorld::LookdevWorld()
   bNodeSocket &is_camera_out = *node_find_socket(light_path, SOCK_OUT, "Is Camera Ray");
 
   bNode &path_mix = *node_add_static_node(nullptr, ntree, SH_NODE_MIX);
-  NodeShaderMix &path_mix_data = *(NodeShaderMix *)path_mix.storage;
+  NodeShaderMix &path_mix_data = *static_cast<NodeShaderMix *>(path_mix.storage);
   path_mix_data.data_type = SOCK_VECTOR;
   path_mix_data.factor_mode = NODE_MIX_MODE_UNIFORM;
   path_mix_data.clamp_factor = false;

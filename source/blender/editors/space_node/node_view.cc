@@ -215,7 +215,7 @@ static wmOperatorStatus snode_bg_viewmove_modal(bContext *C, wmOperator *op, con
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   ARegion *region = CTX_wm_region(C);
-  NodeViewMove *nvm = (NodeViewMove *)op->customdata;
+  NodeViewMove *nvm = static_cast<NodeViewMove *>(op->customdata);
 
   switch (event->type) {
     case MOUSEMOVE:
@@ -306,7 +306,7 @@ static wmOperatorStatus snode_bg_viewmove_invoke(bContext *C, wmOperator *op, co
 
 static void snode_bg_viewmove_cancel(bContext * /*C*/, wmOperator *op)
 {
-  NodeViewMove *nvm = (NodeViewMove *)op->customdata;
+  NodeViewMove *nvm = static_cast<NodeViewMove *>(op->customdata);
   MEM_freeN(nvm);
   op->customdata = nullptr;
 }
@@ -452,7 +452,7 @@ struct ImageSampleInfo {
 static void sample_draw(const bContext *C, ARegion *region, void *arg_info)
 {
   Scene *scene = CTX_data_scene(C);
-  ImageSampleInfo *info = (ImageSampleInfo *)arg_info;
+  ImageSampleInfo *info = static_cast<ImageSampleInfo *>(arg_info);
 
   if (info->draw) {
     ED_image_draw_info(scene,
@@ -559,7 +559,7 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
   ARegion *region = CTX_wm_region(C);
-  ImageSampleInfo *info = (ImageSampleInfo *)op->customdata;
+  ImageSampleInfo *info = static_cast<ImageSampleInfo *>(op->customdata);
   void *lock;
   Image *ima;
   ImBuf *ibuf;
@@ -641,7 +641,7 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
 
 static void sample_exit(bContext *C, wmOperator *op)
 {
-  ImageSampleInfo *info = (ImageSampleInfo *)op->customdata;
+  ImageSampleInfo *info = static_cast<ImageSampleInfo *>(op->customdata);
 
   ED_node_sample_set(nullptr);
   ED_region_draw_cb_exit(info->art, info->draw_handle);

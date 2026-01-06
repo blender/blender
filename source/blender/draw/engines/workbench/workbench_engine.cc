@@ -172,7 +172,7 @@ class Instance : public DrawEngine {
     if (!(ob->base_flag & BASE_FROM_DUPLI)) {
       ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Fluid);
       if (md && BKE_modifier_is_enabled(scene_state_.scene, md, eModifierMode_Realtime)) {
-        FluidModifierData *fmd = (FluidModifierData *)md;
+        FluidModifierData *fmd = reinterpret_cast<FluidModifierData *>(md);
         if (fmd->domain) {
           volume_ps_.object_sync_modifier(manager, resources_, scene_state_, ob_ref, md);
 
@@ -219,7 +219,7 @@ class Instance : public DrawEngine {
         if (md.type != eModifierType_ParticleSystem) {
           continue;
         }
-        ParticleSystem *psys = ((ParticleSystemModifierData *)&md)->psys;
+        ParticleSystem *psys = (reinterpret_cast<ParticleSystemModifierData *>(&md))->psys;
         if (!DRW_object_is_visible_psys_in_active_context(ob, psys)) {
           continue;
         }

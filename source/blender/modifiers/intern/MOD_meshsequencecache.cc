@@ -70,7 +70,7 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
 #if 0
   const MeshSeqCacheModifierData *mcmd = (const MeshSeqCacheModifierData *)md;
 #endif
-  MeshSeqCacheModifierData *tmcmd = (MeshSeqCacheModifierData *)target;
+  MeshSeqCacheModifierData *tmcmd = reinterpret_cast<MeshSeqCacheModifierData *>(target);
 
   BKE_modifier_copydata_generic(md, target, flag);
 
@@ -225,8 +225,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   MeshSeqCacheModifierData *mcmd = reinterpret_cast<MeshSeqCacheModifierData *>(md);
 
   /* Only used to check whether we are operating on org data or not... */
-  Mesh *object_mesh = (ctx->object->type == OB_MESH) ? static_cast<Mesh *>(ctx->object->data) :
-                                                       nullptr;
+  Mesh *object_mesh = (ctx->object->type == OB_MESH) ?
+                          blender::id_cast<Mesh *>(ctx->object->data) :
+                          nullptr;
   Mesh *org_mesh = mesh;
 
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);

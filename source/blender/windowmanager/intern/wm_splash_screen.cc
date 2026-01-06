@@ -167,7 +167,7 @@ static ImBuf *wm_block_splash_image(int width, int *r_height)
   }
 
   if (ibuf == nullptr) {
-    const uchar *splash_data = (const uchar *)datatoc_splash_png;
+    const uchar *splash_data = reinterpret_cast<const uchar *>(datatoc_splash_png);
     size_t splash_data_size = datatoc_splash_png_size;
     ibuf = IMB_load_image_from_memory(
         splash_data, splash_data_size, IB_byte_data, "<splash screen>");

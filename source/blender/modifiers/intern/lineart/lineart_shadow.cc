@@ -42,7 +42,7 @@ LineartElementLinkNode *lineart_find_matching_eln(ListBaseT<LineartElementLinkNo
 LineartEdge *lineart_find_matching_edge(LineartElementLinkNode *shadow_eln,
                                         uint64_t edge_identifier)
 {
-  LineartEdge *elist = (LineartEdge *)shadow_eln->pointer;
+  LineartEdge *elist = static_cast<LineartEdge *>(shadow_eln->pointer);
   for (int i = 0; i < shadow_eln->element_count; i++) {
     if (elist[i].edge_identifier == edge_identifier) {
       return &elist[i];
@@ -145,7 +145,7 @@ void lineart_register_intersection_shadow_cuts(LineartData *ld,
   /* Keeping it single threaded for now because a simple parallel_for could end up getting the same
    * #shadow_e in different threads. */
   for (int i = 0; i < eln_isect_original->element_count; i++) {
-    LineartEdge *e = &((LineartEdge *)eln_isect_original->pointer)[i];
+    LineartEdge *e = &(static_cast<LineartEdge *>(eln_isect_original->pointer))[i];
     LineartEdge *shadow_e = lineart_find_matching_edge(eln_isect_shadow, e->edge_identifier);
     if (shadow_e) {
       lineart_register_shadow_cuts(ld, e, shadow_e);
@@ -161,7 +161,8 @@ static LineartShadowSegment *lineart_give_shadow_segment(LineartData *ld)
 
   /* See if there is any already allocated memory we can reuse. */
   if (ld->wasted_shadow_cuts.first) {
-    LineartShadowSegment *es = (LineartShadowSegment *)BLI_pophead(&ld->wasted_shadow_cuts);
+    LineartShadowSegment *es = static_cast<LineartShadowSegment *>(
+        BLI_pophead(&ld->wasted_shadow_cuts));
     BLI_spin_unlock(&ld->lock_cuts);
     memset(es, 0, sizeof(LineartShadowSegment));
     return es;
@@ -169,8 +170,8 @@ static LineartShadowSegment *lineart_give_shadow_segment(LineartData *ld)
   BLI_spin_unlock(&ld->lock_cuts);
 
   /* Otherwise allocate some new memory. */
-  return (LineartShadowSegment *)lineart_mem_acquire_thread(&ld->render_data_pool,
-                                                            sizeof(LineartShadowSegment));
+  return static_cast<LineartShadowSegment *>(
+      lineart_mem_acquire_thread(&ld->render_data_pool, sizeof(LineartShadowSegment)));
 }
 
 static void lineart_shadow_segment_slice_get(double *fb_co_1,
@@ -336,7 +337,7 @@ static void lineart_shadow_create_shadow_edge_array(LineartData *ld,
     }
     if (e->flags == MOD_LINEART_EDGE_FLAG_LIGHT_CONTOUR) {
       /* Check if the light contour also doubles as a view contour. */
-      LineartEdge *orig_e = (LineartEdge *)e->t1;
+      LineartEdge *orig_e = reinterpret_cast<LineartEdge *>(e->t1);
       if (!orig_e->t2) {
         e->flags |= MOD_LINEART_EDGE_FLAG_CONTOUR;
       }
@@ -419,7 +420,7 @@ static void lineart_shadow_create_shadow_edge_array(LineartData *ld,
       BLI_addtail(&sedge[i].shadow_segments, &sseg[i * 2 + 1]);
 
       if (e->flags & MOD_LINEART_EDGE_FLAG_LIGHT_CONTOUR) {
-        sedge[i].e_ref = (LineartEdge *)e->t1;
+        sedge[i].e_ref = reinterpret_cast<LineartEdge *>(e->t1);
         sedge[i].e_ref_light_contour = e;
         /* Restore original edge flag for edges "who is both view and light contour" so we still
          * have correct edge flags. */
@@ -916,17 +917,19 @@ static void lineart_shadow_cast(LineartData *ld, bool transform_edge_cuts, bool 
     LRT_EDGE_BA_MARCHING_BEGIN(sedge->fbc1, sedge->fbc2)
     {
       for (int i = 0; i < nba->triangle_count; i++) {
-        tri = (LineartTriangleThread *)nba->linked_triangles[i];
-        if (tri->testing_e[0] == (LineartEdge *)sedge || tri->base.mat_occlusion == 0 ||
-            lineart_edge_from_triangle(
-                (LineartTriangle *)tri, sedge->e_ref, ld->conf.allow_overlapping_edges))
+        tri = reinterpret_cast<LineartTriangleThread *>(nba->linked_triangles[i]);
+        if (tri->testing_e[0] == reinterpret_cast<LineartEdge *>(sedge) ||
+            tri->base.mat_occlusion == 0 ||
+            lineart_edge_from_triangle(reinterpret_cast<LineartTriangle *>(tri),
+                                       sedge->e_ref,
+                                       ld->conf.allow_overlapping_edges))
         {
           continue;
         }
-        tri->testing_e[0] = (LineartEdge *)sedge;
+        tri->testing_e[0] = reinterpret_cast<LineartEdge *>(sedge);
 
         if (lineart_shadow_cast_onto_triangle(ld,
-                                              (LineartTriangle *)tri,
+                                              reinterpret_cast<LineartTriangle *>(tri),
                                               sedge,
                                               &at_1,
                                               &at_2,
@@ -1021,9 +1024,10 @@ static bool lineart_shadow_cast_generate_edges(LineartData *ld,
       copy_v3_v3_db(v2->gloc, (sseg.next)->g1);
       e->v1 = v1;
       e->v2 = v2;
-      e->t1 = (LineartTriangle *)sedge->e_ref; /* See LineartEdge::t1 for usage. */
-      e->t2 = (LineartTriangle *)(sedge->e_ref_light_contour ? sedge->e_ref_light_contour :
-                                                               sedge->e_ref);
+      e->t1 = reinterpret_cast<LineartTriangle *>(
+          sedge->e_ref); /* See LineartEdge::t1 for usage. */
+      e->t2 = reinterpret_cast<LineartTriangle *>(
+          sedge->e_ref_light_contour ? sedge->e_ref_light_contour : sedge->e_ref);
       e->target_reference = sseg.target_reference;
       e->edge_identifier = sedge->e_ref->edge_identifier;
       e->flags = (MOD_LINEART_EDGE_FLAG_PROJECTED_SHADOW |
@@ -1047,7 +1051,7 @@ static bool lineart_shadow_cast_generate_edges(LineartData *ld,
       e->target_reference = ((ref_1 << 32) | ref_2);
       e->v1 = v1;
       e->v2 = v2;
-      e->t1 = e->t2 = (LineartTriangle *)sedge->e_ref;
+      e->t1 = e->t2 = reinterpret_cast<LineartTriangle *>(sedge->e_ref);
       e->flags = MOD_LINEART_EDGE_FLAG_LIGHT_CONTOUR;
       if (lineart_contour_viewed_from_dark_side(ld, sedge->e_ref)) {
         lineart_edge_cut(ld, e, 0.0f, 1.0f, 0, 0, LRT_SHADOW_MASK_SHADED);
@@ -1105,7 +1109,7 @@ static void lineart_shadow_register_enclosed_shapes(LineartData *ld, LineartData
         continue;
       }
       double next_at = es.next ? (es.next)->ratio : 1.0f;
-      LineartEdge *orig_e = (LineartEdge *)e->t2;
+      LineartEdge *orig_e = reinterpret_cast<LineartEdge *>(e->t2);
 
       /* Shadow view space to global. */
       double ga1 = e->v1->fbcoord[3] * es.ratio /
@@ -1170,7 +1174,7 @@ bool lineart_main_try_generate_shadow_v3(
   bool is_persp = true;
 
   if (lmd->light_contour_object->type == OB_LAMP) {
-    Light *la = (Light *)lmd->light_contour_object->data;
+    Light *la = blender::id_cast<Light *>(lmd->light_contour_object->data);
     if (la->type == LA_SUN) {
       is_persp = false;
     }
@@ -1349,7 +1353,7 @@ static void lineart_shadow_transform_task(void *__restrict userdata,
                                           const int element_index,
                                           const TaskParallelTLS *__restrict /*tls*/)
 {
-  LineartShadowFinalizeData *data = (LineartShadowFinalizeData *)userdata;
+  LineartShadowFinalizeData *data = static_cast<LineartShadowFinalizeData *>(userdata);
   LineartData *ld = data->ld;
   LineartVert *v = &data->v[element_index];
   mul_v4_m4v3_db(v->fbcoord, ld->conf.view_projection, v->gloc);
@@ -1359,7 +1363,7 @@ static void lineart_shadow_finalize_shadow_edges_task(void *__restrict userdata,
                                                       const int i,
                                                       const TaskParallelTLS *__restrict /*tls*/)
 {
-  LineartShadowFinalizeData *data = (LineartShadowFinalizeData *)userdata;
+  LineartShadowFinalizeData *data = static_cast<LineartShadowFinalizeData *>(userdata);
   LineartData *ld = data->ld;
   LineartEdge *e = data->e;
 
@@ -1369,7 +1373,7 @@ static void lineart_shadow_finalize_shadow_edges_task(void *__restrict userdata,
     if (eln) {
       int v1i = (((e[i].edge_identifier) >> 32) & LRT_OBINDEX_LOWER);
       int v2i = (e[i].edge_identifier & LRT_OBINDEX_LOWER);
-      LineartVert *v = (LineartVert *)eln->pointer;
+      LineartVert *v = static_cast<LineartVert *>(eln->pointer);
       /* If the global position is close enough, use the original vertex to prevent flickering
        * caused by very slim boundary condition in point_triangle_relation(). */
       if (LRT_CLOSE_LOOSER_v3(e[i].v1->gloc, v[v1i].gloc)) {
@@ -1394,8 +1398,8 @@ void lineart_main_transform_and_add_shadow(LineartData *ld,
 
   LineartShadowFinalizeData data = {nullptr};
   data.ld = ld;
-  data.v = (LineartVert *)veln->pointer;
-  data.e = (LineartEdge *)eeln->pointer;
+  data.v = static_cast<LineartVert *>(veln->pointer);
+  data.e = static_cast<LineartEdge *>(eeln->pointer);
 
   BLI_task_parallel_range(
       0, veln->element_count, &data, lineart_shadow_transform_task, &transform_settings);

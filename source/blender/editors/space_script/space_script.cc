@@ -56,13 +56,13 @@ static SpaceLink *script_create(const ScrArea * /*area*/, const Scene * /*scene*
 
   /* channel list region XXX */
 
-  return (SpaceLink *)sscript;
+  return reinterpret_cast<SpaceLink *>(sscript);
 }
 
 /* Doesn't free the space-link itself. */
 static void script_free(SpaceLink *sl)
 {
-  SpaceScript *sscript = (SpaceScript *)sl;
+  SpaceScript *sscript = reinterpret_cast<SpaceScript *>(sl);
 
 #ifdef WITH_PYTHON
   /* Free buttons references. */
@@ -82,7 +82,7 @@ static SpaceLink *script_duplicate(SpaceLink *sl)
 
   /* clear or remove stuff from old */
 
-  return (SpaceLink *)sscriptn;
+  return reinterpret_cast<SpaceLink *>(sscriptn);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -101,7 +101,7 @@ static void script_main_region_init(wmWindowManager *wm, ARegion *region)
 static void script_main_region_draw(const bContext *C, ARegion *region)
 {
   /* draw entirely, view changes should be handled here */
-  SpaceScript *sscript = (SpaceScript *)CTX_wm_space_data(C);
+  SpaceScript *sscript = reinterpret_cast<SpaceScript *>(CTX_wm_space_data(C));
   View2D *v2d = &region->v2d;
 
   /* clear and setup matrix */
@@ -165,7 +165,7 @@ static void script_space_blend_read_after_liblink(BlendLibReader * /*reader*/,
 
 static void script_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
-  SpaceScript *scr = (SpaceScript *)sl;
+  SpaceScript *scr = reinterpret_cast<SpaceScript *>(sl);
   scr->but_refs = nullptr;
   writer->write_struct_cast<SpaceScript>(sl);
 }

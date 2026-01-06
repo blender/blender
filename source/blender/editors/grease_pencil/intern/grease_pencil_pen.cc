@@ -184,7 +184,7 @@ class GreasePencilPenToolOperation : public curves::pen_tool::PenToolOperation {
       return OPERATOR_CANCELLED;
     }
 
-    GreasePencil *grease_pencil = static_cast<GreasePencil *>(this->vc.obact->data);
+    GreasePencil *grease_pencil = blender::id_cast<GreasePencil *>(this->vc.obact->data);
     this->grease_pencil = grease_pencil;
     View3D *view3d = CTX_wm_view3d(C);
 

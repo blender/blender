@@ -76,7 +76,7 @@ static void cmp_node_trackpos_declare(NodeDeclarationBuilder &b)
 
 static void init(const bContext *C, PointerRNA *ptr)
 {
-  bNode *node = (bNode *)ptr->data;
+  bNode *node = static_cast<bNode *>(ptr->data);
 
   NodeTrackPosData *data = MEM_new_for_free<NodeTrackPosData>(__func__);
   node->storage = data;
@@ -100,12 +100,12 @@ static void init(const bContext *C, PointerRNA *ptr)
 
 static void node_composit_buts_trackpos(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
-  bNode *node = (bNode *)ptr->data;
+  bNode *node = static_cast<bNode *>(ptr->data);
 
   template_id(&layout, C, ptr, "clip", nullptr, "CLIP_OT_open", nullptr);
 
   if (node->id) {
-    MovieClip *clip = (MovieClip *)node->id;
+    MovieClip *clip = blender::id_cast<MovieClip *>(node->id);
     MovieTracking *tracking = &clip->tracking;
     MovieTrackingObject *tracking_object;
     NodeTrackPosData *data = (NodeTrackPosData *)node->storage;
@@ -353,7 +353,7 @@ class TrackPositionOperation : public NodeOperation {
 
   MovieClip *get_movie_clip()
   {
-    return (MovieClip *)node().id;
+    return blender::id_cast<MovieClip *>(node().id);
   }
 };
 

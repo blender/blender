@@ -321,7 +321,7 @@ static std::unique_ptr<XFormObjectData> data_xform_create_ex(ID *id, bool is_edi
 
   switch (GS(id->name)) {
     case ID_ME: {
-      Mesh *mesh = (Mesh *)id;
+      Mesh *mesh = blender::id_cast<Mesh *>(id);
       Key *key = mesh->key;
       const int key_index = -1;
 
@@ -361,7 +361,7 @@ static std::unique_ptr<XFormObjectData> data_xform_create_ex(ID *id, bool is_edi
       return xod;
     }
     case ID_LT: {
-      Lattice *lt_orig = (Lattice *)id;
+      Lattice *lt_orig = blender::id_cast<Lattice *>(id);
       Lattice *lt = is_edit_mode ? lt_orig->editlatt->latt : lt_orig;
       Key *key = lt->key;
       const int key_index = -1;
@@ -387,7 +387,7 @@ static std::unique_ptr<XFormObjectData> data_xform_create_ex(ID *id, bool is_edi
       return xod;
     }
     case ID_CU_LEGACY: {
-      Curve *cu = (Curve *)id;
+      Curve *cu = blender::id_cast<Curve *>(id);
       Key *key = cu->key;
 
       if (cu->ob_type == OB_FONT) {
@@ -423,7 +423,7 @@ static std::unique_ptr<XFormObjectData> data_xform_create_ex(ID *id, bool is_edi
       return xod;
     }
     case ID_AR: {
-      bArmature *arm = (bArmature *)id;
+      bArmature *arm = blender::id_cast<bArmature *>(id);
       if (is_edit_mode) {
         auto xod = std::make_unique<XFormObjectData_Armature>();
         xod->id = id;
@@ -441,7 +441,7 @@ static std::unique_ptr<XFormObjectData> data_xform_create_ex(ID *id, bool is_edi
     }
     case ID_MB: {
       /* Edit mode and object mode are shared. */
-      MetaBall *mb = (MetaBall *)id;
+      MetaBall *mb = blender::id_cast<MetaBall *>(id);
       auto xod = std::make_unique<XFormObjectData_MetaBall>();
       xod->id = id;
       xod->is_edit_mode = is_edit_mode;
@@ -450,7 +450,7 @@ static std::unique_ptr<XFormObjectData> data_xform_create_ex(ID *id, bool is_edi
       return xod;
     }
     case ID_GP: {
-      GreasePencil *grease_pencil = (GreasePencil *)id;
+      GreasePencil *grease_pencil = blender::id_cast<GreasePencil *>(id);
       const int elem_array_len = BKE_grease_pencil_stroke_point_count(*grease_pencil);
       auto xod = std::make_unique<XFormObjectData_GreasePencil>();
       xod->id = id;
@@ -524,7 +524,7 @@ void data_xform_by_mat4(XFormObjectData &xod_base, const float4x4 &transform)
 {
   switch (GS(xod_base.id->name)) {
     case ID_ME: {
-      Mesh *mesh = (Mesh *)xod_base.id;
+      Mesh *mesh = blender::id_cast<Mesh *>(xod_base.id);
 
       Key *key = mesh->key;
       const int key_index = -1;
@@ -549,7 +549,7 @@ void data_xform_by_mat4(XFormObjectData &xod_base, const float4x4 &transform)
     }
     case ID_LT: {
       const auto &xod = reinterpret_cast<XFormObjectData_Lattice &>(xod_base);
-      Lattice *lt_orig = (Lattice *)xod_base.id;
+      Lattice *lt_orig = blender::id_cast<Lattice *>(xod_base.id);
       Lattice *lt = xod.is_edit_mode ? lt_orig->editlatt->latt : lt_orig;
 
       Key *key = lt->key;
@@ -570,7 +570,7 @@ void data_xform_by_mat4(XFormObjectData &xod_base, const float4x4 &transform)
     case ID_CU_LEGACY: {
       const auto &xod = reinterpret_cast<XFormObjectData_Curve &>(xod_base);
       BLI_assert(xod.is_edit_mode == false); /* Not used currently. */
-      Curve *cu = (Curve *)xod_base.id;
+      Curve *cu = blender::id_cast<Curve *>(xod_base.id);
 
       Key *key = cu->key;
       const int key_index = -1;
@@ -600,7 +600,7 @@ void data_xform_by_mat4(XFormObjectData &xod_base, const float4x4 &transform)
     case ID_AR: {
       const auto &xod = reinterpret_cast<XFormObjectData_Armature &>(xod_base);
       BLI_assert(xod.is_edit_mode == false); /* Not used currently. */
-      bArmature *arm = (bArmature *)xod_base.id;
+      bArmature *arm = blender::id_cast<bArmature *>(xod_base.id);
       if (xod.is_edit_mode) {
         edit_armature_coords_and_quats_apply_with_mat4(arm, xod.elems, transform);
       }
@@ -611,13 +611,13 @@ void data_xform_by_mat4(XFormObjectData &xod_base, const float4x4 &transform)
     }
     case ID_MB: {
       /* Meta-balls are a special case, edit-mode and object mode data is shared. */
-      MetaBall *mb = (MetaBall *)xod_base.id;
+      MetaBall *mb = blender::id_cast<MetaBall *>(xod_base.id);
       const auto &xod = reinterpret_cast<XFormObjectData_MetaBall &>(xod_base);
       metaball_coords_and_quats_apply_with_mat4(mb, xod.elems, transform);
       break;
     }
     case ID_GP: {
-      GreasePencil *grease_pencil = (GreasePencil *)xod_base.id;
+      GreasePencil *grease_pencil = blender::id_cast<GreasePencil *>(xod_base.id);
       const auto &xod = reinterpret_cast<XFormObjectData_GreasePencil &>(xod_base);
       BKE_grease_pencil_point_coords_apply_with_mat4(
           *grease_pencil, xod.positions, xod.radii, transform);
@@ -656,7 +656,7 @@ void data_xform_restore(XFormObjectData &xod_base)
 {
   switch (GS(xod_base.id->name)) {
     case ID_ME: {
-      Mesh *mesh = (Mesh *)xod_base.id;
+      Mesh *mesh = blender::id_cast<Mesh *>(xod_base.id);
 
       Key *key = mesh->key;
       const int key_index = -1;
@@ -681,7 +681,7 @@ void data_xform_restore(XFormObjectData &xod_base)
     }
     case ID_LT: {
       const auto &xod = reinterpret_cast<XFormObjectData_Lattice &>(xod_base);
-      Lattice *lt_orig = (Lattice *)xod_base.id;
+      Lattice *lt_orig = blender::id_cast<Lattice *>(xod_base.id);
       Lattice *lt = xod.is_edit_mode ? lt_orig->editlatt->latt : lt_orig;
 
       Key *key = lt->key;
@@ -700,7 +700,7 @@ void data_xform_restore(XFormObjectData &xod_base)
       break;
     }
     case ID_CU_LEGACY: {
-      Curve *cu = (Curve *)xod_base.id;
+      Curve *cu = blender::id_cast<Curve *>(xod_base.id);
 
       Key *key = cu->key;
       const int key_index = -1;
@@ -723,7 +723,7 @@ void data_xform_restore(XFormObjectData &xod_base)
       break;
     }
     case ID_AR: {
-      bArmature *arm = (bArmature *)xod_base.id;
+      bArmature *arm = blender::id_cast<bArmature *>(xod_base.id);
       const auto &xod = reinterpret_cast<XFormObjectData_Armature &>(xod_base);
       if (xod.is_edit_mode) {
         edit_armature_coords_and_quats_apply(arm, xod.elems);
@@ -735,13 +735,13 @@ void data_xform_restore(XFormObjectData &xod_base)
     }
     case ID_MB: {
       /* Meta-balls are a special case, edit-mode and object mode data is shared. */
-      MetaBall *mb = (MetaBall *)xod_base.id;
+      MetaBall *mb = blender::id_cast<MetaBall *>(xod_base.id);
       const auto &xod = reinterpret_cast<XFormObjectData_MetaBall &>(xod_base);
       metaball_coords_and_quats_apply(mb, xod.elems);
       break;
     }
     case ID_GP: {
-      GreasePencil *grease_pencil = (GreasePencil *)xod_base.id;
+      GreasePencil *grease_pencil = blender::id_cast<GreasePencil *>(xod_base.id);
       const auto &xod = reinterpret_cast<XFormObjectData_GreasePencil &>(xod_base);
       BKE_grease_pencil_point_coords_apply(*grease_pencil, xod.positions, xod.radii);
       break;
@@ -776,7 +776,7 @@ void data_xform_tag_update(XFormObjectData &xod_base)
 {
   switch (GS(xod_base.id->name)) {
     case ID_ME: {
-      Mesh *mesh = (Mesh *)xod_base.id;
+      Mesh *mesh = blender::id_cast<Mesh *>(xod_base.id);
       const auto &xod = reinterpret_cast<XFormObjectData_Mesh &>(xod_base);
       if (xod.is_edit_mode) {
         EDBMUpdate_Params params{};
@@ -790,38 +790,38 @@ void data_xform_tag_update(XFormObjectData &xod_base)
     }
     case ID_LT: {
       /* Generic update. */
-      Lattice *lt = (Lattice *)xod_base.id;
+      Lattice *lt = blender::id_cast<Lattice *>(xod_base.id);
       DEG_id_tag_update(&lt->id, ID_RECALC_GEOMETRY);
       break;
     }
     case ID_CU_LEGACY: {
       /* Generic update. */
-      Curve *cu = (Curve *)xod_base.id;
+      Curve *cu = blender::id_cast<Curve *>(xod_base.id);
       DEG_id_tag_update(&cu->id, ID_RECALC_GEOMETRY);
       break;
     }
     case ID_AR: {
       /* Generic update. */
-      bArmature *arm = (bArmature *)xod_base.id;
+      bArmature *arm = blender::id_cast<bArmature *>(xod_base.id);
       /* XXX, zero is needed, no other flags properly update this. */
       DEG_id_tag_update(&arm->id, 0);
       break;
     }
     case ID_MB: {
       /* Generic update. */
-      MetaBall *mb = (MetaBall *)xod_base.id;
+      MetaBall *mb = blender::id_cast<MetaBall *>(xod_base.id);
       DEG_id_tag_update(&mb->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
       break;
     }
     case ID_GD_LEGACY: {
       /* Generic update. */
-      bGPdata *gpd = (bGPdata *)xod_base.id;
+      bGPdata *gpd = blender::id_cast<bGPdata *>(xod_base.id);
       DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
       break;
     }
     case ID_GP: {
       /* Generic update. */
-      GreasePencil *grease_pencil = (GreasePencil *)xod_base.id;
+      GreasePencil *grease_pencil = blender::id_cast<GreasePencil *>(xod_base.id);
       DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
       break;
     }

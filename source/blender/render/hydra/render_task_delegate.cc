@@ -160,7 +160,7 @@ void RenderTaskDelegate::read_aov(pxr::TfToken const &aov_key, void *data)
   }
   else if (pxr::HdGetComponentFormat(format) == pxr::HdFormatFloat16) {
     Eigen::half *buf_data = (Eigen::half *)buffer->Map();
-    float *fdata = (float *)data;
+    float *fdata = static_cast<float *>(data);
     for (size_t i = 0; i < len; ++i) {
       fdata[i] = buf_data[i];
     }

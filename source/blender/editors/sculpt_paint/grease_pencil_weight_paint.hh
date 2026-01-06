@@ -126,7 +126,7 @@ class WeightPaintOperation : public GreasePencilStrokeOperation {
     using namespace blender::ed::greasepencil;
 
     this->object = CTX_data_active_object(&C);
-    this->grease_pencil = static_cast<GreasePencil *>(this->object->data);
+    this->grease_pencil = blender::id_cast<GreasePencil *>(this->object->data);
     Paint *paint = BKE_paint_get_active_from_context(&C);
     Brush *brush = BKE_paint_brush(paint);
 
@@ -153,7 +153,7 @@ class WeightPaintOperation : public GreasePencilStrokeOperation {
       const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(this->object);
       if (const Object *modob = BKE_modifiers_is_deformed_by_armature(this->object)) {
         /* This happens on a Bone select, when no vgroup existed yet. */
-        const Bone *actbone = static_cast<bArmature *>(modob->data)->act_bone;
+        const Bone *actbone = blender::id_cast<bArmature *>(modob->data)->act_bone;
         if (actbone) {
           const bPoseChannel *pchan = BKE_pose_channel_find_name(modob->pose, actbone->name);
 

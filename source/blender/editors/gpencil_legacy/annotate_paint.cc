@@ -386,7 +386,7 @@ static void annotation_smooth_buffer(tGPsdata *p, float inf, int idx)
     return;
   }
 
-  tGPspoint *points = (tGPspoint *)gpd->runtime.sbuffer;
+  tGPspoint *points = static_cast<tGPspoint *>(gpd->runtime.sbuffer);
   float steps = 4.0f;
   if (idx < 4) {
     steps--;
@@ -518,7 +518,7 @@ static short annotation_stroke_addpoint(tGPsdata *p,
     /* straight lines only - i.e. only store start and end point in buffer */
     if (gpd->runtime.sbuffer_used == 0) {
       /* first point in buffer (start point) */
-      pt = (tGPspoint *)(gpd->runtime.sbuffer);
+      pt = static_cast<tGPspoint *>(gpd->runtime.sbuffer);
 
       /* store settings */
       copy_v2_v2(pt->m_xy, mval);
@@ -534,7 +534,7 @@ static short annotation_stroke_addpoint(tGPsdata *p,
       /* just reset the endpoint to the latest value
        * - assume that pointers for this are always valid...
        */
-      pt = ((tGPspoint *)(gpd->runtime.sbuffer) + 1);
+      pt = (static_cast<tGPspoint *>(gpd->runtime.sbuffer) + 1);
 
       /* store settings */
       copy_v2_v2(pt->m_xy, mval);
@@ -551,7 +551,7 @@ static short annotation_stroke_addpoint(tGPsdata *p,
         /* Store start and end point coords for arrows. */
         float end[2];
         copy_v2_v2(end, pt->m_xy);
-        pt = ((tGPspoint *)(gpd->runtime.sbuffer));
+        pt = (static_cast<tGPspoint *>(gpd->runtime.sbuffer));
         float start[2];
         copy_v2_v2(start, pt->m_xy);
 
@@ -586,7 +586,7 @@ static short annotation_stroke_addpoint(tGPsdata *p,
         false);
 
     /* get pointer to destination point */
-    pt = ((tGPspoint *)(gpd->runtime.sbuffer) + gpd->runtime.sbuffer_used);
+    pt = (static_cast<tGPspoint *>(gpd->runtime.sbuffer) + gpd->runtime.sbuffer_used);
 
     /* store settings */
     copy_v2_v2(pt->m_xy, mval);
@@ -613,7 +613,7 @@ static short annotation_stroke_addpoint(tGPsdata *p,
 
   if (p->paintmode == GP_PAINTMODE_DRAW_POLY) {
     /* get pointer to destination point */
-    pt = (tGPspoint *)gpd->runtime.sbuffer;
+    pt = static_cast<tGPspoint *>(gpd->runtime.sbuffer);
 
     /* store settings */
     copy_v2_v2(pt->m_xy, mval);
@@ -885,7 +885,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
       bGPdata_Runtime runtime = blender::dna::shallow_copy(gpd->runtime);
 
       /* Last point if applicable. */
-      ptc = ((tGPspoint *)runtime.sbuffer) + (runtime.sbuffer_used - 1);
+      ptc = (static_cast<tGPspoint *>(runtime.sbuffer)) + (runtime.sbuffer_used - 1);
 
       /* Convert screen-coordinates to appropriate coordinates (and store them). */
       annotation_stroke_convertcoords(p, ptc->m_xy, &pt->x, nullptr);
@@ -911,7 +911,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
         pt = e_arrow_gps->points + (e_arrow_gps->totpoints - totarrowpoints);
 
         /* End point. */
-        ptc = ((tGPspoint *)runtime.sbuffer) + (runtime.sbuffer_used - 1);
+        ptc = (static_cast<tGPspoint *>(runtime.sbuffer)) + (runtime.sbuffer_used - 1);
         annotation_stroke_convertcoords(p, ptc->m_xy, &pt->x, nullptr);
         annotation_stroke_arrow_init_point_default(pt);
 
@@ -1415,27 +1415,27 @@ static void annotation_visible_on_space(tGPsdata *p)
   ScrArea *area = p->area;
   switch (area->spacetype) {
     case SPACE_VIEW3D: {
-      View3D *v3d = (View3D *)area->spacedata.first;
+      View3D *v3d = static_cast<View3D *>(area->spacedata.first);
       v3d->flag2 |= V3D_SHOW_ANNOTATION;
       break;
     }
     case SPACE_SEQ: {
-      SpaceSeq *sseq = (SpaceSeq *)area->spacedata.first;
+      SpaceSeq *sseq = static_cast<SpaceSeq *>(area->spacedata.first);
       sseq->flag |= SEQ_PREVIEW_SHOW_GPENCIL;
       break;
     }
     case SPACE_IMAGE: {
-      SpaceImage *sima = (SpaceImage *)area->spacedata.first;
+      SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
       sima->flag |= SI_SHOW_GPENCIL;
       break;
     }
     case SPACE_NODE: {
-      SpaceNode *snode = (SpaceNode *)area->spacedata.first;
+      SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
       snode->flag |= SNODE_SHOW_GPENCIL;
       break;
     }
     case SPACE_CLIP: {
-      SpaceClip *sclip = (SpaceClip *)area->spacedata.first;
+      SpaceClip *sclip = static_cast<SpaceClip *>(area->spacedata.first);
       sclip->flag |= SC_SHOW_ANNOTATION;
       break;
     }
@@ -1721,7 +1721,7 @@ static void annotation_draw_eraser(bContext * /*C*/,
                                    const blender::float2 & /*tilt*/,
                                    void *p_ptr)
 {
-  tGPsdata *p = (tGPsdata *)p_ptr;
+  tGPsdata *p = static_cast<tGPsdata *>(p_ptr);
 
   if (p->paintmode == GP_PAINTMODE_ERASER) {
     GPUVertFormat *format = immVertexFormat();
@@ -1786,7 +1786,7 @@ static void annotation_draw_stabilizer(bContext *C,
                                        void *p_ptr)
 {
   ARegion *region = CTX_wm_region(C);
-  tGPsdata *p = (tGPsdata *)p_ptr;
+  tGPsdata *p = static_cast<tGPsdata *>(p_ptr);
   bGPdata_Runtime runtime = blender::dna::shallow_copy(p->gpd->runtime);
   const tGPspoint *points = static_cast<const tGPspoint *>(runtime.sbuffer);
   int totpoints = runtime.sbuffer_used;

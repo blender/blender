@@ -4362,7 +4362,7 @@ static bool text_update_shader_text_recursive(RenderEngine *engine,
   /* Update each script that is using this text datablock. */
   for (bNode *node : ntree->all_nodes()) {
     if (node->type_legacy == NODE_GROUP) {
-      bNodeTree *ngroup = (bNodeTree *)node->id;
+      bNodeTree *ngroup = blender::id_cast<bNodeTree *>(node->id);
       if (ngroup && !done_trees.contains(ngroup)) {
         found |= text_update_shader_text_recursive(engine, type, ngroup, text, done_trees);
       }

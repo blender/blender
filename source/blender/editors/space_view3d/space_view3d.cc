@@ -255,13 +255,13 @@ static SpaceLink *view3d_create(const ScrArea * /*area*/, const Scene *scene)
   rv3d->dist = 10.0;
   region->regiondata = rv3d;
 
-  return (SpaceLink *)v3d;
+  return reinterpret_cast<SpaceLink *>(v3d);
 }
 
 /* Doesn't free the space-link itself. */
 static void view3d_free(SpaceLink *sl)
 {
-  View3D *vd = (View3D *)sl;
+  View3D *vd = reinterpret_cast<View3D *>(sl);
 
   if (vd->localvd) {
     MEM_freeN(vd->localvd);
@@ -294,7 +294,7 @@ static void view3d_exit(wmWindowManager * /*wm*/, ScrArea *area)
 
 static SpaceLink *view3d_duplicate(SpaceLink *sl)
 {
-  View3D *v3do = (View3D *)sl;
+  View3D *v3do = reinterpret_cast<View3D *>(sl);
   View3D *v3dn = static_cast<View3D *>(MEM_dupallocN(sl));
 
   v3dn->runtime = View3D_Runtime{};
@@ -320,7 +320,7 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 
   /* copy or clear inside new stuff */
 
-  return (SpaceLink *)v3dn;
+  return reinterpret_cast<SpaceLink *>(v3dn);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -1464,7 +1464,7 @@ static void space_view3d_listener(const wmSpaceTypeListenerParams *params)
 
 static void space_view3d_refresh(const bContext *C, ScrArea *area)
 {
-  View3D *v3d = (View3D *)area->spacedata.first;
+  View3D *v3d = static_cast<View3D *>(area->spacedata.first);
   ED_view3d_local_stats_free(v3d);
 
   if (v3d->localvd && v3d->localvd->runtime.flag & V3D_RUNTIME_LOCAL_MAYBE_EMPTY) {
@@ -1506,7 +1506,7 @@ static void view3d_id_remap_v3d(ScrArea *area,
                                                                         &slink->regionbase;
     for (ARegion &region : *regionbase) {
       if (region.regiontype == RGN_TYPE_WINDOW) {
-        RegionView3D *rv3d = is_local ? ((RegionView3D *)region.regiondata)->localvd :
+        RegionView3D *rv3d = is_local ? (static_cast<RegionView3D *>(region.regiondata))->localvd :
                                         static_cast<RegionView3D *>(region.regiondata);
         if (rv3d && (rv3d->persp == RV3D_CAMOB)) {
           rv3d->persp = RV3D_PERSP;
@@ -1526,7 +1526,7 @@ static void view3d_id_remap(ScrArea *area,
     return;
   }
 
-  View3D *view3d = (View3D *)slink;
+  View3D *view3d = reinterpret_cast<View3D *>(slink);
   view3d_id_remap_v3d(area, slink, view3d, mappings, false);
   view3d_id_remap_v3d_ob_centers(view3d, mappings);
   if (view3d->localvd != nullptr) {
@@ -1560,7 +1560,7 @@ static void view3d_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
 
 static void view3d_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
-  View3D *v3d = (View3D *)sl;
+  View3D *v3d = reinterpret_cast<View3D *>(sl);
 
   v3d->runtime = View3D_Runtime{};
 
@@ -1585,7 +1585,7 @@ static void view3d_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 
 static void view3d_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
-  View3D *v3d = (View3D *)sl;
+  View3D *v3d = reinterpret_cast<View3D *>(sl);
   writer->write_struct(v3d);
 
   if (v3d->localvd) {

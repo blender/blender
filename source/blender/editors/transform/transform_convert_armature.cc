@@ -148,7 +148,7 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
       if (data->tar == nullptr || (data->tar->type == OB_ARMATURE && data->subtarget[0] == '\0')) {
         /* Make reference to constraint to base things off later
          * (if it's the last targetless constraint encountered). */
-        targetless = (bKinematicConstraint *)con.data;
+        targetless = static_cast<bKinematicConstraint *>(con.data);
 
         /* But, if this is a targetless IK, we make it auto anyway (for the children loop). */
         if (con.enforce != 0.0f) {
@@ -260,7 +260,7 @@ static short pose_grab_with_ik(Main *bmain, Object *ob)
     return 0;
   }
 
-  arm = static_cast<bArmature *>(ob->data);
+  arm = blender::id_cast<bArmature *>(ob->data);
 
   /* Rule: allow multiple Bones
    * (but they must be selected, and only one ik-solver per chain should get added). */
@@ -396,7 +396,7 @@ static void add_pose_transdata(
   float pmat[3][3], omat[3][3];
   float cmat[3][3], tmat[3][3];
 
-  const bArmature *arm = static_cast<bArmature *>(ob->data);
+  const bArmature *arm = blender::id_cast<bArmature *>(ob->data);
   BKE_pose_channel_transform_location(arm, pchan, td->center);
   if (pchan->flag & POSE_TRANSFORM_AROUND_CUSTOM_TX) {
     copy_v3_v3(td_ext->center_no_override, pchan->pose_mat[3]);
@@ -745,7 +745,7 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
   t->data_len_all = 0;
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    bArmature *arm = static_cast<bArmature *>(tc->obedit->data);
+    bArmature *arm = blender::id_cast<bArmature *>(tc->obedit->data);
     ListBaseT<EditBone> *edbo = arm->edbo;
     bool mirror = ((arm->flag & ARM_MIRROR_EDIT) != 0);
     int total_mirrored = 0;
@@ -806,7 +806,7 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
       continue;
     }
 
-    bArmature *arm = static_cast<bArmature *>(tc->obedit->data);
+    bArmature *arm = blender::id_cast<bArmature *>(tc->obedit->data);
     ListBaseT<EditBone> *edbo = arm->edbo;
     TransData *td, *td_old;
     float mtx[3][3], smtx[3][3], bonemat[3][3];
@@ -993,11 +993,11 @@ static void restoreBones(TransDataContainer *tc)
   EditBone *ebo;
 
   if (tc->obedit) {
-    arm = static_cast<bArmature *>(tc->obedit->data);
+    arm = blender::id_cast<bArmature *>(tc->obedit->data);
   }
   else {
     BLI_assert(tc->poseobj != nullptr);
-    arm = static_cast<bArmature *>(tc->poseobj->data);
+    arm = blender::id_cast<bArmature *>(tc->poseobj->data);
   }
 
   while (bid->bone) {
@@ -1040,7 +1040,7 @@ static void recalcData_edit_armature(TransInfo *t)
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    bArmature *arm = static_cast<bArmature *>(tc->obedit->data);
+    bArmature *arm = blender::id_cast<bArmature *>(tc->obedit->data);
     ListBaseT<EditBone> *edbo = arm->edbo;
     EditBone *ebo, *ebo_parent;
     TransData *td = tc->data;
@@ -1378,7 +1378,7 @@ static void recalcData_pose(TransInfo *t)
      * in that case we have to do mirroring as well. */
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       Object *ob = tc->poseobj;
-      bArmature *arm = static_cast<bArmature *>(ob->data);
+      bArmature *arm = blender::id_cast<bArmature *>(ob->data);
       if (ob->mode == OB_MODE_EDIT) {
         if (arm->flag & ARM_MIRROR_EDIT) {
           if (t->state != TRANS_CANCEL) {
@@ -1479,7 +1479,7 @@ static void pose_channel_children_clear_transflag(bPose &pose,
 
 void transform_convert_pose_transflags_update(Object *ob, const int mode, const short around)
 {
-  bArmature *arm = static_cast<bArmature *>(ob->data);
+  bArmature *arm = blender::id_cast<bArmature *>(ob->data);
 
   for (bPoseChannel &pchan : ob->pose->chanbase) {
     if (blender::animrig::bone_is_visible(arm, &pchan)) {

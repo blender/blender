@@ -75,13 +75,13 @@ static std::optional<std::string> rna_VolumeDisplay_path(const PointerRNA * /*pt
 
 static void rna_Volume_update_display(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Volume *volume = (Volume *)ptr->owner_id;
+  Volume *volume = blender::id_cast<Volume *>(ptr->owner_id);
   WM_main_add_notifier(NC_GEOM | ND_DATA, volume);
 }
 
 static void rna_Volume_update_filepath(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Volume *volume = (Volume *)ptr->owner_id;
+  Volume *volume = blender::id_cast<Volume *>(ptr->owner_id);
   BKE_volume_unload(volume);
   DEG_id_tag_update(&volume->id, ID_RECALC_SYNC_TO_EVAL);
   WM_main_add_notifier(NC_GEOM | ND_DATA, volume);
@@ -95,7 +95,7 @@ static void rna_Volume_update_is_sequence(Main *bmain, Scene *scene, PointerRNA 
 
 static void rna_Volume_velocity_grid_set(PointerRNA *ptr, const char *value)
 {
-  Volume *volume = (Volume *)ptr->data;
+  Volume *volume = static_cast<Volume *>(ptr->data);
   if (!BKE_volume_set_velocity_grid_by_name(volume, value)) {
     WM_global_reportf(RPT_ERROR, "Could not find grid with name %s", value);
   }
@@ -131,7 +131,8 @@ static int rna_VolumeGrid_channels_get(PointerRNA *ptr)
 static void rna_VolumeGrid_matrix_object_get(PointerRNA *ptr, float *value)
 {
   auto *grid = static_cast<const blender::bke::VolumeGridData *>(ptr->data);
-  *(blender::float4x4 *)value = blender::bke::volume_grid::get_transform_matrix(*grid);
+  *reinterpret_cast<blender::float4x4 *>(value) = blender::bke::volume_grid::get_transform_matrix(
+      *grid);
 }
 
 static bool rna_VolumeGrid_is_loaded_get(PointerRNA *ptr)
@@ -193,7 +194,7 @@ static int rna_Volume_grids_length(PointerRNA *ptr)
 static void rna_VolumeGrids_active_index_range(
     PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)
 {
-  Volume *volume = (Volume *)ptr->data;
+  Volume *volume = static_cast<Volume *>(ptr->data);
   int num_grids = BKE_volume_num_grids(volume);
 
   *min = 0;
@@ -202,14 +203,14 @@ static void rna_VolumeGrids_active_index_range(
 
 static int rna_VolumeGrids_active_index_get(PointerRNA *ptr)
 {
-  Volume *volume = (Volume *)ptr->data;
+  Volume *volume = static_cast<Volume *>(ptr->data);
   int num_grids = BKE_volume_num_grids(volume);
   return clamp_i(volume->active_grid, 0, max_ii(num_grids - 1, 0));
 }
 
 static void rna_VolumeGrids_active_index_set(PointerRNA *ptr, int value)
 {
-  Volume *volume = (Volume *)ptr->data;
+  Volume *volume = static_cast<Volume *>(ptr->data);
   volume->active_grid = value;
 }
 
@@ -217,7 +218,7 @@ static void rna_VolumeGrids_active_index_set(PointerRNA *ptr, int value)
 
 static bool rna_VolumeGrids_is_loaded_get(PointerRNA *ptr)
 {
-  Volume *volume = (Volume *)ptr->data;
+  Volume *volume = static_cast<Volume *>(ptr->data);
   return BKE_volume_is_loaded(volume);
 }
 
@@ -225,26 +226,26 @@ static bool rna_VolumeGrids_is_loaded_get(PointerRNA *ptr)
 
 static void rna_VolumeGrids_error_message_get(PointerRNA *ptr, char *value)
 {
-  Volume *volume = (Volume *)ptr->data;
+  Volume *volume = static_cast<Volume *>(ptr->data);
   strcpy(value, BKE_volume_grids_error_msg(volume));
 }
 
 static int rna_VolumeGrids_error_message_length(PointerRNA *ptr)
 {
-  Volume *volume = (Volume *)ptr->data;
+  Volume *volume = static_cast<Volume *>(ptr->data);
   return strlen(BKE_volume_grids_error_msg(volume));
 }
 
 /* Frame Filepath */
 static void rna_VolumeGrids_frame_filepath_get(PointerRNA *ptr, char *value)
 {
-  Volume *volume = (Volume *)ptr->data;
+  Volume *volume = static_cast<Volume *>(ptr->data);
   strcpy(value, BKE_volume_grids_frame_filepath(volume));
 }
 
 static int rna_VolumeGrids_frame_filepath_length(PointerRNA *ptr)
 {
-  Volume *volume = (Volume *)ptr->data;
+  Volume *volume = static_cast<Volume *>(ptr->data);
   return strlen(BKE_volume_grids_frame_filepath(volume));
 }
 

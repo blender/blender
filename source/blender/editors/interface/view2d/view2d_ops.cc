@@ -2155,7 +2155,7 @@ static wmOperatorStatus scroller_activate_invoke(bContext *C, wmOperator *op, co
   if (in_scroller) {
     /* initialize customdata */
     scroller_activate_init(C, op, event, in_scroller);
-    v2dScrollerMove *vsm = (v2dScrollerMove *)op->customdata;
+    v2dScrollerMove *vsm = static_cast<v2dScrollerMove *>(op->customdata);
 
     /* Support for quick jump to location - GTK and QT do this on Linux. */
     if (event->type == MIDDLEMOUSE) {

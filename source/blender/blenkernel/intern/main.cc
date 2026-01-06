@@ -562,12 +562,12 @@ bool BKE_main_needs_overwrite_confirm(const Main *bmain)
 
 void BKE_main_lock(Main *bmain)
 {
-  BLI_spin_lock((SpinLock *)bmain->lock);
+  BLI_spin_lock(reinterpret_cast<SpinLock *>(bmain->lock));
 }
 
 void BKE_main_unlock(Main *bmain)
 {
-  BLI_spin_unlock((SpinLock *)bmain->lock);
+  BLI_spin_unlock(reinterpret_cast<SpinLock *>(bmain->lock));
 }
 
 static int main_relations_create_idlink_cb(LibraryIDLinkCallbackData *cb_data)
@@ -932,8 +932,11 @@ ImBuf *BKE_main_thumbnail_to_imbuf(Main *bmain, BlendThumbnail *data)
   }
 
   if (data) {
-    img = IMB_allocFromBuffer(
-        (const uint8_t *)data->rect, nullptr, uint(data->width), uint(data->height), 4);
+    img = IMB_allocFromBuffer(reinterpret_cast<const uint8_t *>(data->rect),
+                              nullptr,
+                              uint(data->width),
+                              uint(data->height),
+                              4);
   }
 
   return img;
@@ -966,7 +969,7 @@ const char *BKE_main_blendfile_path_from_library(const Library &library)
 
 ListBaseT<ID> *which_libbase(Main *bmain, short type)
 {
-  switch ((ID_Type)type) {
+  switch (ID_Type(type)) {
     case ID_SCE:
       return &(bmain->scenes.cast<ID>());
     case ID_LI:

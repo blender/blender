@@ -77,14 +77,14 @@ const EnumPropertyItem rna_enum_region_panel_category_items[] = {
 
 static void rna_Screen_bar_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  bScreen *screen = (bScreen *)ptr->data;
+  bScreen *screen = static_cast<bScreen *>(ptr->data);
   screen->do_draw = true;
   screen->do_refresh = true;
 }
 
 static void rna_Screen_redraw_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  bScreen *screen = (bScreen *)ptr->data;
+  bScreen *screen = static_cast<bScreen *>(ptr->data);
 
   /* the settings for this are currently only available from a menu in the TimeLine,
    * hence refresh=SPACE_ACTION, as timeline is now in there
@@ -101,7 +101,7 @@ static bool rna_Screen_is_animation_playing_get(PointerRNA * /*ptr*/)
 
 static bool rna_Screen_is_scrubbing_get(PointerRNA *ptr)
 {
-  bScreen *screen = (bScreen *)ptr->data;
+  bScreen *screen = static_cast<bScreen *>(ptr->data);
   return screen->scrubbing;
 }
 
@@ -113,13 +113,13 @@ static int rna_Region_alignment_get(PointerRNA *ptr)
 
 static bool rna_Screen_fullscreen_get(PointerRNA *ptr)
 {
-  bScreen *screen = (bScreen *)ptr->data;
+  bScreen *screen = static_cast<bScreen *>(ptr->data);
   return (screen->state == SCREENMAXIMIZED || screen->state == SCREENFULL);
 }
 
 static int rna_Area_type_get(PointerRNA *ptr)
 {
-  ScrArea *area = (ScrArea *)ptr->data;
+  ScrArea *area = static_cast<ScrArea *>(ptr->data);
   /* Usually 'spacetype' is used. It lags behind a bit while switching area
    * type though, then we use 'butspacetype' instead (#41435). */
   return (area->butspacetype == SPACE_EMPTY) ? area->spacetype : area->butspacetype;
@@ -134,7 +134,7 @@ static void rna_Area_type_set(PointerRNA *ptr, int value)
     return;
   }
 
-  ScrArea *area = (ScrArea *)ptr->data;
+  ScrArea *area = static_cast<ScrArea *>(ptr->data);
   /* Empty areas are locked. */
   if ((value == SPACE_EMPTY) || (area->spacetype == SPACE_EMPTY)) {
     return;
@@ -145,8 +145,8 @@ static void rna_Area_type_set(PointerRNA *ptr, int value)
 
 static void rna_Area_type_update(bContext *C, PointerRNA *ptr)
 {
-  bScreen *screen = (bScreen *)ptr->owner_id;
-  ScrArea *area = (ScrArea *)ptr->data;
+  bScreen *screen = blender::id_cast<bScreen *>(ptr->owner_id);
+  ScrArea *area = static_cast<ScrArea *>(ptr->data);
 
   /* Running update without having called 'set', see: #64049 */
   if (area->butspacetype == SPACE_EMPTY) {
@@ -200,7 +200,7 @@ static const EnumPropertyItem *rna_Area_ui_type_itemf(bContext *C,
   EnumPropertyItem *item = nullptr;
   int totitem = 0;
 
-  ScrArea *area = (ScrArea *)ptr->data;
+  ScrArea *area = static_cast<ScrArea *>(ptr->data);
   const EnumPropertyItem *item_from = rna_enum_space_type_items;
   if (area->spacetype != SPACE_EMPTY) {
     item_from += 1; /* +1 to skip SPACE_EMPTY */
@@ -289,7 +289,7 @@ static void rna_Area_ui_type_update(bContext *C, PointerRNA *ptr)
 
 static PointerRNA rna_Region_data_get(PointerRNA *ptr)
 {
-  bScreen *screen = (bScreen *)ptr->owner_id;
+  bScreen *screen = blender::id_cast<bScreen *>(ptr->owner_id);
   ARegion *region = static_cast<ARegion *>(ptr->data);
 
   if (region->regiondata != nullptr) {

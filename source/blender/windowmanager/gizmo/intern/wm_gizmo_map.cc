@@ -846,7 +846,7 @@ void WM_gizmomap_add_handlers(ARegion *region, wmGizmoMap *gzmap)
 {
   for (wmEventHandler &handler_base : region->runtime->handlers) {
     if (handler_base.type == WM_HANDLER_TYPE_GIZMO) {
-      wmEventHandler_Gizmo *handler = (wmEventHandler_Gizmo *)&handler_base;
+      wmEventHandler_Gizmo *handler = reinterpret_cast<wmEventHandler_Gizmo *>(&handler_base);
       if (handler->gizmo_map == gzmap) {
         return;
       }
@@ -1182,7 +1182,7 @@ void wm_gizmomap_modal_set(
 
     /* Ensure the update flag is set for gizmos that were hidden while modal, see #104817. */
     for (int i = 0; i < WM_GIZMOMAP_DRAWSTEP_MAX; i++) {
-      const eWM_GizmoFlagMapDrawStep step_iter = (eWM_GizmoFlagMapDrawStep)i;
+      const eWM_GizmoFlagMapDrawStep step_iter = eWM_GizmoFlagMapDrawStep(i);
       if (step_iter == step) {
         continue;
       }

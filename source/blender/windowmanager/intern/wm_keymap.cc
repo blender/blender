@@ -1402,12 +1402,12 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(const bContext *C,
   /* Find keymap item in handlers. */
   for (wmEventHandler &handler_base : *handlers) {
     if (handler_base.type == WM_HANDLER_TYPE_KEYMAP) {
-      wmEventHandler_Keymap *handler = (wmEventHandler_Keymap *)&handler_base;
+      wmEventHandler_Keymap *handler = reinterpret_cast<wmEventHandler_Keymap *>(&handler_base);
       wmEventHandler_KeymapResult km_result;
       WM_event_get_keymaps_from_handler(wm, win, handler, &km_result);
       for (int km_index = 0; km_index < km_result.keymaps_len; km_index++) {
         wmKeyMap *keymap = km_result.keymaps[km_index];
-        if (WM_keymap_poll((bContext *)C, keymap)) {
+        if (WM_keymap_poll(const_cast<bContext *>(C), keymap)) {
           wmKeyMapItem *kmi = wm_keymap_item_find_in_keymap(
               keymap, opname, properties, is_strict, params);
           if (kmi != nullptr) {

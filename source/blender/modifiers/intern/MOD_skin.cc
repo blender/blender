@@ -1379,7 +1379,11 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
     vert_buf.reinitialize(split_face->len);
 
     /* Get split face's verts */
-    BM_iter_as_array(bm, BM_VERTS_OF_FACE, split_face, (void **)vert_buf.data(), split_face->len);
+    BM_iter_as_array(bm,
+                     BM_VERTS_OF_FACE,
+                     split_face,
+                     reinterpret_cast<void **>(vert_buf.data()),
+                     split_face->len);
 
     /* Earlier edge split operations may have turned some quads
      * into higher-degree faces */
@@ -1393,7 +1397,11 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
   if (split_face->len != 4) {
     /* Reuse `vert_buf` for updating normals. */
     vert_buf.reinitialize(split_face->len);
-    BM_iter_as_array(bm, BM_FACES_OF_VERT, split_face, (void **)vert_buf.data(), split_face->len);
+    BM_iter_as_array(bm,
+                     BM_FACES_OF_VERT,
+                     split_face,
+                     reinterpret_cast<void **>(vert_buf.data()),
+                     split_face->len);
 
     vert_array_face_normal_update(vert_buf.data(), split_face->len);
     return;
@@ -1970,7 +1978,7 @@ static Mesh *final_skin(SkinModifierData *smd, Mesh *mesh, eSkinErrorFlag *r_err
 
 static void init_data(ModifierData *md)
 {
-  SkinModifierData *smd = (SkinModifierData *)md;
+  SkinModifierData *smd = reinterpret_cast<SkinModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(smd, modifier);
 
   /* Enable in editmode by default. */
@@ -1980,7 +1988,7 @@ static void init_data(ModifierData *md)
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   eSkinErrorFlag error = eSkinErrorFlag(0);
-  Mesh *result = final_skin((SkinModifierData *)md, mesh, &error);
+  Mesh *result = final_skin(reinterpret_cast<SkinModifierData *>(md), mesh, &error);
 
   if (error & SKIN_ERROR_NO_VALID_ROOT) {
     error &= ~SKIN_ERROR_NO_VALID_ROOT;

@@ -174,7 +174,7 @@ bool BKE_bpath_foreach_path_dirfile_fixed_process(BPathForeachPathData *bpath_da
   }
 
   if (bpath_data->callback_function(
-          bpath_data, path_dst, sizeof(path_dst), (const char *)path_src))
+          bpath_data, path_dst, sizeof(path_dst), const_cast<const char *>(path_src)))
   {
     BLI_path_split_dir_file(path_dst, path_dir, path_dir_maxncpy, path_file, path_file_maxncpy);
     bpath_data->is_path_modified = true;
@@ -222,7 +222,7 @@ static bool check_missing_files_foreach_path_cb(BPathForeachPathData *bpath_data
                                                 size_t /*path_dst_maxncpy*/,
                                                 const char *path_src)
 {
-  ReportList *reports = (ReportList *)bpath_data->user_data;
+  ReportList *reports = static_cast<ReportList *>(bpath_data->user_data);
 
   if (!BLI_exists(path_src)) {
     ID *owner_id = bpath_data->owner_id;
@@ -364,7 +364,7 @@ static bool missing_files_find_foreach_path_cb(BPathForeachPathData *bpath_data,
                                                size_t path_dst_maxncpy,
                                                const char *path_src)
 {
-  BPathFind_Data *data = (BPathFind_Data *)bpath_data->user_data;
+  BPathFind_Data *data = static_cast<BPathFind_Data *>(bpath_data->user_data);
   char filepath_new[FILE_MAX];
 
   int64_t filesize = FILESIZE_INVALID_DIRECTORY;
@@ -448,7 +448,7 @@ static bool relative_rebase_foreach_path_cb(BPathForeachPathData *bpath_data,
                                             size_t path_dst_maxncpy,
                                             const char *path_src)
 {
-  BPathRebase_Data *data = (BPathRebase_Data *)bpath_data->user_data;
+  BPathRebase_Data *data = static_cast<BPathRebase_Data *>(bpath_data->user_data);
 
   data->summary.count_total++;
 
@@ -521,7 +521,7 @@ static bool relative_convert_foreach_path_cb(BPathForeachPathData *bpath_data,
                                              size_t path_dst_maxncpy,
                                              const char *path_src)
 {
-  BPathRemap_Data *data = (BPathRemap_Data *)bpath_data->user_data;
+  BPathRemap_Data *data = static_cast<BPathRemap_Data *>(bpath_data->user_data);
 
   data->summary.count_total++;
 
@@ -556,7 +556,7 @@ static bool absolute_convert_foreach_path_cb(BPathForeachPathData *bpath_data,
                                              size_t path_dst_maxncpy,
                                              const char *path_src)
 {
-  BPathRemap_Data *data = (BPathRemap_Data *)bpath_data->user_data;
+  BPathRemap_Data *data = static_cast<BPathRemap_Data *>(bpath_data->user_data);
 
   data->summary.count_total++;
 

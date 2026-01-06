@@ -768,7 +768,7 @@ static wmOperatorStatus curves_draw_exec(bContext *C, wmOperator *op)
   const float radius_max = cps->radius_max;
   const float radius_range = cps->radius_max - cps->radius_min;
 
-  Curves *curves_id = static_cast<Curves *>(obedit->data);
+  Curves *curves_id = blender::id_cast<Curves *>(obedit->data);
   bke::CurvesGeometry &curves = curves_id->geometry.wrap();
   const int curve_index = curves.curves_num();
 

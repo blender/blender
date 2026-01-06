@@ -798,7 +798,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
     const float cfra = ANIM_nla_tweakedit_remap(&ale, float(scene->r.cfra), NLATIME_CONVERT_UNMAP);
 
     if (ale.type == ANIMTYPE_GPLAYER) {
-      bGPDlayer *gpl = (bGPDlayer *)ale.data;
+      bGPDlayer *gpl = static_cast<bGPDlayer *>(ale.data);
       int i;
 
       i = GPLayerToTransData(td, td2d, gpl, t->frame_side, cfra, is_prop_edit, ypos);
@@ -817,7 +817,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
       td2d += i;
     }
     else if (ale.type == ANIMTYPE_MASKLAYER) {
-      MaskLayer *masklay = (MaskLayer *)ale.data;
+      MaskLayer *masklay = static_cast<MaskLayer *>(ale.data);
       int i;
 
       i = MaskLayerToTransData(td, td2d, masklay, t->frame_side, cfra, is_prop_edit, ypos);
@@ -825,7 +825,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
       td2d += i;
     }
     else {
-      FCurve *fcu = (FCurve *)ale.key_data;
+      FCurve *fcu = static_cast<FCurve *>(ale.key_data);
       td = ActionFCurveToTransData(td, &td2d, fcu, &ale, t->frame_side, cfra, is_prop_edit, ypos);
     }
   }
@@ -844,7 +844,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
           &ale, float(scene->r.cfra), NLATIME_CONVERT_UNMAP);
 
       if (ale.type == ANIMTYPE_GPLAYER) {
-        bGPDlayer *gpl = (bGPDlayer *)ale.data;
+        bGPDlayer *gpl = static_cast<bGPDlayer *>(ale.data);
 
         for (bGPDframe &gpf : gpl->frames) {
           if (gpf.flag & GP_FRAME_SELECT) {
@@ -906,7 +906,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
         }
       }
       else if (ale.type == ANIMTYPE_MASKLAYER) {
-        MaskLayer *masklay = (MaskLayer *)ale.data;
+        MaskLayer *masklay = static_cast<MaskLayer *>(ale.data);
 
         for (MaskLayerShape &masklay_shape : masklay->splines_shapes) {
           if (FrameOnMouseSide(t->frame_side, float(masklay_shape.frame), cfra)) {
@@ -930,7 +930,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
         }
       }
       else {
-        FCurve *fcu = (FCurve *)ale.key_data;
+        FCurve *fcu = static_cast<FCurve *>(ale.key_data);
         BezTriple *bezt;
         int i;
 
@@ -987,7 +987,7 @@ static void invert_snap(eSnapMode &snap_mode)
 static void recalcData_actedit(TransInfo *t)
 {
   ViewLayer *view_layer = t->view_layer;
-  SpaceAction *saction = (SpaceAction *)t->area->spacedata.first;
+  SpaceAction *saction = static_cast<SpaceAction *>(t->area->spacedata.first);
 
   bAnimContext ac = {nullptr};
   ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
@@ -1094,7 +1094,7 @@ static int masklay_shape_cmp_frame(void *thunk, const void *a, const void *b)
   if (frame_a->frame > frame_b->frame) {
     return 1;
   }
-  *((bool *)thunk) = true;
+  *(static_cast<bool *>(thunk)) = true;
   /* Selected last. */
   if ((frame_a->flag & MASK_SHAPE_SELECT) && ((frame_b->flag & MASK_SHAPE_SELECT) == 0)) {
     return 1;
@@ -1202,7 +1202,7 @@ static void posttrans_action_clean(bAnimContext *ac, bAction *act)
 
 static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
 {
-  SpaceAction *saction = (SpaceAction *)t->area->spacedata.first;
+  SpaceAction *saction = static_cast<SpaceAction *>(t->area->spacedata.first);
   bAnimContext ac;
 
   const bool canceled = (t->state == TRANS_CANCEL);
@@ -1232,11 +1232,11 @@ static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
       switch (ale.datatype) {
         case ALE_GPFRAME:
           ale.id->tag &= ~ID_TAG_DOIT;
-          posttrans_gpd_clean((bGPdata *)ale.id);
+          posttrans_gpd_clean(blender::id_cast<bGPdata *>(ale.id));
           break;
 
         case ALE_FCURVE: {
-          FCurve *fcu = (FCurve *)ale.key_data;
+          FCurve *fcu = static_cast<FCurve *>(ale.key_data);
 
           /* 3 cases here for curve cleanups:
            * 1) NOTRANSKEYCULL on    -> cleanup of duplicates shouldn't be done.
@@ -1290,7 +1290,7 @@ static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
      *                            but we made duplicates, so get rid of these.
      */
     if ((saction->flag & SACTION_NOTRANSKEYCULL) == 0 && ((canceled == 0) || (duplicate))) {
-      posttrans_action_clean(&ac, (bAction *)ac.data);
+      posttrans_action_clean(&ac, static_cast<bAction *>(ac.data));
     }
   }
   else if (ac.datatype == ANIMCONT_GPENCIL) {
@@ -1313,7 +1313,7 @@ static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
           /* Grease Pencil legacy. */
           if ((saction->flag & SACTION_NOTRANSKEYCULL) == 0 && ((canceled == 0) || (duplicate))) {
             ale.id->tag &= ~ID_TAG_DOIT;
-            posttrans_gpd_clean((bGPdata *)ale.id);
+            posttrans_gpd_clean(blender::id_cast<bGPdata *>(ale.id));
           }
           break;
 
@@ -1352,7 +1352,7 @@ static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
       for (bAnimListElem &ale : anim_data) {
         if (ale.datatype == ALE_MASKLAY) {
           ale.id->tag &= ~ID_TAG_DOIT;
-          posttrans_mask_clean((Mask *)ale.id);
+          posttrans_mask_clean(blender::id_cast<Mask *>(ale.id));
         }
       }
       ANIM_animdata_freelist(&anim_data);

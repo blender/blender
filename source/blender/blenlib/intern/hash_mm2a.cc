@@ -74,7 +74,7 @@ void BLI_hash_mm2a_add(BLI_HashMurmur2A *mm2, const uchar *data, size_t len)
   mm2a_mix_tail(mm2, &data, &len);
 
   for (; len >= 4; data += 4, len -= 4) {
-    uint32_t k = *(const uint32_t *)data;
+    uint32_t k = *reinterpret_cast<const uint32_t *>(data);
 
     MM2A_MIX(mm2->hash, k);
   }
@@ -84,7 +84,7 @@ void BLI_hash_mm2a_add(BLI_HashMurmur2A *mm2, const uchar *data, size_t len)
 
 void BLI_hash_mm2a_add_int(BLI_HashMurmur2A *mm2, int data)
 {
-  BLI_hash_mm2a_add(mm2, (const uchar *)&data, sizeof(data));
+  BLI_hash_mm2a_add(mm2, reinterpret_cast<const uchar *>(&data), sizeof(data));
 }
 
 uint32_t BLI_hash_mm2a_end(BLI_HashMurmur2A *mm2)
@@ -104,7 +104,7 @@ uint32_t BLI_hash_mm2(const uchar *data, size_t len, uint32_t seed)
 
   /* Mix 4 bytes at a time into the hash */
   for (; len >= 4; data += 4, len -= 4) {
-    uint32_t k = *(uint32_t *)data;
+    uint32_t k = *reinterpret_cast<uint32_t *>(const_cast<uchar *>(data));
 
     MM2A_MIX(h, k);
   }

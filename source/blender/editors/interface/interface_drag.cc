@@ -23,7 +23,7 @@ void button_drag_set_id(Button *but, ID *id)
     WM_drag_data_free(but->dragtype, but->dragpoin);
     but->dragflag &= ~BUT_DRAGPOIN_FREE;
   }
-  but->dragpoin = (void *)id;
+  but->dragpoin = static_cast<void *>(id);
 }
 
 void button_drag_attach_image(Button *but, const ImBuf *imb, const float scale)
@@ -58,7 +58,7 @@ void button_drag_set_rna(Button *but, PointerRNA *ptr)
     WM_drag_data_free(but->dragtype, but->dragpoin);
     but->dragflag &= ~BUT_DRAGPOIN_FREE;
   }
-  but->dragpoin = (void *)ptr;
+  but->dragpoin = static_cast<void *>(ptr);
 }
 
 void button_drag_set_path(Button *but, const char *path)

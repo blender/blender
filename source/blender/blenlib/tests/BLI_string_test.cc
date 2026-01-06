@@ -139,8 +139,8 @@ TEST(string, StrPartition)
     /* "" -> "", nullptr, nullptr, 0 */
     pre_len = BLI_str_partition(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 0);
-    EXPECT_EQ(sep, (void *)nullptr);
-    EXPECT_EQ(suf, (void *)nullptr);
+    EXPECT_EQ(sep, static_cast<void *>(nullptr));
+    EXPECT_EQ(suf, static_cast<void *>(nullptr));
   }
 
   {
@@ -149,8 +149,8 @@ TEST(string, StrPartition)
     /* "material" -> "material", nullptr, nullptr, 8 */
     pre_len = BLI_str_partition(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 8);
-    EXPECT_EQ(sep, (void *)nullptr);
-    EXPECT_EQ(suf, (void *)nullptr);
+    EXPECT_EQ(sep, static_cast<void *>(nullptr));
+    EXPECT_EQ(suf, static_cast<void *>(nullptr));
   }
 }
 
@@ -198,8 +198,8 @@ TEST(string, StrRPartition)
     /* "" -> "", nullptr, nullptr, 0 */
     pre_len = BLI_str_rpartition(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 0);
-    EXPECT_EQ(sep, (void *)nullptr);
-    EXPECT_EQ(suf, (void *)nullptr);
+    EXPECT_EQ(sep, static_cast<void *>(nullptr));
+    EXPECT_EQ(suf, static_cast<void *>(nullptr));
   }
 
   {
@@ -208,8 +208,8 @@ TEST(string, StrRPartition)
     /* "material" -> "material", nullptr, nullptr, 8 */
     pre_len = BLI_str_rpartition(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 8);
-    EXPECT_EQ(sep, (void *)nullptr);
-    EXPECT_EQ(suf, (void *)nullptr);
+    EXPECT_EQ(sep, static_cast<void *>(nullptr));
+    EXPECT_EQ(suf, static_cast<void *>(nullptr));
   }
 }
 
@@ -239,8 +239,8 @@ TEST(string, StrPartitionEx)
     /* "mate.rial" over "mate" -> "mate.rial", nullptr, nullptr, 4 */
     pre_len = BLI_str_partition_ex(str, str + 4, delim, &sep, &suf, true);
     EXPECT_EQ(pre_len, 4);
-    EXPECT_EQ(sep, (void *)nullptr);
-    EXPECT_EQ(suf, (void *)nullptr);
+    EXPECT_EQ(sep, static_cast<void *>(nullptr));
+    EXPECT_EQ(suf, static_cast<void *>(nullptr));
   }
 }
 
@@ -288,8 +288,8 @@ TEST(string, StrPartitionUtf8)
     /* "" -> "", nullptr, nullptr, 0 */
     pre_len = BLI_str_partition_utf8(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 0);
-    EXPECT_EQ(sep, (void *)nullptr);
-    EXPECT_EQ(suf, (void *)nullptr);
+    EXPECT_EQ(sep, static_cast<void *>(nullptr));
+    EXPECT_EQ(suf, static_cast<void *>(nullptr));
   }
 
   {
@@ -298,8 +298,8 @@ TEST(string, StrPartitionUtf8)
     /* "material" -> "material", nullptr, nullptr, 8 */
     pre_len = BLI_str_partition_utf8(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 8);
-    EXPECT_EQ(sep, (void *)nullptr);
-    EXPECT_EQ(suf, (void *)nullptr);
+    EXPECT_EQ(sep, static_cast<void *>(nullptr));
+    EXPECT_EQ(suf, static_cast<void *>(nullptr));
   }
 }
 
@@ -347,8 +347,8 @@ TEST(string, StrRPartitionUtf8)
     /* "" -> "", nullptr, nullptr, 0 */
     pre_len = BLI_str_rpartition_utf8(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 0);
-    EXPECT_EQ(sep, (void *)nullptr);
-    EXPECT_EQ(suf, (void *)nullptr);
+    EXPECT_EQ(sep, static_cast<void *>(nullptr));
+    EXPECT_EQ(suf, static_cast<void *>(nullptr));
   }
 
   {
@@ -357,8 +357,8 @@ TEST(string, StrRPartitionUtf8)
     /* "material" -> "material", nullptr, nullptr, 8 */
     pre_len = BLI_str_rpartition_utf8(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 8);
-    EXPECT_EQ(sep, (void *)nullptr);
-    EXPECT_EQ(suf, (void *)nullptr);
+    EXPECT_EQ(sep, static_cast<void *>(nullptr));
+    EXPECT_EQ(suf, static_cast<void *>(nullptr));
   }
 }
 
@@ -389,8 +389,8 @@ TEST(string, StrPartitionExUtf8)
     /* "mate\xe2\x98\xafrial" over "mate" -> "mate\xe2\x98\xafrial", nullptr, nullptr, 4 */
     pre_len = BLI_str_partition_ex_utf8(str, str + 4, delim, &sep, &suf, true);
     EXPECT_EQ(pre_len, 4);
-    EXPECT_EQ(sep, (void *)nullptr);
-    EXPECT_EQ(suf, (void *)nullptr);
+    EXPECT_EQ(sep, static_cast<void *>(nullptr));
+    EXPECT_EQ(suf, static_cast<void *>(nullptr));
   }
 }
 
@@ -1058,7 +1058,7 @@ TEST(string, StringStrncasestr)
   EXPECT_EQ(res, str_test0 + 1);
 
   res = BLI_strncasestr(str_test0, "not there", 9);
-  EXPECT_EQ(res, (void *)nullptr);
+  EXPECT_EQ(res, static_cast<void *>(nullptr));
 }
 
 /** \} */

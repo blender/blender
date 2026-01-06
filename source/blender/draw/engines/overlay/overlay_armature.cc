@@ -221,10 +221,10 @@ static void drw_shgroup_bone_stick(const Armatures::DrawContext *ctx,
 
   ctx->bone_buf->stick_buf.append({head,
                                    tail,
-                                   *(float4 *)col_wire,
-                                   *(float4 *)col_bone,
-                                   *(float4 *)col_head,
-                                   *(float4 *)col_tail},
+                                   *reinterpret_cast<float4 *>(const_cast<float *>(col_wire)),
+                                   *reinterpret_cast<float4 *>(const_cast<float *>(col_bone)),
+                                   *reinterpret_cast<float4 *>(const_cast<float *>(col_head)),
+                                   *reinterpret_cast<float4 *>(const_cast<float *>(col_tail))},
                                   sel_id);
 }
 
@@ -252,9 +252,10 @@ static void drw_shgroup_bone_envelope_distance(const Armatures::DrawContext *ctx
     tail_sph[3] = *radius_tail * obscale;
     tail_sph[3] += *distance * obscale;
     /* TODO(fclem): Cleanup these casts when Overlay Next is shipped. */
-    ctx->bone_buf->envelope_distance_buf.append(
-        {*(float4 *)head_sph, *(float4 *)tail_sph, *(float3 *)xaxis},
-        draw::select::SelectMap::select_invalid_id());
+    ctx->bone_buf->envelope_distance_buf.append({*reinterpret_cast<float4 *>(head_sph),
+                                                 *reinterpret_cast<float4 *>(tail_sph),
+                                                 *reinterpret_cast<float3 *>(xaxis)},
+                                                draw::select::SelectMap::select_invalid_id());
   }
 }
 
@@ -317,16 +318,20 @@ static void drw_shgroup_bone_envelope(const Armatures::DrawContext *ctx,
 
       if (ctx->is_filled) {
         /* TODO(fclem): Cleanup these casts when Overlay Next is shipped. */
-        ctx->bone_buf->envelope_fill_buf.append({*(float4 *)head_sph,
-                                                 *(float4 *)tail_sph,
-                                                 *(float3 *)bone_col,
-                                                 *(float3 *)hint_col,
-                                                 *(float3 *)xaxis},
-                                                sel_id);
+        ctx->bone_buf->envelope_fill_buf.append(
+            {*reinterpret_cast<float4 *>(head_sph),
+             *reinterpret_cast<float4 *>(tail_sph),
+             *reinterpret_cast<float3 *>(const_cast<float *>(bone_col)),
+             *reinterpret_cast<float3 *>(const_cast<float *>(hint_col)),
+             *reinterpret_cast<float3 *>(xaxis)},
+            sel_id);
       }
       if (outline_col[3] > 0.0f) {
         ctx->bone_buf->envelope_outline_buf.append(
-            {*(float4 *)head_sph, *(float4 *)tail_sph, *(float4 *)outline_col, *(float3 *)xaxis},
+            {*reinterpret_cast<float4 *>(head_sph),
+             *reinterpret_cast<float4 *>(tail_sph),
+             *reinterpret_cast<float4 *>(const_cast<float *>(outline_col)),
+             *reinterpret_cast<float3 *>(xaxis)},
             sel_id);
       }
     }
@@ -1179,7 +1184,7 @@ static void draw_bone_update_disp_matrix_bbone(UnifiedBonePtr bone)
    * matrix for the box, that we cannot use to draw end points & co. */
   if (bone.is_posebone()) {
     bPoseChannel *pchan = bone.as_posebone();
-    Mat4 *bbones_mat = (Mat4 *)pchan->draw_data->bbone_matrix;
+    Mat4 *bbones_mat = reinterpret_cast<Mat4 *>(pchan->draw_data->bbone_matrix);
     if (bbone_segments > 1) {
       BKE_pchan_bbone_spline_setup(pchan, false, false, bbones_mat);
 
@@ -1282,10 +1287,10 @@ static void draw_points(const Armatures::DrawContext *ctx,
   }
 
   const float *hint_color_shade_root = (ctx->const_color) ?
-                                           (const float *)theme.colors.bone_solid :
+                                           static_cast<const float *>(theme.colors.bone_solid) :
                                            col_wire_root;
   const float *hint_color_shade_tail = (ctx->const_color) ?
-                                           (const float *)theme.colors.bone_solid :
+                                           static_cast<const float *>(theme.colors.bone_solid) :
                                            col_wire_tail;
   bone_hint_color_shade(col_hint_root, hint_color_shade_root);
   bone_hint_color_shade(col_hint_tail, hint_color_shade_tail);
@@ -1468,11 +1473,13 @@ static void bone_draw_b_bone(const Armatures::DrawContext *ctx,
    * This would require a deeper refactor. */
   Span<Mat4> bbone_matrices;
   if (bone.is_posebone()) {
-    bbone_matrices = {(Mat4 *)bone.as_posebone()->draw_data->bbone_matrix,
+    bbone_matrices = {reinterpret_cast<Mat4 *>(bone.as_posebone()->draw_data->bbone_matrix),
                       bone.as_posebone()->bone->segments};
   }
   else {
-    bbone_matrices = {(Mat4 *)bone.as_editbone()->disp_bbone_mat, bone.as_editbone()->segments};
+    bbone_matrices = {
+        reinterpret_cast<Mat4 *>(const_cast<float (*)[4][4]>(bone.as_editbone()->disp_bbone_mat)),
+        bone.as_editbone()->segments};
   }
 
   auto sel_id = ctx->res->select_id(*ctx->ob_ref, select_id | BONESEL_BONE);
@@ -1553,11 +1560,13 @@ static void bone_draw_wire(const Armatures::DrawContext *ctx,
    * This would require a deeper refactor. */
   Span<Mat4> bbone_matrices;
   if (bone.is_posebone()) {
-    bbone_matrices = {(Mat4 *)bone.as_posebone()->draw_data->bbone_matrix,
+    bbone_matrices = {reinterpret_cast<Mat4 *>(bone.as_posebone()->draw_data->bbone_matrix),
                       bone.as_posebone()->bone->segments};
   }
   else {
-    bbone_matrices = {(Mat4 *)bone.as_editbone()->disp_bbone_mat, bone.as_editbone()->segments};
+    bbone_matrices = {
+        reinterpret_cast<Mat4 *>(const_cast<float (*)[4][4]>(bone.as_editbone()->disp_bbone_mat)),
+        bone.as_editbone()->segments};
   }
 
   for (const Mat4 &in_bone_mat : bbone_matrices) {
@@ -1718,7 +1727,7 @@ static void pchan_draw_ik_lines(const Armatures::DrawContext *ctx,
 
     switch (con.type) {
       case CONSTRAINT_TYPE_KINEMATIC: {
-        bKinematicConstraint *data = (bKinematicConstraint *)con.data;
+        bKinematicConstraint *data = static_cast<bKinematicConstraint *>(con.data);
         int segcount = 0;
 
         /* if only_temp, only draw if it is a temporary ik-chain */
@@ -1752,7 +1761,7 @@ static void pchan_draw_ik_lines(const Armatures::DrawContext *ctx,
         break;
       }
       case CONSTRAINT_TYPE_SPLINEIK: {
-        bSplineIKConstraint *data = (bSplineIKConstraint *)con.data;
+        bSplineIKConstraint *data = static_cast<bSplineIKConstraint *>(con.data);
         int segcount = 0;
 
         /* don't draw if only_temp, as Spline IK chains cannot be temporary */

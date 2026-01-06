@@ -52,7 +52,7 @@ static int py_rna_gizmo_parse(PyObject *o, void *p)
   BLI_assert(RNA_struct_is_a(((const BPy_StructRNA *)o)->ptr->type, &RNA_Gizmo));
 
   wmGizmo **gz_p = static_cast<wmGizmo **>(p);
-  *gz_p = static_cast<wmGizmo *>(((const BPy_StructRNA *)o)->ptr->data);
+  *gz_p = static_cast<wmGizmo *>((reinterpret_cast<const BPy_StructRNA *>(o))->ptr->data);
   return 1;
 }
 
@@ -668,20 +668,20 @@ bool BPY_rna_gizmo_module(PyObject *mod_par)
   static PyMethodDef method_def_array[] = {
       /* Gizmo Target Property Define API */
       {"target_set_handler",
-       (PyCFunction)bpy_gizmo_target_set_handler,
+       reinterpret_cast<PyCFunction>(bpy_gizmo_target_set_handler),
        METH_VARARGS | METH_KEYWORDS,
        bpy_gizmo_target_set_handler_doc},
       /* Gizmo Target Property Access API */
       {"target_get_value",
-       (PyCFunction)bpy_gizmo_target_get_value,
+       reinterpret_cast<PyCFunction>(bpy_gizmo_target_get_value),
        METH_VARARGS | METH_KEYWORDS,
        bpy_gizmo_target_get_value_doc},
       {"target_set_value",
-       (PyCFunction)bpy_gizmo_target_set_value,
+       reinterpret_cast<PyCFunction>(bpy_gizmo_target_set_value),
        METH_VARARGS | METH_KEYWORDS,
        bpy_gizmo_target_set_value_doc},
       {"target_get_range",
-       (PyCFunction)bpy_gizmo_target_get_range,
+       reinterpret_cast<PyCFunction>(bpy_gizmo_target_get_range),
        METH_VARARGS | METH_KEYWORDS,
        bpy_gizmo_target_get_range_doc},
       /* no sentinel needed. */

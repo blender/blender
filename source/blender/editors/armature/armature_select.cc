@@ -75,7 +75,7 @@ Base *ED_armature_base_and_ebone_from_select_buffer(const Span<Base *> bases,
   }
   if (base != nullptr) {
     const uint hit_bone = (select_id & ~BONESEL_ANY) >> 16;
-    bArmature *arm = static_cast<bArmature *>(base->object->data);
+    bArmature *arm = blender::id_cast<bArmature *>(base->object->data);
     ebone = static_cast<EditBone *>(BLI_findlink(arm->edbo, hit_bone));
   }
   *r_ebone = ebone;
@@ -98,7 +98,7 @@ Object *ED_armature_object_and_ebone_from_select_buffer(const Span<Object *> obj
   }
   if (ob != nullptr) {
     const uint hit_bone = (select_id & ~BONESEL_ANY) >> 16;
-    bArmature *arm = static_cast<bArmature *>(ob->data);
+    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
     ebone = static_cast<EditBone *>(BLI_findlink(arm->edbo, hit_bone));
   }
   *r_ebone = ebone;
@@ -388,7 +388,7 @@ Bone *ED_armature_pick_bone(bContext *C, const int xy[2], bool findunsel, Base *
 static bool armature_select_linked_impl(Object *ob, const bool select, const bool all_forks)
 {
   bool changed = false;
-  bArmature *arm = static_cast<bArmature *>(ob->data);
+  bArmature *arm = blender::id_cast<bArmature *>(ob->data);
 
   /* Implementation note, this flood-fills selected bones with the 'TOUCH' flag,
    * even though this is a loop-within a loop, walking up the parent chain only touches new bones.
@@ -501,7 +501,7 @@ static wmOperatorStatus armature_select_linked_exec(bContext *C, wmOperator *op)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
   for (Object *ob : objects) {
-    bArmature *arm = static_cast<bArmature *>(ob->data);
+    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
 
     bool found = false;
     for (EditBone &ebone : *arm->edbo) {
@@ -570,7 +570,7 @@ static wmOperatorStatus armature_select_linked_pick_invoke(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  bArmature *arm = static_cast<bArmature *>(base->object->data);
+  bArmature *arm = blender::id_cast<bArmature *>(base->object->data);
   if (!EBONE_SELECTABLE(arm, ebone_active)) {
     return OPERATOR_CANCELLED;
   }
@@ -660,7 +660,7 @@ static EditBone *get_nearest_editbonepoint(
   /* Find the bone after the current (selected) active bone, so as to bump up its chances in
    * selection. this way overlapping bones will cycle selection state as with objects. */
   Object *obedit_orig = vc->obedit;
-  EditBone *ebone_active_orig = static_cast<bArmature *>(obedit_orig->data)->act_edbone;
+  EditBone *ebone_active_orig = blender::id_cast<bArmature *>(obedit_orig->data)->act_edbone;
   if (ebone_active_orig &&
       (ebone_active_orig->flag & (BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL)) == 0)
   {
@@ -755,7 +755,7 @@ cache_end:
       } cycle_order;
 
       if (use_cycle) {
-        bArmature *arm = static_cast<bArmature *>(obedit_orig->data);
+        bArmature *arm = blender::id_cast<bArmature *>(obedit_orig->data);
         int ob_index = obedit_orig->runtime->select_id & 0xFFFF;
         int bone_index = BLI_findindex(arm->edbo, ebone_active_orig);
         /* Offset from the current active bone, so we cycle onto the next. */
@@ -895,7 +895,7 @@ cache_end:
 
 bool ED_armature_edit_deselect_all(Object *obedit)
 {
-  bArmature *arm = static_cast<bArmature *>(obedit->data);
+  bArmature *arm = blender::id_cast<bArmature *>(obedit->data);
   bool changed = false;
   for (EditBone &ebone : *arm->edbo) {
     if (ebone.flag & (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL)) {
@@ -908,7 +908,7 @@ bool ED_armature_edit_deselect_all(Object *obedit)
 
 bool ED_armature_edit_deselect_all_visible(Object *obedit)
 {
-  bArmature *arm = static_cast<bArmature *>(obedit->data);
+  bArmature *arm = blender::id_cast<bArmature *>(obedit->data);
   bool changed = false;
   for (EditBone &ebone : *arm->edbo) {
     /* first and foremost, bone must be visible and selected */
@@ -971,7 +971,7 @@ bool ED_armature_edit_select_pick_bone(
   bool found = false;
 
   if (ebone) {
-    bArmature *arm = static_cast<bArmature *>(basact->object->data);
+    bArmature *arm = blender::id_cast<bArmature *>(basact->object->data);
     if (EBONE_SELECTABLE(arm, ebone)) {
       found = true;
     }
@@ -994,7 +994,7 @@ bool ED_armature_edit_select_pick_bone(
 
   if (found) {
     BLI_assert(BKE_object_is_in_editmode(basact->object));
-    bArmature *arm = static_cast<bArmature *>(basact->object->data);
+    bArmature *arm = blender::id_cast<bArmature *>(basact->object->data);
 
     /* By definition the non-root connected bones have no root point drawn,
      * so a root selection needs to be delivered to the parent tip. */
@@ -1459,7 +1459,7 @@ static void armature_select_less(bArmature * /*arm*/, EditBone *ebone)
 
 static void armature_select_more_less(Object *ob, bool more)
 {
-  bArmature *arm = static_cast<bArmature *>(ob->data);
+  bArmature *arm = blender::id_cast<bArmature *>(ob->data);
 
   /* XXX(@ideasman42): eventually we shouldn't need this. */
   ED_armature_edit_sync_selection(arm->edbo);
@@ -1625,7 +1625,7 @@ static void select_similar_length(bContext *C, const float thresh)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
   for (Object *ob : objects) {
-    bArmature *arm = static_cast<bArmature *>(ob->data);
+    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
     bool changed = false;
 
     for (EditBone &ebone : *arm->edbo) {
@@ -1671,7 +1671,7 @@ static void select_similar_direction(bContext *C, const float thresh)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
   for (Object *ob : objects) {
-    bArmature *arm = static_cast<bArmature *>(ob->data);
+    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
     bool changed = false;
 
     for (EditBone &ebone : *arm->edbo) {
@@ -1709,7 +1709,7 @@ static void select_similar_bone_collection(bContext *C)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
   for (Object *ob : objects) {
-    bArmature *arm = static_cast<bArmature *>(ob->data);
+    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
     bool changed = false;
 
     for (EditBone &ebone : *arm->edbo) {
@@ -1745,7 +1745,7 @@ static void select_similar_bone_color(bContext *C)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
   for (Object *ob : objects) {
-    bArmature *arm = static_cast<bArmature *>(ob->data);
+    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
     bool changed = false;
 
     for (EditBone &ebone : *arm->edbo) {
@@ -1787,7 +1787,7 @@ static void select_similar_prefix(bContext *C)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
   for (Object *ob : objects) {
-    bArmature *arm = static_cast<bArmature *>(ob->data);
+    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
     bool changed = false;
 
     /* Find matches */
@@ -1827,7 +1827,7 @@ static void select_similar_suffix(bContext *C)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
   for (Object *ob : objects) {
-    bArmature *arm = static_cast<bArmature *>(ob->data);
+    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
     bool changed = false;
 
     /* Find matches */
@@ -1853,7 +1853,7 @@ static void select_similar_suffix(bContext *C)
 static void select_similar_data_pchan(bContext *C, const size_t bytes_size, const int offset)
 {
   Object *obedit = CTX_data_edit_object(C);
-  bArmature *arm = static_cast<bArmature *>(obedit->data);
+  bArmature *arm = blender::id_cast<bArmature *>(obedit->data);
   EditBone *ebone_act = CTX_data_active_bone(C);
 
   const bPoseChannel *pchan_active = BKE_pose_channel_find_name(obedit->pose, ebone_act->name);
@@ -1864,12 +1864,12 @@ static void select_similar_data_pchan(bContext *C, const size_t bytes_size, cons
     return;
   }
 
-  const char *data_active = (const char *)POINTER_OFFSET(pchan_active, offset);
+  const char *data_active = reinterpret_cast<const char *> POINTER_OFFSET(pchan_active, offset);
   for (EditBone &ebone : *arm->edbo) {
     if (EBONE_SELECTABLE(arm, &ebone)) {
       const bPoseChannel *pchan = BKE_pose_channel_find_name(obedit->pose, ebone.name);
       if (pchan) {
-        const char *data_test = (const char *)POINTER_OFFSET(pchan, offset);
+        const char *data_test = reinterpret_cast<const char *> POINTER_OFFSET(pchan, offset);
         if (memcmp(data_active, data_test, bytes_size) == 0) {
           ED_armature_ebone_select_set(&ebone, true);
         }
@@ -1897,7 +1897,7 @@ static void is_ancestor(EditBone *bone, EditBone *ancestor)
 static void select_similar_children(bContext *C)
 {
   Object *obedit = CTX_data_edit_object(C);
-  bArmature *arm = static_cast<bArmature *>(obedit->data);
+  bArmature *arm = blender::id_cast<bArmature *>(obedit->data);
   EditBone *ebone_act = CTX_data_active_bone(C);
 
   for (EditBone &ebone_iter : *arm->edbo) {
@@ -1919,7 +1919,7 @@ static void select_similar_children(bContext *C)
 static void select_similar_children_immediate(bContext *C)
 {
   Object *obedit = CTX_data_edit_object(C);
-  bArmature *arm = static_cast<bArmature *>(obedit->data);
+  bArmature *arm = blender::id_cast<bArmature *>(obedit->data);
   EditBone *ebone_act = CTX_data_active_bone(C);
 
   for (EditBone &ebone_iter : *arm->edbo) {
@@ -1935,7 +1935,7 @@ static void select_similar_children_immediate(bContext *C)
 static void select_similar_siblings(bContext *C)
 {
   Object *obedit = CTX_data_edit_object(C);
-  bArmature *arm = static_cast<bArmature *>(obedit->data);
+  bArmature *arm = blender::id_cast<bArmature *>(obedit->data);
   EditBone *ebone_act = CTX_data_active_bone(C);
 
   if (ebone_act->parent == nullptr) {
@@ -2042,7 +2042,7 @@ static wmOperatorStatus armature_select_hierarchy_exec(bContext *C, wmOperator *
   int direction = RNA_enum_get(op->ptr, "direction");
   const bool add_to_sel = RNA_boolean_get(op->ptr, "extend");
   bool changed = false;
-  bArmature *arm = static_cast<bArmature *>(ob->data);
+  bArmature *arm = blender::id_cast<bArmature *>(ob->data);
 
   ebone_active = arm->act_edbone;
   if (ebone_active == nullptr) {
@@ -2156,7 +2156,7 @@ static wmOperatorStatus armature_select_mirror_exec(bContext *C, wmOperator *op)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
   for (Object *ob : objects) {
-    bArmature *arm = static_cast<bArmature *>(ob->data);
+    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
 
     EditBone *ebone_mirror_act = nullptr;
 
@@ -2264,7 +2264,7 @@ static wmOperatorStatus armature_shortest_path_pick_invoke(bContext *C,
                                                            const wmEvent *event)
 {
   Object *obedit = CTX_data_edit_object(C);
-  bArmature *arm = static_cast<bArmature *>(obedit->data);
+  bArmature *arm = blender::id_cast<bArmature *>(obedit->data);
   EditBone *ebone_src, *ebone_dst;
   EditBone *ebone_isect_parent = nullptr;
   EditBone *ebone_isect_child[2];

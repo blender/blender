@@ -23,8 +23,11 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_grease_pencil_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -276,7 +279,7 @@ bool ED_operator_objectmode_with_view3d_poll_msg(bContext *C)
 static bool ed_spacetype_test(bContext *C, int type)
 {
   if (ED_operator_areaactive(C)) {
-    SpaceLink *sl = (SpaceLink *)CTX_wm_space_data(C);
+    SpaceLink *sl = static_cast<SpaceLink *>(CTX_wm_space_data(C));
     return sl && (sl->spacetype == type);
   }
   return false;
@@ -313,7 +316,7 @@ bool ED_operator_region_gizmo_active(bContext *C)
 bool ED_operator_animview_active(bContext *C)
 {
   if (ED_operator_areaactive(C)) {
-    SpaceLink *sl = (SpaceLink *)CTX_wm_space_data(C);
+    SpaceLink *sl = static_cast<SpaceLink *>(CTX_wm_space_data(C));
     if (sl && ELEM(sl->spacetype, SPACE_SEQ, SPACE_ACTION, SPACE_NLA, SPACE_GRAPH)) {
       return true;
     }
@@ -473,7 +476,7 @@ bool ED_operator_object_active_editable_ex(bContext *C, const Object *ob)
     return false;
   }
 
-  if (!BKE_id_is_editable(CTX_data_main(C), (ID *)ob)) {
+  if (!BKE_id_is_editable(CTX_data_main(C), blender::id_cast<ID *>(const_cast<Object *>(ob)))) {
     CTX_wm_operator_poll_msg_set(C, "Cannot edit library linked or non-editable override object");
     return false;
   }
@@ -551,7 +554,7 @@ bool ED_operator_editarmature(bContext *C)
 {
   Object *obedit = CTX_data_edit_object(C);
   if (obedit && obedit->type == OB_ARMATURE) {
-    return nullptr != ((bArmature *)obedit->data)->edbo;
+    return nullptr != (blender::id_cast<bArmature *>(obedit->data))->edbo;
   }
   return false;
 }
@@ -632,7 +635,7 @@ bool ED_operator_posemode_local(bContext *C)
   if (ED_operator_posemode(C)) {
     Main *bmain = CTX_data_main(C);
     Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
-    bArmature *arm = static_cast<bArmature *>(ob->data);
+    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
     return (BKE_id_is_editable(bmain, &ob->id) && BKE_id_is_editable(bmain, &arm->id));
   }
   return false;
@@ -672,7 +675,7 @@ bool ED_operator_editsurfcurve(bContext *C)
 {
   Object *obedit = CTX_data_edit_object(C);
   if (obedit && ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
-    return nullptr != ((Curve *)obedit->data)->editnurb;
+    return nullptr != (blender::id_cast<Curve *>(obedit->data))->editnurb;
   }
   return false;
 }
@@ -691,7 +694,7 @@ bool ED_operator_editcurve(bContext *C)
 {
   Object *obedit = CTX_data_edit_object(C);
   if (obedit && obedit->type == OB_CURVES_LEGACY) {
-    return nullptr != ((Curve *)obedit->data)->editnurb;
+    return nullptr != (blender::id_cast<Curve *>(obedit->data))->editnurb;
   }
   return false;
 }
@@ -700,7 +703,7 @@ bool ED_operator_editcurve_3d(bContext *C)
 {
   Object *obedit = CTX_data_edit_object(C);
   if (obedit && obedit->type == OB_CURVES_LEGACY) {
-    Curve *cu = (Curve *)obedit->data;
+    Curve *cu = blender::id_cast<Curve *>(obedit->data);
 
     return (cu->flag & CU_3D) && (nullptr != cu->editnurb);
   }
@@ -711,7 +714,7 @@ bool ED_operator_editsurf(bContext *C)
 {
   Object *obedit = CTX_data_edit_object(C);
   if (obedit && obedit->type == OB_SURF) {
-    return nullptr != ((Curve *)obedit->data)->editnurb;
+    return nullptr != (blender::id_cast<Curve *>(obedit->data))->editnurb;
   }
   return false;
 }
@@ -720,7 +723,7 @@ bool ED_operator_editfont(bContext *C)
 {
   Object *obedit = CTX_data_edit_object(C);
   if (obedit && obedit->type == OB_FONT) {
-    if (((Curve *)obedit->data)->editfont) {
+    if ((blender::id_cast<Curve *>(obedit->data))->editfont) {
       return true;
     }
   }
@@ -732,7 +735,7 @@ bool ED_operator_editlattice(bContext *C)
 {
   Object *obedit = CTX_data_edit_object(C);
   if (obedit && obedit->type == OB_LATTICE) {
-    return nullptr != ((Lattice *)obedit->data)->editlatt;
+    return nullptr != (blender::id_cast<Lattice *>(obedit->data))->editlatt;
   }
   return false;
 }
@@ -741,7 +744,7 @@ bool ED_operator_editmball(bContext *C)
 {
   Object *obedit = CTX_data_edit_object(C);
   if (obedit && obedit->type == OB_MBALL) {
-    return nullptr != ((MetaBall *)obedit->data)->editelems;
+    return nullptr != (blender::id_cast<MetaBall *>(obedit->data))->editelems;
   }
   return false;
 }
@@ -1589,7 +1592,7 @@ static bool area_dupli_open(bContext *C, ScrArea *area, const blender::int2 posi
                                     WIN_ALIGN_ABSOLUTE,
                                     /* Initialize area from callback. */
                                     area_dupli_fn,
-                                    (void *)area);
+                                    static_cast<void *>(area));
   return (newwin != nullptr);
 }
 
@@ -2540,7 +2543,7 @@ static bool area_split_apply(bContext *C, wmOperator *op)
 {
   const wmWindow *win = CTX_wm_window(C);
   bScreen *screen = CTX_wm_screen(C);
-  sAreaSplitData *sd = (sAreaSplitData *)op->customdata;
+  sAreaSplitData *sd = static_cast<sAreaSplitData *>(op->customdata);
 
   float fac = RNA_float_get(op->ptr, "factor");
   const eScreenAxis dir_axis = eScreenAxis(RNA_enum_get(op->ptr, "direction"));
@@ -2589,7 +2592,7 @@ static bool area_split_apply(bContext *C, wmOperator *op)
 static void area_split_exit(bContext *C, wmOperator *op)
 {
   if (op->customdata) {
-    sAreaSplitData *sd = (sAreaSplitData *)op->customdata;
+    sAreaSplitData *sd = static_cast<sAreaSplitData *>(op->customdata);
     if (sd->sarea) {
       ED_area_tag_redraw(sd->sarea);
     }
@@ -2618,7 +2621,7 @@ static void area_split_exit(bContext *C, wmOperator *op)
 
 static void area_split_preview_update_cursor(bContext *C, wmOperator *op)
 {
-  sAreaSplitData *sd = (sAreaSplitData *)op->customdata;
+  sAreaSplitData *sd = static_cast<sAreaSplitData *>(op->customdata);
   const eScreenAxis dir_axis = eScreenAxis(RNA_enum_get(op->ptr, "direction"));
   if (area_split_allowed(sd->sarea, dir_axis)) {
     WM_cursor_set(CTX_wm_window(C),
@@ -2741,7 +2744,7 @@ static wmOperatorStatus area_split_invoke(bContext *C, wmOperator *op, const wmE
     }
   }
 
-  sAreaSplitData *sd = (sAreaSplitData *)op->customdata;
+  sAreaSplitData *sd = static_cast<sAreaSplitData *>(op->customdata);
   sd->draw_callback = WM_draw_cb_activate(win, area_split_draw_cb, op);
   /* add temp handler for edge move or cancel */
   WM_event_add_modal_handler(C, op);
@@ -2839,7 +2842,7 @@ static int area_split_snap_calc_location(const bScreen *screen,
 
 static wmOperatorStatus area_split_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  sAreaSplitData *sd = (sAreaSplitData *)op->customdata;
+  sAreaSplitData *sd = static_cast<sAreaSplitData *>(op->customdata);
   PropertyRNA *prop_dir = RNA_struct_find_property(op->ptr, "direction");
   bool update_factor = false;
 
@@ -3783,8 +3786,11 @@ static void keylist_fallback_for_keyframe_jump(bContext &C, Scene *scene, AnimKe
 
     if (ob->type == OB_GREASE_PENCIL) {
       const bool active_layer_only = !(scene->flag & SCE_KEYS_NO_SELONLY);
-      grease_pencil_data_block_to_keylist(
-          nullptr, static_cast<const GreasePencil *>(ob->data), &keylist, 0, active_layer_only);
+      grease_pencil_data_block_to_keylist(nullptr,
+                                          blender::id_cast<const GreasePencil *>(ob->data),
+                                          &keylist,
+                                          0,
+                                          active_layer_only);
     }
   }
 
@@ -4241,7 +4247,7 @@ static bool area_join_init(bContext *C, wmOperator *op, ScrArea *sa1, ScrArea *s
 /* apply the join of the areas (space types) */
 static bool area_join_apply(bContext *C, wmOperator *op)
 {
-  sAreaJoinData *jd = (sAreaJoinData *)op->customdata;
+  sAreaJoinData *jd = static_cast<sAreaJoinData *>(op->customdata);
   if (!jd || (jd->dir == SCREEN_DIR_NONE)) {
     return false;
   }
@@ -4283,7 +4289,7 @@ static bool area_join_apply(bContext *C, wmOperator *op)
 /* finish operation */
 static void area_join_exit(bContext *C, wmOperator *op)
 {
-  sAreaJoinData *jd = (sAreaJoinData *)op->customdata;
+  sAreaJoinData *jd = static_cast<sAreaJoinData *>(op->customdata);
 
   if (jd) {
     if (jd->draw_callback) {
@@ -4313,7 +4319,7 @@ static wmOperatorStatus area_join_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  sAreaJoinData *jd = (sAreaJoinData *)op->customdata;
+  sAreaJoinData *jd = static_cast<sAreaJoinData *>(op->customdata);
 
   if (jd->sa2 == nullptr || area_getorientation(jd->sa1, jd->sa2) == SCREEN_DIR_NONE) {
     return OPERATOR_CANCELLED;
@@ -4345,7 +4351,7 @@ static wmOperatorStatus area_join_invoke(bContext *C, wmOperator *op, const wmEv
       return OPERATOR_CANCELLED;
     }
 
-    sAreaJoinData *jd = (sAreaJoinData *)op->customdata;
+    sAreaJoinData *jd = static_cast<sAreaJoinData *>(op->customdata);
     jd->start_x = sad->x;
     jd->start_y = sad->y;
     jd->draw_callback = WM_draw_cb_activate(CTX_wm_window(C), area_join_draw_cb, op);
@@ -4361,7 +4367,7 @@ static wmOperatorStatus area_join_invoke(bContext *C, wmOperator *op, const wmEv
       return OPERATOR_CANCELLED;
     }
   }
-  sAreaJoinData *jd = (sAreaJoinData *)op->customdata;
+  sAreaJoinData *jd = static_cast<sAreaJoinData *>(op->customdata);
   jd->sa2 = jd->sa1;
   jd->start_x = jd->sa1->totrct.xmin;
   jd->start_y = jd->sa1->totrct.ymax;
@@ -4379,7 +4385,7 @@ static wmOperatorStatus area_join_invoke(bContext *C, wmOperator *op, const wmEv
 /* Apply the docking of the area. */
 void static area_docking_apply(bContext *C, wmOperator *op)
 {
-  sAreaJoinData *jd = (sAreaJoinData *)op->customdata;
+  sAreaJoinData *jd = static_cast<sAreaJoinData *>(op->customdata);
 
   int offset1;
   int offset2;
@@ -4873,7 +4879,7 @@ static wmOperatorStatus area_join_modal(bContext *C, wmOperator *op, const wmEve
       return OPERATOR_CANCELLED;
     }
   }
-  sAreaJoinData *jd = (sAreaJoinData *)op->customdata;
+  sAreaJoinData *jd = static_cast<sAreaJoinData *>(op->customdata);
   if (jd == nullptr) {
     return OPERATOR_CANCELLED;
   }
@@ -5731,7 +5737,7 @@ void ED_screens_header_tools_menu_create(bContext *C, blender::ui::Layout *layou
   ScrArea *area = CTX_wm_area(C);
   {
     PointerRNA ptr = RNA_pointer_create_discrete(
-        (ID *)CTX_wm_screen(C), &RNA_Space, area->spacedata.first);
+        blender::id_cast<ID *>(CTX_wm_screen(C)), &RNA_Space, area->spacedata.first);
     if (!ELEM(area->spacetype, SPACE_TOPBAR)) {
       layout->prop(&ptr, "show_region_header", UI_ITEM_NONE, IFACE_("Show Header"), ICON_NONE);
     }
@@ -5764,7 +5770,7 @@ void ED_screens_footer_tools_menu_create(bContext *C, blender::ui::Layout *layou
 
   {
     PointerRNA ptr = RNA_pointer_create_discrete(
-        (ID *)CTX_wm_screen(C), &RNA_Space, area->spacedata.first);
+        blender::id_cast<ID *>(CTX_wm_screen(C)), &RNA_Space, area->spacedata.first);
     layout->prop(&ptr, "show_region_footer", UI_ITEM_NONE, IFACE_("Show Footer"), ICON_NONE);
   }
 
@@ -5949,7 +5955,7 @@ static bool match_region_with_redraws(const ScrArea *area,
   else if (regiontype == RGN_TYPE_HEADER) {
     /* The Timeline mode of the Dope Sheet shows playback controls in the header. */
     if (spacetype == SPACE_ACTION) {
-      SpaceAction *saction = (SpaceAction *)area->spacedata.first;
+      SpaceAction *saction = static_cast<SpaceAction *>(area->spacedata.first);
       return saction->mode == SACTCONT_TIMELINE;
     }
   }
@@ -7008,7 +7014,8 @@ static wmOperatorStatus space_type_set_or_cycle_exec(bContext *C, wmOperator *op
   const int space_type = RNA_enum_get(op->ptr, "space_type");
 
   ScrArea *area = CTX_wm_area(C);
-  PointerRNA ptr = RNA_pointer_create_discrete((ID *)CTX_wm_screen(C), &RNA_Area, area);
+  PointerRNA ptr = RNA_pointer_create_discrete(
+      blender::id_cast<ID *>(CTX_wm_screen(C)), &RNA_Area, area);
   PropertyRNA *prop_type = RNA_struct_find_property(&ptr, "type");
   PropertyRNA *prop_ui_type = RNA_struct_find_property(&ptr, "ui_type");
 

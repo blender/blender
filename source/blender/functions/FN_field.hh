@@ -430,7 +430,7 @@ class FieldEvaluator : NonMovable, NonCopyable {
     dst_varrays_.append({});
     output_pointer_infos_.append(OutputPointerInfo{
         varray_ptr, [](void *dst, const GVArray &varray, ResourceScope & /*scope*/) {
-          *(VArray<T> *)dst = varray.typed<T>();
+          *static_cast<VArray<T> *>(dst) = varray.typed<T>();
         }});
     return field_index;
   }

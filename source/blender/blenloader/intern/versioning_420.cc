@@ -616,8 +616,8 @@ static bool strip_hue_correct_set_wrapping(Strip *strip, void * /*user_data*/)
 {
   for (StripModifierData &smd : strip->modifiers) {
     if (smd.type == eSeqModifierType_HueCorrect) {
-      HueCorrectModifierData *hcmd = (HueCorrectModifierData *)&smd;
-      CurveMapping *cumap = (CurveMapping *)&hcmd->curve_mapping;
+      HueCorrectModifierData *hcmd = reinterpret_cast<HueCorrectModifierData *>(&smd);
+      CurveMapping *cumap = static_cast<CurveMapping *>(&hcmd->curve_mapping);
       hue_correct_set_wrapping(cumap);
     }
   }
@@ -630,7 +630,7 @@ static void versioning_node_hue_correct_set_wrappng(bNodeTree *ntree)
     for (bNode &node : ntree->nodes.items_mutable()) {
 
       if (node.type_legacy == CMP_NODE_HUECORRECT) {
-        CurveMapping *cumap = (CurveMapping *)node.storage;
+        CurveMapping *cumap = static_cast<CurveMapping *>(node.storage);
         hue_correct_set_wrapping(cumap);
       }
     }
@@ -1029,7 +1029,7 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
       for (ScrArea &area : screen.areabase) {
         for (SpaceLink &sl : area.spacedata) {
           if (sl.spacetype == SPACE_SEQ) {
-            SpaceSeq *sseq = (SpaceSeq *)&sl;
+            SpaceSeq *sseq = reinterpret_cast<SpaceSeq *>(&sl);
             sseq->cache_overlay.flag |= SEQ_CACHE_SHOW_FINAL_OUT;
           }
         }

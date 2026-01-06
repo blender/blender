@@ -51,8 +51,10 @@ GLContext::GLContext(void *ghost_window, GLSharedOrphanLists &shared_orphan_list
   ghost_window_ = ghost_window;
 
   if (ghost_window) {
-    GLuint default_fbo = GHOST_GetDefaultGPUFramebuffer((GHOST_WindowHandle)ghost_window);
-    GHOST_RectangleHandle bounds = GHOST_GetClientBounds((GHOST_WindowHandle)ghost_window);
+    GLuint default_fbo = GHOST_GetDefaultGPUFramebuffer(
+        static_cast<GHOST_WindowHandle>(ghost_window));
+    GHOST_RectangleHandle bounds = GHOST_GetClientBounds(
+        static_cast<GHOST_WindowHandle>(ghost_window));
     int w = GHOST_GetWidthRectangle(bounds);
     int h = GHOST_GetHeightRectangle(bounds);
     GHOST_DisposeRectangle(bounds);
@@ -123,7 +125,8 @@ void GLContext::activate()
 
   if (ghost_window_) {
     /* Get the correct framebuffer size for the internal framebuffers. */
-    GHOST_RectangleHandle bounds = GHOST_GetClientBounds((GHOST_WindowHandle)ghost_window_);
+    GHOST_RectangleHandle bounds = GHOST_GetClientBounds(
+        static_cast<GHOST_WindowHandle>(ghost_window_));
     int w = GHOST_GetWidthRectangle(bounds);
     int h = GHOST_GetHeightRectangle(bounds);
     GHOST_DisposeRectangle(bounds);

@@ -23,7 +23,7 @@
 
 static void init_data(ShaderFxData *fx)
 {
-  WaveShaderFxData *gpfx = (WaveShaderFxData *)fx;
+  WaveShaderFxData *gpfx = reinterpret_cast<WaveShaderFxData *>(fx);
   gpfx->amplitude = 10.0f;
   gpfx->period = 20.0f;
   gpfx->phase = 0.0f;

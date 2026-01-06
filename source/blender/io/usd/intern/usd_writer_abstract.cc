@@ -104,7 +104,7 @@ static std::string get_mesh_active_uvlayer_name(const Object *ob)
     return "";
   }
 
-  const Mesh *mesh = static_cast<Mesh *>(ob->data);
+  const Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   return mesh->active_uv_map_name();
 }
 
@@ -450,7 +450,9 @@ void USDAbstractWriter::write_user_properties(const pxr::UsdPrim &prim,
   const std::string default_namespace(
       usd_export_context_.export_params.custom_properties_namespace);
 
-  for (IDProperty *prop = (IDProperty *)properties->data.group.first; prop; prop = prop->next) {
+  for (IDProperty *prop = static_cast<IDProperty *>(properties->data.group.first); prop;
+       prop = prop->next)
+  {
     if (displayName_identifier == prop->name) {
       if (prop->type == IDP_STRING && prop->data.pointer) {
         prim.SetDisplayName(static_cast<char *>(prop->data.pointer));

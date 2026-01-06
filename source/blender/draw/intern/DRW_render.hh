@@ -189,7 +189,7 @@ bool DRW_object_is_visible_psys_in_active_context(const Object *object,
  */
 template<typename T> T &DRW_object_get_data_for_drawing(const Object &object)
 {
-  return *static_cast<T *>(object.data);
+  return *blender::id_cast<T *>(object.data);
 }
 
 inline Mesh &DRW_mesh_get_for_drawing(Mesh &mesh)
@@ -205,7 +205,7 @@ inline Mesh &DRW_mesh_get_for_drawing(Mesh &mesh)
 template<> inline Mesh &DRW_object_get_data_for_drawing(const Object &object)
 {
   BLI_assert(object.type == OB_MESH);
-  return DRW_mesh_get_for_drawing(*static_cast<Mesh *>(object.data));
+  return DRW_mesh_get_for_drawing(*blender::id_cast<Mesh *>(object.data));
 }
 
 /**

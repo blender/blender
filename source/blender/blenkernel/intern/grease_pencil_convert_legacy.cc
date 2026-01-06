@@ -2932,7 +2932,7 @@ static void legacy_gpencil_sanitize_annotations(Main &bmain)
     if (object.type != OB_GPENCIL_LEGACY) {
       continue;
     }
-    bGPdata *legacy_gpd = static_cast<bGPdata *>(object.data);
+    bGPdata *legacy_gpd = blender::id_cast<bGPdata *>(object.data);
     if (!legacy_gpd) {
       continue;
     }
@@ -3059,9 +3059,9 @@ static void legacy_gpencil_sanitize_annotations(Main &bmain)
 
 static void legacy_gpencil_object(ConversionData &conversion_data, Object &object)
 {
-  BLI_assert((GS(static_cast<ID *>(object.data)->name) == ID_GD_LEGACY));
+  BLI_assert((GS(object.data->name) == ID_GD_LEGACY));
 
-  bGPdata *gpd = static_cast<bGPdata *>(object.data);
+  bGPdata *gpd = blender::id_cast<bGPdata *>(object.data);
 
   GreasePencil *new_grease_pencil = conversion_data.legacy_to_greasepencil_data.lookup_default(
       gpd, nullptr);
@@ -3073,7 +3073,7 @@ static void legacy_gpencil_object(ConversionData &conversion_data, Object &objec
     id_us_min(&new_grease_pencil->id);
   }
 
-  object.data = new_grease_pencil;
+  object.data = blender::id_cast<ID *>(new_grease_pencil);
   object.type = OB_GREASE_PENCIL;
 
   /* NOTE: Could also use #BKE_id_free_us, to also free the legacy GP if not used anymore? */

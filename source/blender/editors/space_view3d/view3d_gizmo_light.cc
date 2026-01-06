@@ -58,7 +58,7 @@ static void gizmo_spot_blend_prop_matrix_get(const wmGizmo * /*gz*/,
   const bContext *C = static_cast<const bContext *>(gz_prop->custom_func.user_data);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(CTX_data_scene(C), view_layer);
-  Light *la = static_cast<Light *>(BKE_view_layer_active_object_get(view_layer)->data);
+  Light *la = blender::id_cast<Light *>(BKE_view_layer_active_object_get(view_layer)->data);
 
   float a = cosf(la->spotsize * 0.5f);
   float b = la->spotblend;
@@ -79,7 +79,7 @@ static void gizmo_spot_blend_foreach_rna_prop(
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
-  Light *la = static_cast<Light *>(BKE_view_layer_active_object_get(view_layer)->data);
+  Light *la = blender::id_cast<Light *>(BKE_view_layer_active_object_get(view_layer)->data);
   PointerRNA light_ptr = RNA_pointer_create_discrete(&la->id, &RNA_Light, la);
   PropertyRNA *spot_blend_prop = RNA_struct_find_property(&light_ptr, "spot_blend");
 
@@ -97,7 +97,7 @@ static void gizmo_spot_blend_prop_matrix_set(const wmGizmo * /*gz*/,
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
-  Light *la = static_cast<Light *>(BKE_view_layer_active_object_get(view_layer)->data);
+  Light *la = blender::id_cast<Light *>(BKE_view_layer_active_object_get(view_layer)->data);
 
   float a = cosf(la->spotsize * 0.5f);
   float t = matrix[0][0] * 0.5f * INV_CONE_SCALE / a;
@@ -121,7 +121,7 @@ static void gizmo_light_radius_foreach_rna_prop(
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
-  Light *la = static_cast<Light *>(BKE_view_layer_active_object_get(view_layer)->data);
+  Light *la = blender::id_cast<Light *>(BKE_view_layer_active_object_get(view_layer)->data);
   PointerRNA light_ptr = RNA_pointer_create_discrete(&la->id, &RNA_Light, la);
   PropertyRNA *radius_prop = RNA_struct_find_property(&light_ptr, "shadow_soft_size");
 
@@ -138,7 +138,8 @@ static void gizmo_light_radius_prop_matrix_get(const wmGizmo * /*gz*/,
   const bContext *C = static_cast<const bContext *>(gz_prop->custom_func.user_data);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(CTX_data_scene(C), view_layer);
-  const Light *la = static_cast<const Light *>(BKE_view_layer_active_object_get(view_layer)->data);
+  const Light *la = blender::id_cast<const Light *>(
+      BKE_view_layer_active_object_get(view_layer)->data);
 
   const float diameter = 2.0f * la->radius;
   matrix[0][0] = diameter;
@@ -156,7 +157,7 @@ static void gizmo_light_radius_prop_matrix_set(const wmGizmo * /*gz*/,
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
-  Light *la = static_cast<Light *>(BKE_view_layer_active_object_get(view_layer)->data);
+  Light *la = blender::id_cast<Light *>(BKE_view_layer_active_object_get(view_layer)->data);
 
   const float radius = 0.5f * len_v3(matrix[0]);
 
@@ -184,7 +185,7 @@ static bool WIDGETGROUP_light_spot_poll(const bContext *C, wmGizmoGroupType * /*
   if (base && BASE_SELECTABLE(v3d, base)) {
     const Object *ob = base->object;
     if (ob->type == OB_LAMP) {
-      const Light *la = static_cast<Light *>(ob->data);
+      const Light *la = blender::id_cast<Light *>(ob->data);
       if (la->type == LA_SPOT) {
         if (BKE_id_is_editable(CTX_data_main(C), &la->id)) {
           return true;
@@ -265,7 +266,7 @@ static void WIDGETGROUP_light_spot_refresh(const bContext *C, wmGizmoGroup *gzgr
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
-  Light *la = static_cast<Light *>(ob->data);
+  Light *la = blender::id_cast<Light *>(ob->data);
 
   /* Spot angle gizmo. */
   {
@@ -349,7 +350,7 @@ static bool WIDGETGROUP_light_point_poll(const bContext *C, wmGizmoGroupType * /
   if (base && BASE_SELECTABLE(v3d, base)) {
     const Object *ob = base->object;
     if (ob->type == OB_LAMP) {
-      const Light *la = static_cast<const Light *>(ob->data);
+      const Light *la = blender::id_cast<const Light *>(ob->data);
       if (la->type == LA_LOCAL) {
         if (BKE_id_is_editable(CTX_data_main(C), &la->id)) {
           return true;
@@ -494,7 +495,7 @@ static bool WIDGETGROUP_light_area_poll(const bContext *C, wmGizmoGroupType * /*
   if (base && BASE_SELECTABLE(v3d, base)) {
     const Object *ob = base->object;
     if (ob->type == OB_LAMP) {
-      const Light *la = static_cast<Light *>(ob->data);
+      const Light *la = blender::id_cast<Light *>(ob->data);
       if (la->type == LA_AREA) {
         if (BKE_id_is_editable(CTX_data_main(C), &la->id)) {
           return true;
@@ -532,7 +533,7 @@ static void WIDGETGROUP_light_area_refresh(const bContext *C, wmGizmoGroup *gzgr
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
-  Light *la = static_cast<Light *>(ob->data);
+  Light *la = blender::id_cast<Light *>(ob->data);
   wmGizmo *gz = wwrapper->gizmo;
 
   copy_m4_m4(gz->matrix_basis, ob->object_to_world().ptr());
@@ -591,7 +592,7 @@ static bool WIDGETGROUP_light_target_poll(const bContext *C, wmGizmoGroupType * 
     if (BKE_id_is_editable(CTX_data_main(C), &ob->id)) {
       if (ob->type == OB_LAMP) {
         /* No need to check the light is editable, only the object is transformed. */
-        const Light *la = static_cast<Light *>(ob->data);
+        const Light *la = blender::id_cast<Light *>(ob->data);
         if (ELEM(la->type, LA_SUN, LA_SPOT, LA_AREA)) {
           return true;
         }
@@ -642,7 +643,7 @@ static void WIDGETGROUP_light_target_draw_prepare(const bContext *C, wmGizmoGrou
   unit_m4(gz->matrix_offset);
 
   if (ob->type == OB_LAMP) {
-    Light *la = static_cast<Light *>(ob->data);
+    Light *la = blender::id_cast<Light *>(ob->data);
     if (la->type == LA_SPOT) {
       /* Draw just past the light size angle gizmo. */
       madd_v3_v3fl(gz->matrix_basis[3], gz->matrix_basis[2], -la->spotsize);

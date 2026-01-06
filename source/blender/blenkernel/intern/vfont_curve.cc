@@ -1874,7 +1874,7 @@ bool BKE_vfont_to_curve_ex(Object *ob,
 
 int BKE_vfont_cursor_to_text_index(Object *ob, const blender::float2 &cursor_location)
 {
-  Curve &cu = *(Curve *)ob->data;
+  Curve &cu = *blender::id_cast<Curve *>(ob->data);
   ListBaseT<Nurb> *r_nubase = &cu.nurb;
 
   /* TODO: iterating to calculate the scale can be avoided. */
@@ -1912,14 +1912,14 @@ int BKE_vfont_cursor_to_text_index(Object *ob, const blender::float2 &cursor_loc
 bool BKE_vfont_to_curve_nubase(Object *ob, const eEditFontMode mode, ListBaseT<Nurb> *r_nubase)
 {
   BLI_assert(ob->type == OB_FONT);
-  const Curve &cu = *static_cast<const Curve *>(ob->data);
+  const Curve &cu = *blender::id_cast<const Curve *>(ob->data);
   return BKE_vfont_to_curve_ex(
       ob, cu, mode, r_nubase, nullptr, nullptr, nullptr, nullptr, nullptr);
 }
 
 bool BKE_vfont_to_curve(Object *ob, const eEditFontMode mode)
 {
-  Curve &cu = *static_cast<Curve *>(ob->data);
+  Curve &cu = *blender::id_cast<Curve *>(ob->data);
   return BKE_vfont_to_curve_ex(
       ob, cu, mode, &cu.nurb, nullptr, nullptr, nullptr, nullptr, nullptr);
 }

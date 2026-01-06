@@ -158,7 +158,7 @@ static int node_shader_gpu_tex_voronoi(GPUMaterial *mat,
   node_shader_gpu_default_tex_coord(mat, node, &in[0].link);
   node_shader_gpu_tex_mapping(mat, node, in, out);
 
-  NodeTexVoronoi *tex = (NodeTexVoronoi *)node->storage;
+  NodeTexVoronoi *tex = static_cast<NodeTexVoronoi *>(node->storage);
   float metric = tex->distance;
   float normalize = tex->normalize;
 

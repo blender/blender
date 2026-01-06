@@ -50,7 +50,7 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
 static void node_storage_free(bNode *node)
 {
-  NodeInputString *storage = (NodeInputString *)node->storage;
+  NodeInputString *storage = static_cast<NodeInputString *>(node->storage);
   if (storage == nullptr) {
     return;
   }
@@ -62,11 +62,12 @@ static void node_storage_free(bNode *node)
 
 static void node_storage_copy(bNodeTree * /*dst_ntree*/, bNode *dest_node, const bNode *src_node)
 {
-  NodeInputString *source_storage = (NodeInputString *)src_node->storage;
-  NodeInputString *destination_storage = (NodeInputString *)MEM_dupallocN(source_storage);
+  NodeInputString *source_storage = static_cast<NodeInputString *>(src_node->storage);
+  NodeInputString *destination_storage = static_cast<NodeInputString *>(
+      MEM_dupallocN(source_storage));
 
   if (source_storage->string) {
-    destination_storage->string = (char *)MEM_dupallocN(source_storage->string);
+    destination_storage->string = static_cast<char *>(MEM_dupallocN(source_storage->string));
   }
 
   dest_node->storage = destination_storage;

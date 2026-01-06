@@ -254,7 +254,7 @@ static const EnumPropertyItem rna_enum_preferences_asset_import_method_items[] =
 
 static void rna_userdef_version_get(PointerRNA *ptr, int *value)
 {
-  UserDef *userdef = (UserDef *)ptr->data;
+  UserDef *userdef = static_cast<UserDef *>(ptr->data);
   value[0] = userdef->versionfile / 100;
   value[1] = userdef->versionfile % 100;
   value[2] = userdef->subversionfile;
@@ -379,13 +379,13 @@ static void rna_userdef_translation_update(Main *bmain, Scene * /*scene*/, Point
 
 static void rna_userdef_asset_library_name_set(PointerRNA *ptr, const char *value)
 {
-  bUserAssetLibrary *library = (bUserAssetLibrary *)ptr->data;
+  bUserAssetLibrary *library = static_cast<bUserAssetLibrary *>(ptr->data);
   BKE_preferences_asset_library_name_set(&U, library, value);
 }
 
 static void rna_userdef_asset_library_path_set(PointerRNA *ptr, const char *value)
 {
-  bUserAssetLibrary *library = (bUserAssetLibrary *)ptr->data;
+  bUserAssetLibrary *library = static_cast<bUserAssetLibrary *>(ptr->data);
   BKE_preferences_asset_library_path_set(library, value);
 }
 
@@ -409,14 +409,14 @@ static void rna_userdef_extension_sync_update(Main *bmain, Scene * /*scene*/, Po
 
 static void rna_userdef_extension_repo_name_set(PointerRNA *ptr, const char *value)
 {
-  bUserExtensionRepo *repo = (bUserExtensionRepo *)ptr->data;
+  bUserExtensionRepo *repo = static_cast<bUserExtensionRepo *>(ptr->data);
   BKE_preferences_extension_repo_name_set(&U, repo, value);
 }
 
 static void rna_userdef_extension_repo_module_set(PointerRNA *ptr, const char *value)
 {
   Main *bmain = G.main;
-  bUserExtensionRepo *repo = (bUserExtensionRepo *)ptr->data;
+  bUserExtensionRepo *repo = static_cast<bUserExtensionRepo *>(ptr->data);
   BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
   BKE_preferences_extension_repo_module_set(&U, repo, value);
   BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
@@ -425,7 +425,7 @@ static void rna_userdef_extension_repo_module_set(PointerRNA *ptr, const char *v
 static void rna_userdef_extension_repo_custom_directory_set(PointerRNA *ptr, const char *value)
 {
   Main *bmain = G.main;
-  bUserExtensionRepo *repo = (bUserExtensionRepo *)ptr->data;
+  bUserExtensionRepo *repo = static_cast<bUserExtensionRepo *>(ptr->data);
   BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
   BKE_preferences_extension_repo_custom_dirpath_set(repo, value);
   BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
@@ -433,20 +433,20 @@ static void rna_userdef_extension_repo_custom_directory_set(PointerRNA *ptr, con
 
 static void rna_userdef_extension_repo_directory_get(PointerRNA *ptr, char *value)
 {
-  const bUserExtensionRepo *repo = (bUserExtensionRepo *)ptr->data;
+  const bUserExtensionRepo *repo = static_cast<bUserExtensionRepo *>(ptr->data);
   BKE_preferences_extension_repo_dirpath_get(repo, value, FILE_MAX);
 }
 
 static int rna_userdef_extension_repo_directory_length(PointerRNA *ptr)
 {
-  const bUserExtensionRepo *repo = (bUserExtensionRepo *)ptr->data;
+  const bUserExtensionRepo *repo = static_cast<bUserExtensionRepo *>(ptr->data);
   char dirpath[FILE_MAX];
   return BKE_preferences_extension_repo_dirpath_get(repo, dirpath, sizeof(dirpath));
 }
 
 static void rna_userdef_extension_repo_access_token_get(PointerRNA *ptr, char *value)
 {
-  const bUserExtensionRepo *repo = (bUserExtensionRepo *)ptr->data;
+  const bUserExtensionRepo *repo = static_cast<bUserExtensionRepo *>(ptr->data);
   if (repo->access_token) {
     strcpy(value, repo->access_token);
   }
@@ -457,13 +457,13 @@ static void rna_userdef_extension_repo_access_token_get(PointerRNA *ptr, char *v
 
 static int rna_userdef_extension_repo_access_token_length(PointerRNA *ptr)
 {
-  const bUserExtensionRepo *repo = (bUserExtensionRepo *)ptr->data;
+  const bUserExtensionRepo *repo = static_cast<bUserExtensionRepo *>(ptr->data);
   return (repo->access_token) ? strlen(repo->access_token) : 0;
 }
 
 static void rna_userdef_extension_repo_access_token_set(PointerRNA *ptr, const char *value)
 {
-  bUserExtensionRepo *repo = (bUserExtensionRepo *)ptr->data;
+  bUserExtensionRepo *repo = static_cast<bUserExtensionRepo *>(ptr->data);
   if (repo->access_token) {
     MEM_freeN(repo->access_token);
   }
@@ -475,7 +475,7 @@ static void rna_userdef_extension_repo_generic_flag_set_impl(PointerRNA *ptr,
                                                              const int flag)
 {
   Main *bmain = G.main;
-  bUserExtensionRepo *repo = (bUserExtensionRepo *)ptr->data;
+  bUserExtensionRepo *repo = static_cast<bUserExtensionRepo *>(ptr->data);
   BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
   SET_FLAG_FROM_TEST(repo->flag, value, flag);
   BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
@@ -501,7 +501,7 @@ static void rna_userdef_extension_repo_use_remote_url_set(PointerRNA *ptr, bool 
 static void rna_userdef_extension_repo_source_set(PointerRNA *ptr, int value)
 {
   Main *bmain = G.main;
-  bUserExtensionRepo *repo = (bUserExtensionRepo *)ptr->data;
+  bUserExtensionRepo *repo = static_cast<bUserExtensionRepo *>(ptr->data);
   BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
   repo->source = value;
   BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
@@ -511,7 +511,7 @@ static void rna_userdef_script_autoexec_update(Main * /*bmain*/,
                                                Scene * /*scene*/,
                                                PointerRNA *ptr)
 {
-  UserDef *userdef = (UserDef *)ptr->data;
+  UserDef *userdef = static_cast<UserDef *>(ptr->data);
   if (userdef->flag & USER_SCRIPT_AUTOEXEC_DISABLE) {
     G.f &= ~G_FLAG_SCRIPT_AUTOEXEC;
   }
@@ -525,7 +525,7 @@ static void rna_userdef_script_autoexec_update(Main * /*bmain*/,
 static void rna_userdef_use_online_access_set(PointerRNA *ptr, bool value)
 {
   /* A `set` function is needed to clear the override flags. */
-  UserDef *userdef = (UserDef *)ptr->data;
+  UserDef *userdef = static_cast<UserDef *>(ptr->data);
 
   if ((G.f & G_FLAG_INTERNET_ALLOW) == 0) {
     if (G.f & G_FLAG_INTERNET_OVERRIDE_PREF_OFFLINE) {
@@ -695,7 +695,7 @@ static void rna_userdef_extension_repo_remove(ReportList *reports, PointerRNA *p
 
 static void rna_userdef_load_ui_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  UserDef *userdef = (UserDef *)ptr->data;
+  UserDef *userdef = static_cast<UserDef *>(ptr->data);
   if (userdef->flag & USER_FILENOUI) {
     G.fileflags |= G_FILE_NO_UI;
   }
@@ -728,7 +728,7 @@ static void rna_userdef_gl_texture_limit_update(Main *bmain, Scene *scene, Point
 
 static void rna_userdef_undo_steps_set(PointerRNA *ptr, int value)
 {
-  UserDef *userdef = (UserDef *)ptr->data;
+  UserDef *userdef = static_cast<UserDef *>(ptr->data);
 
   /* Do not allow 1 undo steps, useless and breaks undo/redo process (see #42531). */
   userdef->undosteps = (value == 1) ? 2 : value;
@@ -736,7 +736,7 @@ static void rna_userdef_undo_steps_set(PointerRNA *ptr, int value)
 
 static int rna_userdef_autokeymode_get(PointerRNA *ptr)
 {
-  UserDef *userdef = (UserDef *)ptr->data;
+  UserDef *userdef = static_cast<UserDef *>(ptr->data);
   short retval = userdef->autokey_mode;
 
   if (!(userdef->autokey_mode & AUTOKEY_ON)) {
@@ -748,7 +748,7 @@ static int rna_userdef_autokeymode_get(PointerRNA *ptr)
 
 static void rna_userdef_autokeymode_set(PointerRNA *ptr, int value)
 {
-  UserDef *userdef = (UserDef *)ptr->data;
+  UserDef *userdef = static_cast<UserDef *>(ptr->data);
 
   if (value == AUTOKEY_MODE_NORMAL) {
     userdef->autokey_mode |= (AUTOKEY_MODE_NORMAL - AUTOKEY_ON);
@@ -793,7 +793,7 @@ static void rna_userdef_keyconfig_reload_update(bContext *C,
 
 static void rna_userdef_timecode_style_set(PointerRNA *ptr, int value)
 {
-  UserDef *userdef = (UserDef *)ptr->data;
+  UserDef *userdef = static_cast<UserDef *>(ptr->data);
   int required_size = userdef->v2d_min_gridsize;
 
   /* Set the time-code style. */
@@ -1139,7 +1139,7 @@ static void rna_Theme_name_set(PointerRNA *ptr, const char *value)
 
 static void rna_Addon_module_set(PointerRNA *ptr, const char *value)
 {
-  bAddon *addon = (bAddon *)ptr->data;
+  bAddon *addon = static_cast<bAddon *>(ptr->data);
 
   /* The module may be empty (for newly created data), skip the preferences search.
    * Note that changing existing add-ons module isn't a common operation.
@@ -1179,12 +1179,12 @@ static void rna_Addon_module_set(PointerRNA *ptr, const char *value)
 
 static IDProperty **rna_AddonPref_idprops(PointerRNA *ptr)
 {
-  return (IDProperty **)&ptr->data;
+  return reinterpret_cast<IDProperty **>(&ptr->data);
 }
 
 static PointerRNA rna_Addon_preferences_get(PointerRNA *ptr)
 {
-  bAddon *addon = (bAddon *)ptr->data;
+  bAddon *addon = static_cast<bAddon *>(ptr->data);
   bAddonPrefType *apt = BKE_addon_pref_type_find(addon->module, true);
   if (apt) {
     if (addon->prop == nullptr) {
@@ -1303,13 +1303,13 @@ static StructRNA *rna_AddonPref_refine(PointerRNA *ptr)
 static float rna_ThemeUI_roundness_get(PointerRNA *ptr)
 {
   /* Remap from relative radius to 0..1 range. */
-  uiWidgetColors *tui = (uiWidgetColors *)ptr->data;
+  uiWidgetColors *tui = static_cast<uiWidgetColors *>(ptr->data);
   return tui->roundness * 2.0f;
 }
 
 static void rna_ThemeUI_roundness_set(PointerRNA *ptr, float value)
 {
-  uiWidgetColors *tui = (uiWidgetColors *)ptr->data;
+  uiWidgetColors *tui = static_cast<uiWidgetColors *>(ptr->data);
   tui->roundness = value * 0.5f;
 }
 
@@ -1343,47 +1343,47 @@ static StudioLight *rna_StudioLights_new(UserDef *userdef, const char *filepath)
 /* StudioLight.name */
 static void rna_UserDef_studiolight_name_get(PointerRNA *ptr, char *value)
 {
-  StudioLight *sl = (StudioLight *)ptr->data;
+  StudioLight *sl = static_cast<StudioLight *>(ptr->data);
   strcpy(value, sl->name);
 }
 
 static int rna_UserDef_studiolight_name_length(PointerRNA *ptr)
 {
-  StudioLight *sl = (StudioLight *)ptr->data;
+  StudioLight *sl = static_cast<StudioLight *>(ptr->data);
   return strlen(sl->name);
 }
 
 /* StudioLight.path */
 static void rna_UserDef_studiolight_path_get(PointerRNA *ptr, char *value)
 {
-  StudioLight *sl = (StudioLight *)ptr->data;
+  StudioLight *sl = static_cast<StudioLight *>(ptr->data);
   strcpy(value, sl->filepath);
 }
 
 static int rna_UserDef_studiolight_path_length(PointerRNA *ptr)
 {
-  StudioLight *sl = (StudioLight *)ptr->data;
+  StudioLight *sl = static_cast<StudioLight *>(ptr->data);
   return strlen(sl->filepath);
 }
 
 /* StudioLight.index */
 static int rna_UserDef_studiolight_index_get(PointerRNA *ptr)
 {
-  StudioLight *sl = (StudioLight *)ptr->data;
+  StudioLight *sl = static_cast<StudioLight *>(ptr->data);
   return sl->index;
 }
 
 /* StudioLight.is_user_defined */
 static bool rna_UserDef_studiolight_is_user_defined_get(PointerRNA *ptr)
 {
-  StudioLight *sl = (StudioLight *)ptr->data;
+  StudioLight *sl = static_cast<StudioLight *>(ptr->data);
   return (sl->flag & STUDIOLIGHT_USER_DEFINED) != 0;
 }
 
 /* StudioLight.is_user_defined */
 static bool rna_UserDef_studiolight_has_specular_highlight_pass_get(PointerRNA *ptr)
 {
-  StudioLight *sl = (StudioLight *)ptr->data;
+  StudioLight *sl = static_cast<StudioLight *>(ptr->data);
   return sl->flag & STUDIOLIGHT_SPECULAR_HIGHLIGHT_PASS;
 }
 
@@ -1391,7 +1391,7 @@ static bool rna_UserDef_studiolight_has_specular_highlight_pass_get(PointerRNA *
 
 static int rna_UserDef_studiolight_type_get(PointerRNA *ptr)
 {
-  StudioLight *sl = (StudioLight *)ptr->data;
+  StudioLight *sl = static_cast<StudioLight *>(ptr->data);
   return sl->flag & STUDIOLIGHT_FLAG_ORIENTATIONS;
 }
 
@@ -1400,21 +1400,21 @@ static int rna_UserDef_studiolight_type_get(PointerRNA *ptr)
 static void rna_UserDef_studiolight_solid_lights_begin(CollectionPropertyIterator *iter,
                                                        PointerRNA *ptr)
 {
-  StudioLight *sl = (StudioLight *)ptr->data;
+  StudioLight *sl = static_cast<StudioLight *>(ptr->data);
   rna_iterator_array_begin(
       iter, ptr, sl->light, sizeof(*sl->light), ARRAY_SIZE(sl->light), 0, nullptr);
 }
 
 static int rna_UserDef_studiolight_solid_lights_length(PointerRNA * /*ptr*/)
 {
-  return ARRAY_SIZE(((StudioLight *)nullptr)->light);
+  return ARRAY_SIZE((static_cast<StudioLight *>(nullptr))->light);
 }
 
 /* StudioLight.light_ambient */
 
 static void rna_UserDef_studiolight_light_ambient_get(PointerRNA *ptr, float *values)
 {
-  StudioLight *sl = (StudioLight *)ptr->data;
+  StudioLight *sl = static_cast<StudioLight *>(ptr->data);
   copy_v3_v3(values, sl->light_ambient);
 }
 
@@ -1485,7 +1485,7 @@ static const EnumPropertyItem *rna_preference_gpu_preferred_device_itemf(bContex
 
 static int rna_preference_gpu_preferred_device_get(PointerRNA *ptr)
 {
-  UserDef *preferences = (UserDef *)ptr->data;
+  UserDef *preferences = static_cast<UserDef *>(ptr->data);
   int index = 1;
   for (const GPUDevice &gpu_device : GPU_platform_devices_list()) {
     if (gpu_device.index == preferences->gpu_preferred_index &&
@@ -1503,7 +1503,7 @@ static int rna_preference_gpu_preferred_device_get(PointerRNA *ptr)
 
 static void rna_preference_gpu_preferred_device_set(PointerRNA *ptr, int value)
 {
-  UserDef *preferences = (UserDef *)ptr->data;
+  UserDef *preferences = static_cast<UserDef *>(ptr->data);
   if (value > 0) {
     value -= 1;
     blender::Span<GPUDevice> devices = GPU_platform_devices_list();

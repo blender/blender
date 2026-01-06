@@ -45,7 +45,7 @@ int rna_object_type_visibility_icon_get_common(int object_type_exclude_viewport,
 
 static void rna_RegionView3D_update(ID *id, RegionView3D *rv3d, bContext *C)
 {
-  bScreen *screen = (bScreen *)id;
+  bScreen *screen = blender::id_cast<bScreen *>(id);
 
   ScrArea *area;
   ARegion *region;
@@ -73,8 +73,8 @@ static void rna_RegionView3D_update(ID *id, RegionView3D *rv3d, bContext *C)
 static void rna_SpaceTextEditor_region_location_from_cursor(
     ID *id, SpaceText *st, int line, int column, int r_pixel_pos[2])
 {
-  bScreen *screen = (bScreen *)id;
-  ScrArea *area = BKE_screen_find_area_from_space(screen, (SpaceLink *)st);
+  bScreen *screen = blender::id_cast<bScreen *>(id);
+  ScrArea *area = BKE_screen_find_area_from_space(screen, reinterpret_cast<SpaceLink *>(st));
   if (area) {
     ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
     const int cursor_co[2] = {line, column};

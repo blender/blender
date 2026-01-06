@@ -66,7 +66,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   const NodeGeometryDeleteGeometry &storage = node_storage(params.node());
   const AttrDomain domain = AttrDomain(storage.domain);
-  const GeometryNodeDeleteGeometryMode mode = (GeometryNodeDeleteGeometryMode)storage.mode;
+  const GeometryNodeDeleteGeometryMode mode = GeometryNodeDeleteGeometryMode(storage.mode);
 
   const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Geometry");
 

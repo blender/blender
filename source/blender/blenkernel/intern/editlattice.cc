@@ -24,7 +24,7 @@
 
 void BKE_editlattice_free(Object *ob)
 {
-  Lattice *lt = static_cast<Lattice *>(ob->data);
+  Lattice *lt = blender::id_cast<Lattice *>(ob->data);
 
   if (lt->editlatt) {
     Lattice *editlt = lt->editlatt->latt;
@@ -44,7 +44,7 @@ void BKE_editlattice_free(Object *ob)
 
 void BKE_editlattice_make(Object *obedit)
 {
-  Lattice *lt = static_cast<Lattice *>(obedit->data);
+  Lattice *lt = blender::id_cast<Lattice *>(obedit->data);
   KeyBlock *actkey;
 
   BKE_editlattice_free(obedit);
@@ -76,7 +76,7 @@ void BKE_editlattice_load(Object *obedit)
   float *fp;
   int tot;
 
-  lt = static_cast<Lattice *>(obedit->data);
+  lt = blender::id_cast<Lattice *>(obedit->data);
   editlt = lt->editlatt->latt;
 
   MEM_freeN(lt->def);

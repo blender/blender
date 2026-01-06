@@ -9,6 +9,7 @@
 #include <pxr/imaging/glf/drawTarget.h>
 #include <pxr/usd/usdGeom/camera.h>
 
+#include "DNA_camera_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_vec_types.h" /* This include must be before `BKE_camera.h` due to `rctf` type. */
@@ -61,7 +62,7 @@ ViewSettings::ViewSettings(bContext *context)
     Object *camera_obj = scene->camera;
     if ((scene->r.mode & R_BORDER) && camera_obj && camera_obj->type == OB_CAMERA) {
       float camera_points[4][3];
-      BKE_camera_view_frame(scene, static_cast<Camera *>(camera_obj->data), camera_points);
+      BKE_camera_view_frame(scene, blender::id_cast<Camera *>(camera_obj->data), camera_points);
 
       float screen_points[4][2];
       for (int i = 0; i < 4; i++) {

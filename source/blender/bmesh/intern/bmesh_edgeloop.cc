@@ -129,7 +129,7 @@ int BM_mesh_edgeloops_find(BMesh *bm,
       BM_elem_flag_enable(e, BM_ELEM_INTERNAL_TAG);
       BM_elem_flag_enable(e->v1, BM_ELEM_INTERNAL_TAG);
       BM_elem_flag_enable(e->v2, BM_ELEM_INTERNAL_TAG);
-      BLI_stack_push(edge_stack, (void *)&e);
+      BLI_stack_push(edge_stack, static_cast<void *>(&e));
     }
     else {
       BM_elem_flag_disable(e, BM_ELEM_INTERNAL_TAG);
@@ -292,7 +292,7 @@ bool BM_mesh_edgeloops_find_path(BMesh *bm,
         BM_elem_flag_enable(e, BM_ELEM_INTERNAL_TAG);
         BM_elem_flag_enable(e->v1, BM_ELEM_INTERNAL_TAG);
         BM_elem_flag_enable(e->v2, BM_ELEM_INTERNAL_TAG);
-        BLI_stack_push(edge_stack, (void *)&e);
+        BLI_stack_push(edge_stack, static_cast<void *>(&e));
       }
       else {
         BM_elem_flag_disable(e, BM_ELEM_INTERNAL_TAG);
@@ -454,8 +454,8 @@ void BM_mesh_edgeloops_calc_order(BMesh * /*bm*/,
   /* not so efficient re-ordering */
   while (eloops->first) {
     BMEdgeLoopStore *el_store_best = nullptr;
-    const float *co = ((BMEdgeLoopStore *)eloops_ordered.last)->co;
-    const float *no = ((BMEdgeLoopStore *)eloops_ordered.last)->no;
+    const float *co = (static_cast<BMEdgeLoopStore *>(eloops_ordered.last))->co;
+    const float *no = (static_cast<BMEdgeLoopStore *>(eloops_ordered.last))->no;
     float len_best_sq = FLT_MAX;
 
     if (use_normals) {
@@ -571,7 +571,7 @@ void BM_edgeloop_edges_get(BMEdgeLoopStore *el_store, BMEdge **e_arr)
 void BM_edgeloop_calc_center(BMesh * /*bm*/, BMEdgeLoopStore *el_store)
 {
   LinkData *node_curr = static_cast<LinkData *>(el_store->verts.last);
-  LinkData *node_prev = ((LinkData *)el_store->verts.last)->prev;
+  LinkData *node_prev = (static_cast<LinkData *>(el_store->verts.last))->prev;
   LinkData *node_first = static_cast<LinkData *>(el_store->verts.first);
   LinkData *node_next = node_first;
 

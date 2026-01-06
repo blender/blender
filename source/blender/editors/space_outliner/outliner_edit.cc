@@ -214,7 +214,7 @@ static wmOperatorStatus outliner_item_openclose_modal(bContext *C,
 {
   ARegion *region = CTX_wm_region(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
-  OpenCloseData *data = (OpenCloseData *)op->customdata;
+  OpenCloseData *data = static_cast<OpenCloseData *>(op->customdata);
 
   float view_mval[2];
   ui::view2d_region_to_view(
@@ -1143,7 +1143,7 @@ static wmOperatorStatus lib_relocate(
   RNA_string_set(&op_props, "library", tselem->id->name + 2);
 
   if (reload) {
-    Library *lib = (Library *)tselem->id;
+    Library *lib = blender::id_cast<Library *>(tselem->id);
     char dir[FILE_MAXDIR], filename[FILE_MAX];
 
     BLI_path_split_dir_file(
@@ -1176,11 +1176,11 @@ static wmOperatorStatus outliner_lib_relocate_invoke_do(
     TreeStoreElem *tselem = TREESTORE(te);
 
     if (te->idcode == ID_LI && tselem->id) {
-      if (((Library *)tselem->id)->runtime->parent && !reload) {
+      if ((blender::id_cast<Library *>(tselem->id))->runtime->parent && !reload) {
         BKE_reportf(reports,
                     RPT_ERROR_INVALID_INPUT,
                     "Cannot relocate indirectly linked library '%s'",
-                    ((Library *)tselem->id)->runtime->filepath_abs);
+                    (blender::id_cast<Library *>(tselem->id))->runtime->filepath_abs);
         return OPERATOR_CANCELLED;
       }
 
@@ -1825,7 +1825,7 @@ static void tree_element_show_hierarchy(Scene *scene, SpaceOutliner *space_outli
              TSE_LAYER_COLLECTION))
     {
       if (te->idcode == ID_SCE) {
-        if (tselem->id != (ID *)scene) {
+        if (tselem->id != id_cast<ID *>(scene)) {
           tselem->flag |= TSE_CLOSED;
         }
         else {
@@ -1938,7 +1938,7 @@ static void tree_element_to_path(TreeElement *te,
    * (NOTE: addhead in previous loop was needed so that we can loop like this) */
   for (const LinkData *ld = static_cast<const LinkData *>(hierarchy.first); ld; ld = ld->next) {
     /* get data */
-    TreeElement *tem = (TreeElement *)ld->data;
+    TreeElement *tem = static_cast<TreeElement *>(ld->data);
     TreeElementRNACommon *tem_rna = tree_element_cast<TreeElementRNACommon>(tem);
     PointerRNA ptr = tem_rna->get_pointer_rna();
 
@@ -1958,7 +1958,7 @@ static void tree_element_to_path(TreeElement *te,
         else if (RNA_property_type(prop) == PROP_COLLECTION) {
           char buf[128], *name;
 
-          TreeElement *temnext = (TreeElement *)(ld->next->data);
+          TreeElement *temnext = static_cast<TreeElement *>(ld->next->data);
           PointerRNA nextptr = tree_element_cast<TreeElementRNACommon>(temnext)->get_pointer_rna();
           name = RNA_struct_name_get_alloc(&nextptr, buf, sizeof(buf), nullptr);
 

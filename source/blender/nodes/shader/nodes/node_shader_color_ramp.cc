@@ -45,7 +45,7 @@ static int gpu_shader_valtorgb(GPUMaterial *mat,
                                GPUNodeStack *in,
                                GPUNodeStack *out)
 {
-  ColorBand *coba = (ColorBand *)node->storage;
+  ColorBand *coba = static_cast<ColorBand *>(node->storage);
   float *array, layer;
   int size;
 
@@ -143,7 +143,7 @@ class ColorBandFunction : public mf::MultiFunction {
 static void sh_node_valtorgb_build_multi_function(nodes::NodeMultiFunctionBuilder &builder)
 {
   const bNode &bnode = builder.node();
-  const ColorBand *color_band = (const ColorBand *)bnode.storage;
+  const ColorBand *color_band = static_cast<const ColorBand *>(bnode.storage);
   builder.construct_and_set_matching_fn<ColorBandFunction>(*color_band, builder.shared_tree());
 }
 

@@ -23,7 +23,7 @@
 
 static void group_gpu_copy_inputs(bNode *gnode, GPUNodeStack *in, bNodeStack *gstack)
 {
-  bNodeTree *ngroup = (bNodeTree *)gnode->id;
+  bNodeTree *ngroup = blender::id_cast<bNodeTree *>(gnode->id);
 
   for (bNode *node : ngroup->all_nodes()) {
     if (node->is_group_input()) {

@@ -59,11 +59,11 @@ BLI_INLINE BMFlagLayer *BMO_elem_flag_from_header(BMHeader *ele_head)
 {
   switch (ele_head->htype) {
     case BM_VERT:
-      return ((BMVert_OFlag *)ele_head)->oflags;
+      return (reinterpret_cast<BMVert_OFlag *>(ele_head))->oflags;
     case BM_EDGE:
-      return ((BMEdge_OFlag *)ele_head)->oflags;
+      return (reinterpret_cast<BMEdge_OFlag *>(ele_head))->oflags;
     default:
-      return ((BMFace_OFlag *)ele_head)->oflags;
+      return (reinterpret_cast<BMFace_OFlag *>(ele_head))->oflags;
   }
 }
 

@@ -91,7 +91,7 @@ static int bone_skinnable_cb(Object * /*ob*/, Bone *bone, void *datap)
       }
 
       if (data->list != nullptr) {
-        hbone = (Bone ***)&data->list;
+        hbone = reinterpret_cast<Bone ***>(&data->list);
 
         for (a = 0; a < segments; a++) {
           **hbone = bone;
@@ -157,7 +157,7 @@ static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap)
     return 0;
   }
 
-  bArmature *arm = static_cast<bArmature *>(data->armob->data);
+  bArmature *arm = blender::id_cast<bArmature *>(data->armob->data);
   const bPoseChannel *pose_bone = BKE_pose_channel_find_name(data->armob->pose, bone->name);
   if (!pose_bone) {
     return 0;
@@ -187,7 +187,7 @@ static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap)
   }
 
   if (data->list != nullptr) {
-    hgroup = (bDeformGroup ***)&data->list;
+    hgroup = reinterpret_cast<bDeformGroup ***>(&data->list);
 
     for (a = 0; a < segments; a++) {
       **hgroup = defgroup;
@@ -291,7 +291,7 @@ static void add_verts_to_dgroups(ReportList *reports,
    * when parenting, or simply the original mesh coords.
    */
 
-  bArmature *arm = static_cast<bArmature *>(par->data);
+  bArmature *arm = blender::id_cast<bArmature *>(par->data);
   Bone **bonelist, *bone;
   bDeformGroup **dgrouplist, **dgroupflip;
   bDeformGroup *dgroup;
@@ -414,7 +414,7 @@ static void add_verts_to_dgroups(ReportList *reports,
   }
 
   /* create verts */
-  mesh = static_cast<Mesh *>(ob->data);
+  mesh = blender::id_cast<Mesh *>(ob->data);
   verts.reinitialize(mesh->verts_num);
 
   if (wpmode) {
@@ -499,7 +499,7 @@ void ED_object_vgroup_calc_from_armature(ReportList *reports,
   /* Lets try to create some vertex groups
    * based on the bones of the parent armature.
    */
-  bArmature *arm = static_cast<bArmature *>(par->data);
+  bArmature *arm = blender::id_cast<bArmature *>(par->data);
 
   if (mode == ARM_GROUPS_NAME) {
     const int defbase_tot = BKE_object_defgroup_count(ob);

@@ -2947,22 +2947,22 @@ void BLI_space_transform_global_from_matrices(SpaceTransform *data,
 
 void BLI_space_transform_apply(const SpaceTransform *data, float co[3])
 {
-  mul_v3_m4v3(co, ((SpaceTransform *)data)->local2target, co);
+  mul_v3_m4v3(co, (const_cast<SpaceTransform *>(data))->local2target, co);
 }
 
 void BLI_space_transform_invert(const SpaceTransform *data, float co[3])
 {
-  mul_v3_m4v3(co, ((SpaceTransform *)data)->target2local, co);
+  mul_v3_m4v3(co, (const_cast<SpaceTransform *>(data))->target2local, co);
 }
 
 void BLI_space_transform_apply_normal(const SpaceTransform *data, float no[3])
 {
-  mul_mat3_m4_v3(((SpaceTransform *)data)->local2target, no);
+  mul_mat3_m4_v3((const_cast<SpaceTransform *>(data))->local2target, no);
   normalize_v3(no);
 }
 
 void BLI_space_transform_invert_normal(const SpaceTransform *data, float no[3])
 {
-  mul_mat3_m4_v3(((SpaceTransform *)data)->target2local, no);
+  mul_mat3_m4_v3((const_cast<SpaceTransform *>(data))->target2local, no);
   normalize_v3(no);
 }

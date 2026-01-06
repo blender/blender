@@ -17,6 +17,7 @@
 #include "BLT_translation.hh"
 
 #include "DNA_dynamicpaint_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -58,7 +59,8 @@ static wmOperatorStatus surface_slot_add_exec(bContext *C, wmOperator * /*op*/)
   DynamicPaintSurface *surface;
 
   /* Make sure we're dealing with a canvas */
-  pmd = (DynamicPaintModifierData *)BKE_modifiers_findby_type(cObject, eModifierType_DynamicPaint);
+  pmd = reinterpret_cast<DynamicPaintModifierData *>(
+      BKE_modifiers_findby_type(cObject, eModifierType_DynamicPaint));
   if (!pmd || !pmd->canvas) {
     return OPERATOR_CANCELLED;
   }
@@ -102,7 +104,8 @@ static wmOperatorStatus surface_slot_remove_exec(bContext *C, wmOperator * /*op*
   int id = 0;
 
   /* Make sure we're dealing with a canvas */
-  pmd = (DynamicPaintModifierData *)BKE_modifiers_findby_type(obj_ctx, eModifierType_DynamicPaint);
+  pmd = reinterpret_cast<DynamicPaintModifierData *>(
+      BKE_modifiers_findby_type(obj_ctx, eModifierType_DynamicPaint));
   if (!pmd || !pmd->canvas) {
     return OPERATOR_CANCELLED;
   }
@@ -146,8 +149,8 @@ static wmOperatorStatus type_toggle_exec(bContext *C, wmOperator *op)
 
   Object *cObject = blender::ed::object::context_active_object(C);
   Scene *scene = CTX_data_scene(C);
-  DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)BKE_modifiers_findby_type(
-      cObject, eModifierType_DynamicPaint);
+  DynamicPaintModifierData *pmd = reinterpret_cast<DynamicPaintModifierData *>(
+      BKE_modifiers_findby_type(cObject, eModifierType_DynamicPaint));
   int type = RNA_enum_get(op->ptr, "type");
 
   if (!pmd) {
@@ -207,8 +210,8 @@ static wmOperatorStatus output_toggle_exec(bContext *C, wmOperator *op)
 {
   Object *ob = blender::ed::object::context_active_object(C);
   DynamicPaintSurface *surface;
-  DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)BKE_modifiers_findby_type(
-      ob, eModifierType_DynamicPaint);
+  DynamicPaintModifierData *pmd = reinterpret_cast<DynamicPaintModifierData *>(
+      BKE_modifiers_findby_type(ob, eModifierType_DynamicPaint));
   int output = RNA_enum_get(op->ptr, "output"); /* currently only 1/0 */
 
   if (!pmd || !pmd->canvas) {
@@ -231,10 +234,10 @@ static wmOperatorStatus output_toggle_exec(bContext *C, wmOperator *op)
     /* Vertex Color Layer */
     if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
       if (!exists) {
-        ED_mesh_color_add(static_cast<Mesh *>(ob->data), name, true, true, op->reports);
+        ED_mesh_color_add(blender::id_cast<Mesh *>(ob->data), name, true, true, op->reports);
       }
       else {
-        AttributeOwner owner = AttributeOwner::from_id(static_cast<ID *>(ob->data));
+        AttributeOwner owner = AttributeOwner::from_id(ob->data);
         BKE_attribute_remove(owner, name, nullptr);
       }
     }
@@ -468,8 +471,8 @@ static wmOperatorStatus dynamicpaint_bake_exec(bContext *C, wmOperator *op)
   /*
    * Get modifier data
    */
-  DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)BKE_modifiers_findby_type(
-      object_eval, eModifierType_DynamicPaint);
+  DynamicPaintModifierData *pmd = reinterpret_cast<DynamicPaintModifierData *>(
+      BKE_modifiers_findby_type(object_eval, eModifierType_DynamicPaint));
   if (pmd == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Bake failed: no Dynamic Paint modifier found");
     return OPERATOR_CANCELLED;

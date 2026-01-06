@@ -94,8 +94,8 @@ static wmOperatorStatus geometry_extract_apply(bContext *C,
    * extract the geometry. */
   CTX_data_ensure_evaluated_depsgraph(C);
 
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
-  Mesh *new_mesh = (Mesh *)BKE_id_copy(bmain, &mesh->id);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+  Mesh *new_mesh = blender::id_cast<Mesh *>(BKE_id_copy(bmain, &mesh->id));
 
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(new_mesh);
   BMeshCreateParams bm_create_params{};
@@ -180,7 +180,7 @@ static wmOperatorStatus geometry_extract_apply(bContext *C,
   }
   Object *new_ob = blender::ed::object::add_type(
       C, OB_MESH, nullptr, ob->loc, ob->rot, false, local_view_bits);
-  BKE_mesh_nomain_to_mesh(new_mesh, static_cast<Mesh *>(new_ob->data), new_ob);
+  BKE_mesh_nomain_to_mesh(new_mesh, blender::id_cast<Mesh *>(new_ob->data), new_ob);
 
   if (params->apply_shrinkwrap) {
     BKE_shrinkwrap_mesh_nearest_surface_deform(CTX_data_depsgraph_pointer(C), scene, new_ob, ob);
@@ -189,15 +189,15 @@ static wmOperatorStatus geometry_extract_apply(bContext *C,
   if (params->add_solidify) {
     blender::ed::object::modifier_add(
         op->reports, bmain, scene, new_ob, "geometry_extract_solidify", eModifierType_Solidify);
-    SolidifyModifierData *sfmd = (SolidifyModifierData *)BKE_modifiers_findby_name(
-        new_ob, "mask_extract_solidify");
+    SolidifyModifierData *sfmd = reinterpret_cast<SolidifyModifierData *>(
+        BKE_modifiers_findby_name(new_ob, "mask_extract_solidify"));
     if (sfmd) {
       sfmd->offset = -0.05f;
     }
   }
 
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, new_ob);
-  BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(new_ob->data), BKE_MESH_BATCH_DIRTY_ALL);
+  BKE_mesh_batch_cache_dirty_tag(blender::id_cast<Mesh *>(new_ob->data), BKE_MESH_BATCH_DIRTY_ALL);
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&new_ob->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, new_ob->data);
@@ -253,7 +253,7 @@ static void geometry_extract_tag_face_set(BMesh *bm, GeometryExtractParams *para
 static wmOperatorStatus paint_mask_extract_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   if (!mesh->attributes().contains(".sculpt_mask")) {
     return OPERATOR_CANCELLED;
   }
@@ -441,7 +441,7 @@ static wmOperatorStatus paint_mask_slice_exec(bContext *C, wmOperator *op)
   Main &bmain = *CTX_data_main(C);
   Object &ob = *CTX_data_active_object(C);
   View3D *v3d = CTX_wm_view3d(C);
-  Mesh *mesh = static_cast<Mesh *>(ob.data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob.data);
 
   if (!mesh->attributes().contains(".sculpt_mask")) {
     return OPERATOR_CANCELLED;
@@ -451,7 +451,7 @@ static wmOperatorStatus paint_mask_slice_exec(bContext *C, wmOperator *op)
   bool fill_holes = RNA_boolean_get(op->ptr, "fill_holes");
   float mask_threshold = RNA_float_get(op->ptr, "mask_threshold");
 
-  Mesh *new_mesh = (Mesh *)BKE_id_copy(&bmain, &mesh->id);
+  Mesh *new_mesh = blender::id_cast<Mesh *>(BKE_id_copy(&bmain, &mesh->id));
 
   /* Undo crashes when new object is created in the middle of a sculpt, see #87243. */
   if (ob.mode == OB_MODE_SCULPT && !create_new_object) {
@@ -481,7 +481,7 @@ static wmOperatorStatus paint_mask_slice_exec(bContext *C, wmOperator *op)
     }
     Object *new_ob = blender::ed::object::add_type(
         C, OB_MESH, nullptr, ob.loc, ob.rot, false, local_view_bits);
-    Mesh *new_ob_mesh = (Mesh *)BKE_id_copy(&bmain, &mesh->id);
+    Mesh *new_ob_mesh = blender::id_cast<Mesh *>(BKE_id_copy(&bmain, &mesh->id));
 
     const BMAllocTemplate allocsize_new_ob = BMALLOC_TEMPLATE_FROM_ME(new_ob_mesh);
     bm = BM_mesh_create(&allocsize_new_ob, &bm_create_params);
@@ -496,7 +496,7 @@ static wmOperatorStatus paint_mask_slice_exec(bContext *C, wmOperator *op)
     /* Remove the mask from the new object so it can be sculpted directly after slicing. */
     new_ob_mesh->attributes_for_write().remove(".sculpt_mask");
 
-    Mesh *new_mesh = static_cast<Mesh *>(new_ob->data);
+    Mesh *new_mesh = blender::id_cast<Mesh *>(new_ob->data);
     BKE_mesh_nomain_to_mesh(new_ob_mesh, new_mesh, new_ob);
     WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, new_ob);
     BKE_mesh_batch_cache_dirty_tag(new_mesh, BKE_MESH_BATCH_DIRTY_ALL);
@@ -505,7 +505,7 @@ static wmOperatorStatus paint_mask_slice_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, new_mesh);
   }
 
-  mesh = static_cast<Mesh *>(ob.data);
+  mesh = blender::id_cast<Mesh *>(ob.data);
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, &ob);
 
   if (ob.mode == OB_MODE_SCULPT) {

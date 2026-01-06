@@ -290,11 +290,11 @@ BLI_INLINE bool BLI_listbase_is_single(const ListBase *lb)
 }
 BLI_INLINE bool BLI_listbase_is_empty(const ListBase *lb)
 {
-  return (lb->first == (void *)nullptr);
+  return (lb->first == static_cast<void *>(nullptr));
 }
 BLI_INLINE void BLI_listbase_clear(ListBase *lb)
 {
-  lb->first = lb->last = (void *)nullptr;
+  lb->first = lb->last = static_cast<void *>(nullptr);
 }
 
 /**

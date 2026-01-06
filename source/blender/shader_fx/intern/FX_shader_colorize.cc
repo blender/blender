@@ -27,7 +27,7 @@
 
 static void init_data(ShaderFxData *fx)
 {
-  ColorizeShaderFxData *gpfx = (ColorizeShaderFxData *)fx;
+  ColorizeShaderFxData *gpfx = reinterpret_cast<ColorizeShaderFxData *>(fx);
   ARRAY_SET_ITEMS(gpfx->low_color, 0.0f, 0.0f, 0.0f, 1.0f);
   ARRAY_SET_ITEMS(gpfx->high_color, 1.0f, 1.0f, 1.0f, 1.0f);
   gpfx->mode = eShaderFxColorizeMode_GrayScale;
@@ -73,7 +73,7 @@ static void panel_register(ARegionType *region_type)
 static void foreach_working_space_color(ShaderFxData *fx,
                                         const IDTypeForeachColorFunctionCallback &fn)
 {
-  ColorizeShaderFxData *gpfx = (ColorizeShaderFxData *)fx;
+  ColorizeShaderFxData *gpfx = reinterpret_cast<ColorizeShaderFxData *>(fx);
   fn.single(gpfx->low_color);
   fn.single(gpfx->high_color);
 }

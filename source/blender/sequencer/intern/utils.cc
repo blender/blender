@@ -72,7 +72,7 @@ static void seqbase_unique_name(ListBaseT<Strip> *seqbasep, StripUniqueInfo *sui
 static bool seqbase_unique_name_recursive_fn(Strip *strip, void *arg_pt)
 {
   if (strip->seqbase.first) {
-    seqbase_unique_name(&strip->seqbase, (StripUniqueInfo *)arg_pt);
+    seqbase_unique_name(&strip->seqbase, static_cast<StripUniqueInfo *>(arg_pt));
   }
   return true;
 }

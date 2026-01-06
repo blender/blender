@@ -209,7 +209,7 @@ static void geometry_set_curve_trim(GeometrySet &geometry_set,
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometryCurveTrim &storage = node_storage(params.node());
-  const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)storage.mode;
+  const GeometryNodeCurveSampleMode mode = GeometryNodeCurveSampleMode(storage.mode);
 
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
   GeometryComponentEditData::remember_deformed_positions_if_necessary(geometry_set);

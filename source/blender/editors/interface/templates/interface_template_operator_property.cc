@@ -111,7 +111,7 @@ static AutoPropButsReturn template_operator_property_buts_draw_single(
 
   if (op->type->ui) {
     op->layout = &layout;
-    op->type->ui((bContext *)C, op);
+    op->type->ui(const_cast<bContext *>(C), op);
     op->layout = nullptr;
 
     /* #UI_LAYOUT_OP_SHOW_EMPTY ignored. retun_info is ignored too.
@@ -452,7 +452,7 @@ void template_collection_exporters(Layout *layout, bContext *C)
   col->enabled_set(!BLI_listbase_is_empty(exporters));
 
   /* Draw the active exporter. */
-  CollectionExport *data = (CollectionExport *)BLI_findlink(exporters, index);
+  CollectionExport *data = static_cast<CollectionExport *>(BLI_findlink(exporters, index));
   if (!data) {
     return;
   }

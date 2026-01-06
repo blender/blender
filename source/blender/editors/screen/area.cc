@@ -4156,7 +4156,7 @@ struct MetadataPanelDrawContext {
 
 static void metadata_panel_draw_field(const char *field, const char *value, void *ctx_v)
 {
-  MetadataPanelDrawContext *ctx = (MetadataPanelDrawContext *)ctx_v;
+  MetadataPanelDrawContext *ctx = static_cast<MetadataPanelDrawContext *>(ctx_v);
   blender::ui::Layout &row = ctx->layout->row(false);
   row.label(field, ICON_NONE);
   row.label(value, ICON_NONE);

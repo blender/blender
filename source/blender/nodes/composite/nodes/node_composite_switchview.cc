@@ -49,7 +49,7 @@ static void init_switch_view(const bContext *C, PointerRNA *ptr)
   bNode *node = (bNode *)ptr->data;
 
   /* store scene for dynamic declaration */
-  node->id = (ID *)scene;
+  node->id = reinterpret_cast<ID *>(scene);
   id_us_plus(node->id);
 }
 

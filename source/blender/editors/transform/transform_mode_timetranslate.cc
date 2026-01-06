@@ -98,7 +98,7 @@ static void applyTimeTranslateValue(TransInfo *t, const float deltax)
 
 static void applyTimeTranslate(TransInfo *t)
 {
-  View2D *v2d = (View2D *)t->view;
+  View2D *v2d = static_cast<View2D *>(t->view);
   char str[UI_MAX_DRAW_STR];
 
   /* Calculate translation amount from mouse movement - in 'time-grid space'. */

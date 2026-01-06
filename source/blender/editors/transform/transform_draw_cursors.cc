@@ -85,7 +85,7 @@ void transform_draw_cursor_draw(bContext *C,
                                 const blender::float2 & /*tilt*/,
                                 void *customdata)
 {
-  TransInfo *t = (TransInfo *)customdata;
+  TransInfo *t = static_cast<TransInfo *>(customdata);
 
   if (t->helpline == HLP_NONE) {
     return;

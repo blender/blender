@@ -152,7 +152,7 @@ static void do_glow_effect_byte(Strip *strip,
                                 uchar *out)
 {
   using namespace blender;
-  GlowVars *glow = (GlowVars *)strip->effectdata;
+  GlowVars *glow = static_cast<GlowVars *>(strip->effectdata);
 
   Array<float4> inbuf(x * y);
   Array<float4> outbuf(x * y);
@@ -197,7 +197,7 @@ static void do_glow_effect_float(Strip *strip,
   using namespace blender;
   float4 *outbuf = reinterpret_cast<float4 *>(out);
   float4 *inbuf = reinterpret_cast<float4 *>(rect1);
-  GlowVars *glow = (GlowVars *)strip->effectdata;
+  GlowVars *glow = static_cast<GlowVars *>(strip->effectdata);
 
   blur_isolate_highlights(
       inbuf, outbuf, x, y, glow->fMini * 3.0f, glow->fBoost * fac, glow->fClamp);

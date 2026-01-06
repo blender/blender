@@ -115,7 +115,7 @@ uint _bli_array_deduplicate_ordered(void *arr, uint arr_len, size_t arr_stride)
 
 int _bli_array_findindex(const void *arr, uint arr_len, size_t arr_stride, const void *p)
 {
-  const char *arr_step = (const char *)arr;
+  const char *arr_step = static_cast<const char *>(arr);
   for (uint i = 0; i < arr_len; i++, arr_step += arr_stride) {
     if (memcmp(arr_step, p, arr_stride) == 0) {
       return int(i);
@@ -126,7 +126,7 @@ int _bli_array_findindex(const void *arr, uint arr_len, size_t arr_stride, const
 
 int _bli_array_rfindindex(const void *arr, uint arr_len, size_t arr_stride, const void *p)
 {
-  const char *arr_step = (const char *)arr + (arr_stride * arr_len);
+  const char *arr_step = static_cast<const char *>(arr) + (arr_stride * arr_len);
   for (uint i = arr_len; i-- != 0;) {
     arr_step -= arr_stride;
     if (memcmp(arr_step, p, arr_stride) == 0) {
@@ -274,7 +274,7 @@ bool _bli_array_iter_span(const void *arr,
 
 bool _bli_array_is_zeroed(const void *arr_v, uint arr_len, size_t arr_stride)
 {
-  const char *arr_step = (const char *)arr_v;
+  const char *arr_step = static_cast<const char *>(arr_v);
   size_t i = arr_stride * arr_len;
   while (i--) {
     if (*(arr_step++)) {

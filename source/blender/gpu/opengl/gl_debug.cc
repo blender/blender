@@ -137,7 +137,7 @@ void init_gl_callbacks()
 {
   glEnable(GL_DEBUG_OUTPUT);
   glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-  glDebugMessageCallback((GLDEBUGPROC)debug_callback, nullptr);
+  glDebugMessageCallback(static_cast<GLDEBUGPROC>(debug_callback), nullptr);
   glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
   glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION,
                        GL_DEBUG_TYPE_MARKER,

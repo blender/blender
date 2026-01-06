@@ -7,6 +7,7 @@
  */
 
 #include "DNA_armature_types.h"
+#include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
 
@@ -134,7 +135,7 @@ static wmOperatorStatus snap_sel_to_grid_exec(bContext *C, wmOperator *op)
     Vector<Object *> objects_eval = BKE_object_pose_array_get(scene, view_layer_eval, v3d);
     for (Object *ob_eval : objects_eval) {
       Object *ob = DEG_get_original(ob_eval);
-      bArmature *arm_eval = static_cast<bArmature *>(ob_eval->data);
+      bArmature *arm_eval = blender::id_cast<bArmature *>(ob_eval->data);
 
       invert_m4_m4(ob_eval->runtime->world_to_object.ptr(), ob_eval->object_to_world().ptr());
 
@@ -412,7 +413,7 @@ static bool snap_selected_to_location_rotation(bContext *C,
     BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
 
     for (Object *ob : objects) {
-      bArmature *arm = static_cast<bArmature *>(ob->data);
+      bArmature *arm = blender::id_cast<bArmature *>(ob->data);
       blender::float3 target_loc_local;
 
       invert_m4_m4(ob->runtime->world_to_object.ptr(), ob->object_to_world().ptr());
@@ -962,7 +963,7 @@ static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_curs
 
     if (obact && (obact->mode & OB_MODE_POSE)) {
       Object *obact_eval = DEG_get_evaluated(depsgraph, obact);
-      bArmature *arm = static_cast<bArmature *>(obact_eval->data);
+      bArmature *arm = blender::id_cast<bArmature *>(obact_eval->data);
       for (bPoseChannel &pchan : obact_eval->pose->chanbase) {
         if (ANIM_bonecoll_is_visible_pchan(arm, &pchan)) {
           if (pchan.flag & POSE_SELECTED) {
@@ -1161,7 +1162,7 @@ bool ED_view3d_minmax_verts(const Scene *scene, Object *obedit, float r_min[3], 
     float ob_min[3], ob_max[3];
     bool changed;
 
-    changed = BKE_mball_minmax_ex(static_cast<const MetaBall *>(obedit->data),
+    changed = BKE_mball_minmax_ex(blender::id_cast<const MetaBall *>(obedit->data),
                                   ob_min,
                                   ob_max,
                                   obedit->object_to_world().ptr(),
@@ -1174,7 +1175,7 @@ bool ED_view3d_minmax_verts(const Scene *scene, Object *obedit, float r_min[3], 
   }
   if (obedit->type == OB_POINTCLOUD) {
     const Object &ob_orig = *DEG_get_original(obedit);
-    const PointCloud &pointcloud = *static_cast<const PointCloud *>(ob_orig.data);
+    const PointCloud &pointcloud = *blender::id_cast<const PointCloud *>(ob_orig.data);
 
     IndexMaskMemory memory;
     const IndexMask mask = pointcloud::retrieve_selected_points(pointcloud, memory);
@@ -1191,7 +1192,7 @@ bool ED_view3d_minmax_verts(const Scene *scene, Object *obedit, float r_min[3], 
   }
   if (obedit->type == OB_CURVES) {
     const Object &ob_orig = *DEG_get_original(obedit);
-    const Curves &curves_id = *static_cast<const Curves *>(ob_orig.data);
+    const Curves &curves_id = *blender::id_cast<const Curves *>(ob_orig.data);
     const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
 
     IndexMaskMemory memory;
@@ -1212,7 +1213,7 @@ bool ED_view3d_minmax_verts(const Scene *scene, Object *obedit, float r_min[3], 
   }
   if (obedit->type == OB_GREASE_PENCIL) {
     Object &ob_orig = *DEG_get_original(obedit);
-    GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob_orig.data);
+    GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(ob_orig.data);
 
     std::optional<Bounds<float3>> bounds = std::nullopt;
 

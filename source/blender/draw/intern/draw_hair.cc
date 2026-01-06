@@ -88,7 +88,7 @@ blender::gpu::Batch *hair_sub_pass_setup_implementation(PassT &sub_ps,
   gpu::VertBufPtr &indirection_buf = cache.indirection_buf_get(module, source, face_per_segment);
 
   {
-    ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)source.md;
+    ParticleSystemModifierData *psmd = reinterpret_cast<ParticleSystemModifierData *>(source.md);
     Mesh &mesh = *psmd->mesh_final;
     const StringRef active_uv = mesh.active_uv_map_name();
     curves_bind_resources(

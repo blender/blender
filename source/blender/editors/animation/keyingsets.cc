@@ -608,7 +608,7 @@ static void anim_keyingset_visit_for_search_impl(
   /* User-defined Keying Sets. */
   if (scene && scene->keyingsets.first) {
     for (KeyingSet &keyingset : scene->keyingsets) {
-      if (use_poll && !ANIM_keyingset_context_ok_poll((bContext *)C, &keyingset)) {
+      if (use_poll && !ANIM_keyingset_context_ok_poll(const_cast<bContext *>(C), &keyingset)) {
         continue;
       }
       StringPropertySearchVisitParams visit_params{};
@@ -620,7 +620,7 @@ static void anim_keyingset_visit_for_search_impl(
 
   /* Builtin Keying Sets. */
   for (KeyingSet &keyingset : builtin_keyingsets) {
-    if (use_poll && !ANIM_keyingset_context_ok_poll((bContext *)C, &keyingset)) {
+    if (use_poll && !ANIM_keyingset_context_ok_poll(const_cast<bContext *>(C), &keyingset)) {
       continue;
     }
     StringPropertySearchVisitParams visit_params{};

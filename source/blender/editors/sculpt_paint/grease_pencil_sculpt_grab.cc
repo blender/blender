@@ -89,7 +89,7 @@ void GrabOperation::foreach_grabbed_drawing(
   RegionView3D &rv3d = *CTX_wm_region_view3d(&C);
   Object &object = *CTX_data_active_object(&C);
   Object &object_eval = *DEG_get_evaluated(&depsgraph, &object);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object.data);
 
   bool changed = false;
   threading::parallel_for_each(this->drawing_data.index_range(), [&](const int i) {
@@ -144,7 +144,7 @@ void GrabOperation::on_stroke_begin(const bContext &C, const InputSample &start_
   const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(&C);
   Object &ob_orig = *CTX_data_active_object(&C);
   Object &ob_eval = *DEG_get_evaluated(&depsgraph, &ob_orig);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob_orig.data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(ob_orig.data);
 
   init_brush(brush);
   init_auto_masking(C, start_sample);

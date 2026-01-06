@@ -547,7 +547,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     row->use_property_split_set(false);
 
     ui::template_list(row,
-                      (bContext *)C,
+                      const_cast<bContext *>(C),
                       "MOD_UL_grease_pencil_time_modifier_segments",
                       "",
                       ptr,

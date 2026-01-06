@@ -291,7 +291,7 @@ void AssetCatalogTreeViewItem::build_row(ui::Layout &row)
   ui::ButtonViewItem *view_item_but = view_item_button();
   PointerRNA *props;
 
-  props = button_extra_operator_icon_add((ui::Button *)view_item_but,
+  props = button_extra_operator_icon_add(reinterpret_cast<ui::Button *>(view_item_but),
                                          "ASSET_OT_catalog_new",
                                          wm::OpCallContext::InvokeDefault,
                                          ICON_ADD);

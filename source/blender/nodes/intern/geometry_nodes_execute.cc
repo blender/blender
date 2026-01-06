@@ -108,7 +108,8 @@ static std::unique_ptr<IDProperty, bke::idprop::IDPropertyDeleter> id_name_or_va
     return bke::idprop::create(identifier, id ? id->name + 2 : "");
   }
   auto prop = bke::idprop::create(identifier, id);
-  IDPropertyUIDataID *ui_data = (IDPropertyUIDataID *)IDP_ui_data_ensure(prop.get());
+  IDPropertyUIDataID *ui_data = reinterpret_cast<IDPropertyUIDataID *>(
+      IDP_ui_data_ensure(prop.get()));
   ui_data->id_type = id_type;
   return prop;
 }
@@ -130,7 +131,8 @@ std::unique_ptr<IDProperty, bke::idprop::IDPropertyDeleter> id_property_create_f
       const bNodeSocketValueFloat *value = static_cast<const bNodeSocketValueFloat *>(
           socket.socket_data);
       auto property = bke::idprop::create(identifier, value->value);
-      IDPropertyUIDataFloat *ui_data = (IDPropertyUIDataFloat *)IDP_ui_data_ensure(property.get());
+      IDPropertyUIDataFloat *ui_data = reinterpret_cast<IDPropertyUIDataFloat *>(
+          IDP_ui_data_ensure(property.get()));
       ui_data->base.rna_subtype = value->subtype;
       ui_data->soft_min = double(value->min);
       ui_data->soft_max = double(value->max);
@@ -141,7 +143,8 @@ std::unique_ptr<IDProperty, bke::idprop::IDPropertyDeleter> id_property_create_f
       const bNodeSocketValueInt *value = static_cast<const bNodeSocketValueInt *>(
           socket.socket_data);
       auto property = bke::idprop::create(identifier, value->value);
-      IDPropertyUIDataInt *ui_data = (IDPropertyUIDataInt *)IDP_ui_data_ensure(property.get());
+      IDPropertyUIDataInt *ui_data = reinterpret_cast<IDPropertyUIDataInt *>(
+          IDP_ui_data_ensure(property.get()));
       ui_data->base.rna_subtype = value->subtype;
       ui_data->soft_min = value->min;
       ui_data->soft_max = value->max;
@@ -155,7 +158,8 @@ std::unique_ptr<IDProperty, bke::idprop::IDPropertyDeleter> id_property_create_f
           identifier,
           Span<float>{value->value[0], value->value[1], value->value[2], value->value[3]}
               .take_front(value->dimensions));
-      IDPropertyUIDataFloat *ui_data = (IDPropertyUIDataFloat *)IDP_ui_data_ensure(property.get());
+      IDPropertyUIDataFloat *ui_data = reinterpret_cast<IDPropertyUIDataFloat *>(
+          IDP_ui_data_ensure(property.get()));
       ui_data->base.rna_subtype = value->subtype;
       ui_data->soft_min = double(value->min);
       ui_data->soft_max = double(value->max);
@@ -172,7 +176,8 @@ std::unique_ptr<IDProperty, bke::idprop::IDPropertyDeleter> id_property_create_f
       auto property = bke::idprop::create(
           identifier,
           Span<float>{value->value[0], value->value[1], value->value[2], value->value[3]});
-      IDPropertyUIDataFloat *ui_data = (IDPropertyUIDataFloat *)IDP_ui_data_ensure(property.get());
+      IDPropertyUIDataFloat *ui_data = reinterpret_cast<IDPropertyUIDataFloat *>(
+          IDP_ui_data_ensure(property.get()));
       ui_data->base.rna_subtype = PROP_COLOR;
       ui_data->default_array = MEM_malloc_arrayN<double>(4, __func__);
       ui_data->default_array_len = 4;
@@ -193,7 +198,8 @@ std::unique_ptr<IDProperty, bke::idprop::IDPropertyDeleter> id_property_create_f
       const bNodeSocketValueBoolean *value = static_cast<const bNodeSocketValueBoolean *>(
           socket.socket_data);
       auto property = bke::idprop::create_bool(identifier, value->value);
-      IDPropertyUIDataBool *ui_data = (IDPropertyUIDataBool *)IDP_ui_data_ensure(property.get());
+      IDPropertyUIDataBool *ui_data = reinterpret_cast<IDPropertyUIDataBool *>(
+          IDP_ui_data_ensure(property.get()));
       ui_data->default_value = value->value != 0;
       return property;
     }
@@ -212,8 +218,8 @@ std::unique_ptr<IDProperty, bke::idprop::IDPropertyDeleter> id_property_create_f
       const bNodeSocketValueString *value = static_cast<const bNodeSocketValueString *>(
           socket.socket_data);
       auto property = bke::idprop::create(identifier, value->value);
-      IDPropertyUIDataString *ui_data = (IDPropertyUIDataString *)IDP_ui_data_ensure(
-          property.get());
+      IDPropertyUIDataString *ui_data = reinterpret_cast<IDPropertyUIDataString *>(
+          IDP_ui_data_ensure(property.get()));
       ui_data->default_value = BLI_strdup(value->value);
       ui_data->base.rna_subtype = value->subtype;
       return property;
@@ -222,7 +228,8 @@ std::unique_ptr<IDProperty, bke::idprop::IDPropertyDeleter> id_property_create_f
       const bNodeSocketValueMenu *value = static_cast<const bNodeSocketValueMenu *>(
           socket.socket_data);
       auto property = bke::idprop::create(identifier, value->value);
-      IDPropertyUIDataInt *ui_data = (IDPropertyUIDataInt *)IDP_ui_data_ensure(property.get());
+      IDPropertyUIDataInt *ui_data = reinterpret_cast<IDPropertyUIDataInt *>(
+          IDP_ui_data_ensure(property.get()));
       id_property_int_update_enum_items(value, ui_data);
       ui_data->default_value = value->value;
       return property;
@@ -593,52 +600,54 @@ static bke::SocketValueVariant init_socket_cpp_value_from_property(
     }
     case SOCK_OBJECT: {
       ID *id = IDP_ID_get(&property);
-      Object *object = (id && GS(id->name) == ID_OB) ? (Object *)id : nullptr;
+      Object *object = (id && GS(id->name) == ID_OB) ? blender::id_cast<Object *>(id) : nullptr;
       return bke::SocketValueVariant::From(object);
     }
     case SOCK_COLLECTION: {
       ID *id = IDP_ID_get(&property);
-      Collection *collection = (id && GS(id->name) == ID_GR) ? (Collection *)id : nullptr;
+      Collection *collection = (id && GS(id->name) == ID_GR) ? reinterpret_cast<Collection *>(id) :
+                                                               nullptr;
       return bke::SocketValueVariant::From(collection);
     }
     case SOCK_TEXTURE: {
       ID *id = IDP_ID_get(&property);
-      Tex *texture = (id && GS(id->name) == ID_TE) ? (Tex *)id : nullptr;
+      Tex *texture = (id && GS(id->name) == ID_TE) ? blender::id_cast<Tex *>(id) : nullptr;
       return bke::SocketValueVariant::From(texture);
     }
     case SOCK_IMAGE: {
       ID *id = IDP_ID_get(&property);
-      Image *image = (id && GS(id->name) == ID_IM) ? (Image *)id : nullptr;
+      Image *image = (id && GS(id->name) == ID_IM) ? blender::id_cast<Image *>(id) : nullptr;
       return bke::SocketValueVariant::From(image);
     }
     case SOCK_MATERIAL: {
       ID *id = IDP_ID_get(&property);
-      Material *material = (id && GS(id->name) == ID_MA) ? (Material *)id : nullptr;
+      Material *material = (id && GS(id->name) == ID_MA) ? blender::id_cast<Material *>(id) :
+                                                           nullptr;
       return bke::SocketValueVariant::From(material);
     }
     case SOCK_FONT: {
       ID *id = IDP_ID_get(&property);
-      VFont *font = (id && GS(id->name) == ID_VF) ? (VFont *)id : nullptr;
+      VFont *font = (id && GS(id->name) == ID_VF) ? reinterpret_cast<VFont *>(id) : nullptr;
       return bke::SocketValueVariant::From(font);
     }
     case SOCK_SCENE: {
       ID *id = IDP_ID_get(&property);
-      Scene *scene = (id && GS(id->name) == ID_SCE) ? (Scene *)id : nullptr;
+      Scene *scene = (id && GS(id->name) == ID_SCE) ? blender::id_cast<Scene *>(id) : nullptr;
       return bke::SocketValueVariant::From(scene);
     }
     case SOCK_TEXT_ID: {
       ID *id = IDP_ID_get(&property);
-      Text *text = (id && GS(id->name) == ID_TXT) ? (Text *)id : nullptr;
+      Text *text = (id && GS(id->name) == ID_TXT) ? reinterpret_cast<Text *>(id) : nullptr;
       return bke::SocketValueVariant::From(text);
     }
     case SOCK_MASK: {
       ID *id = IDP_ID_get(&property);
-      Mask *mask = (id && GS(id->name) == ID_MSK) ? (Mask *)id : nullptr;
+      Mask *mask = (id && GS(id->name) == ID_MSK) ? reinterpret_cast<Mask *>(id) : nullptr;
       return bke::SocketValueVariant::From(mask);
     }
     case SOCK_SOUND: {
       ID *id = IDP_ID_get(&property);
-      bSound *sound = (id && GS(id->name) == ID_SO) ? (bSound *)id : nullptr;
+      bSound *sound = (id && GS(id->name) == ID_SO) ? reinterpret_cast<bSound *>(id) : nullptr;
       return bke::SocketValueVariant::From(sound);
     }
     default: {

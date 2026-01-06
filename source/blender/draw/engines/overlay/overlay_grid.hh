@@ -14,6 +14,8 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
+#include "BLI_math_color.h"
+
 #include "ED_image.hh"
 #include "ED_view3d.hh"
 #include "GPU_texture.hh"

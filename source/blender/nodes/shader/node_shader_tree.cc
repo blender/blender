@@ -81,7 +81,7 @@ static void shader_get_from_context(const bContext *C,
       *r_from = &ob->id;
       if (ob->type == OB_LAMP) {
         *r_id = static_cast<ID *>(ob->data);
-        *r_ntree = ((Light *)ob->data)->nodetree;
+        *r_ntree = (blender::id_cast<Light *>(ob->data))->nodetree;
       }
       else {
         Material *ma = BKE_object_material_get(ob, ob->actcol);
@@ -310,7 +310,7 @@ struct branchIterData {
 
 static bool ntree_branch_count_and_tag_nodes(bNode *fromnode, bNode *tonode, void *userdata)
 {
-  branchIterData *iter = (branchIterData *)userdata;
+  branchIterData *iter = static_cast<branchIterData *>(userdata);
   if (fromnode->runtime->tmp_flag == -1 &&
       (iter->node_filter == nullptr || iter->node_filter(fromnode)))
   {
@@ -469,7 +469,7 @@ static void ntree_weight_tree_merge_weight(bNodeTree *ntree,
 
 static bool ntree_weight_tree_tag_nodes(bNode *fromnode, bNode *tonode, void *userdata)
 {
-  int *node_count = (int *)userdata;
+  int *node_count = static_cast<int *>(userdata);
   bool to_node_from_weight_tree = ELEM(tonode->type_legacy,
                                        SH_NODE_ADD_SHADER,
                                        SH_NODE_MIX_SHADER,

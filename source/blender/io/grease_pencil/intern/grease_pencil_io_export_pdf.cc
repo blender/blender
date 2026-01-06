@@ -81,7 +81,7 @@ bool PDFExporter::export_scene(Scene &scene, StringRefNull filepath)
         }
         const int orig_frame = scene.r.cfra;
         for (int frame_number = scene.r.sfra; frame_number <= scene.r.efra; frame_number++) {
-          GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob_eval.data);
+          GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(ob_eval.data);
           if (only_selected && !this->is_selected_frame(grease_pencil, frame_number)) {
             continue;
           }
@@ -121,7 +121,7 @@ void PDFExporter::export_grease_pencil_objects(const int frame_number)
     /* Use evaluated version to get strokes with modifiers. */
     const Object *ob_eval = DEG_get_evaluated(context_.depsgraph, ob);
     BLI_assert(ob_eval->type == OB_GREASE_PENCIL);
-    const GreasePencil *grease_pencil_eval = static_cast<const GreasePencil *>(ob_eval->data);
+    const GreasePencil *grease_pencil_eval = blender::id_cast<const GreasePencil *>(ob_eval->data);
 
     for (const bke::greasepencil::Layer *layer : grease_pencil_eval->layers()) {
       if (!layer->is_visible()) {

@@ -118,7 +118,7 @@ static void init_preview_region(const Scene *scene,
 
 static void clip_scopes_tag_refresh(ScrArea *area)
 {
-  SpaceClip *sc = (SpaceClip *)area->spacedata.first;
+  SpaceClip *sc = static_cast<SpaceClip *>(area->spacedata.first);
 
   if (sc->mode != SC_MODE_TRACKING) {
     return;
@@ -136,7 +136,7 @@ static void clip_scopes_tag_refresh(ScrArea *area)
 
 static void clip_scopes_check_gpencil_change(ScrArea *area)
 {
-  SpaceClip *sc = (SpaceClip *)area->spacedata.first;
+  SpaceClip *sc = static_cast<SpaceClip *>(area->spacedata.first);
 
   if (sc->gpencil_src == SC_GPENCIL_SRC_TRACK) {
     clip_scopes_tag_refresh(area);
@@ -145,7 +145,7 @@ static void clip_scopes_check_gpencil_change(ScrArea *area)
 
 static void clip_area_sync_frame_from_scene(ScrArea *area, const Scene *scene)
 {
-  SpaceClip *space_clip = (SpaceClip *)area->spacedata.first;
+  SpaceClip *space_clip = static_cast<SpaceClip *>(area->spacedata.first);
   BKE_movieclip_user_set_frame(&space_clip->user, scene->r.cfra);
 }
 
@@ -203,13 +203,13 @@ static SpaceLink *clip_create(const ScrArea * /*area*/, const Scene * /*scene*/)
   BLI_addtail(&sc->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;
 
-  return (SpaceLink *)sc;
+  return reinterpret_cast<SpaceLink *>(sc);
 }
 
 /* Doesn't free the space-link itself. */
 static void clip_free(SpaceLink *sl)
 {
-  SpaceClip *sc = (SpaceClip *)sl;
+  SpaceClip *sc = reinterpret_cast<SpaceClip *>(sl);
 
   sc->clip = nullptr;
 
@@ -240,7 +240,7 @@ static SpaceLink *clip_duplicate(SpaceLink *sl)
   scn->scopes.track_preview = nullptr;
   scn->scopes.ok = false;
 
-  return (SpaceLink *)scn;
+  return reinterpret_cast<SpaceLink *>(scn);
 }
 
 static void clip_listener(const wmSpaceTypeListenerParams *params)
@@ -554,7 +554,7 @@ static void clip_dropboxes()
 static void clip_refresh(const bContext *C, ScrArea *area)
 {
   Scene *scene = CTX_data_scene(C);
-  SpaceClip *sc = (SpaceClip *)area->spacedata.first;
+  SpaceClip *sc = static_cast<SpaceClip *>(area->spacedata.first);
 
   ARegion *region_preview = BKE_area_find_region_type(area, RGN_TYPE_PREVIEW);
   if (!(region_preview->v2d.flag & V2D_IS_INIT)) {
@@ -763,7 +763,7 @@ static void clip_main_region_draw(const bContext *C, ARegion *region)
 
   if (sc->overlay.flag & SC_SHOW_OVERLAYS && sc->flag & SC_SHOW_ANNOTATION) {
     /* Grease Pencil */
-    clip_draw_grease_pencil((bContext *)C, true);
+    clip_draw_grease_pencil(const_cast<bContext *>(C), true);
   }
 
   /* callback */
@@ -781,7 +781,7 @@ static void clip_main_region_draw(const bContext *C, ARegion *region)
 
   if (sc->overlay.flag & SC_SHOW_OVERLAYS && sc->flag & SC_SHOW_ANNOTATION) {
     /* draw Grease Pencil - screen space only */
-    clip_draw_grease_pencil((bContext *)C, false);
+    clip_draw_grease_pencil(const_cast<bContext *>(C), false);
   }
   if ((sc->gizmo_flag & SCLIP_GIZMO_HIDE) == 0) {
     WM_gizmomap_draw(region->runtime->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
@@ -1181,7 +1181,7 @@ static void clip_id_remap(ScrArea * /*area*/,
                           SpaceLink *slink,
                           const blender::bke::id::IDRemapper &mappings)
 {
-  SpaceClip *sclip = (SpaceClip *)slink;
+  SpaceClip *sclip = reinterpret_cast<SpaceClip *>(slink);
 
   if (!mappings.contains_mappings_for_any(FILTER_ID_MC | FILTER_ID_MSK)) {
     return;
@@ -1209,7 +1209,7 @@ static void clip_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
 
 static void clip_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *sl)
 {
-  SpaceClip *sclip = (SpaceClip *)sl;
+  SpaceClip *sclip = reinterpret_cast<SpaceClip *>(sl);
 
   sclip->scopes.track_search = nullptr;
   sclip->scopes.track_preview = nullptr;

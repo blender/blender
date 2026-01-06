@@ -28,7 +28,7 @@ static Block *ui_icon_view_menu_cb(bContext *C, ARegion *region, void *arg_litem
   static IconViewMenuArgs args;
 
   /* arg_litem is malloced, can be freed by parent button */
-  args = *((IconViewMenuArgs *)arg_litem);
+  args = *(static_cast<IconViewMenuArgs *>(arg_litem));
   const int w = UI_UNIT_X * (args.icon_scale);
   const int h = UI_UNIT_X * (args.icon_scale + args.show_labels);
 

@@ -852,7 +852,7 @@ static void wm_xr_session_modal_action_test_add(ListBaseT<LinkData> *active_moda
   bool found;
   if (wm_xr_session_modal_action_test(active_modal_actions, action, &found) && !found) {
     LinkData *ld = MEM_callocN<LinkData>(__func__);
-    ld->data = (void *)action;
+    ld->data = const_cast<wmXrAction *>(action);
     BLI_addtail(active_modal_actions, ld);
   }
 }
@@ -894,7 +894,7 @@ static void wm_xr_session_haptic_action_add(ListBaseT<wmXrHapticAction> *active_
   }
   else {
     ha = MEM_callocN<wmXrHapticAction>(__func__);
-    ha->action = (wmXrAction *)action;
+    ha->action = const_cast<wmXrAction *>(action);
     ha->subaction_path = subaction_path;
     ha->time_start = time_now;
     BLI_addtail(active_haptic_actions, ha);
@@ -942,8 +942,8 @@ static void wm_xr_session_action_states_interpret(
 
   switch (action->type) {
     case XR_BOOLEAN_INPUT: {
-      const bool *state = &((bool *)action->states)[subaction_idx];
-      bool *state_prev = &((bool *)action->states_prev)[subaction_idx];
+      const bool *state = &(static_cast<bool *>(action->states))[subaction_idx];
+      bool *state_prev = &(static_cast<bool *>(action->states_prev))[subaction_idx];
       if (*state) {
         curr = true;
       }
@@ -954,8 +954,8 @@ static void wm_xr_session_action_states_interpret(
       break;
     }
     case XR_FLOAT_INPUT: {
-      const float *state = &((float *)action->states)[subaction_idx];
-      float *state_prev = &((float *)action->states_prev)[subaction_idx];
+      const float *state = &(static_cast<float *>(action->states))[subaction_idx];
+      float *state_prev = &(static_cast<float *>(action->states_prev))[subaction_idx];
       if (test_float_state(
               state, action->float_thresholds[subaction_idx], action->axis_flags[subaction_idx]))
       {
@@ -971,8 +971,8 @@ static void wm_xr_session_action_states_interpret(
       break;
     }
     case XR_VECTOR2F_INPUT: {
-      const float (*state)[2] = &((float (*)[2])action->states)[subaction_idx];
-      float (*state_prev)[2] = &((float (*)[2])action->states_prev)[subaction_idx];
+      const float (*state)[2] = &(static_cast<float (*)[2]>(action->states))[subaction_idx];
+      float (*state_prev)[2] = &(static_cast<float (*)[2]>(action->states_prev))[subaction_idx];
       if (test_vec2f_state(
               *state, action->float_thresholds[subaction_idx], action->axis_flags[subaction_idx]))
       {
@@ -1092,14 +1092,14 @@ static bool wm_xr_session_action_test_bimanual(const wmXrSessionState *session_s
 
   switch (action->type) {
     case XR_BOOLEAN_INPUT: {
-      const bool *state = &((bool *)action->states)[*r_subaction_idx_other];
+      const bool *state = &(static_cast<bool *>(action->states))[*r_subaction_idx_other];
       if (*state) {
         bimanual = true;
       }
       break;
     }
     case XR_FLOAT_INPUT: {
-      const float *state = &((float *)action->states)[*r_subaction_idx_other];
+      const float *state = &(static_cast<float *>(action->states))[*r_subaction_idx_other];
       if (test_float_state(state,
                            action->float_thresholds[*r_subaction_idx_other],
                            action->axis_flags[*r_subaction_idx_other]))
@@ -1109,7 +1109,8 @@ static bool wm_xr_session_action_test_bimanual(const wmXrSessionState *session_s
       break;
     }
     case XR_VECTOR2F_INPUT: {
-      const float (*state)[2] = &((float (*)[2])action->states)[*r_subaction_idx_other];
+      const float (*state)[2] = &(
+          static_cast<float (*)[2]>(action->states))[*r_subaction_idx_other];
       if (test_vec2f_state(*state,
                            action->float_thresholds[*r_subaction_idx_other],
                            action->axis_flags[*r_subaction_idx_other]))
@@ -1151,22 +1152,24 @@ static wmXrActionData *wm_xr_session_event_create(const char *action_set_name,
 
   switch (action->type) {
     case XR_BOOLEAN_INPUT:
-      data->state[0] = ((bool *)action->states)[subaction_idx] ? 1.0f : 0.0f;
+      data->state[0] = (static_cast<bool *>(action->states))[subaction_idx] ? 1.0f : 0.0f;
       if (bimanual) {
-        data->state_other[0] = ((bool *)action->states)[subaction_idx_other] ? 1.0f : 0.0f;
+        data->state_other[0] = (static_cast<bool *>(action->states))[subaction_idx_other] ? 1.0f :
+                                                                                            0.0f;
       }
       break;
     case XR_FLOAT_INPUT:
-      data->state[0] = ((float *)action->states)[subaction_idx];
+      data->state[0] = (static_cast<float *>(action->states))[subaction_idx];
       if (bimanual) {
-        data->state_other[0] = ((float *)action->states)[subaction_idx_other];
+        data->state_other[0] = (static_cast<float *>(action->states))[subaction_idx_other];
       }
       data->float_threshold = action->float_thresholds[subaction_idx];
       break;
     case XR_VECTOR2F_INPUT:
-      copy_v2_v2(data->state, ((float (*)[2])action->states)[subaction_idx]);
+      copy_v2_v2(data->state, (static_cast<float (*)[2]>(action->states))[subaction_idx]);
       if (bimanual) {
-        copy_v2_v2(data->state_other, ((float (*)[2])action->states)[subaction_idx_other]);
+        copy_v2_v2(data->state_other,
+                   (static_cast<float (*)[2]>(action->states))[subaction_idx_other]);
       }
       data->float_threshold = action->float_thresholds[subaction_idx];
       break;
@@ -1222,7 +1225,8 @@ static void wm_xr_session_events_dispatch(wmXrData *xr,
 
   wmXrAction **actions = MEM_calloc_arrayN<wmXrAction *>(count, __func__);
 
-  GHOST_XrGetActionCustomdataArray(xr_context, action_set_name, (void **)actions);
+  GHOST_XrGetActionCustomdataArray(
+      xr_context, action_set_name, reinterpret_cast<void **>(actions));
 
   /* Check haptic action timers. */
   wm_xr_session_haptic_timers_check(active_haptic_actions, time_now);

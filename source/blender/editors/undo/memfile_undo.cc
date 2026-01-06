@@ -69,7 +69,7 @@ static bool memfile_undosys_poll(bContext *C)
 
 static bool memfile_undosys_step_encode(bContext * /*C*/, Main *bmain, UndoStep *us_p)
 {
-  MemFileUndoStep *us = (MemFileUndoStep *)us_p;
+  MemFileUndoStep *us = reinterpret_cast<MemFileUndoStep *>(us_p);
 
   /* Important we only use 'main' from the context (see: BKE_undosys_stack_init_from_main). */
   UndoStack *ustack = ED_undo_stack_get();
@@ -79,8 +79,8 @@ static bool memfile_undosys_step_encode(bContext * /*C*/, Main *bmain, UndoStep 
   }
 
   /* can be null, use when set. */
-  MemFileUndoStep *us_prev = (MemFileUndoStep *)BKE_undosys_step_find_by_type(
-      ustack, BKE_UNDOSYS_TYPE_MEMFILE);
+  MemFileUndoStep *us_prev = reinterpret_cast<MemFileUndoStep *>(
+      BKE_undosys_step_find_by_type(ustack, BKE_UNDOSYS_TYPE_MEMFILE));
   us->data = BKE_memfile_undo_encode(bmain, us_prev ? us_prev->data : nullptr);
   us->step.data_size = us->data->undo_size;
 
@@ -112,7 +112,7 @@ static int memfile_undosys_step_id_reused_cb(LibraryIDLinkCallbackData *cb_data)
   if (id != nullptr && !ID_IS_LINKED(id) && (id->tag & ID_TAG_UNDO_OLD_ID_REUSED_UNCHANGED) == 0) {
     bool do_stop_iter = true;
     if (GS(self_id->name) == ID_OB) {
-      Object *ob_self = (Object *)self_id;
+      Object *ob_self = blender::id_cast<Object *>(self_id);
       if (ob_self->type == OB_ARMATURE) {
         if (ob_self->data == id) {
           BLI_assert(GS(id->name) == ID_AR);
@@ -208,7 +208,7 @@ static void memfile_undosys_step_decode(
    * via #memfile_undosys_unfinished_id_previews_restart(). */
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
-  MemFileUndoStep *us = (MemFileUndoStep *)us_p;
+  MemFileUndoStep *us = reinterpret_cast<MemFileUndoStep *>(us_p);
   BKE_memfile_undo_decode(us->data, undo_direction, use_old_bmain_data, C);
 
   for (UndoStep *us_iter = us_p->next; us_iter; us_iter = us_iter->next) {
@@ -287,7 +287,7 @@ static void memfile_undosys_step_decode(
         }
       }
       if (GS(id->name) == ID_SCE) {
-        Scene *scene = (Scene *)id;
+        Scene *scene = blender::id_cast<Scene *>(id);
         if (scene->master_collection != nullptr) {
           recalc_flags = scene->master_collection->id.recalc;
           if (id->tag & ID_TAG_UNDO_OLD_ID_REREAD_IN_PLACE) {
@@ -318,7 +318,7 @@ static void memfile_undosys_step_decode(
         nodetree->id.recalc_after_undo_push = 0;
       }
       if (GS(id->name) == ID_SCE) {
-        Scene *scene = (Scene *)id;
+        Scene *scene = blender::id_cast<Scene *>(id);
         if (scene->master_collection != nullptr) {
           scene->master_collection->id.recalc_after_undo_push = 0;
         }
@@ -342,11 +342,11 @@ static void memfile_undosys_step_free(UndoStep *us_p)
 {
   /* To avoid unnecessary slow down, free backwards
    * (so we don't need to merge when clearing all). */
-  MemFileUndoStep *us = (MemFileUndoStep *)us_p;
+  MemFileUndoStep *us = reinterpret_cast<MemFileUndoStep *>(us_p);
   if (us_p->next != nullptr) {
     UndoStep *us_next_p = BKE_undosys_step_same_type_next(us_p);
     if (us_next_p != nullptr) {
-      MemFileUndoStep *us_next = (MemFileUndoStep *)us_next_p;
+      MemFileUndoStep *us_next = reinterpret_cast<MemFileUndoStep *>(us_next_p);
       BLO_memfile_merge(&us->data->memfile, &us_next->data->memfile);
     }
   }
@@ -379,7 +379,7 @@ void ED_memfile_undosys_type(UndoType *ut)
  */
 static MemFile *ed_undosys_step_get_memfile(UndoStep *us_p)
 {
-  MemFileUndoStep *us = (MemFileUndoStep *)us_p;
+  MemFileUndoStep *us = reinterpret_cast<MemFileUndoStep *>(us_p);
   return &us->data->memfile;
 }
 
@@ -401,7 +401,7 @@ void ED_undosys_stack_memfile_id_changed_tag(UndoStack *ustack, ID *id)
     return;
   }
 
-  MemFile *memfile = &((MemFileUndoStep *)us)->data->memfile;
+  MemFile *memfile = &(reinterpret_cast<MemFileUndoStep *>(us))->data->memfile;
   for (MemFileChunk &mem_chunk : memfile->chunks) {
     if (mem_chunk.id_session_uid == id->session_uid) {
       mem_chunk.is_identical_future = false;

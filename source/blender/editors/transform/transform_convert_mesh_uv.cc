@@ -380,7 +380,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
           }
         }
 
-        luv = (float (*)[2])BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
+        luv = reinterpret_cast<float (*)[2]> BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
         UVsToTransData(t->aspect, *luv, center, prop_distance, selected, l, td++, td2d++);
       }
     }

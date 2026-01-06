@@ -214,7 +214,7 @@ static bool copy_dupli_context(DupliContext *r_ctx,
   r_ctx->object = ob;
   r_ctx->instance_stack = ctx->instance_stack;
   if (mat) {
-    mul_m4_m4m4(r_ctx->space_mat, (float (*)[4])ctx->space_mat, mat);
+    mul_m4_m4m4(r_ctx->space_mat, const_cast<float (*)[4]>(ctx->space_mat), mat);
   }
   r_ctx->persistent_id[r_ctx->level] = index;
   r_ctx->instance_idx[r_ctx->level] = instance_index;
@@ -280,7 +280,7 @@ static DupliObject *make_dupli(const DupliContext *ctx,
 
   dob->ob = ob;
   dob->ob_data = const_cast<ID *>(object_data);
-  mul_m4_m4m4(dob->mat, (float (*)[4])ctx->space_mat, mat);
+  mul_m4_m4m4(dob->mat, const_cast<float (*)[4]>(ctx->space_mat), mat);
   dob->type = ctx->gen == nullptr ? 0 : ctx->dupli_gen_type_stack->last();
   dob->preview_base_geometry = ctx->preview_base_geometry;
   dob->preview_instance_index = ctx->preview_instance_index;
@@ -351,7 +351,7 @@ static DupliObject *make_dupli(const DupliContext *ctx,
                                const GeometrySet *geometry = nullptr,
                                int64_t instance_index = 0)
 {
-  return make_dupli(ctx, ob, static_cast<ID *>(ob->data), mat, index, geometry, instance_index);
+  return make_dupli(ctx, ob, ob->data, mat, index, geometry, instance_index);
 }
 
 /**
@@ -686,7 +686,7 @@ static void make_child_duplis_verts_from_mesh(const DupliContext *ctx,
                                               void *userdata,
                                               Object *inst_ob)
 {
-  VertexDupliData_Mesh *vdd = (VertexDupliData_Mesh *)userdata;
+  VertexDupliData_Mesh *vdd = static_cast<VertexDupliData_Mesh *>(userdata);
   const bool use_rotation = vdd->params.use_rotation;
 
   const int totvert = vdd->totvert;
@@ -714,7 +714,7 @@ static void make_child_duplis_verts_from_editmesh(const DupliContext *ctx,
                                                   void *userdata,
                                                   Object *inst_ob)
 {
-  VertexDupliData_EditMesh *vdd = (VertexDupliData_EditMesh *)userdata;
+  VertexDupliData_EditMesh *vdd = static_cast<VertexDupliData_EditMesh *>(userdata);
   BMEditMesh *em = vdd->em;
   const bool use_rotation = vdd->params.use_rotation;
 
@@ -780,7 +780,8 @@ static void make_duplis_verts(const DupliContext *ctx)
     vdd.totvert = mesh_eval->verts_num;
     vdd.vert_positions = mesh_eval->vert_positions();
     vdd.vert_normals = mesh_eval->vert_normals();
-    vdd.orco = (const float (*)[3])CustomData_get_layer(&mesh_eval->vert_data, CD_ORCO);
+    vdd.orco = static_cast<const float (*)[3]>(
+        CustomData_get_layer(&mesh_eval->vert_data, CD_ORCO));
 
     make_child_duplis(ctx, &vdd, make_child_duplis_verts_from_mesh);
   }
@@ -801,7 +802,7 @@ static Object *find_family_object(
 {
   void *ch_key = POINTER_FROM_UINT(ch);
 
-  Object **ob_pt = (Object **)BLI_ghash_lookup_p(family_gh, ch_key);
+  Object **ob_pt = reinterpret_cast<Object **>(BLI_ghash_lookup_p(family_gh, ch_key));
   if (ob_pt) {
     return *ob_pt;
   }
@@ -836,7 +837,7 @@ static void make_duplis_font(const DupliContext *ctx)
   Object *par = ctx->object;
   GHash *family_gh;
   Object *ob;
-  Curve *cu = (Curve *)par->data;
+  Curve *cu = blender::id_cast<Curve *>(par->data);
   CharTrans *ct, *chartransdata = nullptr;
   float vec[3], obmat[4][4], pmat[4][4];
   int text_len, a;
@@ -1150,7 +1151,8 @@ static void get_dupliface_transform_from_coords(Span<float3> coords,
   /* Scale. */
   float scale;
   if (use_scale) {
-    const float area = area_poly_v3((const float (*)[3])coords.data(), uint(coords.size()));
+    const float area = area_poly_v3(reinterpret_cast<const float (*)[3]>(coords.data()),
+                                    uint(coords.size()));
     scale = sqrtf(area) * scale_fac;
   }
   else {
@@ -1255,7 +1257,7 @@ static void make_child_duplis_faces_from_mesh(const DupliContext *ctx,
                                               void *userdata,
                                               Object *inst_ob)
 {
-  FaceDupliData_Mesh *fdd = (FaceDupliData_Mesh *)userdata;
+  FaceDupliData_Mesh *fdd = static_cast<FaceDupliData_Mesh *>(userdata);
   const float (*orco)[3] = fdd->orco;
   const float2 *uv_map = fdd->uv_map;
   const int totface = fdd->totface;
@@ -1298,7 +1300,7 @@ static void make_child_duplis_faces_from_editmesh(const DupliContext *ctx,
                                                   void *userdata,
                                                   Object *inst_ob)
 {
-  FaceDupliData_EditMesh *fdd = (FaceDupliData_EditMesh *)userdata;
+  FaceDupliData_EditMesh *fdd = static_cast<FaceDupliData_EditMesh *>(userdata);
   BMEditMesh *em = fdd->em;
   float child_imat[4][4];
   int a;
@@ -1372,7 +1374,8 @@ static void make_duplis_faces(const DupliContext *ctx)
     fdd.corner_verts = mesh_eval->corner_verts();
     fdd.vert_positions = mesh_eval->vert_positions();
     fdd.uv_map = uv_map.is_empty() ? nullptr : uv_map.data();
-    fdd.orco = (const float (*)[3])CustomData_get_layer(&mesh_eval->vert_data, CD_ORCO);
+    fdd.orco = static_cast<const float (*)[3]>(
+        CustomData_get_layer(&mesh_eval->vert_data, CD_ORCO));
 
     make_child_duplis(ctx, &fdd, make_child_duplis_faces_from_mesh);
   }
@@ -2008,7 +2011,7 @@ static bool find_property_rgba(PointerRNA *id_ptr, const char *name, float r_dat
   PropertyRNA *prop = nullptr;
 
   if (group && group->type == IDP_GROUP) {
-    prop = (PropertyRNA *)IDP_GetPropertyFromGroup(group, name);
+    prop = reinterpret_cast<PropertyRNA *>(IDP_GetPropertyFromGroup(group, name));
   }
 
   /* If not found, do full path lookup. */
@@ -2105,7 +2108,7 @@ bool BKE_object_dupli_find_rgba_attribute(const Object *ob,
     }
 
     /* Check the main object data (e.g. mesh). */
-    if (ob->data && find_property_rgba((const ID *)ob->data, name, r_value)) {
+    if (ob->data && find_property_rgba(static_cast<const ID *>(ob->data), name, r_value)) {
       return true;
     }
   }

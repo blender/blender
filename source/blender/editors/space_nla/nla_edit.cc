@@ -13,6 +13,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_speaker_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -940,7 +941,8 @@ static wmOperatorStatus nlaedit_add_sound_exec(bContext *C, wmOperator * /*op*/)
     }
 
     /* create a new strip, and offset it to start on the current frame */
-    NlaStrip *strip = BKE_nla_add_soundstrip(bmain, ac.scene, static_cast<Speaker *>(ob->data));
+    NlaStrip *strip = BKE_nla_add_soundstrip(
+        bmain, ac.scene, blender::id_cast<Speaker *>(ob->data));
 
     strip->start += cfra;
     strip->end += cfra;

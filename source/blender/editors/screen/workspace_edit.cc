@@ -301,7 +301,7 @@ static WorkSpace *workspace_context_get(bContext *C)
 {
   ID *id = blender::ui::context_active_but_get_tab_ID(C);
   if (id && GS(id->name) == ID_WS) {
-    return (WorkSpace *)id;
+    return blender::id_cast<WorkSpace *>(id);
   }
 
   return CTX_wm_workspace(C);
@@ -512,7 +512,7 @@ static void workspace_append_button(blender::ui::Layout &layout,
                                     const WorkSpace *workspace,
                                     const Main *from_main)
 {
-  const ID *id = (ID *)workspace;
+  const ID *id = blender::id_cast<ID *>(const_cast<WorkSpace *>(workspace));
   const char *filepath = from_main->filepath;
 
   if (filepath[0] == '\0') {

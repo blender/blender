@@ -115,7 +115,7 @@ static Object *editmball_object_from_context(bContext *C)
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit && obedit->type == OB_MBALL) {
-    MetaBall *mb = static_cast<MetaBall *>(obedit->data);
+    MetaBall *mb = blender::id_cast<MetaBall *>(obedit->data);
     if (mb->editelems != nullptr) {
       return obedit;
     }
@@ -151,7 +151,7 @@ static bool mball_undosys_poll(bContext *C)
 
 static bool mball_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 {
-  MBallUndoStep *us = (MBallUndoStep *)us_p;
+  MBallUndoStep *us = reinterpret_cast<MBallUndoStep *>(us_p);
 
   /* Important not to use the 3D view when getting objects because all objects
    * outside of this list will be moved out of edit-mode when reading back undo steps. */
@@ -168,7 +168,7 @@ static bool mball_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
     MBallUndoStep_Elem *elem = &us->elems[i];
 
     elem->obedit_ref.ptr = ob;
-    MetaBall *mb = static_cast<MetaBall *>(ob->data);
+    MetaBall *mb = blender::id_cast<MetaBall *>(ob->data);
     editmball_from_undomball(&elem->data, mb);
     mb->needs_flush_to_id = 1;
     us->step.data_size += elem->data.undo_size;
@@ -182,7 +182,7 @@ static bool mball_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 static void mball_undosys_step_decode(
     bContext *C, Main *bmain, UndoStep *us_p, const eUndoStepDir /*dir*/, bool /*is_final*/)
 {
-  MBallUndoStep *us = (MBallUndoStep *)us_p;
+  MBallUndoStep *us = reinterpret_cast<MBallUndoStep *>(us_p);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
@@ -195,7 +195,7 @@ static void mball_undosys_step_decode(
   for (uint i = 0; i < us->elems_len; i++) {
     MBallUndoStep_Elem *elem = &us->elems[i];
     Object *obedit = elem->obedit_ref.ptr;
-    MetaBall *mb = static_cast<MetaBall *>(obedit->data);
+    MetaBall *mb = blender::id_cast<MetaBall *>(obedit->data);
     if (mb->editelems == nullptr) {
       /* Should never fail, may not crash but can give odd behavior. */
       CLOG_ERROR(&LOG,
@@ -223,7 +223,7 @@ static void mball_undosys_step_decode(
 
 static void mball_undosys_step_free(UndoStep *us_p)
 {
-  MBallUndoStep *us = (MBallUndoStep *)us_p;
+  MBallUndoStep *us = reinterpret_cast<MBallUndoStep *>(us_p);
 
   for (uint i = 0; i < us->elems_len; i++) {
     MBallUndoStep_Elem *elem = &us->elems[i];
@@ -236,12 +236,12 @@ static void mball_undosys_foreach_ID_ref(UndoStep *us_p,
                                          UndoTypeForEachIDRefFn foreach_ID_ref_fn,
                                          void *user_data)
 {
-  MBallUndoStep *us = (MBallUndoStep *)us_p;
+  MBallUndoStep *us = reinterpret_cast<MBallUndoStep *>(us_p);
 
-  foreach_ID_ref_fn(user_data, ((UndoRefID *)&us->scene_ref));
+  foreach_ID_ref_fn(user_data, (reinterpret_cast<UndoRefID *>(&us->scene_ref)));
   for (uint i = 0; i < us->elems_len; i++) {
     MBallUndoStep_Elem *elem = &us->elems[i];
-    foreach_ID_ref_fn(user_data, ((UndoRefID *)&elem->obedit_ref));
+    foreach_ID_ref_fn(user_data, (reinterpret_cast<UndoRefID *>(&elem->obedit_ref)));
   }
 }
 

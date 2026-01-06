@@ -147,7 +147,7 @@ static SpaceLink *action_create(const ScrArea *area, const Scene *scene)
   region->v2d.align = V2D_ALIGN_NO_POS_Y;
   region->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 
-  return (SpaceLink *)saction;
+  return reinterpret_cast<SpaceLink *>(saction);
 }
 
 /* Doesn't free the space-link itself. */
@@ -171,7 +171,7 @@ static SpaceLink *action_duplicate(SpaceLink *sl)
 
   /* clear or remove stuff from old */
 
-  return (SpaceLink *)sactionn;
+  return reinterpret_cast<SpaceLink *>(sactionn);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -365,7 +365,7 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
   set_v2d_height(v2d, item_count, !BLI_listbase_is_empty(ac.markers));
 
   blender::ui::view2d_view_ortho(v2d);
-  draw_channel_names((bContext *)C, &ac, region, anim_data);
+  draw_channel_names(const_cast<bContext *>(C), &ac, region, anim_data);
 
   /* channel filter next to scrubbing area */
   ED_time_scrub_channel_search_draw(C, region, ac.ads);
@@ -576,7 +576,7 @@ static void action_listener(const wmSpaceTypeListenerParams *params)
 {
   ScrArea *area = params->area;
   const wmNotifier *wmn = params->notifier;
-  SpaceAction *saction = (SpaceAction *)area->spacedata.first;
+  SpaceAction *saction = static_cast<SpaceAction *>(area->spacedata.first);
 
   /* context changes */
   switch (wmn->category) {
@@ -842,7 +842,7 @@ static void action_region_listener(const wmRegionListenerParams *params)
 
 static void action_refresh(const bContext *C, ScrArea *area)
 {
-  SpaceAction *saction = (SpaceAction *)area->spacedata.first;
+  SpaceAction *saction = static_cast<SpaceAction *>(area->spacedata.first);
 
   /* Update the state of the animchannels in response to changes from the data they represent
    * NOTE: the temp flag is used to indicate when this needs to be done,
@@ -872,7 +872,7 @@ static void action_id_remap(ScrArea * /*area*/,
                             SpaceLink *slink,
                             const blender::bke::id::IDRemapper &mappings)
 {
-  SpaceAction *sact = (SpaceAction *)slink;
+  SpaceAction *sact = reinterpret_cast<SpaceAction *>(slink);
 
   mappings.apply(reinterpret_cast<ID **>(&sact->ads.filter_grp), ID_REMAP_APPLY_DEFAULT);
   mappings.apply(&sact->ads.source, ID_REMAP_APPLY_DEFAULT);
@@ -945,7 +945,7 @@ static int action_space_icon_get(const ScrArea *area)
 
 static void action_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *sl)
 {
-  SpaceAction *saction = (SpaceAction *)sl;
+  SpaceAction *saction = reinterpret_cast<SpaceAction *>(sl);
   saction->runtime = SpaceAction_Runtime{};
 }
 

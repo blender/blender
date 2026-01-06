@@ -213,7 +213,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       button_func_tooltip_set(
           but,
           [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
-            return fmt::format("{:f}", *((float *)argN));
+            return fmt::format("{:f}", *(static_cast<float *>(argN)));
           },
           MEM_dupallocN<float>(__func__, value),
           MEM_freeN);
@@ -390,7 +390,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       button_func_tooltip_set(
           but,
           [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
-            return fmt::format("{:f}", *((float *)argN));
+            return fmt::format("{:f}", *(static_cast<float *>(argN)));
           },
           MEM_dupallocN<float>(__func__, value),
           MEM_freeN);
@@ -435,7 +435,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
             but,
             [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
               char dst[BLI_STR_FORMAT_INT64_GROUPED_SIZE];
-              BLI_str_format_int64_grouped(dst, *(int64_t *)argN);
+              BLI_str_format_int64_grouped(dst, *static_cast<int64_t *>(argN));
               return fmt::format("{} {}", dst, TIP_("bytes"));
             },
             MEM_dupallocN<int64_t>(__func__, value),
@@ -446,7 +446,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
         button_func_tooltip_set(
             but,
             [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
-              return fmt::format("{}", *(int64_t *)argN);
+              return fmt::format("{}", *static_cast<int64_t *>(argN));
             },
             MEM_dupallocN<int64_t>(__func__, value),
             MEM_freeN);
@@ -480,7 +480,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       button_func_tooltip_set(
           but,
           [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
-            return fmt::format("{}", *((int *)argN));
+            return fmt::format("{}", *(static_cast<int *>(argN)));
           },
           MEM_dupallocN<int>(__func__, value),
           MEM_freeN);
@@ -519,7 +519,8 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
           but,
           [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
             const uint32_t uint_color = POINTER_AS_UINT(argN);
-            ColorGeometry4b color = *(ColorGeometry4b *)&uint_color;
+            ColorGeometry4b color = *reinterpret_cast<ColorGeometry4b *>(
+                const_cast<uint32_t *>(&uint_color));
             return fmt::format(fmt::runtime(TIP_("Byte Color (sRGB encoded):\n{}  {}  {}  {}")),
                                color.r,
                                color.g,

@@ -56,7 +56,7 @@ static void multires_subdivide_create_object_space_linear_grids(Mesh *mesh)
 void multires_subdivide_create_tangent_displacement_linear_grids(Object *object,
                                                                  MultiresModifierData *mmd)
 {
-  Mesh *coarse_mesh = static_cast<Mesh *>(object->data);
+  Mesh *coarse_mesh = blender::id_cast<Mesh *>(object->data);
   multires_force_sculpt_rebuild(object);
 
   MultiresReshapeContext reshape_context;

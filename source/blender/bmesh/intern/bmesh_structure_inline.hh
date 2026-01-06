@@ -20,7 +20,7 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2)
     BLI_INLINE BMDiskLink *bmesh_disk_edge_link_from_vert(const BMEdge *e, const BMVert *v)
 {
   BLI_assert(BM_vert_in_edge(e, v));
-  return (BMDiskLink *)&(&e->v1_disk_link)[v == e->v2];
+  return const_cast<BMDiskLink *>(&(&e->v1_disk_link)[v == e->v2]);
 }
 
 /**

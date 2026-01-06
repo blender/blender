@@ -138,17 +138,17 @@ bool AbstractGridViewItem::matches(const AbstractViewItem &other) const
 void AbstractGridViewItem::add_grid_tile_button(Block &block)
 {
   const GridViewStyle &style = this->get_view().get_style();
-  view_item_but_ = (ButtonViewItem *)uiDefBut(&block,
-                                              ButtonType::ViewItem,
-                                              "",
-                                              0,
-                                              0,
-                                              style.tile_width,
-                                              style.tile_height,
-                                              nullptr,
-                                              0,
-                                              0,
-                                              "");
+  view_item_but_ = static_cast<ButtonViewItem *>(uiDefBut(&block,
+                                                          ButtonType::ViewItem,
+                                                          "",
+                                                          0,
+                                                          0,
+                                                          style.tile_width,
+                                                          style.tile_height,
+                                                          nullptr,
+                                                          0,
+                                                          0,
+                                                          ""));
 
   view_item_but_->view_item = this;
 }

@@ -218,8 +218,8 @@ static int vertex_sort(const void *p1, const void *p2, void *vs_ctx_p)
   const BoxVert *v1, *v2;
   float a1, a2;
 
-  v1 = &vs_ctx->vertarray[*((const uint *)p1)];
-  v2 = &vs_ctx->vertarray[*((const uint *)p2)];
+  v1 = &vs_ctx->vertarray[*(static_cast<const uint *>(p1))];
+  v2 = &vs_ctx->vertarray[*(static_cast<const uint *>(p2))];
 
 #ifdef USE_FREE_STRIP
   /* push free verts to the end so we can strip */

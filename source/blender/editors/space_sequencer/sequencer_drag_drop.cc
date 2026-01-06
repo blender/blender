@@ -302,7 +302,7 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
   if (id != nullptr) {
     const ID_Type id_type = GS(id->name);
     if (id_type == ID_IM) {
-      Image *ima = (Image *)id;
+      Image *ima = blender::id_cast<Image *>(id);
       PointerRNA itemptr;
       char dir[FILE_MAX], file[FILE_MAX];
       BLI_path_split_dir_file(ima->filepath, dir, sizeof(dir), file, sizeof(file));
@@ -312,12 +312,12 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
       RNA_string_set(&itemptr, "name", file);
     }
     else if (id_type == ID_MC) {
-      MovieClip *clip = (MovieClip *)id;
+      MovieClip *clip = blender::id_cast<MovieClip *>(id);
       RNA_string_set(drop->ptr, "filepath", clip->filepath);
       RNA_struct_property_unset(drop->ptr, "name");
     }
     else if (id_type == ID_SO) {
-      bSound *sound = (bSound *)id;
+      bSound *sound = blender::id_cast<bSound *>(id);
       RNA_string_set(drop->ptr, "filepath", sound->filepath);
       RNA_struct_property_unset(drop->ptr, "name");
     }
@@ -353,15 +353,15 @@ static void get_drag_path(const bContext *C, wmDrag *drag, char r_path[FILE_MAX]
   if (id != nullptr) {
     const ID_Type id_type = GS(id->name);
     if (id_type == ID_IM) {
-      Image *ima = (Image *)id;
+      Image *ima = blender::id_cast<Image *>(id);
       BLI_strncpy(r_path, ima->filepath, FILE_MAX);
     }
     else if (id_type == ID_MC) {
-      MovieClip *clip = (MovieClip *)id;
+      MovieClip *clip = blender::id_cast<MovieClip *>(id);
       BLI_strncpy(r_path, clip->filepath, FILE_MAX);
     }
     else if (id_type == ID_SO) {
-      bSound *sound = (bSound *)id;
+      bSound *sound = blender::id_cast<bSound *>(id);
       BLI_strncpy(r_path, sound->filepath, FILE_MAX);
     }
     BLI_path_abs(r_path, ID_BLEND_PATH_FROM_GLOBAL(id));
@@ -544,7 +544,7 @@ struct DropJobData {
 
 static void prefetch_data_fn(void *custom_data, wmJobWorkerStatus * /*worker_status*/)
 {
-  DropJobData *job_data = (DropJobData *)custom_data;
+  DropJobData *job_data = static_cast<DropJobData *>(custom_data);
 
   if (job_data->only_audio) {
 #ifdef WITH_AUDASPACE
@@ -553,7 +553,7 @@ static void prefetch_data_fn(void *custom_data, wmJobWorkerStatus * /*worker_sta
     if (sound != nullptr) {
 
       AUD_SoundInfo info = AUD_getInfo(sound);
-      if ((eSoundChannels)info.specs.channels != SOUND_CHANNELS_INVALID) {
+      if (eSoundChannels(info.specs.channels) != SOUND_CHANNELS_INVALID) {
         g_drop_coords.audio_length = info.length;
       }
       /* The playback rate is defined by the scene. This will be computed later in
@@ -581,7 +581,7 @@ static void prefetch_data_fn(void *custom_data, wmJobWorkerStatus * /*worker_sta
     if (sound != nullptr) {
 
       AUD_SoundInfo info = AUD_getInfo(sound);
-      if ((eSoundChannels)info.specs.channels != SOUND_CHANNELS_INVALID) {
+      if (eSoundChannels(info.specs.channels) != SOUND_CHANNELS_INVALID) {
         g_drop_coords.channel_len = 2;
       }
       AUD_Sound_free(sound);
@@ -592,7 +592,7 @@ static void prefetch_data_fn(void *custom_data, wmJobWorkerStatus * /*worker_sta
 
 static void free_prefetch_data_fn(void *custom_data)
 {
-  DropJobData *job_data = (DropJobData *)custom_data;
+  DropJobData *job_data = static_cast<DropJobData *>(custom_data);
   MEM_freeN(job_data);
 }
 

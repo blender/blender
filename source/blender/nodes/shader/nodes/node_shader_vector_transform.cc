@@ -97,7 +97,7 @@ static int gpu_shader_vect_transform(GPUMaterial *mat,
 {
   GPUNodeLink *inputlink;
 
-  NodeShaderVectTransform *nodeprop = (NodeShaderVectTransform *)node->storage;
+  NodeShaderVectTransform *nodeprop = static_cast<NodeShaderVectTransform *>(node->storage);
 
   if (in[0].hasinput) {
     inputlink = in[0].link;

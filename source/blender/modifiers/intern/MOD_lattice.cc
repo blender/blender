@@ -31,13 +31,13 @@
 
 static void init_data(ModifierData *md)
 {
-  LatticeModifierData *lmd = (LatticeModifierData *)md;
+  LatticeModifierData *lmd = reinterpret_cast<LatticeModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(lmd, modifier);
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  LatticeModifierData *lmd = (LatticeModifierData *)md;
+  LatticeModifierData *lmd = reinterpret_cast<LatticeModifierData *>(md);
 
   /* Ask for vertex-groups if we need them. */
   if (lmd->name[0] != '\0') {
@@ -57,20 +57,20 @@ static bool is_disabled(LatticeModifierData *lmd)
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  LatticeModifierData *lmd = (LatticeModifierData *)md;
+  LatticeModifierData *lmd = reinterpret_cast<LatticeModifierData *>(md);
   return is_disabled(lmd);
 }
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  LatticeModifierData *lmd = (LatticeModifierData *)md;
+  LatticeModifierData *lmd = reinterpret_cast<LatticeModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&lmd->object, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&lmd->object), IDWALK_CB_NOP);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  LatticeModifierData *lmd = (LatticeModifierData *)md;
+  LatticeModifierData *lmd = reinterpret_cast<LatticeModifierData *>(md);
   if (is_disabled(lmd)) {
     return;
   }
@@ -85,7 +85,7 @@ static void deform_verts(ModifierData *md,
                          Mesh *mesh,
                          blender::MutableSpan<blender::float3> positions)
 {
-  LatticeModifierData *lmd = (LatticeModifierData *)md;
+  LatticeModifierData *lmd = reinterpret_cast<LatticeModifierData *>(md);
 
   /* if next modifier needs original vertices */
   MOD_previous_vcos_store(md, reinterpret_cast<const float (*)[3]>(positions.data()));
@@ -111,7 +111,7 @@ static void deform_verts_EM(ModifierData *md,
     return;
   }
 
-  LatticeModifierData *lmd = (LatticeModifierData *)md;
+  LatticeModifierData *lmd = reinterpret_cast<LatticeModifierData *>(md);
 
   /* if next modifier needs original vertices */
   MOD_previous_vcos_store(md, reinterpret_cast<const float (*)[3]>(positions.data()));

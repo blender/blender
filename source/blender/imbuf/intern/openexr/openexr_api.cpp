@@ -2097,7 +2097,7 @@ ImBuf *imb_load_openexr(const uchar *mem, size_t size, int flags, ImFileColorSpa
   try {
     bool is_multi;
 
-    membuf = new IMemStream((uchar *)mem, size);
+    membuf = new IMemStream(const_cast<uchar *>(mem), size);
     file = new MultiPartInputFile(*membuf);
 
     const Header &file_header = file->header(0);

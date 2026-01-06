@@ -75,7 +75,7 @@ static std::ostream &operator<<(std::ostream &stream, const GPUOutput *output)
 /* Print data constructor (i.e: vec2(1.0f, 1.0f)). */
 static std::ostream &operator<<(std::ostream &stream, const Span<float> &span)
 {
-  stream << (GPUType)span.size() << "(";
+  stream << GPUType(span.size()) << "(";
   /* Use uint representation to allow exact same bit pattern even if NaN. This is
    * because we can pass UINTs as floats for constants. */
   const Span<uint32_t> uint_span = span.cast<uint32_t>();
@@ -251,7 +251,7 @@ void GPUCodegen::generate_resources()
     /* NOTE: generate_uniform_buffer() should have sorted the inputs before this. */
     ss << "struct NodeTree {\n";
     for (LinkData &link : ubo_inputs_) {
-      GPUInput *input = (GPUInput *)(link.data);
+      GPUInput *input = static_cast<GPUInput *>(link.data);
       if (input->source == GPU_SOURCE_CRYPTOMATTE) {
         ss << input->type << " crypto_hash;\n";
       }
@@ -340,7 +340,8 @@ void GPUCodegen::node_serialize(Set<StringRefNull> &used_libraries,
         break;
       case GPU_SOURCE_CONSTANT:
         if (!input.is_duplicate) {
-          eval_ss << type() << " " << &input << " = " << (GPUConstant *)&input << ";\n";
+          eval_ss << type() << " " << &input << " = " << static_cast<GPUConstant *>(&input)
+                  << ";\n";
         }
         break;
       case GPU_SOURCE_OUTPUT:
@@ -533,13 +534,13 @@ void GPUCodegen::set_unique_ids()
   /* Assign the same id to inputs and outputs of start and end zones. */
   for (GPUNode *end : zone_ends.values()) {
 
-    GPUInput *end_input = find_zone_io((GPUInput *)end->inputs.first);
-    GPUOutput *end_output = find_zone_io((GPUOutput *)end->outputs.first);
+    GPUInput *end_input = find_zone_io(static_cast<GPUInput *>(end->inputs.first));
+    GPUOutput *end_output = find_zone_io(static_cast<GPUOutput *>(end->outputs.first));
 
     GPUNode *start = zone_starts.lookup(end->zone_index);
 
-    GPUInput *start_input = find_zone_io((GPUInput *)start->inputs.first);
-    GPUOutput *start_output = find_zone_io((GPUOutput *)start->outputs.first);
+    GPUInput *start_input = find_zone_io(static_cast<GPUInput *>(start->inputs.first));
+    GPUOutput *start_output = find_zone_io(static_cast<GPUOutput *>(start->outputs.first));
 
     for (; start_input; start_input = start_input->next,
                         start_output = start_output->next,
@@ -587,7 +588,7 @@ void GPUCodegen::generate_graphs()
   }
 
   for (GPUMaterialAttribute &attr : graph.attributes) {
-    BLI_hash_mm2a_add(&hm2a_, (uchar *)attr.name, strlen(attr.name));
+    BLI_hash_mm2a_add(&hm2a_, reinterpret_cast<uchar *>(attr.name), strlen(attr.name));
   }
 
   hash_ = BLI_hash_mm2a_end(&hm2a_);

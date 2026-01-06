@@ -77,8 +77,8 @@ static int report_textview_skip__internal(TextViewContext *tvc)
 {
   const SpaceInfo *sinfo = static_cast<const SpaceInfo *>(tvc->arg1);
   const int report_mask = info_report_mask(sinfo);
-  while (tvc->iter && (((const Report *)tvc->iter)->type & report_mask) == 0) {
-    tvc->iter = (void *)((Link *)tvc->iter)->prev;
+  while (tvc->iter && ((static_cast<const Report *>(tvc->iter))->type & report_mask) == 0) {
+    tvc->iter = static_cast<void *>((static_cast<Link *>(const_cast<void *>(tvc->iter)))->prev);
   }
   return (tvc->iter != nullptr);
 }
@@ -117,7 +117,7 @@ static int report_textview_step(TextViewContext *tvc)
 {
   /* simple case, but no newline support */
   if (tvc->iter_char_begin <= 0) {
-    tvc->iter = (void *)((Link *)tvc->iter)->prev;
+    tvc->iter = static_cast<void *>((static_cast<Link *>(const_cast<void *>(tvc->iter)))->prev);
     if (tvc->iter && report_textview_skip__internal(tvc)) {
       tvc->iter_tmp++;
 

@@ -58,7 +58,7 @@ static bool modifier_ui_poll(const bContext *C, PanelType * /*pt*/)
 static void modifier_reorder(bContext *C, Panel *panel, int new_index)
 {
   PointerRNA *md_ptr = blender::ui::panel_custom_data_get(panel);
-  ModifierData *md = (ModifierData *)md_ptr->data;
+  ModifierData *md = static_cast<ModifierData *>(md_ptr->data);
 
   wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_modifier_move_to_index", false);
   PointerRNA props_ptr = WM_operator_properties_create_ptr(ot);
@@ -71,14 +71,14 @@ static void modifier_reorder(bContext *C, Panel *panel, int new_index)
 static short get_modifier_expand_flag(const bContext * /*C*/, Panel *panel)
 {
   PointerRNA *md_ptr = blender::ui::panel_custom_data_get(panel);
-  ModifierData *md = (ModifierData *)md_ptr->data;
+  ModifierData *md = static_cast<ModifierData *>(md_ptr->data);
   return md->ui_expand_flag;
 }
 
 static void set_modifier_expand_flag(const bContext * /*C*/, Panel *panel, short expand_flag)
 {
   PointerRNA *md_ptr = blender::ui::panel_custom_data_get(panel);
-  ModifierData *md = (ModifierData *)md_ptr->data;
+  ModifierData *md = static_cast<ModifierData *>(md_ptr->data);
   md->ui_expand_flag = expand_flag;
 }
 
@@ -188,7 +188,7 @@ static bool modifier_can_delete(ModifierData *md)
 {
   /* fluid particle modifier can't be deleted here */
   if (md->type == eModifierType_ParticleSystem) {
-    short particle_type = ((ParticleSystemModifierData *)md)->psys->part->type;
+    short particle_type = (reinterpret_cast<ParticleSystemModifierData *>(md))->psys->part->type;
     if (ELEM(particle_type,
              PART_FLUID,
              PART_FLUID_FLIP,
@@ -210,7 +210,7 @@ static bool modifier_can_delete(ModifierData *md)
 static void modifier_ops_extra_draw(bContext *C, blender::ui::Layout *layout, void *md_v)
 {
   PointerRNA op_ptr;
-  ModifierData *md = (ModifierData *)md_v;
+  ModifierData *md = static_cast<ModifierData *>(md_v);
 
   Object *ob = blender::ed::object::context_active_object(C);
   PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, &RNA_Modifier, md);
@@ -311,8 +311,8 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
 
   /* Don't use #modifier_panel_get_property_pointers, we don't want to lock the header. */
   PointerRNA *ptr = blender::ui::panel_custom_data_get(panel);
-  ModifierData *md = (ModifierData *)ptr->data;
-  Object *ob = (Object *)ptr->owner_id;
+  ModifierData *md = static_cast<ModifierData *>(ptr->data);
+  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
 
   blender::ui::panel_context_pointer_set(panel, "modifier", ptr);
 

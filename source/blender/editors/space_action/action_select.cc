@@ -100,12 +100,12 @@ static void actkeys_list_element_to_keylist(bAnimContext *ac,
   if (ale->key_data) {
     switch (ale->datatype) {
       case ALE_SCE: {
-        Scene *scene = (Scene *)ale->key_data;
+        Scene *scene = static_cast<Scene *>(ale->key_data);
         scene_to_keylist(ads, scene, keylist, 0, range);
         break;
       }
       case ALE_OB: {
-        Object *ob = (Object *)ale->key_data;
+        Object *ob = static_cast<Object *>(ale->key_data);
         ob_to_keylist(ads, ob, keylist, 0, range);
         break;
       }
@@ -135,12 +135,12 @@ static void actkeys_list_element_to_keylist(bAnimContext *ac,
       }
       case ALE_ACT: {
         /* Legacy action. */
-        bAction *act = (bAction *)ale->key_data;
+        bAction *act = static_cast<bAction *>(ale->key_data);
         action_to_keylist(ale->adt, act, keylist, 0, range);
         break;
       }
       case ALE_FCURVE: {
-        FCurve *fcu = (FCurve *)ale->key_data;
+        FCurve *fcu = static_cast<FCurve *>(ale->key_data);
         fcurve_to_keylist(ale->adt, fcu, keylist, 0, range, ANIM_nla_mapping_allowed(ale));
         break;
       }
@@ -162,7 +162,7 @@ static void actkeys_list_element_to_keylist(bAnimContext *ac,
   }
   else if (ale->type == ANIMTYPE_GROUP) {
     /* TODO: why don't we just give groups key_data too? */
-    bActionGroup *agrp = (bActionGroup *)ale->data;
+    bActionGroup *agrp = static_cast<bActionGroup *>(ale->data);
     action_group_to_keylist(ale->adt, agrp, keylist, 0, range);
   }
   else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
@@ -182,12 +182,12 @@ static void actkeys_list_element_to_keylist(bAnimContext *ac,
   }
   else if (ale->type == ANIMTYPE_GPLAYER) {
     /* TODO: why don't we just give gplayers key_data too? */
-    bGPDlayer *gpl = (bGPDlayer *)ale->data;
+    bGPDlayer *gpl = static_cast<bGPDlayer *>(ale->data);
     gpl_to_keylist(ads, gpl, keylist);
   }
   else if (ale->type == ANIMTYPE_MASKLAYER) {
     /* TODO: why don't we just give masklayers key_data too? */
-    MaskLayer *masklay = (MaskLayer *)ale->data;
+    MaskLayer *masklay = static_cast<MaskLayer *>(ale->data);
     mask_to_keylist(ads, masklay, keylist);
   }
 }
@@ -1312,7 +1312,7 @@ static wmOperatorStatus actkeys_select_linked_exec(bContext *C, wmOperator * /*o
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
 
   for (bAnimListElem &ale : anim_data) {
-    FCurve *fcu = (FCurve *)ale.key_data;
+    FCurve *fcu = static_cast<FCurve *>(ale.key_data);
 
     /* check if anything selected? */
     if (ANIM_fcurve_keyframes_loop(nullptr, fcu, nullptr, ok_cb, nullptr)) {
@@ -1378,7 +1378,7 @@ static void select_moreless_action_keys(bAnimContext *ac, short mode)
     }
 
     /* only continue if F-Curve has keyframes */
-    FCurve *fcu = (FCurve *)ale.key_data;
+    FCurve *fcu = static_cast<FCurve *>(ale.key_data);
     if (fcu->bezt == nullptr) {
       continue;
     }
@@ -1566,7 +1566,7 @@ static void actkeys_select_leftright(bAnimContext *ac,
 
   /* Sync marker support */
   if (select_mode == SELECT_ADD) {
-    SpaceAction *saction = (SpaceAction *)ac->sl;
+    SpaceAction *saction = reinterpret_cast<SpaceAction *>(ac->sl);
 
     if (saction && ac->markers && (saction->flag & SACTION_MARKERS_MOVE)) {
       for (TimeMarker &marker : *ac->markers) {
@@ -1965,7 +1965,7 @@ static wmOperatorStatus mouse_action_keys(bAnimContext *ac,
                                     eAnim_ChannelType(ale->type));
           }
           else if (ale->type == ANIMTYPE_GPLAYER) {
-            bGPdata *gpd = (bGPdata *)ale->id;
+            bGPdata *gpd = blender::id_cast<bGPdata *>(ale->id);
             bGPDlayer *gpl = static_cast<bGPDlayer *>(ale->data);
 
             ED_gpencil_set_active_channel(gpd, gpl);
@@ -1993,7 +1993,7 @@ static wmOperatorStatus mouse_action_keys(bAnimContext *ac,
 
         /* Highlight GPencil Layer (Legacy). */
         if (ale != nullptr && ale->data != nullptr && ale->type == ANIMTYPE_GPLAYER) {
-          bGPdata *gpd = (bGPdata *)ale->id;
+          bGPdata *gpd = blender::id_cast<bGPdata *>(ale->id);
           bGPDlayer *gpl = static_cast<bGPDlayer *>(ale->data);
 
           ED_gpencil_set_active_channel(gpd, gpl);

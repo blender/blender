@@ -75,7 +75,7 @@ AnimData *ED_actedit_animdata_from_context(const bContext *C, ID **r_adt_id_owne
     return nullptr;
   }
 
-  SpaceAction *saction = (SpaceAction *)space_data;
+  SpaceAction *saction = reinterpret_cast<SpaceAction *>(space_data);
   Object *ob = CTX_data_active_object(C);
   AnimData *adt = nullptr;
 
@@ -118,7 +118,7 @@ static bAction *action_create_new(bContext *C, bAction *oldact)
    */
   if (oldact && GS(oldact->id.name) == ID_AC) {
     /* make a copy of the existing action */
-    action = (bAction *)BKE_id_copy(CTX_data_main(C), &oldact->id);
+    action = blender::id_cast<bAction *>(BKE_id_copy(CTX_data_main(C), &oldact->id));
   }
   else {
     /* just make a new (empty) action */
@@ -164,7 +164,7 @@ static bool action_new_poll(bContext *C)
   /* NOTE: unlike for pushdown,
    * this operator needs to be run when creating an action from nothing... */
   if (ED_operator_action_active(C)) {
-    SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
+    SpaceAction *saction = reinterpret_cast<SpaceAction *>(CTX_wm_space_data(C));
     Object *ob = CTX_data_active_object(C);
 
     /* For now, actions are only for the active object, and on object and shape-key levels... */
@@ -211,7 +211,7 @@ static wmOperatorStatus action_new_exec(bContext *C, wmOperator * /*op*/)
     PointerRNA oldptr;
 
     oldptr = RNA_property_pointer_get(&ptr, prop);
-    oldact = (bAction *)oldptr.owner_id;
+    oldact = blender::id_cast<bAction *>(oldptr.owner_id);
 
     /* stash the old action to prevent it from being lost */
     if (ptr.type == &RNA_AnimData) {
@@ -420,7 +420,7 @@ static bool action_stash_create_poll(bContext *C)
        * (which may not be totally valid yet if the action editor was used and things are
        * now in an inconsistent state)
        */
-      SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
+      SpaceAction *saction = reinterpret_cast<SpaceAction *>(CTX_wm_space_data(C));
       Scene *scene = CTX_data_scene(C);
 
       if (!(scene->flag & SCE_NLA_EDIT_ON)) {

@@ -48,17 +48,17 @@ static void cmp_node_moviedistortion_declare(NodeDeclarationBuilder &b)
 
 static void init(const bContext *C, PointerRNA *ptr)
 {
-  bNode *node = (bNode *)ptr->data;
+  bNode *node = static_cast<bNode *>(ptr->data);
   Scene *scene = CTX_data_scene(C);
 
-  node->id = (ID *)scene->clip;
+  node->id = blender::id_cast<ID *>(scene->clip);
   id_us_plus(node->id);
 }
 
 static void storage_free(bNode *node)
 {
   if (node->storage) {
-    BKE_tracking_distortion_free((MovieDistortion *)node->storage);
+    BKE_tracking_distortion_free(static_cast<MovieDistortion *>(node->storage));
   }
 
   node->storage = nullptr;
@@ -67,7 +67,8 @@ static void storage_free(bNode *node)
 static void storage_copy(bNodeTree * /*dst_ntree*/, bNode *dest_node, const bNode *src_node)
 {
   if (src_node->storage) {
-    dest_node->storage = BKE_tracking_distortion_copy((MovieDistortion *)src_node->storage);
+    dest_node->storage = BKE_tracking_distortion_copy(
+        static_cast<MovieDistortion *>(src_node->storage));
   }
 }
 

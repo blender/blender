@@ -76,7 +76,7 @@ void AbcPointsReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSel
   }
 
   m_object = BKE_object_add_only_object(bmain, OB_POINTCLOUD, m_object_name.c_str());
-  m_object->data = pointcloud;
+  m_object->data = blender::id_cast<ID *>(pointcloud);
 
   if (m_settings->always_add_cache_reader || has_animations(m_schema, m_settings)) {
     addCacheModifier();

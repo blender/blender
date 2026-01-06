@@ -59,7 +59,7 @@ void deg_invalidate_iterator_work_data(DEGObjectIterData *data)
 {
 #ifdef INVALIDATE_WORK_DATA
   BLI_assert(data != nullptr);
-  memset((void *)&data->temp_dupli_object, 0xff, sizeof(data->temp_dupli_object));
+  memset(static_cast<void *>(&data->temp_dupli_object), 0xff, sizeof(data->temp_dupli_object));
 #else
   (void)data;
 #endif
@@ -208,7 +208,7 @@ bool deg_iterator_objects_step(DEGObjectIterData *data)
         break;
     }
 
-    Object *object = (Object *)id_node->id_cow;
+    Object *object = blender::id_cast<Object *>(id_node->id_cow);
     Object *object_orig = DEG_get_original(object);
 
     DEGObjectIterSettings *settings = data->settings;
@@ -360,7 +360,7 @@ void DEG_iterator_objects_begin(BLI_Iterator *iter, DEGObjectIterData *data)
 
 void DEG_iterator_objects_next(BLI_Iterator *iter)
 {
-  DEGObjectIterData *data = (DEGObjectIterData *)iter->data;
+  DEGObjectIterData *data = static_cast<DEGObjectIterData *>(iter->data);
   while (true) {
     if (data->next_object != nullptr) {
       iter->current = data->next_object;
@@ -380,7 +380,7 @@ void DEG_iterator_objects_next(BLI_Iterator *iter)
 
 void DEG_iterator_objects_end(BLI_Iterator *iter)
 {
-  DEGObjectIterData *data = (DEGObjectIterData *)iter->data;
+  DEGObjectIterData *data = static_cast<DEGObjectIterData *>(iter->data);
   if (data != nullptr) {
     /* Force crash in case the iterator data is referenced and accessed down
      * the line. (#51718) */
@@ -447,7 +447,7 @@ void DEG_iterator_ids_begin(BLI_Iterator *iter, DEGIDIterData *data)
 
 void DEG_iterator_ids_next(BLI_Iterator *iter)
 {
-  DEGIDIterData *data = (DEGIDIterData *)iter->data;
+  DEGIDIterData *data = static_cast<DEGIDIterData *>(iter->data);
   Depsgraph *depsgraph = data->graph;
   deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(depsgraph);
 

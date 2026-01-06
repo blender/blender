@@ -851,7 +851,7 @@ struct ActionGroupChannelsIterator {
 
 static void rna_ActionGroup_channels_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  bActionGroup *group = (bActionGroup *)ptr->data;
+  bActionGroup *group = static_cast<bActionGroup *>(ptr->data);
 
   ActionGroupChannelsIterator *custom_iter = MEM_callocN<ActionGroupChannelsIterator>(__func__);
 
@@ -907,7 +907,7 @@ static void rna_ActionGroup_channels_next(CollectionPropertyIterator *iter)
       break;
     }
     case ActionGroupChannelsIterator::LISTBASE: {
-      FCurve *fcurve = (FCurve *)custom_iter->listbase.link;
+      FCurve *fcurve = reinterpret_cast<FCurve *>(custom_iter->listbase.link);
       bActionGroup *grp = fcurve->grp;
       /* Only continue if the next F-Curve (if existent) belongs in the same
        * group. */
@@ -974,7 +974,7 @@ static void rna_Action_pose_markers_remove(bAction *act,
 
 static PointerRNA rna_Action_active_pose_marker_get(PointerRNA *ptr)
 {
-  bAction *act = (bAction *)ptr->data;
+  bAction *act = static_cast<bAction *>(ptr->data);
   return RNA_pointer_create_with_parent(
       *ptr, &RNA_TimelineMarker, BLI_findlink(&act->markers, act->active_marker - 1));
 }
@@ -983,26 +983,26 @@ static void rna_Action_active_pose_marker_set(PointerRNA *ptr,
                                               PointerRNA value,
                                               ReportList * /*reports*/)
 {
-  bAction *act = (bAction *)ptr->data;
+  bAction *act = static_cast<bAction *>(ptr->data);
   act->active_marker = BLI_findindex(&act->markers, value.data) + 1;
 }
 
 static int rna_Action_active_pose_marker_index_get(PointerRNA *ptr)
 {
-  bAction *act = (bAction *)ptr->data;
+  bAction *act = static_cast<bAction *>(ptr->data);
   return std::max(act->active_marker - 1, 0);
 }
 
 static void rna_Action_active_pose_marker_index_set(PointerRNA *ptr, int value)
 {
-  bAction *act = (bAction *)ptr->data;
+  bAction *act = static_cast<bAction *>(ptr->data);
   act->active_marker = value + 1;
 }
 
 static void rna_Action_active_pose_marker_index_range(
     PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)
 {
-  bAction *act = (bAction *)ptr->data;
+  bAction *act = static_cast<bAction *>(ptr->data);
 
   *min = 0;
   *max = max_ii(0, BLI_listbase_count(&act->markers) - 1);
@@ -1031,7 +1031,7 @@ static void rna_Action_frame_range_get(PointerRNA *ptr, float *r_values)
 
 static void rna_Action_frame_range_set(PointerRNA *ptr, const float *values)
 {
-  bAction *data = (bAction *)ptr->owner_id;
+  bAction *data = blender::id_cast<bAction *>(ptr->owner_id);
 
   data->flag |= ACT_FRAME_RANGE;
   data->frame_start = values[0];
@@ -1068,7 +1068,7 @@ static void rna_Action_use_frame_range_set(PointerRNA *ptr, bool value)
 
 static void rna_Action_start_frame_set(PointerRNA *ptr, float value)
 {
-  bAction *data = (bAction *)ptr->owner_id;
+  bAction *data = blender::id_cast<bAction *>(ptr->owner_id);
 
   data->frame_start = value;
   CLAMP_MIN(data->frame_end, data->frame_start);
@@ -1076,7 +1076,7 @@ static void rna_Action_start_frame_set(PointerRNA *ptr, float value)
 
 static void rna_Action_end_frame_set(PointerRNA *ptr, float value)
 {
-  bAction *data = (bAction *)ptr->owner_id;
+  bAction *data = blender::id_cast<bAction *>(ptr->owner_id);
 
   data->frame_end = value;
   CLAMP_MAX(data->frame_start, data->frame_end);
@@ -1132,7 +1132,7 @@ static FCurve *rna_Action_fcurve_ensure_for_datablock(bAction *_self,
 bool rna_Action_id_poll(PointerRNA *ptr, PointerRNA value)
 {
   ID *srcId = ptr->owner_id;
-  bAction *dna_action = (bAction *)value.owner_id;
+  bAction *dna_action = blender::id_cast<bAction *>(value.owner_id);
 
   if (!dna_action) {
     return false;
@@ -1174,7 +1174,7 @@ static void reevaluate_fcurve_errors(bAnimContext *ac)
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
   for (bAnimListElem &ale : anim_data) {
-    FCurve *fcu = (FCurve *)ale.key_data;
+    FCurve *fcu = static_cast<FCurve *>(ale.key_data);
     PointerRNA ptr;
     PropertyRNA *prop;
     PointerRNA id_ptr = RNA_id_pointer_create(ale.id);

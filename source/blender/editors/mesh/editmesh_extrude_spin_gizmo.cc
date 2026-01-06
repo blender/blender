@@ -117,7 +117,7 @@ static void gizmo_mesh_spin_init_setup(const bContext * /*C*/, wmGizmoGroup *gzg
       wmGizmo *gz = WM_gizmo_new_ptr(gzt_button, gzgroup, nullptr);
       PropertyRNA *prop = RNA_struct_find_property(gz->ptr, "shape");
       RNA_property_string_set_bytes(
-          gz->ptr, prop, (const char *)shape_plus, ARRAY_SIZE(shape_plus));
+          gz->ptr, prop, reinterpret_cast<const char *>(shape_plus), ARRAY_SIZE(shape_plus));
 
       RNA_enum_set(gz->ptr, "draw_options", ED_GIZMO_BUTTON_SHOW_BACKDROP);
 
@@ -255,7 +255,7 @@ static void gizmo_mesh_spin_init_draw_prepare(const bContext *C, wmGizmoGroup *g
 #ifdef USE_DIAL_HOVER
   {
     PointerRNA ptr;
-    bToolRef *tref = WM_toolsystem_ref_from_context((bContext *)C);
+    bToolRef *tref = WM_toolsystem_ref_from_context(const_cast<bContext *>(C));
     WM_toolsystem_ref_properties_ensure_from_gizmo_group(tref, gzgroup->type, &ptr);
     const int axis_flag = RNA_property_enum_get(&ptr, ggd->data.gzgt_axis_prop);
     for (int i = 0; i < 4; i++) {
@@ -303,7 +303,7 @@ static void gizmo_mesh_spin_init_invoke_prepare(const bContext * /*C*/,
 static void gizmo_mesh_spin_init_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
   GizmoGroupData_SpinInit *ggd = static_cast<GizmoGroupData_SpinInit *>(gzgroup->customdata);
-  RegionView3D *rv3d = ED_view3d_context_rv3d((bContext *)C);
+  RegionView3D *rv3d = ED_view3d_context_rv3d(const_cast<bContext *>(C));
   const float *gizmo_center = nullptr;
   {
     Scene *scene = CTX_data_scene(C);
@@ -400,7 +400,7 @@ static void gizmo_mesh_spin_init_refresh(const bContext *C, wmGizmoGroup *gzgrou
 
   {
     PointerRNA ptr;
-    bToolRef *tref = WM_toolsystem_ref_from_context((bContext *)C);
+    bToolRef *tref = WM_toolsystem_ref_from_context(const_cast<bContext *>(C));
     WM_toolsystem_ref_properties_ensure_from_gizmo_group(tref, gzgroup->type, &ptr);
     const int axis_flag = RNA_property_enum_get(&ptr, ggd->data.gzgt_axis_prop);
     for (int i = 0; i < ARRAY_SIZE(ggd->gizmos.icon_button); i++) {
@@ -801,7 +801,7 @@ static void gizmo_mesh_spin_redo_modal_from_setup(const bContext *C, wmGizmoGrou
 
   ggd->is_init = true;
 
-  WM_gizmo_modal_set_from_setup(gzmap, (bContext *)C, gz, 0, win->runtime->eventstate);
+  WM_gizmo_modal_set_from_setup(gzmap, const_cast<bContext *>(C), gz, 0, win->runtime->eventstate);
 }
 
 static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
@@ -888,7 +888,7 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
   }
 
   {
-    ggd->data.context = (bContext *)C;
+    ggd->data.context = const_cast<bContext *>(C);
     ggd->data.ot = ot;
     ggd->data.op = op;
     ggd->data.prop_axis_co = RNA_struct_type_find_property(ot->srna, "center");

@@ -93,19 +93,19 @@ void BKE_modifier_init()
 
   /* Initialize global common storage used for virtual modifier list. */
   md = BKE_modifier_new(eModifierType_Armature);
-  virtualModifierCommonData.amd = *((ArmatureModifierData *)md);
+  virtualModifierCommonData.amd = *(reinterpret_cast<ArmatureModifierData *>(md));
   BKE_modifier_free(md);
 
   md = BKE_modifier_new(eModifierType_Curve);
-  virtualModifierCommonData.cmd = *((CurveModifierData *)md);
+  virtualModifierCommonData.cmd = *(reinterpret_cast<CurveModifierData *>(md));
   BKE_modifier_free(md);
 
   md = BKE_modifier_new(eModifierType_Lattice);
-  virtualModifierCommonData.lmd = *((LatticeModifierData *)md);
+  virtualModifierCommonData.lmd = *(reinterpret_cast<LatticeModifierData *>(md));
   BKE_modifier_free(md);
 
   md = BKE_modifier_new(eModifierType_ShapeKey);
-  virtualModifierCommonData.smd = *((ShapeKeyModifierData *)md);
+  virtualModifierCommonData.smd = *(reinterpret_cast<ShapeKeyModifierData *>(md));
   BKE_modifier_free(md);
 
   virtualModifierCommonData.amd.modifier.mode |= eModifierMode_Virtual;
@@ -327,8 +327,8 @@ void BKE_modifier_copydata_generic(const ModifierData *md_src,
   }
 
   const size_t data_size = sizeof(ModifierData);
-  const char *md_src_data = ((const char *)md_src) + data_size;
-  char *md_dst_data = ((char *)md_dst) + data_size;
+  const char *md_src_data = (reinterpret_cast<const char *>(md_src)) + data_size;
+  char *md_dst_data = (reinterpret_cast<char *>(md_dst)) + data_size;
   BLI_assert(data_size <= size_t(mti->struct_size));
   memcpy(md_dst_data, md_src_data, size_t(mti->struct_size) - data_size);
 
@@ -600,7 +600,7 @@ CDMaskLink *BKE_modifier_calc_data_masks(const Scene *scene,
   }
 
   /* reverse the list so it's in the correct order */
-  BLI_linklist_reverse((LinkNode **)&dataMasks);
+  BLI_linklist_reverse(reinterpret_cast<LinkNode **>(&dataMasks));
 
   return dataMasks;
 }
@@ -616,7 +616,8 @@ ModifierData *BKE_modifiers_get_virtual_modifierlist(const Object *ob,
     if (ob->parent->type == OB_ARMATURE && ob->partype == PARSKEL) {
       virtual_modifier_data->amd.object = ob->parent;
       virtual_modifier_data->amd.modifier.next = md;
-      virtual_modifier_data->amd.deformflag = ((bArmature *)(ob->parent->data))->deformflag;
+      virtual_modifier_data->amd.deformflag =
+          (blender::id_cast<bArmature *>(ob->parent->data))->deformflag;
       md = &virtual_modifier_data->amd.modifier;
     }
     else if (ob->parent->type == OB_CURVES_LEGACY && ob->partype == PARSKEL) {
@@ -633,7 +634,7 @@ ModifierData *BKE_modifiers_get_virtual_modifierlist(const Object *ob,
   }
 
   /* shape key modifier, not yet for curves */
-  if (ELEM(ob->type, OB_MESH, OB_LATTICE) && BKE_key_from_object((Object *)ob)) {
+  if (ELEM(ob->type, OB_MESH, OB_LATTICE) && BKE_key_from_object(const_cast<Object *>(ob))) {
     if (ob->type == OB_MESH && (ob->shapeflag & OB_SHAPE_EDIT_MODE)) {
       virtual_modifier_data->smd.modifier.mode |= eModifierMode_Editmode | eModifierMode_OnCage;
     }
@@ -690,7 +691,7 @@ Object *BKE_modifiers_is_deformed_by_meshdeform(Object *ob)
   /* return the first selected armature, this lets us use multiple armatures */
   for (; md; md = md->next) {
     if (md->type == eModifierType_MeshDeform) {
-      mdmd = (MeshDeformModifierData *)md;
+      mdmd = reinterpret_cast<MeshDeformModifierData *>(md);
       if (mdmd->object && (mdmd->object->base_flag & BASE_SELECTED)) {
         return mdmd->object;
       }
@@ -731,7 +732,7 @@ Object *BKE_modifiers_is_deformed_by_lattice(Object *ob)
   /* return the first selected lattice, this lets us use multiple lattices */
   for (; md; md = md->next) {
     if (md->type == eModifierType_Lattice) {
-      lmd = (LatticeModifierData *)md;
+      lmd = reinterpret_cast<LatticeModifierData *>(md);
       if (lmd->object && (lmd->object->base_flag & BASE_SELECTED)) {
         return lmd->object;
       }
@@ -754,7 +755,7 @@ Object *BKE_modifiers_is_deformed_by_curve(Object *ob)
   /* return the first selected curve, this lets us use multiple curves */
   for (; md; md = md->next) {
     if (md->type == eModifierType_Curve) {
-      cmd = (CurveModifierData *)md;
+      cmd = reinterpret_cast<CurveModifierData *>(md);
       if (cmd->object && (cmd->object->base_flag & BASE_SELECTED)) {
         return cmd->object;
       }
@@ -776,7 +777,7 @@ bool BKE_modifiers_uses_multires(Object *ob)
 
   for (; md; md = md->next) {
     if (md->type == eModifierType_Multires) {
-      mmd = (MultiresModifierData *)md;
+      mmd = reinterpret_cast<MultiresModifierData *>(md);
       if (mmd->totlvl != 0) {
         return true;
       }
@@ -793,14 +794,14 @@ bool BKE_modifiers_uses_armature(Object *ob, bArmature *arm)
   for (; md; md = md->next) {
     if (md->type == eModifierType_Armature) {
       ArmatureModifierData *amd = reinterpret_cast<ArmatureModifierData *>(md);
-      if (amd->object && amd->object->data == arm) {
+      if (amd->object && amd->object->data == blender::id_cast<ID *>(arm)) {
         return true;
       }
     }
     else if (md->type == eModifierType_GreasePencilArmature) {
       GreasePencilArmatureModifierData *amd = reinterpret_cast<GreasePencilArmatureModifierData *>(
           md);
-      if (amd->object && amd->object->data == arm) {
+      if (amd->object && amd->object->data == blender::id_cast<ID *>(arm)) {
         return true;
       }
     }
@@ -838,7 +839,7 @@ bool BKE_modifiers_is_correctable_deformed(const Scene *scene, Object *ob)
 void BKE_modifier_free_temporary_data(ModifierData *md)
 {
   if (md->type == eModifierType_Armature) {
-    ArmatureModifierData *amd = (ArmatureModifierData *)md;
+    ArmatureModifierData *amd = reinterpret_cast<ArmatureModifierData *>(md);
 
     MEM_SAFE_FREE(amd->vert_coords_prev);
   }
@@ -887,7 +888,7 @@ void BKE_modifiers_test_object(Object *ob)
 
   for (ModifierData &md : ob->modifiers) {
     if (md.type == eModifierType_Multires) {
-      MultiresModifierData *mmd = (MultiresModifierData *)&md;
+      MultiresModifierData *mmd = reinterpret_cast<MultiresModifierData *>(&md);
 
       multiresModifier_set_levels_from_disps(mmd, ob);
     }
@@ -1055,7 +1056,7 @@ Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(Object *ob_eval)
 
 ModifierData *BKE_modifier_get_original(const Object *object, ModifierData *md)
 {
-  const Object *object_orig = DEG_get_original((Object *)object);
+  const Object *object_orig = DEG_get_original(const_cast<Object *>(object));
   return BKE_modifiers_findby_persistent_uid(object_orig, md->persistent_uid);
 }
 
@@ -1135,7 +1136,7 @@ void BKE_modifier_blend_write(BlendWriter *writer,
     writer->write_struct_by_name(mti->struct_name, &md);
 
     if (md.type == eModifierType_Cloth) {
-      ClothModifierData *clmd = (ClothModifierData *)&md;
+      ClothModifierData *clmd = reinterpret_cast<ClothModifierData *>(&md);
 
       writer->write_struct(clmd->sim_parms);
       writer->write_struct(clmd->coll_parms);
@@ -1143,7 +1144,7 @@ void BKE_modifier_blend_write(BlendWriter *writer,
       BKE_ptcache_blend_write(writer, &clmd->ptcaches);
     }
     else if (md.type == eModifierType_Fluid) {
-      FluidModifierData *fmd = (FluidModifierData *)&md;
+      FluidModifierData *fmd = reinterpret_cast<FluidModifierData *>(&md);
 
       if (fmd->type & MOD_FLUID_TYPE_DOMAIN) {
         writer->write_struct(fmd->domain);
@@ -1180,7 +1181,7 @@ void BKE_modifier_blend_write(BlendWriter *writer,
       BLI_assert_unreachable(); /* Deprecated data, should never be written. */
     }
     else if (md.type == eModifierType_DynamicPaint) {
-      DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)&md;
+      DynamicPaintModifierData *pmd = reinterpret_cast<DynamicPaintModifierData *>(&md);
 
       if (pmd->canvas) {
         writer->write_struct(pmd->canvas);
@@ -1244,10 +1245,12 @@ static ModifierData *modifier_replace_with_fluid(BlendDataReader *reader,
                                                  ModifierData *old_modifier_data)
 {
   ModifierData *new_modifier_data = BKE_modifier_new(eModifierType_Fluid);
-  FluidModifierData *fluid_modifier_data = (FluidModifierData *)new_modifier_data;
+  FluidModifierData *fluid_modifier_data = reinterpret_cast<FluidModifierData *>(
+      new_modifier_data);
 
   if (old_modifier_data->type == eModifierType_Fluidsim) {
-    FluidsimModifierData *old_fluidsim_modifier_data = (FluidsimModifierData *)old_modifier_data;
+    FluidsimModifierData *old_fluidsim_modifier_data = reinterpret_cast<FluidsimModifierData *>(
+        old_modifier_data);
     /* Only get access to the data, do not mark it as used, otherwise there will be memory leak
      * since readfile code won't free it. */
     FluidsimSettings *old_fluidsim_settings = static_cast<FluidsimSettings *>(
@@ -1299,7 +1302,8 @@ static ModifierData *modifier_replace_with_fluid(BlendDataReader *reader,
     }
   }
   else if (old_modifier_data->type == eModifierType_Smoke) {
-    SmokeModifierData *old_smoke_modifier_data = (SmokeModifierData *)old_modifier_data;
+    SmokeModifierData *old_smoke_modifier_data = reinterpret_cast<SmokeModifierData *>(
+        old_modifier_data);
     modifier_ensure_type(fluid_modifier_data, old_smoke_modifier_data->type);
     if (fluid_modifier_data->type == MOD_FLUID_TYPE_DOMAIN) {
       BKE_fluid_domain_type_set(object, fluid_modifier_data->domain, FLUID_DOMAIN_TYPE_GAS);
@@ -1385,7 +1389,7 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBaseT<ModifierDat
       /* All the fields has been properly allocated. */
     }
     else if (md->type == eModifierType_Cloth) {
-      ClothModifierData *clmd = (ClothModifierData *)md;
+      ClothModifierData *clmd = reinterpret_cast<ClothModifierData *>(md);
 
       clmd->clothObject = nullptr;
       clmd->hairdata = nullptr;
@@ -1413,7 +1417,7 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBaseT<ModifierDat
     }
     else if (md->type == eModifierType_Fluid) {
 
-      FluidModifierData *fmd = (FluidModifierData *)md;
+      FluidModifierData *fmd = reinterpret_cast<FluidModifierData *>(md);
 
       if (fmd->type == MOD_FLUID_TYPE_DOMAIN) {
         fmd->flow = nullptr;
@@ -1498,7 +1502,7 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBaseT<ModifierDat
       }
     }
     else if (md->type == eModifierType_DynamicPaint) {
-      DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+      DynamicPaintModifierData *pmd = reinterpret_cast<DynamicPaintModifierData *>(md);
 
       if (pmd->canvas) {
         BLO_read_struct(reader, DynamicPaintCanvasSettings, &pmd->canvas);

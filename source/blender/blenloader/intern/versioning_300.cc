@@ -261,15 +261,18 @@ static void version_idproperty_ui_data(IDProperty *idprop_group)
     /* Type specific data. */
     switch (IDP_ui_data_type(&prop)) {
       case IDP_UI_DATA_TYPE_STRING:
-        version_idproperty_move_data_string((IDPropertyUIDataString *)ui_data, prop_ui_data);
+        version_idproperty_move_data_string(reinterpret_cast<IDPropertyUIDataString *>(ui_data),
+                                            prop_ui_data);
         break;
       case IDP_UI_DATA_TYPE_ID:
         break;
       case IDP_UI_DATA_TYPE_INT:
-        version_idproperty_move_data_int((IDPropertyUIDataInt *)ui_data, prop_ui_data);
+        version_idproperty_move_data_int(reinterpret_cast<IDPropertyUIDataInt *>(ui_data),
+                                         prop_ui_data);
         break;
       case IDP_UI_DATA_TYPE_FLOAT:
-        version_idproperty_move_data_float((IDPropertyUIDataFloat *)ui_data, prop_ui_data);
+        version_idproperty_move_data_float(reinterpret_cast<IDPropertyUIDataFloat *>(ui_data),
+                                           prop_ui_data);
         break;
       case IDP_UI_DATA_TYPE_BOOLEAN:
       case IDP_UI_DATA_TYPE_UNSUPPORTED:
@@ -345,7 +348,7 @@ static void do_versions_idproperty_ui_data(Main *bmain)
      * group, but the copying only runs when necessary, so we still need to version data here. */
     for (ModifierData &md : ob.modifiers) {
       if (md.type == eModifierType_Nodes) {
-        NodesModifierData *nmd = (NodesModifierData *)&md;
+        NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(&md);
         version_idproperty_ui_data(nmd->settings.properties);
       }
     }
@@ -432,7 +435,7 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene,
 
   for (Strip &strip : *seqbase) {
     if (strip.type == STRIP_TYPE_SPEED) {
-      SpeedControlVars *v = (SpeedControlVars *)strip.effectdata;
+      SpeedControlVars *v = static_cast<SpeedControlVars *>(strip.effectdata);
       const char *substr = nullptr;
       float globalSpeed_legacy = v->globalSpeed_legacy;
       if (strip.flag & SEQ_USE_EFFECT_DEFAULT_FADE) {
@@ -504,7 +507,7 @@ static bool do_versions_sequencer_color_balance_sop(Strip *strip, void * /*user_
 {
   for (StripModifierData &smd : strip->modifiers) {
     if (smd.type == eSeqModifierType_ColorBalance) {
-      StripColorBalance *cb = &((ColorBalanceModifierData *)&smd)->color_balance;
+      StripColorBalance *cb = &(reinterpret_cast<ColorBalanceModifierData *>(&smd))->color_balance;
       cb->method = SEQ_COLOR_BALANCE_METHOD_LIFTGAMMAGAIN;
       for (int i = 0; i < 3; i++) {
         copy_v3_fl(cb->slope, 1.0f);
@@ -543,7 +546,7 @@ static void version_geometry_nodes_add_realize_instance_nodes(bNodeTree *ntree)
     }
     /* Also realize instances for the profile input of the curve to mesh node. */
     if (node.type_legacy == GEO_NODE_CURVE_TO_MESH) {
-      bNodeSocket *profile_socket = (bNodeSocket *)BLI_findlink(&node.inputs, 1);
+      bNodeSocket *profile_socket = static_cast<bNodeSocket *>(BLI_findlink(&node.inputs, 1));
       add_realize_instances_before_socket(ntree, &node, profile_socket);
     }
   }
@@ -650,7 +653,7 @@ static void strip_speed_factor_fix_rna_path(Strip *strip, ListBaseT<FCurve> *fcu
 
 static bool version_fix_seq_meta_range(Strip *strip, void *user_data)
 {
-  Scene *scene = (Scene *)user_data;
+  Scene *scene = static_cast<Scene *>(user_data);
   if (strip->type == STRIP_TYPE_META) {
     blender::seq::time_update_meta_strip_range(scene, strip);
   }
@@ -693,8 +696,8 @@ static void version_geometry_nodes_replace_transfer_attribute_node(bNodeTree *nt
       continue;
     }
     bNodeSocket *old_geometry_socket = blender::bke::node_find_socket(node, SOCK_IN, "Source");
-    const NodeGeometryTransferAttribute *storage = (const NodeGeometryTransferAttribute *)
-                                                       node.storage;
+    const NodeGeometryTransferAttribute *storage =
+        static_cast<const NodeGeometryTransferAttribute *>(node.storage);
     switch (storage->mode) {
       case GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST_FACE_INTERPOLATED: {
         bNode *sample_nearest_surface = blender::bke::node_add_static_node(
@@ -1171,7 +1174,7 @@ void do_versions_after_linking_300(FileData * /*fd*/, Main *bmain)
           if (STREQ(link.tosock->identifier, "Switch")) {
             bNode *to_node = link.tonode;
 
-            uint8_t mode = ((NodeSwitch *)to_node->storage)->input_type;
+            uint8_t mode = (static_cast<NodeSwitch *>(to_node->storage))->input_type;
             if (ELEM(mode,
                      SOCK_GEOMETRY,
                      SOCK_OBJECT,
@@ -1214,12 +1217,13 @@ void do_versions_after_linking_300(FileData * /*fd*/, Main *bmain)
         if (md.next->type == eModifierType_Nodes) {
           continue;
         }
-        NodesModifierData *nmd = (NodesModifierData *)&md;
+        NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(&md);
         if (nmd->node_group == nullptr) {
           continue;
         }
 
-        NodesModifierData *new_nmd = (NodesModifierData *)BKE_modifier_new(eModifierType_Nodes);
+        NodesModifierData *new_nmd = reinterpret_cast<NodesModifierData *>(
+            BKE_modifier_new(eModifierType_Nodes));
         STRNCPY_UTF8(new_nmd->modifier.name, "Realize Instances 2.93 Legacy");
         BKE_modifier_unique_name(&ob.modifiers, &new_nmd->modifier);
         BLI_insertlinkafter(&ob.modifiers, &md, new_nmd);
@@ -1287,7 +1291,7 @@ void do_versions_after_linking_300(FileData * /*fd*/, Main *bmain)
           if (sl.spacetype != SPACE_SEQ) {
             continue;
           }
-          SpaceSeq *sseq = (SpaceSeq *)&sl;
+          SpaceSeq *sseq = reinterpret_cast<SpaceSeq *>(&sl);
           ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first) ? &area.regionbase :
                                                                            &sl.regionbase;
           sseq->flag |= SEQ_CLAMP_VIEW;
@@ -1331,7 +1335,7 @@ void do_versions_after_linking_300(FileData * /*fd*/, Main *bmain)
           }
 
           /* Skip the timeline, it shouldn't get its Properties panel opened. */
-          SpaceAction *saction = (SpaceAction *)&sl;
+          SpaceAction *saction = reinterpret_cast<SpaceAction *>(&sl);
           if (saction->mode == SACTCONT_TIMELINE) {
             continue;
           }
@@ -1472,7 +1476,7 @@ static void do_version_constraints_spline_ik_joint_bindings(ListBaseT<bConstrain
   /* Binding array data could be freed without properly resetting its size data. */
   for (bConstraint &con : *lb) {
     if (con.type == CONSTRAINT_TYPE_SPLINEIK) {
-      bSplineIKConstraint *data = (bSplineIKConstraint *)con.data;
+      bSplineIKConstraint *data = static_cast<bSplineIKConstraint *>(con.data);
       if (data->points == nullptr) {
         data->numpoints = 0;
       }
@@ -1484,7 +1488,8 @@ static bNodeSocket *do_version_replace_float_size_with_vector(bNodeTree *ntree,
                                                               bNode *node,
                                                               bNodeSocket *socket)
 {
-  const bNodeSocketValueFloat *socket_value = (const bNodeSocketValueFloat *)socket->default_value;
+  const bNodeSocketValueFloat *socket_value = static_cast<const bNodeSocketValueFloat *>(
+      socket->default_value);
   const float old_value = socket_value->value;
   blender::bke::node_remove_socket(*ntree, *node, *socket);
   bNodeSocket *new_socket = blender::bke::node_add_socket(
@@ -1494,7 +1499,8 @@ static bNodeSocket *do_version_replace_float_size_with_vector(bNodeTree *ntree,
       *blender::bke::node_static_socket_type(SOCK_VECTOR, PROP_TRANSLATION),
       "Size",
       "Size");
-  bNodeSocketValueVector *value_vector = (bNodeSocketValueVector *)new_socket->default_value;
+  bNodeSocketValueVector *value_vector = static_cast<bNodeSocketValueVector *>(
+      new_socket->default_value);
   copy_v3_fl(value_vector->value, old_value);
   return new_socket;
 }
@@ -1716,7 +1722,7 @@ static void version_geometry_nodes_set_position_node_offset(bNodeTree *ntree)
     /* This assumes that the offset is not linked to something else. That seems to be a reasonable
      * assumption, because the node is probably only ever used in one or the other mode. */
     const bool offset_enabled =
-        ((bNodeSocketValueBoolean *)old_offset_socket->default_value)->value;
+        (static_cast<bNodeSocketValueBoolean *>(old_offset_socket->default_value))->value;
     if (offset_enabled) {
       /* Relink to new offset socket. */
       link.tosock = old_offset_socket->next;
@@ -2136,7 +2142,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       for (Object &ob : bmain->objects) {
         for (ModifierData &md : ob.modifiers) {
           if (md.type == eModifierType_Mirror) {
-            MirrorModifierData *mmd = (MirrorModifierData *)&md;
+            MirrorModifierData *mmd = reinterpret_cast<MirrorModifierData *>(&md);
             /* This was the previous hard-coded value. */
             mmd->bisect_threshold = 0.001f;
           }
@@ -2192,7 +2198,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       for (ScrArea &area : screen.areabase) {
         for (SpaceLink &sl : area.spacedata) {
           if (sl.spacetype == SPACE_SPREADSHEET) {
-            SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)&sl;
+            SpaceSpreadsheet *sspreadsheet = reinterpret_cast<SpaceSpreadsheet *>(&sl);
             sspreadsheet->filter_flag |= SPREADSHEET_FILTER_ENABLE;
           }
         }
@@ -2212,7 +2218,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         for (ScrArea &area : screen.areabase) {
           for (SpaceLink &sl : area.spacedata) {
             if (sl.spacetype == SPACE_FILE) {
-              SpaceFile *sfile = (SpaceFile *)&sl;
+              SpaceFile *sfile = reinterpret_cast<SpaceFile *>(&sl);
               if (sfile->asset_params) {
                 sfile->asset_params->import_method = FILE_ASSET_IMPORT_APPEND;
               }
@@ -2280,7 +2286,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         for (SpaceLink &space : area.spacedata) {
           /* Disable View Layers filter. */
           if (space.spacetype == SPACE_OUTLINER) {
-            SpaceOutliner *space_outliner = (SpaceOutliner *)&space;
+            SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(&space);
             space_outliner->filter |= SO_FILTER_NO_VIEW_LAYERS;
           }
         }
@@ -2377,7 +2383,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       for (Object &ob : bmain->objects) {
         for (ModifierData &md : ob.modifiers) {
           if (md.type == eModifierType_SurfaceDeform) {
-            SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)&md;
+            SurfaceDeformModifierData *smd = reinterpret_cast<SurfaceDeformModifierData *>(&md);
             if (smd->bind_verts_num && smd->verts) {
               smd->mesh_verts_num = smd->bind_verts_num;
 
@@ -2390,7 +2396,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         if (ob.type == OB_GPENCIL_LEGACY) {
           for (GpencilModifierData &md : ob.greasepencil_modifiers) {
             if (md.type == eGpencilModifierType_Lineart) {
-              LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)&md;
+              LineartGpencilModifierData *lmd = reinterpret_cast<LineartGpencilModifierData *>(
+                  &md);
               lmd->flags |= MOD_LINEART_USE_CACHE;
               lmd->chain_smooth_tolerance = 0.2f;
             }
@@ -2414,7 +2421,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         for (ScrArea &area : screen.areabase) {
           for (SpaceLink &space : area.spacedata) {
             if (space.spacetype == SPACE_FILE) {
-              SpaceFile *sfile = (SpaceFile *)&space;
+              SpaceFile *sfile = reinterpret_cast<SpaceFile *>(&space);
               if (sfile->browse_mode != FILE_BROWSE_MODE_ASSETS) {
                 continue;
               }
@@ -2444,7 +2451,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       for (ScrArea &area : screen.areabase) {
         for (SpaceLink &sl : area.spacedata) {
           if (sl.spacetype == SPACE_SEQ) {
-            SpaceSeq *sseq = (SpaceSeq *)&sl;
+            SpaceSeq *sseq = reinterpret_cast<SpaceSeq *>(&sl);
             sseq->flag |= SEQ_TIMELINE_SHOW_GRID;
           }
         }
@@ -2466,7 +2473,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         for (ScrArea &area : screen.areabase) {
           for (SpaceLink &sl : area.spacedata) {
             if (sl.spacetype == SPACE_VIEW3D) {
-              View3D *v3d = (View3D *)&sl;
+              View3D *v3d = reinterpret_cast<View3D *>(&sl);
               v3d->overlay.normals_constant_screen_size = 7.0f;
             }
           }
@@ -2544,7 +2551,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
               continue;
             }
 
-            SpaceFile *sfile = (SpaceFile *)&space;
+            SpaceFile *sfile = reinterpret_cast<SpaceFile *>(&space);
             if (sfile->browse_mode != FILE_BROWSE_MODE_ASSETS) {
               continue;
             }
@@ -2571,7 +2578,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       for (ScrArea &area : screen.areabase) {
         for (SpaceLink &sl : area.spacedata) {
           if (sl.spacetype == SPACE_VIEW3D) {
-            View3D *v3d = (View3D *)&sl;
+            View3D *v3d = reinterpret_cast<View3D *>(&sl);
             v3d->overlay.flag &= ~V3D_OVERLAY_FADE_INACTIVE;
           }
         }
@@ -2629,7 +2636,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         if (ob.type == OB_GPENCIL_LEGACY) {
           for (GpencilModifierData &md : ob.greasepencil_modifiers) {
             if (md.type == eGpencilModifierType_Lineart) {
-              LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)&md;
+              LineartGpencilModifierData *lmd = reinterpret_cast<LineartGpencilModifierData *>(
+                  &md);
               lmd->calculation_flags |= MOD_LINEART_USE_CREASE_ON_SMOOTH_SURFACES;
             }
           }
@@ -2643,7 +2651,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       for (ScrArea &area : screen.areabase) {
         for (SpaceLink &sl : area.spacedata) {
           if (sl.spacetype == SPACE_FILE) {
-            SpaceFile *sfile = (SpaceFile *)&sl;
+            SpaceFile *sfile = reinterpret_cast<SpaceFile *>(&sl);
             if (sfile->asset_params) {
               sfile->asset_params->base_params.recursion_level = FILE_SELECT_MAX_RECURSIONS;
             }
@@ -2656,7 +2664,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       for (ScrArea &area : screen.areabase) {
         for (SpaceLink &sl : area.spacedata) {
           if (sl.spacetype == SPACE_SEQ) {
-            SpaceSeq *sseq = (SpaceSeq *)&sl;
+            SpaceSeq *sseq = reinterpret_cast<SpaceSeq *>(&sl);
             int seq_show_safe_margins = (sseq->flag & SEQ_PREVIEW_SHOW_SAFE_MARGINS);
             int seq_show_gpencil = (sseq->flag & SEQ_PREVIEW_SHOW_GPENCIL);
             int seq_show_fcurves = (sseq->flag & SEQ_TIMELINE_SHOW_FCURVES);
@@ -2691,7 +2699,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       for (ScrArea &area : screen.areabase) {
         for (SpaceLink &sl : area.spacedata) {
           if (sl.spacetype == SPACE_SEQ) {
-            SpaceSeq *sseq = (SpaceSeq *)&sl;
+            SpaceSeq *sseq = reinterpret_cast<SpaceSeq *>(&sl);
             sseq->preview_overlay.flag |= SEQ_PREVIEW_SHOW_OUTLINE_SELECTED;
           }
         }
@@ -2756,7 +2764,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     for (Object &ob : bmain->objects) {
       for (ModifierData &md : ob.modifiers) {
         if (md.type == eModifierType_Nodes) {
-          version_geometry_nodes_add_attribute_input_settings((NodesModifierData *)&md);
+          version_geometry_nodes_add_attribute_input_settings(
+              reinterpret_cast<NodesModifierData *>(&md));
         }
       }
     }
@@ -2766,7 +2775,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         for (SpaceLink &sl : area.spacedata) {
           switch (sl.spacetype) {
             case SPACE_FILE: {
-              SpaceFile *sfile = (SpaceFile *)&sl;
+              SpaceFile *sfile = reinterpret_cast<SpaceFile *>(&sl);
               if (sfile->params) {
                 sfile->params->flag &= ~(FILE_PARAMS_FLAG_UNUSED_1 | FILE_PARAMS_FLAG_UNUSED_2 |
                                          FILE_PARAMS_FLAG_UNUSED_3 | FILE_PATH_TOKENS_ALLOW);
@@ -2845,7 +2854,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       for (ScrArea &area : screen.areabase) {
         for (SpaceLink &sl : area.spacedata) {
           if (sl.spacetype == SPACE_SEQ) {
-            SpaceSeq *sseq = (SpaceSeq *)&sl;
+            SpaceSeq *sseq = reinterpret_cast<SpaceSeq *>(&sl);
             sseq->timeline_overlay.flag |= SEQ_TIMELINE_SHOW_STRIP_COLOR_TAG;
           }
         }
@@ -2867,7 +2876,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         for (SpaceLink &sl : area.spacedata) {
           switch (sl.spacetype) {
             case SPACE_SEQ: {
-              SpaceSeq *sseq = (SpaceSeq *)&sl;
+              SpaceSeq *sseq = reinterpret_cast<SpaceSeq *>(&sl);
               enum { SEQ_DRAW_SEQUENCE = 0 };
               if (sseq->mainb == SEQ_DRAW_SEQUENCE) {
                 sseq->mainb = SEQ_DRAW_IMG_IMBUF;
@@ -2875,7 +2884,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
               break;
             }
             case SPACE_TEXT: {
-              SpaceText *st = (SpaceText *)&sl;
+              SpaceText *st = reinterpret_cast<SpaceText *>(&sl);
               st->flags &= ~ST_FLAG_UNUSED_4;
               break;
             }
@@ -2920,7 +2929,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         for (ScrArea &area : screen.areabase) {
           for (SpaceLink &space : area.spacedata) {
             if (space.spacetype == SPACE_NODE) {
-              SpaceNode *snode = (SpaceNode *)&space;
+              SpaceNode *snode = reinterpret_cast<SpaceNode *>(&space);
               snode->overlay.flag |= SN_OVERLAY_SHOW_OVERLAYS;
               snode->overlay.flag |= SN_OVERLAY_SHOW_WIRE_COLORS;
             }
@@ -2935,7 +2944,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       for (ScrArea &area : screen.areabase) {
         for (SpaceLink &space : area.spacedata) {
           if (space.spacetype == SPACE_FILE) {
-            SpaceFile *sfile = (SpaceFile *)&space;
+            SpaceFile *sfile = reinterpret_cast<SpaceFile *>(&space);
             FileAssetSelectParams *asset_params = sfile->asset_params;
             if (asset_params) {
               asset_params->base_params.filter_id = FILTER_ID_ALL;
@@ -3074,7 +3083,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       if (ID_IS_OVERRIDE_LIBRARY_REAL(id_iter)) {
         version_liboverride_rnacollections_insertion_animdata(id_iter);
         if (GS(id_iter->name) == ID_OB) {
-          version_liboverride_rnacollections_insertion_object((Object *)id_iter);
+          version_liboverride_rnacollections_insertion_object(blender::id_cast<Object *>(id_iter));
         }
       }
     }
@@ -3111,7 +3120,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       for (ScrArea &area : screen.areabase) {
         for (SpaceLink &space : area.spacedata) {
           if (space.spacetype == SPACE_NODE) {
-            SpaceNode *snode = (SpaceNode *)&space;
+            SpaceNode *snode = reinterpret_cast<SpaceNode *>(&space);
             snode->overlay.flag |= SN_OVERLAY_SHOW_PATH;
           }
         }
@@ -3174,7 +3183,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         for (ScrArea &area : screen.areabase) {
           for (SpaceLink &sl : area.spacedata) {
             if (sl.spacetype == SPACE_VIEW3D) {
-              View3D *v3d = (View3D *)&sl;
+              View3D *v3d = reinterpret_cast<View3D *>(&sl);
               v3d->overlay.bone_wire_alpha = 1.0f;
             }
           }
@@ -3204,7 +3213,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     for (Object &ob : bmain->objects) {
       for (ModifierData &md : ob.modifiers) {
         if (md.type == eModifierType_WeightVGProximity) {
-          WeightVGProximityModifierData *wpmd = (WeightVGProximityModifierData *)&md;
+          WeightVGProximityModifierData *wpmd = reinterpret_cast<WeightVGProximityModifierData *>(
+              &md);
           if (wpmd->proximity_flags & MOD_WVG_PROXIMITY_INVERT_VGROUP_MASK) {
             wpmd->proximity_flags |= MOD_WVG_PROXIMITY_WEIGHTS_NORMALIZE;
           }
@@ -3275,7 +3285,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     for (Object &ob : bmain->objects) {
       for (GpencilModifierData &md : ob.greasepencil_modifiers) {
         if (md.type == eGpencilModifierType_Smooth) {
-          SmoothGpencilModifierData *gpmd = (SmoothGpencilModifierData *)&md;
+          SmoothGpencilModifierData *gpmd = reinterpret_cast<SmoothGpencilModifierData *>(&md);
           if (gpmd->step == 1 && gpmd->factor <= 0.5f) {
             gpmd->factor *= 2.0f;
           }
@@ -3376,7 +3386,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       for (ScrArea &area : screen.areabase) {
         for (SpaceLink &sl : area.spacedata) {
           if (sl.spacetype == SPACE_OUTLINER) {
-            SpaceOutliner *space_outliner = (SpaceOutliner *)&sl;
+            SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(&sl);
             space_outliner->filter &= ~SO_FILTER_CLEARED_1;
           }
         }
@@ -3436,7 +3446,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
           if (sl.spacetype != SPACE_FILE) {
             continue;
           }
-          SpaceFile *sfile = (SpaceFile *)&sl;
+          SpaceFile *sfile = reinterpret_cast<SpaceFile *>(&sl);
           if (sfile->browse_mode != FILE_BROWSE_MODE_ASSETS) {
             continue;
           }
@@ -3496,7 +3506,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     for (Object &ob : bmain->objects) {
       for (ModifierData &md : ob.modifiers) {
         if (md.type == eModifierType_DataTransfer) {
-          DataTransferModifierData *dtmd = (DataTransferModifierData *)&md;
+          DataTransferModifierData *dtmd = reinterpret_cast<DataTransferModifierData *>(&md);
 
           for (int i = 0; i < DT_MULTILAYER_INDEX_MAX; i++) {
             if (dtmd->layers_select_src[i] == 0) {
@@ -3518,7 +3528,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       for (ScrArea &area : screen.areabase) {
         for (SpaceLink &space : area.spacedata) {
           if (space.spacetype == SPACE_IMAGE) {
-            SpaceImage *sima = (SpaceImage *)&space;
+            SpaceImage *sima = reinterpret_cast<SpaceImage *>(&space);
             sima->overlay.flag |= SI_OVERLAY_SHOW_GRID_BACKGROUND;
           }
         }
@@ -3556,7 +3566,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       for (ScrArea &area : screen.areabase) {
         for (SpaceLink &space : area.spacedata) {
           if (space.spacetype == SPACE_NODE) {
-            SpaceNode *snode = (SpaceNode *)&space;
+            SpaceNode *snode = reinterpret_cast<SpaceNode *>(&space);
             snode->overlay.flag |= SN_OVERLAY_SHOW_NAMED_ATTRIBUTES;
           }
         }
@@ -3624,7 +3634,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       if (ntree->type == NTREE_GEOMETRY) {
         for (bNode &node : ntree->nodes) {
           if (node.type_legacy == GEO_NODE_CURVE_SPLINE_TYPE) {
-            NodeGeometryCurveSplineType *storage = (NodeGeometryCurveSplineType *)node.storage;
+            NodeGeometryCurveSplineType *storage = static_cast<NodeGeometryCurveSplineType *>(
+                node.storage);
             switch (storage->spline_type) {
               case 0: /* GEO_NODE_SPLINE_TYPE_BEZIER */
                 storage->spline_type = CURVE_TYPE_BEZIER;
@@ -3645,7 +3656,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     for (Object &ob : bmain->objects) {
       for (GpencilModifierData &gpd : ob.greasepencil_modifiers) {
         if (gpd.type == eGpencilModifierType_Lineart) {
-          LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)&gpd;
+          LineartGpencilModifierData *lmd = reinterpret_cast<LineartGpencilModifierData *>(&gpd);
           lmd->shadow_camera_near = 0.1f;
           lmd->shadow_camera_far = 200.0f;
           lmd->shadow_camera_size = 200.0f;
@@ -3659,7 +3670,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       for (ScrArea &area : screen.areabase) {
         for (SpaceLink &sl : area.spacedata) {
           if (sl.spacetype == SPACE_CLIP) {
-            ((SpaceClip *)&sl)->mask_info.blend_factor = 1.0;
+            (reinterpret_cast<SpaceClip *>(&sl))->mask_info.blend_factor = 1.0;
           }
         }
       }
@@ -3671,10 +3682,10 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       for (ScrArea &area : screen.areabase) {
         for (SpaceLink &sl : area.spacedata) {
           if (sl.spacetype == SPACE_CLIP) {
-            ((SpaceClip *)&sl)->mask_info.draw_flag |= MASK_DRAWFLAG_SPLINE;
+            (reinterpret_cast<SpaceClip *>(&sl))->mask_info.draw_flag |= MASK_DRAWFLAG_SPLINE;
           }
           else if (sl.spacetype == SPACE_IMAGE) {
-            ((SpaceImage *)&sl)->mask_info.draw_flag |= MASK_DRAWFLAG_SPLINE;
+            (reinterpret_cast<SpaceImage *>(&sl))->mask_info.draw_flag |= MASK_DRAWFLAG_SPLINE;
           }
         }
       }
@@ -3699,13 +3710,15 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
           if (node.type_legacy == CMP_NODE_OUTPUT_FILE) {
             for (bNodeSocket &sock : node.inputs) {
               if (sock.storage) {
-                NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock.storage;
+                NodeImageMultiFileSocket *sockdata = static_cast<NodeImageMultiFileSocket *>(
+                    sock.storage);
                 version_fix_image_format_copy(bmain, &sockdata->format);
               }
             }
 
             if (node.storage) {
-              NodeCompositorFileOutput *nimf = (NodeCompositorFileOutput *)node.storage;
+              NodeCompositorFileOutput *nimf = static_cast<NodeCompositorFileOutput *>(
+                  node.storage);
               version_fix_image_format_copy(bmain, &nimf->format);
             }
           }
@@ -3784,7 +3797,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
     /* Face sets no longer store whether the corresponding face is hidden. */
     for (Mesh &mesh : bmain->meshes) {
-      int *face_sets = (int *)CustomData_get_layer(&mesh.face_data, CD_SCULPT_FACE_SETS);
+      int *face_sets = static_cast<int *>(
+          const_cast<void *>(CustomData_get_layer(&mesh.face_data, CD_SCULPT_FACE_SETS)));
       if (face_sets) {
         for (int i = 0; i < mesh.faces_num; i++) {
           face_sets[i] = abs(face_sets[i]);
@@ -3798,7 +3812,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         for (SpaceLink &sl : area.spacedata) {
           switch (sl.spacetype) {
             case SPACE_IMAGE: {
-              SpaceImage *sima = (SpaceImage *)&sl;
+              SpaceImage *sima = reinterpret_cast<SpaceImage *>(&sl);
               sima->custom_grid_subdiv[0] = 10;
               sima->custom_grid_subdiv[1] = 10;
               break;
@@ -3821,13 +3835,13 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       for (ScrArea &area : screen.areabase) {
         for (SpaceLink &sl : area.spacedata) {
           if (sl.spacetype == SPACE_VIEW3D) {
-            View3D *v3d = (View3D *)&sl;
+            View3D *v3d = reinterpret_cast<View3D *>(&sl);
             v3d->flag2 |= V3D_SHOW_VIEWER;
             v3d->overlay.flag |= V3D_OVERLAY_VIEWER_ATTRIBUTE;
             v3d->overlay.viewer_attribute_opacity = 1.0f;
           }
           if (sl.spacetype == SPACE_IMAGE) {
-            SpaceImage *sima = (SpaceImage *)&sl;
+            SpaceImage *sima = reinterpret_cast<SpaceImage *>(&sl);
             if (sima->flag & SI_FLAG_UNUSED_18) { /* Was #SI_CUSTOM_GRID. */
               sima->grid_shape_source = SI_GRID_SHAPE_FIXED;
               sima->flag &= ~SI_FLAG_UNUSED_18;
@@ -3936,7 +3950,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       for (ScrArea &area : screen.areabase) {
         for (SpaceLink &sl : area.spacedata) {
           if (sl.spacetype == SPACE_VIEW3D) {
-            View3D *v3d = (View3D *)&sl;
+            View3D *v3d = reinterpret_cast<View3D *>(&sl);
             v3d->overlay.flag |= int(V3D_OVERLAY_SCULPT_SHOW_MASK |
                                      V3D_OVERLAY_SCULPT_SHOW_FACE_SETS);
           }
@@ -3959,7 +3973,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       for (Object &ob : bmain->objects) {
         for (GpencilModifierData &md : ob.greasepencil_modifiers) {
           if (md.type == eGpencilModifierType_Build) {
-            BuildGpencilModifierData *mmd = (BuildGpencilModifierData *)&md;
+            BuildGpencilModifierData *mmd = reinterpret_cast<BuildGpencilModifierData *>(&md);
             mmd->speed_fac = 1.2f;
             mmd->speed_maxgap = 0.5f;
           }
@@ -3984,7 +3998,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       bool after_armature = false;
       for (ModifierData &md : ob.modifiers) {
         if (md.type == eModifierType_Armature) {
-          ArmatureModifierData *amd = (ArmatureModifierData *)&md;
+          ArmatureModifierData *amd = reinterpret_cast<ArmatureModifierData *>(&md);
           if (amd->multi) {
             /* Toggle the invert vertex group flag on operational Multi Modifier entries. */
             if (after_armature && amd->defgrp_name[0]) {
@@ -4058,7 +4072,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       for (ScrArea &area : screen.areabase) {
         for (SpaceLink &sl : area.spacedata) {
           if (sl.spacetype == SPACE_VIEW3D) {
-            View3D *v3d = (View3D *)&sl;
+            View3D *v3d = reinterpret_cast<View3D *>(&sl);
             v3d->overlay.flag |= V3D_OVERLAY_SCULPT_CURVES_CAGE;
             v3d->overlay.sculpt_curves_cage_opacity = 0.5f;
           }
@@ -4083,7 +4097,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         for (ScrArea &area : screen.areabase) {
           for (SpaceLink &sl : area.spacedata) {
             if (sl.spacetype == SPACE_VIEW3D) {
-              View3D *v3d = (View3D *)&sl;
+              View3D *v3d = reinterpret_cast<View3D *>(&sl);
               v3d->overlay.retopology_offset = 0.2f;
             }
           }
@@ -4215,7 +4229,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       if (pose->iksolver != IKSOLVER_ITASC || pose->ikparam == nullptr) {
         continue;
       }
-      bItasc *ikparam = (bItasc *)pose->ikparam;
+      bItasc *ikparam = static_cast<bItasc *>(pose->ikparam);
       ikparam->flag |= ITASC_TRANSLATE_ROOT_BONES;
     }
   }

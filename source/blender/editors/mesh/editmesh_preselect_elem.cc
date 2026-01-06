@@ -378,13 +378,16 @@ void EDBM_preselect_elem_update_from_single(EditMesh_PreSelElem *psel,
 
   switch (ele->head.htype) {
     case BM_VERT:
-      view3d_preselect_mesh_elem_update_from_vert(psel, bm, (BMVert *)ele, vert_positions);
+      view3d_preselect_mesh_elem_update_from_vert(
+          psel, bm, reinterpret_cast<BMVert *>(ele), vert_positions);
       break;
     case BM_EDGE:
-      view3d_preselect_mesh_elem_update_from_edge(psel, bm, (BMEdge *)ele, vert_positions);
+      view3d_preselect_mesh_elem_update_from_edge(
+          psel, bm, reinterpret_cast<BMEdge *>(ele), vert_positions);
       break;
     case BM_FACE:
-      view3d_preselect_mesh_elem_update_from_face(psel, bm, (BMFace *)ele, vert_positions);
+      view3d_preselect_mesh_elem_update_from_face(
+          psel, bm, reinterpret_cast<BMFace *>(ele), vert_positions);
       break;
     default:
       BLI_assert(0);
@@ -399,14 +402,17 @@ void EDBM_preselect_elem_update_preview(
   switch (ele->head.htype) {
     case BM_VERT:
       if (EDBM_preselect_action_get(psel) == PRESELECT_ACTION_CREATE) {
-        view3d_preselect_update_preview_triangle_from_vert(psel, vc, bm, (BMVert *)ele, mval);
+        view3d_preselect_update_preview_triangle_from_vert(
+            psel, vc, bm, reinterpret_cast<BMVert *>(ele), mval);
       }
       break;
     case BM_EDGE:
-      view3d_preselect_update_preview_triangle_from_edge(psel, vc, bm, (BMEdge *)ele, mval);
+      view3d_preselect_update_preview_triangle_from_edge(
+          psel, vc, bm, reinterpret_cast<BMEdge *>(ele), mval);
       break;
     case BM_FACE:
-      view3d_preselect_update_preview_triangle_from_face(psel, vc, bm, (BMFace *)ele, mval);
+      view3d_preselect_update_preview_triangle_from_face(
+          psel, vc, bm, reinterpret_cast<BMFace *>(ele), mval);
       break;
     default:
       BLI_assert(0);

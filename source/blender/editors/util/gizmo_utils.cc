@@ -45,7 +45,7 @@ bool ED_gizmo_poll_or_unlink_delayed_from_tool_ex(const bContext *C,
                                                   wmGizmoGroupType *gzgt,
                                                   const char *gzgt_idname)
 {
-  bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
+  bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context(const_cast<bContext *>(C));
   if ((tref_rt == nullptr) || !STREQ(gzgt_idname, tref_rt->gizmo_group)) {
     ScrArea *area = CTX_wm_area(C);
     wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(&gzgt->gzmap_params);

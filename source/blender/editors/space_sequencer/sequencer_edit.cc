@@ -3667,7 +3667,7 @@ struct Seq_get_text_cb_data {
 
 static bool strip_get_text_strip_cb(Strip *strip, void *user_data)
 {
-  Seq_get_text_cb_data *cd = (Seq_get_text_cb_data *)user_data;
+  Seq_get_text_cb_data *cd = static_cast<Seq_get_text_cb_data *>(user_data);
   Editing *ed = seq::editing_get(cd->scene);
   ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
   /* Only text strips that are not muted and don't end with negative frame. */

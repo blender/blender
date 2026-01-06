@@ -179,11 +179,12 @@ static bool menu_items_from_ui_create_item_from_button(MenuSearch_Data *data,
       if (prop_type == PROP_ENUM) {
         const int value_enum = int(but->hardmax);
         EnumPropertyItem enum_item;
-        if (RNA_property_enum_item_from_value_gettexted((bContext *)but->block->evil_C,
-                                                        &but->rnapoin,
-                                                        but->rnaprop,
-                                                        value_enum,
-                                                        &enum_item))
+        if (RNA_property_enum_item_from_value_gettexted(
+                static_cast<bContext *>(but->block->evil_C),
+                &but->rnapoin,
+                but->rnaprop,
+                value_enum,
+                &enum_item))
         {
           drawstr_override = enum_item.name;
         }
@@ -329,7 +330,7 @@ static void menu_types_add_from_keymap_items(bContext *C,
       if (handler_base.poll == nullptr ||
           handler_base.poll(win, area, region, win->runtime->eventstate))
       {
-        wmEventHandler_Keymap *handler = (wmEventHandler_Keymap *)&handler_base;
+        wmEventHandler_Keymap *handler = reinterpret_cast<wmEventHandler_Keymap *>(&handler_base);
         wmEventHandler_KeymapResult km_result;
         WM_event_get_keymaps_from_handler(wm, win, handler, &km_result);
         for (int km_index = 0; km_index < km_result.keymaps_len; km_index++) {
@@ -619,8 +620,8 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
     break
 
       if (area != nullptr) {
-        SpaceLink *sl = (SpaceLink *)area->spacedata.first;
-        switch ((eSpace_Type)area->spacetype) {
+        SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
+        switch (eSpace_Type(area->spacetype)) {
           SPACE_MENU_MAP(SPACE_VIEW3D, "VIEW3D_MT_editor_menus");
           SPACE_MENU_MAP(SPACE_GRAPH, "GRAPH_MT_editor_menus");
           SPACE_MENU_MAP(SPACE_OUTLINER, "OUTLINER_MT_editor_menus");
@@ -943,7 +944,7 @@ static void menu_search_arg_free_fn(void *data_v)
 
 static void menu_search_exec_fn(bContext *C, void * /*arg1*/, void *arg2)
 {
-  MenuSearch_Item *item = (MenuSearch_Item *)arg2;
+  MenuSearch_Item *item = static_cast<MenuSearch_Item *>(arg2);
   if (item == nullptr) {
     return;
   }
@@ -1006,7 +1007,7 @@ static void menu_search_update_fn(const bContext * /*C*/,
                                   SearchItems *items,
                                   const bool /*is_first*/)
 {
-  MenuSearch_Data *data = (MenuSearch_Data *)arg;
+  MenuSearch_Data *data = static_cast<MenuSearch_Data *>(arg);
 
   string_search::StringSearch<MenuSearch_Item> search;
 
@@ -1038,8 +1039,8 @@ static bool ui_search_menu_create_context_menu(bContext *C,
                                                void *active,
                                                const wmEvent *event)
 {
-  MenuSearch_Data *data = (MenuSearch_Data *)arg;
-  MenuSearch_Item *item = (MenuSearch_Item *)active;
+  MenuSearch_Data *data = static_cast<MenuSearch_Data *>(arg);
+  MenuSearch_Item *item = static_cast<MenuSearch_Item *>(active);
   bool has_menu = false;
 
   new (&data->context_menu_data.but) Button();
@@ -1080,8 +1081,8 @@ static bool ui_search_menu_create_context_menu(bContext *C,
 static ARegion *ui_search_menu_create_tooltip(
     bContext *C, ARegion *region, const rcti * /*item_rect*/, void *arg, void *active)
 {
-  MenuSearch_Data *data = (MenuSearch_Data *)arg;
-  MenuSearch_Item *item = (MenuSearch_Item *)active;
+  MenuSearch_Data *data = static_cast<MenuSearch_Data *>(arg);
+  MenuSearch_Item *item = static_cast<MenuSearch_Item *>(active);
 
   new (&data->context_menu_data.but) Button();
   new (&data->context_menu_data.block) Block();
@@ -1133,7 +1134,7 @@ static ARegion *ui_search_menu_create_tooltip(
 
 void button_func_menu_search(Button *but, const char *single_menu_idname)
 {
-  bContext *C = (bContext *)but->block->evil_C;
+  bContext *C = static_cast<bContext *>(but->block->evil_C);
   wmWindow *win = CTX_wm_window(C);
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);

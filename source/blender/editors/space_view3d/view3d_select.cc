@@ -454,7 +454,7 @@ static void view3d_userdata_lassoselect_init(LassoSelectUserData *r_data,
   r_data->mcoords = mcoords;
   r_data->sel_op = sel_op;
   /* SELECT by default, but can be changed if needed (only few cases use and respect this). */
-  r_data->select_flag = (eBezTriple_Flag)SELECT;
+  r_data->select_flag = eBezTriple_Flag(SELECT);
 
   /* runtime */
   r_data->pass = 0;
@@ -533,7 +533,7 @@ static void do_lasso_select_pose__do_tag(void *user_data,
                                          const float screen_co_b[2])
 {
   LassoSelectUserData *data = static_cast<LassoSelectUserData *>(user_data);
-  const bArmature *arm = static_cast<bArmature *>(data->vc->obact->data);
+  const bArmature *arm = blender::id_cast<bArmature *>(data->vc->obact->data);
   if (!blender::animrig::bone_is_selectable(arm, pchan)) {
     return;
   }
@@ -613,7 +613,7 @@ static blender::Vector<Base *> do_pose_tag_select_op_prepare(const ViewContext *
 {
   auto bases_tag_and_append_fn = [](blender::Vector<Base *> &bases, Base *base) {
     Object *ob = base->object;
-    bArmature *arm = static_cast<bArmature *>(ob->data);
+    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
     for (bPoseChannel &pchan : ob->pose->chanbase) {
       pchan.runtime.flag &= ~POSE_RUNTIME_IN_SELECTION_AREA;
     }
@@ -662,7 +662,7 @@ static bool do_pose_tag_select_op_exec(blender::MutableSpan<Base *> bases, const
   for (const int i : bases.index_range()) {
     Base *base_iter = bases[i];
     Object *ob_iter = base_iter->object;
-    bArmature *arm = static_cast<bArmature *>(ob_iter->data);
+    bArmature *arm = blender::id_cast<bArmature *>(ob_iter->data);
 
     bool changed = false;
     for (bPoseChannel &pchan : ob_iter->pose->chanbase) {
@@ -885,7 +885,7 @@ static bool do_lasso_select_mesh(const ViewContext *vc,
                                               0;
 
     const eV3DProjTest clip_flag = V3D_PROJ_TEST_CLIP_NEAR |
-                                   (use_zbuf ? (eV3DProjTest)0 : V3D_PROJ_TEST_CLIP_BB);
+                                   (use_zbuf ? eV3DProjTest(0) : V3D_PROJ_TEST_CLIP_BB);
     /* Fully inside. */
     mesh_foreachScreenEdge_clip_bb_segment(
         vc, do_lasso_select_mesh__doSelectEdge_pass0, &data_for_edge, clip_flag);
@@ -976,7 +976,7 @@ static bool do_lasso_select_curve(const ViewContext *vc,
 
   view3d_userdata_lassoselect_init(&data, vc, &rect, mcoords, sel_op);
 
-  Curve *curve = (Curve *)vc->obedit->data;
+  Curve *curve = blender::id_cast<Curve *>(vc->obedit->data);
   ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(curve);
 
   /* For deselect all, items to be selected are tagged with temp flag. Clear that first. */
@@ -994,7 +994,7 @@ static bool do_lasso_select_curve(const ViewContext *vc,
   }
 
   if (data.is_changed) {
-    BKE_curve_nurb_vert_active_validate(static_cast<Curve *>(vc->obedit->data));
+    BKE_curve_nurb_vert_active_validate(blender::id_cast<Curve *>(vc->obedit->data));
   }
   return data.is_changed;
 }
@@ -1041,7 +1041,7 @@ static void do_lasso_select_armature__doSelectBone(void *user_data,
                                                    const float screen_co_b[2])
 {
   LassoSelectUserData *data = static_cast<LassoSelectUserData *>(user_data);
-  const bArmature *arm = static_cast<const bArmature *>(data->vc->obedit->data);
+  const bArmature *arm = blender::id_cast<const bArmature *>(data->vc->obedit->data);
   if (!blender::animrig::bone_is_visible(arm, ebone)) {
     return;
   }
@@ -1088,7 +1088,7 @@ static void do_lasso_select_armature__doSelectBone_clip_content(void *user_data,
                                                                 const float screen_co_b[2])
 {
   LassoSelectUserData *data = static_cast<LassoSelectUserData *>(user_data);
-  bArmature *arm = static_cast<bArmature *>(data->vc->obedit->data);
+  bArmature *arm = blender::id_cast<bArmature *>(data->vc->obedit->data);
   if (!blender::animrig::bone_is_visible(arm, ebone)) {
     return;
   }
@@ -1126,7 +1126,7 @@ static bool do_lasso_select_armature(const ViewContext *vc,
     data.is_changed |= ED_armature_edit_deselect_all_visible(vc->obedit);
   }
 
-  bArmature *arm = static_cast<bArmature *>(vc->obedit->data);
+  bArmature *arm = blender::id_cast<bArmature *>(vc->obedit->data);
 
   ED_armature_ebone_listbase_temp_clear(arm->edbo);
 
@@ -1174,7 +1174,7 @@ static bool do_lasso_select_meta(const ViewContext *vc,
   LassoSelectUserData data;
   rcti rect;
 
-  MetaBall *mb = (MetaBall *)vc->obedit->data;
+  MetaBall *mb = blender::id_cast<MetaBall *>(vc->obedit->data);
 
   BLI_lasso_boundbox(&rect, mcoords);
 
@@ -1199,7 +1199,7 @@ static bool do_lasso_select_grease_pencil(const ViewContext *vc,
   using namespace blender;
   Object *object = (vc->obedit ? vc->obedit : vc->obact);
   const Object *ob_eval = DEG_get_evaluated(vc->depsgraph, object);
-  const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  const GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
   const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
       vc->scene->toolsettings, object);
 
@@ -1270,7 +1270,7 @@ static bool do_lasso_select_paintvert(const ViewContext *vc,
   using namespace blender;
   const bool use_zbuf = !XRAY_ENABLED(vc->v3d);
   Object *ob = vc->obact;
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   rcti rect;
 
   if (mesh == nullptr || mesh->verts_num == 0) {
@@ -1335,7 +1335,7 @@ static bool do_lasso_select_paintface(const ViewContext *vc,
                                       const eSelectOp sel_op)
 {
   Object *ob = vc->obact;
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   rcti rect;
 
   if (mesh == nullptr || mesh->faces_num == 0) {
@@ -1448,7 +1448,7 @@ static bool view3d_lasso_select(bContext *C,
           changed = do_lasso_select_meta(vc, mcoords, sel_op);
           break;
         case OB_CURVES: {
-          Curves &curves_id = *static_cast<Curves *>(vc->obedit->data);
+          Curves &curves_id = *blender::id_cast<Curves *>(vc->obedit->data);
           bke::CurvesGeometry &curves = curves_id.geometry.wrap();
           bke::crazyspace::GeometryDeformation deformation =
               bke::crazyspace::get_evaluated_curves_deformation(*vc->depsgraph, *vc->obedit);
@@ -1473,7 +1473,7 @@ static bool view3d_lasso_select(bContext *C,
           break;
         }
         case OB_POINTCLOUD: {
-          PointCloud &pointcloud = *static_cast<PointCloud *>(vc->obedit->data);
+          PointCloud &pointcloud = *blender::id_cast<PointCloud *>(vc->obedit->data);
           const float4x4 projection = ED_view3d_ob_project_mat_get(vc->rv3d, vc->obedit);
           changed = ed::pointcloud::select_lasso(
               pointcloud, *vc->region, projection, mcoords, sel_op);
@@ -1776,7 +1776,7 @@ static bool object_mouse_select_menu(bContext *C,
       BaseRefWithDepth *base_ref = MEM_callocN<BaseRefWithDepth>(__func__);
       base_ref->base = base;
       base_ref->depth_id = depth_id;
-      BLI_addtail(&base_ref_list, (void *)base_ref);
+      BLI_addtail(&base_ref_list, static_cast<void *>(base_ref));
     }
   }
   CTX_DATA_END;
@@ -1787,7 +1787,7 @@ static bool object_mouse_select_menu(bContext *C,
     return false;
   }
   if (base_count == 1) {
-    Base *base = ((BaseRefWithDepth *)base_ref_list.first)->base;
+    Base *base = (static_cast<BaseRefWithDepth *>(base_ref_list.first))->base;
     BLI_freelistN(&base_ref_list);
     *r_basact = base;
     return false;
@@ -1852,11 +1852,12 @@ static wmOperatorStatus bone_select_menu_exec(bContext *C, wmOperator *op)
   BLI_assert(BASE_SELECTABLE(v3d, basact));
 
   if (basact->object->mode & OB_MODE_EDIT) {
-    EditBone *ebone = (EditBone *)object_mouse_select_menu_data[name_index].item_ptr;
+    EditBone *ebone = static_cast<EditBone *>(object_mouse_select_menu_data[name_index].item_ptr);
     ED_armature_edit_select_pick_bone(C, basact, ebone, BONE_SELECTED, params);
   }
   else {
-    bPoseChannel *pchan = (bPoseChannel *)object_mouse_select_menu_data[name_index].item_ptr;
+    bPoseChannel *pchan = static_cast<bPoseChannel *>(
+        object_mouse_select_menu_data[name_index].item_ptr);
     ED_armature_pose_select_pick_bone(scene, view_layer, v3d, basact->object, pchan, params);
   }
 
@@ -1986,7 +1987,7 @@ static bool bone_mouse_select_menu(bContext *C,
     /* Determine what the current bone is */
     if (is_editmode) {
       const uint hit_bone = (select_id & ~BONESEL_ANY) >> 16;
-      bArmature *arm = static_cast<bArmature *>(bone_base->object->data);
+      bArmature *arm = blender::id_cast<bArmature *>(bone_base->object->data);
       EditBone *ebone = static_cast<EditBone *>(BLI_findlink(arm->edbo, hit_bone));
       if (ebone && !(ebone->flag & BONE_UNSELECTABLE)) {
         bone_ptr = ebone;
@@ -2014,7 +2015,7 @@ static bool bone_mouse_select_menu(bContext *C,
       bone_ref->base = bone_base;
       bone_ref->bone_ptr = bone_ptr;
       bone_ref->depth_id = hit_result.depth;
-      BLI_addtail(&bone_ref_list, (void *)bone_ref);
+      BLI_addtail(&bone_ref_list, static_cast<void *>(bone_ref));
 
       added_bones.add(bone_ptr);
     }
@@ -2252,8 +2253,8 @@ static int mixed_bones_object_selectbuffer_extended(const ViewContext *vc,
  */
 static int gpu_select_buffer_depth_id_cmp(const void *sel_a_p, const void *sel_b_p)
 {
-  GPUSelectResult *a = (GPUSelectResult *)sel_a_p;
-  GPUSelectResult *b = (GPUSelectResult *)sel_b_p;
+  GPUSelectResult *a = static_cast<GPUSelectResult *>(const_cast<void *>(sel_a_p));
+  GPUSelectResult *b = static_cast<GPUSelectResult *>(const_cast<void *>(sel_b_p));
 
   if (a->depth < b->depth) {
     return -1;
@@ -2806,15 +2807,15 @@ static bool ed_object_select_pick(bContext *C,
           }
         }
       }
-      else if ((basact || oldbasact) &&
-               ED_armature_pose_select_pick_with_buffer(scene,
-                                                        view_layer,
-                                                        v3d,
-                                                        basact ? basact : (Base *)oldbasact,
-                                                        gpu->buffer.storage.data(),
-                                                        gpu->hits,
-                                                        params,
-                                                        gpu->do_nearest))
+      else if ((basact || oldbasact) && ED_armature_pose_select_pick_with_buffer(
+                                            scene,
+                                            view_layer,
+                                            v3d,
+                                            basact ? basact : const_cast<Base *>(oldbasact),
+                                            gpu->buffer.storage.data(),
+                                            gpu->hits,
+                                            params,
+                                            gpu->do_nearest))
       {
 
         changed_pose = true;
@@ -3043,7 +3044,7 @@ static bool ed_wpaint_vertex_select_pick(bContext *C,
   View3D *v3d = CTX_wm_view3d(C);
   const bool use_zbuf = !XRAY_ENABLED(v3d);
 
-  Mesh *mesh = static_cast<Mesh *>(obact->data); /* already checked for nullptr */
+  Mesh *mesh = blender::id_cast<Mesh *>(obact->data); /* already checked for nullptr */
   uint index = 0;
   bool changed = false;
 
@@ -3142,7 +3143,7 @@ static bool pointcloud_select_pick(bContext &C, const int2 mval, const SelectPic
         ClosestPointCloud new_closest = init;
         for (Base *base : bases.as_span().slice(range)) {
           Object &object = *base->object;
-          PointCloud &pointcloud = *static_cast<PointCloud *>(object.data);
+          PointCloud &pointcloud = *blender::id_cast<PointCloud *>(object.data);
           const float4x4 projection = ED_view3d_ob_project_mat_get(vc.rv3d, &object);
 
           std::optional<pointcloud::FindClosestData> new_closest_elem =
@@ -3168,7 +3169,7 @@ static bool pointcloud_select_pick(bContext &C, const int2 mval, const SelectPic
   if (params.deselect_all || params.sel_op == SEL_OP_SET) {
     threading::parallel_for(bases.index_range(), 1L, [&](const IndexRange range) {
       for (const int i : range) {
-        PointCloud &pointcloud = *static_cast<PointCloud *>(bases[i]->object->data);
+        PointCloud &pointcloud = *blender::id_cast<PointCloud *>(bases[i]->object->data);
         if (!pointcloud::has_anything_selected(pointcloud)) {
           continue;
         }
@@ -3184,7 +3185,7 @@ static bool pointcloud_select_pick(bContext &C, const int2 mval, const SelectPic
 
     for (const int i : bases.index_range()) {
       if (changed[i]) {
-        PointCloud &pointcloud = *static_cast<PointCloud *>(bases[i]->object->data);
+        PointCloud &pointcloud = *blender::id_cast<PointCloud *>(bases[i]->object->data);
         /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
          * generic attribute for now. */
         DEG_id_tag_update(&pointcloud.id, ID_RECALC_GEOMETRY);
@@ -3231,7 +3232,7 @@ static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPi
   const Vector<Base *> bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
       vc.scene, vc.view_layer, vc.v3d);
 
-  Curves &active_curves_id = *static_cast<Curves *>(vc.obedit->data);
+  Curves &active_curves_id = *blender::id_cast<Curves *>(vc.obedit->data);
   const bke::AttrDomain selection_domain = bke::AttrDomain(active_curves_id.selection_domain);
 
   const ClosestCurveDataBlock closest = threading::parallel_reduce(
@@ -3242,7 +3243,7 @@ static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPi
         ClosestCurveDataBlock new_closest = init;
         for (Base *base : bases.as_span().slice(range)) {
           Object &curves_ob = *base->object;
-          Curves &curves_id = *static_cast<Curves *>(curves_ob.data);
+          Curves &curves_id = *blender::id_cast<Curves *>(curves_ob.data);
           bke::crazyspace::GeometryDeformation deformation =
               bke::crazyspace::get_evaluated_curves_deformation(*vc.depsgraph, curves_ob);
           const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
@@ -3294,7 +3295,7 @@ static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPi
   if (params.deselect_all || params.sel_op == SEL_OP_SET) {
     threading::parallel_for(bases.index_range(), 1L, [&](const IndexRange range) {
       for (const int i : range) {
-        Curves &curves_id = *static_cast<Curves *>(bases[i]->object->data);
+        Curves &curves_id = *blender::id_cast<Curves *>(bases[i]->object->data);
         bke::CurvesGeometry &curves = curves_id.geometry.wrap();
         if (!ed::curves::has_anything_selected(curves, selection_domain)) {
           continue;
@@ -3311,7 +3312,7 @@ static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPi
 
     for (const int i : bases.index_range()) {
       if (changed[i]) {
-        Curves &curves_id = *static_cast<Curves *>(bases[i]->object->data);
+        Curves &curves_id = *blender::id_cast<Curves *>(bases[i]->object->data);
         /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
          * generic attribute for now. */
         DEG_id_tag_update(&curves_id.id, ID_RECALC_GEOMETRY);
@@ -3376,7 +3377,7 @@ static bool ed_grease_pencil_select_pick(bContext *C,
 
   /* Collect editable drawings. */
   const Object *ob_eval = DEG_get_evaluated(vc.depsgraph, object);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
   const Vector<ed::greasepencil::MutableDrawingInfo> drawings =
       ed::greasepencil::retrieve_editable_drawings(*vc.scene, grease_pencil);
 
@@ -3736,7 +3737,7 @@ static void view3d_userdata_boxselect_init(BoxSelectUserData *r_data,
 
   r_data->sel_op = sel_op;
   /* SELECT by default, but can be changed if needed (only few cases use and respect this). */
-  r_data->select_flag = (eBezTriple_Flag)SELECT;
+  r_data->select_flag = eBezTriple_Flag(SELECT);
 
   /* runtime */
   r_data->is_done = false;
@@ -3779,7 +3780,7 @@ static bool do_paintvert_box_select(const ViewContext *vc,
   using namespace blender;
   const bool use_zbuf = !XRAY_ENABLED(vc->v3d);
 
-  Mesh *mesh = static_cast<Mesh *>(vc->obact->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(vc->obact->data);
   if ((mesh == nullptr) || (mesh->verts_num == 0)) {
     return false;
   }
@@ -3920,7 +3921,7 @@ static bool do_nurbs_box_select(const ViewContext *vc, const rcti *rect, const e
 
   view3d_userdata_boxselect_init(&data, vc, rect, sel_op);
 
-  Curve *curve = (Curve *)vc->obedit->data;
+  Curve *curve = blender::id_cast<Curve *>(vc->obedit->data);
   ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(curve);
 
   /* For deselect all, items to be selected are tagged with temp flag. Clear that first. */
@@ -4131,7 +4132,7 @@ static bool do_mesh_box_select(const ViewContext *vc,
                                         0;
 
     const eV3DProjTest clip_flag = V3D_PROJ_TEST_CLIP_NEAR |
-                                   (use_zbuf ? (eV3DProjTest)0 : V3D_PROJ_TEST_CLIP_BB);
+                                   (use_zbuf ? eV3DProjTest(0) : V3D_PROJ_TEST_CLIP_BB);
     /* Fully inside. */
     mesh_foreachScreenEdge_clip_bb_segment(
         vc, do_mesh_box_select__doSelectEdge_pass0, &cb_data, clip_flag);
@@ -4170,7 +4171,7 @@ static bool do_mesh_box_select(const ViewContext *vc,
 static bool do_meta_box_select(const ViewContext *vc, const rcti *rect, const eSelectOp sel_op)
 {
   Object *ob = vc->obedit;
-  MetaBall *mb = (MetaBall *)ob->data;
+  MetaBall *mb = blender::id_cast<MetaBall *>(ob->data);
   MetaElem *ml;
   int a;
   bool changed = false;
@@ -4259,7 +4260,7 @@ static bool do_armature_box_select(const ViewContext *vc, const rcti *rect, cons
     Object *obedit = base->object;
     obedit->id.tag &= ~ID_TAG_DOIT;
 
-    bArmature *arm = static_cast<bArmature *>(obedit->data);
+    bArmature *arm = blender::id_cast<bArmature *>(obedit->data);
     ED_armature_ebone_listbase_temp_clear(arm->edbo);
   }
 
@@ -4282,8 +4283,8 @@ static bool do_armature_box_select(const ViewContext *vc, const rcti *rect, cons
     Object *obedit = base->object;
     if (obedit->id.tag & ID_TAG_DOIT) {
       obedit->id.tag &= ~ID_TAG_DOIT;
-      changed |= ED_armature_edit_select_op_from_tagged(static_cast<bArmature *>(obedit->data),
-                                                        sel_op);
+      changed |= ED_armature_edit_select_op_from_tagged(
+          blender::id_cast<bArmature *>(obedit->data), sel_op);
     }
   }
 
@@ -4298,8 +4299,8 @@ static int gpu_bone_select_buffer_cmp(const void *sel_a_p, const void *sel_b_p)
 {
   /* NOTE: this is endianness-sensitive.
    * GPUSelectResult values are always expected to be little-endian. */
-  uint sel_a = ((GPUSelectResult *)sel_a_p)->id;
-  uint sel_b = ((GPUSelectResult *)sel_b_p)->id;
+  uint sel_a = (static_cast<GPUSelectResult *>(const_cast<void *>(sel_a_p)))->id;
+  uint sel_b = (static_cast<GPUSelectResult *>(const_cast<void *>(sel_b_p)))->id;
 
   if (sel_a < sel_b) {
     return -1;
@@ -4472,7 +4473,7 @@ static bool do_grease_pencil_box_select(const ViewContext *vc,
   using namespace blender;
   Object *object = (vc->obedit ? vc->obedit : vc->obact);
   const Object *ob_eval = DEG_get_evaluated(vc->depsgraph, object);
-  const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  const GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
   const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
       vc->scene->toolsettings, object);
 
@@ -4579,7 +4580,7 @@ static wmOperatorStatus view3d_box_select_exec(bContext *C, wmOperator *op)
           }
           break;
         case OB_CURVES: {
-          Curves &curves_id = *static_cast<Curves *>(vc.obedit->data);
+          Curves &curves_id = *blender::id_cast<Curves *>(vc.obedit->data);
           bke::CurvesGeometry &curves = curves_id.geometry.wrap();
           bke::crazyspace::GeometryDeformation deformation =
               bke::crazyspace::get_evaluated_curves_deformation(*vc.depsgraph, *vc.obedit);
@@ -4604,7 +4605,7 @@ static wmOperatorStatus view3d_box_select_exec(bContext *C, wmOperator *op)
           break;
         }
         case OB_POINTCLOUD: {
-          PointCloud &pointcloud = *static_cast<PointCloud *>(vc.obedit->data);
+          PointCloud &pointcloud = *blender::id_cast<PointCloud *>(vc.obedit->data);
           const float4x4 projection = ED_view3d_ob_project_mat_get(vc.rv3d, vc.obedit);
           changed = ed::pointcloud::select_box(pointcloud, *vc.region, projection, rect, sel_op);
           if (changed) {
@@ -4725,7 +4726,7 @@ static void view3d_userdata_circleselect_init(CircleSelectUserData *r_data,
   r_data->radius_squared = rad * rad;
 
   /* SELECT by default, but can be changed if needed (only few cases use and respect this). */
-  r_data->select_flag = (eBezTriple_Flag)SELECT;
+  r_data->select_flag = eBezTriple_Flag(SELECT);
 
   /* runtime */
   r_data->is_changed = false;
@@ -4901,7 +4902,7 @@ static bool paint_facesel_circle_select(const ViewContext *vc,
 {
   BLI_assert(ELEM(sel_op, SEL_OP_SET, SEL_OP_ADD, SEL_OP_SUB));
   Object *ob = vc->obact;
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
 
   bool changed = false;
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
@@ -4957,7 +4958,7 @@ static bool paint_vertsel_circle_select(const ViewContext *vc,
   BLI_assert(ELEM(sel_op, SEL_OP_SET, SEL_OP_ADD, SEL_OP_SUB));
   const bool use_zbuf = !XRAY_ENABLED(vc->v3d);
   Object *ob = vc->obact;
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   // CircleSelectUserData data = {nullptr}; /* UNUSED. */
 
   bool changed = false;
@@ -5050,7 +5051,7 @@ static bool nurbscurve_circle_select(const ViewContext *vc,
 
   view3d_userdata_circleselect_init(&data, vc, select, mval, rad);
 
-  Curve *curve = (Curve *)vc->obedit->data;
+  Curve *curve = blender::id_cast<Curve *>(vc->obedit->data);
   ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(curve);
 
   /* For deselect all, items to be selected are tagged with temp flag. Clear that first. */
@@ -5067,7 +5068,7 @@ static bool nurbscurve_circle_select(const ViewContext *vc,
     data.is_changed |= BKE_nurbList_flag_set_from_flag(nurbs, BEZT_FLAG_TEMP_TAG, SELECT);
   }
 
-  BKE_curve_nurb_vert_active_validate(static_cast<Curve *>(vc->obedit->data));
+  BKE_curve_nurb_vert_active_validate(blender::id_cast<Curve *>(vc->obedit->data));
 
   return data.is_changed;
 }
@@ -5127,7 +5128,7 @@ static void do_circle_select_pose__doSelectBone(void *user_data,
                                                 const float screen_co_b[2])
 {
   CircleSelectUserData *data = static_cast<CircleSelectUserData *>(user_data);
-  bArmature *arm = static_cast<bArmature *>(data->vc->obact->data);
+  bArmature *arm = blender::id_cast<bArmature *>(data->vc->obact->data);
   if (!blender::animrig::bone_is_selectable(arm, pchan)) {
     return;
   }
@@ -5238,7 +5239,7 @@ static void do_circle_select_armature__doSelectBone(void *user_data,
                                                     const float screen_co_b[2])
 {
   CircleSelectUserData *data = static_cast<CircleSelectUserData *>(user_data);
-  const bArmature *arm = static_cast<const bArmature *>(data->vc->obedit->data);
+  const bArmature *arm = blender::id_cast<const bArmature *>(data->vc->obedit->data);
   if (!(data->select ? EBONE_SELECTABLE(arm, ebone) :
                        blender::animrig::bone_is_visible(arm, ebone)))
   {
@@ -5295,7 +5296,7 @@ static void do_circle_select_armature__doSelectBone_clip_content(void *user_data
                                                                  const float screen_co_b[2])
 {
   CircleSelectUserData *data = static_cast<CircleSelectUserData *>(user_data);
-  bArmature *arm = static_cast<bArmature *>(data->vc->obedit->data);
+  bArmature *arm = blender::id_cast<bArmature *>(data->vc->obedit->data);
 
   if (!(data->select ? EBONE_SELECTABLE(arm, ebone) :
                        blender::animrig::bone_is_visible(arm, ebone)))
@@ -5319,7 +5320,7 @@ static bool armature_circle_select(const ViewContext *vc,
                                    float rad)
 {
   CircleSelectUserData data;
-  bArmature *arm = static_cast<bArmature *>(vc->obedit->data);
+  bArmature *arm = blender::id_cast<bArmature *>(vc->obedit->data);
 
   const bool select = (sel_op != SEL_OP_SUB);
 
@@ -5378,7 +5379,7 @@ static bool mball_circle_select(const ViewContext *vc,
   view3d_userdata_circleselect_init(&data, vc, select, mval, rad);
 
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-    data.is_changed |= BKE_mball_deselect_all(static_cast<MetaBall *>(vc->obedit->data));
+    data.is_changed |= BKE_mball_deselect_all(blender::id_cast<MetaBall *>(vc->obedit->data));
   }
 
   ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
@@ -5396,7 +5397,7 @@ static bool grease_pencil_circle_select(const ViewContext *vc,
   using namespace blender;
   Object *object = (vc->obedit ? vc->obedit : vc->obact);
   const Object *ob_eval = DEG_get_evaluated(vc->depsgraph, object);
-  const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  const GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
   const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
       vc->scene->toolsettings, object);
 
@@ -5472,7 +5473,7 @@ static bool obedit_circle_select(bContext *C,
       changed = mball_circle_select(vc, sel_op, mval, rad);
       break;
     case OB_CURVES: {
-      Curves &curves_id = *static_cast<Curves *>(vc->obedit->data);
+      Curves &curves_id = *blender::id_cast<Curves *>(vc->obedit->data);
       bke::CurvesGeometry &curves = curves_id.geometry.wrap();
       bke::crazyspace::GeometryDeformation deformation =
           bke::crazyspace::get_evaluated_curves_deformation(*vc->depsgraph, *vc->obedit);
@@ -5498,7 +5499,7 @@ static bool obedit_circle_select(bContext *C,
       break;
     }
     case OB_POINTCLOUD: {
-      PointCloud &pointcloud = *static_cast<PointCloud *>(vc->obedit->data);
+      PointCloud &pointcloud = *blender::id_cast<PointCloud *>(vc->obedit->data);
       const float4x4 projection = ED_view3d_ob_project_mat_get(vc->rv3d, vc->obedit);
       changed = ed::pointcloud::select_circle(
           pointcloud, *vc->region, projection, mval, rad, sel_op);

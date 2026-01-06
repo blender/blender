@@ -154,8 +154,8 @@ static wmOperatorStatus mask_shape_key_feather_reset_exec(bContext *C, wmOperato
           MaskLayerShapeElem *shape_ele_src;
           MaskLayerShapeElem *shape_ele_dst;
 
-          shape_ele_src = (MaskLayerShapeElem *)mask_layer_shape_reset->data;
-          shape_ele_dst = (MaskLayerShapeElem *)mask_layer_shape.data;
+          shape_ele_src = reinterpret_cast<MaskLayerShapeElem *>(mask_layer_shape_reset->data);
+          shape_ele_dst = reinterpret_cast<MaskLayerShapeElem *>(mask_layer_shape.data);
 
           for (MaskSpline &spline : mask_layer.splines) {
             for (int i = 0; i < spline.tot_point; i++) {
@@ -255,7 +255,8 @@ static wmOperatorStatus mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
             mask_layer_shape_lastsel = mask_layer_shape;
           }
           if ((mask_layer_shape->next == nullptr) ||
-              (((MaskLayerShape *)mask_layer_shape->next)->flag & MASK_SHAPE_SELECT) == 0)
+              ((static_cast<MaskLayerShape *>(mask_layer_shape->next))->flag &
+               MASK_SHAPE_SELECT) == 0)
           {
             mask_layer_shape_a = mask_layer_shape_lastsel;
             mask_layer_shape_b = mask_layer_shape;
@@ -312,8 +313,9 @@ static wmOperatorStatus mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
             mask_layer_shape_tmp_rekey = BKE_mask_layer_shape_find_frame(
                 &mask_layer, mask_layer_shape_tmp->frame);
 
-            shape_ele_src = (MaskLayerShapeElem *)mask_layer_shape_tmp->data;
-            shape_ele_dst = (MaskLayerShapeElem *)mask_layer_shape_tmp_rekey->data;
+            shape_ele_src = reinterpret_cast<MaskLayerShapeElem *>(mask_layer_shape_tmp->data);
+            shape_ele_dst = reinterpret_cast<MaskLayerShapeElem *>(
+                mask_layer_shape_tmp_rekey->data);
 
             for (MaskSpline &spline : mask_layer.splines) {
               for (int i = 0; i < spline.tot_point; i++) {

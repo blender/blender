@@ -51,7 +51,7 @@ using blender::Span;
 
 static void lattice_init_data(ID *id)
 {
-  Lattice *lattice = (Lattice *)id;
+  Lattice *lattice = blender::id_cast<Lattice *>(id);
 
   INIT_DEFAULT_STRUCT_AFTER(lattice, id);
 
@@ -65,8 +65,8 @@ static void lattice_copy_data(Main *bmain,
                               const ID *id_src,
                               const int flag)
 {
-  Lattice *lattice_dst = (Lattice *)id_dst;
-  const Lattice *lattice_src = (const Lattice *)id_src;
+  Lattice *lattice_dst = blender::id_cast<Lattice *>(id_dst);
+  const Lattice *lattice_src = blender::id_cast<const Lattice *>(id_src);
 
   lattice_dst->def = static_cast<BPoint *>(MEM_dupallocN(lattice_src->def));
 
@@ -93,7 +93,7 @@ static void lattice_copy_data(Main *bmain,
 
 static void lattice_free_data(ID *id)
 {
-  Lattice *lattice = (Lattice *)id;
+  Lattice *lattice = blender::id_cast<Lattice *>(id);
 
   BKE_lattice_batch_cache_free(lattice);
 
@@ -128,7 +128,7 @@ static void lattice_foreach_id(ID *id, LibraryForeachIDData *data)
 
 static void lattice_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  Lattice *lt = (Lattice *)id;
+  Lattice *lt = blender::id_cast<Lattice *>(id);
 
   /* Clean up, important in undo case to reduce false detection of changed datablocks. */
   lt->editlatt = nullptr;
@@ -147,7 +147,7 @@ static void lattice_blend_write(BlendWriter *writer, ID *id, const void *id_addr
 
 static void lattice_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  Lattice *lt = (Lattice *)id;
+  Lattice *lt = blender::id_cast<Lattice *>(id);
   BLO_read_struct_array(reader, BPoint, lt->pntsu * lt->pntsv * lt->pntsw, &lt->def);
 
   BLO_read_struct_array(reader, MDeformVert, lt->pntsu * lt->pntsv * lt->pntsw, &lt->dvert);
@@ -525,7 +525,7 @@ void BKE_lattice_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
     ob->runtime->curve_cache = MEM_callocN<CurveCache>("CurveCache for lattice");
   }
 
-  Lattice *lt = static_cast<Lattice *>(ob->data);
+  Lattice *lt = blender::id_cast<Lattice *>(ob->data);
   VirtualModifierData virtual_modifier_data;
   ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data);
   Array<float3> vert_coords;
@@ -566,7 +566,7 @@ void BKE_lattice_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
   Lattice *lt_eval = BKE_object_get_evaluated_lattice(ob);
   if (lt_eval == nullptr) {
-    BKE_id_copy_ex(nullptr, &lt->id, (ID **)&lt_eval, LIB_ID_COPY_LOCALIZE);
+    BKE_id_copy_ex(nullptr, &lt->id, reinterpret_cast<ID **>(&lt_eval), LIB_ID_COPY_LOCALIZE);
     BKE_object_eval_assign_data(ob, &lt_eval->id, true);
   }
 

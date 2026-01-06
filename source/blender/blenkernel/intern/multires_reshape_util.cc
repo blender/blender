@@ -47,7 +47,7 @@ blender::bke::subdiv::Subdiv *multires_reshape_create_subdiv(Depsgraph *depsgrap
     base_mesh = mesh_get_eval_deform(depsgraph, scene_eval, object_eval, &CD_MASK_BAREMESH);
   }
   else {
-    base_mesh = (Mesh *)object->data;
+    base_mesh = blender::id_cast<Mesh *>(object->data);
   }
 
   subdiv::Settings subdiv_settings;
@@ -149,7 +149,7 @@ bool multires_reshape_context_create_from_base_mesh(MultiresReshapeContext *resh
 
   const bool use_render_params = false;
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  Mesh *base_mesh = (Mesh *)object->data;
+  Mesh *base_mesh = blender::id_cast<Mesh *>(object->data);
 
   reshape_context->depsgraph = depsgraph;
   reshape_context->object = object;
@@ -193,7 +193,7 @@ bool multires_reshape_context_create_from_object(MultiresReshapeContext *reshape
 
   const bool use_render_params = false;
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  Mesh *base_mesh = (Mesh *)object->data;
+  Mesh *base_mesh = blender::id_cast<Mesh *>(object->data);
 
   reshape_context->depsgraph = depsgraph;
   reshape_context->object = object;
@@ -284,7 +284,7 @@ bool multires_reshape_context_create_from_subdiv(MultiresReshapeContext *reshape
   using namespace blender::bke;
   context_zero(reshape_context);
 
-  Mesh *base_mesh = (Mesh *)object->data;
+  Mesh *base_mesh = blender::id_cast<Mesh *>(object->data);
 
   reshape_context->mmd = mmd;
   reshape_context->base_mesh = base_mesh;

@@ -195,7 +195,7 @@ static void layer_pointclouds_to_instances(const Span<PointCloud *> pointcloud_b
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometryCurveToPoints &storage = node_storage(params.node());
-  const GeometryNodeCurveResampleMode mode = (GeometryNodeCurveResampleMode)storage.mode;
+  const GeometryNodeCurveResampleMode mode = GeometryNodeCurveResampleMode(storage.mode);
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
 
   GeometryComponentEditData::remember_deformed_positions_if_necessary(geometry_set);

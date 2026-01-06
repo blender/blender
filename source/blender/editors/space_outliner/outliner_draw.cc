@@ -181,8 +181,8 @@ static void restrictbutton_r_lay_fn(bContext *C, void *poin, void * /*poin2*/)
 
 static void restrictbutton_bone_visibility_fn(bContext *C, void *poin, void *poin2)
 {
-  const Object *ob = (Object *)poin;
-  bPoseChannel *pchan = (bPoseChannel *)poin2;
+  const Object *ob = static_cast<Object *>(poin);
+  bPoseChannel *pchan = static_cast<bPoseChannel *>(poin2);
   if (CTX_wm_window(C)->runtime->eventstate->modifier & KM_SHIFT) {
     blender::animrig::pose_bone_descendent_iterator(
         *ob->pose, *pchan, [&](bPoseChannel &descendent) {
@@ -215,8 +215,8 @@ static void restrictbutton_bone_select_fn(bContext *C, void *poin, void *poin2)
 
 static void restrictbutton_ebone_select_fn(bContext *C, void *poin, void *poin2)
 {
-  bArmature *arm = (bArmature *)poin;
-  EditBone *ebone = (EditBone *)poin2;
+  bArmature *arm = static_cast<bArmature *>(poin);
+  EditBone *ebone = static_cast<EditBone *>(poin2);
 
   if (ebone->flag & BONE_UNSELECTABLE) {
     ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
@@ -232,8 +232,8 @@ static void restrictbutton_ebone_select_fn(bContext *C, void *poin, void *poin2)
 
 static void restrictbutton_ebone_visibility_fn(bContext *C, void *poin, void *poin2)
 {
-  bArmature *arm = (bArmature *)poin;
-  EditBone *ebone = (EditBone *)poin2;
+  bArmature *arm = static_cast<bArmature *>(poin);
+  EditBone *ebone = static_cast<EditBone *>(poin2);
   if (ebone->flag & BONE_HIDDEN_A) {
     ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
   }
@@ -247,7 +247,7 @@ static void restrictbutton_ebone_visibility_fn(bContext *C, void *poin, void *po
 
 static void restrictbutton_gp_layer_flag_fn(bContext *C, void *poin, void * /*poin2*/)
 {
-  ID *id = (ID *)poin;
+  ID *id = static_cast<ID *>(poin);
 
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
@@ -255,7 +255,7 @@ static void restrictbutton_gp_layer_flag_fn(bContext *C, void *poin, void * /*po
 
 static void restrictbutton_id_user_toggle(bContext * /*C*/, void *poin, void * /*poin2*/)
 {
-  ID *id = (ID *)poin;
+  ID *id = static_cast<ID *>(poin);
 
   BLI_assert(id != nullptr);
 
@@ -286,7 +286,7 @@ static void outliner_object_set_flag_recursive_fn(bContext *C,
   /* Create PointerRNA and PropertyRNA for either Object or Base. */
   ID *id = ob ? &ob->id : &scene->id;
   StructRNA *struct_rna = ob ? &RNA_Object : &RNA_ObjectBase;
-  void *data = ob ? (void *)ob : (void *)base;
+  void *data = ob ? static_cast<void *>(ob) : static_cast<void *>(base);
 
   PointerRNA ptr = RNA_pointer_create_discrete(id, struct_rna, data);
   PropertyRNA *base_or_object_prop = RNA_struct_type_find_property(struct_rna, propname);
@@ -482,8 +482,10 @@ static bool outliner_collection_is_isolated(Scene *scene,
   }
   else if (collection_ensure == collection_ensure_cmp) {
   }
-  else if (BKE_collection_has_collection(collection_ensure, (Collection *)collection_ensure_cmp) ||
-           BKE_collection_has_collection((Collection *)collection_ensure_cmp, collection_ensure))
+  else if (BKE_collection_has_collection(collection_ensure,
+                                         const_cast<Collection *>(collection_ensure_cmp)) ||
+           BKE_collection_has_collection(const_cast<Collection *>(collection_ensure_cmp),
+                                         collection_ensure))
   {
     /* This collection is either a parent or a child of the collection.
      * We expect it to be set "visible" already. */
@@ -650,7 +652,8 @@ static void outliner_collection_set_flag_recursive_fn(bContext *C,
   /* Create PointerRNA and PropertyRNA for either Collection or LayerCollection. */
   ID *id = collection ? &collection->id : &scene->id;
   StructRNA *struct_rna = collection ? &RNA_Collection : &RNA_LayerCollection;
-  void *data = collection ? (void *)collection : (void *)layer_collection;
+  void *data = collection ? static_cast<void *>(collection) :
+                            static_cast<void *>(layer_collection);
 
   PointerRNA ptr = RNA_pointer_create_discrete(id, struct_rna, data);
   outliner_layer_or_collection_pointer_create(scene, layer_collection, collection, &ptr);
@@ -776,7 +779,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
 
       /* Check the library target exists */
       if (te->idcode == ID_LI) {
-        Library *lib = (Library *)tselem->id;
+        Library *lib = blender::id_cast<Library *>(tselem->id);
         char expanded[FILE_MAX];
 
         BKE_library_filepath_set(bmain, lib, lib->filepath);
@@ -803,7 +806,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
     else {
       switch (tselem->type) {
         case TSE_DEFGROUP: {
-          Object *ob = (Object *)tselem->id;
+          Object *ob = blender::id_cast<Object *>(tselem->id);
           bDeformGroup *vg = static_cast<bDeformGroup *>(te->directdata);
           BKE_object_defgroup_unique_name(vg, ob);
           WM_msg_publish_rna_prop(mbus, &ob->id, vg, VertexGroup, name);
@@ -833,7 +836,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           break;
         }
         case TSE_EBONE: {
-          bArmature *arm = (bArmature *)tselem->id;
+          bArmature *arm = blender::id_cast<bArmature *>(tselem->id);
           if (arm->edbo) {
             EditBone *ebone = static_cast<EditBone *>(te->directdata);
             char newname[sizeof(ebone->name)];
@@ -854,7 +857,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           TreeViewContext tvc;
           outliner_viewcontext_init(C, &tvc);
 
-          bArmature *arm = (bArmature *)tselem->id;
+          bArmature *arm = blender::id_cast<bArmature *>(tselem->id);
           Bone *bone = static_cast<Bone *>(te->directdata);
           char newname[sizeof(bone->name)];
 
@@ -875,8 +878,8 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           TreeViewContext tvc;
           outliner_viewcontext_init(C, &tvc);
 
-          Object *ob = (Object *)tselem->id;
-          bArmature *arm = (bArmature *)ob->data;
+          Object *ob = blender::id_cast<Object *>(tselem->id);
+          bArmature *arm = blender::id_cast<bArmature *>(ob->data);
           bPoseChannel *pchan = static_cast<bPoseChannel *>(te->directdata);
           char newname[sizeof(pchan->name)];
 
@@ -888,7 +891,8 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           /* restore bone name */
           STRNCPY_UTF8(newname, pchan->name);
           STRNCPY_UTF8(pchan->name, oldname);
-          ED_armature_bone_rename(bmain, static_cast<bArmature *>(ob->data), oldname, newname);
+          ED_armature_bone_rename(
+              bmain, blender::id_cast<bArmature *>(ob->data), oldname, newname);
           WM_msg_publish_rna_prop(mbus, &arm->id, pchan->bone, Bone, name);
           WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
           DEG_id_tag_update(tselem->id, ID_RECALC_SYNC_TO_EVAL);
@@ -897,7 +901,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           break;
         }
         case TSE_GP_LAYER: {
-          bGPdata *gpd = (bGPdata *)tselem->id; /* id = GP Datablock */
+          bGPdata *gpd = blender::id_cast<bGPdata *>(tselem->id); /* id = GP Datablock */
           bGPDlayer *gpl = static_cast<bGPDlayer *>(te->directdata);
 
           /* always make layer active */
@@ -915,7 +919,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           break;
         }
         case TSE_GREASE_PENCIL_NODE: {
-          GreasePencil &grease_pencil = *(GreasePencil *)tselem->id;
+          GreasePencil &grease_pencil = *id_cast<GreasePencil *>(tselem->id);
           bke::greasepencil::TreeNode &node =
               tree_element_cast<TreeElementGreasePencilNode>(te)->node();
 
@@ -931,7 +935,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           break;
         }
         case TSE_R_LAYER: {
-          Scene *scene = (Scene *)tselem->id;
+          Scene *scene = blender::id_cast<Scene *>(tselem->id);
           ViewLayer *view_layer = static_cast<ViewLayer *>(te->directdata);
 
           /* Restore old name. */
@@ -959,7 +963,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
         }
 
         case TSE_BONE_COLLECTION: {
-          bArmature *arm = (bArmature *)tselem->id;
+          bArmature *arm = blender::id_cast<bArmature *>(tselem->id);
           BoneCollection *bcoll = static_cast<BoneCollection *>(te->directdata);
 
           ANIM_armature_bonecoll_name_set(arm, bcoll, bcoll->name);
@@ -1249,12 +1253,12 @@ static void outliner_draw_restrictbuts(ui::Block *block,
         /* Don't show restrict columns for children that are not directly inside the collection. */
       }
       else if ((tselem->type == TSE_SOME_ID) && (te.idcode == ID_OB)) {
-        Object *ob = (Object *)tselem->id;
+        Object *ob = blender::id_cast<Object *>(tselem->id);
         PointerRNA ptr = RNA_id_pointer_create(&ob->id);
 
         if (space_outliner->show_restrict_flags & SO_RESTRICT_HIDE) {
           BKE_view_layer_synced_ensure(scene, view_layer);
-          Base *base = (te.directdata) ? (Base *)te.directdata :
+          Base *base = (te.directdata) ? static_cast<Base *>(te.directdata) :
                                          BKE_view_layer_base_find(view_layer, ob);
           if (base) {
             PointerRNA base_ptr = RNA_pointer_create_discrete(&scene->id, &RNA_ObjectBase, base);
@@ -1296,7 +1300,8 @@ static void outliner_draw_restrictbuts(ui::Block *block,
                                   0,
                                   TIP_("Disable selection in viewport\n"
                                        " \u2022 Shift to set children"));
-          button_func_set(bt, outliner__object_set_flag_recursive_fn, ob, (char *)"hide_select");
+          button_func_set(
+              bt, outliner__object_set_flag_recursive_fn, ob, const_cast<char *>("hide_select"));
           button_flag_enable(bt, ui::BUT_DRAG_LOCK);
           if (!props_active.object_hide_select) {
             button_flag_enable(bt, ui::BUT_INACTIVE);
@@ -1340,7 +1345,8 @@ static void outliner_draw_restrictbuts(ui::Block *block,
                                   0,
                                   TIP_("Globally disable in renders\n"
                                        " \u2022 Shift to set children"));
-          button_func_set(bt, outliner__object_set_flag_recursive_fn, ob, (char *)"hide_render");
+          button_func_set(
+              bt, outliner__object_set_flag_recursive_fn, ob, const_cast<char *>("hide_render"));
           button_flag_enable(bt, ui::BUT_DRAG_LOCK);
           if (!props_active.object_hide_render) {
             button_flag_enable(bt, ui::BUT_INACTIVE);
@@ -1348,7 +1354,7 @@ static void outliner_draw_restrictbuts(ui::Block *block,
         }
       }
       else if (tselem->type == TSE_CONSTRAINT) {
-        bConstraint *con = (bConstraint *)te.directdata;
+        bConstraint *con = static_cast<bConstraint *>(te.directdata);
 
         PointerRNA ptr = RNA_pointer_create_discrete(tselem->id, &RNA_Constraint, con);
 
@@ -1373,7 +1379,7 @@ static void outliner_draw_restrictbuts(ui::Block *block,
         }
       }
       else if (tselem->type == TSE_MODIFIER) {
-        ModifierData *md = (ModifierData *)te.directdata;
+        ModifierData *md = static_cast<ModifierData *>(te.directdata);
 
         PointerRNA ptr = RNA_pointer_create_discrete(tselem->id, &RNA_Modifier, md);
 
@@ -1418,10 +1424,10 @@ static void outliner_draw_restrictbuts(ui::Block *block,
         }
       }
       else if (tselem->type == TSE_POSE_CHANNEL) {
-        bPoseChannel *pchan = (bPoseChannel *)te.directdata;
+        bPoseChannel *pchan = static_cast<bPoseChannel *>(te.directdata);
         Bone *bone = pchan->bone;
-        Object *ob = (Object *)tselem->id;
-        bArmature *arm = static_cast<bArmature *>(ob->data);
+        Object *ob = blender::id_cast<Object *>(tselem->id);
+        bArmature *arm = blender::id_cast<bArmature *>(ob->data);
 
         PointerRNA ptr = RNA_pointer_create_discrete(&arm->id, &RNA_PoseBone, pchan);
 
@@ -1465,8 +1471,8 @@ static void outliner_draw_restrictbuts(ui::Block *block,
         }
       }
       else if (tselem->type == TSE_EBONE) {
-        bArmature *arm = (bArmature *)tselem->id;
-        EditBone *ebone = (EditBone *)te.directdata;
+        bArmature *arm = blender::id_cast<bArmature *>(tselem->id);
+        EditBone *ebone = static_cast<EditBone *>(te.directdata);
 
         if (space_outliner->show_restrict_flags & SO_RESTRICT_VIEWPORT) {
           bt = uiDefIconButBitI(block,
@@ -1508,7 +1514,7 @@ static void outliner_draw_restrictbuts(ui::Block *block,
       }
       else if (tselem->type == TSE_GP_LAYER) {
         ID *id = tselem->id;
-        bGPDlayer *gpl = (bGPDlayer *)te.directdata;
+        bGPDlayer *gpl = static_cast<bGPDlayer *>(te.directdata);
 
         if (space_outliner->show_restrict_flags & SO_RESTRICT_HIDE) {
           bt = uiDefIconButBitS(block,
@@ -1610,7 +1616,7 @@ static void outliner_draw_restrictbuts(ui::Block *block,
               button_func_set(bt,
                               view_layer__layer_collection_set_flag_recursive_fn,
                               layer_collection,
-                              (char *)"exclude");
+                              const_cast<char *>("exclude"));
               button_flag_enable(bt, ui::BUT_DRAG_LOCK);
             }
 
@@ -1633,7 +1639,7 @@ static void outliner_draw_restrictbuts(ui::Block *block,
               button_func_set(bt,
                               view_layer__layer_collection_set_flag_recursive_fn,
                               layer_collection,
-                              (char *)"hide_viewport");
+                              const_cast<char *>("hide_viewport"));
               button_flag_enable(bt, ui::BUT_DRAG_LOCK);
               if (!props_active.layer_collection_hide_viewport) {
                 button_flag_enable(bt, ui::BUT_INACTIVE);
@@ -1659,7 +1665,7 @@ static void outliner_draw_restrictbuts(ui::Block *block,
               button_func_set(bt,
                               view_layer__layer_collection_set_flag_recursive_fn,
                               layer_collection,
-                              (char *)"holdout");
+                              const_cast<char *>("holdout"));
               button_flag_enable(bt, ui::BUT_DRAG_LOCK);
               if (!props_active.layer_collection_holdout) {
                 button_flag_enable(bt, ui::BUT_INACTIVE);
@@ -1687,7 +1693,7 @@ static void outliner_draw_restrictbuts(ui::Block *block,
               button_func_set(bt,
                               view_layer__layer_collection_set_flag_recursive_fn,
                               layer_collection,
-                              (char *)"indirect_only");
+                              const_cast<char *>("indirect_only"));
               button_flag_enable(bt, ui::BUT_DRAG_LOCK);
               if (props_active.layer_collection_holdout ||
                   !props_active.layer_collection_indirect_only)
@@ -1717,13 +1723,13 @@ static void outliner_draw_restrictbuts(ui::Block *block,
               button_func_set(bt,
                               view_layer__collection_set_flag_recursive_fn,
                               layer_collection,
-                              (char *)"hide_viewport");
+                              const_cast<char *>("hide_viewport"));
             }
             else {
               button_func_set(bt,
                               scenes__collection_set_flag_recursive_fn,
                               collection,
-                              (char *)"hide_viewport");
+                              const_cast<char *>("hide_viewport"));
             }
             button_flag_enable(bt, ui::BUT_DRAG_LOCK);
             if (!props_active.collection_hide_viewport) {
@@ -1751,11 +1757,13 @@ static void outliner_draw_restrictbuts(ui::Block *block,
               button_func_set(bt,
                               view_layer__collection_set_flag_recursive_fn,
                               layer_collection,
-                              (char *)"hide_render");
+                              const_cast<char *>("hide_render"));
             }
             else {
-              button_func_set(
-                  bt, scenes__collection_set_flag_recursive_fn, collection, (char *)"hide_render");
+              button_func_set(bt,
+                              scenes__collection_set_flag_recursive_fn,
+                              collection,
+                              const_cast<char *>("hide_render"));
             }
             button_flag_enable(bt, ui::BUT_DRAG_LOCK);
             if (!props_active.collection_hide_render) {
@@ -1783,11 +1791,13 @@ static void outliner_draw_restrictbuts(ui::Block *block,
               button_func_set(bt,
                               view_layer__collection_set_flag_recursive_fn,
                               layer_collection,
-                              (char *)"hide_select");
+                              const_cast<char *>("hide_select"));
             }
             else {
-              button_func_set(
-                  bt, scenes__collection_set_flag_recursive_fn, collection, (char *)"hide_select");
+              button_func_set(bt,
+                              scenes__collection_set_flag_recursive_fn,
+                              collection,
+                              const_cast<char *>("hide_select"));
             }
             button_flag_enable(bt, ui::BUT_DRAG_LOCK);
             if (!props_active.collection_hide_select) {
@@ -2220,7 +2230,7 @@ static void outliner_buttons(const bContext *C,
 static void outliner_mode_toggle_fn(bContext *C, void *tselem_poin, void * /*arg2*/)
 {
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
-  TreeStoreElem *tselem = (TreeStoreElem *)tselem_poin;
+  TreeStoreElem *tselem = static_cast<TreeStoreElem *>(tselem_poin);
   TreeViewContext tvc;
   outliner_viewcontext_init(C, &tvc);
 
@@ -2232,7 +2242,7 @@ static void outliner_mode_toggle_fn(bContext *C, void *tselem_poin, void * /*arg
   /* Check that the item is actually an object. */
   BLI_assert(tselem->id != nullptr && GS(tselem->id->name) == ID_OB);
 
-  Object *ob = (Object *)tselem->id;
+  Object *ob = blender::id_cast<Object *>(tselem->id);
   const bool object_data_shared = (ob->data == tvc.obact->data);
 
   wmWindow *win = CTX_wm_window(C);
@@ -2251,7 +2261,7 @@ static void outliner_draw_mode_column_toggle(ui::Block *block,
     return;
   }
 
-  Object *ob = (Object *)tselem->id;
+  Object *ob = blender::id_cast<Object *>(tselem->id);
   Object *ob_active = tvc.obact;
   const int x_pad = 3 * UI_SCALE_FAC;
 
@@ -2436,7 +2446,7 @@ static void outliner_draw_warning_column(ui::Block *block,
 static BIFIconID tree_element_get_icon_from_id(const ID *id)
 {
   if (GS(id->name) == ID_OB) {
-    return ui::icon_from_object_type((Object *)id);
+    return ui::icon_from_object_type(blender::id_cast<Object *>(const_cast<ID *>(id)));
   }
 
   /* TODO(sergey): Casting to short here just to handle ID_NLA which is
@@ -2448,7 +2458,7 @@ static BIFIconID tree_element_get_icon_from_id(const ID *id)
     case ID_ME:
       return ICON_OUTLINER_DATA_MESH;
     case ID_CU_LEGACY: {
-      const Curve *cu = (Curve *)id;
+      const Curve *cu = blender::id_cast<Curve *>(const_cast<ID *>(id));
       switch (cu->ob_type) {
         case OB_FONT:
           return ICON_OUTLINER_DATA_FONT;
@@ -2464,7 +2474,7 @@ static BIFIconID tree_element_get_icon_from_id(const ID *id)
     case ID_LT:
       return ICON_OUTLINER_DATA_LATTICE;
     case ID_LA: {
-      const Light *la = (Light *)id;
+      const Light *la = blender::id_cast<Light *>(const_cast<ID *>(id));
       switch (la->type) {
         case LA_LOCAL:
           return ICON_LIGHT_POINT;
@@ -2500,7 +2510,7 @@ static BIFIconID tree_element_get_icon_from_id(const ID *id)
     case ID_NLA:
       return ICON_NLA;
     case ID_TXT: {
-      const Text *text = (Text *)id;
+      const Text *text = blender::id_cast<Text *>(const_cast<ID *>(id));
       if (text->filepath == nullptr || (text->flags & TXT_ISMEM)) {
         return ICON_FILE_TEXT;
       }
@@ -2522,7 +2532,7 @@ static BIFIconID tree_element_get_icon_from_id(const ID *id)
       else if (reinterpret_cast<const Library *>(id)->flag & LIBRARY_FLAG_IS_ARCHIVE) {
         return ICON_PACKAGE;
       }
-      else if (((Library *)id)->runtime->parent) {
+      else if ((blender::id_cast<Library *>(const_cast<ID *>(id)))->runtime->parent) {
         return ICON_LIBRARY_DATA_INDIRECT;
       }
       else {
@@ -2534,7 +2544,7 @@ static BIFIconID tree_element_get_icon_from_id(const ID *id)
     case ID_GD_LEGACY:
       return ICON_OUTLINER_DATA_GREASEPENCIL;
     case ID_LP: {
-      const LightProbe *lp = (LightProbe *)id;
+      const LightProbe *lp = blender::id_cast<LightProbe *>(const_cast<ID *>(id));
       switch (lp->type) {
         case LIGHTPROBE_TYPE_SPHERE:
           return ICON_LIGHTPROBE_SPHERE;
@@ -2554,7 +2564,7 @@ static BIFIconID tree_element_get_icon_from_id(const ID *id)
     case ID_MSK:
       return ICON_MOD_MASK;
     case ID_NT: {
-      const bNodeTree *ntree = (bNodeTree *)id;
+      const bNodeTree *ntree = blender::id_cast<bNodeTree *>(const_cast<ID *>(id));
       const bke::bNodeTreeType *ntreetype = ntree->typeinfo;
       return ntreetype->ui_icon;
     }
@@ -2614,7 +2624,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
       case TSE_CONSTRAINT: {
         bConstraint *con = static_cast<bConstraint *>(te->directdata);
         data.drag_id = tselem->id;
-        switch ((eBConstraint_Types)con->type) {
+        switch (eBConstraint_Types(con->type)) {
           case CONSTRAINT_TYPE_CAMERASOLVER:
             data.icon = ICON_CON_CAMERASOLVER;
             break;
@@ -2728,7 +2738,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         data.icon = ICON_PARTICLES;
         break;
       case TSE_MODIFIER: {
-        Object *ob = (Object *)tselem->id;
+        Object *ob = blender::id_cast<Object *>(tselem->id);
         data.drag_id = tselem->id;
 
         ModifierData *md = static_cast<ModifierData *>(BLI_findlink(&ob->modifiers, tselem->nr));
@@ -2831,7 +2841,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
           ID *id = static_cast<ID *>(ptr.data);
           data.drag_id = id;
           if (id && GS(id->name) == ID_LI &&
-              id_cast<Library *>(id)->flag & LIBRARY_FLAG_IS_ARCHIVE)
+              blender::id_cast<Library *>(id)->flag & LIBRARY_FLAG_IS_ARCHIVE)
           {
             data.icon = ICON_PACKAGE;
           }
@@ -3084,7 +3094,7 @@ int tree_element_id_type_to_index(TreeElement *te)
     return id_index;
   }
   if (id_index == INDEX_ID_OB) {
-    const Object *ob = (Object *)tselem->id;
+    const Object *ob = blender::id_cast<Object *>(tselem->id);
     return INDEX_ID_OB + ob->type;
   }
   return id_index + OB_TYPE_MAX;
@@ -3132,7 +3142,8 @@ static void outliner_draw_iconrow(ui::Block *block,
       /* active blocks get white circle */
       if (tselem->type == TSE_SOME_ID) {
         if (te.idcode == ID_OB) {
-          active = (tvc.obact == (Object *)tselem->id) ? OL_DRAWSEL_NORMAL : OL_DRAWSEL_NONE;
+          active = (tvc.obact == id_cast<Object *>(tselem->id)) ? OL_DRAWSEL_NORMAL :
+                                                                  OL_DRAWSEL_NONE;
         }
         else if (is_object_data_in_editmode(tselem->id, tvc.obact)) {
           active = OL_DRAWSEL_ACTIVE;
@@ -3255,12 +3266,13 @@ static bool element_should_draw_faded(const TreeViewContext &tvc,
   if (tselem->type == TSE_SOME_ID) {
     switch (te->idcode) {
       case ID_OB: {
-        const Object *ob = (const Object *)tselem->id;
+        const Object *ob = blender::id_cast<const Object *>(tselem->id);
         /* Lookup in view layer is logically const as it only checks a cache. */
         BKE_view_layer_synced_ensure(tvc.scene, tvc.view_layer);
         const Base *base = (te->directdata) ?
-                               (const Base *)te->directdata :
-                               BKE_view_layer_base_find((ViewLayer *)tvc.view_layer, (Object *)ob);
+                               static_cast<const Base *>(te->directdata) :
+                               BKE_view_layer_base_find(static_cast<ViewLayer *>(tvc.view_layer),
+                                                        const_cast<Object *>(ob));
         const bool is_visible = (base != nullptr) &&
                                 (base->flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) &&
                                 !(te->flag & TE_CHILD_NOT_IN_COLLECTION);
@@ -3276,7 +3288,8 @@ static bool element_should_draw_faded(const TreeViewContext &tvc,
   }
   switch (tselem->type) {
     case TSE_LAYER_COLLECTION: {
-      const LayerCollection *layer_collection = (const LayerCollection *)te->directdata;
+      const LayerCollection *layer_collection = static_cast<const LayerCollection *>(
+          te->directdata);
       const bool is_visible = layer_collection->runtime_flag & LAYER_COLLECTION_VISIBLE_VIEW_LAYER;
       const bool is_excluded = layer_collection->flag & LAYER_COLLECTION_EXCLUDE;
       return !is_visible || is_excluded;
@@ -3339,9 +3352,9 @@ static void outliner_draw_tree_element(ui::Block *block,
     /* Colors for active/selected data. */
     if (tselem->type == TSE_SOME_ID) {
       if (te->idcode == ID_OB) {
-        Object *ob = (Object *)tselem->id;
+        Object *ob = blender::id_cast<Object *>(tselem->id);
         BKE_view_layer_synced_ensure(tvc.scene, tvc.view_layer);
-        Base *base = (te->directdata) ? (Base *)te->directdata :
+        Base *base = (te->directdata) ? static_cast<Base *>(te->directdata) :
                                         BKE_view_layer_base_find(tvc.view_layer, ob);
         const bool is_selected = (base != nullptr) && ((base->flag & BASE_SELECTED) != 0);
 
@@ -3449,7 +3462,7 @@ static void outliner_draw_tree_element(ui::Block *block,
       }
 
       if (tselem->type == TSE_LAYER_COLLECTION) {
-        const Collection *collection = (Collection *)tselem->id;
+        const Collection *collection = blender::id_cast<Collection *>(tselem->id);
         if (!BLI_listbase_is_empty(&collection->exporters)) {
           ui::icon_draw_alpha(
               float(startx) + offsx + 2 * ufac, float(*starty) + 2 * ufac, ICON_EXPORT, alpha_fac);

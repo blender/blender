@@ -674,7 +674,7 @@ static wmOperatorStatus slide_marker_modal(bContext *C, wmOperator *op, const wm
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
 
-  SlideMarkerData *data = (SlideMarkerData *)op->customdata;
+  SlideMarkerData *data = static_cast<SlideMarkerData *>(op->customdata);
   float dx, dy, mdelta[2];
 
   switch (event->type) {

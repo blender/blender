@@ -8,6 +8,7 @@
  * based on mouse cursor position, split of vertices along the closest edge.
  */
 
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_context.hh"
@@ -241,7 +242,7 @@ static wmOperatorStatus edbm_rip_edge_invoke(bContext *C,
       params.calc_looptris = true;
       params.calc_normals = false;
       params.is_destructive = true;
-      EDBM_update(static_cast<Mesh *>(obedit->data), &params);
+      EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
     }
   }
 

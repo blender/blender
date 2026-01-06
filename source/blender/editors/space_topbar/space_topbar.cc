@@ -61,7 +61,7 @@ static SpaceLink *topbar_create(const ScrArea * /*area*/, const Scene * /*scene*
   BLI_addtail(&stopbar->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;
 
-  return (SpaceLink *)stopbar;
+  return reinterpret_cast<SpaceLink *>(stopbar);
 }
 
 /* Doesn't free the space-link itself. */
@@ -76,7 +76,7 @@ static SpaceLink *topbar_duplicate(SpaceLink *sl)
 
   /* clear or remove stuff from old */
 
-  return (SpaceLink *)stopbarn;
+  return reinterpret_cast<SpaceLink *>(stopbarn);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */

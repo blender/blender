@@ -45,7 +45,7 @@
 
 static void init_data(ModifierData *md)
 {
-  HookModifierData *hmd = (HookModifierData *)md;
+  HookModifierData *hmd = reinterpret_cast<HookModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(hmd, modifier);
 
   hmd->curfalloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
@@ -53,8 +53,8 @@ static void init_data(ModifierData *md)
 
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
-  const HookModifierData *hmd = (const HookModifierData *)md;
-  HookModifierData *thmd = (HookModifierData *)target;
+  const HookModifierData *hmd = reinterpret_cast<const HookModifierData *>(md);
+  HookModifierData *thmd = reinterpret_cast<HookModifierData *>(target);
 
   BKE_modifier_copydata_generic(md, target, flag);
 
@@ -65,7 +65,7 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  HookModifierData *hmd = (HookModifierData *)md;
+  HookModifierData *hmd = reinterpret_cast<HookModifierData *>(md);
 
   /* Ask for vertex-groups if we need them. */
   if (hmd->name[0] != '\0') {
@@ -81,7 +81,7 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 
 static void free_data(ModifierData *md)
 {
-  HookModifierData *hmd = (HookModifierData *)md;
+  HookModifierData *hmd = reinterpret_cast<HookModifierData *>(md);
 
   BKE_curvemapping_free(hmd->curfalloff);
 
@@ -90,21 +90,21 @@ static void free_data(ModifierData *md)
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  HookModifierData *hmd = (HookModifierData *)md;
+  HookModifierData *hmd = reinterpret_cast<HookModifierData *>(md);
 
   return !hmd->object;
 }
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  HookModifierData *hmd = (HookModifierData *)md;
+  HookModifierData *hmd = reinterpret_cast<HookModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&hmd->object, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&hmd->object), IDWALK_CB_NOP);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  HookModifierData *hmd = (HookModifierData *)md;
+  HookModifierData *hmd = reinterpret_cast<HookModifierData *>(md);
   if (hmd->object != nullptr) {
     if (hmd->subtarget[0]) {
       DEG_add_bone_relation(
@@ -359,7 +359,7 @@ static void deformVerts_do(HookModifierData *hmd,
     {
       int verts_orig_num = positions.size();
       if (ob->type == OB_MESH) {
-        const Mesh *me_orig = static_cast<const Mesh *>(ob->data);
+        const Mesh *me_orig = blender::id_cast<const Mesh *>(ob->data);
         verts_orig_num = me_orig->verts_num;
       }
       BLI_bitmap *indexar_used = hook_index_array_to_bitmap(hmd, verts_orig_num);
@@ -422,7 +422,7 @@ static void deform_verts(ModifierData *md,
                          Mesh *mesh,
                          blender::MutableSpan<blender::float3> positions)
 {
-  HookModifierData *hmd = (HookModifierData *)md;
+  HookModifierData *hmd = reinterpret_cast<HookModifierData *>(md);
   deformVerts_do(hmd, ctx, ctx->object, mesh, nullptr, positions);
 }
 
@@ -432,7 +432,7 @@ static void deform_verts_EM(ModifierData *md,
                             Mesh *mesh,
                             blender::MutableSpan<blender::float3> positions)
 {
-  HookModifierData *hmd = (HookModifierData *)md;
+  HookModifierData *hmd = reinterpret_cast<HookModifierData *>(md);
 
   deformVerts_do(hmd,
                  ctx,
@@ -509,7 +509,7 @@ static void panel_register(ARegionType *region_type)
 
 static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const ModifierData *md)
 {
-  const HookModifierData *hmd = (const HookModifierData *)md;
+  const HookModifierData *hmd = reinterpret_cast<const HookModifierData *>(md);
 
   writer->write_struct(hmd);
 
@@ -522,7 +522,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 
 static void blend_read(BlendDataReader *reader, ModifierData *md)
 {
-  HookModifierData *hmd = (HookModifierData *)md;
+  HookModifierData *hmd = reinterpret_cast<HookModifierData *>(md);
 
   BLO_read_struct(reader, CurveMapping, &hmd->curfalloff);
   if (hmd->curfalloff) {

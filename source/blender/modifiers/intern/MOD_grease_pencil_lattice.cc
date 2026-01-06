@@ -64,7 +64,7 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
   auto *lmd = reinterpret_cast<GreasePencilLatticeModifierData *>(md);
   modifier::greasepencil::foreach_influence_ID_link(&lmd->influence, ob, walk, user_data);
 
-  walk(user_data, ob, (ID **)&lmd->object, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&lmd->object), IDWALK_CB_NOP);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)

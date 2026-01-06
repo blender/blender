@@ -288,7 +288,7 @@ ObjectState::ObjectState(const DRWContext *draw_ctx,
   draw_shadow = scene_state.draw_shadows && (ob->dtx & OB_DRAW_NO_SHADOW_CAST) == 0 &&
                 !sculpt_pbvh && !(is_active && DRW_object_use_hide_faces(ob));
 
-  color_type = (eV3DShadingColorType)scene_state.shading.color_type;
+  color_type = eV3DShadingColorType(scene_state.shading.color_type);
 
   /* Don't perform CustomData lookup unless it's really necessary, since it's quite expensive. */
   const auto has_color = [&]() {
@@ -324,7 +324,7 @@ ObjectState::ObjectState(const DRWContext *draw_ctx,
 
     /* Bad call C is required to access the tool system that is context aware. Cast to non-const
      * due to current API. */
-    bContext *C = (bContext *)draw_ctx->evil_C;
+    bContext *C = const_cast<bContext *>(draw_ctx->evil_C);
     if (C != nullptr) {
       const PaintModeSettings *paint_mode = &scene_state.scene->toolsettings->paint_mode;
       color_type = ED_paint_shading_color_override(C, paint_mode, *ob, color_type);

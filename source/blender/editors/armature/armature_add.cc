@@ -106,7 +106,7 @@ EditBone *ED_armature_ebone_add_primitive(Object *obedit_arm,
                                           const float length,
                                           const bool view_aligned)
 {
-  bArmature *arm = static_cast<bArmature *>(obedit_arm->data);
+  bArmature *arm = blender::id_cast<bArmature *>(obedit_arm->data);
   EditBone *bone;
 
   ED_armature_edit_deselect_all(obedit_arm);
@@ -147,7 +147,7 @@ static wmOperatorStatus armature_click_extrude_exec(bContext *C, wmOperator * /*
 
   scene = CTX_data_scene(C);
   obedit = CTX_data_edit_object(C);
-  arm = static_cast<bArmature *>(obedit->data);
+  arm = blender::id_cast<bArmature *>(obedit->data);
 
   /* find the active or selected bone */
   for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
@@ -294,7 +294,7 @@ EditBone *add_points_bone(Object *obedit, float head[3], float tail[3])
 {
   EditBone *ebo;
 
-  ebo = ED_armature_ebone_add(static_cast<bArmature *>(obedit->data), DATA_("Bone"));
+  ebo = ED_armature_ebone_add(blender::id_cast<bArmature *>(obedit->data), DATA_("Bone"));
 
   copy_v3_v3(ebo->head, head);
   copy_v3_v3(ebo->tail, tail);
@@ -415,7 +415,7 @@ static void update_duplicate_subtarget(EditBone *dup_bone,
         /* Can only mirror armature. */
         continue;
       }
-      bArmature *target_armature = static_cast<bArmature *>(target_ob->data);
+      bArmature *target_armature = blender::id_cast<bArmature *>(target_ob->data);
       /* Was the subtarget bone duplicated too? If
        * so, update the constraint to point at the
        * duplicate of the old subtarget.
@@ -515,7 +515,7 @@ static void update_duplicate_action_constraint_settings(
   }
 
   /* See if there is any channels that uses this bone */
-  bAction *act = (bAction *)act_con->act;
+  bAction *act = static_cast<bAction *>(act_con->act);
   if (act) {
     blender::animrig::Action &action = act->wrap();
     blender::animrig::Channelbag *cbag = blender::animrig::channelbag_for_action_slot(
@@ -1120,7 +1120,7 @@ static wmOperatorStatus armature_duplicate_selected_exec(bContext *C, wmOperator
     /* The beginning of the duplicated bones in the edbo list */
     EditBone *ebone_first_dupe = nullptr;
 
-    bArmature *arm = static_cast<bArmature *>(ob->data);
+    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
 
     ED_armature_edit_sync_selection(arm->edbo); /* XXX why is this needed? */
 
@@ -1296,7 +1296,7 @@ static wmOperatorStatus armature_symmetrize_exec(bContext *C, wmOperator *op)
     /* The beginning of the duplicated mirrored bones in the edbo list */
     EditBone *ebone_first_dupe = nullptr;
 
-    bArmature *arm = static_cast<bArmature *>(obedit->data);
+    bArmature *arm = blender::id_cast<bArmature *>(obedit->data);
 
     ED_armature_edit_sync_selection(arm->edbo); /* XXX why is this needed? */
 
@@ -1574,7 +1574,7 @@ static wmOperatorStatus armature_extrude_exec(bContext *C, wmOperator *op)
   };
 
   for (Object *ob : objects) {
-    bArmature *arm = static_cast<bArmature *>(ob->data);
+    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
     bool forked_iter = forked;
 
     EditBone *newbone = nullptr, *ebone, *flipbone, *first = nullptr;
@@ -1803,10 +1803,10 @@ static wmOperatorStatus armature_bone_primitive_add_exec(bContext *C, wmOperator
   ED_armature_edit_deselect_all(obedit);
 
   /* Create a bone. */
-  bone = ED_armature_ebone_add(static_cast<bArmature *>(obedit->data), name);
-  ANIM_armature_bonecoll_assign_active(static_cast<bArmature *>(obedit->data), bone);
+  bone = ED_armature_ebone_add(blender::id_cast<bArmature *>(obedit->data), name);
+  ANIM_armature_bonecoll_assign_active(blender::id_cast<bArmature *>(obedit->data), bone);
 
-  bArmature *arm = static_cast<bArmature *>(obedit->data);
+  bArmature *arm = blender::id_cast<bArmature *>(obedit->data);
   if (BLI_listbase_is_empty(&bone->bone_collections) && (arm->flag & ARM_BCOLL_SOLO_ACTIVE)) {
     BKE_report(op->reports,
                RPT_WARNING,

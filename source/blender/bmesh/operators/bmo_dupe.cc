@@ -573,7 +573,7 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
        * So we can read the original from the final.
        *
        * The normals must be recalculated anyway. */
-      *((int *)&v->no[0]) = i;
+      *(reinterpret_cast<int *>(&v->no[0])) = i;
     }
   }
 
@@ -644,12 +644,12 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
       else {
         /* Merge first/last vertices and edges (maintaining 'geom.out' state). */
         BMOpSlot *slot_geom_out = BMO_slot_get(extop.slots_out, "geom.out");
-        BMElem **elem_array = (BMElem **)slot_geom_out->data.buf;
+        BMElem **elem_array = reinterpret_cast<BMElem **>(slot_geom_out->data.buf);
         int elem_array_len = slot_geom_out->len;
         for (int i = 0; i < elem_array_len;) {
           if (elem_array[i]->head.htype == BM_VERT) {
-            BMVert *v_src = (BMVert *)elem_array[i];
-            BMVert *v_dst = vtable[*((const int *)&v_src->no[0])];
+            BMVert *v_src = reinterpret_cast<BMVert *>(elem_array[i]);
+            BMVert *v_dst = vtable[*(reinterpret_cast<const int *>(&v_src->no[0]))];
             BM_vert_splice(bm, v_dst, v_src);
             elem_array_len--;
             elem_array[i] = elem_array[elem_array_len];
@@ -660,7 +660,7 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
         }
         for (int i = 0; i < elem_array_len;) {
           if (elem_array[i]->head.htype == BM_EDGE) {
-            BMEdge *e_src = (BMEdge *)elem_array[i];
+            BMEdge *e_src = reinterpret_cast<BMEdge *>(elem_array[i]);
             BMEdge *e_dst = BM_edge_find_double(e_src);
             if (e_dst != nullptr) {
               BM_edge_splice(bm, e_dst, e_src);
@@ -674,7 +674,7 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
         /* Full copies of faces may cause overlap. */
         for (int i = 0; i < elem_array_len;) {
           if (elem_array[i]->head.htype == BM_FACE) {
-            BMFace *f_src = (BMFace *)elem_array[i];
+            BMFace *f_src = reinterpret_cast<BMFace *>(elem_array[i]);
             BMFace *f_dst = BM_face_find_double(f_src);
             if (f_dst != nullptr) {
               BM_face_kill(bm, f_src);

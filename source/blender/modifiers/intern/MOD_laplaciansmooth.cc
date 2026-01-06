@@ -466,13 +466,13 @@ static void laplaciansmoothModifier_do(
 
 static void init_data(ModifierData *md)
 {
-  LaplacianSmoothModifierData *smd = (LaplacianSmoothModifierData *)md;
+  LaplacianSmoothModifierData *smd = reinterpret_cast<LaplacianSmoothModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(smd, modifier);
 }
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  LaplacianSmoothModifierData *smd = (LaplacianSmoothModifierData *)md;
+  LaplacianSmoothModifierData *smd = reinterpret_cast<LaplacianSmoothModifierData *>(md);
   short flag;
 
   flag = smd->flag & (MOD_LAPLACIANSMOOTH_X | MOD_LAPLACIANSMOOTH_Y | MOD_LAPLACIANSMOOTH_Z);
@@ -487,7 +487,7 @@ static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_re
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  LaplacianSmoothModifierData *smd = (LaplacianSmoothModifierData *)md;
+  LaplacianSmoothModifierData *smd = reinterpret_cast<LaplacianSmoothModifierData *>(md);
 
   /* Ask for vertex-groups if we need them. */
   if (smd->defgrp_name[0] != '\0') {
@@ -504,7 +504,7 @@ static void deform_verts(ModifierData *md,
     return;
   }
 
-  laplaciansmoothModifier_do((LaplacianSmoothModifierData *)md,
+  laplaciansmoothModifier_do(reinterpret_cast<LaplacianSmoothModifierData *>(md),
                              ctx->object,
                              mesh,
                              reinterpret_cast<float (*)[3]>(positions.data()),

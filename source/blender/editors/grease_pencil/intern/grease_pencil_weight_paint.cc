@@ -237,7 +237,7 @@ static int foreach_bone_in_armature(Object &ob,
 
 bool add_armature_vertex_groups(Object &object, const Object &ob_armature)
 {
-  const bArmature &armature = *static_cast<const bArmature *>(ob_armature.data);
+  const bArmature &armature = *blender::id_cast<const bArmature *>(ob_armature.data);
 
   const int added_vertex_groups = foreach_bone_in_armature(
       object, armature, [&](Object &object, const Bone *bone) {
@@ -315,8 +315,8 @@ static int lookup_or_add_deform_group_index(CurvesGeometry &curves, const String
 void add_armature_envelope_weights(Scene &scene, Object &object, const Object &ob_armature)
 {
   using namespace bke;
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
-  const bArmature &armature = *static_cast<const bArmature *>(ob_armature.data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object.data);
+  const bArmature &armature = *blender::id_cast<const bArmature *>(ob_armature.data);
   const float4x4 armature_to_world = ob_armature.object_to_world();
   const float scale = mat4_to_scale(armature_to_world.ptr());
 
@@ -374,8 +374,8 @@ void add_armature_envelope_weights(Scene &scene, Object &object, const Object &o
 void add_armature_automatic_weights(Scene &scene, Object &object, const Object &ob_armature)
 {
   using namespace bke;
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
-  const bArmature &armature = *static_cast<const bArmature *>(ob_armature.data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object.data);
+  const bArmature &armature = *blender::id_cast<const bArmature *>(ob_armature.data);
   const float4x4 armature_to_world = ob_armature.object_to_world();
   /* Note: These constant values are taken from the legacy grease pencil code. */
   const float default_ratio = 0.1f;
@@ -463,7 +463,7 @@ static wmOperatorStatus weight_sample_invoke(bContext *C,
 
   /* Collect visible drawings. */
   const Object *ob_eval = DEG_get_evaluated(vc.depsgraph, vc.obact);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc.obact->data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(vc.obact->data);
   const Vector<DrawingInfo> drawings = retrieve_visible_drawings(*vc.scene, grease_pencil, false);
 
   /* Find stroke points closest to mouse cursor position. */
@@ -607,7 +607,7 @@ static wmOperatorStatus grease_pencil_weight_invert_exec(bContext *C, wmOperator
 {
   const Scene &scene = *CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
 
   /* Object vgroup index. */
   const int active_index = BKE_object_defgroup_active_index_get(object) - 1;
@@ -698,7 +698,7 @@ static wmOperatorStatus vertex_group_smooth_exec(bContext *C, wmOperator *op)
   const float smooth_factor = RNA_float_get(op->ptr, "factor");
   const int repeat = RNA_int_get(op->ptr, "repeat");
 
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
   const Scene &scene = *CTX_data_scene(C);
   const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
 
@@ -769,7 +769,7 @@ static wmOperatorStatus vertex_group_normalize_exec(bContext *C, wmOperator *op)
   }
 
   /* Get all editable drawings, grouped per frame. */
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
   const Scene &scene = *CTX_data_scene(C);
   Array<Vector<MutableDrawingInfo>> drawings_per_frame =
       retrieve_editable_drawings_grouped_per_frame(scene, grease_pencil);
@@ -887,7 +887,7 @@ static wmOperatorStatus vertex_group_normalize_all_exec(bContext *C, wmOperator 
   const bool lock_active_group = RNA_boolean_get(op->ptr, "lock_active");
 
   /* Get all editable drawings. */
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
   const Scene &scene = *CTX_data_scene(C);
   const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
 

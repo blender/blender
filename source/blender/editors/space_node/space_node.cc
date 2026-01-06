@@ -121,7 +121,7 @@ void ED_node_tree_start(ARegion *region, SpaceNode *snode, bNodeTree *ntree, ID 
 void ED_node_tree_push(ARegion *region, SpaceNode *snode, bNodeTree *ntree, bNode *gnode)
 {
   bNodeTreePath *path = MEM_new_for_free<bNodeTreePath>("node tree path");
-  bNodeTreePath *prev_path = (bNodeTreePath *)snode->treepath.last;
+  bNodeTreePath *prev_path = static_cast<bNodeTreePath *>(snode->treepath.last);
   path->nodetree = ntree;
   if (gnode) {
     if (prev_path) {
@@ -160,7 +160,7 @@ void ED_node_tree_push(ARegion *region, SpaceNode *snode, bNodeTree *ntree, bNod
 
 void ED_node_tree_pop(ARegion *region, SpaceNode *snode)
 {
-  bNodeTreePath *path = (bNodeTreePath *)snode->treepath.last;
+  bNodeTreePath *path = static_cast<bNodeTreePath *>(snode->treepath.last);
 
   /* don't remove root */
   if (path == snode->treepath.first) {
@@ -171,7 +171,7 @@ void ED_node_tree_pop(ARegion *region, SpaceNode *snode)
   MEM_freeN(path);
 
   /* update current tree */
-  path = (bNodeTreePath *)snode->treepath.last;
+  path = static_cast<bNodeTreePath *>(snode->treepath.last);
   snode->edittree = path->nodetree;
 
   /* Set view center from node tree path. */
@@ -194,7 +194,9 @@ bNodeTree *ED_node_tree_get(SpaceNode *snode, int level)
 {
   bNodeTreePath *path;
   int i;
-  for (path = (bNodeTreePath *)snode->treepath.last, i = 0; path; path = path->prev, i++) {
+  for (path = static_cast<bNodeTreePath *>(snode->treepath.last), i = 0; path;
+       path = path->prev, i++)
+  {
     if (i == level) {
       return path->nodetree;
     }
@@ -236,7 +238,7 @@ void ED_node_tree_path_get(SpaceNode *snode, char *value)
 
 void ED_node_set_active_viewer_key(SpaceNode *snode)
 {
-  bNodeTreePath *path = (bNodeTreePath *)snode->treepath.last;
+  bNodeTreePath *path = static_cast<bNodeTreePath *>(snode->treepath.last);
   if (snode->nodetree && path) {
     /* A change in active viewer may result in the change of the output node used by the
      * compositor, so we need to get notified about such changes. */
@@ -265,7 +267,7 @@ namespace blender::ed::space_node {
 
 float2 space_node_group_offset(const SpaceNode &snode)
 {
-  const bNodeTreePath *path = (bNodeTreePath *)snode.treepath.last;
+  const bNodeTreePath *path = static_cast<bNodeTreePath *>(snode.treepath.last);
 
   if (path && path->prev) {
     return float2(path->view_center) - float2(path->prev->view_center);
@@ -637,12 +639,12 @@ static SpaceLink *node_create(const ScrArea * /*area*/, const Scene * /*scene*/)
   region->v2d.keepzoom = V2D_LIMITZOOM | V2D_KEEPASPECT;
   region->v2d.keeptot = 0;
 
-  return (SpaceLink *)snode;
+  return reinterpret_cast<SpaceLink *>(snode);
 }
 
 static void node_free(SpaceLink *sl)
 {
-  SpaceNode *snode = (SpaceNode *)sl;
+  SpaceNode *snode = reinterpret_cast<SpaceNode *>(sl);
   BLI_freelistN(&snode->treepath);
   MEM_delete(snode->runtime);
 }
@@ -799,7 +801,7 @@ static void node_area_listener(const wmSpaceTypeListenerParams *params)
         if (ED_node_is_compositor(snode)) {
           /* Without this check drawing on an image could become very slow when the compositor is
            * open. */
-          if (any_node_uses_id(snode->nodetree, (ID *)wmn->reference)) {
+          if (any_node_uses_id(snode->nodetree, static_cast<ID *>(wmn->reference))) {
             node_area_tag_tree_recalc(snode, area);
           }
         }
@@ -809,7 +811,7 @@ static void node_area_listener(const wmSpaceTypeListenerParams *params)
     case NC_MOVIECLIP:
       if (wmn->action == NA_EDITED) {
         if (ED_node_is_compositor(snode)) {
-          if (any_node_uses_id(snode->nodetree, (ID *)wmn->reference)) {
+          if (any_node_uses_id(snode->nodetree, static_cast<ID *>(wmn->reference))) {
             node_area_tag_tree_recalc(snode, area);
           }
         }
@@ -852,8 +854,8 @@ static void node_area_refresh(const bContext *C, ScrArea *area)
 
 static SpaceLink *node_duplicate(SpaceLink *sl)
 {
-  SpaceNode *snode = (SpaceNode *)sl;
-  SpaceNode *snoden = (SpaceNode *)MEM_dupallocN(snode);
+  SpaceNode *snode = reinterpret_cast<SpaceNode *>(sl);
+  SpaceNode *snoden = static_cast<SpaceNode *>(MEM_dupallocN(snode));
 
   BLI_duplicatelist(&snoden->treepath, &snode->treepath);
 
@@ -864,7 +866,7 @@ static SpaceLink *node_duplicate(SpaceLink *sl)
    * which is already done by the original SpaceNode.
    */
 
-  return (SpaceLink *)snoden;
+  return reinterpret_cast<SpaceLink *>(snoden);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -1508,8 +1510,8 @@ static void node_id_remap(ID *old_id, ID *new_id, SpaceNode *snode)
     }
   }
   else if (GS(old_id->name) == ID_GD_LEGACY) {
-    if ((ID *)snode->gpd == old_id) {
-      snode->gpd = (bGPdata *)new_id;
+    if (blender::id_cast<ID *>(snode->gpd) == old_id) {
+      snode->gpd = blender::id_cast<bGPdata *>(new_id);
       id_us_min(old_id);
       id_us_plus(new_id);
     }
@@ -1524,9 +1526,9 @@ static void node_id_remap(ID *old_id, ID *new_id, SpaceNode *snode)
 
     bNodeTreePath *path, *path_next;
 
-    for (path = (bNodeTreePath *)snode->treepath.first; path; path = path->next) {
-      if ((ID *)path->nodetree == old_id) {
-        path->nodetree = (bNodeTree *)new_id;
+    for (path = static_cast<bNodeTreePath *>(snode->treepath.first); path; path = path->next) {
+      if (blender::id_cast<ID *>(path->nodetree) == old_id) {
+        path->nodetree = blender::id_cast<bNodeTree *>(new_id);
         id_us_ensure_real(new_id);
       }
       if (path == snode->treepath.first) {
@@ -1549,7 +1551,7 @@ static void node_id_remap(ID *old_id, ID *new_id, SpaceNode *snode)
     /* edittree is just the last in the path,
      * set this directly since the path may have been shortened above */
     if (snode->treepath.last) {
-      path = (bNodeTreePath *)snode->treepath.last;
+      path = static_cast<bNodeTreePath *>(snode->treepath.last);
       snode->edittree = path->nodetree;
       ED_node_set_active_viewer_key(snode);
     }
@@ -1730,7 +1732,7 @@ static int node_space_icon_get(const ScrArea *area)
 
 static void node_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
-  SpaceNode *snode = (SpaceNode *)sl;
+  SpaceNode *snode = reinterpret_cast<SpaceNode *>(sl);
 
   if (snode->gpd) {
     BLO_read_struct(reader, bGPdata, &snode->gpd);
@@ -1744,7 +1746,7 @@ static void node_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 
 static void node_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
-  SpaceNode *snode = (SpaceNode *)sl;
+  SpaceNode *snode = reinterpret_cast<SpaceNode *>(sl);
   writer->write_struct_cast<SpaceNode>(snode);
 
   for (bNodeTreePath &path : snode->treepath) {

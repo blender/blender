@@ -216,19 +216,19 @@ struct MTLContextDepthStencilState {
                                   ((this->has_depth_target ? 1 : 0) << 3) |
                                   ((this->has_stencil_target ? 1 : 0) << 4);
 
-    std::size_t stencilop_bitmask = ((std::size_t)this->stencil_op_front_stencil_fail) |
-                                    ((std::size_t)this->stencil_op_front_depth_fail << 3) |
-                                    ((std::size_t)this->stencil_op_front_depthstencil_pass << 6) |
-                                    ((std::size_t)this->stencil_op_back_stencil_fail << 9) |
-                                    ((std::size_t)this->stencil_op_back_depth_fail << 12) |
-                                    ((std::size_t)this->stencil_op_back_depthstencil_pass << 15);
+    std::size_t stencilop_bitmask = (std::size_t(this->stencil_op_front_stencil_fail)) |
+                                    (std::size_t(this->stencil_op_front_depth_fail) << 3) |
+                                    (std::size_t(this->stencil_op_front_depthstencil_pass) << 6) |
+                                    (std::size_t(this->stencil_op_back_stencil_fail) << 9) |
+                                    (std::size_t(this->stencil_op_back_depth_fail) << 12) |
+                                    (std::size_t(this->stencil_op_back_depthstencil_pass) << 15);
 
-    std::size_t main_hash = (std::size_t)this->depth_function;
+    std::size_t main_hash = std::size_t(this->depth_function);
     if (this->has_stencil_target) {
-      main_hash += (std::size_t)(this->stencil_read_mask & 0xFF) << 8;
-      main_hash += (std::size_t)(this->stencil_write_mask & 0xFF) << 16;
+      main_hash += std::size_t(this->stencil_read_mask & 0xFF) << 8;
+      main_hash += std::size_t(this->stencil_write_mask & 0xFF) << 16;
     }
-    main_hash ^= (std::size_t)this->stencil_func << 16;
+    main_hash ^= std::size_t(this->stencil_func) << 16;
     main_hash ^= stencilop_bitmask;
 
     std::size_t final_hash = (main_hash << 8) | boolean_bitmask;

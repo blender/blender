@@ -149,7 +149,7 @@ static void BPyGPUUniformBuf__tp_dealloc(BPyGPUUniformBuf *self)
   if (self->ubo) {
     GPU_uniformbuf_free(self->ubo);
   }
-  Py_TYPE(self)->tp_free((PyObject *)self);
+  Py_TYPE(self)->tp_free(reinterpret_cast<PyObject *>(self));
 }
 
 static PyGetSetDef pygpu_uniformbuffer__tp_getseters[] = {
@@ -157,7 +157,10 @@ static PyGetSetDef pygpu_uniformbuffer__tp_getseters[] = {
 };
 
 static PyMethodDef pygpu_uniformbuffer__tp_methods[] = {
-    {"update", (PyCFunction)pygpu_uniformbuffer_update, METH_O, pygpu_uniformbuffer_update_doc},
+    {"update",
+     reinterpret_cast<PyCFunction>(pygpu_uniformbuffer_update),
+     METH_O,
+     pygpu_uniformbuffer_update_doc},
 #ifdef BPYGPU_USE_GPUOBJ_FREE_METHOD
     {"free", (PyCFunction)pygpu_uniformbuffer_free, METH_NOARGS, pygpu_uniformbuffer_free_doc},
 #endif
@@ -178,7 +181,7 @@ PyTypeObject BPyGPUUniformBuf_Type = {
     /*tp_name*/ "GPUUniformBuf",
     /*tp_basicsize*/ sizeof(BPyGPUUniformBuf),
     /*tp_itemsize*/ 0,
-    /*tp_dealloc*/ (destructor)BPyGPUUniformBuf__tp_dealloc,
+    /*tp_dealloc*/ reinterpret_cast<destructor>(BPyGPUUniformBuf__tp_dealloc),
     /*tp_vectorcall_offset*/ 0,
     /*tp_getattr*/ nullptr,
     /*tp_setattr*/ nullptr,
@@ -238,7 +241,7 @@ PyObject *BPyGPUUniformBuf_CreatePyObject(blender::gpu::UniformBuf *ubo)
   self = PyObject_New(BPyGPUUniformBuf, &BPyGPUUniformBuf_Type);
   self->ubo = ubo;
 
-  return (PyObject *)self;
+  return reinterpret_cast<PyObject *>(self);
 }
 
 /** \} */

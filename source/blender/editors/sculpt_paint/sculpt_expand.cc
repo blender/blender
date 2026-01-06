@@ -357,7 +357,7 @@ static BitVector<> enabled_state_to_bitmap(const Depsgraph &depsgraph,
   }
   switch (bke::object::pbvh_get(object)->type()) {
     case bke::pbvh::Type::Mesh: {
-      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const Mesh &mesh = *blender::id_cast<const Mesh *>(object.data);
       const Span<float3> positions = bke::pbvh::vert_positions_eval(depsgraph, object);
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
       const bke::AttributeAccessor attributes = mesh.attributes();
@@ -386,7 +386,7 @@ static BitVector<> enabled_state_to_bitmap(const Depsgraph &depsgraph,
       break;
     }
     case bke::pbvh::Type::Grids: {
-      const Mesh &base_mesh = *static_cast<const Mesh *>(object.data);
+      const Mesh &base_mesh = *blender::id_cast<const Mesh *>(object.data);
       const bke::AttributeAccessor attributes = base_mesh.attributes();
       const VArraySpan face_sets = *attributes.lookup_or_default<int>(
           ".sculpt_face_set", bke::AttrDomain::Face, 0);
@@ -457,7 +457,7 @@ static IndexMask boundary_from_enabled(Object &object,
 
   switch (bke::object::pbvh_get(object)->type()) {
     case bke::pbvh::Type::Mesh: {
-      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const Mesh &mesh = *blender::id_cast<const Mesh *>(object.data);
       const OffsetIndices faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
@@ -484,7 +484,7 @@ static IndexMask boundary_from_enabled(Object &object,
       });
     }
     case bke::pbvh::Type::Grids: {
-      const Mesh &base_mesh = *static_cast<const Mesh *>(object.data);
+      const Mesh &base_mesh = *blender::id_cast<const Mesh *>(object.data);
       const OffsetIndices faces = base_mesh.faces();
       const Span<int> corner_verts = base_mesh.corner_verts();
 
@@ -570,7 +570,7 @@ Vector<int> find_symm_verts_mesh(const Depsgraph &depsgraph,
   Vector<int> symm_verts;
   symm_verts.append(original_vert);
 
-  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  const Mesh &mesh = *blender::id_cast<const Mesh *>(object.data);
   const Span<float3> positions = bke::pbvh::vert_positions_eval(depsgraph, object);
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
@@ -688,7 +688,7 @@ static Array<float> geodesic_falloff_create(const Depsgraph &depsgraph,
                                             Object &ob,
                                             const IndexMask &initial_verts)
 {
-  const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+  const Mesh &mesh = *blender::id_cast<const Mesh *>(ob.data);
   const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
   const Span<int2> edges = mesh.edges();
   const OffsetIndices faces = mesh.faces();
@@ -741,7 +741,7 @@ static void calc_topology_falloff_from_verts(Object &ob,
                                              MutableSpan<float> distances)
 {
   SculptSession &ss = *ob.sculpt;
-  const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+  const Mesh &mesh = *blender::id_cast<const Mesh *>(ob.data);
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   const int totvert = SCULPT_vertex_count_get(ob);
@@ -830,7 +830,7 @@ static Array<float> normals_falloff_create(const Depsgraph &depsgraph,
 
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+      const Mesh &mesh = *blender::id_cast<const Mesh *>(ob.data);
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, ob);
 
@@ -1026,7 +1026,7 @@ static Array<float> diagonals_falloff_create(const Depsgraph &depsgraph,
                                              const int vert)
 {
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
-  const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+  const Mesh &mesh = *blender::id_cast<const Mesh *>(ob.data);
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
@@ -1262,7 +1262,7 @@ static void resursion_step_add(const Depsgraph &depsgraph,
 
   update_max_vert_falloff_value(ob, expand_cache);
   if (expand_cache.target == TargetType::FaceSets) {
-    Mesh &mesh = *static_cast<Mesh *>(ob.data);
+    Mesh &mesh = *blender::id_cast<Mesh *>(ob.data);
     vert_to_face_falloff(ob, &mesh, expand_cache);
     update_max_face_falloff_factor(ob, mesh, expand_cache);
   }
@@ -1287,7 +1287,7 @@ static void init_from_face_set_boundary(const Depsgraph &depsgraph,
   Array<bool> vert_has_unique_face_set(totvert);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+      const Mesh &mesh = *blender::id_cast<const Mesh *>(ob.data);
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set",
@@ -1303,7 +1303,7 @@ static void init_from_face_set_boundary(const Depsgraph &depsgraph,
       break;
     }
     case bke::pbvh::Type::Grids: {
-      const Mesh &base_mesh = *static_cast<const Mesh *>(ob.data);
+      const Mesh &base_mesh = *blender::id_cast<const Mesh *>(ob.data);
       const OffsetIndices<int> faces = base_mesh.faces();
       const Span<int> corner_verts = base_mesh.corner_verts();
       const GroupedSpan<int> vert_to_face_map = base_mesh.vert_to_face_map();
@@ -1440,7 +1440,7 @@ static void calc_falloff_from_vert_and_symmetry(const Depsgraph &depsgraph,
   /* Update max falloff values and propagate to base mesh faces if needed. */
   update_max_vert_falloff_value(ob, expand_cache);
   if (expand_cache.target == TargetType::FaceSets) {
-    Mesh &mesh = *static_cast<Mesh *>(ob.data);
+    Mesh &mesh = *blender::id_cast<Mesh *>(ob.data);
     vert_to_face_falloff(ob, &mesh, expand_cache);
     update_max_face_falloff_factor(ob, mesh, expand_cache);
   }
@@ -1459,7 +1459,7 @@ static void snap_init_from_enabled(const Depsgraph &depsgraph,
   if (pbvh.type() != bke::pbvh::Type::Mesh) {
     return;
   }
-  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  const Mesh &mesh = *blender::id_cast<const Mesh *>(object.data);
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   /* Make sure this code runs with snapping and invert disabled. This simplifies the code and
@@ -1506,7 +1506,7 @@ static void restore_face_set_data(Object &object, Cache &expand_cache)
 {
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(
-      *static_cast<Mesh *>(object.data));
+      *blender::id_cast<Mesh *>(object.data));
   face_sets.span.copy_from(expand_cache.original_face_sets);
   face_sets.finish();
 
@@ -1519,7 +1519,7 @@ static void restore_color_data(Object &ob, Cache &expand_cache)
 {
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-  Mesh &mesh = *static_cast<Mesh *>(ob.data);
+  Mesh &mesh = *blender::id_cast<Mesh *>(ob.data);
   IndexMaskMemory memory;
   const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
 
@@ -1550,7 +1550,7 @@ static void write_mask_data(Object &object, const Span<float> mask)
   const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
+      Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
       bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
       attributes.remove(".sculpt_mask");
       attributes.add<float>(".sculpt_mask",
@@ -1761,7 +1761,7 @@ static bool update_mask_bmesh(SculptSession &ss,
  */
 static void face_sets_update(Object &object, Cache &expand_cache)
 {
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
   bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(mesh);
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
@@ -1859,7 +1859,7 @@ static bool colors_update_task(const Depsgraph &depsgraph,
 /* Store the original mesh data state in the expand cache. */
 static void original_state_store(Object &ob, Cache &expand_cache)
 {
-  Mesh &mesh = *static_cast<Mesh *>(ob.data);
+  Mesh &mesh = *blender::id_cast<Mesh *>(ob.data);
   const int totvert = SCULPT_vertex_count_get(ob);
 
   face_set::create_face_sets_mesh(ob);
@@ -1873,7 +1873,7 @@ static void original_state_store(Object &ob, Cache &expand_cache)
   }
 
   if (expand_cache.target == TargetType::Colors) {
-    const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+    const Mesh &mesh = *blender::id_cast<const Mesh *>(ob.data);
     const OffsetIndices<int> faces = mesh.faces();
     const Span<int> corner_verts = mesh.corner_verts();
     const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
@@ -1893,7 +1893,7 @@ static void original_state_store(Object &ob, Cache &expand_cache)
  */
 static void face_sets_restore(Object &object, Cache &expand_cache)
 {
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(mesh);
@@ -1986,7 +1986,7 @@ static void update_for_vert(bContext *C, Object &ob, const std::optional<int> ve
       flush_update_step(C, UpdateType::FaceSet);
       break;
     case TargetType::Colors: {
-      Mesh &mesh = *static_cast<Mesh *>(ob.data);
+      Mesh &mesh = *blender::id_cast<Mesh *>(ob.data);
       const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
       const OffsetIndices<int> faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
@@ -2684,7 +2684,7 @@ static bool any_nonzero_mask(const Object &object)
   const SculptSession &ss = *object.sculpt;
   switch (bke::object::pbvh_get(object)->type()) {
     case bke::pbvh::Type::Mesh: {
-      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const Mesh &mesh = *blender::id_cast<const Mesh *>(object.data);
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArraySpan mask = *attributes.lookup<float>(".sculpt_mask");
       if (mask.is_empty()) {
@@ -2727,7 +2727,7 @@ static wmOperatorStatus sculpt_expand_invoke(bContext *C, wmOperator *op, const 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object &ob = *CTX_data_active_object(C);
   SculptSession &ss = *ob.sculpt;
-  Mesh *mesh = static_cast<Mesh *>(ob.data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob.data);
 
   const View3D *v3d = CTX_wm_view3d(C);
   const Base *base = CTX_data_active_base(C);
@@ -2816,7 +2816,7 @@ static wmOperatorStatus sculpt_expand_invoke(bContext *C, wmOperator *op, const 
   /* When starting from a boundary vertex, set the initial falloff to boundary. */
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+      const Mesh &mesh = *blender::id_cast<const Mesh *>(ob.data);
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
@@ -2828,7 +2828,7 @@ static wmOperatorStatus sculpt_expand_invoke(bContext *C, wmOperator *op, const 
       break;
     }
     case bke::pbvh::Type::Grids: {
-      const Mesh &base_mesh = *static_cast<const Mesh *>(ob.data);
+      const Mesh &base_mesh = *blender::id_cast<const Mesh *>(ob.data);
       const OffsetIndices<int> faces = base_mesh.faces();
       const Span<int> corner_verts = base_mesh.corner_verts();
       const bke::AttributeAccessor attributes = base_mesh.attributes();

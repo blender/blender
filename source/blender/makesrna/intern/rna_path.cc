@@ -427,7 +427,7 @@ static bool rna_path_parse(const PointerRNA *ptr,
     if (use_id_prop) { /* look up property name in current struct */
       IDProperty *group = RNA_struct_idprops(&curptr, false);
       if (group && quoted) {
-        prop = (PropertyRNA *)IDP_GetPropertyFromGroup(group, token);
+        prop = reinterpret_cast<PropertyRNA *>(IDP_GetPropertyFromGroup(group, token));
       }
     }
     else {
@@ -1024,7 +1024,7 @@ std::optional<std::string> RNA_path_from_ID_to_struct(const PointerRNA *ptr)
   if (!RNA_struct_is_ID(ptr->type)) {
     if (ptr->type->path) {
       /* if type has a path to some ID, use it */
-      ptrpath = ptr->type->path((PointerRNA *)ptr);
+      ptrpath = ptr->type->path(const_cast<PointerRNA *>(ptr));
     }
     else if (ptr->type->nested && RNA_struct_is_ID(ptr->type->nested)) {
       PropertyRNA *userprop;

@@ -60,7 +60,7 @@ BlendHandle *BLO_blendhandle_from_file(const char *filepath, BlendFileReadReport
 {
   BlendHandle *bh;
 
-  bh = (BlendHandle *)blo_filedata_from_file(filepath, reports);
+  bh = reinterpret_cast<BlendHandle *>(blo_filedata_from_file(filepath, reports));
 
   return bh;
 }
@@ -71,7 +71,7 @@ BlendHandle *BLO_blendhandle_from_memory(const void *mem,
 {
   BlendHandle *bh;
 
-  bh = (BlendHandle *)blo_filedata_from_memory(mem, memsize, reports);
+  bh = reinterpret_cast<BlendHandle *>(blo_filedata_from_memory(mem, memsize, reports));
 
   return bh;
 }
@@ -115,7 +115,7 @@ LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh,
                                               const bool use_assets_only,
                                               int *r_tot_names)
 {
-  FileData *fd = (FileData *)bh;
+  FileData *fd = reinterpret_cast<FileData *>(bh);
   LinkNode *names = nullptr;
   BHead *bhead;
   int tot = 0;
@@ -148,7 +148,7 @@ LinkNode *BLO_blendhandle_get_datablock_info(BlendHandle *bh,
                                              const bool use_assets_only,
                                              int *r_tot_info_items)
 {
-  FileData *fd = (FileData *)bh;
+  FileData *fd = reinterpret_cast<FileData *>(bh);
   LinkNode *infos = nullptr;
   BHead *bhead;
   int tot = 0;
@@ -255,7 +255,7 @@ PreviewImage *BLO_blendhandle_get_preview_for_id(BlendHandle *bh,
                                                  int ofblocktype,
                                                  const char *name)
 {
-  FileData *fd = (FileData *)bh;
+  FileData *fd = reinterpret_cast<FileData *>(bh);
   bool looking = false;
   const int sdna_preview_image = DNA_struct_find_with_alias(fd->filesdna, "PreviewImage");
 
@@ -294,7 +294,7 @@ PreviewImage *BLO_blendhandle_get_preview_for_id(BlendHandle *bh,
 
 LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh)
 {
-  FileData *fd = (FileData *)bh;
+  FileData *fd = reinterpret_cast<FileData *>(bh);
   blender::Set<const char *> gathered;
   LinkNode *names = nullptr;
   BHead *bhead;
@@ -319,7 +319,7 @@ LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh)
 
 void BLO_blendhandle_close(BlendHandle *bh)
 {
-  FileData *fd = (FileData *)bh;
+  FileData *fd = reinterpret_cast<FileData *>(bh);
 
   blo_filedata_free(fd);
 }

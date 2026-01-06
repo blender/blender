@@ -42,7 +42,7 @@ static SpaceLink *statusbar_create(const ScrArea * /*area*/, const Scene * /*sce
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = RGN_ALIGN_NONE;
 
-  return (SpaceLink *)sstatusbar;
+  return reinterpret_cast<SpaceLink *>(sstatusbar);
 }
 
 /* Doesn't free the space-link itself. */
@@ -57,7 +57,7 @@ static SpaceLink *statusbar_duplicate(SpaceLink *sl)
 
   /* clear or remove stuff from old */
 
-  return (SpaceLink *)sstatusbarn;
+  return reinterpret_cast<SpaceLink *>(sstatusbarn);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */

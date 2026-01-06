@@ -264,8 +264,9 @@ IDPropertyUIData *IDP_ui_data_copy(const IDProperty *prop)
   /* Copy extra type specific data. */
   switch (IDP_ui_data_type(prop)) {
     case IDP_UI_DATA_TYPE_STRING: {
-      const IDPropertyUIDataString *src = (const IDPropertyUIDataString *)prop->ui_data;
-      IDPropertyUIDataString *dst = (IDPropertyUIDataString *)dst_ui_data;
+      const IDPropertyUIDataString *src = reinterpret_cast<const IDPropertyUIDataString *>(
+          prop->ui_data);
+      IDPropertyUIDataString *dst = reinterpret_cast<IDPropertyUIDataString *>(dst_ui_data);
       dst->default_value = static_cast<char *>(MEM_dupallocN(src->default_value));
       break;
     }
@@ -273,8 +274,9 @@ IDPropertyUIData *IDP_ui_data_copy(const IDProperty *prop)
       break;
     }
     case IDP_UI_DATA_TYPE_INT: {
-      const IDPropertyUIDataInt *src = (const IDPropertyUIDataInt *)prop->ui_data;
-      IDPropertyUIDataInt *dst = (IDPropertyUIDataInt *)dst_ui_data;
+      const IDPropertyUIDataInt *src = reinterpret_cast<const IDPropertyUIDataInt *>(
+          prop->ui_data);
+      IDPropertyUIDataInt *dst = reinterpret_cast<IDPropertyUIDataInt *>(dst_ui_data);
       dst->default_array = static_cast<int *>(MEM_dupallocN(src->default_array));
       dst->enum_items = static_cast<IDPropertyUIDataEnumItem *>(MEM_dupallocN(src->enum_items));
       for (const int64_t i : blender::IndexRange(src->enum_items_num)) {
@@ -287,14 +289,16 @@ IDPropertyUIData *IDP_ui_data_copy(const IDProperty *prop)
       break;
     }
     case IDP_UI_DATA_TYPE_BOOLEAN: {
-      const IDPropertyUIDataBool *src = (const IDPropertyUIDataBool *)prop->ui_data;
-      IDPropertyUIDataBool *dst = (IDPropertyUIDataBool *)dst_ui_data;
+      const IDPropertyUIDataBool *src = reinterpret_cast<const IDPropertyUIDataBool *>(
+          prop->ui_data);
+      IDPropertyUIDataBool *dst = reinterpret_cast<IDPropertyUIDataBool *>(dst_ui_data);
       dst->default_array = static_cast<int8_t *>(MEM_dupallocN(src->default_array));
       break;
     }
     case IDP_UI_DATA_TYPE_FLOAT: {
-      const IDPropertyUIDataFloat *src = (const IDPropertyUIDataFloat *)prop->ui_data;
-      IDPropertyUIDataFloat *dst = (IDPropertyUIDataFloat *)dst_ui_data;
+      const IDPropertyUIDataFloat *src = reinterpret_cast<const IDPropertyUIDataFloat *>(
+          prop->ui_data);
+      IDPropertyUIDataFloat *dst = reinterpret_cast<IDPropertyUIDataFloat *>(dst_ui_data);
       dst->default_array = static_cast<double *>(MEM_dupallocN(src->default_array));
       break;
     }
@@ -616,7 +620,8 @@ void IDP_SyncGroupValues(IDProperty *dest, const IDProperty *src)
 void IDP_SyncGroupTypes(IDProperty *dest, const IDProperty *src, const bool do_arraylen)
 {
   for (IDProperty &prop_dst : dest->data.group.items_mutable()) {
-    const IDProperty *prop_src = IDP_GetPropertyFromGroup((IDProperty *)src, prop_dst.name);
+    const IDProperty *prop_src = IDP_GetPropertyFromGroup(const_cast<IDProperty *>(src),
+                                                          prop_dst.name);
     if (prop_src != nullptr) {
       /* check of we should replace? */
       if ((prop_dst.type != prop_src->type || prop_dst.subtype != prop_src->subtype) ||
@@ -1024,11 +1029,11 @@ IDProperty *IDP_New(const char type,
       break;
     case IDP_FLOAT:
       prop = MEM_new_for_free<IDProperty>("IDProperty float");
-      *(float *)&prop->data.val = val->f;
+      *reinterpret_cast<float *>(&prop->data.val) = val->f;
       break;
     case IDP_DOUBLE:
       prop = MEM_new_for_free<IDProperty>("IDProperty double");
-      *(double *)&prop->data.val = val->d;
+      *reinterpret_cast<double *>(&prop->data.val) = val->d;
       break;
     case IDP_BOOLEAN:
       prop = MEM_new_for_free<IDProperty>("IDProperty boolean");
@@ -1100,7 +1105,7 @@ IDProperty *IDP_New(const char type,
     }
     case IDP_ID: {
       prop = MEM_new_for_free<IDProperty>("IDProperty datablock");
-      prop->data.pointer = (void *)val->id;
+      prop->data.pointer = static_cast<void *>(val->id);
       prop->type = IDP_ID;
       id_us_plus(IDP_ID_get(prop));
       break;
@@ -1128,8 +1133,9 @@ void IDP_ui_data_free_unique_contents(IDPropertyUIData *ui_data,
 
   switch (type) {
     case IDP_UI_DATA_TYPE_STRING: {
-      const IDPropertyUIDataString *other_string = (const IDPropertyUIDataString *)other;
-      IDPropertyUIDataString *ui_data_string = (IDPropertyUIDataString *)ui_data;
+      const IDPropertyUIDataString *other_string =
+          reinterpret_cast<const IDPropertyUIDataString *>(other);
+      IDPropertyUIDataString *ui_data_string = reinterpret_cast<IDPropertyUIDataString *>(ui_data);
       if (ui_data_string->default_value != other_string->default_value) {
         MEM_SAFE_FREE(ui_data_string->default_value);
       }
@@ -1139,8 +1145,8 @@ void IDP_ui_data_free_unique_contents(IDPropertyUIData *ui_data,
       break;
     }
     case IDP_UI_DATA_TYPE_INT: {
-      const IDPropertyUIDataInt *other_int = (const IDPropertyUIDataInt *)other;
-      IDPropertyUIDataInt *ui_data_int = (IDPropertyUIDataInt *)ui_data;
+      const IDPropertyUIDataInt *other_int = reinterpret_cast<const IDPropertyUIDataInt *>(other);
+      IDPropertyUIDataInt *ui_data_int = reinterpret_cast<IDPropertyUIDataInt *>(ui_data);
       if (ui_data_int->default_array != other_int->default_array) {
         MEM_SAFE_FREE(ui_data_int->default_array);
       }
@@ -1150,16 +1156,18 @@ void IDP_ui_data_free_unique_contents(IDPropertyUIData *ui_data,
       break;
     }
     case IDP_UI_DATA_TYPE_BOOLEAN: {
-      const IDPropertyUIDataBool *other_bool = (const IDPropertyUIDataBool *)other;
-      IDPropertyUIDataBool *ui_data_bool = (IDPropertyUIDataBool *)ui_data;
+      const IDPropertyUIDataBool *other_bool = reinterpret_cast<const IDPropertyUIDataBool *>(
+          other);
+      IDPropertyUIDataBool *ui_data_bool = reinterpret_cast<IDPropertyUIDataBool *>(ui_data);
       if (ui_data_bool->default_array != other_bool->default_array) {
         MEM_SAFE_FREE(ui_data_bool->default_array);
       }
       break;
     }
     case IDP_UI_DATA_TYPE_FLOAT: {
-      const IDPropertyUIDataFloat *other_float = (const IDPropertyUIDataFloat *)other;
-      IDPropertyUIDataFloat *ui_data_float = (IDPropertyUIDataFloat *)ui_data;
+      const IDPropertyUIDataFloat *other_float = reinterpret_cast<const IDPropertyUIDataFloat *>(
+          other);
+      IDPropertyUIDataFloat *ui_data_float = reinterpret_cast<IDPropertyUIDataFloat *>(ui_data);
       if (ui_data_float->default_array != other_float->default_array) {
         MEM_SAFE_FREE(ui_data_float->default_array);
       }
@@ -1175,7 +1183,7 @@ static void ui_data_free(IDPropertyUIData *ui_data, const eIDPropertyUIDataType 
 {
   switch (type) {
     case IDP_UI_DATA_TYPE_STRING: {
-      IDPropertyUIDataString *ui_data_string = (IDPropertyUIDataString *)ui_data;
+      IDPropertyUIDataString *ui_data_string = reinterpret_cast<IDPropertyUIDataString *>(ui_data);
       MEM_SAFE_FREE(ui_data_string->default_value);
       break;
     }
@@ -1183,18 +1191,18 @@ static void ui_data_free(IDPropertyUIData *ui_data, const eIDPropertyUIDataType 
       break;
     }
     case IDP_UI_DATA_TYPE_INT: {
-      IDPropertyUIDataInt *ui_data_int = (IDPropertyUIDataInt *)ui_data;
+      IDPropertyUIDataInt *ui_data_int = reinterpret_cast<IDPropertyUIDataInt *>(ui_data);
       MEM_SAFE_FREE(ui_data_int->default_array);
       IDP_int_ui_data_free_enum_items(ui_data_int);
       break;
     }
     case IDP_UI_DATA_TYPE_BOOLEAN: {
-      IDPropertyUIDataBool *ui_data_bool = (IDPropertyUIDataBool *)ui_data;
+      IDPropertyUIDataBool *ui_data_bool = reinterpret_cast<IDPropertyUIDataBool *>(ui_data);
       MEM_SAFE_FREE(ui_data_bool->default_array);
       break;
     }
     case IDP_UI_DATA_TYPE_FLOAT: {
-      IDPropertyUIDataFloat *ui_data_float = (IDPropertyUIDataFloat *)ui_data;
+      IDPropertyUIDataFloat *ui_data_float = reinterpret_cast<IDPropertyUIDataFloat *>(ui_data);
       MEM_SAFE_FREE(ui_data_float->default_array);
       break;
     }
@@ -1318,7 +1326,7 @@ static void write_ui_data(const IDProperty *prop, BlendWriter *writer)
 
   switch (IDP_ui_data_type(prop)) {
     case IDP_UI_DATA_TYPE_STRING: {
-      IDPropertyUIDataString *ui_data_string = (IDPropertyUIDataString *)ui_data;
+      IDPropertyUIDataString *ui_data_string = reinterpret_cast<IDPropertyUIDataString *>(ui_data);
       BLO_write_string(writer, ui_data_string->default_value);
       writer->write_struct_cast<IDPropertyUIDataString>(ui_data);
       break;
@@ -1328,10 +1336,11 @@ static void write_ui_data(const IDProperty *prop, BlendWriter *writer)
       break;
     }
     case IDP_UI_DATA_TYPE_INT: {
-      IDPropertyUIDataInt *ui_data_int = (IDPropertyUIDataInt *)ui_data;
+      IDPropertyUIDataInt *ui_data_int = reinterpret_cast<IDPropertyUIDataInt *>(ui_data);
       if (prop->type == IDP_ARRAY) {
-        BLO_write_int32_array(
-            writer, uint(ui_data_int->default_array_len), (int32_t *)ui_data_int->default_array);
+        BLO_write_int32_array(writer,
+                              uint(ui_data_int->default_array_len),
+                              static_cast<int32_t *>(ui_data_int->default_array));
       }
       BLO_write_struct_array(
           writer, IDPropertyUIDataEnumItem, ui_data_int->enum_items_num, ui_data_int->enum_items);
@@ -1345,17 +1354,17 @@ static void write_ui_data(const IDProperty *prop, BlendWriter *writer)
       break;
     }
     case IDP_UI_DATA_TYPE_BOOLEAN: {
-      IDPropertyUIDataBool *ui_data_bool = (IDPropertyUIDataBool *)ui_data;
+      IDPropertyUIDataBool *ui_data_bool = reinterpret_cast<IDPropertyUIDataBool *>(ui_data);
       if (prop->type == IDP_ARRAY) {
         BLO_write_int8_array(writer,
                              uint(ui_data_bool->default_array_len),
-                             (const int8_t *)ui_data_bool->default_array);
+                             const_cast<const int8_t *>(ui_data_bool->default_array));
       }
       writer->write_struct_cast<IDPropertyUIDataBool>(ui_data);
       break;
     }
     case IDP_UI_DATA_TYPE_FLOAT: {
-      IDPropertyUIDataFloat *ui_data_float = (IDPropertyUIDataFloat *)ui_data;
+      IDPropertyUIDataFloat *ui_data_float = reinterpret_cast<IDPropertyUIDataFloat *>(ui_data);
       if (prop->type == IDP_ARRAY) {
         BLO_write_double_array(
             writer, uint(ui_data_float->default_array_len), ui_data_float->default_array);
@@ -1479,7 +1488,8 @@ static void read_ui_data(IDProperty *prop, BlendDataReader *reader)
     case IDP_UI_DATA_TYPE_STRING: {
       BLO_read_struct(reader, IDPropertyUIDataString, &prop->ui_data);
       if (prop->ui_data) {
-        IDPropertyUIDataString *ui_data_string = (IDPropertyUIDataString *)prop->ui_data;
+        IDPropertyUIDataString *ui_data_string = reinterpret_cast<IDPropertyUIDataString *>(
+            prop->ui_data);
         BLO_read_string(reader, &ui_data_string->default_value);
       }
       break;
@@ -1490,7 +1500,7 @@ static void read_ui_data(IDProperty *prop, BlendDataReader *reader)
     }
     case IDP_UI_DATA_TYPE_INT: {
       BLO_read_struct(reader, IDPropertyUIDataInt, &prop->ui_data);
-      IDPropertyUIDataInt *ui_data_int = (IDPropertyUIDataInt *)prop->ui_data;
+      IDPropertyUIDataInt *ui_data_int = reinterpret_cast<IDPropertyUIDataInt *>(prop->ui_data);
       if (prop->type == IDP_ARRAY) {
         BLO_read_int32_array(
             reader, ui_data_int->default_array_len, (&ui_data_int->default_array));
@@ -1513,7 +1523,7 @@ static void read_ui_data(IDProperty *prop, BlendDataReader *reader)
     }
     case IDP_UI_DATA_TYPE_BOOLEAN: {
       BLO_read_struct(reader, IDPropertyUIDataBool, &prop->ui_data);
-      IDPropertyUIDataBool *ui_data_bool = (IDPropertyUIDataBool *)prop->ui_data;
+      IDPropertyUIDataBool *ui_data_bool = reinterpret_cast<IDPropertyUIDataBool *>(prop->ui_data);
       if (prop->type == IDP_ARRAY) {
         BLO_read_int8_array(
             reader, ui_data_bool->default_array_len, (&ui_data_bool->default_array));
@@ -1526,7 +1536,8 @@ static void read_ui_data(IDProperty *prop, BlendDataReader *reader)
     }
     case IDP_UI_DATA_TYPE_FLOAT: {
       BLO_read_struct(reader, IDPropertyUIDataFloat, &prop->ui_data);
-      IDPropertyUIDataFloat *ui_data_float = (IDPropertyUIDataFloat *)prop->ui_data;
+      IDPropertyUIDataFloat *ui_data_float = reinterpret_cast<IDPropertyUIDataFloat *>(
+          prop->ui_data);
       if (prop->type == IDP_ARRAY) {
         BLO_read_double_array(
             reader, ui_data_float->default_array_len, (&ui_data_float->default_array));
@@ -1556,7 +1567,7 @@ static void IDP_DirectLinkIDPArray(IDProperty *prop, BlendDataReader *reader)
   prop->totallen = prop->len;
   BLO_read_struct_array(reader, IDProperty, size_t(prop->len), &prop->data.pointer);
 
-  IDProperty *array = (IDProperty *)prop->data.pointer;
+  IDProperty *array = static_cast<IDProperty *>(prop->data.pointer);
 
   /* NOTE:, idp-arrays didn't exist in 2.4x, so the pointer will be cleared
    * there's not really anything we can do to correct this, at least don't crash */
@@ -1585,16 +1596,16 @@ static void IDP_DirectLinkArray(IDProperty *prop, BlendDataReader *reader)
       break;
     }
     case IDP_DOUBLE:
-      BLO_read_double_array(reader, prop->len, (double **)&prop->data.pointer);
+      BLO_read_double_array(reader, prop->len, reinterpret_cast<double **>(&prop->data.pointer));
       break;
     case IDP_INT:
-      BLO_read_int32_array(reader, prop->len, (int **)&prop->data.pointer);
+      BLO_read_int32_array(reader, prop->len, reinterpret_cast<int **>(&prop->data.pointer));
       break;
     case IDP_FLOAT:
-      BLO_read_float_array(reader, prop->len, (float **)&prop->data.pointer);
+      BLO_read_float_array(reader, prop->len, reinterpret_cast<float **>(&prop->data.pointer));
       break;
     case IDP_BOOLEAN:
-      BLO_read_int8_array(reader, prop->len, (int8_t **)&prop->data.pointer);
+      BLO_read_int8_array(reader, prop->len, reinterpret_cast<int8_t **>(&prop->data.pointer));
       break;
     case IDP_STRING:
     case IDP_ARRAY:

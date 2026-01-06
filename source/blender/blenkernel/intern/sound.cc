@@ -121,8 +121,8 @@ static void sound_copy_data(Main * /*bmain*/,
                             const ID *id_src,
                             const int /*flag*/)
 {
-  bSound *sound_dst = (bSound *)id_dst;
-  const bSound *sound_src = (const bSound *)id_src;
+  bSound *sound_dst = blender::id_cast<bSound *>(id_dst);
+  const bSound *sound_src = blender::id_cast<const bSound *>(id_src);
 
   /* Just to be sure, should not have any value actually after reading time. */
   sound_dst->newpackedfile = nullptr;
@@ -136,7 +136,7 @@ static void sound_copy_data(Main * /*bmain*/,
 
 static void sound_free_data(ID *id)
 {
-  bSound *sound = (bSound *)id;
+  bSound *sound = blender::id_cast<bSound *>(id);
 
   if (sound->packedfile) {
     BKE_packedfile_free(sound->packedfile);
@@ -153,14 +153,14 @@ static void sound_foreach_cache(ID *id,
                                 IDTypeForeachCacheFunctionCallback function_callback,
                                 void *user_data)
 {
-  bSound *sound = (bSound *)id;
+  bSound *sound = blender::id_cast<bSound *>(id);
   IDCacheKey key = {id->session_uid, 1};
-  function_callback(id, &key, (void **)&sound->runtime->waveform, 0, user_data);
+  function_callback(id, &key, reinterpret_cast<void **>(&sound->runtime->waveform), 0, user_data);
 }
 
 static void sound_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
-  bSound *sound = (bSound *)id;
+  bSound *sound = blender::id_cast<bSound *>(id);
   if (sound->packedfile != nullptr && (bpath_data->flag & BKE_BPATH_FOREACH_PATH_SKIP_PACKED) != 0)
   {
     return;
@@ -172,7 +172,7 @@ static void sound_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 
 static void sound_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  bSound *sound = (bSound *)id;
+  bSound *sound = blender::id_cast<bSound *>(id);
   const bool is_undo = BLO_write_is_undo(writer);
 
   /* Clean up, important in undo case to reduce false detection of changed datablocks. */
@@ -192,7 +192,7 @@ static void sound_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 
 static void sound_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  bSound *sound = (bSound *)id;
+  bSound *sound = blender::id_cast<bSound *>(id);
   sound_init_runtime(sound);
   if (BLO_read_data_is_undo(reader)) {
     sound->runtime->tags |= blender::bke::SoundTags::WaveformNoReload;

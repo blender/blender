@@ -1045,7 +1045,8 @@ static bool data_transfer_layersmapping_generate(Vector<CustomDataTransferLayerM
                                                  ob_dst,
                                                  *me_src,
                                                  *me_dst,
-                                                 me_dst != ob_dst->data,
+                                                 blender::id_cast<const ID *>(me_dst) !=
+                                                     ob_dst->data,
                                                  fromlayers,
                                                  tolayers);
     }
@@ -1270,7 +1271,7 @@ void BKE_object_data_transfer_layout(Depsgraph *depsgraph,
 
   BLI_assert((ob_src != ob_dst) && (ob_src->type == OB_MESH) && (ob_dst->type == OB_MESH));
 
-  me_dst = static_cast<Mesh *>(ob_dst->data);
+  me_dst = blender::id_cast<Mesh *>(ob_dst->data);
 
   /* Get source evaluated mesh. */
   const Object *ob_src_eval = DEG_get_evaluated(depsgraph, ob_src);
@@ -1442,7 +1443,7 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
     is_modifier = true;
   }
   else {
-    me_dst = static_cast<Mesh *>(ob_dst->data);
+    me_dst = blender::id_cast<Mesh *>(ob_dst->data);
   }
 
   if (vgroup_name) {

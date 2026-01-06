@@ -53,7 +53,7 @@ static PyObject *bpy_bm_geometry_intersect_face_point(BPy_BMFace * /*self*/, PyO
 
 static PyMethodDef BPy_BM_geometry_methods[] = {
     {"intersect_face_point",
-     (PyCFunction)bpy_bm_geometry_intersect_face_point,
+     reinterpret_cast<PyCFunction>(bpy_bm_geometry_intersect_face_point),
      METH_VARARGS,
      bpy_bm_geometry_intersect_face_point_doc},
     {nullptr, nullptr, 0, nullptr},

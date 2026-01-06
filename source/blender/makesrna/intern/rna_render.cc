@@ -228,7 +228,7 @@ static void engine_update_script_node(RenderEngine *engine, bNodeTree *ntree, bN
   FunctionRNA *func;
 
   PointerRNA ptr = RNA_pointer_create_discrete(nullptr, engine->type->rna_ext.srna, engine);
-  PointerRNA nodeptr = RNA_pointer_create_discrete((ID *)ntree, &RNA_Node, node);
+  PointerRNA nodeptr = RNA_pointer_create_discrete(blender::id_cast<ID *>(ntree), &RNA_Node, node);
   func = &rna_RenderEngine_update_script_node_func;
 
   RNA_parameter_list_create(&list, &ptr, func);
@@ -383,7 +383,7 @@ static void **rna_RenderEngine_instance(PointerRNA *ptr)
 
 static StructRNA *rna_RenderEngine_refine(PointerRNA *ptr)
 {
-  RenderEngine *engine = (RenderEngine *)ptr->data;
+  RenderEngine *engine = static_cast<RenderEngine *>(ptr->data);
   return (engine->type && engine->type->rna_ext.srna) ? engine->type->rna_ext.srna :
                                                         &RNA_RenderEngine;
 }
@@ -400,7 +400,7 @@ static int rna_RenderEngine_tempdir_length(PointerRNA * /*ptr*/)
 
 static PointerRNA rna_RenderEngine_render_get(PointerRNA *ptr)
 {
-  RenderEngine *engine = (RenderEngine *)ptr->data;
+  RenderEngine *engine = static_cast<RenderEngine *>(ptr->data);
 
   if (engine->re) {
     RenderData *r = RE_engine_get_render_data(engine->re);
@@ -412,7 +412,7 @@ static PointerRNA rna_RenderEngine_render_get(PointerRNA *ptr)
 
 static PointerRNA rna_RenderEngine_camera_override_get(PointerRNA *ptr)
 {
-  RenderEngine *engine = (RenderEngine *)ptr->data;
+  RenderEngine *engine = static_cast<RenderEngine *>(ptr->data);
   /* TODO(sergey): Shouldn't engine point to an evaluated datablocks already? */
   if (engine->re) {
     Object *cam = RE_GetCamera(engine->re);
@@ -439,13 +439,13 @@ static void rna_RenderEngine_engine_frame_set(RenderEngine *engine, int frame, f
 
 static void rna_RenderResult_views_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  RenderResult *rr = (RenderResult *)ptr->data;
+  RenderResult *rr = static_cast<RenderResult *>(ptr->data);
   rna_iterator_listbase_begin(iter, ptr, &rr->views, nullptr);
 }
 
 static void rna_RenderResult_layers_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  RenderResult *rr = (RenderResult *)ptr->data;
+  RenderResult *rr = static_cast<RenderResult *>(ptr->data);
   rna_iterator_listbase_begin(iter, ptr, &rr->layers, nullptr);
 }
 
@@ -458,14 +458,14 @@ static void rna_RenderResult_stamp_data_add_field(RenderResult *rr,
 
 static void rna_RenderLayer_passes_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  RenderLayer *rl = (RenderLayer *)ptr->data;
+  RenderLayer *rl = static_cast<RenderLayer *>(ptr->data);
   rna_iterator_listbase_begin(iter, ptr, &rl->passes, nullptr);
 }
 
 static int rna_RenderPass_rect_get_length(const PointerRNA *ptr,
                                           int length[RNA_MAX_ARRAY_DIMENSION])
 {
-  const RenderPass *rpass = (RenderPass *)ptr->data;
+  const RenderPass *rpass = static_cast<RenderPass *>(ptr->data);
 
   length[0] = rpass->rectx * rpass->recty;
   length[1] = rpass->channels;
@@ -475,7 +475,7 @@ static int rna_RenderPass_rect_get_length(const PointerRNA *ptr,
 
 static void rna_RenderPass_rect_get(PointerRNA *ptr, float *values)
 {
-  RenderPass *rpass = (RenderPass *)ptr->data;
+  RenderPass *rpass = static_cast<RenderPass *>(ptr->data);
   const size_t size_in_bytes = sizeof(float) * rpass->rectx * rpass->recty * rpass->channels;
   const float *buffer = rpass->ibuf ? rpass->ibuf->float_buffer.data : nullptr;
 
@@ -490,7 +490,7 @@ static void rna_RenderPass_rect_get(PointerRNA *ptr, float *values)
 
 void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values)
 {
-  RenderPass *rpass = (RenderPass *)ptr->data;
+  RenderPass *rpass = static_cast<RenderPass *>(ptr->data);
   float *buffer = rpass->ibuf ? rpass->ibuf->float_buffer.data : nullptr;
 
   if (!buffer) {

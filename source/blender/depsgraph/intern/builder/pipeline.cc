@@ -150,7 +150,8 @@ void AbstractBuilderPipeline::build_step_finalize()
     deg_graph_transitive_reduction(deg_graph_);
   }
   /* Store pointers to commonly used evaluated datablocks. */
-  deg_graph_->scene_cow = (Scene *)deg_graph_->get_cow_id(&deg_graph_->scene->id);
+  deg_graph_->scene_cow = reinterpret_cast<Scene *>(
+      deg_graph_->get_cow_id(&deg_graph_->scene->id));
   /* Flush visibility layer and re-schedule nodes for update. */
   deg_graph_build_finalize(bmain_, deg_graph_);
   DEG_graph_tag_on_visible_update(reinterpret_cast<::Depsgraph *>(deg_graph_), false);

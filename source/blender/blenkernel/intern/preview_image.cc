@@ -132,7 +132,7 @@ void BKE_previewimg_clear_single(PreviewImage *prv, enum eIconSizes size)
 void BKE_previewimg_clear(PreviewImage *prv)
 {
   for (int i = 0; i < NUM_ICON_SIZES; i++) {
-    BKE_previewimg_clear_single(prv, (eIconSizes)i);
+    BKE_previewimg_clear_single(prv, eIconSizes(i));
   }
 }
 
@@ -148,7 +148,7 @@ PreviewImage *BKE_previewimg_copy(const PreviewImage *prv)
 
   for (int i = 0; i < NUM_ICON_SIZES; i++) {
     if (prv->rect[i]) {
-      prv_img->rect[i] = (uint *)MEM_dupallocN(prv->rect[i]);
+      prv_img->rect[i] = static_cast<uint *>(MEM_dupallocN(prv->rect[i]));
     }
     prv_img->runtime->gputexture[i] = nullptr;
   }
@@ -373,7 +373,7 @@ void BKE_previewimg_ensure(PreviewImage *prv, const int size)
   if (do_preview) {
     prv->w[ICON_SIZE_PREVIEW] = thumb->x;
     prv->h[ICON_SIZE_PREVIEW] = thumb->y;
-    prv->rect[ICON_SIZE_PREVIEW] = (uint *)MEM_dupallocN(thumb->byte_buffer.data);
+    prv->rect[ICON_SIZE_PREVIEW] = static_cast<uint *>(MEM_dupallocN(thumb->byte_buffer.data));
     prv->flag[ICON_SIZE_PREVIEW] &= ~(PRV_CHANGED | PRV_USER_EDITED | PRV_RENDERING);
   }
   if (do_icon) {
@@ -392,7 +392,7 @@ void BKE_previewimg_ensure(PreviewImage *prv, const int size)
     IMB_scale(thumb, icon_w, icon_h, IMBScaleFilter::Box, false);
     prv->w[ICON_SIZE_ICON] = icon_w;
     prv->h[ICON_SIZE_ICON] = icon_h;
-    prv->rect[ICON_SIZE_ICON] = (uint *)MEM_dupallocN(thumb->byte_buffer.data);
+    prv->rect[ICON_SIZE_ICON] = static_cast<uint *>(MEM_dupallocN(thumb->byte_buffer.data));
     prv->flag[ICON_SIZE_ICON] &= ~(PRV_CHANGED | PRV_USER_EDITED | PRV_RENDERING);
   }
   IMB_freeImBuf(thumb);

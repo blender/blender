@@ -116,7 +116,7 @@ BMLoop *ED_uvedit_active_vert_loop_get(const ToolSettings *ts, BMesh *bm)
   BMEditSelection *ese = static_cast<BMEditSelection *>(bm->selected.last);
   if ((ts->uv_flag & UV_FLAG_SELECT_SYNC) && bm->uv_select_sync_valid) {
     if (ese && ese->htype == BM_VERT) {
-      BMVert *v = (BMVert *)ese->ele;
+      BMVert *v = reinterpret_cast<BMVert *>(ese->ele);
 
       BMLoop *l;
       BMIter liter;
@@ -166,7 +166,8 @@ BMLoop *ED_uvedit_active_vert_loop_get(const ToolSettings *ts, BMesh *bm)
     BMEditSelection *ese_prev = ese->prev;
     if ((ese->htype == BM_VERT) && (ese_prev->htype == BM_FACE)) {
       /* May be null. */
-      return BM_face_vert_share_loop((BMFace *)ese_prev->ele, (BMVert *)ese->ele);
+      return BM_face_vert_share_loop(reinterpret_cast<BMFace *>(ese_prev->ele),
+                                     reinterpret_cast<BMVert *>(ese->ele));
     }
   }
   return nullptr;
@@ -186,7 +187,7 @@ BMLoop *ED_uvedit_active_edge_loop_get(const ToolSettings *ts, BMesh *bm)
   BMEditSelection *ese = static_cast<BMEditSelection *>(bm->selected.last);
   if ((ts->uv_flag & UV_FLAG_SELECT_SYNC) && bm->uv_select_sync_valid) {
     if (ese && ese->htype == BM_EDGE) {
-      BMEdge *e = (BMEdge *)ese->ele;
+      BMEdge *e = reinterpret_cast<BMEdge *>(ese->ele);
 
       BMLoop *l;
       BMIter liter;
@@ -221,7 +222,8 @@ BMLoop *ED_uvedit_active_edge_loop_get(const ToolSettings *ts, BMesh *bm)
     BMEditSelection *ese_prev = ese->prev;
     if ((ese->htype == BM_EDGE) && (ese_prev->htype == BM_FACE)) {
       /* May be null. */
-      return BM_face_edge_share_loop((BMFace *)ese_prev->ele, (BMEdge *)ese->ele);
+      return BM_face_edge_share_loop(reinterpret_cast<BMFace *>(ese_prev->ele),
+                                     reinterpret_cast<BMEdge *>(ese->ele));
     }
   }
   return nullptr;
@@ -3542,13 +3544,13 @@ static bool uv_mouse_select_multi(bContext *C,
         if (select_value) {
           /* Postpone setting active until it's known if the underlying element is selected. */
           if (selectmode == UV_SELECT_FACE) {
-            ele_active = (BMElem *)hit.efa;
+            ele_active = reinterpret_cast<BMElem *>(hit.efa);
           }
           else if (selectmode == UV_SELECT_EDGE) {
-            ele_active = (BMElem *)hit.l->e;
+            ele_active = reinterpret_cast<BMElem *>(hit.l->e);
           }
           else if (selectmode == UV_SELECT_VERT) {
-            ele_active = (BMElem *)hit.l->v;
+            ele_active = reinterpret_cast<BMElem *>(hit.l->v);
           }
         }
         else {
@@ -4226,7 +4228,7 @@ static void uv_select_tag_update_for_object(Depsgraph *depsgraph,
   }
   else {
     Object *obedit_eval = DEG_get_evaluated(depsgraph, obedit);
-    BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(obedit_eval->data),
+    BKE_mesh_batch_cache_dirty_tag(blender::id_cast<Mesh *>(obedit_eval->data),
                                    BKE_MESH_BATCH_DIRTY_UVEDIT_SELECT);
     /* Only for region redraw. */
     WM_main_add_notifier(NC_GEOM | ND_SELECT, obedit->data);
@@ -5357,7 +5359,7 @@ static wmOperatorStatus uv_select_pinned_exec(bContext *C, wmOperator *op)
       scene, view_layer, nullptr);
 
   for (Object *obedit : objects) {
-    Mesh &mesh = *static_cast<Mesh *>(obedit->data);
+    Mesh &mesh = *blender::id_cast<Mesh *>(obedit->data);
     BMesh *bm = mesh.runtime->edit_mesh->bm;
 
     const blender::StringRef active_uv_name = mesh.active_uv_map_name();

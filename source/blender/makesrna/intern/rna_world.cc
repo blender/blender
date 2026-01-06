@@ -45,7 +45,7 @@ static PointerRNA rna_World_mist_get(PointerRNA *ptr)
 
 static void rna_World_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  World *wo = (World *)ptr->owner_id;
+  World *wo = blender::id_cast<World *>(ptr->owner_id);
 
   DEG_id_tag_update(&wo->id, 0);
   WM_main_add_notifier(NC_WORLD | ND_WORLD, wo);
@@ -63,7 +63,7 @@ static void rna_World_draw_update(Main * /*bmain*/, Scene * /*scene*/, PointerRN
 
 static void rna_World_draw_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  World *wo = (World *)ptr->owner_id;
+  World *wo = blender::id_cast<World *>(ptr->owner_id);
 
   DEG_id_tag_update(&wo->id, 0);
   WM_main_add_notifier(NC_WORLD | ND_WORLD_DRAW, wo);
@@ -72,7 +72,7 @@ static void rna_World_draw_update(Main * /*bmain*/, Scene * /*scene*/, PointerRN
 
 void rna_World_lightgroup_get(PointerRNA *ptr, char *value)
 {
-  LightgroupMembership *lgm = ((World *)ptr->owner_id)->lightgroup;
+  LightgroupMembership *lgm = (blender::id_cast<World *>(ptr->owner_id))->lightgroup;
   char value_buf[sizeof(lgm->name)];
   int len = BKE_lightgroup_membership_get(lgm, value_buf);
   memcpy(value, value_buf, len + 1);
@@ -80,13 +80,13 @@ void rna_World_lightgroup_get(PointerRNA *ptr, char *value)
 
 int rna_World_lightgroup_length(PointerRNA *ptr)
 {
-  LightgroupMembership *lgm = ((World *)ptr->owner_id)->lightgroup;
+  LightgroupMembership *lgm = (blender::id_cast<World *>(ptr->owner_id))->lightgroup;
   return BKE_lightgroup_membership_length(lgm);
 }
 
 void rna_World_lightgroup_set(PointerRNA *ptr, const char *value)
 {
-  BKE_lightgroup_membership_set(&((World *)ptr->owner_id)->lightgroup, value);
+  BKE_lightgroup_membership_set(&(blender::id_cast<World *>(ptr->owner_id))->lightgroup, value);
 }
 
 bool rna_World_use_nodes_get(PointerRNA * /*ptr*/)

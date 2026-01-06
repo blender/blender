@@ -33,7 +33,7 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
     return retval;
   }
 
-  bArmature *arm = static_cast<bArmature *>(ob_eval->data);
+  bArmature *arm = blender::id_cast<bArmature *>(ob_eval->data);
 
   SnapData nearest2d(sctx, obmat);
 

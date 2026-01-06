@@ -172,9 +172,9 @@ static Color mix_add(Color col_src, Color col_dst, typename Traits::BlendType fa
     return col_src;
   }
 
-  cp_src = (Value *)&col_src.r;
-  cp_dst = (Value *)&col_dst.r;
-  cp_mix = (Value *)&col_mix.r;
+  cp_src = reinterpret_cast<Value *>(&col_src.r);
+  cp_dst = reinterpret_cast<Value *>(&col_dst.r);
+  cp_mix = reinterpret_cast<Value *>(&col_mix.r);
 
   temp = cp_src[0] + Traits::divide_round((fac * cp_dst[0]), Traits::range);
   cp_mix[0] = (temp > Traits::cmpRange) ? Traits::range : temp;
@@ -198,9 +198,9 @@ static Color mix_sub(Color col_src, Color col_dst, typename Traits::BlendType fa
   Blend temp;
   Color col_mix(0, 0, 0, 0);
 
-  cp_src = (Value *)&col_src.r;
-  cp_dst = (Value *)&col_dst.r;
-  cp_mix = (Value *)&col_mix.r;
+  cp_src = reinterpret_cast<Value *>(&col_src.r);
+  cp_dst = reinterpret_cast<Value *>(&col_dst.r);
+  cp_mix = reinterpret_cast<Value *>(&col_mix.r);
 
   temp = cp_src[0] - Traits::divide_round((fac * cp_dst[0]), Traits::range);
   cp_mix[0] = (temp < 0) ? 0 : temp;
@@ -230,9 +230,9 @@ static Color mix_mul(Color col_src, Color col_dst, typename Traits::BlendType fa
 
   mfac = Traits::range - fac;
 
-  cp_src = (Value *)&col_src;
-  cp_dst = (Value *)&col_dst;
-  cp_mix = (Value *)&col_mix;
+  cp_src = reinterpret_cast<Value *>(&col_src);
+  cp_dst = reinterpret_cast<Value *>(&col_dst);
+  cp_mix = reinterpret_cast<Value *>(&col_mix);
 
   /* first mul, then blend the fac */
   cp_mix[0] = Traits::divide_round(mfac * cp_src[0] * Traits::range + fac * cp_dst[0] * cp_src[0],
@@ -266,9 +266,9 @@ static Color mix_lighten(Color col_src, Color col_dst, typename Traits::BlendTyp
 
   mfac = Traits::range - fac;
 
-  cp_src = (Value *)&col_src;
-  cp_dst = (Value *)&col_dst;
-  cp_mix = (Value *)&col_mix;
+  cp_src = reinterpret_cast<Value *>(&col_src);
+  cp_dst = reinterpret_cast<Value *>(&col_dst);
+  cp_mix = reinterpret_cast<Value *>(&col_mix);
 
   /* See if we're lighter, if so mix, else don't do anything.
    * if the paint color is darker then the original, then ignore */
@@ -303,9 +303,9 @@ static Color mix_darken(Color col_src, Color col_dst, typename Traits::BlendType
 
   mfac = Traits::range - fac;
 
-  cp_src = (Value *)&col_src;
-  cp_dst = (Value *)&col_dst;
-  cp_mix = (Value *)&col_mix;
+  cp_src = reinterpret_cast<Value *>(&col_src);
+  cp_dst = reinterpret_cast<Value *>(&col_dst);
+  cp_mix = reinterpret_cast<Value *>(&col_mix);
 
   /* See if we're darker, if so mix, else don't do anything.
    * if the paint color is brighter then the original, then ignore */
@@ -336,11 +336,11 @@ static Color mix_colordodge(Color col_src, Color col_dst, typename Traits::Blend
 
   mfac = Traits::range - fac;
 
-  cp_src = (Value *)&col_src;
-  cp_dst = (Value *)&col_dst;
-  cp_mix = (Value *)&col_mix;
+  cp_src = reinterpret_cast<Value *>(&col_src);
+  cp_dst = reinterpret_cast<Value *>(&col_dst);
+  cp_mix = reinterpret_cast<Value *>(&col_mix);
 
-  Blend dodgefac = (Blend)((float)Traits::range * 0.885f); /* ~225/255 */
+  Blend dodgefac = Blend(float(Traits::range) * 0.885f); /* ~225/255 */
 
   temp = (cp_dst[0] == Traits::range) ?
              Traits::range :
@@ -377,9 +377,9 @@ static Color mix_difference(Color col_src, Color col_dst, typename Traits::Blend
 
   mfac = Traits::range - fac;
 
-  cp_src = (Value *)&col_src;
-  cp_dst = (Value *)&col_dst;
-  cp_mix = (Value *)&col_mix;
+  cp_src = reinterpret_cast<Value *>(&col_src);
+  cp_dst = reinterpret_cast<Value *>(&col_dst);
+  cp_mix = reinterpret_cast<Value *>(&col_mix);
 
   temp = abs(cp_src[0] - cp_dst[0]);
   cp_mix[0] = (mfac * cp_src[0] + temp * fac) / Traits::range;
@@ -408,9 +408,9 @@ static Color mix_screen(Color col_src, Color col_dst, typename Traits::BlendType
 
   mfac = Traits::range - fac;
 
-  cp_src = (Value *)&col_src;
-  cp_dst = (Value *)&col_dst;
-  cp_mix = (Value *)&col_mix;
+  cp_src = reinterpret_cast<Value *>(&col_src);
+  cp_dst = reinterpret_cast<Value *>(&col_dst);
+  cp_mix = reinterpret_cast<Value *>(&col_mix);
 
   temp = Traits::max(Traits::range - (((Traits::range - cp_src[0]) * (Traits::range - cp_dst[0])) /
                                       Traits::range),
@@ -447,9 +447,9 @@ static Color mix_hardlight(Color col_src, Color col_dst, typename Traits::BlendT
 
   mfac = Traits::range - fac;
 
-  cp_src = (Value *)&col_src;
-  cp_dst = (Value *)&col_dst;
-  cp_mix = (Value *)&col_mix;
+  cp_src = reinterpret_cast<Value *>(&col_src);
+  cp_dst = reinterpret_cast<Value *>(&col_dst);
+  cp_mix = reinterpret_cast<Value *>(&col_mix);
 
   int i = 0;
 
@@ -482,9 +482,9 @@ static Color mix_overlay(Color col_src, Color col_dst, typename Traits::BlendTyp
 
   mfac = Traits::range - fac;
 
-  cp_src = (Value *)&col_src;
-  cp_dst = (Value *)&col_dst;
-  cp_mix = (Value *)&col_mix;
+  cp_src = reinterpret_cast<Value *>(&col_src);
+  cp_dst = reinterpret_cast<Value *>(&col_dst);
+  cp_mix = reinterpret_cast<Value *>(&col_mix);
 
   int i = 0;
 
@@ -517,9 +517,9 @@ static Color mix_softlight(Color col_src, Color col_dst, typename Traits::BlendT
 
   mfac = Traits::range - fac;
 
-  cp_src = (Value *)&col_src;
-  cp_dst = (Value *)&col_dst;
-  cp_mix = (Value *)&col_mix;
+  cp_src = reinterpret_cast<Value *>(&col_src);
+  cp_dst = reinterpret_cast<Value *>(&col_dst);
+  cp_mix = reinterpret_cast<Value *>(&col_mix);
 
   /* Use divide_round so we don't alter original byte equations. */
   const int add = Traits::divide_round(Traits::range, 4);
@@ -553,9 +553,9 @@ static Color mix_exclusion(Color col_src, Color col_dst, typename Traits::BlendT
 
   mfac = Traits::range - fac;
 
-  cp_src = (Value *)&col_src;
-  cp_dst = (Value *)&col_dst;
-  cp_mix = (Value *)&col_mix;
+  cp_src = reinterpret_cast<Value *>(&col_src);
+  cp_dst = reinterpret_cast<Value *>(&col_dst);
+  cp_mix = reinterpret_cast<Value *>(&col_mix);
 
   int i = 0;
 
@@ -584,9 +584,9 @@ static Color mix_luminosity(Color col_src, Color col_dst, typename Traits::Blend
 
   mfac = Traits::range - fac;
 
-  cp_src = (Value *)&col_src;
-  cp_dst = (Value *)&col_dst;
-  cp_mix = (Value *)&col_mix;
+  cp_src = reinterpret_cast<Value *>(&col_src);
+  cp_dst = reinterpret_cast<Value *>(&col_dst);
+  cp_mix = reinterpret_cast<Value *>(&col_mix);
 
   float h1, s1, v1;
   float h2, s2, v2;
@@ -608,10 +608,10 @@ static Color mix_luminosity(Color col_src, Color col_dst, typename Traits::Blend
 
   hsv_to_rgb(h1, s1, v1, &r, &g, &b);
 
-  cp_mix[0] = ((Blend)(r * Traits::frange) * fac + mfac * cp_src[0]) / Traits::range;
-  cp_mix[1] = ((Blend)(g * Traits::frange) * fac + mfac * cp_src[1]) / Traits::range;
-  cp_mix[2] = ((Blend)(b * Traits::frange) * fac + mfac * cp_src[2]) / Traits::range;
-  cp_mix[3] = ((Blend)(cp_dst[3]) * fac + mfac * cp_src[3]) / Traits::range;
+  cp_mix[0] = (Blend(r * Traits::frange) * fac + mfac * cp_src[0]) / Traits::range;
+  cp_mix[1] = (Blend(g * Traits::frange) * fac + mfac * cp_src[1]) / Traits::range;
+  cp_mix[2] = (Blend(b * Traits::frange) * fac + mfac * cp_src[2]) / Traits::range;
+  cp_mix[3] = (Blend(cp_dst[3]) * fac + mfac * cp_src[3]) / Traits::range;
   return col_mix;
 }
 
@@ -657,9 +657,9 @@ static Color mix_saturation(Color col_src, Color col_dst, typename Traits::Blend
 
   hsv_to_rgb(h1, s1, v1, &r, &g, &b);
 
-  cp_mix[0] = ((Blend)(r * Traits::frange) * fac + mfac * cp_src[0]) / Traits::range;
-  cp_mix[1] = ((Blend)(g * Traits::frange) * fac + mfac * cp_src[1]) / Traits::range;
-  cp_mix[2] = ((Blend)(b * Traits::frange) * fac + mfac * cp_src[2]) / Traits::range;
+  cp_mix[0] = (Blend(r * Traits::frange) * fac + mfac * cp_src[0]) / Traits::range;
+  cp_mix[1] = (Blend(g * Traits::frange) * fac + mfac * cp_src[1]) / Traits::range;
+  cp_mix[2] = (Blend(b * Traits::frange) * fac + mfac * cp_src[2]) / Traits::range;
   return col_mix;
 }
 
@@ -679,9 +679,9 @@ static Color mix_hue(Color col_src, Color col_dst, typename Traits::BlendType fa
 
   mfac = Traits::range - fac;
 
-  cp_src = (Value *)&col_src;
-  cp_dst = (Value *)&col_dst;
-  cp_mix = (Value *)&col_mix;
+  cp_src = reinterpret_cast<Value *>(&col_src);
+  cp_dst = reinterpret_cast<Value *>(&col_dst);
+  cp_mix = reinterpret_cast<Value *>(&col_mix);
 
   float h1, s1, v1;
   float h2, s2, v2;
@@ -703,10 +703,10 @@ static Color mix_hue(Color col_src, Color col_dst, typename Traits::BlendType fa
 
   hsv_to_rgb(h1, s1, v1, &r, &g, &b);
 
-  cp_mix[0] = ((Blend)(r * Traits::frange) * fac + mfac * cp_src[0]) / Traits::range;
-  cp_mix[1] = ((Blend)(g * Traits::frange) * fac + mfac * cp_src[1]) / Traits::range;
-  cp_mix[2] = ((Blend)(b * Traits::frange) * fac + mfac * cp_src[2]) / Traits::range;
-  cp_mix[3] = ((Blend)(cp_dst[3]) * fac + mfac * cp_src[3]) / Traits::range;
+  cp_mix[0] = (Blend(r * Traits::frange) * fac + mfac * cp_src[0]) / Traits::range;
+  cp_mix[1] = (Blend(g * Traits::frange) * fac + mfac * cp_src[1]) / Traits::range;
+  cp_mix[2] = (Blend(b * Traits::frange) * fac + mfac * cp_src[2]) / Traits::range;
+  cp_mix[3] = (Blend(cp_dst[3]) * fac + mfac * cp_src[3]) / Traits::range;
   return col_mix;
 }
 
@@ -724,8 +724,8 @@ static Color mix_alpha_add(Color col_src, typename Traits::BlendType fac)
     return col_src;
   }
 
-  cp_src = (Value *)&col_src;
-  cp_mix = (Value *)&col_mix;
+  cp_src = reinterpret_cast<Value *>(&col_src);
+  cp_mix = reinterpret_cast<Value *>(&col_mix);
 
   temp = cp_src[3] + fac;
   cp_mix[3] = (temp > Traits::cmpRange) ? Traits::range : temp;
@@ -747,8 +747,8 @@ static Color mix_alpha_sub(Color col_src, typename Traits::BlendType fac)
     return col_src;
   }
 
-  cp_src = (Value *)&col_src;
-  cp_mix = (Value *)&col_mix;
+  cp_src = reinterpret_cast<Value *>(&col_src);
+  cp_mix = reinterpret_cast<Value *>(&col_mix);
 
   temp = cp_src[3] - fac;
   cp_mix[3] = temp < 0 ? 0 : temp;
@@ -772,9 +772,9 @@ static Color mix_pinlight(Color col_src, Color col_dst, typename Traits::BlendTy
 
   mfac = Traits::range - fac;
 
-  cp_src = (Value *)&col_src;
-  cp_dst = (Value *)&col_dst;
-  cp_mix = (Value *)&col_mix;
+  cp_src = reinterpret_cast<Value *>(&col_src);
+  cp_dst = reinterpret_cast<Value *>(&col_dst);
+  cp_mix = reinterpret_cast<Value *>(&col_mix);
 
   const Blend cmp = Traits::range / 2;
 
@@ -788,8 +788,7 @@ static Color mix_pinlight(Color col_src, Color col_dst, typename Traits::BlendTy
     else {
       temp = Traits::min(2 * cp_dst[i], cp_src[i]);
     }
-    cp_mix[i] = (Value)((Traits::min(temp, Traits::range) * fac + cp_src[i] * mfac) /
-                        Traits::range);
+    cp_mix[i] = Value((Traits::min(temp, Traits::range) * fac + cp_src[i] * mfac) / Traits::range);
   }
 
   col_mix.a = col_src.a;
@@ -812,9 +811,9 @@ static Color mix_linearlight(Color col_src, Color col_dst, typename Traits::Blen
 
   mfac = Traits::range - fac;
 
-  cp_src = (Value *)&col_src;
-  cp_dst = (Value *)&col_dst;
-  cp_mix = (Value *)&col_mix;
+  cp_src = reinterpret_cast<Value *>(&col_src);
+  cp_dst = reinterpret_cast<Value *>(&col_dst);
+  cp_mix = reinterpret_cast<Value *>(&col_mix);
 
   const Blend cmp = Traits::range / 2;
 
@@ -829,7 +828,7 @@ static Color mix_linearlight(Color col_src, Color col_dst, typename Traits::Blen
       temp = Traits::max(cp_src[i] + 2 * cp_dst[i] - Traits::range, 0);
     }
 
-    cp_mix[i] = (Value)((temp * fac + cp_src[i] * mfac) / Traits::range);
+    cp_mix[i] = Value((temp * fac + cp_src[i] * mfac) / Traits::range);
   }
 
   col_mix.a = col_src.a;
@@ -852,8 +851,8 @@ static Color mix_vividlight(Color col_src, Color col_dst, typename Traits::Blend
 
   mfac = Traits::range - fac;
 
-  cp_src = (Value *)&col_src;
-  cp_dst = (Value *)&col_dst;
+  cp_src = reinterpret_cast<Value *>(&col_src);
+  cp_dst = reinterpret_cast<Value *>(&col_dst);
 
   const Blend cmp = Traits::range / 2;
 
@@ -876,7 +875,7 @@ static Color mix_vividlight(Color col_src, Color col_dst, typename Traits::Blend
       temp = Traits::max(
           Traits::range - ((Traits::range - cp_src[i]) * Traits::range / (2 * cp_dst[i])), 0);
     }
-    col_mix[i] = (Value)((temp * fac + cp_src[i] * mfac) / Traits::range);
+    col_mix[i] = Value((temp * fac + cp_src[i] * mfac) / Traits::range);
   }
 
   col_mix.a = col_src.a;
@@ -899,9 +898,9 @@ static Color mix_color(Color col_src, Color col_dst, typename Traits::BlendType 
 
   mfac = Traits::range - fac;
 
-  cp_src = (Value *)&col_src;
-  cp_dst = (Value *)&col_dst;
-  cp_mix = (Value *)&col_mix;
+  cp_src = reinterpret_cast<Value *>(&col_src);
+  cp_dst = reinterpret_cast<Value *>(&col_dst);
+  cp_mix = reinterpret_cast<Value *>(&col_mix);
 
   float h1, s1, v1;
   float h2, s2, v2;
@@ -925,9 +924,9 @@ static Color mix_color(Color col_src, Color col_dst, typename Traits::BlendType 
 
   hsv_to_rgb(h1, s1, v1, &r, &g, &b);
 
-  cp_mix[0] = (Value)(((Blend)(r * Traits::frange) * fac + cp_src[0] * mfac) / Traits::range);
-  cp_mix[1] = (Value)(((Blend)(g * Traits::frange) * fac + cp_src[1] * mfac) / Traits::range);
-  cp_mix[2] = (Value)(((Blend)(b * Traits::frange) * fac + cp_src[2] * mfac) / Traits::range);
+  cp_mix[0] = Value((Blend(r * Traits::frange) * fac + cp_src[0] * mfac) / Traits::range);
+  cp_mix[1] = Value((Blend(g * Traits::frange) * fac + cp_src[1] * mfac) / Traits::range);
+  cp_mix[2] = Value((Blend(b * Traits::frange) * fac + cp_src[2] * mfac) / Traits::range);
 
   col_mix.a = col_src.a;
   return col_mix;
@@ -949,9 +948,9 @@ static Color mix_colorburn(Color col_src, Color col_dst, typename Traits::BlendT
 
   mfac = Traits::range - fac;
 
-  cp_src = (Value *)&col_src;
-  cp_dst = (Value *)&col_dst;
-  cp_mix = (Value *)&col_mix;
+  cp_src = reinterpret_cast<Value *>(&col_src);
+  cp_dst = reinterpret_cast<Value *>(&col_dst);
+  cp_mix = reinterpret_cast<Value *>(&col_mix);
 
   int i = 3;
 
@@ -961,7 +960,7 @@ static Color mix_colorburn(Color col_src, Color col_dst, typename Traits::BlendT
             0 :
             Traits::max(Traits::range - ((Traits::range - cp_src[i]) * Traits::range) / cp_dst[i],
                         0);
-    cp_mix[i] = (Value)((temp * fac + cp_src[i] * mfac) / Traits::range);
+    cp_mix[i] = Value((temp * fac + cp_src[i] * mfac) / Traits::range);
   }
 
   col_mix.a = col_src.a;
@@ -984,15 +983,15 @@ static Color mix_linearburn(Color col_src, Color col_dst, typename Traits::Blend
 
   mfac = Traits::range - fac;
 
-  cp_src = (Value *)&col_src;
-  cp_dst = (Value *)&col_dst;
-  cp_mix = (Value *)&col_mix;
+  cp_src = reinterpret_cast<Value *>(&col_src);
+  cp_dst = reinterpret_cast<Value *>(&col_dst);
+  cp_mix = reinterpret_cast<Value *>(&col_mix);
 
   int i = 3;
 
   while (i--) {
     const Blend temp = Traits::max(cp_src[i] + cp_dst[i] - Traits::range, 0);
-    cp_mix[i] = (Value)((temp * fac + cp_src[i] * mfac) / Traits::range);
+    cp_mix[i] = Value((temp * fac + cp_src[i] * mfac) / Traits::range);
   }
 
   col_mix.a = col_src.a;
@@ -1005,7 +1004,7 @@ BLI_INLINE Color BLI_mix_colors(const IMB_BlendMode tool,
                                 const Color b,
                                 const typename Traits::BlendType alpha)
 {
-  switch ((IMB_BlendMode)tool) {
+  switch (IMB_BlendMode(tool)) {
     case IMB_BLEND_MIX:
       return mix_blend<Color, Traits>(a, b, alpha);
     case IMB_BLEND_ADD:

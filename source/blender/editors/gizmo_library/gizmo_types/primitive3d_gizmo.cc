@@ -56,8 +56,8 @@ struct PrimitiveGizmo3D {
 
 static PrimitiveGizmo3D *gizmo_primitive_rna_find_operator(PointerRNA *ptr)
 {
-  return (PrimitiveGizmo3D *)gizmo_find_from_properties(
-      static_cast<const IDProperty *>(ptr->data), SPACE_TYPE_ANY, RGN_TYPE_ANY);
+  return reinterpret_cast<PrimitiveGizmo3D *>(gizmo_find_from_properties(
+      static_cast<const IDProperty *>(ptr->data), SPACE_TYPE_ANY, RGN_TYPE_ANY));
 }
 
 static int gizmo_primitive_rna__draw_style_get_fn(PointerRNA *ptr, PropertyRNA * /*prop*/)
@@ -169,7 +169,7 @@ static void gizmo_primitive_draw_geom(PrimitiveGizmo3D *gz_prim,
 
 static void gizmo_primitive_draw_intern(wmGizmo *gz, const bool select, const bool highlight)
 {
-  PrimitiveGizmo3D *gz_prim = (PrimitiveGizmo3D *)gz;
+  PrimitiveGizmo3D *gz_prim = reinterpret_cast<PrimitiveGizmo3D *>(gz);
 
   float color_inner[4], color_outer[4];
   float matrix_final[4][4];
@@ -227,7 +227,7 @@ static void gizmo_primitive_setup(wmGizmo *gz)
   gz->flag |= WM_GIZMO_DRAW_MODAL;
 
   /* Default Values. */
-  PrimitiveGizmo3D *gz_prim = (PrimitiveGizmo3D *)gz;
+  PrimitiveGizmo3D *gz_prim = reinterpret_cast<PrimitiveGizmo3D *>(gz);
   gz_prim->draw_style = ED_GIZMO_PRIMITIVE_STYLE_PLANE;
   gz_prim->arc_inner_factor = 1.0f;
   gz_prim->draw_inner = true;

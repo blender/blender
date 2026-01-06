@@ -190,7 +190,7 @@ static void stats_object(Object *ob,
         break;
       }
 
-      const GreasePencil *grease_pencil = static_cast<GreasePencil *>(ob->data);
+      const GreasePencil *grease_pencil = blender::id_cast<GreasePencil *>(ob->data);
 
       for (const GreasePencilDrawingBase *drawing_base : grease_pencil->drawings()) {
         const GreasePencilDrawing *drawing = reinterpret_cast<const GreasePencilDrawing *>(
@@ -210,7 +210,7 @@ static void stats_object(Object *ob,
     }
     case OB_CURVES: {
       using namespace blender;
-      const Curves &curves_id = *static_cast<Curves *>(ob->data);
+      const Curves &curves_id = *blender::id_cast<Curves *>(ob->data);
       const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
       stats->totpoints += curves.points_num();
       break;
@@ -240,7 +240,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
   }
   else if (obedit->type == OB_ARMATURE) {
     /* Armature Edit */
-    bArmature *arm = static_cast<bArmature *>(obedit->data);
+    bArmature *arm = blender::id_cast<bArmature *>(obedit->data);
 
     for (EditBone &ebo : *arm->edbo) {
       stats->totbone++;
@@ -272,7 +272,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
   }
   else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) { /* OB_FONT has no cu->editnurb */
     /* Curve Edit */
-    Curve *cu = static_cast<Curve *>(obedit->data);
+    Curve *cu = blender::id_cast<Curve *>(obedit->data);
     BezTriple *bezt;
     BPoint *bp;
     int a;
@@ -311,7 +311,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
   }
   else if (obedit->type == OB_MBALL) {
     /* MetaBall Edit */
-    MetaBall *mball = static_cast<MetaBall *>(obedit->data);
+    MetaBall *mball = blender::id_cast<MetaBall *>(obedit->data);
 
     for (MetaElem &ml : *mball->editelems) {
       stats->totvert++;
@@ -322,7 +322,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
   }
   else if (obedit->type == OB_LATTICE) {
     /* Lattice Edit */
-    Lattice *lt = static_cast<Lattice *>(obedit->data);
+    Lattice *lt = blender::id_cast<Lattice *>(obedit->data);
     Lattice *editlatt = lt->editlatt->latt;
     BPoint *bp;
     int a;
@@ -340,7 +340,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
   }
   else if (obedit->type == OB_CURVES) {
     using namespace blender;
-    const Curves &curves_id = *static_cast<Curves *>(obedit->data);
+    const Curves &curves_id = *blender::id_cast<Curves *>(obedit->data);
     const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
     const VArray<bool> selection = *curves.attributes().lookup_or_default<bool>(
         ".selection", bke::AttrDomain::Point, true);
@@ -349,7 +349,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
   }
   else if (obedit->type == OB_POINTCLOUD) {
     using namespace blender;
-    PointCloud &pointcloud = *static_cast<PointCloud *>(obedit->data);
+    PointCloud &pointcloud = *blender::id_cast<PointCloud *>(obedit->data);
     const VArray<bool> selection = *pointcloud.attributes().lookup_or_default<bool>(
         ".selection", bke::AttrDomain::Point, true);
     stats->totvertsel = array_utils::count_booleans(selection);
@@ -360,7 +360,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 static void stats_object_pose(const Object *ob, SceneStats *stats)
 {
   if (ob->pose) {
-    bArmature *arm = static_cast<bArmature *>(ob->data);
+    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
 
     for (bPoseChannel &pchan : ob->pose->chanbase) {
       stats->totbone++;
@@ -391,7 +391,7 @@ static void stats_object_sculpt(const Object *ob, SceneStats *stats)
 
       switch (pbvh->type()) {
         case blender::bke::pbvh::Type::Mesh: {
-          const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
+          const Mesh &mesh = *blender::id_cast<const Mesh *>(ob->data);
           stats->totvertsculpt = mesh.verts_num;
           stats->totfacesculpt = mesh.faces_num;
           break;
@@ -408,7 +408,7 @@ static void stats_object_sculpt(const Object *ob, SceneStats *stats)
       break;
     }
     case OB_CURVES: {
-      const Curves &curves_id = *static_cast<Curves *>(ob->data);
+      const Curves &curves_id = *blender::id_cast<Curves *>(ob->data);
       const blender::bke::CurvesGeometry &curves = curves_id.geometry.wrap();
       stats->totvertsculpt += curves.points_num();
       break;
@@ -499,7 +499,7 @@ void ED_info_stats_clear(wmWindowManager *wm, ViewLayer *view_layer)
     const bScreen *screen = WM_window_get_active_screen(&win);
     for (ScrArea &area : screen->areabase) {
       if (area.spacetype == SPACE_VIEW3D) {
-        View3D *v3d = (View3D *)area.spacedata.first;
+        View3D *v3d = static_cast<View3D *>(area.spacedata.first);
         if (v3d->localvd) {
           ED_view3d_local_stats_free(v3d);
         }
@@ -520,7 +520,7 @@ static bool format_stats(
   SceneStats **stats_p = (v3d_local) ? &v3d_local->runtime.local_stats : &view_layer->stats;
   if (*stats_p == nullptr) {
     /* Don't access dependency graph if interface is marked as locked. */
-    wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
+    wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
     if (wm->runtime->is_interface_locked) {
       return false;
     }
@@ -576,7 +576,7 @@ static void get_stats_string(char *info,
 {
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
-  eObjectMode object_mode = ob ? (eObjectMode)ob->mode : OB_MODE_OBJECT;
+  eObjectMode object_mode = ob ? eObjectMode(ob->mode) : OB_MODE_OBJECT;
   LayerCollection *layer_collection = BKE_view_layer_active_collection_get(view_layer);
 
   if (object_mode == OB_MODE_OBJECT) {
@@ -829,7 +829,7 @@ void ED_info_draw_stats(
 
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
-  eObjectMode object_mode = ob ? (eObjectMode)ob->mode : OB_MODE_OBJECT;
+  eObjectMode object_mode = ob ? eObjectMode(ob->mode) : OB_MODE_OBJECT;
   const int font_id = BLF_default();
 
   /* Translated labels for each stat row. */

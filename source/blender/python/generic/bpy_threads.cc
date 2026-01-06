@@ -23,7 +23,7 @@ BPy_ThreadStatePtr BPY_thread_save()
    * `PyEval_SaveThread()` will release the GIL, so this thread has to have the GIL to begin with
    * or badness will ensue. */
   if (PyThreadState_GetUnchecked() && PyGILState_Check()) {
-    return (BPy_ThreadStatePtr)PyEval_SaveThread();
+    return static_cast<BPy_ThreadStatePtr>(PyEval_SaveThread());
   }
   return nullptr;
 }
@@ -31,7 +31,7 @@ BPy_ThreadStatePtr BPY_thread_save()
 void BPY_thread_restore(BPy_ThreadStatePtr tstate)
 {
   if (tstate) {
-    PyEval_RestoreThread((PyThreadState *)tstate);
+    PyEval_RestoreThread(static_cast<PyThreadState *>(tstate));
   }
 }
 

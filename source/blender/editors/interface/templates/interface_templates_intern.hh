@@ -43,7 +43,7 @@ static inline void rna_update_cb(bContext &C, const RNAUpdateCb &cb)
 
 static inline void rna_update_cb(bContext *C, void *arg_cb, void * /*arg*/)
 {
-  RNAUpdateCb *cb = (RNAUpdateCb *)arg_cb;
+  RNAUpdateCb *cb = static_cast<RNAUpdateCb *>(arg_cb);
   rna_update_cb(*C, *cb);
 }
 

@@ -580,7 +580,7 @@ void PyC_ObSpit(const char *name, PyObject *var)
     fprintf(stderr,
             " ref:%d, ptr:%p, type: %s\n",
             int(var->ob_refcnt),
-            (void *)var,
+            static_cast<void *>(var),
             type ? type->tp_name : null_str);
   }
 }
@@ -604,7 +604,7 @@ void PyC_ObSpitStr(char *result, size_t result_maxncpy, PyObject *var)
                       result_maxncpy,
                       " ref=%d, ptr=%p, type=%s, value=%.200s",
                       int(var->ob_refcnt),
-                      (void *)var,
+                      static_cast<void *>(var),
                       type ? type->tp_name : null_str,
                       var_str ? PyUnicode_AsUTF8(var_str) : "<error>");
     if (var_str != nullptr) {
@@ -833,7 +833,7 @@ PyObject *PyC_Err_SetString_Prefix(PyObject *exception_type_prefix, const char *
 void PyC_Err_PrintWithFunc(PyObject *py_func)
 {
   /* since we return to C code we can't leave the error */
-  PyCodeObject *f_code = (PyCodeObject *)PyFunction_GET_CODE(py_func);
+  PyCodeObject *f_code = reinterpret_cast<PyCodeObject *> PyFunction_GET_CODE(py_func);
   PyErr_Print();
 
   /* use py style error */
@@ -841,7 +841,7 @@ void PyC_Err_PrintWithFunc(PyObject *py_func)
           "File \"%s\", line %d, in %s\n",
           PyUnicode_AsUTF8(f_code->co_filename),
           f_code->co_firstlineno,
-          PyUnicode_AsUTF8(((PyFunctionObject *)py_func)->func_name));
+          PyUnicode_AsUTF8((reinterpret_cast<PyFunctionObject *>(py_func))->func_name));
 }
 
 /** \} */
@@ -1221,7 +1221,7 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
       if (ret) {
         sizes[i] = PyLong_AsLong(ret);
         Py_DECREF(ret);
-        ret = PyObject_CallFunction(unpack, "sy#", format, (char *)ptr, sizes[i]);
+        ret = PyObject_CallFunction(unpack, "sy#", format, static_cast<char *>(ptr), sizes[i]);
       }
 
       if (ret == nullptr) {

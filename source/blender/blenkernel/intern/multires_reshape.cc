@@ -33,7 +33,7 @@ static bool multiresModifier_reshapeFromVertcos(Depsgraph *depsgraph,
     return false;
   }
   multires_reshape_store_original_grids(&reshape_context);
-  multires_reshape_ensure_grids(static_cast<Mesh *>(object->data), reshape_context.top.level);
+  multires_reshape_ensure_grids(blender::id_cast<Mesh *>(object->data), reshape_context.top.level);
   if (!multires_reshape_assign_final_coords_from_vertcos(&reshape_context, positions)) {
     multires_reshape_context_free(&reshape_context);
     return false;
@@ -155,7 +155,7 @@ void multiresModifier_subdivide_to_level(Object *object,
     return;
   }
 
-  Mesh *coarse_mesh = static_cast<Mesh *>(object->data);
+  Mesh *coarse_mesh = blender::id_cast<Mesh *>(object->data);
   if (coarse_mesh->corners_num == 0) {
     /* If there are no loops in the mesh implies there is no CD_MDISPS as well. So can early output
      * from here as there is nothing to subdivide. */

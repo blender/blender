@@ -25,7 +25,7 @@
 
 static void init_data(ShaderFxData *fx)
 {
-  BlurShaderFxData *gpfx = (BlurShaderFxData *)fx;
+  BlurShaderFxData *gpfx = reinterpret_cast<BlurShaderFxData *>(fx);
   copy_v2_fl(gpfx->radius, 50.0f);
   gpfx->samples = 8;
   gpfx->rotation = 0.0f;

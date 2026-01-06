@@ -171,7 +171,7 @@ static Object *editcurve_object_from_context(bContext *C)
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit && ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
-    Curve *cu = static_cast<Curve *>(obedit->data);
+    Curve *cu = blender::id_cast<Curve *>(obedit->data);
     if (BKE_curve_editNurbs_get(cu) != nullptr) {
       return obedit;
     }
@@ -208,7 +208,7 @@ static bool curve_undosys_poll(bContext *C)
 
 static bool curve_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 {
-  CurveUndoStep *us = (CurveUndoStep *)us_p;
+  CurveUndoStep *us = reinterpret_cast<CurveUndoStep *>(us_p);
 
   /* Important not to use the 3D view when getting objects because all objects
    * outside of this list will be moved out of edit-mode when reading back undo steps. */
@@ -222,11 +222,11 @@ static bool curve_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 
   for (uint i = 0; i < objects.size(); i++) {
     Object *ob = objects[i];
-    Curve *cu = static_cast<Curve *>(ob->data);
+    Curve *cu = blender::id_cast<Curve *>(ob->data);
     CurveUndoStep_Elem *elem = &us->elems[i];
 
     elem->obedit_ref.ptr = ob;
-    undocurve_from_editcurve(&elem->data, static_cast<Curve *>(ob->data), ob->shapenr);
+    undocurve_from_editcurve(&elem->data, blender::id_cast<Curve *>(ob->data), ob->shapenr);
     cu->editnurb->needs_flush_to_id = 1;
     us->step.data_size += elem->data.undo_size;
   }
@@ -239,7 +239,7 @@ static bool curve_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 static void curve_undosys_step_decode(
     bContext *C, Main *bmain, UndoStep *us_p, const eUndoStepDir /*dir*/, bool /*is_final*/)
 {
-  CurveUndoStep *us = (CurveUndoStep *)us_p;
+  CurveUndoStep *us = reinterpret_cast<CurveUndoStep *>(us_p);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
@@ -253,7 +253,7 @@ static void curve_undosys_step_decode(
   for (uint i = 0; i < us->elems_len; i++) {
     CurveUndoStep_Elem *elem = &us->elems[i];
     Object *obedit = elem->obedit_ref.ptr;
-    Curve *cu = static_cast<Curve *>(obedit->data);
+    Curve *cu = blender::id_cast<Curve *>(obedit->data);
     if (cu->editnurb == nullptr) {
       /* Should never fail, may not crash but can give odd behavior. */
       CLOG_ERROR(&LOG,
@@ -263,7 +263,7 @@ static void curve_undosys_step_decode(
       continue;
     }
     undocurve_to_editcurve(
-        bmain, &elem->data, static_cast<Curve *>(obedit->data), &obedit->shapenr);
+        bmain, &elem->data, blender::id_cast<Curve *>(obedit->data), &obedit->shapenr);
     cu->editnurb->needs_flush_to_id = 1;
     DEG_id_tag_update(&cu->id, ID_RECALC_GEOMETRY);
   }
@@ -282,7 +282,7 @@ static void curve_undosys_step_decode(
 
 static void curve_undosys_step_free(UndoStep *us_p)
 {
-  CurveUndoStep *us = (CurveUndoStep *)us_p;
+  CurveUndoStep *us = reinterpret_cast<CurveUndoStep *>(us_p);
 
   for (uint i = 0; i < us->elems_len; i++) {
     CurveUndoStep_Elem *elem = &us->elems[i];
@@ -295,12 +295,12 @@ static void curve_undosys_foreach_ID_ref(UndoStep *us_p,
                                          UndoTypeForEachIDRefFn foreach_ID_ref_fn,
                                          void *user_data)
 {
-  CurveUndoStep *us = (CurveUndoStep *)us_p;
+  CurveUndoStep *us = reinterpret_cast<CurveUndoStep *>(us_p);
 
-  foreach_ID_ref_fn(user_data, ((UndoRefID *)&us->scene_ref));
+  foreach_ID_ref_fn(user_data, (reinterpret_cast<UndoRefID *>(&us->scene_ref)));
   for (uint i = 0; i < us->elems_len; i++) {
     CurveUndoStep_Elem *elem = &us->elems[i];
-    foreach_ID_ref_fn(user_data, ((UndoRefID *)&elem->obedit_ref));
+    foreach_ID_ref_fn(user_data, (reinterpret_cast<UndoRefID *>(&elem->obedit_ref)));
   }
 }
 

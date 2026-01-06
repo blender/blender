@@ -2143,7 +2143,7 @@ void BKE_grease_pencil_nomain_to_grease_pencil(GreasePencil *grease_pencil_src,
 void BKE_grease_pencil_vgroup_name_update(Object *ob, const char *old_name, const char *new_name)
 {
   using namespace blender::bke::greasepencil;
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(ob->data);
   for (GreasePencilDrawingBase *base : grease_pencil.drawings()) {
     Drawing &drawing = reinterpret_cast<GreasePencilDrawing *>(base)->wrap();
     CurvesGeometry &curves = drawing.strokes_for_write();
@@ -2325,7 +2325,7 @@ void BKE_object_eval_grease_pencil(Depsgraph *depsgraph, Scene *scene, Object *o
   /* Free any evaluated data and restore original data. */
   BKE_object_free_derived_caches(object);
 
-  GreasePencil *grease_pencil = static_cast<GreasePencil *>(object->data);
+  GreasePencil *grease_pencil = blender::id_cast<GreasePencil *>(object->data);
   GeometrySet geometry_set = GeometrySet::from_grease_pencil(grease_pencil,
                                                              GeometryOwnershipType::ReadOnly);
   /* The layer adjustments for tinting and radii offsets are applied before modifier evaluation.
@@ -2346,7 +2346,7 @@ void BKE_object_eval_grease_pencil(Depsgraph *depsgraph, Scene *scene, Object *o
     GeometryComponentEditData &edit_component =
         geometry_set.get_component_for_write<GeometryComponentEditData>();
     edit_component.grease_pencil_edit_hints_ = std::make_unique<GreasePencilEditHints>(
-        *static_cast<const GreasePencil *>(DEG_get_original(object)->data));
+        *blender::id_cast<const GreasePencil *>(DEG_get_original(object)->data));
   }
   grease_pencil_evaluate_modifiers(depsgraph, scene, object, geometry_set);
 
@@ -4171,7 +4171,7 @@ void GreasePencil::rename_node(Main &bmain,
 
   /* Update name dependencies outside of the ID. */
   for (Object &object : bmain.objects) {
-    if (object.data != this) {
+    if (object.data != blender::id_cast<ID *>(this)) {
       continue;
     }
 

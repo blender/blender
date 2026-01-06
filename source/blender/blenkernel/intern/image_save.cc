@@ -492,8 +492,8 @@ static bool image_save_single(ReportList *reports,
     for (int i = 0; i < totviews; i++) {
       char filepath[FILE_MAX];
       bool ok_view = false;
-      const char *view = rr ? ((RenderView *)BLI_findlink(&rr->views, i))->name :
-                              ((ImageView *)BLI_findlink(&ima->views, i))->name;
+      const char *view = rr ? (static_cast<RenderView *>(BLI_findlink(&rr->views, i)))->name :
+                              (static_cast<ImageView *>(BLI_findlink(&ima->views, i)))->name;
 
       if (is_exr_rr) {
         BKE_scene_multiview_view_filepath_get(&opts->scene->r, opts->filepath, view, filepath);
@@ -724,7 +724,7 @@ static float *image_exr_from_scene_linear_to_output(float *rect,
     return rect;
   }
 
-  float *output_rect = (float *)MEM_dupallocN(rect);
+  float *output_rect = static_cast<float *>(MEM_dupallocN(rect));
   tmp_output_rects.append(output_rect);
 
   const char *from_colorspace = IMB_colormanagement_role_colorspace_name_get(
@@ -902,7 +902,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
   }
 
   /* First add views since IMB_exr_add_channels checks number of views. */
-  const RenderView *first_rview = (const RenderView *)rr->views.first;
+  const RenderView *first_rview = static_cast<const RenderView *>(rr->views.first);
   if (first_rview && (first_rview->next || first_rview->name[0])) {
     for (RenderView &rview : rr->views) {
       if (!view || STREQ(view, rview.name)) {
@@ -1152,7 +1152,8 @@ bool BKE_image_render_write(ReportList *reports,
   /* mono, legacy code */
   else if (is_mono || (image_format.views_format == R_IMF_VIEWS_INDIVIDUAL)) {
     int view_id = 0;
-    for (const RenderView *rv = (const RenderView *)rr->views.first; rv; rv = rv->next, view_id++)
+    for (const RenderView *rv = static_cast<const RenderView *>(rr->views.first); rv;
+         rv = rv->next, view_id++)
     {
       char filepath[FILE_MAX];
       if (is_mono) {

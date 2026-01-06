@@ -272,7 +272,7 @@ bool EDBM_op_call_silentf(BMEditMesh *em, const char *fmt, ...)
  */
 static int object_shapenr_basis_index_ensured(const Object *ob)
 {
-  const Mesh *mesh = static_cast<const Mesh *>(ob->data);
+  const Mesh *mesh = blender::id_cast<const Mesh *>(ob->data);
   if (UNLIKELY((ob->shapenr == 0) && (mesh->key && !BLI_listbase_is_empty(&mesh->key->block)))) {
     return 1;
   }
@@ -281,7 +281,7 @@ static int object_shapenr_basis_index_ensured(const Object *ob)
 
 void EDBM_mesh_make(Object *ob, const int select_mode, const bool add_key_index)
 {
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   EDBM_mesh_make_from_mesh(ob, mesh, select_mode, add_key_index);
 }
 
@@ -290,7 +290,7 @@ void EDBM_mesh_make_from_mesh(Object *ob,
                               const int select_mode,
                               const bool add_key_index)
 {
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   BMeshCreateParams create_params{};
   create_params.use_toolflags = true;
   /* Clamp the index, so the behavior of enter & exit edit-mode matches, see #43998. */
@@ -318,7 +318,7 @@ void EDBM_mesh_make_from_mesh(Object *ob,
 
 void EDBM_mesh_load_ex(Main *bmain, Object *ob, bool free_data)
 {
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   BMesh *bm = mesh->runtime->edit_mesh->bm;
 
   /* Workaround for #42360, 'ob->shapenr' should be 1 in this case.
@@ -1277,7 +1277,7 @@ bool EDBM_vert_color_check(BMEditMesh *em)
 static BMVert *cache_mirr_intptr_as_bmvert(const intptr_t *index_lookup, int index)
 {
   intptr_t eve_i = index_lookup[index];
-  return (eve_i == -1) ? nullptr : (BMVert *)eve_i;
+  return (eve_i == -1) ? nullptr : reinterpret_cast<BMVert *>(eve_i);
 }
 
 /**
@@ -1837,13 +1837,13 @@ bool EDBM_view3d_poll(bContext *C)
 BMElem *EDBM_elem_from_selectmode(BMEditMesh *em, BMVert *eve, BMEdge *eed, BMFace *efa)
 {
   if ((em->selectmode & SCE_SELECT_VERTEX) && eve) {
-    return (BMElem *)eve;
+    return reinterpret_cast<BMElem *>(eve);
   }
   if ((em->selectmode & SCE_SELECT_EDGE) && eed) {
-    return (BMElem *)eed;
+    return reinterpret_cast<BMElem *>(eed);
   }
   if ((em->selectmode & SCE_SELECT_FACE) && efa) {
-    return (BMElem *)efa;
+    return reinterpret_cast<BMElem *>(efa);
   }
   return nullptr;
 }
@@ -1876,15 +1876,15 @@ BMElem *EDBM_elem_from_index_any(BMEditMesh *em, uint index)
   BMesh *bm = em->bm;
 
   if (index < bm->totvert) {
-    return (BMElem *)BM_vert_at_index_find_or_table(bm, index);
+    return reinterpret_cast<BMElem *>(BM_vert_at_index_find_or_table(bm, index));
   }
   index -= bm->totvert;
   if (index < bm->totedge) {
-    return (BMElem *)BM_edge_at_index_find_or_table(bm, index);
+    return reinterpret_cast<BMElem *>(BM_edge_at_index_find_or_table(bm, index));
   }
   index -= bm->totedge;
   if (index < bm->totface) {
-    return (BMElem *)BM_face_at_index_find_or_table(bm, index);
+    return reinterpret_cast<BMElem *>(BM_face_at_index_find_or_table(bm, index));
   }
 
   return nullptr;

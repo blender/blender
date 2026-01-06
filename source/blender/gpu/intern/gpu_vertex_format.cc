@@ -481,7 +481,7 @@ void GPU_vertformat_attr_rename(GPUVertFormat *format, int attr_id, const char *
 {
   BLI_assert(attr_id > -1 && attr_id < format->attr_len);
   GPUVertAttr *attr = &format->attrs[attr_id];
-  char *attr_name = (char *)GPU_vertformat_attr_name_get(format, attr, 0);
+  char *attr_name = const_cast<char *>(GPU_vertformat_attr_name_get(format, attr, 0));
   BLI_assert(strlen(attr_name) == strlen(new_name));
   int i = 0;
   while (attr_name[i] != '\0') {
@@ -496,7 +496,7 @@ static void safe_bytes(char out[11], const char data[8])
 {
   const char safe_chars[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-  uint64_t in = *(uint64_t *)data;
+  uint64_t in = *reinterpret_cast<uint64_t *>(const_cast<char *>(data));
   for (int i = 0; i < 11; i++) {
     out[i] = safe_chars[in % 62lu];
     in /= 62lu;
@@ -515,7 +515,7 @@ void GPU_vertformat_safe_attr_name(const StringRef attr_name, char *r_safe_name,
      * NOTE: This is still prone to hash collision but the risks are very low. */
     /* Start hashing after the first 2 chars. */
     const StringRef to_hash = attr_name.drop_prefix(4);
-    *(uint *)&data[4] = BLI_hash_mm2(
+    *reinterpret_cast<uint *>(&data[4]) = BLI_hash_mm2(
         reinterpret_cast<const uchar *>(to_hash.data()), to_hash.size(), 0);
   }
   else {
@@ -641,7 +641,9 @@ void GPU_vertformat_from_shader(GPUVertFormat *format, const blender::gpu::Shade
   while (attrs_added < attr_len) {
     char name[256];
     Type gpu_type;
-    if (!GPU_shader_get_attribute_info(shader, location_test++, name, (int *)&gpu_type)) {
+    if (!GPU_shader_get_attribute_info(
+            shader, location_test++, name, reinterpret_cast<int *>(&gpu_type)))
+    {
       continue;
     }
 

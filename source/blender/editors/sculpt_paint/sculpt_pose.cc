@@ -521,7 +521,7 @@ static void grow_pose_factor(const Depsgraph &depsgraph,
     switch (pbvh.type()) {
       case bke::pbvh::Type::Mesh: {
         MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-        const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+        const Mesh &mesh = *blender::id_cast<const Mesh *>(ob.data);
         const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
         const OffsetIndices faces = mesh.faces();
         const Span<int> corner_verts = mesh.corner_verts();
@@ -671,7 +671,7 @@ static void calc_pose_origin_and_factor_mesh(const Depsgraph &depsgraph,
 {
   BLI_assert(!r_pose_factor.is_empty());
 
-  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  const Mesh &mesh = *blender::id_cast<const Mesh *>(object.data);
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
 
@@ -926,7 +926,7 @@ static std::unique_ptr<IKChain> ik_chain_init_topology(const Depsgraph &depsgrap
   /* TODO: How should this function handle not being able to find the nearest vert? */
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const Mesh &mesh = *blender::id_cast<const Mesh *>(object.data);
       const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
       const bke::AttributeAccessor attributes = mesh.attributes();
       VArraySpan<bool> hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
@@ -1027,7 +1027,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_mesh(const Depsgraph &de
     int face_set;
   };
 
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
   Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
@@ -1198,7 +1198,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_grids(Object &object,
     int face_set;
   };
 
-  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  const Mesh &mesh = *blender::id_cast<const Mesh *>(object.data);
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
@@ -1555,7 +1555,7 @@ static std::optional<float3> calc_average_face_set_center(const Depsgraph &depsg
 
   switch (bke::object::pbvh_get(object)->type()) {
     case bke::pbvh::Type::Mesh: {
-      const Mesh &mesh = *static_cast<Mesh *>(object.data);
+      const Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
       const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
       const bke::AttributeAccessor attributes = mesh.attributes();
@@ -1577,7 +1577,7 @@ static std::optional<float3> calc_average_face_set_center(const Depsgraph &depsg
       const SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
       const Span<float3> positions = subdiv_ccg.positions;
 
-      const Mesh &mesh = *static_cast<Mesh *>(object.data);
+      const Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArraySpan face_sets = *attributes.lookup_or_default<int>(
           ".sculpt_face_set", bke::AttrDomain::Face, 0);
@@ -1629,7 +1629,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk_mesh(const Depsgraph 
                                                                 const float radius,
                                                                 const float3 &initial_location)
 {
-  const Mesh &mesh = *static_cast<Mesh *>(object.data);
+  const Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan face_sets = *attributes.lookup_or_default<int>(
@@ -1707,7 +1707,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk_grids(const Depsgraph
                                                                  const float radius,
                                                                  const float3 &initial_location)
 {
-  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  const Mesh &mesh = *blender::id_cast<const Mesh *>(object.data);
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
@@ -2186,7 +2186,7 @@ void do_pose_brush(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<BrushLocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *static_cast<Mesh *>(ob.data);
+      Mesh &mesh = *blender::id_cast<Mesh *>(ob.data);
       const MeshAttributeData attribute_data(mesh);
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       const PositionDeformData position_data(depsgraph, ob);

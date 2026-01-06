@@ -55,7 +55,7 @@ static void brightcontrast_apply(ModifierApplyContext &context,
                                  StripModifierData *smd,
                                  ImBuf *mask)
 {
-  const BrightContrastModifierData *bcmd = (BrightContrastModifierData *)smd;
+  const BrightContrastModifierData *bcmd = reinterpret_cast<BrightContrastModifierData *>(smd);
 
   BrightContrastApplyOp op;
 

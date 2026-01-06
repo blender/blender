@@ -224,7 +224,7 @@ static void action_flip_pchan(Object *ob_arm, const bPoseChannel *pchan, FCurveP
   int fcurve_array_len = 0;
 
   for (int chan = 0; chan < FCURVE_CHANNEL_LEN; chan++) {
-    FCurve_KeyCache *fkc = (FCurve_KeyCache *)(&fkc_pchan) + chan;
+    FCurve_KeyCache *fkc = reinterpret_cast<FCurve_KeyCache *>(&fkc_pchan) + chan;
     if (fkc->fcurve != nullptr) {
       fcurve_array[fcurve_array_len++] = fkc->fcurve;
     }
@@ -242,7 +242,7 @@ static void action_flip_pchan(Object *ob_arm, const bPoseChannel *pchan, FCurveP
 
   /* Initialize the pose channel curve cache from the F-Curve. */
   for (int chan = 0; chan < FCURVE_CHANNEL_LEN; chan++) {
-    FCurve_KeyCache *fkc = (FCurve_KeyCache *)(&fkc_pchan) + chan;
+    FCurve_KeyCache *fkc = reinterpret_cast<FCurve_KeyCache *>(&fkc_pchan) + chan;
     if (fkc->fcurve == nullptr) {
       continue;
     }
@@ -377,7 +377,7 @@ static void action_flip_pchan(Object *ob_arm, const bPoseChannel *pchan, FCurveP
   MEM_freeN(keyed_frames);
 
   for (int chan = 0; chan < FCURVE_CHANNEL_LEN; chan++) {
-    FCurve_KeyCache *fkc = (FCurve_KeyCache *)(&fkc_pchan) + chan;
+    FCurve_KeyCache *fkc = reinterpret_cast<FCurve_KeyCache *>(&fkc_pchan) + chan;
     if (fkc->fcurve_eval) {
       MEM_freeN(fkc->fcurve_eval);
     }

@@ -20,7 +20,7 @@ static void exec(void *data,
                  bNodeStack **in,
                  bNodeStack ** /*out*/)
 {
-  TexCallData *cdata = (TexCallData *)data;
+  TexCallData *cdata = static_cast<TexCallData *>(data);
 
   if (cdata->do_preview) {
     TexParams params;

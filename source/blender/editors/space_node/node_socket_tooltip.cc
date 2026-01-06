@@ -358,7 +358,7 @@ class SocketTooltipBuilder {
     const T *data = *value.get<T *>();
     std::string value_str;
     if (data) {
-      value_str = BKE_id_name(id_cast<const ID &>(*data));
+      value_str = BKE_id_name(blender::id_cast<const ID &>(*data));
     }
     else {
       value_str = TIP_("None");

@@ -41,12 +41,14 @@ struct GSQueue {
 
 static void *queue_get_first_elem(GSQueue *queue)
 {
-  return ((char *)(queue)->chunk_first->data) + ((queue)->elem_size * (queue)->chunk_first_index);
+  return (static_cast<char *>((queue)->chunk_first->data)) +
+         ((queue)->elem_size * (queue)->chunk_first_index);
 }
 
 static void *queue_get_last_elem(GSQueue *queue)
 {
-  return ((char *)(queue)->chunk_last->data) + ((queue)->elem_size * (queue)->chunk_last_index);
+  return (static_cast<char *>((queue)->chunk_last->data)) +
+         ((queue)->elem_size * (queue)->chunk_last_index);
 }
 
 /**

@@ -118,9 +118,12 @@ static PyObject *py_bl_math_smoothstep(PyObject * /*self*/, PyObject *args)
  * \{ */
 
 static PyMethodDef M_bl_math_methods[] = {
-    {"clamp", (PyCFunction)py_bl_math_clamp, METH_VARARGS, py_bl_math_clamp_doc},
-    {"lerp", (PyCFunction)py_bl_math_lerp, METH_VARARGS, py_bl_math_lerp_doc},
-    {"smoothstep", (PyCFunction)py_bl_math_smoothstep, METH_VARARGS, py_bl_math_smoothstep_doc},
+    {"clamp", static_cast<PyCFunction>(py_bl_math_clamp), METH_VARARGS, py_bl_math_clamp_doc},
+    {"lerp", static_cast<PyCFunction>(py_bl_math_lerp), METH_VARARGS, py_bl_math_lerp_doc},
+    {"smoothstep",
+     static_cast<PyCFunction>(py_bl_math_smoothstep),
+     METH_VARARGS,
+     py_bl_math_smoothstep_doc},
     {nullptr, nullptr, 0, nullptr},
 };
 

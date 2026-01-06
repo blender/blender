@@ -8,6 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_math_geom.h"
@@ -545,7 +546,7 @@ static int edbm_rip_invoke__vert(bContext *C, const wmEvent *event, Object *obed
 
   /* find selected vert - same some time and check history first */
   if (BM_select_history_active_get(bm, &ese) && ese.htype == BM_VERT) {
-    v = (BMVert *)ese.ele;
+    v = reinterpret_cast<BMVert *>(ese.ele);
   }
   else {
     ese.ele = nullptr;
@@ -618,8 +619,8 @@ static int edbm_rip_invoke__vert(bContext *C, const wmEvent *event, Object *obed
     BMLoop *l_all[3];
     int i1, i2;
 
-    BM_iter_as_array(bm, BM_EDGES_OF_VERT, v, (void **)e_all, 3);
-    BM_iter_as_array(bm, BM_LOOPS_OF_VERT, v, (void **)l_all, 3);
+    BM_iter_as_array(bm, BM_EDGES_OF_VERT, v, reinterpret_cast<void **>(e_all), 3);
+    BM_iter_as_array(bm, BM_LOOPS_OF_VERT, v, reinterpret_cast<void **>(l_all), 3);
 
     /* not do a loop similar to the one above, but test against loops */
     for (i1 = 0; i1 < 3; i1++) {
@@ -1104,7 +1105,7 @@ static wmOperatorStatus edbm_rip_invoke(bContext *C, wmOperator *op, const wmEve
     params.calc_looptris = true;
     params.calc_normals = true;
     params.is_destructive = true;
-    EDBM_update(static_cast<Mesh *>(obedit->data), &params);
+    EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
   }
 
   if (no_vertex_selected) {

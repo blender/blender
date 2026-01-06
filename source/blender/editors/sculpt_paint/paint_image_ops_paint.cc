@@ -242,7 +242,7 @@ static void gradient_draw_line(bContext * /*C*/,
                                const blender::float2 & /*tilt*/,
                                void *customdata)
 {
-  PaintOperation *pop = (PaintOperation *)customdata;
+  PaintOperation *pop = static_cast<PaintOperation *>(customdata);
 
   if (pop) {
     GPU_line_smooth(true);

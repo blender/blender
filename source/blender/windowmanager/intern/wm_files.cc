@@ -2375,7 +2375,7 @@ void wm_autosave_timer(Main *bmain, wmWindowManager *wm, wmTimer * /*wt*/)
   for (wmWindow &win : wm->windows) {
     for (wmEventHandler &handler_base : win.runtime->modalhandlers) {
       if (handler_base.type == WM_HANDLER_TYPE_OP) {
-        wmEventHandler_Op *handler = (wmEventHandler_Op *)&handler_base;
+        wmEventHandler_Op *handler = reinterpret_cast<wmEventHandler_Op *>(&handler_base);
         if (handler->op) {
           wm_autosave_timer_begin_ex(wm, 0.01);
           return;
@@ -2923,7 +2923,7 @@ static void wm_homefile_read_after_dialog_callback(bContext *C, void *user_data)
   WM_operator_name_call_with_properties(C,
                                         "WM_OT_read_homefile",
                                         blender::wm::OpCallContext::ExecDefault,
-                                        (IDProperty *)user_data,
+                                        static_cast<IDProperty *>(user_data),
                                         nullptr);
 }
 
@@ -3130,7 +3130,7 @@ static void wm_open_mainfile_after_dialog_callback(bContext *C, void *user_data)
   WM_operator_name_call_with_properties(C,
                                         "WM_OT_open_mainfile",
                                         blender::wm::OpCallContext::InvokeDefault,
-                                        (IDProperty *)user_data,
+                                        static_cast<IDProperty *>(user_data),
                                         nullptr);
 }
 
@@ -3281,7 +3281,7 @@ BLI_STATIC_ASSERT(sizeof(FileRuntime) <= sizeof(void *), "Struct must not exceed
 
 static bool wm_open_mainfile_check(bContext * /*C*/, wmOperator *op)
 {
-  FileRuntime *file_info = (FileRuntime *)&op->customdata;
+  FileRuntime *file_info = reinterpret_cast<FileRuntime *>(&op->customdata);
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "use_scripts");
   bool is_untrusted = false;
   char filepath[FILE_MAX];
@@ -3290,7 +3290,7 @@ static bool wm_open_mainfile_check(bContext * /*C*/, wmOperator *op)
   RNA_string_get(op->ptr, "filepath", filepath);
 
   /* Get the directory. */
-  lslash = (char *)BLI_path_slash_rfind(filepath);
+  lslash = const_cast<char *>(BLI_path_slash_rfind(filepath));
   if (lslash) {
     *(lslash + 1) = '\0';
   }
@@ -3311,7 +3311,7 @@ static bool wm_open_mainfile_check(bContext * /*C*/, wmOperator *op)
 
 static void wm_open_mainfile_ui(bContext * /*C*/, wmOperator *op)
 {
-  FileRuntime *file_info = (FileRuntime *)&op->customdata;
+  FileRuntime *file_info = reinterpret_cast<FileRuntime *>(&op->customdata);
   blender::ui::Layout &layout = *op->layout;
   const char *autoexec_text;
 
@@ -3482,7 +3482,7 @@ static void wm_recover_last_session_after_dialog_callback(bContext *C, void *use
   WM_operator_name_call_with_properties(C,
                                         "WM_OT_recover_last_session",
                                         blender::wm::OpCallContext::ExecDefault,
-                                        (IDProperty *)user_data,
+                                        static_cast<IDProperty *>(user_data),
                                         nullptr);
 }
 
@@ -4306,13 +4306,13 @@ void wm_test_foreign_file_warning(bContext *C)
 
 static void free_post_file_close_action(void *arg)
 {
-  wmGenericCallback *action = (wmGenericCallback *)arg;
+  wmGenericCallback *action = static_cast<wmGenericCallback *>(arg);
   WM_generic_callback_free(action);
 }
 
 static void wm_free_operator_properties_callback(void *user_data)
 {
-  IDProperty *properties = (IDProperty *)user_data;
+  IDProperty *properties = static_cast<IDProperty *>(user_data);
   IDP_FreeProperty(properties);
 }
 
@@ -4596,7 +4596,8 @@ static void wm_block_file_close_cancel(bContext *C, void *arg_block, void * /*ar
 
 static void wm_block_file_close_discard(bContext *C, void *arg_block, void *arg_data)
 {
-  wmGenericCallback *callback = WM_generic_callback_steal((wmGenericCallback *)arg_data);
+  wmGenericCallback *callback = WM_generic_callback_steal(
+      static_cast<wmGenericCallback *>(arg_data));
 
   /* Close the popup before executing the callback. Otherwise
    * the popup might be closed by the callback, which will lead
@@ -4612,7 +4613,8 @@ static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_dat
 {
   const Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
-  wmGenericCallback *callback = WM_generic_callback_steal((wmGenericCallback *)arg_data);
+  wmGenericCallback *callback = WM_generic_callback_steal(
+      static_cast<wmGenericCallback *>(arg_data));
   bool execute_callback = true;
 
   wmWindow *win = CTX_wm_window(C);
@@ -4737,7 +4739,7 @@ static blender::ui::Block *block_create__close_file_dialog(bContext *C,
                                                            void *arg1)
 {
   using namespace blender;
-  wmGenericCallback *post_action = (wmGenericCallback *)arg1;
+  wmGenericCallback *post_action = static_cast<wmGenericCallback *>(arg1);
   Main *bmain = CTX_data_main(C);
 
   ui::Block *block = block_begin(C, region, close_file_dialog_name, ui::EmbossType::Emboss);

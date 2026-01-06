@@ -242,14 +242,14 @@ static void mesh_customdatacorrect_face_substitute_set(TransCustomDataLayer *tcl
     /* Hack: reference substitute face in `f_copy->no`.
      * `tcld->origfaces` is already used to restore the initial value. */
     BM_elem_index_set(f_copy, FACE_SUBSTITUTE_INDEX);
-    *((BMFace **)&f_copy->no[0]) = f_substitute_copy;
+    *(reinterpret_cast<BMFace **>(&f_copy->no[0])) = f_substitute_copy;
   }
 }
 
 static BMFace *mesh_customdatacorrect_face_substitute_get(BMFace *f_copy)
 {
   BLI_assert(BM_elem_index_get(f_copy) == FACE_SUBSTITUTE_INDEX);
-  return *((BMFace **)&f_copy->no[0]);
+  return *(reinterpret_cast<BMFace **>(&f_copy->no[0]));
 }
 
 #endif /* USE_FACE_SUBSTITUTE */
@@ -407,12 +407,12 @@ static TransCustomDataLayer *mesh_customdatacorrect_create_impl(TransDataContain
 
     TransData *tob = tc->data;
     for (int j = tc->data_len; j--; tob++, i++) {
-      mesh_customdatacorrect_init_vert(tcld, (TransDataBasic *)tob, i);
+      mesh_customdatacorrect_init_vert(tcld, static_cast<TransDataBasic *>(tob), i);
     }
 
     TransDataMirror *td_mirror = tc->data_mirror;
     for (int j = tc->data_mirror_len; j--; td_mirror++, i++) {
-      mesh_customdatacorrect_init_vert(tcld, (TransDataBasic *)td_mirror, i);
+      mesh_customdatacorrect_init_vert(tcld, static_cast<TransDataBasic *>(td_mirror), i);
     }
   }
 
@@ -671,7 +671,8 @@ static void mesh_customdatacorrect_apply(TransDataContainer *tc, bool is_final)
   TransCustomDataMergeGroup *merge_data = tcld->merge_group.data;
   TransData *tob = tc->data;
   for (int i = tc->data_len; i--; tob++) {
-    mesh_customdatacorrect_apply_vert(tcld, (TransDataBasic *)tob, merge_data, is_final);
+    mesh_customdatacorrect_apply_vert(
+        tcld, static_cast<TransDataBasic *>(tob), merge_data, is_final);
 
     if (use_merge_group) {
       merge_data++;
@@ -680,7 +681,8 @@ static void mesh_customdatacorrect_apply(TransDataContainer *tc, bool is_final)
 
   TransDataMirror *td_mirror = tc->data_mirror;
   for (int i = tc->data_mirror_len; i--; td_mirror++) {
-    mesh_customdatacorrect_apply_vert(tcld, (TransDataBasic *)td_mirror, merge_data, is_final);
+    mesh_customdatacorrect_apply_vert(
+        tcld, static_cast<TransDataBasic *>(td_mirror), merge_data, is_final);
 
     if (use_merge_group) {
       merge_data++;
@@ -789,7 +791,8 @@ void transform_convert_mesh_islands_calc(BMEditMesh *em,
     BM_mesh_elem_table_ensure(bm, htype);
 
     void **ele_array;
-    ele_array = (htype == BM_FACE) ? (void **)bm->ftable : (void **)bm->etable;
+    ele_array = (htype == BM_FACE) ? reinterpret_cast<void **>(bm->ftable) :
+                                     reinterpret_cast<void **>(bm->etable);
 
     BM_mesh_elem_index_ensure(bm, BM_VERT);
 
@@ -1475,7 +1478,7 @@ static void createTransEditVerts(bContext * /*C*/, TransInfo *t)
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransDataExtension *tx = nullptr;
     BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
-    Mesh *mesh = static_cast<Mesh *>(tc->obedit->data);
+    Mesh *mesh = blender::id_cast<Mesh *>(tc->obedit->data);
     BMesh *bm = em->bm;
     BMVert *eve;
     BMIter iter;
@@ -1777,7 +1780,7 @@ static BMPartialUpdate *mesh_partial_ensure(TransInfo *t,
       if (td->factor == 0.0f) {
         continue;
       }
-      const BMVert *v = (BMVert *)td->extra;
+      const BMVert *v = static_cast<BMVert *>(td->extra);
       const int v_index = BM_elem_index_get(v);
       BLI_assert(verts_group[v_index] == 0);
       if (td->factor < 1.0f) {
@@ -1798,7 +1801,8 @@ static BMPartialUpdate *mesh_partial_ensure(TransInfo *t,
 
     TransDataMirror *td_mirror = tc->data_mirror;
     for (i = 0; i < tc->data_mirror_len; i++, td_mirror++) {
-      BMVert *v_mirr = (BMVert *)POINTER_OFFSET(td_mirror->loc_src, -offsetof(BMVert, co));
+      BMVert *v_mirr = reinterpret_cast<BMVert *> POINTER_OFFSET(td_mirror->loc_src,
+                                                                 -offsetof(BMVert, co));
       /* The equality check is to account for the case when topology mirror moves
        * the vertex from it's original location to match it's symmetrical position,
        * with proportional editing enabled. */
@@ -1807,7 +1811,7 @@ static BMPartialUpdate *mesh_partial_ensure(TransInfo *t,
         continue;
       }
 
-      BMVert *v_mirr_other = (BMVert *)td_mirror->extra;
+      BMVert *v_mirr_other = static_cast<BMVert *>(td_mirror->extra);
       /* This assert should never fail since there is no overlap
        * between mirrored vertices and non-mirrored. */
       BLI_assert(verts_group[BM_elem_index_get(v_mirr_other)] == 0);
@@ -1833,7 +1837,7 @@ static BMPartialUpdate *mesh_partial_ensure(TransInfo *t,
       if (td->factor == 0.0f) {
         continue;
       }
-      const BMVert *v = (BMVert *)td->extra;
+      const BMVert *v = static_cast<BMVert *>(td->extra);
       const int v_index = BM_elem_index_get(v);
       BLI_assert(!verts_mask[v_index]);
       verts_mask[v_index].set();
@@ -1842,12 +1846,13 @@ static BMPartialUpdate *mesh_partial_ensure(TransInfo *t,
 
     TransDataMirror *td_mirror = tc->data_mirror;
     for (i = 0; i < tc->data_mirror_len; i++, td_mirror++) {
-      BMVert *v_mirr = (BMVert *)POINTER_OFFSET(td_mirror->loc_src, -offsetof(BMVert, co));
+      BMVert *v_mirr = reinterpret_cast<BMVert *> POINTER_OFFSET(td_mirror->loc_src,
+                                                                 -offsetof(BMVert, co));
       if (!verts_mask[BM_elem_index_get(v_mirr)] && equals_v3v3(td_mirror->loc, td_mirror->iloc)) {
         continue;
       }
 
-      BMVert *v_mirr_other = (BMVert *)td_mirror->extra;
+      BMVert *v_mirr_other = static_cast<BMVert *>(td_mirror->extra);
       BLI_assert(!verts_mask[BM_elem_index_get(v_mirr_other)]);
       const int v_mirr_other_index = BM_elem_index_get(v_mirr_other);
       verts_mask[v_mirr_other_index].set();

@@ -723,7 +723,7 @@ struct ReadEWAData {
 
 static void ewa_read_pixel_cb(void *userdata, int x, int y, float result[4])
 {
-  ReadEWAData *data = (ReadEWAData *)userdata;
+  ReadEWAData *data = static_cast<ReadEWAData *>(userdata);
   ibuf_get_color_clip(result, data->ibuf, x, y, data->AFD->extflag);
 }
 

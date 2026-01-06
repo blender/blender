@@ -232,7 +232,7 @@ static void do_kink_spiral(ParticleThreadContext *ctx,
         mul_m3_v3(rot, kink);
       }
 
-      do_kink_spiral_deform((ParticleKey *)key,
+      do_kink_spiral_deform(reinterpret_cast<ParticleKey *>(key),
                             dir,
                             kink,
                             spiral_time,
@@ -249,7 +249,7 @@ static void do_kink_spiral(ParticleThreadContext *ctx,
     modifier_ctx.par_orco = parent_orco;
 
     /* Apply different deformations to the child path/ */
-    do_child_modifiers(&modifier_ctx, hairmat, (ParticleKey *)key, par_time);
+    do_child_modifiers(&modifier_ctx, hairmat, reinterpret_cast<ParticleKey *>(key), par_time);
   }
 
   totlen = 0.0f;
@@ -327,7 +327,7 @@ void psys_apply_child_modifiers(ParticleThreadContext *ctx,
       ParticlePathIterator iter;
       psys_path_iter_get(&iter, keys, totkeys, parent_keys, k);
 
-      ParticleKey *par = (ParticleKey *)iter.parent_key;
+      ParticleKey *par = reinterpret_cast<ParticleKey *>(iter.parent_key);
 
       /* Fill in variant part of modifier context. */
       modifier_ctx.par_co = par->co;
@@ -336,7 +336,7 @@ void psys_apply_child_modifiers(ParticleThreadContext *ctx,
       modifier_ctx.par_orco = parent_orco;
 
       /* Apply different deformations to the child path. */
-      do_child_modifiers(&modifier_ctx, hairmat, (ParticleKey *)key, iter.time);
+      do_child_modifiers(&modifier_ctx, hairmat, reinterpret_cast<ParticleKey *>(key), iter.time);
     }
   }
 

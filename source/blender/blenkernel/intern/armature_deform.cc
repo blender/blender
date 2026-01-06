@@ -546,7 +546,7 @@ static void armature_vert_task_editmesh(void *__restrict userdata,
                                         const TaskParallelTLS *__restrict /*tls*/)
 {
   const ArmatureEditMeshUserdata &data = *static_cast<const ArmatureEditMeshUserdata *>(userdata);
-  BMVert *v = (BMVert *)iter;
+  BMVert *v = reinterpret_cast<BMVert *>(iter);
   const MDeformVert *dvert = use_dvert ? static_cast<const MDeformVert *>(
                                              BM_ELEM_CD_GET_VOID_P(v, data.cd_dvert_offset)) :
                                          nullptr;
@@ -600,7 +600,7 @@ static void armature_deform_editmesh(const Object &ob_arm,
 static bool verify_armature_deform_valid(const Object &ob_arm)
 {
   /* Not supported in armature edit mode or without pose data. */
-  const bArmature *arm = static_cast<const bArmature *>(ob_arm.data);
+  const bArmature *arm = blender::id_cast<const bArmature *>(ob_arm.data);
   if (arm->edbo || (ob_arm.pose == nullptr)) {
     return false;
   }
@@ -680,12 +680,12 @@ void BKE_armature_deform_coords_with_mesh(
   Span<MDeformVert> dverts;
   if (ob_target.type == OB_MESH) {
     if (me_target == nullptr) {
-      me_target = static_cast<const Mesh *>(ob_target.data);
+      me_target = blender::id_cast<const Mesh *>(ob_target.data);
     }
     dverts = me_target->deform_verts();
   }
   else if (ob_target.type == OB_LATTICE) {
-    const Lattice *lt = static_cast<const Lattice *>(ob_target.data);
+    const Lattice *lt = blender::id_cast<const Lattice *>(ob_target.data);
     if (lt->dvert != nullptr) {
       dverts = Span<MDeformVert>(lt->dvert, lt->pntsu * lt->pntsv * lt->pntsw);
     }

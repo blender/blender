@@ -85,7 +85,7 @@ static void movie_clip_runtime_reset(MovieClip *clip)
 
 static void movie_clip_init_data(ID *id)
 {
-  MovieClip *movie_clip = (MovieClip *)id;
+  MovieClip *movie_clip = blender::id_cast<MovieClip *>(id);
   INIT_DEFAULT_STRUCT_AFTER(movie_clip, id);
 
   BKE_tracking_settings_init(&movie_clip->tracking);
@@ -98,8 +98,8 @@ static void movie_clip_copy_data(Main * /*bmain*/,
                                  const ID *id_src,
                                  const int flag)
 {
-  MovieClip *movie_clip_dst = (MovieClip *)id_dst;
-  const MovieClip *movie_clip_src = (const MovieClip *)id_src;
+  MovieClip *movie_clip_dst = blender::id_cast<MovieClip *>(id_dst);
+  const MovieClip *movie_clip_src = blender::id_cast<const MovieClip *>(id_src);
 
   /* We never handle user-count here for owned data. */
   const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
@@ -116,7 +116,7 @@ static void movie_clip_copy_data(Main * /*bmain*/,
 
 static void movie_clip_free_data(ID *id)
 {
-  MovieClip *movie_clip = (MovieClip *)id;
+  MovieClip *movie_clip = blender::id_cast<MovieClip *>(id);
 
   /* Also frees animation-data. */
   free_buffers(movie_clip);
@@ -126,7 +126,7 @@ static void movie_clip_free_data(ID *id)
 
 static void movie_clip_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  MovieClip *movie_clip = (MovieClip *)id;
+  MovieClip *movie_clip = blender::id_cast<MovieClip *>(id);
   MovieTracking *tracking = &movie_clip->tracking;
 
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, movie_clip->gpd, IDWALK_CB_USER);
@@ -145,11 +145,11 @@ static void movie_clip_foreach_cache(ID *id,
                                      IDTypeForeachCacheFunctionCallback function_callback,
                                      void *user_data)
 {
-  MovieClip *movie_clip = (MovieClip *)id;
+  MovieClip *movie_clip = blender::id_cast<MovieClip *>(id);
   IDCacheKey key{};
   key.id_session_uid = id->session_uid;
   key.identifier = offsetof(MovieClip, cache);
-  function_callback(id, &key, (void **)&movie_clip->cache, 0, user_data);
+  function_callback(id, &key, reinterpret_cast<void **>(&movie_clip->cache), 0, user_data);
 
   key.identifier = offsetof(MovieClip, tracking.camera.intrinsics);
   function_callback(id, &key, (&movie_clip->tracking.camera.intrinsics), 0, user_data);
@@ -157,7 +157,7 @@ static void movie_clip_foreach_cache(ID *id,
 
 static void movie_clip_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
-  MovieClip *movie_clip = (MovieClip *)id;
+  MovieClip *movie_clip = blender::id_cast<MovieClip *>(id);
   BKE_bpath_foreach_path_fixed_process(
       bpath_data, movie_clip->filepath, sizeof(movie_clip->filepath));
 }
@@ -201,7 +201,7 @@ static void write_movieReconstruction(BlendWriter *writer,
 
 static void movieclip_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  MovieClip *clip = (MovieClip *)id;
+  MovieClip *clip = blender::id_cast<MovieClip *>(id);
 
   /* Clean up, important in undo case to reduce false detection of changed datablocks. */
   clip->anim = nullptr;
@@ -244,7 +244,8 @@ static void direct_link_moviePlaneTracks(BlendDataReader *reader,
   BLO_read_struct_list(reader, MovieTrackingPlaneTrack, plane_tracks_base);
 
   for (MovieTrackingPlaneTrack &plane_track : *plane_tracks_base) {
-    BLO_read_pointer_array(reader, plane_track.point_tracksnr, (void **)&plane_track.point_tracks);
+    BLO_read_pointer_array(
+        reader, plane_track.point_tracksnr, reinterpret_cast<void **>(&plane_track.point_tracks));
     for (int i = 0; i < plane_track.point_tracksnr; i++) {
       BLO_read_struct(reader, MovieTrackingTrack, &plane_track.point_tracks[i]);
     }
@@ -256,7 +257,7 @@ static void direct_link_moviePlaneTracks(BlendDataReader *reader,
 
 static void movieclip_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  MovieClip *clip = (MovieClip *)id;
+  MovieClip *clip = blender::id_cast<MovieClip *>(id);
   MovieTracking *tracking = &clip->tracking;
 
   direct_link_movieTracks(reader, &tracking->tracks_legacy);
@@ -771,7 +772,7 @@ static bool moviecache_hashcmp(const void *av, const void *bv)
 
 static void *moviecache_getprioritydata(void *key_v)
 {
-  MovieClipImBufCacheKey *key = (MovieClipImBufCacheKey *)key_v;
+  MovieClipImBufCacheKey *key = static_cast<MovieClipImBufCacheKey *>(key_v);
   MovieClipCachePriorityData *priority_data;
 
   priority_data = MEM_callocN<MovieClipCachePriorityData>("movie cache clip priority data");
@@ -782,15 +783,17 @@ static void *moviecache_getprioritydata(void *key_v)
 
 static int moviecache_getitempriority(void *last_userkey_v, void *priority_data_v)
 {
-  MovieClipImBufCacheKey *last_userkey = (MovieClipImBufCacheKey *)last_userkey_v;
-  MovieClipCachePriorityData *priority_data = (MovieClipCachePriorityData *)priority_data_v;
+  MovieClipImBufCacheKey *last_userkey = static_cast<MovieClipImBufCacheKey *>(last_userkey_v);
+  MovieClipCachePriorityData *priority_data = static_cast<MovieClipCachePriorityData *>(
+      priority_data_v);
 
   return -abs(last_userkey->framenr - priority_data->framenr);
 }
 
 static void moviecache_prioritydeleter(void *priority_data_v)
 {
-  MovieClipCachePriorityData *priority_data = (MovieClipCachePriorityData *)priority_data_v;
+  MovieClipCachePriorityData *priority_data = static_cast<MovieClipCachePriorityData *>(
+      priority_data_v);
 
   MEM_freeN(priority_data);
 }
@@ -901,7 +904,7 @@ static bool put_imbuf_cache(
 
 static bool moviecache_check_free_proxy(ImBuf * /*ibuf*/, void *userkey, void * /*userdata*/)
 {
-  MovieClipImBufCacheKey *key = (MovieClipImBufCacheKey *)userkey;
+  MovieClipImBufCacheKey *key = static_cast<MovieClipImBufCacheKey *>(userkey);
 
   return !(key->proxy == IMB_PROXY_NONE && key->render_flag == 0);
 }
@@ -2065,8 +2068,8 @@ void BKE_movieclip_free_gputexture(MovieClip *clip)
   const int MOVIECLIP_NUM_GPUTEXTURES = 1;
 
   while (BLI_listbase_count(&clip->runtime.gputextures) > MOVIECLIP_NUM_GPUTEXTURES) {
-    MovieClip_RuntimeGPUTexture *tex = (MovieClip_RuntimeGPUTexture *)BLI_pophead(
-        &clip->runtime.gputextures);
+    MovieClip_RuntimeGPUTexture *tex = static_cast<MovieClip_RuntimeGPUTexture *>(
+        BLI_pophead(&clip->runtime.gputextures));
     for (int i = 0; i < TEXTARGET_COUNT; i++) {
       /* Free GLSL image binding. */
       if (tex->gputexture[i]) {

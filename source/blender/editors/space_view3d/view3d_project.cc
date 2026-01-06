@@ -508,7 +508,7 @@ void ED_view3d_win_to_3d(const View3D *v3d,
 
     if (rv3d->persp == RV3D_CAMOB) {
       /* ortho camera needs offset applied */
-      const Camera *cam = static_cast<const Camera *>(v3d->camera->data);
+      const Camera *cam = blender::id_cast<const Camera *>(v3d->camera->data);
       const int sensor_fit = BKE_camera_sensor_fit(cam->sensor_fit, region->winx, region->winy);
       const float zoomfac = BKE_screen_view3d_zoom_to_fac(rv3d->camzoom) * 4.0f;
       const float aspx = region->winx / float(region->winy);
@@ -561,7 +561,7 @@ void ED_view3d_win_to_3d_with_shift(const View3D *v3d,
 
     if (rv3d->persp == RV3D_CAMOB) {
       /* ortho camera needs offset applied */
-      const Camera *cam = static_cast<const Camera *>(v3d->camera->data);
+      const Camera *cam = blender::id_cast<const Camera *>(v3d->camera->data);
       const int sensor_fit = BKE_camera_sensor_fit(cam->sensor_fit, region->winx, region->winy);
       const float zoomfac = BKE_screen_view3d_zoom_to_fac(rv3d->camzoom) * 4.0f;
       const float aspx = region->winx / float(region->winy);
@@ -748,7 +748,8 @@ bool ED_view3d_win_to_segment_clipped(const Depsgraph *depsgraph,
 
   /* bounds clipping */
   if (do_clip_planes) {
-    return ED_view3d_clip_segment((RegionView3D *)region->regiondata, r_ray_start, r_ray_end);
+    return ED_view3d_clip_segment(
+        static_cast<RegionView3D *>(region->regiondata), r_ray_start, r_ray_end);
   }
 
   return true;

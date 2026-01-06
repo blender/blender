@@ -511,52 +511,52 @@ void DepsgraphRelationBuilder::build_id(ID *id)
   const ID_Type id_type = GS(id->name);
   switch (id_type) {
     case ID_AC:
-      build_action((bAction *)id);
+      build_action(blender::id_cast<bAction *>(id));
       break;
     case ID_AR:
-      build_armature((bArmature *)id);
+      build_armature(blender::id_cast<bArmature *>(id));
       break;
     case ID_CA:
-      build_camera((Camera *)id);
+      build_camera(blender::id_cast<Camera *>(id));
       break;
     case ID_GR:
-      build_collection(nullptr, (Collection *)id);
+      build_collection(nullptr, blender::id_cast<Collection *>(id));
       break;
     case ID_OB:
-      build_object((Object *)id);
+      build_object(blender::id_cast<Object *>(id));
       break;
     case ID_KE:
-      build_shapekeys((Key *)id);
+      build_shapekeys(blender::id_cast<Key *>(id));
       break;
     case ID_LA:
-      build_light((Light *)id);
+      build_light(blender::id_cast<Light *>(id));
       break;
     case ID_LP:
-      build_lightprobe((LightProbe *)id);
+      build_lightprobe(blender::id_cast<LightProbe *>(id));
       break;
     case ID_NT:
-      build_nodetree((bNodeTree *)id);
+      build_nodetree(blender::id_cast<bNodeTree *>(id));
       break;
     case ID_MA:
-      build_material((Material *)id);
+      build_material(blender::id_cast<Material *>(id));
       break;
     case ID_TE:
-      build_texture((Tex *)id);
+      build_texture(blender::id_cast<Tex *>(id));
       break;
     case ID_IM:
-      build_image((Image *)id);
+      build_image(blender::id_cast<Image *>(id));
       break;
     case ID_WO:
-      build_world((World *)id);
+      build_world(blender::id_cast<World *>(id));
       break;
     case ID_MSK:
-      build_mask((Mask *)id);
+      build_mask(blender::id_cast<Mask *>(id));
       break;
     case ID_LS:
-      build_freestyle_linestyle((FreestyleLineStyle *)id);
+      build_freestyle_linestyle(blender::id_cast<FreestyleLineStyle *>(id));
       break;
     case ID_MC:
-      build_movieclip((MovieClip *)id);
+      build_movieclip(blender::id_cast<MovieClip *>(id));
       break;
     case ID_ME:
     case ID_MB:
@@ -570,22 +570,22 @@ void DepsgraphRelationBuilder::build_id(ID *id)
       build_object_data_geometry_datablock(id);
       break;
     case ID_SPK:
-      build_speaker((Speaker *)id);
+      build_speaker(blender::id_cast<Speaker *>(id));
       break;
     case ID_SO:
-      build_sound((bSound *)id);
+      build_sound(blender::id_cast<bSound *>(id));
       break;
     case ID_TXT:
       /* Not a part of dependency graph. */
       break;
     case ID_CF:
-      build_cachefile((CacheFile *)id);
+      build_cachefile(blender::id_cast<CacheFile *>(id));
       break;
     case ID_SCE:
-      build_scene_parameters((Scene *)id);
+      build_scene_parameters(blender::id_cast<Scene *>(id));
       break;
     case ID_PA:
-      build_particle_settings((ParticleSettings *)id);
+      build_particle_settings(blender::id_cast<ParticleSettings *>(id));
       break;
 
     case ID_LI:
@@ -945,7 +945,7 @@ void DepsgraphRelationBuilder::build_object_modifiers(Object *object)
     /* Relation for the modifier stack chain. */
     add_relation(previous_key, modifier_key, "Modifier");
 
-    const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)modifier.type);
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(modifier.type));
     if (mti->update_depsgraph) {
       const BuilderStack::ScopedEntry stack_entry = stack_.trace(modifier);
 
@@ -975,7 +975,7 @@ void DepsgraphRelationBuilder::build_object_data(Object *object)
   if (object->data == nullptr) {
     return;
   }
-  ID *obdata_id = (ID *)object->data;
+  ID *obdata_id = static_cast<ID *>(object->data);
   /* Object data animation. */
   if (!built_map_.check_is_built(obdata_id)) {
     build_animdata(obdata_id);
@@ -996,9 +996,9 @@ void DepsgraphRelationBuilder::build_object_data(Object *object)
       /* TODO(sergey): Only for until we support granular
        * update of curves. */
       if (object->type == OB_FONT) {
-        Curve *curve = (Curve *)object->data;
+        Curve *curve = blender::id_cast<Curve *>(object->data);
         if (curve->textoncurve) {
-          ComponentKey geometry_key((ID *)object->data, NodeType::GEOMETRY);
+          ComponentKey geometry_key(object->data, NodeType::GEOMETRY);
           ComponentKey transform_key(&object->id, NodeType::TRANSFORM);
           add_relation(transform_key, geometry_key, "Text on Curve own Transform");
           add_special_eval_flag(&curve->textoncurve->id, DAG_EVAL_NEED_CURVE_PATH);
@@ -1024,7 +1024,7 @@ void DepsgraphRelationBuilder::build_object_data(Object *object)
   }
   Key *key = BKE_key_from_object(object);
   if (key != nullptr) {
-    ComponentKey geometry_key((ID *)object->data, NodeType::GEOMETRY);
+    ComponentKey geometry_key(static_cast<ID *>(object->data), NodeType::GEOMETRY);
     ComponentKey key_key(&key->id, NodeType::GEOMETRY);
     add_relation(key_key, geometry_key, "Shapekeys");
     build_nested_shapekey(&object->id, key);
@@ -1033,14 +1033,14 @@ void DepsgraphRelationBuilder::build_object_data(Object *object)
   Material ***materials_ptr = BKE_object_material_array_p(object);
   if (materials_ptr != nullptr) {
     short *num_materials_ptr = BKE_object_material_len_p(object);
-    ID *obdata = (ID *)object->data;
+    ID *obdata = static_cast<ID *>(object->data);
     build_materials(obdata, *materials_ptr, *num_materials_ptr);
   }
 }
 
 void DepsgraphRelationBuilder::build_object_data_camera(Object *object)
 {
-  Camera *camera = (Camera *)object->data;
+  Camera *camera = blender::id_cast<Camera *>(object->data);
   build_camera(camera);
   ComponentKey object_parameters_key(&object->id, NodeType::PARAMETERS);
   ComponentKey camera_parameters_key(&camera->id, NodeType::PARAMETERS);
@@ -1049,7 +1049,7 @@ void DepsgraphRelationBuilder::build_object_data_camera(Object *object)
 
 void DepsgraphRelationBuilder::build_object_data_light(Object *object)
 {
-  Light *lamp = (Light *)object->data;
+  Light *lamp = blender::id_cast<Light *>(object->data);
   build_light(lamp);
   ComponentKey lamp_parameters_key(&lamp->id, NodeType::PARAMETERS);
   ComponentKey object_parameters_key(&object->id, NodeType::PARAMETERS);
@@ -1060,7 +1060,7 @@ void DepsgraphRelationBuilder::build_object_data_light(Object *object)
 
 void DepsgraphRelationBuilder::build_object_data_lightprobe(Object *object)
 {
-  LightProbe *probe = (LightProbe *)object->data;
+  LightProbe *probe = blender::id_cast<LightProbe *>(object->data);
   build_lightprobe(probe);
   OperationKey probe_key(&probe->id, NodeType::PARAMETERS, OperationCode::LIGHT_PROBE_EVAL);
   OperationKey object_key(&object->id, NodeType::PARAMETERS, OperationCode::LIGHT_PROBE_EVAL);
@@ -1071,7 +1071,7 @@ void DepsgraphRelationBuilder::build_object_data_lightprobe(Object *object)
 
 void DepsgraphRelationBuilder::build_object_data_speaker(Object *object)
 {
-  Speaker *speaker = (Speaker *)object->data;
+  Speaker *speaker = blender::id_cast<Speaker *>(object->data);
   build_speaker(speaker);
   ComponentKey speaker_key(&speaker->id, NodeType::AUDIO);
   ComponentKey object_key(&object->id, NodeType::AUDIO);
@@ -1145,7 +1145,7 @@ void DepsgraphRelationBuilder::build_object_parent(Object *object)
         add_relation(geom_key, object_transform_key, "Lattice Deform Parent Geom");
       }
       else if (object->parent->type == OB_CURVES_LEGACY) {
-        Curve *cu = (Curve *)object->parent->data;
+        Curve *cu = blender::id_cast<Curve *>(object->parent->data);
 
         if (cu->flag & CU_PATH) {
           /* Follow Path. */
@@ -1431,7 +1431,7 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
     {
       bool depends_on_camera = false;
       if (cti->type == CONSTRAINT_TYPE_FOLLOWTRACK) {
-        bFollowTrackConstraint *data = (bFollowTrackConstraint *)con.data;
+        bFollowTrackConstraint *data = static_cast<bFollowTrackConstraint *>(con.data);
         if (((data->clip) || (data->flag & FOLLOWTRACK_ACTIVECLIP)) && data->track[0]) {
           depends_on_camera = true;
         }
@@ -1459,7 +1459,7 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
        * dependency chain. */
       TimeSourceKey time_src_key;
       add_relation(time_src_key, constraint_op_key, "TimeSrc -> Animation");
-      bTransformCacheConstraint *data = (bTransformCacheConstraint *)con.data;
+      bTransformCacheConstraint *data = static_cast<bTransformCacheConstraint *>(con.data);
       if (data->cache_file) {
         ComponentKey cache_key(&data->cache_file->id, NodeType::CACHE);
         add_relation(cache_key, constraint_op_key, cti->name);
@@ -1510,7 +1510,7 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
           add_customdata_mask(ct.tar, DEGCustomDataMeshMasks::MaskVert(CD_MASK_MDEFORMVERT));
         }
         else if (con.type == CONSTRAINT_TYPE_SHRINKWRAP) {
-          bShrinkwrapConstraint *scon = (bShrinkwrapConstraint *)con.data;
+          bShrinkwrapConstraint *scon = static_cast<bShrinkwrapConstraint *>(con.data);
 
           /* Constraints which requires the target object surface. */
           ComponentKey target_key(&ct.tar->id, NodeType::GEOMETRY);
@@ -1835,7 +1835,7 @@ void DepsgraphRelationBuilder::build_animdata_force(ID *id)
     return;
   }
 
-  const Object *object = (Object *)id;
+  const Object *object = blender::id_cast<Object *>(id);
   if (object->pd == nullptr || object->pd->forcefield == PFIELD_NULL) {
     return;
   }
@@ -1917,12 +1917,12 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
   /* If the Bone property is referenced via obj.pose.bones[].bone,
    * the RNA pointer refers to the Object ID, so skip to data. */
   if (is_bone && GS(id_ptr->name) == ID_OB) {
-    id_ptr = (ID *)((Object *)id_ptr)->data;
+    id_ptr = static_cast<ID *>((blender::id_cast<Object *>(id_ptr))->data);
   }
   if (is_bone && GS(id_ptr->name) == ID_AR) {
     /* Drivers on armature-level bone settings (i.e. bbone stuff),
      * which will affect the evaluation of corresponding pose bones. */
-    Bone *bone = (Bone *)property_entry_key.ptr.data;
+    Bone *bone = static_cast<Bone *>(property_entry_key.ptr.data);
     if (bone == nullptr) {
       fprintf(stderr, "Couldn't find armature bone name for driver path - '%s'\n", rna_path);
       return;
@@ -1938,7 +1938,7 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
       }
 
       /* We only care about objects with pose data which use this. */
-      Object *object = (Object *)to_node->id_orig;
+      Object *object = blender::id_cast<Object *>(to_node->id_orig);
       if (object->data != id_ptr || object->pose == nullptr) {
         continue;
       }
@@ -2043,7 +2043,7 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
 
       Object *object = nullptr;
       if (GS(target_id->name) == ID_OB) {
-        object = (Object *)target_id;
+        object = blender::id_cast<Object *>(target_id);
       }
       /* Special handling for directly-named bones. */
       if ((dtar->flag & DTAR_FLAG_STRUCT_REF) && (object && object->type == OB_ARMATURE) &&
@@ -2441,10 +2441,10 @@ void DepsgraphRelationBuilder::build_particle_systems(Object *object)
         for (BoidRule &rule : state.rules) {
           Object *ruleob = nullptr;
           if (rule.type == eBoidRuleType_Avoid) {
-            ruleob = ((BoidRuleGoalAvoid *)&rule)->ob;
+            ruleob = (reinterpret_cast<BoidRuleGoalAvoid *>(&rule))->ob;
           }
           else if (rule.type == eBoidRuleType_FollowLeader) {
-            ruleob = ((BoidRuleFollowLeader *)&rule)->ob;
+            ruleob = (reinterpret_cast<BoidRuleFollowLeader *>(&rule))->ob;
           }
           if (ruleob != nullptr) {
             ComponentKey ruleob_key(&ruleob->id, NodeType::TRANSFORM);
@@ -2599,7 +2599,7 @@ void DepsgraphRelationBuilder::build_shapekeys(Key *key)
  */
 void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
 {
-  ID *obdata = (ID *)object->data;
+  ID *obdata = static_cast<ID *>(object->data);
   /* Init operation of object-level geometry evaluation. */
   OperationKey geom_init_key(&object->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_INIT);
   /* Get nodes for result of obdata's evaluation, and geometry evaluation
@@ -2624,7 +2624,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
     ctx.scene = scene_;
     ctx.object = object;
     for (ShaderFxData &fx : object->shader_fx) {
-      const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info((ShaderFxType)fx.type);
+      const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(ShaderFxType(fx.type));
       if (fxi->update_depsgraph) {
         DepsNodeHandle handle = create_node_handle(obdata_ubereval_key);
         ctx.node = reinterpret_cast<::DepsNodeHandle *>(&handle);
@@ -2677,12 +2677,12 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
     add_relation(time_key, obdata_ubereval_key, "Legacy particle time");
   }
   /* Object data data-block. */
-  build_object_data_geometry_datablock((ID *)object->data);
+  build_object_data_geometry_datablock(static_cast<ID *>(object->data));
   Key *key = BKE_key_from_object(object);
   if (key != nullptr) {
     if (key->adt != nullptr) {
       if (key->adt->action || key->adt->nla_tracks.first) {
-        ComponentKey obdata_key((ID *)object->data, NodeType::GEOMETRY);
+        ComponentKey obdata_key(static_cast<ID *>(object->data), NodeType::GEOMETRY);
         ComponentKey adt_key(&key->id, NodeType::ANIMATION);
         add_relation(adt_key, obdata_key, "Animation");
       }
@@ -2743,7 +2743,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
     case ID_MB:
       break;
     case ID_CU_LEGACY: {
-      Curve *cu = (Curve *)obdata;
+      Curve *cu = blender::id_cast<Curve *>(obdata);
       if (cu->bevobj != nullptr) {
         ComponentKey bevob_geom_key(&cu->bevobj->id, NodeType::GEOMETRY);
         add_relation(bevob_geom_key, obdata_geom_eval_key, "Curve Bevel Geometry");
@@ -2780,7 +2780,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
       break;
     case ID_GD_LEGACY: /* Grease Pencil */
     {
-      bGPdata *gpd = (bGPdata *)obdata;
+      bGPdata *gpd = blender::id_cast<bGPdata *>(obdata);
 
       /* Geometry cache needs to be recalculated on frame change
        * (e.g. to fix crashes after scrubbing the timeline when
@@ -2835,7 +2835,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
     case ID_PT:
       break;
     case ID_VO: {
-      Volume *volume = (Volume *)obdata;
+      Volume *volume = blender::id_cast<Volume *>(obdata);
       if (volume->is_sequence) {
         TimeSourceKey time_key;
         ComponentKey geometry_key(obdata, NodeType::GEOMETRY);
@@ -2973,43 +2973,44 @@ void DepsgraphRelationBuilder::build_nodetree_socket(bNodeSocket *socket)
   build_idproperties(socket->prop);
 
   if (socket->type == SOCK_OBJECT) {
-    Object *object = ((bNodeSocketValueObject *)socket->default_value)->value;
+    Object *object = (static_cast<bNodeSocketValueObject *>(socket->default_value))->value;
     if (object != nullptr) {
       build_object(object);
     }
   }
   else if (socket->type == SOCK_IMAGE) {
-    Image *image = ((bNodeSocketValueImage *)socket->default_value)->value;
+    Image *image = (static_cast<bNodeSocketValueImage *>(socket->default_value))->value;
     if (image != nullptr) {
       build_image(image);
     }
   }
   else if (socket->type == SOCK_COLLECTION) {
-    Collection *collection = ((bNodeSocketValueCollection *)socket->default_value)->value;
+    Collection *collection =
+        (static_cast<bNodeSocketValueCollection *>(socket->default_value))->value;
     if (collection != nullptr) {
       build_collection(nullptr, collection);
     }
   }
   else if (socket->type == SOCK_TEXTURE) {
-    Tex *texture = ((bNodeSocketValueTexture *)socket->default_value)->value;
+    Tex *texture = (static_cast<bNodeSocketValueTexture *>(socket->default_value))->value;
     if (texture != nullptr) {
       build_texture(texture);
     }
   }
   else if (socket->type == SOCK_MATERIAL) {
-    Material *material = ((bNodeSocketValueMaterial *)socket->default_value)->value;
+    Material *material = (static_cast<bNodeSocketValueMaterial *>(socket->default_value))->value;
     if (material != nullptr) {
       build_material(material);
     }
   }
   else if (socket->type == SOCK_FONT) {
-    VFont *font = ((bNodeSocketValueFont *)socket->default_value)->value;
+    VFont *font = (static_cast<bNodeSocketValueFont *>(socket->default_value))->value;
     if (font != nullptr) {
       build_vfont(font);
     }
   }
   else if (socket->type == SOCK_SCENE) {
-    Scene *scene = ((bNodeSocketValueScene *)socket->default_value)->value;
+    Scene *scene = (static_cast<bNodeSocketValueScene *>(socket->default_value))->value;
     if (scene != nullptr) {
       build_scene_parameters(scene);
     }
@@ -3018,13 +3019,13 @@ void DepsgraphRelationBuilder::build_nodetree_socket(bNodeSocket *socket)
     /* Text data-blocks don't use the depsgraph. */
   }
   else if (socket->type == SOCK_MASK) {
-    Mask *mask = ((bNodeSocketValueMask *)socket->default_value)->value;
+    Mask *mask = (static_cast<bNodeSocketValueMask *>(socket->default_value))->value;
     if (mask != nullptr) {
       build_mask(mask);
     }
   }
   else if (socket->type == SOCK_SOUND) {
-    bSound *sound = ((bNodeSocketValueSound *)socket->default_value)->value;
+    bSound *sound = (static_cast<bNodeSocketValueSound *>(socket->default_value))->value;
     if (sound != nullptr) {
       build_sound(sound);
     }
@@ -3081,22 +3082,22 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
     }
     ID_Type id_type = GS(id->name);
     if (id_type == ID_MA) {
-      build_material((Material *)id);
+      build_material(blender::id_cast<Material *>(id));
       ComponentKey material_key(id, NodeType::SHADING);
       add_relation(material_key, ntree_output_key, "Material -> Node");
     }
     else if (id_type == ID_TE) {
-      build_texture((Tex *)id);
+      build_texture(blender::id_cast<Tex *>(id));
       ComponentKey texture_key(id, NodeType::GENERIC_DATABLOCK);
       add_relation(texture_key, ntree_output_key, "Texture -> Node");
     }
     else if (id_type == ID_IM) {
-      build_image((Image *)id);
+      build_image(blender::id_cast<Image *>(id));
       ComponentKey image_key(id, NodeType::GENERIC_DATABLOCK);
       add_relation(image_key, ntree_output_key, "Image -> Node");
     }
     else if (id_type == ID_OB) {
-      build_object((Object *)id);
+      build_object(blender::id_cast<Object *>(id));
       ComponentKey object_transform_key(id, NodeType::TRANSFORM);
       add_relation(object_transform_key, ntree_output_key, "Object Transform -> Node");
       if (object_have_geometry_component(reinterpret_cast<Object *>(id))) {
@@ -3105,7 +3106,7 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
       }
     }
     else if (id_type == ID_SCE) {
-      Scene *node_scene = (Scene *)id;
+      Scene *node_scene = blender::id_cast<Scene *>(id);
       build_scene_parameters(node_scene);
       /* Camera is used by defocus node.
        *
@@ -3119,17 +3120,17 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
       /* Ignore script nodes. */
     }
     else if (id_type == ID_MSK) {
-      build_mask((Mask *)id);
+      build_mask(blender::id_cast<Mask *>(id));
       OperationKey mask_key(id, NodeType::PARAMETERS, OperationCode::MASK_EVAL);
       add_relation(mask_key, ntree_output_key, "Mask -> Node");
     }
     else if (id_type == ID_MC) {
-      build_movieclip((MovieClip *)id);
+      build_movieclip(blender::id_cast<MovieClip *>(id));
       OperationKey clip_key(id, NodeType::PARAMETERS, OperationCode::MOVIECLIP_EVAL);
       add_relation(clip_key, ntree_output_key, "Clip -> Node");
     }
     else if (id_type == ID_VF) {
-      build_vfont((VFont *)id);
+      build_vfont(blender::id_cast<VFont *>(id));
       ComponentKey vfont_key(id, NodeType::GENERIC_DATABLOCK);
       add_relation(vfont_key, ntree_output_key, "VFont -> Node");
     }
@@ -3143,7 +3144,7 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
       build_collection(nullptr, reinterpret_cast<Collection *>(id));
     }
     else if (bnode->is_group()) {
-      bNodeTree *group_ntree = (bNodeTree *)id;
+      bNodeTree *group_ntree = blender::id_cast<bNodeTree *>(id);
       build_nodetree(group_ntree);
       ComponentKey group_output_key(&group_ntree->id, NodeType::NTREE_OUTPUT);
       /* This relation is not necessary in all cases (e.g. when the group node is not connected to
@@ -3452,7 +3453,7 @@ struct Seq_build_prop_cb_data {
 
 static bool strip_build_prop_cb(Strip *strip, void *user_data)
 {
-  Seq_build_prop_cb_data *cd = (Seq_build_prop_cb_data *)user_data;
+  Seq_build_prop_cb_data *cd = static_cast<Seq_build_prop_cb_data *>(user_data);
 
   cd->builder->build_idproperties(strip->prop);
   cd->builder->build_idproperties(strip->system_properties);
@@ -3687,7 +3688,7 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
           if (rel_current->from->type != NodeType::OPERATION) {
             continue;
           }
-          OperationNode *op_node_from = (OperationNode *)rel_current->from;
+          OperationNode *op_node_from = static_cast<OperationNode *>(rel_current->from);
           if (op_node_from->owner == op_node->owner) {
             has_same_comp_dependency = true;
             break;
@@ -3710,8 +3711,8 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
   /* TODO(sergey): This solves crash for now, but causes too many
    * updates potentially. */
   if (GS(id_orig->name) == ID_OB) {
-    Object *object = (Object *)id_orig;
-    ID *object_data_id = (ID *)object->data;
+    Object *object = blender::id_cast<Object *>(id_orig);
+    ID *object_data_id = static_cast<ID *>(object->data);
     if (object_data_id != nullptr) {
       if (deg_eval_copy_is_needed(object_data_id)) {
         OperationKey data_copy_on_write_key(
@@ -3753,7 +3754,7 @@ void DepsgraphRelationBuilder::modifier_walk(void *user_data,
                                              ID **idpoin,
                                              LibraryForeachIDCallbackFlag /*cb_flag*/)
 {
-  BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;
+  BuilderWalkUserData *data = static_cast<BuilderWalkUserData *>(user_data);
   ID *id = *idpoin;
   if (id == nullptr) {
     return;
@@ -3766,7 +3767,7 @@ void DepsgraphRelationBuilder::constraint_walk(bConstraint * /*con*/,
                                                bool /*is_reference*/,
                                                void *user_data)
 {
-  BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;
+  BuilderWalkUserData *data = static_cast<BuilderWalkUserData *>(user_data);
   ID *id = *idpoin;
   if (id == nullptr) {
     return;

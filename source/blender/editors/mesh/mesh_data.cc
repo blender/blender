@@ -98,7 +98,7 @@ static void reset_uvs_bmesh(BMFace *f, const int cd_loop_uv_offset)
   int i;
 
   BM_ITER_ELEM_INDEX (l, &liter, f, BM_LOOPS_OF_FACE, i) {
-    fuv[i] = ((float *)BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset));
+    fuv[i] = (static_cast<float *> BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset));
   }
 
   mesh_uv_reset_array(fuv.data(), f->len);
@@ -359,7 +359,7 @@ bool ED_mesh_color_ensure(Mesh *mesh, const char *name)
 static bool uv_maps_poll(bContext *C)
 {
   Object *ob = blender::ed::object::context_object(C);
-  ID *data = (ob) ? static_cast<ID *>(ob->data) : nullptr;
+  ID *data = (ob) ? ob->data : nullptr;
   return (ob && ID_IS_EDITABLE(ob) && !ID_IS_OVERRIDE_LIBRARY(ob) && ob->type == OB_MESH && data &&
           ID_IS_EDITABLE(data) && !ID_IS_OVERRIDE_LIBRARY(data));
 }
@@ -371,7 +371,7 @@ static bool uv_texture_remove_poll(bContext *C)
   }
 
   Object *ob = blender::ed::object::context_object(C);
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   const StringRef active_name = mesh->active_uv_map_name();
   if (mesh->runtime->edit_mesh) {
     const BMesh &bm = *mesh->runtime->edit_mesh->bm;
@@ -391,7 +391,7 @@ static bool uv_texture_remove_poll(bContext *C)
 static wmOperatorStatus mesh_uv_texture_add_exec(bContext *C, wmOperator *op)
 {
   Object *ob = blender::ed::object::context_object(C);
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
 
   if (ED_mesh_uv_add(mesh, nullptr, true, true, op->reports) == -1) {
     return OPERATOR_CANCELLED;
@@ -421,7 +421,7 @@ void MESH_OT_uv_texture_add(wmOperatorType *ot)
 static wmOperatorStatus mesh_uv_texture_remove_exec(bContext *C, wmOperator *op)
 {
   Object *ob = blender::ed::object::context_object(C);
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
 
   AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
   const StringRef name = mesh->active_uv_map_name();
@@ -465,7 +465,7 @@ static bool mesh_customdata_mask_clear_poll(bContext *C)
   if (ob->mode & OB_MODE_SCULPT) {
     return false;
   }
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   if (!ID_IS_EDITABLE(mesh) || ID_IS_OVERRIDE_LIBRARY(mesh)) {
     return false;
   }
@@ -490,7 +490,7 @@ static bool mesh_customdata_mask_clear_poll(bContext *C)
 static wmOperatorStatus mesh_customdata_mask_clear_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *object = blender::ed::object::context_object(C);
-  Mesh *mesh = static_cast<Mesh *>(object->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(object->data);
   if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
     const bool removed_a = CustomData_free_layer_named(&em->bm->vdata, ".sculpt_mask");
     const bool removed_b = CustomData_free_layers(&em->bm->ldata, CD_GRID_PAINT_MASK);
@@ -536,7 +536,7 @@ static SkinState mesh_customdata_skin_state(bContext *C)
   if (ob->type != OB_MESH) {
     return SkinState::Invalid;
   }
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
   if (!ID_IS_EDITABLE(mesh) || ID_IS_OVERRIDE_LIBRARY(mesh)) {
     return SkinState::Invalid;
   }
@@ -556,7 +556,7 @@ static bool mesh_customdata_skin_add_poll(bContext *C)
 static wmOperatorStatus mesh_customdata_skin_add_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = blender::ed::object::context_object(C);
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
 
   BKE_mesh_ensure_skin_customdata(mesh);
 
@@ -586,7 +586,7 @@ static bool mesh_customdata_skin_clear_poll(bContext *C)
 static wmOperatorStatus mesh_customdata_skin_clear_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *object = blender::ed::object::context_object(C);
-  Mesh *mesh = static_cast<Mesh *>(object->data);
+  Mesh *mesh = blender::id_cast<Mesh *>(object->data);
   if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
     if (!CustomData_free_layers(&em->bm->vdata, CD_MVERT_SKIN)) {
       return OPERATOR_CANCELLED;
@@ -1037,12 +1037,12 @@ Mesh *ED_mesh_context(bContext *C)
     return nullptr;
   }
 
-  ID *data = (ID *)ob->data;
+  ID *data = ob->data;
   if (data == nullptr || GS(data->name) != ID_ME) {
     return nullptr;
   }
 
-  return (Mesh *)data;
+  return blender::id_cast<Mesh *>(data);
 }
 
 void ED_mesh_split_faces(Mesh *mesh)

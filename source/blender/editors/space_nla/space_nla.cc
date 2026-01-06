@@ -57,7 +57,7 @@ static SpaceLink *nla_create(const ScrArea *area, const Scene *scene)
 
   /* allocate DopeSheet data for NLA Editor */
   snla->ads = MEM_new_for_free<bDopeSheet>("NlaEdit DopeSheet");
-  snla->ads->source = (ID *)(scene);
+  snla->ads->source = blender::id_cast<ID *>(const_cast<Scene *>((scene)));
 
   /* set auto-snapping settings */
   snla->flag = SNLA_SHOW_MARKERS;

@@ -57,7 +57,7 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
     return;
   }
 
-  bKinematicConstraint *data = (bKinematicConstraint *)con->data;
+  bKinematicConstraint *data = static_cast<bKinematicConstraint *>(con->data);
   /* Attach owner to IK Solver to. */
   bPoseChannel *rootchan = BKE_armature_ik_solver_find_root(pchan, data);
   if (rootchan == nullptr) {
@@ -211,7 +211,7 @@ void DepsgraphRelationBuilder::build_splineik_pose(Object *object,
                                                    bConstraint *con,
                                                    RootPChanMap *root_map)
 {
-  bSplineIKConstraint *data = (bSplineIKConstraint *)con->data;
+  bSplineIKConstraint *data = static_cast<bSplineIKConstraint *>(con->data);
   bPoseChannel *rootchan = BKE_armature_splineik_solver_find_root(pchan, data);
   OperationKey transforms_key(&object->id, NodeType::BONE, pchan->name, OperationCode::BONE_READY);
   OperationKey init_ik_key(&object->id, NodeType::EVAL_POSE, OperationCode::POSE_INIT_IK);
@@ -289,7 +289,7 @@ void DepsgraphRelationBuilder::build_inter_ik_chains(Object *object,
 void DepsgraphRelationBuilder::build_rig(Object *object)
 {
   /* Armature-Data */
-  bArmature *armature = (bArmature *)object->data;
+  bArmature *armature = blender::id_cast<bArmature *>(object->data);
   /* TODO: selection status? */
   /* Attach links between pose operations. */
   ComponentKey local_transform(&object->id, NodeType::TRANSFORM);

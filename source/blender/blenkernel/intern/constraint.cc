@@ -172,7 +172,7 @@ bConstraintOb *BKE_constraints_make_evalob(
       /* only set if we have valid bone, otherwise default */
       if (ob && subdata) {
         cob->ob = ob;
-        cob->pchan = (bPoseChannel *)subdata;
+        cob->pchan = static_cast<bPoseChannel *>(subdata);
         cob->type = datatype;
 
         if (cob->pchan->rotmode > 0) {
@@ -619,7 +619,7 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
 /* function that sets the given matrix based on given vertex group in lattice */
 static void contarget_get_lattice_mat(Object *ob, const char *substring, float mat[4][4])
 {
-  Lattice *lt = (Lattice *)ob->data;
+  Lattice *lt = blender::id_cast<Lattice *>(ob->data);
 
   DispList *dl = ob->runtime->curve_cache ?
                      BKE_displist_find(&ob->runtime->curve_cache->disp, DL_VERTS) :
@@ -978,7 +978,7 @@ static bool is_custom_space_needed(bConstraint *con)
 
 static void childof_new_data(void *cdata)
 {
-  bChildOfConstraint *data = (bChildOfConstraint *)cdata;
+  bChildOfConstraint *data = static_cast<bChildOfConstraint *>(cdata);
 
   data->flag = (CHILDOF_LOCX | CHILDOF_LOCY | CHILDOF_LOCZ | CHILDOF_ROTX | CHILDOF_ROTY |
                 CHILDOF_ROTZ | CHILDOF_SIZEX | CHILDOF_SIZEY | CHILDOF_SIZEZ |
@@ -991,7 +991,7 @@ static void childof_id_looper(bConstraint *con, ConstraintIDFunc func, void *use
   bChildOfConstraint *data = static_cast<bChildOfConstraint *>(con->data);
 
   /* target only */
-  func(con, (ID **)&data->tar, false, userdata);
+  func(con, reinterpret_cast<ID **>(&data->tar), false, userdata);
 }
 
 static int childof_get_tars(bConstraint *con, ListBaseT<bConstraintTarget> *list)
@@ -1162,7 +1162,7 @@ static bConstraintTypeInfo CTI_CHILDOF = {
 
 static void trackto_new_data(void *cdata)
 {
-  bTrackToConstraint *data = (bTrackToConstraint *)cdata;
+  bTrackToConstraint *data = static_cast<bTrackToConstraint *>(cdata);
 
   data->reserved1 = TRACK_nZ;
   data->reserved2 = UP_Y;
@@ -1173,7 +1173,7 @@ static void trackto_id_looper(bConstraint *con, ConstraintIDFunc func, void *use
   bTrackToConstraint *data = static_cast<bTrackToConstraint *>(con->data);
 
   /* target only */
-  func(con, (ID **)&data->tar, false, userdata);
+  func(con, reinterpret_cast<ID **>(&data->tar), false, userdata);
 }
 
 static int trackto_get_tars(bConstraint *con, ListBaseT<bConstraintTarget> *list)
@@ -1352,7 +1352,7 @@ static bConstraintTypeInfo CTI_TRACKTO = {
 
 static void kinematic_new_data(void *cdata)
 {
-  bKinematicConstraint *data = (bKinematicConstraint *)cdata;
+  bKinematicConstraint *data = static_cast<bKinematicConstraint *>(cdata);
 
   data->weight = 1.0f;
   data->orientweight = 1.0f;
@@ -1366,10 +1366,10 @@ static void kinematic_id_looper(bConstraint *con, ConstraintIDFunc func, void *u
   bKinematicConstraint *data = static_cast<bKinematicConstraint *>(con->data);
 
   /* chain target */
-  func(con, (ID **)&data->tar, false, userdata);
+  func(con, reinterpret_cast<ID **>(&data->tar), false, userdata);
 
   /* poletarget */
-  func(con, (ID **)&data->poletar, false, userdata);
+  func(con, reinterpret_cast<ID **>(&data->poletar), false, userdata);
 }
 
 static int kinematic_get_tars(bConstraint *con, ListBaseT<bConstraintTarget> *list)
@@ -1464,7 +1464,7 @@ static bConstraintTypeInfo CTI_KINEMATIC = {
 
 static void followpath_new_data(void *cdata)
 {
-  bFollowPathConstraint *data = (bFollowPathConstraint *)cdata;
+  bFollowPathConstraint *data = static_cast<bFollowPathConstraint *>(cdata);
 
   data->trackflag = TRACK_Y;
   data->upflag = UP_Z;
@@ -1477,7 +1477,7 @@ static void followpath_id_looper(bConstraint *con, ConstraintIDFunc func, void *
   bFollowPathConstraint *data = static_cast<bFollowPathConstraint *>(con->data);
 
   /* target only */
-  func(con, (ID **)&data->tar, false, userdata);
+  func(con, reinterpret_cast<ID **>(&data->tar), false, userdata);
 }
 
 static int followpath_get_tars(bConstraint *con, ListBaseT<bConstraintTarget> *list)
@@ -1521,7 +1521,7 @@ static bool followpath_get_tarmat(Depsgraph * /*depsgraph*/,
     return false;
   }
 
-  Curve *cu = static_cast<Curve *>(ct->tar->data);
+  Curve *cu = blender::id_cast<Curve *>(ct->tar->data);
   float vec[4], radius;
   float curvetime;
 
@@ -1905,7 +1905,7 @@ static bConstraintTypeInfo CTI_SIZELIMIT = {
 
 static void loclike_new_data(void *cdata)
 {
-  bLocateLikeConstraint *data = (bLocateLikeConstraint *)cdata;
+  bLocateLikeConstraint *data = static_cast<bLocateLikeConstraint *>(cdata);
 
   data->flag = LOCLIKE_X | LOCLIKE_Y | LOCLIKE_Z;
 }
@@ -1915,7 +1915,7 @@ static void loclike_id_looper(bConstraint *con, ConstraintIDFunc func, void *use
   bLocateLikeConstraint *data = static_cast<bLocateLikeConstraint *>(con->data);
 
   /* target only */
-  func(con, (ID **)&data->tar, false, userdata);
+  func(con, reinterpret_cast<ID **>(&data->tar), false, userdata);
 }
 
 static int loclike_get_tars(bConstraint *con, ListBaseT<bConstraintTarget> *list)
@@ -2004,7 +2004,7 @@ static bConstraintTypeInfo CTI_LOCLIKE = {
 
 static void rotlike_new_data(void *cdata)
 {
-  bRotateLikeConstraint *data = (bRotateLikeConstraint *)cdata;
+  bRotateLikeConstraint *data = static_cast<bRotateLikeConstraint *>(cdata);
 
   data->flag = ROTLIKE_X | ROTLIKE_Y | ROTLIKE_Z;
 }
@@ -2014,7 +2014,7 @@ static void rotlike_id_looper(bConstraint *con, ConstraintIDFunc func, void *use
   bRotateLikeConstraint *data = static_cast<bRotateLikeConstraint *>(con->data);
 
   /* target only */
-  func(con, (ID **)&data->tar, false, userdata);
+  func(con, reinterpret_cast<ID **>(&data->tar), false, userdata);
 }
 
 static int rotlike_get_tars(bConstraint *con, ListBaseT<bConstraintTarget> *list)
@@ -2183,7 +2183,7 @@ static bConstraintTypeInfo CTI_ROTLIKE = {
 
 static void sizelike_new_data(void *cdata)
 {
-  bSizeLikeConstraint *data = (bSizeLikeConstraint *)cdata;
+  bSizeLikeConstraint *data = static_cast<bSizeLikeConstraint *>(cdata);
 
   data->flag = SIZELIKE_X | SIZELIKE_Y | SIZELIKE_Z | SIZELIKE_MULTIPLY;
   data->power = 1.0f;
@@ -2194,7 +2194,7 @@ static void sizelike_id_looper(bConstraint *con, ConstraintIDFunc func, void *us
   bSizeLikeConstraint *data = static_cast<bSizeLikeConstraint *>(con->data);
 
   /* target only */
-  func(con, (ID **)&data->tar, false, userdata);
+  func(con, reinterpret_cast<ID **>(&data->tar), false, userdata);
 }
 
 static int sizelike_get_tars(bConstraint *con, ListBaseT<bConstraintTarget> *list)
@@ -2318,7 +2318,7 @@ static void translike_id_looper(bConstraint *con, ConstraintIDFunc func, void *u
   bTransLikeConstraint *data = static_cast<bTransLikeConstraint *>(con->data);
 
   /* target only */
-  func(con, (ID **)&data->tar, false, userdata);
+  func(con, reinterpret_cast<ID **>(&data->tar), false, userdata);
 }
 
 static int translike_get_tars(bConstraint *con, ListBaseT<bConstraintTarget> *list)
@@ -2425,7 +2425,7 @@ static bConstraintTypeInfo CTI_TRANSLIKE = {
 
 static void samevolume_new_data(void *cdata)
 {
-  bSameVolumeConstraint *data = (bSameVolumeConstraint *)cdata;
+  bSameVolumeConstraint *data = static_cast<bSameVolumeConstraint *>(cdata);
 
   data->free_axis = SAMEVOL_Y;
   data->volume = 1.0f;
@@ -2504,8 +2504,8 @@ static void armdef_free(bConstraint *con)
 
 static void armdef_copy(bConstraint *con, bConstraint *srccon)
 {
-  bArmatureConstraint *pcon = (bArmatureConstraint *)con->data;
-  bArmatureConstraint *opcon = (bArmatureConstraint *)srccon->data;
+  bArmatureConstraint *pcon = static_cast<bArmatureConstraint *>(con->data);
+  bArmatureConstraint *opcon = static_cast<bArmatureConstraint *>(srccon->data);
 
   BLI_duplicatelist(&pcon->targets, &opcon->targets);
 }
@@ -2529,7 +2529,7 @@ static void armdef_id_looper(bConstraint *con, ConstraintIDFunc func, void *user
 
   /* Target list. */
   for (bConstraintTarget &ct : data->targets) {
-    func(con, (ID **)&ct.tar, false, userdata);
+    func(con, reinterpret_cast<ID **>(&ct.tar), false, userdata);
   }
 }
 
@@ -2747,7 +2747,7 @@ static bConstraintTypeInfo CTI_ARMATURE = {
 
 static void actcon_new_data(void *cdata)
 {
-  bActionConstraint *data = (bActionConstraint *)cdata;
+  bActionConstraint *data = static_cast<bActionConstraint *>(cdata);
 
   /* set type to 20 (Loc X), as 0 is Rot X for backwards compatibility */
   data->type = 20;
@@ -2761,10 +2761,10 @@ static void actcon_id_looper(bConstraint *con, ConstraintIDFunc func, void *user
   bActionConstraint *data = static_cast<bActionConstraint *>(con->data);
 
   /* target */
-  func(con, (ID **)&data->tar, false, userdata);
+  func(con, reinterpret_cast<ID **>(&data->tar), false, userdata);
 
   /* action */
-  func(con, (ID **)&data->act, true, userdata);
+  func(con, reinterpret_cast<ID **>(&data->act), true, userdata);
 }
 
 static int actcon_get_tars(bConstraint *con, ListBaseT<bConstraintTarget> *list)
@@ -3002,7 +3002,7 @@ static bConstraintTypeInfo CTI_ACTION = {
 
 static void locktrack_new_data(void *cdata)
 {
-  bLockTrackConstraint *data = (bLockTrackConstraint *)cdata;
+  bLockTrackConstraint *data = static_cast<bLockTrackConstraint *>(cdata);
 
   data->trackflag = TRACK_Y;
   data->lockflag = LOCK_Z;
@@ -3013,7 +3013,7 @@ static void locktrack_id_looper(bConstraint *con, ConstraintIDFunc func, void *u
   bLockTrackConstraint *data = static_cast<bLockTrackConstraint *>(con->data);
 
   /* target only */
-  func(con, (ID **)&data->tar, false, userdata);
+  func(con, reinterpret_cast<ID **>(&data->tar), false, userdata);
 }
 
 static int locktrack_get_tars(bConstraint *con, ListBaseT<bConstraintTarget> *list)
@@ -3322,7 +3322,7 @@ static bConstraintTypeInfo CTI_LOCKTRACK = {
 
 static void distlimit_new_data(void *cdata)
 {
-  bDistLimitConstraint *data = (bDistLimitConstraint *)cdata;
+  bDistLimitConstraint *data = static_cast<bDistLimitConstraint *>(cdata);
 
   data->dist = 0.0f;
 }
@@ -3332,7 +3332,7 @@ static void distlimit_id_looper(bConstraint *con, ConstraintIDFunc func, void *u
   bDistLimitConstraint *data = static_cast<bDistLimitConstraint *>(con->data);
 
   /* target only */
-  func(con, (ID **)&data->tar, false, userdata);
+  func(con, reinterpret_cast<ID **>(&data->tar), false, userdata);
 }
 
 static int distlimit_get_tars(bConstraint *con, ListBaseT<bConstraintTarget> *list)
@@ -3468,7 +3468,7 @@ static bConstraintTypeInfo CTI_DISTLIMIT = {
 
 static void stretchto_new_data(void *cdata)
 {
-  bStretchToConstraint *data = (bStretchToConstraint *)cdata;
+  bStretchToConstraint *data = static_cast<bStretchToConstraint *>(cdata);
 
   data->volmode = 0;
   data->plane = SWING_Y;
@@ -3483,7 +3483,7 @@ static void stretchto_id_looper(bConstraint *con, ConstraintIDFunc func, void *u
   bStretchToConstraint *data = static_cast<bStretchToConstraint *>(con->data);
 
   /* target only */
-  func(con, (ID **)&data->tar, false, userdata);
+  func(con, reinterpret_cast<ID **>(&data->tar), false, userdata);
 }
 
 static int stretchto_get_tars(bConstraint *con, ListBaseT<bConstraintTarget> *list)
@@ -3681,7 +3681,7 @@ static bConstraintTypeInfo CTI_STRETCHTO = {
 
 static void minmax_new_data(void *cdata)
 {
-  bMinMaxConstraint *data = (bMinMaxConstraint *)cdata;
+  bMinMaxConstraint *data = static_cast<bMinMaxConstraint *>(cdata);
 
   data->minmaxflag = TRACK_Z;
   data->offset = 0.0f;
@@ -3693,7 +3693,7 @@ static void minmax_id_looper(bConstraint *con, ConstraintIDFunc func, void *user
   bMinMaxConstraint *data = static_cast<bMinMaxConstraint *>(con->data);
 
   /* target only */
-  func(con, (ID **)&data->tar, false, userdata);
+  func(con, reinterpret_cast<ID **>(&data->tar), false, userdata);
 }
 
 static int minmax_get_tars(bConstraint *con, ListBaseT<bConstraintTarget> *list)
@@ -3817,7 +3817,7 @@ static void clampto_id_looper(bConstraint *con, ConstraintIDFunc func, void *use
   bClampToConstraint *data = static_cast<bClampToConstraint *>(con->data);
 
   /* target only */
-  func(con, (ID **)&data->tar, false, userdata);
+  func(con, reinterpret_cast<ID **>(&data->tar), false, userdata);
 }
 
 static int clampto_get_tars(bConstraint *con, ListBaseT<bConstraintTarget> *list)
@@ -4001,7 +4001,7 @@ static bConstraintTypeInfo CTI_CLAMPTO = {
 
 static void transform_new_data(void *cdata)
 {
-  bTransformConstraint *data = (bTransformConstraint *)cdata;
+  bTransformConstraint *data = static_cast<bTransformConstraint *>(cdata);
 
   data->map[0] = 0;
   data->map[1] = 1;
@@ -4018,7 +4018,7 @@ static void transform_id_looper(bConstraint *con, ConstraintIDFunc func, void *u
   bTransformConstraint *data = static_cast<bTransformConstraint *>(con->data);
 
   /* target only */
-  func(con, (ID **)&data->tar, false, userdata);
+  func(con, reinterpret_cast<ID **>(&data->tar), false, userdata);
 }
 
 static int transform_get_tars(bConstraint *con, ListBaseT<bConstraintTarget> *list)
@@ -4217,12 +4217,12 @@ static void shrinkwrap_id_looper(bConstraint *con, ConstraintIDFunc func, void *
   bShrinkwrapConstraint *data = static_cast<bShrinkwrapConstraint *>(con->data);
 
   /* target only */
-  func(con, (ID **)&data->target, false, userdata);
+  func(con, reinterpret_cast<ID **>(&data->target), false, userdata);
 }
 
 static void shrinkwrap_new_data(void *cdata)
 {
-  bShrinkwrapConstraint *data = (bShrinkwrapConstraint *)cdata;
+  bShrinkwrapConstraint *data = static_cast<bShrinkwrapConstraint *>(cdata);
 
   data->projAxis = OB_POSZ;
   data->projAxisSpace = CONSTRAINT_SPACE_LOCAL;
@@ -4260,7 +4260,7 @@ static bool shrinkwrap_get_tarmat(Depsgraph * /*depsgraph*/,
                                   bConstraintTarget *ct,
                                   float /*ctime*/)
 {
-  bShrinkwrapConstraint *scon = (bShrinkwrapConstraint *)con->data;
+  bShrinkwrapConstraint *scon = static_cast<bShrinkwrapConstraint *>(con->data);
 
   if (!VALID_CONS_TARGET(ct) || ct->tar->type != OB_MESH) {
     return false;
@@ -4455,7 +4455,7 @@ static bConstraintTypeInfo CTI_SHRINKWRAP = {
 
 static void damptrack_new_data(void *cdata)
 {
-  bDampTrackConstraint *data = (bDampTrackConstraint *)cdata;
+  bDampTrackConstraint *data = static_cast<bDampTrackConstraint *>(cdata);
 
   data->trackflag = TRACK_Y;
 }
@@ -4465,7 +4465,7 @@ static void damptrack_id_looper(bConstraint *con, ConstraintIDFunc func, void *u
   bDampTrackConstraint *data = static_cast<bDampTrackConstraint *>(con->data);
 
   /* target only */
-  func(con, (ID **)&data->tar, false, userdata);
+  func(con, reinterpret_cast<ID **>(&data->tar), false, userdata);
 }
 
 static int damptrack_get_tars(bConstraint *con, ListBaseT<bConstraintTarget> *list)
@@ -4643,7 +4643,7 @@ static void splineik_copy(bConstraint *con, bConstraint *srccon)
 
 static void splineik_new_data(void *cdata)
 {
-  bSplineIKConstraint *data = (bSplineIKConstraint *)cdata;
+  bSplineIKConstraint *data = static_cast<bSplineIKConstraint *>(cdata);
 
   data->chainlen = 1;
   data->bulge = 1.0;
@@ -4659,7 +4659,7 @@ static void splineik_id_looper(bConstraint *con, ConstraintIDFunc func, void *us
   bSplineIKConstraint *data = static_cast<bSplineIKConstraint *>(con->data);
 
   /* target only */
-  func(con, (ID **)&data->tar, false, userdata);
+  func(con, reinterpret_cast<ID **>(&data->tar), false, userdata);
 }
 
 static int splineik_get_tars(bConstraint *con, ListBaseT<bConstraintTarget> *list)
@@ -4723,7 +4723,7 @@ static void pivotcon_id_looper(bConstraint *con, ConstraintIDFunc func, void *us
   bPivotConstraint *data = static_cast<bPivotConstraint *>(con->data);
 
   /* target only */
-  func(con, (ID **)&data->tar, false, userdata);
+  func(con, reinterpret_cast<ID **>(&data->tar), false, userdata);
 }
 
 static int pivotcon_get_tars(bConstraint *con, ListBaseT<bConstraintTarget> *list)
@@ -4851,7 +4851,7 @@ static bConstraintTypeInfo CTI_PIVOT = {
 
 static void followtrack_new_data(void *cdata)
 {
-  bFollowTrackConstraint *data = (bFollowTrackConstraint *)cdata;
+  bFollowTrackConstraint *data = static_cast<bFollowTrackConstraint *>(cdata);
 
   data->clip = nullptr;
   data->flag |= FOLLOWTRACK_ACTIVECLIP;
@@ -4861,9 +4861,9 @@ static void followtrack_id_looper(bConstraint *con, ConstraintIDFunc func, void 
 {
   bFollowTrackConstraint *data = static_cast<bFollowTrackConstraint *>(con->data);
 
-  func(con, (ID **)&data->clip, true, userdata);
-  func(con, (ID **)&data->camera, false, userdata);
-  func(con, (ID **)&data->depth_ob, false, userdata);
+  func(con, reinterpret_cast<ID **>(&data->clip), true, userdata);
+  func(con, reinterpret_cast<ID **>(&data->camera), false, userdata);
+  func(con, reinterpret_cast<ID **>(&data->depth_ob), false, userdata);
 }
 
 static MovieClip *followtrack_tracking_clip_get(bConstraint *con, bConstraintOb *cob)
@@ -5270,7 +5270,7 @@ static bConstraintTypeInfo CTI_FOLLOWTRACK = {
 
 static void camerasolver_new_data(void *cdata)
 {
-  bCameraSolverConstraint *data = (bCameraSolverConstraint *)cdata;
+  bCameraSolverConstraint *data = static_cast<bCameraSolverConstraint *>(cdata);
 
   data->clip = nullptr;
   data->flag |= CAMERASOLVER_ACTIVECLIP;
@@ -5280,7 +5280,7 @@ static void camerasolver_id_looper(bConstraint *con, ConstraintIDFunc func, void
 {
   bCameraSolverConstraint *data = static_cast<bCameraSolverConstraint *>(con->data);
 
-  func(con, (ID **)&data->clip, true, userdata);
+  func(con, reinterpret_cast<ID **>(&data->clip), true, userdata);
 }
 
 static void camerasolver_evaluate(bConstraint *con,
@@ -5330,7 +5330,7 @@ static bConstraintTypeInfo CTI_CAMERASOLVER = {
 
 static void objectsolver_new_data(void *cdata)
 {
-  bObjectSolverConstraint *data = (bObjectSolverConstraint *)cdata;
+  bObjectSolverConstraint *data = static_cast<bObjectSolverConstraint *>(cdata);
 
   data->clip = nullptr;
   data->flag |= OBJECTSOLVER_ACTIVECLIP;
@@ -5341,8 +5341,8 @@ static void objectsolver_id_looper(bConstraint *con, ConstraintIDFunc func, void
 {
   bObjectSolverConstraint *data = static_cast<bObjectSolverConstraint *>(con->data);
 
-  func(con, (ID **)&data->clip, false, userdata);
-  func(con, (ID **)&data->camera, false, userdata);
+  func(con, reinterpret_cast<ID **>(&data->clip), false, userdata);
+  func(con, reinterpret_cast<ID **>(&data->camera), false, userdata);
 }
 
 static void objectsolver_evaluate(bConstraint *con,
@@ -5419,7 +5419,7 @@ static bConstraintTypeInfo CTI_OBJECTSOLVER = {
 static void transformcache_id_looper(bConstraint *con, ConstraintIDFunc func, void *userdata)
 {
   bTransformCacheConstraint *data = static_cast<bTransformCacheConstraint *>(con->data);
-  func(con, (ID **)&data->cache_file, true, userdata);
+  func(con, reinterpret_cast<ID **>(&data->cache_file), true, userdata);
 }
 
 static void transformcache_evaluate(bConstraint *con,
@@ -5490,7 +5490,7 @@ static void transformcache_free(bConstraint *con)
 
 static void transformcache_new_data(void *cdata)
 {
-  bTransformCacheConstraint *data = (bTransformCacheConstraint *)cdata;
+  bTransformCacheConstraint *data = static_cast<bTransformCacheConstraint *>(cdata);
 
   data->cache_file = nullptr;
 }
@@ -5603,7 +5603,7 @@ static void geometry_attribute_free_data(bConstraint *con)
 static void geometry_attribute_id_looper(bConstraint *con, ConstraintIDFunc func, void *userdata)
 {
   bGeometryAttributeConstraint *data = static_cast<bGeometryAttributeConstraint *>(con->data);
-  func(con, (ID **)&data->target, false, userdata);
+  func(con, reinterpret_cast<ID **>(&data->target), false, userdata);
 }
 
 static void geometry_attribute_copy_data(bConstraint *con, bConstraint *srccon)
@@ -5908,7 +5908,7 @@ static void con_invoke_id_looper(const bConstraintTypeInfo *cti,
     cti->id_looper(con, func, userdata);
   }
 
-  func(con, (ID **)&con->space_object, false, userdata);
+  func(con, reinterpret_cast<ID **>(&con->space_object), false, userdata);
 }
 
 void BKE_constraint_free_data_ex(bConstraint *con, bool do_id_user)
@@ -6413,7 +6413,7 @@ static bConstraint *constraint_list_find_from_target(ListBaseT<bConstraint> *con
     ListBaseT<bConstraintTarget> *targets = nullptr;
 
     if (con.type == CONSTRAINT_TYPE_ARMATURE) {
-      targets = &((bArmatureConstraint *)con.data)->targets;
+      targets = &(static_cast<bArmatureConstraint *>(con.data))->targets;
     }
 
     if (targets && BLI_findindex(targets, tgt) != -1) {
@@ -6569,7 +6569,7 @@ void BKE_constraint_targets_flush(bConstraint *con,
   }
 
   /* Remove the custom target. */
-  bConstraintTarget *ct = (bConstraintTarget *)targets->last;
+  bConstraintTarget *ct = static_cast<bConstraintTarget *>(targets->last);
 
   if (ct && (ct->flag & CONSTRAINT_TAR_CUSTOM_SPACE)) {
     BLI_assert(is_custom_space_needed(con));
@@ -6611,7 +6611,7 @@ void BKE_constraint_target_matrix_get(Depsgraph *depsgraph,
     switch (ownertype) {
       case CONSTRAINT_OBTYPE_OBJECT: /* it is usually this case */
       {
-        cob->ob = (Object *)ownerdata;
+        cob->ob = static_cast<Object *>(ownerdata);
         cob->pchan = nullptr;
         if (cob->ob) {
           copy_m4_m4(cob->matrix, cob->ob->object_to_world().ptr());
@@ -6626,7 +6626,7 @@ void BKE_constraint_target_matrix_get(Depsgraph *depsgraph,
       case CONSTRAINT_OBTYPE_BONE: /* this may occur in some cases */
       {
         cob->ob = nullptr; /* this might not work at all :/ */
-        cob->pchan = (bPoseChannel *)ownerdata;
+        cob->pchan = static_cast<bPoseChannel *>(ownerdata);
         if (cob->pchan) {
           copy_m4_m4(cob->matrix, cob->pchan->pose_mat);
           copy_m4_m4(cob->startmat, cob->matrix);

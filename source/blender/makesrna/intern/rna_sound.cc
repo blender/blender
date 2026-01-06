@@ -42,7 +42,7 @@ static const EnumPropertyItem rna_enum_audio_channels_items[] = {
 
 static void rna_Sound_update(Main * /*bmain*/, Scene *scene, PointerRNA *ptr)
 {
-  bSound *sound = (bSound *)ptr->data;
+  bSound *sound = static_cast<bSound *>(ptr->data);
   blender::seq::media_presence_invalidate_sound(scene, sound);
   DEG_id_tag_update(&sound->id, ID_RECALC_AUDIO);
 }

@@ -55,7 +55,7 @@ struct MoveGizmo3D {
 
 static void gizmo_move_matrix_basis_get(const wmGizmo *gz, float r_matrix[4][4])
 {
-  MoveGizmo3D *move = (MoveGizmo3D *)gz;
+  MoveGizmo3D *move = reinterpret_cast<MoveGizmo3D *>(const_cast<wmGizmo *>(gz));
 
   copy_m4_m4(r_matrix, move->gizmo.matrix_basis);
   add_v3_v3(r_matrix[3], move->prop_co);
@@ -243,7 +243,7 @@ static wmOperatorStatus gizmo_move_modal(bContext *C,
   if ((event->type != MOUSEMOVE) && (inter->prev.tweak_flag == tweak_flag)) {
     return OPERATOR_RUNNING_MODAL;
   }
-  MoveGizmo3D *move = (MoveGizmo3D *)gz;
+  MoveGizmo3D *move = reinterpret_cast<MoveGizmo3D *>(gz);
   ARegion *region = CTX_wm_region(C);
 
   float prop_delta[3];
@@ -414,7 +414,7 @@ static int gizmo_move_test_select(bContext *C, wmGizmo *gz, const int mval[2])
 
 static void gizmo_move_property_update(wmGizmo *gz, wmGizmoProperty *gz_prop)
 {
-  MoveGizmo3D *move = (MoveGizmo3D *)gz;
+  MoveGizmo3D *move = reinterpret_cast<MoveGizmo3D *>(gz);
   if (WM_gizmo_target_property_is_valid(gz_prop)) {
     WM_gizmo_target_property_float_get_array(gz, gz_prop, move->prop_co);
   }

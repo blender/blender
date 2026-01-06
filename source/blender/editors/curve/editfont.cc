@@ -377,7 +377,7 @@ static char32_t findaccent(char32_t char1, const char code)
 
 static int insert_into_textbuf(Object *obedit, uintptr_t c)
 {
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
 
   if (ef->len < MAXTEXT - 1) {
@@ -405,7 +405,7 @@ static int insert_into_textbuf(Object *obedit, uintptr_t c)
 
 static void text_update_edited(bContext *C, Object *obedit, const eEditFontMode mode)
 {
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
 
   BLI_assert(ef->len >= 0);
@@ -432,7 +432,7 @@ static void text_update_edited(bContext *C, Object *obedit, const eEditFontMode 
 
 static int kill_selection(Object *obedit, int ins) /* ins == new character len */
 {
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
   int selend, selstart, direction;
   int getfrom;
@@ -487,7 +487,7 @@ static bool font_paste_wchar(Object *obedit,
                              /* Optional. */
                              const CharInfo *str_info)
 {
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
   int selend, selstart;
 
@@ -559,7 +559,7 @@ static bool font_paste_utf8(bContext *C, const char *str, const size_t str_len)
 
 static char *font_select_to_buffer(Object *obedit)
 {
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   int selstart, selend;
   if (!BKE_vfont_select_get(cu, &selstart, &selend)) {
     return nullptr;
@@ -867,7 +867,7 @@ static void txt_add_object(bContext *C,
 
   add_v3_v3(obedit->loc, offset);
 
-  cu = static_cast<Curve *>(obedit->data);
+  cu = blender::id_cast<Curve *>(obedit->data);
   cu->vfont = BKE_vfont_builtin_ensure();
   id_us_plus(&cu->vfont->id);
 
@@ -981,7 +981,7 @@ static const EnumPropertyItem style_items[] = {
 static wmOperatorStatus set_style(bContext *C, const int style, const bool clear)
 {
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
   int i, selstart, selend;
 
@@ -1041,7 +1041,7 @@ void FONT_OT_style_set(wmOperatorType *ot)
 static wmOperatorStatus toggle_style_exec(bContext *C, wmOperator *op)
 {
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   int style, clear, selstart, selend;
 
   style = RNA_enum_get(op->ptr, "style");
@@ -1081,7 +1081,7 @@ void FONT_OT_style_toggle(wmOperatorType *ot)
 static wmOperatorStatus font_select_all_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
 
   if (ef->len) {
@@ -1120,7 +1120,7 @@ void FONT_OT_select_all(wmOperatorType *ot)
 
 static void copy_selection(Object *obedit)
 {
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   int selstart, selend;
 
   if (BKE_vfont_select_get(cu, &selstart, &selend)) {
@@ -1174,7 +1174,7 @@ void FONT_OT_text_copy(wmOperatorType *ot)
 static wmOperatorStatus cut_text_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   int selstart, selend;
 
   if (!BKE_vfont_select_get(cu, &selstart, &selend)) {
@@ -1348,7 +1348,7 @@ static const EnumPropertyItem move_type_items[] = {
  */
 static bool move_cursor_drop_select(Object *obedit, int dir)
 {
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   int selstart, selend;
   if (!BKE_vfont_select_get(cu, &selstart, &selend)) {
     return false;
@@ -1373,7 +1373,7 @@ static wmOperatorStatus move_cursor(bContext *C, int type, const bool select)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
   int cursmove = -1;
 
@@ -1572,7 +1572,7 @@ void FONT_OT_move_select(wmOperatorType *ot)
 static wmOperatorStatus change_spacing_exec(bContext *C, wmOperator *op)
 {
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
   float kern, delta = RNA_float_get(op->ptr, "delta");
   int selstart, selend;
@@ -1639,7 +1639,7 @@ void FONT_OT_change_spacing(wmOperatorType *ot)
 static wmOperatorStatus change_character_exec(bContext *C, wmOperator *op)
 {
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
   int character, delta = RNA_int_get(op->ptr, "delta");
 
@@ -1697,7 +1697,7 @@ void FONT_OT_change_character(wmOperatorType *ot)
 static wmOperatorStatus line_break_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
 
   insert_into_textbuf(obedit, '\n');
@@ -1744,7 +1744,7 @@ static const EnumPropertyItem delete_type_items[] = {
 static wmOperatorStatus delete_exec(bContext *C, wmOperator *op)
 {
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
   int selstart, selend, type = RNA_enum_get(op->ptr, "type");
   int range[2] = {0, 0};
@@ -1915,7 +1915,7 @@ static wmOperatorStatus insert_text_exec(bContext *C, wmOperator *op)
 static wmOperatorStatus insert_text_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
   static bool accentcode = false;
   const bool alt = event->modifier & KM_ALT;
@@ -2049,7 +2049,7 @@ static void font_cursor_set_apply(bContext *C, const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *ob = DEG_get_evaluated(depsgraph, CTX_data_active_object(C));
-  Curve *cu = static_cast<Curve *>(ob->data);
+  Curve *cu = blender::id_cast<Curve *>(ob->data);
   EditFont *ef = cu->editfont;
   BLI_assert(ef->len >= 0);
 
@@ -2083,7 +2083,7 @@ static wmOperatorStatus font_selection_set_invoke(bContext *C,
                                                   const wmEvent *event)
 {
   Object *obedit = CTX_data_active_object(C);
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
 
   font_cursor_set_apply(C, event);
@@ -2140,7 +2140,7 @@ void FONT_OT_selection_set(wmOperatorType *ot)
 static wmOperatorStatus font_select_word_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
 
   BLI_str_cursor_step_bounds_utf32(ef->textbuf, ef->len, ef->pos, &ef->selstart, &ef->selend);
@@ -2176,7 +2176,7 @@ void FONT_OT_select_word(wmOperatorType *ot)
 static wmOperatorStatus textbox_add_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *obedit = CTX_data_active_object(C);
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   int i;
 
   if (cu->totbox < 256) {
@@ -2217,7 +2217,7 @@ void FONT_OT_textbox_add(wmOperatorType *ot)
 static wmOperatorStatus textbox_remove_exec(bContext *C, wmOperator *op)
 {
   Object *obedit = CTX_data_active_object(C);
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   int i;
   int index = RNA_int_get(op->ptr, "index");
 
@@ -2262,7 +2262,7 @@ void FONT_OT_textbox_remove(wmOperatorType *ot)
 
 void ED_curve_editfont_make(Object *obedit)
 {
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
 
   if (ef == nullptr) {
@@ -2300,7 +2300,7 @@ void ED_curve_editfont_make(Object *obedit)
 
 void ED_curve_editfont_load(Object *obedit)
 {
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
 
   /* Free the old curve string */
@@ -2332,7 +2332,7 @@ void ED_curve_editfont_load(Object *obedit)
 
 void ED_curve_editfont_free(Object *obedit)
 {
-  BKE_curve_editfont_free((Curve *)obedit->data);
+  BKE_curve_editfont_free(blender::id_cast<Curve *>(obedit->data));
 }
 
 /** \} */
@@ -2350,7 +2350,7 @@ static const EnumPropertyItem case_items[] = {
 static wmOperatorStatus set_case(bContext *C, int ccase)
 {
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   int selstart, selend;
 
   if (BKE_vfont_select_get(cu, &selstart, &selend)) {
@@ -2403,7 +2403,7 @@ void FONT_OT_case_set(wmOperatorType *ot)
 static wmOperatorStatus toggle_case_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
   int ccase = CASE_UPPER;
 
@@ -2504,8 +2504,8 @@ static wmOperatorStatus open_invoke(bContext *C, wmOperator *op, const wmEvent *
   pprop = static_cast<PropertyPointerRNA *>(op->customdata);
 
   if (pprop->prop) {
-    idptr = RNA_property_pointer_get((PointerRNA *)pprop, pprop->prop);
-    vfont = (VFont *)idptr.owner_id;
+    idptr = RNA_property_pointer_get(reinterpret_cast<PointerRNA *>(pprop), pprop->prop);
+    vfont = blender::id_cast<VFont *>(idptr.owner_id);
   }
 
   PropertyRNA *prop_filepath = RNA_struct_find_property(op->ptr, "filepath");
@@ -2601,7 +2601,7 @@ bool ED_curve_editfont_select_pick(
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = static_cast<Curve *>(obedit->data);
+  Curve *cu = blender::id_cast<Curve *>(obedit->data);
   /* bias against the active, in pixels, allows cycling */
   const float active_bias_px = 4.0f;
   const float mval_fl[2] = {float(mval[0]), float(mval[1])};

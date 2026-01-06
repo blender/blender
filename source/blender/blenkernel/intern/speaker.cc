@@ -24,21 +24,21 @@
 
 static void speaker_init_data(ID *id)
 {
-  Speaker *speaker = (Speaker *)id;
+  Speaker *speaker = blender::id_cast<Speaker *>(id);
 
   INIT_DEFAULT_STRUCT_AFTER(speaker, id);
 }
 
 static void speaker_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  Speaker *speaker = (Speaker *)id;
+  Speaker *speaker = blender::id_cast<Speaker *>(id);
 
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, speaker->sound, IDWALK_CB_USER);
 }
 
 static void speaker_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  Speaker *spk = (Speaker *)id;
+  Speaker *spk = blender::id_cast<Speaker *>(id);
 
   /* write LibData */
   BLO_write_id_struct(writer, Speaker, id_address, &spk->id);

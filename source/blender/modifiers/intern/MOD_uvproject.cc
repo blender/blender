@@ -43,7 +43,7 @@
 
 static void init_data(ModifierData *md)
 {
-  UVProjectModifierData *umd = (UVProjectModifierData *)md;
+  UVProjectModifierData *umd = reinterpret_cast<UVProjectModifierData *>(md);
 
   INIT_DEFAULT_STRUCT_AFTER(umd, modifier);
 }
@@ -56,15 +56,15 @@ static void required_data_mask(ModifierData * /*md*/, CustomData_MeshMasks *r_cd
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  UVProjectModifierData *umd = (UVProjectModifierData *)md;
+  UVProjectModifierData *umd = reinterpret_cast<UVProjectModifierData *>(md);
   for (int i = 0; i < MOD_UVPROJECT_MAXPROJECTORS; i++) {
-    walk(user_data, ob, (ID **)&umd->projectors[i], IDWALK_CB_NOP);
+    walk(user_data, ob, reinterpret_cast<ID **>(&umd->projectors[i]), IDWALK_CB_NOP);
   }
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  UVProjectModifierData *umd = (UVProjectModifierData *)md;
+  UVProjectModifierData *umd = reinterpret_cast<UVProjectModifierData *>(md);
   bool do_add_own_transform = false;
   for (int i = 0; i < umd->projectors_num; i++) {
     if (umd->projectors[i] != nullptr) {
@@ -144,7 +144,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
     projectors[i].uci = nullptr;
 
     if (projectors[i].ob->type == OB_CAMERA) {
-      const Camera *cam = (const Camera *)projectors[i].ob->data;
+      const Camera *cam = blender::id_cast<const Camera *>(projectors[i].ob->data);
       if (cam->type == CAM_PANO) {
         projectors[i].uci = BKE_uvproject_camera_info(projectors[i].ob, nullptr, aspx, aspy);
         BKE_uvproject_camera_info_scale(
@@ -284,7 +284,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   Mesh *result;
-  UVProjectModifierData *umd = (UVProjectModifierData *)md;
+  UVProjectModifierData *umd = reinterpret_cast<UVProjectModifierData *>(md);
 
   result = uvprojectModifier_do(umd, ctx, ctx->object, mesh);
 

@@ -216,13 +216,15 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
      * obj.pose.bones[].bone in a driver attached to the Object,
      * redirect to its data. */
     if (GS(node_identifier.id->name) == ID_OB) {
-      node_identifier.id = (ID *)((Object *)node_identifier.id)->data;
+      node_identifier.id = static_cast<ID *>(
+          (blender::id_cast<Object *>(node_identifier.id))->data);
     }
     return node_identifier;
   }
 
-  const char *prop_identifier = prop != nullptr ? RNA_property_identifier((PropertyRNA *)prop) :
-                                                  "";
+  const char *prop_identifier = prop != nullptr ?
+                                    RNA_property_identifier(const_cast<PropertyRNA *>(prop)) :
+                                    "";
 
   if (RNA_struct_is_a(ptr->type, &RNA_Constraint)) {
     const Object *object = reinterpret_cast<const Object *>(ptr->owner_id);
@@ -246,7 +248,7 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
   }
   if (ELEM(ptr->type, &RNA_ConstraintTarget, &RNA_ConstraintTargetBone)) {
     Object *object = reinterpret_cast<Object *>(ptr->owner_id);
-    bConstraintTarget *tgt = (bConstraintTarget *)ptr->data;
+    bConstraintTarget *tgt = static_cast<bConstraintTarget *>(ptr->data);
     /* Check whether is object or bone constraint. */
     bPoseChannel *pchan = nullptr;
     bConstraint *con = BKE_constraint_find_from_target(object, tgt, &pchan);

@@ -545,10 +545,10 @@ static void loose_data_instantiate_obdata_preprocess(
     Object *ob = reinterpret_cast<Object *>(id);
     Object *new_ob = reinterpret_cast<Object *>(id->newid);
     if (ob->data != nullptr) {
-      (static_cast<ID *>(ob->data))->tag &= ~ID_TAG_DOIT;
+      (ob->data)->tag &= ~ID_TAG_DOIT;
     }
     if (new_ob != nullptr && new_ob->data != nullptr) {
-      (static_cast<ID *>(new_ob->data))->tag &= ~ID_TAG_DOIT;
+      (new_ob->data)->tag &= ~ID_TAG_DOIT;
     }
   }
 }
@@ -604,7 +604,7 @@ static void loose_data_instantiate_collection_process(
      * NOTE: We only check object directly into that collection, not recursively into its
      * children.
      */
-    Collection *collection = (Collection *)id;
+    Collection *collection = blender::id_cast<Collection *>(id);
     /* The collection could be linked/appended together with an Empty object instantiating it,
      * better not instantiate the collection in the view-layer in that case.
      *
@@ -775,7 +775,7 @@ static void loose_data_instantiate_object_process(LooseDataInstantiateContext *i
       continue;
     }
 
-    Object *ob = (Object *)id;
+    Object *ob = blender::id_cast<Object *>(id);
 
     if (instanciated_objects.contains(ob)) {
       continue;
@@ -833,7 +833,7 @@ static void loose_data_instantiate_obdata_process(LooseDataInstantiateContext *i
     Object *ob = BKE_object_add_only_object(bmain, type, id->name + 2);
     ob->data = id;
     id_us_plus(id);
-    BKE_object_materials_sync_length(bmain, ob, static_cast<ID *>(ob->data));
+    BKE_object_materials_sync_length(bmain, ob, ob->data);
 
     loose_data_instantiate_object_base_instance_init(bmain,
                                                      active_collection,

@@ -525,7 +525,7 @@ static void seq_prefetch_do_suspend(PrefetchJob *pfjob)
 
 static void *seq_prefetch_frames(void *job)
 {
-  PrefetchJob *pfjob = (PrefetchJob *)job;
+  PrefetchJob *pfjob = static_cast<PrefetchJob *>(job);
 
   while (true) {
     if (pfjob->cfra < pfjob->timeline_start || pfjob->cfra > pfjob->timeline_end) {

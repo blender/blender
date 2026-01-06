@@ -224,15 +224,15 @@ static void feather_bucket_check_intersect(float (*feather_points)[2],
                                            int cur_a,
                                            int cur_b)
 {
-  const float *v1 = (float *)feather_points[cur_a];
-  const float *v2 = (float *)feather_points[cur_b];
+  const float *v1 = static_cast<float *>(feather_points[cur_a]);
+  const float *v2 = static_cast<float *>(feather_points[cur_b]);
 
   for (int i = 0; i < bucket->tot_segment; i++) {
     int check_a = bucket->segments[i][0];
     int check_b = bucket->segments[i][1];
 
-    const float *v3 = (float *)feather_points[check_a];
-    const float *v4 = (float *)feather_points[check_b];
+    const float *v3 = static_cast<float *>(feather_points[check_a]);
+    const float *v4 = static_cast<float *>(feather_points[check_b]);
 
     if (check_a >= cur_a - 1 || cur_b == check_a) {
       continue;

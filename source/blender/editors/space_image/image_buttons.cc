@@ -719,7 +719,7 @@ struct RNAUpdateCb {
 
 static void rna_update_cb(bContext *C, void *arg_cb, void * /*arg*/)
 {
-  RNAUpdateCb *cb = (RNAUpdateCb *)arg_cb;
+  RNAUpdateCb *cb = static_cast<RNAUpdateCb *>(arg_cb);
 
   /* we call update here on the pointer property, this way the
    * owner of the image pointer can still define its own update
@@ -1268,7 +1268,7 @@ void uiTemplateImageInfo(blender::ui::Layout *layout, bContext *C, Image *ima, I
     int duration = 0;
 
     if (ima->source == IMA_SRC_MOVIE && BKE_image_has_anim(ima)) {
-      MovieReader *anim = ((ImageAnim *)ima->anims.first)->anim;
+      MovieReader *anim = (static_cast<ImageAnim *>(ima->anims.first))->anim;
       if (anim) {
         duration = MOV_get_duration_frames(anim, IMB_TC_RECORD_RUN);
       }

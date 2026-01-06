@@ -58,7 +58,7 @@ constexpr StringRef ATTR_POSITION = "position";
 
 static void pointcloud_init_data(ID *id)
 {
-  PointCloud *pointcloud = (PointCloud *)id;
+  PointCloud *pointcloud = blender::id_cast<PointCloud *>(id);
   INIT_DEFAULT_STRUCT_AFTER(pointcloud, id);
 
   new (&pointcloud->attribute_storage.wrap()) blender::bke::AttributeStorage();
@@ -71,8 +71,8 @@ static void pointcloud_copy_data(Main * /*bmain*/,
                                  const ID *id_src,
                                  const int /*flag*/)
 {
-  PointCloud *pointcloud_dst = (PointCloud *)id_dst;
-  const PointCloud *pointcloud_src = (const PointCloud *)id_src;
+  PointCloud *pointcloud_dst = blender::id_cast<PointCloud *>(id_dst);
+  const PointCloud *pointcloud_src = blender::id_cast<const PointCloud *>(id_src);
   pointcloud_dst->mat = static_cast<Material **>(MEM_dupallocN(pointcloud_src->mat));
 
   new (&pointcloud_dst->attribute_storage.wrap())
@@ -94,7 +94,7 @@ static void pointcloud_copy_data(Main * /*bmain*/,
 
 static void pointcloud_free_data(ID *id)
 {
-  PointCloud *pointcloud = (PointCloud *)id;
+  PointCloud *pointcloud = blender::id_cast<PointCloud *>(id);
   BKE_animdata_free(&pointcloud->id, false);
   BKE_pointcloud_batch_cache_free(pointcloud);
   pointcloud->attribute_storage.wrap().~AttributeStorage();
@@ -104,7 +104,7 @@ static void pointcloud_free_data(ID *id)
 
 static void pointcloud_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  PointCloud *pointcloud = (PointCloud *)id;
+  PointCloud *pointcloud = blender::id_cast<PointCloud *>(id);
   for (int i = 0; i < pointcloud->totcol; i++) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, pointcloud->mat[i], IDWALK_CB_USER);
   }
@@ -113,7 +113,7 @@ static void pointcloud_foreach_id(ID *id, LibraryForeachIDData *data)
 static void pointcloud_foreach_working_space_color(ID *id,
                                                    const IDTypeForeachColorFunctionCallback &fn)
 {
-  PointCloud *pointcloud = (PointCloud *)id;
+  PointCloud *pointcloud = blender::id_cast<PointCloud *>(id);
   pointcloud->attribute_storage.wrap().foreach_working_space_color(fn);
 }
 
@@ -121,7 +121,7 @@ static void pointcloud_blend_write(BlendWriter *writer, ID *id, const void *id_a
 {
   using namespace blender;
   using namespace blender::bke;
-  PointCloud *pointcloud = (PointCloud *)id;
+  PointCloud *pointcloud = blender::id_cast<PointCloud *>(id);
 
   ResourceScope scope;
   bke::AttributeStorage::BlendWriteData attribute_data{scope};
@@ -150,14 +150,14 @@ static void pointcloud_blend_write(BlendWriter *writer, ID *id, const void *id_a
 
 static void pointcloud_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  PointCloud *pointcloud = (PointCloud *)id;
+  PointCloud *pointcloud = blender::id_cast<PointCloud *>(id);
 
   /* Geometry */
   CustomData_blend_read(reader, &pointcloud->pdata_legacy, pointcloud->totpoint);
   pointcloud->attribute_storage.wrap().blend_read(*reader);
 
   /* Materials */
-  BLO_read_pointer_array(reader, pointcloud->totcol, (void **)&pointcloud->mat);
+  BLO_read_pointer_array(reader, pointcloud->totcol, reinterpret_cast<void **>(&pointcloud->mat));
 
   pointcloud->runtime = new blender::bke::PointCloudRuntime();
 }
@@ -361,7 +361,7 @@ static void pointcloud_evaluate_modifiers(Depsgraph *depsgraph,
 
   /* Evaluate modifiers. */
   for (; md; md = md->next) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
     if (!BKE_modifier_is_enabled(scene, md, required_mode)) {
       continue;
@@ -401,7 +401,7 @@ void BKE_pointcloud_data_update(Depsgraph *depsgraph, Scene *scene, Object *obje
   BKE_object_free_derived_caches(object);
 
   /* Evaluate modifiers. */
-  PointCloud *pointcloud = static_cast<PointCloud *>(object->data);
+  PointCloud *pointcloud = blender::id_cast<PointCloud *>(object->data);
   blender::bke::GeometrySet geometry_set = blender::bke::GeometrySet::from_pointcloud(
       pointcloud, blender::bke::GeometryOwnershipType::ReadOnly);
   pointcloud_evaluate_modifiers(depsgraph, scene, object, geometry_set);

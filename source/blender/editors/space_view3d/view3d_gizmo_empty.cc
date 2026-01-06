@@ -163,10 +163,10 @@ static void WIDGETGROUP_empty_image_refresh(const bContext *C, wmGizmoGroup *gzg
 
   /* Use dimensions for aspect. */
   if (ob->data != nullptr) {
-    const Image *image = static_cast<const Image *>(ob->data);
+    const Image *image = blender::id_cast<const Image *>(ob->data);
     ImageUser iuser = *ob->iuser;
     float size[2];
-    BKE_image_get_size_fl(static_cast<Image *>(ob->data), &iuser, size);
+    BKE_image_get_size_fl(blender::id_cast<Image *>(ob->data), &iuser, size);
 
     /* Get the image aspect even if the buffer is invalid */
     if (image->aspx > image->aspy) {

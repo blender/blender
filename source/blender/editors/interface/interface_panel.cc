@@ -773,7 +773,7 @@ void panel_header_buttons_end(Panel *panel)
     /* Always add a new button group. Although this may result in many empty groups, without it,
      * new buttons in the panel body not protected with a #block_new_button_group call would
      * end up in the panel header group. */
-    block_new_button_group(block, (ButtonGroupFlag)0);
+    block_new_button_group(block, ButtonGroupFlag(0));
   }
 }
 
@@ -1046,7 +1046,7 @@ static void panel_title_color_get(const Panel *panel,
     /* Use menu colors for floating panels. */
     bTheme *btheme = theme::theme_get();
     const uiWidgetColors *wcol = &btheme->tui.wcol_menu_back;
-    copy_v4_v4_uchar(r_color, (const uchar *)wcol->text);
+    copy_v4_v4_uchar(r_color, static_cast<const uchar *>(wcol->text));
     return;
   }
 
@@ -1405,7 +1405,7 @@ void panel_category_tabs_draw_all(ARegion *region, const char *category_id_activ
   float fstyle_points = fstyle->points;
   const float aspect = BLI_listbase_is_empty(&region->runtime->uiblocks) ?
                            1.0f :
-                           ((Block *)region->runtime->uiblocks.first)->aspect;
+                           (static_cast<Block *>(region->runtime->uiblocks.first))->aspect;
   const float zoom = 1.0f / aspect;
   const int px = U.pixelsize;
   const int category_tabs_width = round_fl_to_int(UI_PANEL_CATEGORY_MARGIN_WIDTH * zoom);
@@ -2491,9 +2491,9 @@ static int ui_handle_panel_category_cycling(const wmEvent *event,
   const bool inside_tabregion =
       ((RGN_ALIGN_ENUM_FROM_MASK(region->alignment) != RGN_ALIGN_RIGHT) ?
            (event->mval[0] <
-            ((PanelCategoryDyn *)region->runtime->panels_category.first)->rect.xmax) :
+            (static_cast<PanelCategoryDyn *>(region->runtime->panels_category.first))->rect.xmax) :
            (event->mval[0] >
-            ((PanelCategoryDyn *)region->runtime->panels_category.first)->rect.xmin));
+            (static_cast<PanelCategoryDyn *>(region->runtime->panels_category.first))->rect.xmin));
 
   /* If mouse is inside non-tab region, ctrl key is required. */
   if (is_mousewheel && (event->modifier & KM_CTRL) == 0 && !inside_tabregion) {

@@ -42,11 +42,11 @@ static void cmp_node_movieclip_declare(NodeDeclarationBuilder &b)
 
 static void init(const bContext *C, PointerRNA *ptr)
 {
-  bNode *node = (bNode *)ptr->data;
+  bNode *node = static_cast<bNode *>(ptr->data);
   Scene *scene = CTX_data_scene(C);
   MovieClipUser *user = MEM_new_for_free<MovieClipUser>(__func__);
 
-  node->id = (ID *)scene->clip;
+  node->id = blender::id_cast<ID *>(scene->clip);
   id_us_plus(node->id);
   node->storage = user;
   user->framenr = 1;

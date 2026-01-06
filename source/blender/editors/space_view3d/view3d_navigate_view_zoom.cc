@@ -351,7 +351,7 @@ static wmOperatorStatus viewzoom_modal_impl(bContext *C,
 
   switch (event_code) {
     case VIEW_APPLY: {
-      viewzoom_apply(vod, xy, (eViewZoom_Style)U.viewzoom, (U.uiflag & USER_ZOOM_INVERT) != 0);
+      viewzoom_apply(vod, xy, eViewZoom_Style(U.viewzoom), (U.uiflag & USER_ZOOM_INVERT) != 0);
       if (ED_screen_animation_playing(CTX_wm_manager(C))) {
         use_autokey = true;
       }

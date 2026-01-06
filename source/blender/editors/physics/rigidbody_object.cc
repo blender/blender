@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "DNA_collection_types.h"
 #include "DNA_object_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
@@ -516,10 +517,10 @@ static bool mass_calculate_poll_property(const bContext * /*C*/,
   if (STREQ(prop_id, "density")) {
     int material = RNA_enum_get(op->ptr, "material");
     if (material >= 0) {
-      RNA_def_property_clear_flag((PropertyRNA *)prop, PROP_EDITABLE);
+      RNA_def_property_clear_flag(const_cast<PropertyRNA *>(prop), PROP_EDITABLE);
     }
     else {
-      RNA_def_property_flag((PropertyRNA *)prop, PROP_EDITABLE);
+      RNA_def_property_flag(const_cast<PropertyRNA *>(prop), PROP_EDITABLE);
     }
   }
 

@@ -261,7 +261,7 @@ struct OperationNode : public Node {
 
   bool is_noop() const
   {
-    return (bool)evaluate == false;
+    return bool(evaluate) == false;
   }
 
   OperationNode *get_entry_operation() override

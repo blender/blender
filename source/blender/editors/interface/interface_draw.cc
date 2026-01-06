@@ -327,7 +327,7 @@ void draw_but_IMAGE(ARegion * /*region*/,
   (void)rect;
   (void)but;
 #else
-  ImBuf *ibuf = (ImBuf *)but->poin;
+  ImBuf *ibuf = reinterpret_cast<ImBuf *>(but->poin);
 
   if (!ibuf) {
     return;
@@ -494,7 +494,7 @@ void draw_but_HISTOGRAM(ARegion *region,
                         const uiWidgetColors * /*wcol*/,
                         const rcti *recti)
 {
-  Histogram *hist = (Histogram *)but->poin;
+  Histogram *hist = reinterpret_cast<Histogram *>(but->poin);
   const int res = hist->x_resolution;
   const bool is_line = (hist->flag & HISTO_FLAG_LINE) != 0;
 
@@ -681,7 +681,7 @@ void draw_but_WAVEFORM(ARegion *region,
                        const uiWidgetColors * /*wcol*/,
                        const rcti *recti)
 {
-  Scopes *scopes = (Scopes *)but->poin;
+  Scopes *scopes = reinterpret_cast<Scopes *>(but->poin);
   int scissor[4];
   float colors[3][3];
   const float colorsycc[3][3] = {{1, 0, 1}, {1, 1, 0}, {0, 1, 1}};
@@ -1000,7 +1000,7 @@ void draw_but_VECTORSCOPE(ARegion *region,
                           const rcti *recti)
 {
   const float skin_rad = DEG2RADF(123.0f); /* angle in radians of the skin tone line */
-  const Scopes *scopes = (const Scopes *)but->poin;
+  const Scopes *scopes = reinterpret_cast<const Scopes *>(but->poin);
 
   const float colors[6][3] = {
       {0.75, 0.0, 0.0},  /* Red */
@@ -1358,8 +1358,8 @@ void draw_but_COLORBAND(Button *but, const uiWidgetColors *wcol, const rcti *rec
   const ColorManagedDisplay *display = block_cm_display_get(but->block);
   uint pos_id, col_id;
 
-  ButtonColorBand *but_coba = (ButtonColorBand *)but;
-  ColorBand *coba = (but_coba->edit_coba == nullptr) ? (ColorBand *)but->poin :
+  ButtonColorBand *but_coba = static_cast<ButtonColorBand *>(but);
+  ColorBand *coba = (but_coba->edit_coba == nullptr) ? reinterpret_cast<ColorBand *>(but->poin) :
                                                        but_coba->edit_coba;
 
   if (coba == nullptr) {
@@ -1582,9 +1582,10 @@ static void ui_draw_but_curve_grid(const uint pos,
 
 void draw_but_CURVE(ARegion *region, Button *but, const uiWidgetColors *wcol, const rcti *rect)
 {
-  ButtonCurveMapping *but_cumap = (ButtonCurveMapping *)but;
-  CurveMapping *cumap = (but_cumap->edit_cumap == nullptr) ? (CurveMapping *)but->poin :
-                                                             but_cumap->edit_cumap;
+  ButtonCurveMapping *but_cumap = static_cast<ButtonCurveMapping *>(but);
+  CurveMapping *cumap = (but_cumap->edit_cumap == nullptr) ?
+                            reinterpret_cast<CurveMapping *>(but->poin) :
+                            but_cumap->edit_cumap;
 
   const bool inactive = but->flag & BUT_INACTIVE;
   const float fade_factor_float = inactive ? 0.33f : 1.0f;
@@ -1942,9 +1943,10 @@ void draw_but_CURVEPROFILE(ARegion *region,
 {
   float fx, fy;
 
-  ButtonCurveProfile *but_profile = (ButtonCurveProfile *)but;
-  CurveProfile *profile = (but_profile->edit_profile == nullptr) ? (CurveProfile *)but->poin :
-                                                                   but_profile->edit_profile;
+  ButtonCurveProfile *but_profile = static_cast<ButtonCurveProfile *>(but);
+  CurveProfile *profile = (but_profile->edit_profile == nullptr) ?
+                              reinterpret_cast<CurveProfile *>(but->poin) :
+                              but_profile->edit_profile;
 
   /* Calculate offset and zoom. */
   const float zoomx = (BLI_rcti_size_x(rect) - 1.0f) / BLI_rctf_size_x(&profile->view_rect);
@@ -2270,7 +2272,7 @@ void draw_but_CURVEPROFILE(ARegion *region,
   pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
-  immUniformColor3ubv((const uchar *)wcol->outline);
+  immUniformColor3ubv(static_cast<const uchar *>(wcol->outline));
   imm_draw_box_wire_2d(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
   immUnbindProgram();
   GPU_blend(GPU_BLEND_NONE);
@@ -2282,7 +2284,7 @@ void draw_but_TRACKPREVIEW(ARegion *region,
                            const rcti *recti)
 {
   bool ok = false;
-  MovieClipScopes *scopes = (MovieClipScopes *)but->poin;
+  MovieClipScopes *scopes = reinterpret_cast<MovieClipScopes *>(but->poin);
 
   rctf rect{};
   rect.xmin = float(recti->xmin + 1);

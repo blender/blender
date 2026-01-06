@@ -1004,7 +1004,7 @@ static void paint_draw_curve_cursor(Brush *brush, ViewContext *vc)
                                       sizeof(float[2]));
       }
 
-      float (*v)[2] = (float (*)[2])data;
+      float (*v)[2] = reinterpret_cast<float (*)[2]>(data);
 
       immUniformColor4f(0.0f, 0.0f, 0.0f, 0.5f);
       GPU_line_width(3.0f);
@@ -1103,7 +1103,7 @@ static void cursor_draw_tiling_preview(const uint gpuattr,
   BLI_assert(ob.type == OB_MESH);
   const Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(&ob);
   if (!mesh) {
-    mesh = static_cast<const Mesh *>(ob.data);
+    mesh = blender::id_cast<const Mesh *>(ob.data);
   }
   const Bounds<float3> bounds = *mesh->bounds_min_max();
   float orgLoc[3], location[3];
@@ -1149,7 +1149,7 @@ static void cursor_draw_point_with_symmetry(const uint gpuattr,
                                             const Object &ob,
                                             const float radius)
 {
-  const Mesh *mesh = static_cast<const Mesh *>(ob.data);
+  const Mesh *mesh = blender::id_cast<const Mesh *>(ob.data);
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
   float3 location;
   float symm_rot_mat[4][4];
@@ -1575,7 +1575,7 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext &pcontext)
     return;
   }
 
-  GreasePencil *grease_pencil = static_cast<GreasePencil *>(object->data);
+  GreasePencil *grease_pencil = blender::id_cast<GreasePencil *>(object->data);
   Paint *paint = pcontext.paint;
   Brush *brush = pcontext.brush;
   if ((brush == nullptr) || (brush->gpencil_settings == nullptr)) {

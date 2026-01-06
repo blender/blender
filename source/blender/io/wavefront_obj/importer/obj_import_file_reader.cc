@@ -892,7 +892,7 @@ void MTLParser::parse_and_store(Map<string, std::unique_ptr<MTLMaterial>> &r_mat
 
   MTLMaterial *material = nullptr;
 
-  StringRef buffer_str{(const char *)buffer, int64_t(buffer_len)};
+  StringRef buffer_str{static_cast<const char *>(buffer), int64_t(buffer_len)};
   while (!buffer_str.is_empty()) {
     const StringRef line = read_next_line(buffer_str);
     const char *p = line.begin(), *end = line.end();

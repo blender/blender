@@ -1200,7 +1200,7 @@ static void do_render_compositor_scenes(Render *re)
 /* bad call... need to think over proper method still */
 static void render_compositor_stats(void *arg, const char *str)
 {
-  Render *re = (Render *)arg;
+  Render *re = static_cast<Render *>(arg);
 
   RenderStats i;
   memcpy(&i, &re->i, sizeof(i));
@@ -1576,7 +1576,7 @@ static bool check_valid_compositing_camera(Scene *scene,
   if (scene->r.scemode & R_DOCOMP && scene->compositing_node_group) {
     for (bNode *node : scene->compositing_node_group->all_nodes()) {
       if (node->type_legacy == CMP_NODE_R_LAYERS && !node->is_muted()) {
-        Scene *sce = node->id ? (Scene *)node->id : scene;
+        Scene *sce = node->id ? blender::id_cast<Scene *>(node->id) : scene;
         if (sce->camera == nullptr) {
           sce->camera = BKE_view_layer_camera_find(sce, BKE_view_layer_default_render(sce));
         }
@@ -2791,7 +2791,7 @@ bool RE_layers_have_name(RenderResult *result)
     case 0:
       return false;
     case 1:
-      return (((RenderLayer *)result->layers.first)->name[0] != '\0');
+      return ((static_cast<RenderLayer *>(result->layers.first))->name[0] != '\0');
     default:
       return true;
   }

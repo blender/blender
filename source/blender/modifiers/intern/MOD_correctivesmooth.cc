@@ -50,7 +50,7 @@
 
 static void init_data(ModifierData *md)
 {
-  CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
+  CorrectiveSmoothModifierData *csmd = reinterpret_cast<CorrectiveSmoothModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(csmd, modifier);
 
   csmd->delta_cache.deltas = nullptr;
@@ -58,8 +58,9 @@ static void init_data(ModifierData *md)
 
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
-  const CorrectiveSmoothModifierData *csmd = (const CorrectiveSmoothModifierData *)md;
-  CorrectiveSmoothModifierData *tcsmd = (CorrectiveSmoothModifierData *)target;
+  const CorrectiveSmoothModifierData *csmd =
+      reinterpret_cast<const CorrectiveSmoothModifierData *>(md);
+  CorrectiveSmoothModifierData *tcsmd = reinterpret_cast<CorrectiveSmoothModifierData *>(target);
 
   BKE_modifier_copydata_generic(md, target, flag);
 
@@ -82,13 +83,13 @@ static void freeBind(CorrectiveSmoothModifierData *csmd)
 
 static void free_data(ModifierData *md)
 {
-  CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
+  CorrectiveSmoothModifierData *csmd = reinterpret_cast<CorrectiveSmoothModifierData *>(md);
   freeBind(csmd);
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
+  CorrectiveSmoothModifierData *csmd = reinterpret_cast<CorrectiveSmoothModifierData *>(md);
 
   /* ask for vertex groups if we need them */
   if (csmd->defgrp_name[0] != '\0') {
@@ -549,13 +550,13 @@ static void correctivesmooth_modifier_do(ModifierData *md,
                                          BMEditMesh *em)
 {
   using namespace blender;
-  CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
+  CorrectiveSmoothModifierData *csmd = reinterpret_cast<CorrectiveSmoothModifierData *>(md);
 
   const bool force_delta_cache_update =
       /* XXX, take care! if mesh data itself changes we need to forcefully recalculate deltas */
       !cache_settings_equal(csmd) ||
       ((csmd->rest_source == MOD_CORRECTIVESMOOTH_RESTSOURCE_ORCO) &&
-       (((ID *)ob->data)->recalc & ID_RECALC_ALL));
+       ((static_cast<ID *>(ob->data))->recalc & ID_RECALC_ALL));
 
   Span<int> corner_verts = mesh->corner_verts();
 
@@ -579,8 +580,8 @@ static void correctivesmooth_modifier_do(ModifierData *md,
       BLI_assert(csmd->bind_coords != nullptr);
 
       /* Copy bound data to the original modifier. */
-      CorrectiveSmoothModifierData *csmd_orig = (CorrectiveSmoothModifierData *)
-          BKE_modifier_get_original(ob, &csmd->modifier);
+      CorrectiveSmoothModifierData *csmd_orig = reinterpret_cast<CorrectiveSmoothModifierData *>(
+          BKE_modifier_get_original(ob, &csmd->modifier));
       implicit_sharing::copy_shared_pointer(csmd->bind_coords,
                                             csmd->bind_coords_sharing_info,
                                             &csmd_orig->bind_coords,
@@ -623,7 +624,8 @@ static void correctivesmooth_modifier_do(ModifierData *md,
       goto error;
     }
     else {
-      const int me_numVerts = (em) ? em->bm->totvert : ((Mesh *)ob->data)->verts_num;
+      const int me_numVerts = (em) ? em->bm->totvert :
+                                     (blender::id_cast<Mesh *>(ob->data))->verts_num;
 
       if (me_numVerts != vertexCos.size()) {
         BKE_modifier_set_error(ob,
@@ -657,7 +659,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
         rest_coords = rest_coords_alloc;
       }
       else {
-        const Mesh *object_mesh = static_cast<const Mesh *>(ob->data);
+        const Mesh *object_mesh = blender::id_cast<const Mesh *>(ob->data);
         rest_coords = object_mesh->vert_positions();
       }
     }
@@ -773,7 +775,7 @@ static void panel_register(ARegionType *region_type)
 
 static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierData *md)
 {
-  CorrectiveSmoothModifierData csmd = *(const CorrectiveSmoothModifierData *)md;
+  CorrectiveSmoothModifierData csmd = *reinterpret_cast<const CorrectiveSmoothModifierData *>(md);
   const bool is_undo = BLO_write_is_undo(writer);
 
   if (ID_IS_OVERRIDE_LIBRARY(id_owner) && !is_undo) {
@@ -794,8 +796,9 @@ static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierD
                      sizeof(float[3]) * csmd.bind_coords_num,
                      csmd.bind_coords_sharing_info,
                      [&]() {
-                       BLO_write_float3_array(
-                           writer, csmd.bind_coords_num, (const float *)csmd.bind_coords);
+                       BLO_write_float3_array(writer,
+                                              csmd.bind_coords_num,
+                                              reinterpret_cast<const float *>(csmd.bind_coords));
                      });
   }
 
@@ -804,11 +807,12 @@ static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierD
 
 static void blend_read(BlendDataReader *reader, ModifierData *md)
 {
-  CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
+  CorrectiveSmoothModifierData *csmd = reinterpret_cast<CorrectiveSmoothModifierData *>(md);
 
   if (csmd->bind_coords) {
     csmd->bind_coords_sharing_info = BLO_read_shared(reader, &csmd->bind_coords, [&]() {
-      BLO_read_float3_array(reader, int(csmd->bind_coords_num), (float **)&csmd->bind_coords);
+      BLO_read_float3_array(
+          reader, int(csmd->bind_coords_num), reinterpret_cast<float **>(&csmd->bind_coords));
       return blender::implicit_sharing::info_for_mem_free(csmd->bind_coords);
     });
   }

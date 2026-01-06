@@ -55,7 +55,7 @@ void uiTemplateReportsBanner(Layout *layout, bContext *C)
     return;
   }
 
-  ReportTimerInfo *rti = (ReportTimerInfo *)reports->reporttimer->customdata;
+  ReportTimerInfo *rti = static_cast<ReportTimerInfo *>(reports->reporttimer->customdata);
 
   if (!rti || rti->widthfac == 0.0f || !report) {
     return;

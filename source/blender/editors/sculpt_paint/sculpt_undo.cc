@@ -503,7 +503,7 @@ static bool topology_matches(const StepData &step_data, const Object &object)
     return subdiv_ccg.grids_num == step_data.grids.grids_num &&
            subdiv_ccg.grid_size == step_data.grids.grid_size;
   }
-  const Mesh &mesh = *static_cast<Mesh *>(object.data);
+  const Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
   return mesh.verts_num == step_data.mesh.verts_num;
 }
 
@@ -557,7 +557,7 @@ static void restore_position_mesh(Object &object,
   SCOPED_TIMER_AVERAGED(__func__);
 #endif
   SculptSession &ss = *object.sculpt;
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
   MutableSpan<float3> positions = mesh.vert_positions_for_write();
   std::optional<ShapeKeyData> shape_key_data = ShapeKeyData::from_object(object);
 
@@ -671,7 +671,7 @@ static void restore_vert_visibility_mesh(Object &object,
                                          Node &unode,
                                          const MutableSpan<bool> modified_verts)
 {
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   bke::SpanAttributeWriter<bool> hide_vert = attributes.lookup_or_add_for_write_span<bool>(
       ".hide_vert", bke::AttrDomain::Point);
@@ -716,7 +716,7 @@ static void restore_hidden_face(Object &object,
                                 Node &unode,
                                 const MutableSpan<bool> modified_faces)
 {
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   bke::SpanAttributeWriter hide_poly = attributes.lookup_or_add_for_write_span<bool>(
       ".hide_poly", bke::AttrDomain::Face);
@@ -738,7 +738,7 @@ static void restore_color(Object &object,
                           StepData &step_data,
                           const MutableSpan<bool> modified_verts)
 {
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
   bke::GSpanAttributeWriter color_attribute = color::active_color_attribute_for_write(mesh);
 
   for (std::unique_ptr<Node> &unode : step_data.nodes) {
@@ -808,7 +808,7 @@ static bool restore_face_sets(Object &object,
   const Span<int> face_indices = unode.face_indices;
 
   bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(
-      *static_cast<Mesh *>(object.data));
+      *blender::id_cast<Mesh *>(object.data));
   bool modified = false;
   for (const int i : face_indices.index_range()) {
     const int face = face_indices[i];
@@ -853,7 +853,7 @@ static void bmesh_restore_generic(StepData &step_data, Object &object)
 static void bmesh_enable(Object &object, const StepData &step_data)
 {
   SculptSession &ss = *object.sculpt;
-  Mesh *mesh = static_cast<Mesh *>(object.data);
+  Mesh *mesh = blender::id_cast<Mesh *>(object.data);
 
   BKE_sculptsession_free_pbvh(object);
   DEG_id_tag_update(&object.id, ID_RECALC_GEOMETRY);
@@ -908,7 +908,7 @@ static void bmesh_handle_dyntopo_end(bContext *C, StepData &step_data, Object &o
 
 static void store_geometry_data(NodeGeometry *geometry, const Object &object)
 {
-  const Mesh *mesh = static_cast<const Mesh *>(object.data);
+  const Mesh *mesh = blender::id_cast<const Mesh *>(object.data);
 
   BLI_assert(!geometry->is_initialized);
   geometry->is_initialized = true;
@@ -973,7 +973,7 @@ static void restore_geometry(StepData &step_data, Object &object)
   BKE_sculptsession_free_pbvh(object);
   DEG_id_tag_update(&object.id, ID_RECALC_GEOMETRY);
 
-  Mesh *mesh = static_cast<Mesh *>(object.data);
+  Mesh *mesh = blender::id_cast<Mesh *>(object.data);
 
   if (step_data.needs_undo()) {
     restore_geometry_data(&step_data.geometry_original, mesh);
@@ -1046,7 +1046,7 @@ static void refine_subdiv(Depsgraph *depsgraph,
       depsgraph, &object, ss.multires.modifier);
 
   bke::subdiv::eval_refine_from_mesh(
-      subdiv, static_cast<const Mesh *>(object.data), deformed_verts);
+      subdiv, blender::id_cast<const Mesh *>(object.data), deformed_verts);
 }
 
 static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
@@ -1128,7 +1128,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         if (!restore_active_shape_key(*C, *depsgraph, step_data, object)) {
           return;
         }
-        const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+        const Mesh &mesh = *blender::id_cast<const Mesh *>(object.data);
         Array<bool> modified_verts(mesh.verts_num, false);
         restore_position_mesh(object, *step_data.position_step_storage, modified_verts);
 
@@ -1140,12 +1140,12 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       }
 
       if (tag_update) {
-        Mesh &mesh = *static_cast<Mesh *>(object.data);
+        Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
         mesh.tag_positions_changed();
         BKE_sculptsession_free_deformMats(&ss);
       }
       else {
-        Mesh &mesh = *static_cast<Mesh *>(object.data);
+        Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
         /* The BVH normals recalculation that will happen later (caused by
          * `pbvh.tag_positions_changed`) won't recalculate the face corner normals.
          * We need to manually clear that cache. */
@@ -1179,7 +1179,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       }
       else {
         MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-        const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+        const Mesh &mesh = *blender::id_cast<const Mesh *>(object.data);
         Array<bool> modified_verts(mesh.verts_num, false);
         for (std::unique_ptr<Node> &unode : step_data.nodes) {
           restore_vert_visibility_mesh(object, *unode, modified_verts);
@@ -1207,7 +1207,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         return;
       }
 
-      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const Mesh &mesh = *blender::id_cast<const Mesh *>(object.data);
       Array<bool> modified_faces(mesh.faces_num, false);
       for (std::unique_ptr<Node> &unode : step_data.nodes) {
         restore_hidden_face(object, *unode, modified_faces);
@@ -1262,7 +1262,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       }
       else {
         MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-        const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+        const Mesh &mesh = *blender::id_cast<const Mesh *>(object.data);
         Array<bool> modified_verts(mesh.verts_num, false);
         for (std::unique_ptr<Node> &unode : step_data.nodes) {
           restore_mask_mesh(object, *unode, modified_verts);
@@ -1285,7 +1285,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         return;
       }
 
-      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const Mesh &mesh = *blender::id_cast<const Mesh *>(object.data);
       Array<bool> modified_faces(mesh.faces_num, false);
       for (std::unique_ptr<Node> &unode : step_data.nodes) {
         restore_face_sets(object, *unode, modified_faces);
@@ -1323,7 +1323,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
 
       const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
 
-      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const Mesh &mesh = *blender::id_cast<const Mesh *>(object.data);
       Array<bool> modified_verts(mesh.verts_num, false);
       restore_color(object, step_data, modified_verts);
       const IndexMask changed_nodes = IndexMask::from_predicate(
@@ -1419,7 +1419,7 @@ static void store_positions_mesh(const Depsgraph &depsgraph, const Object &objec
                    unode.normal.as_mutable_span());
 
   if (ss.deform_modifiers_active) {
-    const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+    const Mesh &mesh = *blender::id_cast<const Mesh *>(object.data);
     const Span<float3> orig_positions = ss.shapekey_active ? Span(static_cast<const float3 *>(
                                                                       ss.shapekey_active->data),
                                                                   mesh.verts_num) :
@@ -1556,7 +1556,7 @@ static void fill_node_data_mesh(const Depsgraph &depsgraph,
                                 Node &unode)
 {
   const SculptSession &ss = *object.sculpt;
-  const Mesh &mesh = *static_cast<Mesh *>(object.data);
+  const Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
 
   unode.vert_indices = node.all_verts();
   unode.unique_verts_num = node.verts().size();
@@ -1623,7 +1623,7 @@ static void fill_node_data_grids(const Object &object,
                                  Node &unode)
 {
   const SculptSession &ss = *object.sculpt;
-  const Mesh &base_mesh = *static_cast<const Mesh *>(object.data);
+  const Mesh &base_mesh = *blender::id_cast<const Mesh *>(object.data);
   const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
 
   unode.grids = node.grids();
@@ -1961,7 +1961,7 @@ void push_begin_ex(const Scene & /*scene*/, Object &ob, const char *name)
 
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+      const Mesh &mesh = *blender::id_cast<const Mesh *>(ob.data);
       us->data.mesh.verts_num = mesh.verts_num;
       us->data.mesh.corners_num = mesh.corners_num;
       break;
@@ -2257,7 +2257,7 @@ static void step_decode(
          * (some) evaluated data. */
         BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
 
-        Mesh *mesh = static_cast<Mesh *>(ob->data);
+        Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
         /* Don't add sculpt topology undo steps when reading back undo state.
          * The undo steps must enter/exit for us. */
         mesh->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;

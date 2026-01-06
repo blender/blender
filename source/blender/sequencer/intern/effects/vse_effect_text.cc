@@ -602,7 +602,7 @@ static rcti draw_text_outline(const RenderData *context,
   Array<uchar4> tmp_buf(pixel_count, uchar4(0));
   BLF_buffer(runtime->font,
              nullptr,
-             (uchar *)tmp_buf.data(),
+             reinterpret_cast<uchar *>(tmp_buf.data()),
              size.x,
              size.y,
              out->byte_buffer.colorspace);

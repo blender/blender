@@ -645,7 +645,7 @@ static void free_slide_point_data(SlidePointData *data)
 
 static wmOperatorStatus slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  SlidePointData *data = (SlidePointData *)op->customdata;
+  SlidePointData *data = static_cast<SlidePointData *>(op->customdata);
   BezTriple *bezt = &data->point->bezt;
   float co[2];
 
@@ -1164,7 +1164,7 @@ static wmOperatorStatus slide_spline_curvature_modal(bContext *C,
 {
   Scene *scene = CTX_data_scene(C);
   const float margin = 0.2f;
-  SlideSplineCurvatureData *slide_data = (SlideSplineCurvatureData *)op->customdata;
+  SlideSplineCurvatureData *slide_data = static_cast<SlideSplineCurvatureData *>(op->customdata);
   float u = slide_data->u;
 
   switch (event->type) {

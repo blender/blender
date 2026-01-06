@@ -121,7 +121,7 @@ static blender::animrig::Action &extract_pose(Main &bmain, const Span<Object *> 
   for (Object *pose_object : pose_objects) {
     BLI_assert(pose_object->pose);
     Slot &slot = action.slot_add_for_id(pose_object->id);
-    const bArmature *armature = static_cast<bArmature *>(pose_object->data);
+    const bArmature *armature = blender::id_cast<bArmature *>(pose_object->data);
 
     Set<RNAPath> existing_paths;
     if (pose_object->adt && pose_object->adt->action &&
@@ -553,7 +553,7 @@ struct PathValue {
 static Vector<PathValue> generate_path_values(Object &pose_object)
 {
   Vector<PathValue> path_values;
-  const bArmature *armature = static_cast<bArmature *>(pose_object.data);
+  const bArmature *armature = blender::id_cast<bArmature *>(pose_object.data);
   for (bPoseChannel &pose_bone : pose_object.pose->chanbase) {
     if (!blender::animrig::bone_is_selected(armature, &pose_bone)) {
       continue;

@@ -201,7 +201,7 @@ EQCurveMappingData *sound_equalizer_add(SoundEqualizerModifierData *semd, float 
 
 void sound_equalizermodifier_set_graphs(SoundEqualizerModifierData *semd, int number)
 {
-  sound_equalizermodifier_free((StripModifierData *)semd);
+  sound_equalizermodifier_free(reinterpret_cast<StripModifierData *>(semd));
   if (number == 1) {
     sound_equalizer_add(semd, SOUND_EQUALIZER_DEFAULT_MIN_FREQ, SOUND_EQUALIZER_DEFAULT_MAX_FREQ);
   }
@@ -241,14 +241,14 @@ void sound_equalizermodifier_remove_graph(SoundEqualizerModifierData *semd,
 
 void sound_equalizermodifier_init_data(StripModifierData *smd)
 {
-  SoundEqualizerModifierData *semd = (SoundEqualizerModifierData *)smd;
+  SoundEqualizerModifierData *semd = reinterpret_cast<SoundEqualizerModifierData *>(smd);
 
   sound_equalizer_add(semd, SOUND_EQUALIZER_DEFAULT_MIN_FREQ, SOUND_EQUALIZER_DEFAULT_MAX_FREQ);
 }
 
 void sound_equalizermodifier_free(StripModifierData *smd)
 {
-  SoundEqualizerModifierData *semd = (SoundEqualizerModifierData *)smd;
+  SoundEqualizerModifierData *semd = reinterpret_cast<SoundEqualizerModifierData *>(smd);
   for (EQCurveMappingData &eqcmd : semd->graphics.items_mutable()) {
     BKE_curvemapping_free_data(&eqcmd.curve_mapping);
     MEM_freeN(&eqcmd);
@@ -261,8 +261,8 @@ void sound_equalizermodifier_free(StripModifierData *smd)
 
 void sound_equalizermodifier_copy_data(StripModifierData *target, StripModifierData *smd)
 {
-  SoundEqualizerModifierData *semd = (SoundEqualizerModifierData *)smd;
-  SoundEqualizerModifierData *semd_target = (SoundEqualizerModifierData *)target;
+  SoundEqualizerModifierData *semd = reinterpret_cast<SoundEqualizerModifierData *>(smd);
+  SoundEqualizerModifierData *semd_target = reinterpret_cast<SoundEqualizerModifierData *>(target);
   EQCurveMappingData *eqcmd_n;
 
   BLI_listbase_clear(&semd_target->graphics);

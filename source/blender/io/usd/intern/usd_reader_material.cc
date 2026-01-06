@@ -1487,7 +1487,7 @@ void USDMaterialReader::convert_usd_primvar_reader_float2(const pxr::UsdShadeSha
       if (varname_input.Get(&varname_val) && varname_val.CanCastToTypeid(typeid(std::string))) {
         std::string varname = varname_val.Cast<std::string>().Get<std::string>();
         if (!varname.empty()) {
-          NodeShaderUVMap *storage = (NodeShaderUVMap *)uv_map->storage;
+          NodeShaderUVMap *storage = static_cast<NodeShaderUVMap *>(uv_map->storage);
           STRNCPY(storage->uv_map, varname.c_str());
         }
       }
@@ -1546,7 +1546,7 @@ void USDMaterialReader::convert_usd_primvar_reader_generic(const pxr::UsdShadeSh
       if (varname_input.Get(&varname_val) && varname_val.CanCastToTypeid(typeid(std::string))) {
         std::string varname = varname_val.Cast<std::string>().Get<std::string>();
         if (!varname.empty()) {
-          NodeShaderAttribute *storage = (NodeShaderAttribute *)attribute->storage;
+          NodeShaderAttribute *storage = static_cast<NodeShaderAttribute *>(attribute->storage);
           STRNCPY(storage->name, varname.c_str());
         }
       }

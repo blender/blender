@@ -135,7 +135,7 @@ static void precalculate_effector(Depsgraph *depsgraph, EffectorCache *eff)
   eff->rng = BLI_rng_new(eff->pd->seed + cfra);
 
   if (eff->pd->forcefield == PFIELD_GUIDE && eff->ob->type == OB_CURVES_LEGACY) {
-    Curve *cu = static_cast<Curve *>(eff->ob->data);
+    Curve *cu = blender::id_cast<Curve *>(eff->ob->data);
     if (cu->flag & CU_PATH) {
       if (eff->ob->runtime->curve_cache == nullptr ||
           eff->ob->runtime->curve_cache->anim_path_accum_length == nullptr)
@@ -152,7 +152,8 @@ static void precalculate_effector(Depsgraph *depsgraph, EffectorCache *eff)
     }
   }
   else if (eff->pd->shape == PFIELD_SHAPE_SURFACE) {
-    eff->surmd = (SurfaceModifierData *)BKE_modifiers_findby_type(eff->ob, eModifierType_Surface);
+    eff->surmd = reinterpret_cast<SurfaceModifierData *>(
+        BKE_modifiers_findby_type(eff->ob, eModifierType_Surface));
     if (eff->ob->type == OB_CURVES_LEGACY) {
       eff->flag |= PE_USE_NORMAL_DATA;
     }

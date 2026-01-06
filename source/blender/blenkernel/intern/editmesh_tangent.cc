@@ -97,7 +97,7 @@ struct SGLSLEditMeshToTangent {
   {
     const BMLoop *l = GetLoop(face_num, vert_index);
     if (has_uv()) {
-      const float *uv = (const float *)BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+      const float *uv = static_cast<const float *> BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
       return mikk::float3(uv[0], uv[1], 1.0f);
     }
     const float *orco_p = orco[BM_elem_index_get(l->v)];

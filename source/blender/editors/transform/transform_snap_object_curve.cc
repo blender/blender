@@ -28,7 +28,7 @@ eSnapMode snapCurve(SnapObjectContext *sctx, const Object *ob_eval, const float4
     return SCE_SNAP_TO_NONE;
   }
 
-  Curve *cu = static_cast<Curve *>(ob_eval->data);
+  Curve *cu = blender::id_cast<Curve *>(ob_eval->data);
 
   SnapData nearest2d(sctx, obmat);
 

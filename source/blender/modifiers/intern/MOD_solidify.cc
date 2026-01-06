@@ -31,7 +31,7 @@
 
 static void init_data(ModifierData *md)
 {
-  SolidifyModifierData *smd = (SolidifyModifierData *)md;
+  SolidifyModifierData *smd = reinterpret_cast<SolidifyModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(smd, modifier);
 }
 
@@ -41,7 +41,7 @@ static void init_data(ModifierData *md)
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  SolidifyModifierData *smd = (SolidifyModifierData *)md;
+  SolidifyModifierData *smd = reinterpret_cast<SolidifyModifierData *>(md);
 
   /* Ask for vertex-groups if we need them. */
   if (smd->defgrp_name[0] != '\0' || smd->shell_defgrp_name[0] != '\0' ||
@@ -53,7 +53,7 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-  const SolidifyModifierData *smd = (SolidifyModifierData *)md;
+  const SolidifyModifierData *smd = reinterpret_cast<SolidifyModifierData *>(md);
   switch (smd->mode) {
     case MOD_SOLIDIFY_MODE_EXTRUDE:
       return MOD_solidify_extrude_modifyMesh(md, ctx, mesh);

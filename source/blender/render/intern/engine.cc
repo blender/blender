@@ -537,10 +537,10 @@ void RE_engine_report(RenderEngine *engine, int type, const char *msg)
   Render *re = engine->re;
 
   if (re) {
-    BKE_report(engine->re->reports, (eReportType)type, msg);
+    BKE_report(engine->re->reports, eReportType(type), msg);
   }
   else if (engine->reports) {
-    BKE_report(engine->reports, (eReportType)type, msg);
+    BKE_report(engine->reports, eReportType(type), msg);
   }
 }
 
@@ -613,10 +613,12 @@ void RE_engine_get_camera_model_matrix(RenderEngine *engine,
    * leaving stereo to be handled by the engine. */
   Render *re = engine->re;
   if (use_spherical_stereo || re == nullptr) {
-    BKE_camera_multiview_model_matrix(nullptr, camera, nullptr, (float (*)[4])r_modelmat);
+    BKE_camera_multiview_model_matrix(
+        nullptr, camera, nullptr, reinterpret_cast<float (*)[4]>(r_modelmat));
   }
   else {
-    BKE_camera_multiview_model_matrix(&re->r, camera, re->viewname, (float (*)[4])r_modelmat);
+    BKE_camera_multiview_model_matrix(
+        &re->r, camera, re->viewname, reinterpret_cast<float (*)[4]>(r_modelmat));
   }
 }
 
@@ -968,7 +970,7 @@ static void engine_render_add_result_pass_cb(void *user_data,
                                              const char *chanid,
                                              eNodeSocketDatatype /*type*/)
 {
-  RenderResult *rr = (RenderResult *)user_data;
+  RenderResult *rr = static_cast<RenderResult *>(user_data);
   RE_create_render_pass(rr, name, channels, chanid, view_layer->name, RR_ALL_VIEWS, false);
 }
 

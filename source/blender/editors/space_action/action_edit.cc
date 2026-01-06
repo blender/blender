@@ -211,7 +211,7 @@ static bool get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
         }
       }
       else {
-        FCurve *fcu = (FCurve *)ale.key_data;
+        FCurve *fcu = static_cast<FCurve *>(ale.key_data);
         float tmin, tmax;
 
         /* get range and apply necessary scaling before processing */
@@ -799,8 +799,8 @@ static void insert_gpencil_key(bAnimContext *ac,
                                bGPdata **gpd_old)
 {
   Scene *scene = ac->scene;
-  bGPdata *gpd = (bGPdata *)ale->id;
-  bGPDlayer *gpl = (bGPDlayer *)ale->data;
+  bGPdata *gpd = blender::id_cast<bGPdata *>(ale->id);
+  bGPDlayer *gpl = static_cast<bGPDlayer *>(ale->data);
   BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, add_frame_mode);
   /* Check if the gpd changes to tag only once. */
   if (gpd != *gpd_old) {
@@ -852,7 +852,7 @@ static void insert_fcurve_key(bAnimContext *ac,
                               eInsertKeyFlags flag)
 {
   using namespace blender::animrig;
-  FCurve *fcu = (FCurve *)ale->key_data;
+  FCurve *fcu = static_cast<FCurve *>(ale->key_data);
 
   ReportList *reports = ac->reports;
   Scene *scene = ac->scene;
@@ -1043,11 +1043,11 @@ static bool duplicate_action_keys(bAnimContext *ac)
   /* loop through filtered data and delete selected keys */
   for (bAnimListElem &ale : anim_data) {
     if (ELEM(ale.type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
-      changed |= duplicate_fcurve_keys((FCurve *)ale.key_data);
+      changed |= duplicate_fcurve_keys(static_cast<FCurve *>(ale.key_data));
     }
     else if (ale.type == ANIMTYPE_GPLAYER) {
-      ED_gpencil_layer_frames_duplicate((bGPDlayer *)ale.data);
-      changed |= ED_gpencil_layer_frame_select_check((bGPDlayer *)ale.data);
+      ED_gpencil_layer_frames_duplicate(static_cast<bGPDlayer *>(ale.data));
+      changed |= ED_gpencil_layer_frame_select_check(static_cast<bGPDlayer *>(ale.data));
     }
     else if (ale.type == ANIMTYPE_GREASE_PENCIL_LAYER) {
       changed |= blender::ed::greasepencil::duplicate_selected_frames(
@@ -1055,7 +1055,7 @@ static bool duplicate_action_keys(bAnimContext *ac)
           static_cast<GreasePencilLayer *>(ale.data)->wrap());
     }
     else if (ale.type == ANIMTYPE_MASKLAYER) {
-      changed |= ED_masklayer_frames_duplicate((MaskLayer *)ale.data);
+      changed |= ED_masklayer_frames_duplicate(static_cast<MaskLayer *>(ale.data));
     }
     else {
       BLI_assert(0);
@@ -1129,7 +1129,7 @@ static bool delete_action_keys(bAnimContext *ac)
     bool changed = false;
 
     if (ale.type == ANIMTYPE_GPLAYER) {
-      changed = ED_gpencil_layer_frames_delete((bGPDlayer *)ale.data);
+      changed = ED_gpencil_layer_frames_delete(static_cast<bGPDlayer *>(ale.data));
     }
     else if (ale.type == ANIMTYPE_GREASE_PENCIL_LAYER) {
       GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale.id);
@@ -1141,7 +1141,7 @@ static bool delete_action_keys(bAnimContext *ac)
       }
     }
     else if (ale.type == ANIMTYPE_MASKLAYER) {
-      changed = ED_masklayer_frames_delete((MaskLayer *)ale.data);
+      changed = ED_masklayer_frames_delete(static_cast<MaskLayer *>(ale.data));
     }
     else {
       FCurve *fcu = static_cast<FCurve *>(ale.key_data);
@@ -1324,7 +1324,7 @@ static void bake_action_keys(bAnimContext *ac)
 
   /* Loop through filtered data and add keys between selected keyframes on every frame. */
   for (bAnimListElem &ale : anim_data) {
-    blender::animrig::bake_fcurve_segments((FCurve *)ale.key_data);
+    blender::animrig::bake_fcurve_segments(static_cast<FCurve *>(ale.key_data));
 
     ale.update |= ANIM_UPDATE_DEPS;
   }
@@ -1422,7 +1422,7 @@ static void setexpo_action_keys(bAnimContext *ac, short mode)
 
   /* loop through setting mode per F-Curve */
   for (bAnimListElem &ale : anim_data) {
-    FCurve *fcu = (FCurve *)ale.data;
+    FCurve *fcu = static_cast<FCurve *>(ale.data);
 
     if (mode >= 0) {
       /* just set mode setting */
@@ -1645,7 +1645,7 @@ static void sethandles_action_keys(bAnimContext *ac, short mode)
    * Currently that's not necessary here.
    */
   for (bAnimListElem &ale : anim_data) {
-    FCurve *fcu = (FCurve *)ale.key_data;
+    FCurve *fcu = static_cast<FCurve *>(ale.key_data);
 
     /* any selected keyframes for editing? */
     if (ANIM_fcurve_keyframes_loop(nullptr, fcu, nullptr, sel_cb, nullptr)) {

@@ -98,7 +98,7 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
 {
   auto *tmd = reinterpret_cast<GreasePencilTintModifierData *>(md);
   modifier::greasepencil::foreach_influence_ID_link(&tmd->influence, ob, walk, user_data);
-  walk(user_data, ob, (ID **)&tmd->object, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&tmd->object), IDWALK_CB_NOP);
 }
 
 static void foreach_working_space_color(ModifierData *md,

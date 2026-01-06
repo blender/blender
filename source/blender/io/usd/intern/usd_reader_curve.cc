@@ -135,12 +135,12 @@ void USDCurvesReader::create_object(Main *bmain)
   Curves *curve = BKE_curves_add(bmain, name_.c_str());
 
   object_ = BKE_object_add_only_object(bmain, OB_CURVES, name_.c_str());
-  object_->data = curve;
+  object_->data = blender::id_cast<ID *>(curve);
 }
 
 void USDCurvesReader::read_object_data(Main *bmain, pxr::UsdTimeCode time)
 {
-  Curves *cu = (Curves *)object_->data;
+  Curves *cu = blender::id_cast<Curves *>(object_->data);
   this->read_curve_sample(cu, time);
 
   if (this->is_animated()) {

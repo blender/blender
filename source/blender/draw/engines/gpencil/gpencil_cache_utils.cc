@@ -133,8 +133,8 @@ tObject *gpencil_object_cache_add(Instance *inst,
 
 static int gpencil_tobject_dist_sort(const void *a, const void *b)
 {
-  const tObject *ob_a = (const tObject *)a;
-  const tObject *ob_b = (const tObject *)b;
+  const tObject *ob_a = static_cast<const tObject *>(a);
+  const tObject *ob_b = static_cast<const tObject *>(b);
   /* Reminder, camera_z is negative in front of the camera. */
   if (ob_a->camera_z > ob_b->camera_z) {
     return 1;

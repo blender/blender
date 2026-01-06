@@ -223,7 +223,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.error_message_add(NodeWarningType::Error, TIP_("Node only works for curves objects"));
     return;
   }
-  const Curves *self_curves_eval = static_cast<const Curves *>(self_ob_eval->data);
+  const Curves *self_curves_eval = blender::id_cast<const Curves *>(self_ob_eval->data);
   if (self_curves_eval->surface_uv_map == nullptr || self_curves_eval->surface_uv_map[0] == '\0') {
     pass_through_input();
     params.error_message_add(NodeWarningType::Error, TIP_("Surface UV map not defined"));
@@ -244,7 +244,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
   Object *surface_ob_orig = DEG_get_original(surface_ob_eval);
-  Mesh &surface_object_data = *static_cast<Mesh *>(surface_ob_orig->data);
+  Mesh &surface_object_data = *blender::id_cast<Mesh *>(surface_ob_orig->data);
 
   if (BMEditMesh *em = surface_object_data.runtime->edit_mesh.get()) {
     surface_mesh_orig = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, nullptr, &surface_object_data);

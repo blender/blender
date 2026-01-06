@@ -48,13 +48,13 @@
 
 static void init_data(ModifierData *md)
 {
-  DisplaceModifierData *dmd = (DisplaceModifierData *)md;
+  DisplaceModifierData *dmd = reinterpret_cast<DisplaceModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(dmd, modifier);
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  DisplaceModifierData *dmd = (DisplaceModifierData *)md;
+  DisplaceModifierData *dmd = reinterpret_cast<DisplaceModifierData *>(md);
 
   /* Ask for vertex-groups if we need them. */
   if (dmd->defgrp_name[0] != '\0') {
@@ -69,7 +69,7 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 
 static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
 {
-  DisplaceModifierData *dmd = (DisplaceModifierData *)md;
+  DisplaceModifierData *dmd = reinterpret_cast<DisplaceModifierData *>(md);
 
   if (dmd->texture) {
     return BKE_texture_dependsOnTime(dmd->texture);
@@ -80,10 +80,10 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  DisplaceModifierData *dmd = (DisplaceModifierData *)md;
+  DisplaceModifierData *dmd = reinterpret_cast<DisplaceModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&dmd->texture, IDWALK_CB_USER);
-  walk(user_data, ob, (ID **)&dmd->map_object, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&dmd->texture), IDWALK_CB_USER);
+  walk(user_data, ob, reinterpret_cast<ID **>(&dmd->map_object), IDWALK_CB_NOP);
 }
 
 static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, void *user_data)
@@ -95,13 +95,13 @@ static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, voi
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  DisplaceModifierData *dmd = (DisplaceModifierData *)md;
+  DisplaceModifierData *dmd = reinterpret_cast<DisplaceModifierData *>(md);
   return ((!dmd->texture && dmd->direction == MOD_DISP_DIR_RGB_XYZ) || dmd->strength == 0.0f);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  DisplaceModifierData *dmd = (DisplaceModifierData *)md;
+  DisplaceModifierData *dmd = reinterpret_cast<DisplaceModifierData *>(md);
   bool need_transform_relation = false;
 
   if (dmd->space == MOD_DISP_SPACE_GLOBAL &&
@@ -148,7 +148,7 @@ static void displaceModifier_do_task(void *__restrict userdata,
                                      const int iter,
                                      const TaskParallelTLS *__restrict /*tls*/)
 {
-  DisplaceUserdata *data = (DisplaceUserdata *)userdata;
+  DisplaceUserdata *data = static_cast<DisplaceUserdata *>(userdata);
   DisplaceModifierData *dmd = data->dmd;
   const MDeformVert *dvert = data->dvert;
   const bool invert_vgroup = (dmd->flag & MOD_DISP_INVERT_VGROUP) != 0;
@@ -268,14 +268,14 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   Tex *tex_target = dmd->texture;
   if (tex_target != nullptr) {
     tex_co = MEM_calloc_arrayN<float[3]>(positions.size(), "displaceModifier_do tex_co");
-    MOD_get_texture_coords((MappingInfoModifierData *)dmd,
+    MOD_get_texture_coords(reinterpret_cast<MappingInfoModifierData *>(dmd),
                            ctx,
                            ob,
                            mesh,
                            reinterpret_cast<float (*)[3]>(positions.data()),
                            tex_co);
 
-    MOD_init_texture((MappingInfoModifierData *)dmd, ctx);
+    MOD_init_texture(reinterpret_cast<MappingInfoModifierData *>(dmd), ctx);
   }
   else {
     tex_co = nullptr;
@@ -326,7 +326,7 @@ static void deform_verts(ModifierData *md,
                          Mesh *mesh,
                          blender::MutableSpan<blender::float3> positions)
 {
-  displaceModifier_do((DisplaceModifierData *)md, ctx, mesh, positions);
+  displaceModifier_do(reinterpret_cast<DisplaceModifierData *>(md), ctx, mesh, positions);
 }
 
 static void panel_draw(const bContext *C, Panel *panel)

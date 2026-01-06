@@ -44,7 +44,7 @@ static Block *template_search_menu(bContext *C, ARegion *region, void *arg_templ
   static TemplateSearch template_search;
 
   /* arg_template is malloced, can be freed by parent button */
-  template_search = *((TemplateSearch *)arg_template);
+  template_search = *(static_cast<TemplateSearch *>(arg_template));
   PointerRNA active_ptr = RNA_property_pointer_get(&template_search.search_data.target_ptr,
                                                    template_search.search_data.target_prop);
 

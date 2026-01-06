@@ -1484,7 +1484,9 @@ void bonecolls_rotate_block(bArmature *armature,
   BoneCollection *bcoll_to_move = armature->collection_array[move_from_index];
 
   BoneCollection **start = armature->collection_array + start_index;
-  memmove((void *)(start + direction), (void *)start, count * sizeof(BoneCollection *));
+  memmove(static_cast<void *>(start + direction),
+          static_cast<void *>(start),
+          count * sizeof(BoneCollection *));
 
   armature->collection_array[move_to_index] = bcoll_to_move;
 

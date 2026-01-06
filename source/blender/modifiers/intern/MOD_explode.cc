@@ -48,12 +48,12 @@
 
 static void init_data(ModifierData *md)
 {
-  ExplodeModifierData *emd = (ExplodeModifierData *)md;
+  ExplodeModifierData *emd = reinterpret_cast<ExplodeModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(emd, modifier);
 }
 static void free_data(ModifierData *md)
 {
-  ExplodeModifierData *emd = (ExplodeModifierData *)md;
+  ExplodeModifierData *emd = reinterpret_cast<ExplodeModifierData *>(md);
 
   MEM_SAFE_FREE(emd->facepa);
 }
@@ -62,7 +62,7 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
 #if 0
   const ExplodeModifierData *emd = (const ExplodeModifierData *)md;
 #endif
-  ExplodeModifierData *temd = (ExplodeModifierData *)target;
+  ExplodeModifierData *temd = reinterpret_cast<ExplodeModifierData *>(target);
 
   BKE_modifier_copydata_generic(md, target, flag);
 
@@ -74,7 +74,7 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData * /*md*/)
 }
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  ExplodeModifierData *emd = (ExplodeModifierData *)md;
+  ExplodeModifierData *emd = reinterpret_cast<ExplodeModifierData *>(md);
 
   if (emd->vgroup) {
     r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
@@ -94,8 +94,8 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
   const bool invert_vgroup = (emd->flag & eExplodeFlag_INVERT_VGROUP) != 0;
 
   blender::MutableSpan<blender::float3> positions = mesh->vert_positions_for_write();
-  mface = (MFace *)CustomData_get_layer_for_write(
-      &mesh->fdata_legacy, CD_MFACE, mesh->totface_legacy);
+  mface = static_cast<MFace *>(
+      CustomData_get_layer_for_write(&mesh->fdata_legacy, CD_MFACE, mesh->totface_legacy));
   totvert = mesh->verts_num;
   totface = mesh->totface_legacy;
   totpart = psmd->psys->totpart;
@@ -1103,14 +1103,14 @@ static ParticleSystemModifierData *findPrecedingParticlesystem(Object *ob, Modif
 
   for (md = static_cast<ModifierData *>(ob->modifiers.first); emd != md; md = md->next) {
     if (md->type == eModifierType_ParticleSystem) {
-      psmd = (ParticleSystemModifierData *)md;
+      psmd = reinterpret_cast<ParticleSystemModifierData *>(md);
     }
   }
   return psmd;
 }
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-  ExplodeModifierData *emd = (ExplodeModifierData *)md;
+  ExplodeModifierData *emd = reinterpret_cast<ExplodeModifierData *>(md);
   ParticleSystemModifierData *psmd = findPrecedingParticlesystem(ctx->object, md);
 
   if (psmd) {
@@ -1204,7 +1204,7 @@ static void panel_register(ARegionType *region_type)
 
 static void blend_read(BlendDataReader * /*reader*/, ModifierData *md)
 {
-  ExplodeModifierData *psmd = (ExplodeModifierData *)md;
+  ExplodeModifierData *psmd = reinterpret_cast<ExplodeModifierData *>(md);
 
   psmd->facepa = nullptr;
 }

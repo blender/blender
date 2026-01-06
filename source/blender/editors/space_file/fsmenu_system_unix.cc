@@ -132,7 +132,8 @@ static void fsmenu_xdg_insert_entry(GHash *xdg_map,
                                     const char *home)
 {
   char xdg_path_buf[FILE_MAXDIR];
-  const char *xdg_path = (const char *)(xdg_map ? BLI_ghash_lookup(xdg_map, key) : nullptr);
+  const char *xdg_path = static_cast<const char *>(xdg_map ? BLI_ghash_lookup(xdg_map, key) :
+                                                             nullptr);
   if (xdg_path == nullptr) {
     BLI_path_join(xdg_path_buf, sizeof(xdg_path_buf), home, default_path);
     xdg_path = xdg_path_buf;

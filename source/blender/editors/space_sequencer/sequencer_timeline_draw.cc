@@ -664,7 +664,7 @@ static void drawmeta_contents(const TimelineDrawContext &ctx,
       float y_chan = (strip.channel - chan_min) / float(chan_range) * draw_range;
 
       if (strip.type == STRIP_TYPE_COLOR) {
-        SolidColorVars *colvars = (SolidColorVars *)strip.effectdata;
+        SolidColorVars *colvars = static_cast<SolidColorVars *>(strip.effectdata);
         rgb_float_to_uchar(col, colvars->col);
       }
       else {
@@ -1279,7 +1279,7 @@ static void draw_strips_background(const TimelineDrawContext &ctx,
     /* Color band state. */
     if (show_overlay && (strip.strip->type == STRIP_TYPE_COLOR)) {
       data.flags |= GPU_SEQ_FLAG_COLOR_BAND;
-      SolidColorVars *colvars = (SolidColorVars *)strip.strip->effectdata;
+      SolidColorVars *colvars = static_cast<SolidColorVars *>(strip.strip->effectdata);
       rgb_float_to_uchar(col, colvars->col);
       data.col_color_band = color_pack(col);
     }
@@ -1295,7 +1295,7 @@ static void draw_strips_background(const TimelineDrawContext &ctx,
 
       /* Left side. */
       if (input1->type == STRIP_TYPE_COLOR) {
-        rgb_float_to_uchar(col, ((const SolidColorVars *)input1->effectdata)->col);
+        rgb_float_to_uchar(col, (static_cast<const SolidColorVars *>(input1->effectdata))->col);
       }
       else {
         color3ubv_from_seq(scene, input1, strip.show_strip_color_tag, strip.is_muted, col);
@@ -1304,7 +1304,7 @@ static void draw_strips_background(const TimelineDrawContext &ctx,
 
       /* Right side. */
       if (input2->type == STRIP_TYPE_COLOR) {
-        rgb_float_to_uchar(col, ((const SolidColorVars *)input2->effectdata)->col);
+        rgb_float_to_uchar(col, (static_cast<const SolidColorVars *>(input2->effectdata))->col);
       }
       else {
         color3ubv_from_seq(scene, input2, strip.show_strip_color_tag, strip.is_muted, col);

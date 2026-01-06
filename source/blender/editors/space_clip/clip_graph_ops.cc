@@ -67,7 +67,7 @@ struct SelectUserData {
 
 static void toggle_selection_cb(void *userdata, MovieTrackingMarker *marker)
 {
-  SelectUserData *data = (SelectUserData *)userdata;
+  SelectUserData *data = static_cast<SelectUserData *>(userdata);
 
   switch (data->action) {
     case SEL_SELECT:
@@ -367,7 +367,7 @@ static void box_select_cb(void *userdata,
                           int scene_framenr,
                           float val)
 {
-  BoxSelectuserData *data = (BoxSelectuserData *)userdata;
+  BoxSelectuserData *data = static_cast<BoxSelectuserData *>(userdata);
   if (!ELEM(value_source, CLIP_VALUE_SOURCE_SPEED_X, CLIP_VALUE_SOURCE_SPEED_Y)) {
     return;
   }
@@ -619,7 +619,7 @@ static void view_all_cb(void *userdata,
                         int /*scene_framenr*/,
                         float val)
 {
-  ViewAllUserData *data = (ViewAllUserData *)userdata;
+  ViewAllUserData *data = static_cast<ViewAllUserData *>(userdata);
 
   data->min = std::min(val, data->min);
   data->max = std::max(val, data->max);

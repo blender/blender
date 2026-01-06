@@ -669,7 +669,7 @@ void ED_slider_property_label_set(tSlider *slider, const char *property_label)
 void ED_region_draw_mouse_line_cb(const bContext *C, ARegion *region, void *arg_info)
 {
   wmWindow *win = CTX_wm_window(C);
-  const float *mval_src = (float *)arg_info;
+  const float *mval_src = static_cast<float *>(arg_info);
   const float mval_dst[2] = {
       float(win->runtime->eventstate->xy[0] - region->winrct.xmin),
       float(win->runtime->eventstate->xy[1] - region->winrct.ymin),
@@ -749,7 +749,7 @@ static void metadata_custom_draw_fields(const char *field, const char *value, vo
   if (!metadata_is_custom_drawable(field)) {
     return;
   }
-  MetadataCustomDrawContext *ctx = (MetadataCustomDrawContext *)ctx_v;
+  MetadataCustomDrawContext *ctx = static_cast<MetadataCustomDrawContext *>(ctx_v);
   char temp_str[MAX_METADATA_STR];
   SNPRINTF_UTF8(temp_str, "%s: %s", field, value);
   BLF_position(ctx->fontid, ctx->xmin, ctx->ymin + ctx->current_y, 0.0f);
@@ -859,7 +859,7 @@ static void metadata_custom_count_fields(const char *field, const char * /*value
   if (!metadata_is_custom_drawable(field)) {
     return;
   }
-  MetadataCustomCountContext *ctx = (MetadataCustomCountContext *)ctx_v;
+  MetadataCustomCountContext *ctx = static_cast<MetadataCustomCountContext *>(ctx_v);
   ctx->count++;
 }
 

@@ -379,8 +379,8 @@ void IndexBuf::squeeze_indices_short(uint min_idx,
 {
   /* data will never be *larger* than builder->data...
    * converting in place to avoid extra allocation */
-  uint16_t *ushort_idx = (uint16_t *)data_;
-  const uint32_t *uint_idx = (uint32_t *)data_;
+  uint16_t *ushort_idx = static_cast<uint16_t *>(data_);
+  const uint32_t *uint_idx = static_cast<uint32_t *>(data_);
 
   if (max_idx >= 0xFFFF) {
     index_base_ = min_idx;

@@ -304,7 +304,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometryCurvePrimitiveArc &storage = node_storage(params.node());
 
-  const GeometryNodeCurvePrimitiveArcMode mode = (GeometryNodeCurvePrimitiveArcMode)storage.mode;
+  const GeometryNodeCurvePrimitiveArcMode mode = GeometryNodeCurvePrimitiveArcMode(storage.mode);
 
   switch (mode) {
     case GEO_NODE_CURVE_PRIMITIVE_ARC_TYPE_POINTS: {

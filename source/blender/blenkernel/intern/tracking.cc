@@ -1092,7 +1092,7 @@ struct TrackMaskSetPixelData {
 
 static void track_mask_set_pixel_cb(int x, int x_end, int y, void *user_data)
 {
-  TrackMaskSetPixelData *data = (TrackMaskSetPixelData *)user_data;
+  TrackMaskSetPixelData *data = static_cast<TrackMaskSetPixelData *>(user_data);
   size_t index = size_t(y) * data->mask_width + x;
   size_t index_end = size_t(y) * data->mask_width + x_end;
   do {

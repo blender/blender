@@ -116,7 +116,7 @@ static void sh_node_math_gather_link_searches(GatherLinkSearchOpParams &params)
               -1 :
               weight;
       params.add_item(CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, item->name),
-                      SocketSearchOp{"Value", (NodeMathOperation)item->value},
+                      SocketSearchOp{"Value", NodeMathOperation(item->value)},
                       gn_weight);
     }
   }

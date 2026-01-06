@@ -346,22 +346,22 @@ void ED_render_id_flush_update(const DEGEditorUpdateContext *update_ctx, ID *id)
   /* Internal ID update handlers. */
   switch (GS(id->name)) {
     case ID_MA:
-      material_changed(bmain, (Material *)id);
+      material_changed(bmain, blender::id_cast<Material *>(id));
       break;
     case ID_TE:
-      texture_changed(bmain, (Tex *)id);
+      texture_changed(bmain, blender::id_cast<Tex *>(id));
       break;
     case ID_WO:
-      world_changed(bmain, (World *)id);
+      world_changed(bmain, blender::id_cast<World *>(id));
       break;
     case ID_LA:
-      lamp_changed(bmain, (Light *)id);
+      lamp_changed(bmain, blender::id_cast<Light *>(id));
       break;
     case ID_IM:
-      image_changed(bmain, (Image *)id);
+      image_changed(bmain, blender::id_cast<Image *>(id));
       break;
     case ID_SCE:
-      scene_changed(bmain, (Scene *)id);
+      scene_changed(bmain, blender::id_cast<Scene *>(id));
       break;
     case ID_BR:
       BKE_brush_tag_unsaved_changes(reinterpret_cast<Brush *>(id));

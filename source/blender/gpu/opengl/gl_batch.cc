@@ -102,10 +102,10 @@ void GLVaoCache::insert(const GLShaderInterface *interface, GLuint vao)
       /* Not enough place, realloc the array. */
       i = dynamic_vaos.count;
       dynamic_vaos.count += GPU_BATCH_VAO_DYN_ALLOC_COUNT;
-      dynamic_vaos.interfaces = (const GLShaderInterface **)MEM_recallocN(
-          (void *)dynamic_vaos.interfaces, sizeof(GLShaderInterface *) * dynamic_vaos.count);
-      dynamic_vaos.vao_ids = (GLuint *)MEM_recallocN(dynamic_vaos.vao_ids,
-                                                     sizeof(GLuint) * dynamic_vaos.count);
+      dynamic_vaos.interfaces = static_cast<const GLShaderInterface **>(MEM_recallocN(
+          (void *)dynamic_vaos.interfaces, sizeof(GLShaderInterface *) * dynamic_vaos.count));
+      dynamic_vaos.vao_ids = static_cast<GLuint *>(
+          MEM_recallocN(dynamic_vaos.vao_ids, sizeof(GLuint) * dynamic_vaos.count));
     }
     dynamic_vaos.interfaces[i] = interface;
     dynamic_vaos.vao_ids[i] = vao;
@@ -281,10 +281,10 @@ void GLBatch::draw_indirect(blender::gpu::StorageBuf *indirect_buf, intptr_t off
   if (elem) {
     const GLIndexBuf *el = this->elem_();
     GLenum index_type = to_gl(el->index_type_);
-    glDrawElementsIndirect(gl_type, index_type, (GLvoid *)offset);
+    glDrawElementsIndirect(gl_type, index_type, reinterpret_cast<GLvoid *>(offset));
   }
   else {
-    glDrawArraysIndirect(gl_type, (GLvoid *)offset);
+    glDrawArraysIndirect(gl_type, reinterpret_cast<GLvoid *>(offset));
   }
   /* Unbind. */
   glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
@@ -304,10 +304,11 @@ void GLBatch::multi_draw_indirect(blender::gpu::StorageBuf *indirect_buf,
   if (elem) {
     const GLIndexBuf *el = this->elem_();
     GLenum index_type = to_gl(el->index_type_);
-    glMultiDrawElementsIndirect(gl_type, index_type, (GLvoid *)offset, count, stride);
+    glMultiDrawElementsIndirect(
+        gl_type, index_type, reinterpret_cast<GLvoid *>(offset), count, stride);
   }
   else {
-    glMultiDrawArraysIndirect(gl_type, (GLvoid *)offset, count, stride);
+    glMultiDrawArraysIndirect(gl_type, reinterpret_cast<GLvoid *>(offset), count, stride);
   }
   /* Unbind. */
   glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);

@@ -79,7 +79,7 @@ void BKE_gpencil_stroke_2d_flat(const bGPDspoint *points,
   /* Calculate the scalar cross product of the 2d points. */
   float cross = 0.0f;
   float *co_curr;
-  float *co_prev = (float *)&points2d[totpoints - 1];
+  float *co_prev = reinterpret_cast<float *>(&points2d[totpoints - 1]);
 
   /* Get all points in local space */
   for (int i = 0; i < totpoints - 1; i++) {
@@ -318,7 +318,7 @@ static void gpencil_stroke_join_islands(bGPdata *gpd,
       }
 
       if ((dvert_src) && (dvert_src->dw)) {
-        dvert_dst->dw = (MDeformWeight *)MEM_dupallocN(dvert_src->dw);
+        dvert_dst->dw = static_cast<MDeformWeight *>(MEM_dupallocN(dvert_src->dw));
       }
     }
   }
@@ -438,7 +438,7 @@ bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(bGPdata *gpd,
           MDeformVert *dvert_src = &gps->dvert[e];
           MDeformVert *dvert_dst = &new_stroke->dvert[i];
           if (dvert_src->dw) {
-            dvert_dst->dw = (MDeformWeight *)MEM_dupallocN(dvert_src->dw);
+            dvert_dst->dw = static_cast<MDeformWeight *>(MEM_dupallocN(dvert_src->dw));
           }
           e++;
         }

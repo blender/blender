@@ -198,7 +198,7 @@ static void sound_update_animation_flags(Scene *scene);
 static bool sound_update_animation_flags_fn(Strip *strip, void *user_data)
 {
   const FCurve *fcu;
-  Scene *scene = (Scene *)user_data;
+  Scene *scene = static_cast<Scene *>(user_data);
   bool driven;
 
   fcu = id_data_find_fcurve(&scene->id, strip, &RNA_Strip, "volume", 0, &driven);

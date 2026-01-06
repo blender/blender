@@ -687,7 +687,7 @@ static void bm_face_reverse_colors(BMFace *f,
   char *col = cols;
   BM_ITER_ELEM_INDEX (l, &iter, f, BM_LOOPS_OF_FACE, i) {
     void *lcol = BM_ELEM_CD_GET_VOID_P(l, cd_loop_color_offset);
-    memcpy((void *)col, lcol, size);
+    memcpy(static_cast<void *>(col), lcol, size);
     col += size;
   }
 
@@ -697,7 +697,7 @@ static void bm_face_reverse_colors(BMFace *f,
     void *lcol = BM_ELEM_CD_GET_VOID_P(l, cd_loop_color_offset);
 
     col = cols + (f->len - i - 1) * size;
-    memcpy(lcol, (void *)col, size);
+    memcpy(lcol, static_cast<void *>(col), size);
   }
 }
 

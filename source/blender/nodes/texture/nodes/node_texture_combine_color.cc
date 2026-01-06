@@ -51,7 +51,7 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 
 static void update(bNodeTree * /*ntree*/, bNode *node)
 {
-  node_combsep_color_label(&node->inputs, (NodeCombSepColorMode)node->custom1);
+  node_combsep_color_label(&node->inputs, NodeCombSepColorMode(node->custom1));
 }
 
 static void exec(void *data,

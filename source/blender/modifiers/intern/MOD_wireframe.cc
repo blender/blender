@@ -33,13 +33,13 @@
 
 static void init_data(ModifierData *md)
 {
-  WireframeModifierData *wmd = (WireframeModifierData *)md;
+  WireframeModifierData *wmd = reinterpret_cast<WireframeModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(wmd, modifier);
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  WireframeModifierData *wmd = (WireframeModifierData *)md;
+  WireframeModifierData *wmd = reinterpret_cast<WireframeModifierData *>(md);
 
   /* Ask for vertex-groups if we need them. */
   if (wmd->defgrp_name[0] != '\0') {
@@ -91,7 +91,7 @@ static Mesh *WireframeModifier_do(WireframeModifierData *wmd, Object *ob, Mesh *
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-  return WireframeModifier_do((WireframeModifierData *)md, ctx->object, mesh);
+  return WireframeModifier_do(reinterpret_cast<WireframeModifierData *>(md), ctx->object, mesh);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)

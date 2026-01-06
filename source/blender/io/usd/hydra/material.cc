@@ -43,7 +43,8 @@ MaterialData::MaterialData(HydraSceneDelegate *scene_delegate,
 void MaterialData::init()
 {
   ID_LOGN("");
-  double_sided = (((Material *)id)->blend_flag & MA_BL_CULL_BACKFACE) == 0;
+  double_sided = ((blender::id_cast<Material *>(const_cast<ID *>(id)))->blend_flag &
+                  MA_BL_CULL_BACKFACE) == 0;
   material_network_map_ = pxr::VtValue();
 
   /* Create temporary in memory stage. */

@@ -42,14 +42,14 @@
 
 static void init_data(ModifierData *md)
 {
-  MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
+  MeshDeformModifierData *mmd = reinterpret_cast<MeshDeformModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(mmd, modifier);
 }
 
 static void free_data(ModifierData *md)
 {
   using namespace blender;
-  MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
+  MeshDeformModifierData *mmd = reinterpret_cast<MeshDeformModifierData *>(md);
 
   implicit_sharing::free_shared_data(&mmd->bindinfluences, &mmd->bindinfluences_sharing_info);
   implicit_sharing::free_shared_data(&mmd->bindoffsets, &mmd->bindoffsets_sharing_info);
@@ -68,8 +68,8 @@ static void free_data(ModifierData *md)
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
   using namespace blender;
-  const MeshDeformModifierData *mmd = (const MeshDeformModifierData *)md;
-  MeshDeformModifierData *tmmd = (MeshDeformModifierData *)target;
+  const MeshDeformModifierData *mmd = reinterpret_cast<const MeshDeformModifierData *>(md);
+  MeshDeformModifierData *tmmd = reinterpret_cast<MeshDeformModifierData *>(target);
 
   BKE_modifier_copydata_generic(md, target, flag);
 
@@ -103,7 +103,7 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
+  MeshDeformModifierData *mmd = reinterpret_cast<MeshDeformModifierData *>(md);
 
   /* Ask for vertex-groups if we need them. */
   if (mmd->defgrp_name[0] != '\0') {
@@ -113,7 +113,7 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
+  MeshDeformModifierData *mmd = reinterpret_cast<MeshDeformModifierData *>(md);
 
   /* The object type check is only needed here in case we have a placeholder
    * object assigned (because the library containing the mesh is missing).
@@ -125,14 +125,14 @@ static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_re
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
+  MeshDeformModifierData *mmd = reinterpret_cast<MeshDeformModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&mmd->object, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&mmd->object), IDWALK_CB_NOP);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
+  MeshDeformModifierData *mmd = reinterpret_cast<MeshDeformModifierData *>(md);
   if (mmd->object != nullptr) {
     DEG_add_object_relation(ctx->node, mmd->object, DEG_OB_COMP_TRANSFORM, "Mesh Deform Modifier");
     DEG_add_object_relation(ctx->node, mmd->object, DEG_OB_COMP_GEOMETRY, "Mesh Deform Modifier");
@@ -222,7 +222,7 @@ static float meshdeform_dynamic_bind(MeshDeformModifierData *mmd, float (*dco)[3
   }
 
 #if BLI_HAVE_SSE2
-  copy_v3_v3(vec, (float *)&co);
+  copy_v3_v3(vec, reinterpret_cast<float *>(&co));
 #else
   copy_v3_v3(vec, co);
 #endif
@@ -304,7 +304,7 @@ static void meshdeformModifier_do(ModifierData *md,
                                   float (*vertexCos)[3],
                                   const int verts_num)
 {
-  MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
+  MeshDeformModifierData *mmd = reinterpret_cast<MeshDeformModifierData *>(md);
   Object *ob = ctx->object;
 
   Mesh *cagemesh;
@@ -353,7 +353,7 @@ static void meshdeformModifier_do(ModifierData *md,
     }
     if (!recursive_bind_sentinel) {
       recursive_bind_sentinel = 1;
-      mmd->bindfunc(ob, mmd, cagemesh, (float *)vertexCos, verts_num, cagemat);
+      mmd->bindfunc(ob, mmd, cagemesh, reinterpret_cast<float *>(vertexCos), verts_num, cagemat);
       recursive_bind_sentinel = 0;
     }
 
@@ -385,7 +385,7 @@ static void meshdeformModifier_do(ModifierData *md,
 
   /* setup deformation data */
   BKE_mesh_wrapper_vert_coords_copy(cagemesh, dco.as_mutable_span().take_front(cage_verts_num));
-  bindcagecos = (const float (*)[3])mmd->bindcagecos;
+  bindcagecos = reinterpret_cast<const float (*)[3]>(mmd->bindcagecos);
 
   for (a = 0; a < cage_verts_num; a++) {
     /* Get cage vertex in world-space with binding transform. */
@@ -429,7 +429,7 @@ static void deform_verts(ModifierData *md,
 void BKE_modifier_mdef_compact_influences(ModifierData *md)
 {
   using namespace blender;
-  MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
+  MeshDeformModifierData *mmd = reinterpret_cast<MeshDeformModifierData *>(md);
   float weight, totweight;
   int influences_num, verts_num, cage_verts_num, a, b;
 
@@ -527,7 +527,7 @@ static void panel_register(ARegionType *region_type)
 
 static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierData *md)
 {
-  MeshDeformModifierData mmd = *(const MeshDeformModifierData *)md;
+  MeshDeformModifierData mmd = *reinterpret_cast<const MeshDeformModifierData *>(md);
   const bool is_undo = BLO_write_is_undo(writer);
 
   if (ID_IS_OVERRIDE_LIBRARY(id_owner) && !is_undo) {
@@ -608,7 +608,7 @@ static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierD
 
 static void blend_read(BlendDataReader *reader, ModifierData *md)
 {
-  MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
+  MeshDeformModifierData *mmd = reinterpret_cast<MeshDeformModifierData *>(md);
   const int size = mmd->dyngridsize;
 
   if (mmd->bindinfluences) {

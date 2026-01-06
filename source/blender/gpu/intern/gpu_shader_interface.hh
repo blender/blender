@@ -291,7 +291,7 @@ inline uint32_t ShaderInterface::set_input_name(ShaderInput *input,
     }
   }
 
-  input->name_offset = (uint32_t)(name - name_buffer_);
+  input->name_offset = uint32_t(name - name_buffer_);
   input->name_hash = BLI_hash_string(name);
   return name_len + 1; /* include NULL terminator */
 }

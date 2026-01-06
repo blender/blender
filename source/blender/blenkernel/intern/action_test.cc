@@ -30,13 +30,13 @@ TEST(action_groups, ReconstructGroupsWithReordering)
   FCurve groupDcurve1 = {nullptr};
   FCurve groupDcurve2 = {nullptr};
 
-  groupAcurve1.rna_path = (char *)"groupAcurve1";
-  groupAcurve2.rna_path = (char *)"groupAcurve2";
-  groupBcurve1.rna_path = (char *)"groupBcurve1";
-  groupBcurve2.rna_path = (char *)"groupBcurve2";
-  groupDcurve1.rna_path = (char *)"groupDcurve1";
-  groupBcurve3.rna_path = (char *)"groupBcurve3";
-  groupDcurve2.rna_path = (char *)"groupDcurve2";
+  groupAcurve1.rna_path = const_cast<char *>("groupAcurve1");
+  groupAcurve2.rna_path = const_cast<char *>("groupAcurve2");
+  groupBcurve1.rna_path = const_cast<char *>("groupBcurve1");
+  groupBcurve2.rna_path = const_cast<char *>("groupBcurve2");
+  groupDcurve1.rna_path = const_cast<char *>("groupDcurve1");
+  groupBcurve3.rna_path = const_cast<char *>("groupBcurve3");
+  groupDcurve2.rna_path = const_cast<char *>("groupDcurve2");
 
   BLI_addtail(&action.curves, &groupAcurve1);
   BLI_addtail(&action.curves, &groupAcurve2);

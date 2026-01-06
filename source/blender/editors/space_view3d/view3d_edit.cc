@@ -136,7 +136,7 @@ static wmOperatorStatus view_lock_to_active_exec(bContext *C, wmOperator * /*op*
         }
       }
       else {
-        EditBone *ebone_act = ((bArmature *)obact->data)->act_edbone;
+        EditBone *ebone_act = (blender::id_cast<bArmature *>(obact->data))->act_edbone;
         if (ebone_act) {
           STRNCPY_UTF8(v3d->ob_center_bone, ebone_act->name);
         }
@@ -574,7 +574,7 @@ static Camera *background_image_camera_from_context(bContext *C)
   View3D *v3d = CTX_wm_view3d(C);
   if (v3d != nullptr) {
     if (v3d->camera && v3d->camera->data && v3d->camera->type == OB_CAMERA) {
-      return static_cast<Camera *>(v3d->camera->data);
+      return blender::id_cast<Camera *>(v3d->camera->data);
     }
     return nullptr;
   }
@@ -588,7 +588,7 @@ static wmOperatorStatus camera_background_image_add_exec(bContext *C, wmOperator
   Image *ima;
   CameraBGImage *bgpic;
 
-  ima = (Image *)WM_operator_drop_load_path(C, op, ID_IM);
+  ima = blender::id_cast<Image *>(WM_operator_drop_load_path(C, op, ID_IM));
   /* may be nullptr, continue anyway */
 
   bgpic = BKE_camera_background_image_new(cam);
@@ -661,8 +661,8 @@ static wmOperatorStatus camera_background_image_remove_exec(bContext *C, wmOpera
       return OPERATOR_CANCELLED;
     }
 
-    id_us_min((ID *)bgpic_rem->ima);
-    id_us_min((ID *)bgpic_rem->clip);
+    id_us_min(blender::id_cast<ID *>(bgpic_rem->ima));
+    id_us_min(blender::id_cast<ID *>(bgpic_rem->clip));
 
     BKE_camera_background_image_remove(cam, bgpic_rem);
 
@@ -704,13 +704,13 @@ static wmOperatorStatus drop_world_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
 
-  World *world = (World *)WM_operator_properties_id_lookup_from_name_or_session_uid(
-      bmain, op->ptr, ID_WO);
+  World *world = blender::id_cast<World *>(
+      WM_operator_properties_id_lookup_from_name_or_session_uid(bmain, op->ptr, ID_WO));
   if (world == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
-  id_us_min((ID *)scene->world);
+  id_us_min(blender::id_cast<ID *>(scene->world));
   id_us_plus(&world->id);
   scene->world = world;
 

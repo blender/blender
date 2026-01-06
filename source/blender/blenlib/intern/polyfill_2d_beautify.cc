@@ -427,7 +427,7 @@ void BLI_polyfill_beautify(const float (*coords)[2],
   eheap_table = BLI_memarena_alloc(arena, sizeof(HeapNode *) * size_t(edges_len));
 #else
   /* We can re-use this since its big enough. */
-  eheap_table = (HeapNode **)order_edges;
+  eheap_table = reinterpret_cast<HeapNode **>(order_edges);
   order_edges = nullptr;
 #endif
 

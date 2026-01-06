@@ -166,7 +166,7 @@ NlaStrip *BKE_nlastrip_copy(Main *bmain,
     }
     else {
       /* use a copy of the action instead (user count shouldn't have changed yet) */
-      BKE_id_copy_ex(bmain, &strip_d->act->id, (ID **)&strip_d->act, flag);
+      BKE_id_copy_ex(bmain, &strip_d->act->id, reinterpret_cast<ID **>(&strip_d->act), flag);
     }
   }
 
@@ -396,7 +396,7 @@ void BKE_nlatrack_insert_after(ListBaseT<NlaTrack> *nla_tracks,
   /* If nullptr, then caller intends to insert a new head. But, tracks are not allowed to be
    * placed before library overrides. So it must inserted after the last override. */
   if (prev == nullptr) {
-    NlaTrack *first_track = (NlaTrack *)nla_tracks->first;
+    NlaTrack *first_track = static_cast<NlaTrack *>(nla_tracks->first);
     if (first_track != nullptr && (first_track->flag & NLATRACK_OVERRIDELIBRARY_LOCAL) == 0) {
       prev = first_track;
     }
@@ -450,12 +450,14 @@ NlaTrack *BKE_nlatrack_new_after(ListBaseT<NlaTrack> *nla_tracks,
 
 NlaTrack *BKE_nlatrack_new_head(ListBaseT<NlaTrack> *nla_tracks, bool is_liboverride)
 {
-  return BKE_nlatrack_new_before(nla_tracks, (NlaTrack *)nla_tracks->first, is_liboverride);
+  return BKE_nlatrack_new_before(
+      nla_tracks, static_cast<NlaTrack *>(nla_tracks->first), is_liboverride);
 }
 
 NlaTrack *BKE_nlatrack_new_tail(ListBaseT<NlaTrack> *nla_tracks, const bool is_liboverride)
 {
-  return BKE_nlatrack_new_after(nla_tracks, (NlaTrack *)nla_tracks->last, is_liboverride);
+  return BKE_nlatrack_new_after(
+      nla_tracks, static_cast<NlaTrack *>(nla_tracks->last), is_liboverride);
 }
 
 float BKE_nla_clip_length_get_nonzero(const NlaStrip *strip)
@@ -1127,8 +1129,8 @@ void BKE_nlameta_flush_transforms(NlaStrip *mstrip)
    * - these are simply the start/end frames of the child strips,
    *   since we assume they weren't transformed yet
    */
-  oStart = ((NlaStrip *)mstrip->strips.first)->start;
-  oEnd = ((NlaStrip *)mstrip->strips.last)->end;
+  oStart = (static_cast<NlaStrip *>(mstrip->strips.first))->start;
+  oEnd = (static_cast<NlaStrip *>(mstrip->strips.last))->end;
   offset = mstrip->start - oStart;
 
   /* check if scale changed */
@@ -2359,7 +2361,9 @@ bool BKE_nla_tweakmode_enter(const OwnedAnimData owned_adt)
   if (ELEM(nullptr, activeTrack, activeStrip, activeStrip->act)) {
     if (G.debug & G_DEBUG) {
       printf("NLA tweak-mode enter - neither active requirement found\n");
-      printf("\tactiveTrack = %p, activeStrip = %p\n", (void *)activeTrack, (void *)activeStrip);
+      printf("\tactiveTrack = %p, activeStrip = %p\n",
+             static_cast<void *>(activeTrack),
+             static_cast<void *>(activeStrip));
     }
     return false;
   }

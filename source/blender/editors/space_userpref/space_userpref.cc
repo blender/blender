@@ -74,7 +74,7 @@ static SpaceLink *userpref_create(const ScrArea *area, const Scene * /*scene*/)
   BLI_addtail(&spref->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;
 
-  return (SpaceLink *)spref;
+  return reinterpret_cast<SpaceLink *>(spref);
 }
 
 /* Doesn't free the space-link itself. */
@@ -92,7 +92,7 @@ static SpaceLink *userpref_duplicate(SpaceLink *sl)
 
   /* clear or remove stuff from old */
 
-  return (SpaceLink *)sprefn;
+  return reinterpret_cast<SpaceLink *>(sprefn);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */

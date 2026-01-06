@@ -170,7 +170,7 @@ static void do_version_constraints_radians_degrees_270_1(ListBaseT<bConstraint> 
 {
   for (bConstraint &con : *lb) {
     if (con.type == CONSTRAINT_TYPE_TRANSFORM) {
-      bTransformConstraint *data = (bTransformConstraint *)con.data;
+      bTransformConstraint *data = static_cast<bTransformConstraint *>(con.data);
       const float deg_to_rad_f = DEG2RADF(1.0f);
 
       if (data->from == TRANS_ROTATION) {
@@ -190,7 +190,7 @@ static void do_version_constraints_radians_degrees_270_5(ListBaseT<bConstraint> 
 {
   for (bConstraint &con : *lb) {
     if (con.type == CONSTRAINT_TYPE_TRANSFORM) {
-      bTransformConstraint *data = (bTransformConstraint *)con.data;
+      bTransformConstraint *data = static_cast<bTransformConstraint *>(con.data);
 
       if (data->from == TRANS_ROTATION) {
         copy_v3_v3(data->from_min_rot, data->from_min);
@@ -217,7 +217,7 @@ static void do_version_constraints_stretch_to_limits(ListBaseT<bConstraint> *lb)
 {
   for (bConstraint &con : *lb) {
     if (con.type == CONSTRAINT_TYPE_STRETCHTO) {
-      bStretchToConstraint *data = (bStretchToConstraint *)con.data;
+      bStretchToConstraint *data = static_cast<bStretchToConstraint *>(con.data);
       data->bulge_min = 1.0f;
       data->bulge_max = 1.0f;
     }
@@ -267,7 +267,7 @@ static void anim_change_prop_name(FCurve *fcu,
     MEM_freeN(fcu->rna_path);
     fcu->rna_path = BLI_sprintfN("%s.%s", prefix, new_prop_name);
   }
-  MEM_freeN((char *)old_path);
+  MEM_freeN(const_cast<char *>(old_path));
 }
 
 static void do_version_hue_sat_node(bNodeTree *ntree, bNode *node)
@@ -294,9 +294,9 @@ static void do_version_hue_sat_node(bNodeTree *ntree, bNode *node)
         *ntree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Value", "Value");
   }
 
-  ((bNodeSocketValueFloat *)hue->default_value)->value = nhs->hue;
-  ((bNodeSocketValueFloat *)saturation->default_value)->value = nhs->sat;
-  ((bNodeSocketValueFloat *)value->default_value)->value = nhs->val;
+  (static_cast<bNodeSocketValueFloat *>(hue->default_value))->value = nhs->hue;
+  (static_cast<bNodeSocketValueFloat *>(saturation->default_value))->value = nhs->sat;
+  (static_cast<bNodeSocketValueFloat *>(value->default_value))->value = nhs->val;
   /* Take care of possible animation. */
   AnimData *adt = BKE_animdata_from_id(&ntree->id);
   if (adt != nullptr && adt->action != nullptr) {
@@ -310,7 +310,7 @@ static void do_version_hue_sat_node(bNodeTree *ntree, bNode *node)
         anim_change_prop_name(&fcu, prefix, "color_value", "inputs[3].default_value");
       }
     }
-    MEM_freeN((char *)prefix);
+    MEM_freeN(const_cast<char *>(prefix));
   }
   /* Free storage, it is no longer used. */
   MEM_freeN(node->storage);
@@ -505,7 +505,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
       for (Object &ob : bmain->objects) {
         for (ModifierData &md : ob.modifiers) {
           if (md.type == eModifierType_Bevel) {
-            BevelModifierData *bmd = (BevelModifierData *)&md;
+            BevelModifierData *bmd = reinterpret_cast<BevelModifierData *>(&md);
             bmd->profile = 0.5f;
             bmd->val_flags = MOD_BEVEL_AMT_OFFSET;
           }
@@ -529,7 +529,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
       for (ScrArea &area : screen.areabase) {
         for (SpaceLink &space_link : area.spacedata) {
           if (space_link.spacetype == SPACE_CLIP) {
-            SpaceClip *space_clip = (SpaceClip *)&space_link;
+            SpaceClip *space_clip = reinterpret_cast<SpaceClip *>(&space_link);
             if (space_clip->mode != SC_MODE_MASKEDIT) {
               space_clip->mode = SC_MODE_TRACKING;
             }
@@ -662,7 +662,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
       for (Object &ob : bmain->objects) {
         for (ModifierData &md : ob.modifiers) {
           if (md.type == eModifierType_Bevel) {
-            BevelModifierData *bmd = (BevelModifierData *)&md;
+            BevelModifierData *bmd = reinterpret_cast<BevelModifierData *>(&md);
             bmd->mat = -1;
           }
         }
@@ -674,7 +674,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
     for (Object &ob : bmain->objects) {
       for (ModifierData &md : ob.modifiers) {
         if (md.type == eModifierType_ParticleSystem) {
-          ParticleSystemModifierData *pmd = (ParticleSystemModifierData *)&md;
+          ParticleSystemModifierData *pmd = reinterpret_cast<ParticleSystemModifierData *>(&md);
           if (pmd->psys && pmd->psys->clmd) {
             pmd->psys->clmd->sim_parms->vel_damping = 1.0f;
           }
@@ -764,11 +764,11 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
       for (Object &ob : bmain->objects) {
         for (ModifierData &md : ob.modifiers) {
           if (md.type == eModifierType_Cloth) {
-            ClothModifierData *clmd = (ClothModifierData *)&md;
+            ClothModifierData *clmd = reinterpret_cast<ClothModifierData *>(&md);
             clmd->sim_parms->bending_damping = 0.5f;
           }
           else if (md.type == eModifierType_ParticleSystem) {
-            ParticleSystemModifierData *pmd = (ParticleSystemModifierData *)&md;
+            ParticleSystemModifierData *pmd = reinterpret_cast<ParticleSystemModifierData *>(&md);
             if (pmd->psys->clmd) {
               pmd->psys->clmd->sim_parms->bending_damping = 0.5f;
             }
@@ -804,7 +804,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
       for (Object &ob : bmain->objects) {
         for (ModifierData &md : ob.modifiers) {
           if (md.type == eModifierType_Hook) {
-            HookModifierData *hmd = (HookModifierData *)&md;
+            HookModifierData *hmd = reinterpret_cast<HookModifierData *>(&md);
             hmd->falloff_type = eHook_Falloff_InvSquare;
           }
         }
@@ -907,7 +907,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
         for (SpaceLink &sl : area.spacedata) {
           switch (sl.spacetype) {
             case SPACE_VIEW3D: {
-              View3D *v3d = (View3D *)&sl;
+              View3D *v3d = reinterpret_cast<View3D *>(&sl);
               v3d->stereo3d_camera = STEREO_3D_ID;
               v3d->stereo3d_flag |= V3D_S3D_DISPPLANE;
               v3d->stereo3d_convergence_alpha = 0.15f;
@@ -915,7 +915,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
               break;
             }
             case SPACE_IMAGE: {
-              SpaceImage *sima = (SpaceImage *)&sl;
+              SpaceImage *sima = reinterpret_cast<SpaceImage *>(&sl);
               sima->iuser.flag |= IMA_SHOW_STEREO;
               break;
             }
@@ -955,7 +955,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
         for (ScrArea &area : screen.areabase) {
           for (SpaceLink &sl : area.spacedata) {
             if (sl.spacetype == SPACE_FILE) {
-              SpaceFile *sfile = (SpaceFile *)&sl;
+              SpaceFile *sfile = reinterpret_cast<SpaceFile *>(&sl);
 
               if (sfile->params) {
                 sfile->params->thumbnail_size = 128;
@@ -979,7 +979,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
       for (Object &ob : bmain->objects) {
         for (ModifierData &md : ob.modifiers) {
           if (md.type == eModifierType_Decimate) {
-            DecimateModifierData *dmd = (DecimateModifierData *)&md;
+            DecimateModifierData *dmd = reinterpret_cast<DecimateModifierData *>(&md);
             dmd->defgrp_factor = 1.0f;
           }
         }
@@ -1128,7 +1128,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
                                                                            &sl.regionbase;
           /* Bug: Was possible to add preview region to sequencer view by using AZones. */
           if (sl.spacetype == SPACE_SEQ) {
-            SpaceSeq *sseq = (SpaceSeq *)&sl;
+            SpaceSeq *sseq = reinterpret_cast<SpaceSeq *>(&sl);
             if (sseq->view == SEQ_VIEW_SEQUENCE) {
               for (ARegion &region : *regionbase) {
                 /* remove preview region for sequencer-only view! */
@@ -1178,7 +1178,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
         /* handle pushed-back space data first */
         for (SpaceLink &sl : area.spacedata) {
           if (sl.spacetype == SPACE_ACTION) {
-            SpaceAction *saction = (SpaceAction *)&sl;
+            SpaceAction *saction = reinterpret_cast<SpaceAction *>(&sl);
             do_version_action_editor_properties_region(&saction->regionbase);
           }
         }
@@ -1230,7 +1230,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
       for (Object &ob : bmain->objects) {
         for (ModifierData &md : ob.modifiers) {
           if (md.type == eModifierType_NormalEdit) {
-            NormalEditModifierData *nemd = (NormalEditModifierData *)&md;
+            NormalEditModifierData *nemd = reinterpret_cast<NormalEditModifierData *>(&md);
             nemd->mix_limit = DEG2RADF(180.0f);
           }
         }
@@ -1243,7 +1243,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
       for (Object &ob : bmain->objects) {
         for (ModifierData &md : ob.modifiers) {
           if (md.type == eModifierType_Boolean) {
-            BooleanModifierData *bmd = (BooleanModifierData *)&md;
+            BooleanModifierData *bmd = reinterpret_cast<BooleanModifierData *>(&md);
             bmd->double_threshold = 1e-6f;
           }
         }
@@ -1260,11 +1260,11 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
       for (Object &ob : bmain->objects) {
         for (ModifierData &md : ob.modifiers) {
           if (md.type == eModifierType_Cloth) {
-            ClothModifierData *clmd = (ClothModifierData *)&md;
+            ClothModifierData *clmd = reinterpret_cast<ClothModifierData *>(&md);
             clmd->sim_parms->time_scale = 1.0f;
           }
           else if (md.type == eModifierType_ParticleSystem) {
-            ParticleSystemModifierData *pmd = (ParticleSystemModifierData *)&md;
+            ParticleSystemModifierData *pmd = reinterpret_cast<ParticleSystemModifierData *>(&md);
             if (pmd->psys->clmd) {
               pmd->psys->clmd->sim_parms->time_scale = 1.0f;
             }
@@ -1388,7 +1388,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
       for (Object &ob : bmain->objects) {
         for (ModifierData &md : ob.modifiers) {
           if (md.type == eModifierType_Fluid) {
-            FluidModifierData *fmd = (FluidModifierData *)&md;
+            FluidModifierData *fmd = reinterpret_cast<FluidModifierData *>(&md);
             if (fmd->domain) {
               fmd->domain->slice_per_voxel = 5.0f;
               fmd->domain->slice_depth = 0.5f;
@@ -1517,7 +1517,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
       for (Object &ob : bmain->objects) {
         for (ModifierData &md : ob.modifiers) {
           if (md.type == eModifierType_SurfaceDeform) {
-            SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)&md;
+            SurfaceDeformModifierData *smd = reinterpret_cast<SurfaceDeformModifierData *>(&md);
             unit_m4(smd->mat);
           }
         }
@@ -1550,7 +1550,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
       for (Object &ob : bmain->objects) {
         for (ModifierData &md : ob.modifiers) {
           if (md.type == eModifierType_Fluid) {
-            FluidModifierData *fmd = (FluidModifierData *)&md;
+            FluidModifierData *fmd = reinterpret_cast<FluidModifierData *>(&md);
             if (fmd->domain) {
               fmd->domain->clipping = 1e-3f;
             }
@@ -1597,7 +1597,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
       for (Object &ob : bmain->objects) {
         for (ModifierData &md : ob.modifiers) {
           if (md.type == eModifierType_SimpleDeform) {
-            SimpleDeformModifierData *smd = (SimpleDeformModifierData *)&md;
+            SimpleDeformModifierData *smd = reinterpret_cast<SimpleDeformModifierData *>(&md);
             smd->deform_axis = 2;
           }
         }
@@ -1627,7 +1627,8 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
       for (Object &ob : bmain->objects) {
         for (ModifierData &md : ob.modifiers) {
           if (md.type == eModifierType_ParticleInstance) {
-            ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)&md;
+            ParticleInstanceModifierData *pimd = reinterpret_cast<ParticleInstanceModifierData *>(
+                &md);
             pimd->space = eParticleInstanceSpace_World;
             pimd->particle_amount = 1.0f;
           }

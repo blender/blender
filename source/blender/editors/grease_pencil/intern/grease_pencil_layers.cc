@@ -289,7 +289,7 @@ static wmOperatorStatus grease_pencil_layer_active_exec(bContext *C, wmOperator 
 {
   using namespace blender::bke::greasepencil;
   Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
   int layer_index = RNA_int_get(op->ptr, "layer");
 
   if (!grease_pencil.layers().index_range().contains(layer_index)) {
@@ -699,7 +699,7 @@ static wmOperatorStatus grease_pencil_merge_layer_exec(bContext *C, wmOperator *
   using namespace blender::bke::greasepencil;
   Main *bmain = CTX_data_main(C);
   Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
   const MergeMode mode = MergeMode(RNA_enum_get(op->ptr, "mode"));
 
   Vector<Vector<int>> src_layer_indices_by_dst_layer;
@@ -1137,7 +1137,7 @@ static wmOperatorStatus grease_pencil_layer_duplicate_object_exec(bContext *C, w
   Object *src_object = CTX_data_active_object(C);
   const Scene *scene = CTX_data_scene(C);
   const int current_frame = scene->r.cfra;
-  const GreasePencil &src_grease_pencil = *static_cast<GreasePencil *>(src_object->data);
+  const GreasePencil &src_grease_pencil = *blender::id_cast<GreasePencil *>(src_object->data);
   const bool only_active = RNA_boolean_get(op->ptr, "only_active");
   const DuplicateCopyMode copy_frame_mode = DuplicateCopyMode(RNA_enum_get(op->ptr, "mode"));
 
@@ -1145,7 +1145,7 @@ static wmOperatorStatus grease_pencil_layer_duplicate_object_exec(bContext *C, w
     if (ob == src_object || ob->type != OB_GREASE_PENCIL) {
       continue;
     }
-    GreasePencil &dst_grease_pencil = *static_cast<GreasePencil *>(ob->data);
+    GreasePencil &dst_grease_pencil = *blender::id_cast<GreasePencil *>(ob->data);
 
     if (only_active) {
       const Layer &active_layer = *src_grease_pencil.get_active_layer();

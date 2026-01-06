@@ -41,7 +41,7 @@ static int num_inputs_speed()
 
 static void free_speed_effect(Strip *strip, const bool /*do_id_user*/)
 {
-  SpeedControlVars *v = (SpeedControlVars *)strip->effectdata;
+  SpeedControlVars *v = static_cast<SpeedControlVars *>(strip->effectdata);
   if (v->frameMap) {
     MEM_freeN(v->frameMap);
   }
@@ -51,7 +51,7 @@ static void free_speed_effect(Strip *strip, const bool /*do_id_user*/)
 static void copy_speed_effect(Strip *dst, const Strip *src, const int /*flag*/)
 {
   dst->effectdata = MEM_dupallocN(src->effectdata);
-  SpeedControlVars *v = (SpeedControlVars *)dst->effectdata;
+  SpeedControlVars *v = static_cast<SpeedControlVars *>(dst->effectdata);
   v->frameMap = nullptr;
 }
 
@@ -78,7 +78,7 @@ void strip_effect_speed_rebuild_map(Scene *scene, Strip *strip)
     return;
   }
 
-  SpeedControlVars *v = (SpeedControlVars *)strip->effectdata;
+  SpeedControlVars *v = static_cast<SpeedControlVars *>(strip->effectdata);
   if (v->frameMap) {
     MEM_freeN(v->frameMap);
   }
@@ -97,7 +97,7 @@ void strip_effect_speed_rebuild_map(Scene *scene, Strip *strip)
 
 static void strip_effect_speed_frame_map_ensure(Scene *scene, Strip *strip)
 {
-  const SpeedControlVars *v = (SpeedControlVars *)strip->effectdata;
+  const SpeedControlVars *v = static_cast<SpeedControlVars *>(strip->effectdata);
   if (v->frameMap != nullptr) {
     return;
   }
@@ -116,7 +116,7 @@ float strip_speed_effect_target_frame_get(Scene *scene,
 
   strip_effect_handle_get(strip_speed); /* Ensure, that data are initialized. */
   int frame_index = round_fl_to_int(give_frame_index(scene, strip_speed, timeline_frame));
-  SpeedControlVars *s = (SpeedControlVars *)strip_speed->effectdata;
+  SpeedControlVars *s = static_cast<SpeedControlVars *>(strip_speed->effectdata);
   const Strip *source = strip_speed->input1;
 
   float target_frame = 0.0f;
@@ -179,7 +179,7 @@ static ImBuf *do_speed_effect(const RenderData *context,
                               ImBuf *ibuf1,
                               ImBuf *ibuf2)
 {
-  const SpeedControlVars *s = (SpeedControlVars *)strip->effectdata;
+  const SpeedControlVars *s = static_cast<SpeedControlVars *>(strip->effectdata);
   EffectHandle cross_effect = effect_handle_get(STRIP_TYPE_CROSS);
 
   if (s->flags & SEQ_SPEED_USE_INTERPOLATION) {

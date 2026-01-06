@@ -63,12 +63,12 @@ static void rna_WorkSpaceTool_setup(ID *id,
   STRNCPY(tref->idname_fallback, idname_fallback);
   STRNCPY(tref_rt.keymap_fallback, keymap_fallback);
 
-  WM_toolsystem_ref_set_from_runtime(C, (WorkSpace *)id, tref, &tref_rt, idname);
+  WM_toolsystem_ref_set_from_runtime(C, blender::id_cast<WorkSpace *>(id), tref, &tref_rt, idname);
 }
 
 static void rna_WorkSpaceTool_refresh_from_context(ID *id, bToolRef *tref, Main *bmain)
 {
-  WM_toolsystem_ref_sync_from_context(bmain, (WorkSpace *)id, tref);
+  WM_toolsystem_ref_sync_from_context(bmain, blender::id_cast<WorkSpace *>(id), tref);
 }
 
 static PointerRNA rna_WorkSpaceTool_operator_properties(bToolRef *tref,

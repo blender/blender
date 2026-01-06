@@ -36,7 +36,7 @@
 
 static void init_data(ModifierData *md)
 {
-  BuildModifierData *bmd = (BuildModifierData *)md;
+  BuildModifierData *bmd = reinterpret_cast<BuildModifierData *>(md);
   INIT_DEFAULT_STRUCT_AFTER(bmd, modifier);
 }
 
@@ -49,7 +49,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 {
   using namespace blender;
   Mesh *result;
-  BuildModifierData *bmd = (BuildModifierData *)md;
+  BuildModifierData *bmd = reinterpret_cast<BuildModifierData *>(md);
   int i, j, k;
   int faces_dst_num, edges_dst_num, loops_dst_num = 0;
   float frac;

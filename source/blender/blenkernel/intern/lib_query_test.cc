@@ -111,7 +111,7 @@ class WholeIDTestData : public TestData {
     this->target = BKE_object_add_only_object(this->bmain, OB_EMPTY, "IDLibQueryTarget");
 
     this->mesh = BKE_mesh_add(this->bmain, "IDLibQueryMesh");
-    this->object->data = this->mesh;
+    this->object->data = blender::id_cast<ID *>(this->mesh);
 
     BKE_collection_object_add(this->bmain, this->scene->master_collection, this->object);
     BKE_collection_object_add(this->bmain, this->scene->master_collection, this->target);

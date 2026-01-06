@@ -118,12 +118,12 @@ static void sh_node_vector_math_gather_link_searches(GatherLinkSearchOpParams &p
                                                 NODE_VECTOR_MATH_DOT_PRODUCT))
       {
         params.add_item(CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, item->name),
-                        SocketSearchOp{"Value", (NodeVectorMathOperation)item->value},
+                        SocketSearchOp{"Value", NodeVectorMathOperation(item->value)},
                         weight);
       }
       else {
         params.add_item(CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, item->name),
-                        SocketSearchOp{"Vector", (NodeVectorMathOperation)item->value},
+                        SocketSearchOp{"Vector", NodeVectorMathOperation(item->value)},
                         weight);
       }
     }
@@ -215,8 +215,8 @@ static int gpu_shader_vector_math(GPUMaterial *mat,
 
 static void node_shader_update_vector_math(bNodeTree *ntree, bNode *node)
 {
-  bNodeSocket *sockB = (bNodeSocket *)BLI_findlink(&node->inputs, 1);
-  bNodeSocket *sockC = (bNodeSocket *)BLI_findlink(&node->inputs, 2);
+  bNodeSocket *sockB = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 1));
+  bNodeSocket *sockC = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 2));
   bNodeSocket *sockScale = bke::node_find_socket(*node, SOCK_IN, "Scale");
 
   bNodeSocket *sockVector = bke::node_find_socket(*node, SOCK_OUT, "Vector");
